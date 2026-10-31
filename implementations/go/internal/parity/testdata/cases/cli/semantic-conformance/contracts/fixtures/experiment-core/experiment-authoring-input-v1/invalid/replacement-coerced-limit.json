@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-authoring-input-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "2d6f743f11815a03eba3e1364a357b23c10bc8787fc853d4176eda904b1f2776"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-authoring-input-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-authoring-input-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

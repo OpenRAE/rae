@@ -1,0 +1,7 @@
+name: merge-conflict
+nodes:
+  base: &base
+    type: switch
+  conflict:
+    <<: *base
+    type: compute

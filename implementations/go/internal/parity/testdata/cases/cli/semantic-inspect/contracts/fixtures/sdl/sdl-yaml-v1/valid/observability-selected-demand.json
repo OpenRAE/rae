@@ -1,0 +1,108 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "4e0507e382050b6720e111b878ff4c233f7f7d1fa5da6604ca14ce6953b5bede"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 5,
+        "declarations": [
+          {
+            "address": "evidence_requirements.listener-events",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.listener-events",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "nodes.monitor",
+            "kind": "node",
+            "model_path": "nodes.monitor",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.monitor.runtime.service_listeners.telemetry",
+            "kind": "runtime-service_listeners",
+            "model_path": "nodes.monitor.runtime.service_listeners.0.service_listener_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.monitor.services.http",
+            "kind": "service",
+            "model_path": "nodes.monitor.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.observability-plane-conformance",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "observability-plane-conformance",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {
+            "listener-events": {
+              "collection": "require",
+              "export": "disable",
+              "integrity": "checksum",
+              "mode": "selected",
+              "purpose": "experimental",
+              "redaction": "redact-sensitive",
+              "retention": "disable",
+              "rule_id": "listener-events",
+              "scope": "/nodes/monitor",
+              "selector": {
+                "data_kind": "stream",
+                "names": [
+                  "listener-events"
+                ],
+                "semantic_scope": "/nodes/monitor"
+              }
+            }
+          }
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

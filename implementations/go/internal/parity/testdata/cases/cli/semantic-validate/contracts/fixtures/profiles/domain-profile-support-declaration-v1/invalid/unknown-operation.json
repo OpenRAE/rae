@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "domain-profile-support-declaration-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "12dec8153ed0db2acbe6ada2af4181562678eef59d326c5ae1590e63322ca130"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "domain-profile-support-declaration-v1",
+      "diagnostics": [
+        {
+          "address": "domain-profile-support-declaration-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 7,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

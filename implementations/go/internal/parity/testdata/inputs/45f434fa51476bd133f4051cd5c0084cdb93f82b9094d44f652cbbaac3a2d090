@@ -1,0 +1,35 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "backend-selected",
+    "version": "*",
+    "artifact_requirement": {
+      "requirement_id": "open-materialization",
+      "explicitness": "open",
+      "materialization_specifications": [
+        {
+          "specification_id": "cloud-image",
+          "profile": {
+            "mechanism": "materialization-specification",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ],
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "dynamic-composition",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "none",
+          "timing": "realization"
+        }
+      ]
+    }
+  }
+}

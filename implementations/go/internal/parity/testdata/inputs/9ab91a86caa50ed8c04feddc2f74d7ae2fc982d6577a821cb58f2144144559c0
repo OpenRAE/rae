@@ -1,0 +1,32 @@
+{
+  "schema_version": "participant-implementation-manifest/v1",
+  "identity": {
+    "name": "bad-agent",
+    "version": "1.0.0"
+  },
+  "implementation_kind": "agent",
+  "supported_contract_versions": [
+    "participant-implementation-manifest-v1"
+  ],
+  "compatibility": {},
+  "concept_bindings": [
+    {
+      "scope": "implementation_kind",
+      "family": "apparatus-declarations"
+    }
+  ],
+  "capabilities": {
+    "supported_participant_contracts": [
+      "participant-implementation-manifest-v1"
+    ],
+    "supported_decision_surface_modes": [
+      "autonomous"
+    ],
+    "tool_affordance_expectations": [
+      "shell"
+    ],
+    "exposure_policy_kinds": [
+      "task-statement"
+    ]
+  }
+}

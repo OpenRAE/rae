@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "ad6b7716b393b23a64fa82700ef0d2b8d6d28c8347bee48e7f761c4c16791883"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: techvault-enterprise-web\ndescription: 'Curated TechVault enterprise-web slice. Declares the enterprise tier,\n  the Wazuh monitoring core those hosts report to, and the OTEL observability core,\n  without the wider SOC or red-team apparatus.\n\n  '\nnodes:\n  dmz-net:\n    type: switch\n    description: TechVault DMZ network.\n  internal-net:\n    type: switch\n    description: Internal enterprise target network.\n  security-net:\n    type: switch\n    description: SOC and security tooling network.\n  webapp:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 8080\n      protocol: tcp\n      name: http\n  db:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 5432\n      protocol: tcp\n      name: postgres\n  ad:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 389\n      protocol: tcp\n      name: ldap\n    - port: 88\n      protocol: tcp\n      name: kerberos\n    - port: 445\n      protocol: tcp\n      name: smb\n  workstation:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 22\n      protocol: tcp\n      name: ssh\n  wazuh-manager:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    conditions:\n      wazuh-manager-health: ''\n    services:\n    - port: 55000\n      protocol: tcp\n      name: wazuh-api\n    - port: 1514\n      protocol: tcp\n      name: agent-events\n    - port: 514\n      protocol: udp\n      name: syslog\n  wazuh-indexer:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 9200\n      protocol: tcp\n      name: indexer-api\n  aptl-otel-collector:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 4317\n      protocol: tcp\n      name: otlp-grpc\n    - port: 4318\n      protocol: tcp\n      name: otlp-http\n  aptl-tempo:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3200\n      protocol: tcp\n      name: tempo-http\n  aptl-grafana-otel:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3000\n      protocol: tcp\n      name: grafana\ninfrastructure:\n  dmz-net:\n    properties:\n      cidr: 172.20.1.0/24\n      gateway: 172.20.1.1\n      internal: true\n  internal-net:\n    properties:\n      cidr: 172.20.2.0/24\n      gateway: 172.20.2.1\n      internal: true\n  security-net:\n    properties:\n      cidr: 172.20.0.0/24\n      gateway: 172.20.0.1\n      internal: false\n  webapp:\n    links:\n    - dmz-net\n    - internal-net\n    dependencies:\n    - db\n    - wazuh-manager\n  db:\n    links:\n    - internal-net\n  ad:\n    links:\n    - internal-net\n    dependencies:\n    - wazuh-manager\n  workstation:\n    links:\n    - internal-net\n    dependencies:\n    - wazuh-manager\n  wazuh-manager:\n    links:\n    - security-net\n    - internal-net\n    dependencies:\n    - wazuh-indexer\n  wazuh-indexer:\n    links:\n    - security-net\n  aptl-otel-collector:\n    links:\n    - security-net\n  aptl-tempo:\n    links:\n    - security-net\n  aptl-grafana-otel:\n    links:\n    - security-net\n    dependencies:\n    - aptl-tempo\nfeatures:\n  techvault-webapp-service:\n    type: service\n    source:\n      name: aptl-webapp\n      version: local\n    description: TechVault vulnerable customer portal service.\nconditions:\n  wazuh-manager-health:\n    command: /usr/local/bin/check-wazuh-manager\n    interval: 30\n    description: Declarative healthcheck required before public startup is ready.\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:6f909a82f22c63a99995749c8a022c9b0899baade0178498c1deeb41fdd9be83"
+        },
+        "field_count": 6,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "techvault-enterprise-web",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

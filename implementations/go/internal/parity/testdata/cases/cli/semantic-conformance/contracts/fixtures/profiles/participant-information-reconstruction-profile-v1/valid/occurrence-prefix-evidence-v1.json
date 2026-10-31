@@ -1,0 +1,41 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "participant-information-reconstruction-profile-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "99d6351ee45447b13e94aa7a506d49cb3fe7bb02e22e00c911bc94d5e3527001"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "participant-information-reconstruction-profile-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": true,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,59 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-study-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "275cddeb6d13fa7717be3bd6f4940b95b75a9f4d3d61ed2948a0592ba70ce5a3"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "experiment-study-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 17,
+        "members": [
+          "analysis_plan",
+          "behavioral_claims",
+          "description",
+          "factors",
+          "inclusion_criteria",
+          "membership",
+          "owner",
+          "purpose",
+          "report_artifacts",
+          "research_questions",
+          "run_allocation",
+          "schema_version",
+          "study_id",
+          "study_kind",
+          "study_version",
+          "title",
+          "validity_notes"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

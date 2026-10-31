@@ -1,0 +1,47 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "15a8cfc9db142f48085c7631226730741d2793659f7b3aecb2c1f452c777900e"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"accounts\":{\"domain-admin\":{\"node\":\"dc\",\"username\":\"Administrator\"}},\"deployment_cells\":{\"range-a-cell\":{\"cross_tenant_isolation\":\"default_deny\",\"node_refs\":[\"dc\",\"idp\",\"carrier\",\"workforce\"],\"tenant_ref\":\"range-a\"},\"shared-cell\":{\"cross_tenant_isolation\":\"default_deny\",\"node_refs\":[\"inference\"],\"tenant_ref\":\"shared-platform\"}},\"deployment_tenants\":{\"range-a\":{},\"shared-platform\":{}},\"description\":\"Portable enterprise forest, carrier placement, and shared inference tenancy.\",\"identity_domains\":{\"corp\":{\"authority_account_ref\":\"domain-admin\",\"dns_name\":\"corp.example\",\"netbios_name\":\"CORP\",\"profile\":\"active_directory\"}},\"identity_facades\":{\"workforce-oidc\":{\"protocol\":\"oidc\",\"service_ref\":\"nodes.idp.services.oidc\"}},\"identity_forests\":{\"enterprise\":{\"domain_refs\":[\"corp\"],\"root_domain_ref\":\"corp\"}},\"name\":\"enterprise-identity-tenancy\",\"nodes\":{\"carrier\":{\"endpoint_persona\":\"carrier\",\"os\":\"linux\",\"resources\":{\"cpu\":2,\"ram\":2147483648},\"type\":\"compute\"},\"dc\":{\"endpoint_persona\":\"service\",\"os\":\"windows\",\"resources\":{\"cpu\":2,\"ram\":2147483648},\"type\":\"compute\"},\"idp\":{\"endpoint_persona\":\"service\",\"os\":\"linux\",\"resources\":{\"cpu\":1,\"ram\":1073741824},\"services\":[{\"name\":\"oidc\",\"port\":8443}],\"type\":\"compute\"},\"inference\":{\"endpoint_persona\":\"service\",\"os\":\"linux\",\"resources\":{\"cpu\":2,\"ram\":2147483648},\"services\":[{\"name\":\"inference-api\",\"port\":8080}],\"type\":\"compute\"},\"workforce\":{\"endpoint_persona\":\"workforce\",\"os\":\"windows\",\"resources\":{\"cpu\":1,\"ram\":1073741824},\"type\":\"compute\"}},\"relationships\":{\"dc-role\":{\"domain_controller\":{},\"source\":\"dc\",\"target\":\"corp\",\"type\":\"domain_controller_for\"},\"shared-inference\":{\"shared_service\":{\"mutable_state_owner\":\"none\",\"mutable_state_refs\":[],\"reset_generation_owner\":\"none\",\"tenant_isolation\":\"stateless\",\"workload_authentication\":\"tenant_scoped_workload_identity\"},\"source\":\"range-a\",\"target\":\"nodes.inference.services.inference-api\",\"type\":\"uses_shared_service\"},\"workforce-federation\":{\"identity_federation\":{\"direction\":\"authority_to_facade\",\"mapping_intent\":\"groups_to_roles\",\"protocol\":\"ldap_tls\",\"tenant_claim_name\":\"range_instance\",\"tenant_claim_owner\":\"facade\"},\"source\":\"enterprise\",\"target\":\"workforce-oidc\",\"type\":\"directory_federates_to\"},\"workforce-placement\":{\"carrier_placement\":{\"kernel_boundary\":\"shared_kernel\"},\"source\":\"workforce\",\"target\":\"carrier\",\"type\":\"placed_on_carrier\"}},\"version\":\"1.0.0\"}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:a658e3ff37d1f2a9f5f349e791ddb384319decfd8bd4c93ece5e9ae00b42819d"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,345 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "f7a8897beec243e188ee081975006fad32725f469f267db6e75a1e1cf5727032"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 98,
+        "reference_bindings": {
+          "action_contracts.probe-customer-portal-login": [
+            "action_contracts.probe-customer-portal-login"
+          ],
+          "agents.participant-agent": [
+            "agents.participant-agent"
+          ],
+          "assertions.boundary-checks-recorded": [
+            "assertions.boundary-checks-recorded"
+          ],
+          "assertions.participant-observation-recorded": [
+            "assertions.participant-observation-recorded"
+          ],
+          "assertions.policy-decision-recorded": [
+            "assertions.policy-decision-recorded"
+          ],
+          "assertions.wazuh-evidence-recorded": [
+            "assertions.wazuh-evidence-recorded"
+          ],
+          "behavior_specifications.participant-behavior": [
+            "behavior_specifications.participant-behavior"
+          ],
+          "boundary-check-evidence": [
+            "content.boundary-check-evidence"
+          ],
+          "boundary-checks-recorded": [
+            "assertions.boundary-checks-recorded",
+            "conditions.boundary-checks-recorded",
+            "propositions.boundary-checks-recorded"
+          ],
+          "conditions.boundary-checks-recorded": [
+            "conditions.boundary-checks-recorded"
+          ],
+          "conditions.participant-observation-recorded": [
+            "conditions.participant-observation-recorded"
+          ],
+          "conditions.policy-decision-recorded": [
+            "conditions.policy-decision-recorded"
+          ],
+          "conditions.wazuh-evidence-recorded": [
+            "conditions.wazuh-evidence-recorded"
+          ],
+          "conditions.wazuh-manager-health": [
+            "conditions.wazuh-manager-health"
+          ],
+          "content.boundary-check-evidence": [
+            "content.boundary-check-evidence"
+          ],
+          "content.boundary-check-evidence.items.direct-db-unreachable": [
+            "content.boundary-check-evidence.items.direct-db-unreachable"
+          ],
+          "content.boundary-check-evidence.items.direct-wazuh-api-unreachable": [
+            "content.boundary-check-evidence.items.direct-wazuh-api-unreachable"
+          ],
+          "content.evaluator-notes": [
+            "content.evaluator-notes"
+          ],
+          "content.participant-observation": [
+            "content.participant-observation"
+          ],
+          "content.participant-observation.items.portal-login-observation": [
+            "content.participant-observation.items.portal-login-observation"
+          ],
+          "content.policy-decision-log": [
+            "content.policy-decision-log"
+          ],
+          "content.policy-decision-log.items.tool-use-allow-record": [
+            "content.policy-decision-log.items.tool-use-allow-record"
+          ],
+          "content.task-brief": [
+            "content.task-brief"
+          ],
+          "content.wazuh-evidence": [
+            "content.wazuh-evidence"
+          ],
+          "content.wazuh-evidence.items.portal-probe-alert": [
+            "content.wazuh-evidence.items.portal-probe-alert"
+          ],
+          "customer-db": [
+            "nodes.customer-db"
+          ],
+          "customer-portal": [
+            "nodes.customer-portal"
+          ],
+          "demonstrate-handoff": [
+            "objectives.demonstrate-handoff"
+          ],
+          "direct-db-unreachable": [
+            "content.boundary-check-evidence.items.direct-db-unreachable"
+          ],
+          "direct-wazuh-api-unreachable": [
+            "content.boundary-check-evidence.items.direct-wazuh-api-unreachable"
+          ],
+          "dmz-net": [
+            "nodes.dmz-net"
+          ],
+          "enterprise-defender": [
+            "entities.enterprise-defender"
+          ],
+          "enterprise-evaluator": [
+            "entities.enterprise-evaluator"
+          ],
+          "enterprise-participant": [
+            "entities.enterprise-participant"
+          ],
+          "entities.enterprise-defender": [
+            "entities.enterprise-defender"
+          ],
+          "entities.enterprise-evaluator": [
+            "entities.enterprise-evaluator"
+          ],
+          "entities.enterprise-participant": [
+            "entities.enterprise-participant"
+          ],
+          "evaluator-notes": [
+            "content.evaluator-notes"
+          ],
+          "evidence_requirements.objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "infrastructure.customer-db": [
+            "infrastructure.customer-db"
+          ],
+          "infrastructure.customer-portal": [
+            "infrastructure.customer-portal"
+          ],
+          "infrastructure.dmz-net": [
+            "infrastructure.dmz-net"
+          ],
+          "infrastructure.internal-net": [
+            "infrastructure.internal-net"
+          ],
+          "infrastructure.participant-policy-gate": [
+            "infrastructure.participant-policy-gate"
+          ],
+          "infrastructure.red-workbench": [
+            "infrastructure.red-workbench"
+          ],
+          "infrastructure.redteam-net": [
+            "infrastructure.redteam-net"
+          ],
+          "infrastructure.security-net": [
+            "infrastructure.security-net"
+          ],
+          "infrastructure.wazuh-indexer": [
+            "infrastructure.wazuh-indexer"
+          ],
+          "infrastructure.wazuh-manager": [
+            "infrastructure.wazuh-manager"
+          ],
+          "internal-net": [
+            "nodes.internal-net"
+          ],
+          "nodes.customer-db": [
+            "nodes.customer-db"
+          ],
+          "nodes.customer-db.services.postgres": [
+            "nodes.customer-db.services.postgres"
+          ],
+          "nodes.customer-portal": [
+            "nodes.customer-portal"
+          ],
+          "nodes.customer-portal.services.http": [
+            "nodes.customer-portal.services.http"
+          ],
+          "nodes.dmz-net": [
+            "nodes.dmz-net"
+          ],
+          "nodes.internal-net": [
+            "nodes.internal-net"
+          ],
+          "nodes.participant-policy-gate": [
+            "nodes.participant-policy-gate"
+          ],
+          "nodes.participant-policy-gate.services.policy-gate-api": [
+            "nodes.participant-policy-gate.services.policy-gate-api"
+          ],
+          "nodes.red-workbench": [
+            "nodes.red-workbench"
+          ],
+          "nodes.red-workbench.services.ssh": [
+            "nodes.red-workbench.services.ssh"
+          ],
+          "nodes.redteam-net": [
+            "nodes.redteam-net"
+          ],
+          "nodes.security-net": [
+            "nodes.security-net"
+          ],
+          "nodes.wazuh-indexer": [
+            "nodes.wazuh-indexer"
+          ],
+          "nodes.wazuh-indexer.services.indexer-api": [
+            "nodes.wazuh-indexer.services.indexer-api"
+          ],
+          "nodes.wazuh-manager": [
+            "nodes.wazuh-manager"
+          ],
+          "nodes.wazuh-manager.services.agent-events": [
+            "nodes.wazuh-manager.services.agent-events"
+          ],
+          "nodes.wazuh-manager.services.syslog": [
+            "nodes.wazuh-manager.services.syslog"
+          ],
+          "nodes.wazuh-manager.services.wazuh-api": [
+            "nodes.wazuh-manager.services.wazuh-api"
+          ],
+          "objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "objectives.demonstrate-handoff": [
+            "objectives.demonstrate-handoff"
+          ],
+          "observation_boundaries.participant-view": [
+            "observation_boundaries.participant-view"
+          ],
+          "participant-agent": [
+            "agents.participant-agent"
+          ],
+          "participant-behavior": [
+            "behavior_specifications.participant-behavior"
+          ],
+          "participant-observation": [
+            "content.participant-observation"
+          ],
+          "participant-observation-recorded": [
+            "assertions.participant-observation-recorded",
+            "conditions.participant-observation-recorded",
+            "propositions.participant-observation-recorded"
+          ],
+          "participant-policy-gate": [
+            "nodes.participant-policy-gate"
+          ],
+          "participant-view": [
+            "observation_boundaries.participant-view"
+          ],
+          "policy-decision-log": [
+            "content.policy-decision-log"
+          ],
+          "policy-decision-recorded": [
+            "assertions.policy-decision-recorded",
+            "conditions.policy-decision-recorded",
+            "propositions.policy-decision-recorded"
+          ],
+          "portal-login-observation": [
+            "content.participant-observation.items.portal-login-observation"
+          ],
+          "portal-probe-alert": [
+            "content.wazuh-evidence.items.portal-probe-alert"
+          ],
+          "probe-customer-portal-login": [
+            "action_contracts.probe-customer-portal-login"
+          ],
+          "propositions.boundary-checks-recorded": [
+            "propositions.boundary-checks-recorded"
+          ],
+          "propositions.participant-observation-recorded": [
+            "propositions.participant-observation-recorded"
+          ],
+          "propositions.policy-decision-recorded": [
+            "propositions.policy-decision-recorded"
+          ],
+          "propositions.wazuh-evidence-recorded": [
+            "propositions.wazuh-evidence-recorded"
+          ],
+          "red-workbench": [
+            "nodes.red-workbench"
+          ],
+          "redteam-net": [
+            "nodes.redteam-net"
+          ],
+          "reference-handoff": [
+            "workflows.reference-handoff"
+          ],
+          "security-net": [
+            "nodes.security-net"
+          ],
+          "task-brief": [
+            "content.task-brief"
+          ],
+          "tool-use-allow-record": [
+            "content.policy-decision-log.items.tool-use-allow-record"
+          ],
+          "wazuh-evidence": [
+            "content.wazuh-evidence"
+          ],
+          "wazuh-evidence-recorded": [
+            "assertions.wazuh-evidence-recorded",
+            "conditions.wazuh-evidence-recorded",
+            "propositions.wazuh-evidence-recorded"
+          ],
+          "wazuh-indexer": [
+            "nodes.wazuh-indexer"
+          ],
+          "wazuh-manager": [
+            "nodes.wazuh-manager"
+          ],
+          "wazuh-manager-health": [
+            "conditions.wazuh-manager-health"
+          ],
+          "workflows.reference-handoff": [
+            "workflows.reference-handoff"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "enterprise-participant-evidence-loop"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

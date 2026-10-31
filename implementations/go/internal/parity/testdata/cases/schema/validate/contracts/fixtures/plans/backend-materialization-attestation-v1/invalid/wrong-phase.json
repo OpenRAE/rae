@@ -1,0 +1,13 @@
+{
+  "args": [
+    "backend-materialization-attestation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "37d718a44787fc12ea9696e178c543de01a25539669e65c90d76fc0b31e60acc"
+  },
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

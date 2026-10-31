@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "11a4d8a3d4d39c5d93eae692d69e59355279dfdcf33864180067737acdddfdff"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: cross-backend-minimal\nversion: 1.0.0\ndescription: Smallest scenario that resolves inside more than one provisioning backend's\n  realization envelope, for use as the shared input to cross-backend parity checks.\n  Compute intent is authored without a virtualization mechanism or an operating system,\n  so each backend selects a compatible substrate instead of contradicting an authored\n  value.\nnodes:\n  lab:\n    type: switch\n  workload:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\ninfrastructure:\n  lab:\n    count: 1\n    properties:\n      cidr: 10.10.0.0/24\n      gateway: 10.10.0.1\n      internal: true\n  workload:\n    count: 1\n    links:\n    - lab\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:6174f2b5610af2bd9d50843e5ae7270c59920c696372a0ba4689a0c88ad7c29c"
+        },
+        "field_count": 5,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "cross-backend-minimal",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

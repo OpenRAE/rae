@@ -1,0 +1,59 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-context-asset-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "5cb309a11e27cd8667db7544b28ab388e35f4ebff4e9b771dbafe1457af73c26"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-context-asset-v1",
+      "diagnostics": [
+        {
+          "address": "participant-control-context-asset-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 10,
+        "members": [
+          "asset_id",
+          "asset_version",
+          "content",
+          "kind",
+          "participant_addresses",
+          "provenance_refs",
+          "publication_authority_ref",
+          "retention_policy_ref",
+          "role_refs",
+          "schema_version"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

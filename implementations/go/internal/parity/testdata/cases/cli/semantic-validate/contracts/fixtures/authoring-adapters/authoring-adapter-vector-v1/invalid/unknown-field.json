@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "authoring-adapter-vector-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "85caa6cb2042ebf9f4f6e9f5c07eb6db64a4dd0ad30667415baaf8a471b951d4"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "authoring-adapter-vector-v1",
+      "diagnostics": [
+        {
+          "address": "authoring-adapter-vector-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 10,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

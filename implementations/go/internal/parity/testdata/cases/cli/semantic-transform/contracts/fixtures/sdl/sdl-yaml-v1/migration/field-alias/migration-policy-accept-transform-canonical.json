@@ -1,0 +1,56 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--migration-policy",
+    "accept",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "4f947cd7efd5cba4836d06609c4acc3148a0df4c01ad24bc712627e37f24a17a"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [
+        {
+          "address": "/name",
+          "code": "sdl.noncanonical_field",
+          "domain": "sdl-parse",
+          "severity": "warning"
+        }
+      ],
+      "migration_policy": "accept",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"name\":\"migration-alias\"}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:c30d7d62de1d480f7b3e5d67c2f851589d84c75829bdd31d34ca2ac51b32b1a7"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

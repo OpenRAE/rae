@@ -1,0 +1,281 @@
+{
+  "schema_version": "participant-decision-surface/v2",
+  "surface_state": "delivered",
+  "participant_view": {
+    "surface_id": "decision-surfaces.red.episode-1.epoch-0",
+    "participant_address": "participants.red",
+    "episode_id": "episode-1",
+    "decision_epoch": 0,
+    "information_state_ref": "information-states.red.episode-1.epoch-0",
+    "context_view_ref": "context-views.red.episode-1.epoch-0",
+    "decision_control_mode": "agent",
+    "visible_context_refs": [
+      "context.network-segment"
+    ],
+    "action_entries": [
+      {
+        "entry_id": "scan",
+        "action_contract_address": "actions.scan",
+        "presentation_basis_ref": "presentation.scan",
+        "visibility": "observable",
+        "eligibility": "eligible",
+        "eligibility_reason_refs": [],
+        "constraint_refs": [
+          "constraints.scan"
+        ],
+        "selection_shape_ref": "argument-shapes.scan",
+        "support": "supported",
+        "support_refs": [
+          "support.scan"
+        ],
+        "affordance_refs": [
+          "affordances.scanner"
+        ],
+        "realization_refs": [
+          "realizations.scan"
+        ]
+      }
+    ],
+    "affordance_refs": [
+      "affordances.scanner"
+    ],
+    "form": {
+      "surface_form": "candidate_action_set",
+      "selection_meaning_ref": "selection-meaning.candidate.v1",
+      "candidate_entry_ids": [
+        "scan"
+      ],
+      "open_extension_binding_ref": null
+    },
+    "marking_definition_refs": [
+      "markings.participant"
+    ],
+    "redaction_policy_ref": "redaction.participant",
+    "semantic_limitations": [
+      "limitations.bounded-surface"
+    ]
+  },
+  "assurance": {
+    "participant_address": "participants.red",
+    "episode_id": "episode-1",
+    "decision_epoch": 0,
+    "behavior_specification_address": "behavior-specifications.red",
+    "observation_boundary_address": "observation-boundaries.red",
+    "implementation_selection_ref": "implementation-selections.red",
+    "audience_scope_ref": "audiences.red",
+    "projection_policy_ref": "projection-policies.red",
+    "projection_policy_revision": "revision-1",
+    "projection_policy_decision_ref": "policy-decisions.red.initial",
+    "exposure_policy_ref": "exposure-policies.red",
+    "visibility_projection_ref": "visibility-projections.red.initial",
+    "participant_memory_scope": "persistent_across_episodes",
+    "memory_reset_authority_ref": null,
+    "participant_view_digest": "sha256:e17647852a76dfbb242ac3f66e057b4925f6b3ac9e5f2d195d5efa29ae8e0f30",
+    "derivation_anchor": {
+      "participant_address": "participants.red",
+      "episode_id": "episode-1",
+      "decision_epoch": 0,
+      "event_ref": "participant-episode-event:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "state_cut": {
+        "cut_kind": "sequence_prefix",
+        "cut_ref": "participant-state-cuts.red.episode-1.initial",
+        "history_domain": "participant_episode_lifecycle",
+        "order_model": "control_plane_order",
+        "anchor_event_ref": "participant-episode-event:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "anchor_order": 1,
+        "history_prefix_length": 2,
+        "predecessor_event_refs": [
+          "participant-episode-event:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ]
+      },
+      "evidence_refs": [
+        "evidence.episode-running"
+      ],
+      "provenance_refs": [
+        "provenance.episode-running",
+        "participant-episode-event:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "anchor_kind": "episode_readiness",
+      "event_type": "episode_running",
+      "episode_sequence_number": 0
+    },
+    "exposure_bindings": [
+      {
+        "item_ref": "context.network-segment",
+        "authorization_record_ref": "authorizations.context.network-segment",
+        "source_ref": "context.network-segment",
+        "source_layer_ref": "source-layer.scenario",
+        "participant_address": "participants.red",
+        "episode_id": "episode-1",
+        "audience_scope_ref": "audiences.red",
+        "decision_epoch": 0,
+        "decision_cut_ref": "participant-state-cuts.red.episode-1.initial",
+        "visibility_basis_ref": "view-rules.scan",
+        "projection_policy_ref": "projection-policies.red",
+        "projection_policy_revision": "revision-1",
+        "projection_policy_decision_ref": "policy-decisions.red.initial",
+        "exposure_policy_ref": "exposure-policies.red",
+        "exposure_policy_version": "1",
+        "exposure_policy_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "operation": "projection",
+        "operation_basis_ref": "operations.project",
+        "actor_ref": "actors.runtime",
+        "controller_ref": "controllers.runtime",
+        "authority_basis_ref": "authority.participant",
+        "source_marking_definition_refs": [
+          "markings.participant"
+        ],
+        "result_marking_definition_refs": [
+          "markings.participant"
+        ],
+        "source_provenance_refs": [
+          "provenance.context.network-segment"
+        ],
+        "result_provenance_refs": [
+          "provenance.context.network-segment"
+        ],
+        "declassification_basis_ref": null,
+        "redaction_policy_ref": null,
+        "transformation_rule_ref": null,
+        "evidence_refs": [
+          "evidence.authorization.context.network-segment"
+        ],
+        "provenance_refs": [
+          "provenance.context.network-segment"
+        ],
+        "loss_and_limitations": [
+          "limitations.authorization"
+        ]
+      },
+      {
+        "item_ref": "actions.scan",
+        "authorization_record_ref": "authorizations.scan",
+        "source_ref": "actions.scan",
+        "source_layer_ref": "source-layer.scenario",
+        "participant_address": "participants.red",
+        "episode_id": "episode-1",
+        "audience_scope_ref": "audiences.red",
+        "decision_epoch": 0,
+        "decision_cut_ref": "participant-state-cuts.red.episode-1.initial",
+        "visibility_basis_ref": "view-rules.scan",
+        "projection_policy_ref": "projection-policies.red",
+        "projection_policy_revision": "revision-1",
+        "projection_policy_decision_ref": "policy-decisions.red.initial",
+        "exposure_policy_ref": "exposure-policies.red",
+        "exposure_policy_version": "1",
+        "exposure_policy_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "operation": "projection",
+        "operation_basis_ref": "operations.project",
+        "actor_ref": "actors.runtime",
+        "controller_ref": "controllers.runtime",
+        "authority_basis_ref": "authority.participant",
+        "source_marking_definition_refs": [
+          "markings.participant"
+        ],
+        "result_marking_definition_refs": [
+          "markings.participant"
+        ],
+        "source_provenance_refs": [
+          "provenance.scan"
+        ],
+        "result_provenance_refs": [
+          "provenance.scan"
+        ],
+        "declassification_basis_ref": null,
+        "redaction_policy_ref": null,
+        "transformation_rule_ref": null,
+        "evidence_refs": [
+          "evidence.authorization.scan"
+        ],
+        "provenance_refs": [
+          "provenance.scan"
+        ],
+        "loss_and_limitations": [
+          "limitations.authorization"
+        ]
+      },
+      {
+        "item_ref": "affordances.scanner",
+        "authorization_record_ref": "authorizations.affordances.scanner",
+        "source_ref": "affordances.scanner",
+        "source_layer_ref": "source-layer.scenario",
+        "participant_address": "participants.red",
+        "episode_id": "episode-1",
+        "audience_scope_ref": "audiences.red",
+        "decision_epoch": 0,
+        "decision_cut_ref": "participant-state-cuts.red.episode-1.initial",
+        "visibility_basis_ref": "view-rules.scan",
+        "projection_policy_ref": "projection-policies.red",
+        "projection_policy_revision": "revision-1",
+        "projection_policy_decision_ref": "policy-decisions.red.initial",
+        "exposure_policy_ref": "exposure-policies.red",
+        "exposure_policy_version": "1",
+        "exposure_policy_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "operation": "projection",
+        "operation_basis_ref": "operations.project",
+        "actor_ref": "actors.runtime",
+        "controller_ref": "controllers.runtime",
+        "authority_basis_ref": "authority.participant",
+        "source_marking_definition_refs": [
+          "markings.participant"
+        ],
+        "result_marking_definition_refs": [
+          "markings.participant"
+        ],
+        "source_provenance_refs": [
+          "provenance.affordances.scanner"
+        ],
+        "result_provenance_refs": [
+          "provenance.affordances.scanner"
+        ],
+        "declassification_basis_ref": null,
+        "redaction_policy_ref": null,
+        "transformation_rule_ref": null,
+        "evidence_refs": [
+          "evidence.authorization.affordances.scanner"
+        ],
+        "provenance_refs": [
+          "provenance.affordances.scanner"
+        ],
+        "loss_and_limitations": [
+          "limitations.authorization"
+        ]
+      }
+    ],
+    "evidence_refs": [
+      "evidence.episode-running",
+      "evidence.authorization.context.network-segment",
+      "evidence.authorization.scan",
+      "evidence.authorization.affordances.scanner"
+    ],
+    "provenance_refs": [
+      "provenance.episode-running",
+      "participant-episode-event:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "provenance.context.network-segment",
+      "provenance.scan",
+      "provenance.affordances.scanner"
+    ]
+  },
+  "delivery": {
+    "delivery_ref": "decision-surface-deliveries.red.episode-1.epoch-0",
+    "surface_id": "decision-surfaces.red.episode-1.epoch-0",
+    "participant_address": "participants.red",
+    "episode_id": "episode-1",
+    "decision_epoch": 0,
+    "participant_view_digest": "sha256:e17647852a76dfbb242ac3f66e057b4925f6b3ac9e5f2d195d5efa29ae8e0f30",
+    "delivery_basis": "emission_is_delivery",
+    "delivery_cut_ref": "participant-state-cuts.red.episode-1.initial",
+    "delivery_authorization_ref": "delivery-authorizations.red.episode-1.epoch-0",
+    "delivery_policy_decision_ref": "delivery-policy-decisions.red.episode-1.epoch-0",
+    "observation_ref": "participant-observations.red.episode-1.epoch-0",
+    "evidence_refs": [
+      "evidence.surface-delivery"
+    ],
+    "provenance_refs": [
+      "provenance.surface-delivery"
+    ],
+    "limitations": [
+      "limitations.synchronous-delivery"
+    ]
+  }
+}

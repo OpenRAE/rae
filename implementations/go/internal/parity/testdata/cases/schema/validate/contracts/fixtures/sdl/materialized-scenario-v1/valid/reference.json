@@ -1,0 +1,13 @@
+{
+  "args": [
+    "materialized-scenario-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6a4030238df4fa4e7e62c8fd7191de794f16cba55204db1a01fe38bd4cb7cc54"
+  },
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

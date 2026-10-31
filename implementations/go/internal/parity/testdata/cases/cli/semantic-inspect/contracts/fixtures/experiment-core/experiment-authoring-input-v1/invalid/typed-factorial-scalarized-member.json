@@ -1,0 +1,65 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-authoring-input-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "99b36f862841b775ff3ce1ed58da75c496f2d38b971c2214ff7beb92e18a8fad"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-authoring-input-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-authoring-input-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 16,
+        "members": [
+          "apparatus_intent",
+          "artifact_refs",
+          "binding_descriptors",
+          "binding_semantics",
+          "capture_spec_refs",
+          "description",
+          "factorial_design",
+          "factors",
+          "intended_scenario_ref",
+          "run_plan",
+          "schema_version",
+          "spec_id",
+          "spec_version",
+          "task_ref",
+          "title",
+          "validity_notes"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

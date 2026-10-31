@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-context-change-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "f34d8530411bc9848efaedf39efa1d72c6395e5ddf546640c6f86bd6d9eab7c9"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-context-change-v1",
+      "diagnostics": [
+        {
+          "address": "participant-control-context-change-v1",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 12,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

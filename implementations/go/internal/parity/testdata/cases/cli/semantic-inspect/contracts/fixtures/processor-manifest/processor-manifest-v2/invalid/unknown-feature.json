@@ -1,0 +1,56 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "processor-manifest-v2",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "fa1ed8e2f6720326397612524b274536a3cdfde61d8b59db71a9f621eb2a0e3b"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "processor-manifest-v2",
+      "diagnostics": [
+        {
+          "address": "processor-manifest-v2",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 7,
+        "members": [
+          "capabilities",
+          "compatibility",
+          "concept_bindings",
+          "constraints",
+          "identity",
+          "schema_version",
+          "supported_contract_versions"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

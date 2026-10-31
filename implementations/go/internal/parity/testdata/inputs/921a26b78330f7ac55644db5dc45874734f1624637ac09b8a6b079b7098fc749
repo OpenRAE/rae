@@ -1,0 +1,70 @@
+{
+  "schema_version": "semantic-comparison-request/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "before": {
+    "canonical_identity": "study:study-techvault-baseline",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:696872dd2aff9e116eca6e0eb945a575328ec7a07222c7625e78f05ea951b281",
+    "exact_representation": null,
+    "artifact_kind": "study",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-study/v1",
+    "study_id": "study-techvault-baseline",
+    "study_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "study:study-techvault-baseline",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:696872dd2aff9e116eca6e0eb945a575328ec7a07222c7625e78f05ea951b281",
+    "exact_representation": null,
+    "artifact_kind": "study",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-study/v1",
+    "study_id": "study-techvault-baseline",
+    "study_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "study:study-techvault-baseline"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "study:study-techvault-baseline",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:696872dd2aff9e116eca6e0eb945a575328ec7a07222c7625e78f05ea951b281",
+        "exact_representation": null,
+        "artifact_kind": "study",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-study/v1",
+        "study_id": "study-techvault-baseline",
+        "study_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "study:study-techvault-baseline",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:696872dd2aff9e116eca6e0eb945a575328ec7a07222c7625e78f05ea951b281",
+        "exact_representation": null,
+        "artifact_kind": "study",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-study/v1",
+        "study_id": "study-techvault-baseline",
+        "study_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:72fc3d340c55aadf14ef09a352d8ce3f2bd004ee45e5f313a3c7fd6fb8f12738"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

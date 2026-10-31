@@ -1,0 +1,57 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-capture-spec-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "d9c0cdd68abdbbe720b1c8ea27b8831d7c7f2bf630dfd8a76d223d6d851be5af"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-capture-spec-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-capture-spec-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 8,
+        "members": [
+          "capture_requirements",
+          "capture_spec_id",
+          "capture_windows",
+          "description",
+          "schema_version",
+          "scope_refs",
+          "spec_version",
+          "title"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

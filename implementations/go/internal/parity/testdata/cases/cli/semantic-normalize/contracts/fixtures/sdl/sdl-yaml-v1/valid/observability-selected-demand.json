@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "4e0507e382050b6720e111b878ff4c233f7f7d1fa5da6604ca14ce6953b5bede"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: observability-plane-conformance\nnodes:\n  monitor:\n    type: compute\n    source:\n      name: exact-monitor-image\n      version: '*'\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    os_distribution: ubuntu\n    os_version: '24.04'\n    services:\n    - port: 80\n      protocol: tcp\n      name: http\n    runtime:\n      service_listeners:\n      - service_listener_id: telemetry\n        service: http\n        address: 0.0.0.0\n        port: 80\n        protocol: tcp\n        address_family: ipv4\n        scope: wildcard\nevidence_requirements:\n  listener-events:\n    source_refs:\n    - nodes.monitor.runtime.service_listeners.telemetry\n    scope_refs:\n    - nodes.monitor\n    window: run\n    channel: api_response\n    sensitivity: plain\n    redaction: redact_sensitive\n    integrity: checksum\n    retention: not_retained\n    loss_disclosure: required\n    observation_demand:\n      rule_id: listener-events\n      scope: /nodes/monitor\n      purpose: experimental\n      mode: selected\n      selector:\n        semantic_scope: /nodes/monitor\n        data_kind: stream\n        names:\n        - listener-events\n      collection: require\n      retention: disable\n      export: disable\n      redaction: redact-sensitive\n      integrity: checksum\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:2279f67fbf1eeb26b272eb1bee07d987c83d1dd4c6a8903d0f74e453dce02d85"
+        },
+        "field_count": 3,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "observability-plane-conformance",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

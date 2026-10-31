@@ -1,0 +1,21 @@
+{
+  "schema_version": "runtime-snapshot/v1",
+  "entries": {},
+  "orchestration_results": {},
+  "orchestration_history": {},
+  "evaluation_results": {},
+  "evaluation_history": {},
+  "participant_episode_results": {},
+  "participant_episode_history": {},
+  "participant_behavior_history": {},
+  "realization_provenance": [
+    {
+      "address": "node.web",
+      "field_path": "nodes.web.os",
+      "domain": "runtime-realization",
+      "requirement_kind": "os-family",
+      "explicitness": "exact"
+    }
+  ],
+  "metadata": {}
+}

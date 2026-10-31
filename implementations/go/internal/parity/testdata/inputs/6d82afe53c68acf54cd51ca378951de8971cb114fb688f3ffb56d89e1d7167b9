@@ -1,0 +1,126 @@
+{
+  "schema_version": "reusable-asset-trust-policy/v1",
+  "policy_id": "raes-reusable-asset-trust-policy",
+  "families": [
+    {
+      "asset_family": "associated_artifact_set",
+      "identity_basis": "associated-artifact-manifest-v1 canonical parent-plus-reference-set digest",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "associated-artifact-set/v1 derived set_digest",
+          "description": "The set digest binds the exact parent reference and keyed artifact-reference set without changing parent identity."
+        },
+        {
+          "evidence_class": "artifact_checksum",
+          "enforcement": "required",
+          "mechanism_ref": "validate_associated_artifact_manifest bounded concrete-byte validation",
+          "description": "Every referenced payload checksum and size is recomputed from an explicitly supplied bounded byte stream."
+        },
+        {
+          "evidence_class": "authenticity_signature",
+          "enforcement": "optional",
+          "mechanism_ref": "downstream signature over the derived associated-artifact set digest",
+          "description": "A signature may authenticate the set digest, but neither the digest nor payload checksums establish authenticity alone."
+        }
+      ]
+    },
+    {
+      "asset_family": "reusable_scenario",
+      "identity_basis": "identity-basis-for-reusable_scenario",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "existing-mechanism",
+          "description": "baseline required integrity"
+        },
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "recommended",
+          "mechanism_ref": "other",
+          "description": "duplicate class"
+        }
+      ]
+    },
+    {
+      "asset_family": "sdl_module",
+      "identity_basis": "identity-basis-for-sdl_module",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "existing-mechanism",
+          "description": "baseline required integrity"
+        }
+      ]
+    },
+    {
+      "asset_family": "experiment_task",
+      "identity_basis": "identity-basis-for-experiment_task",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "existing-mechanism",
+          "description": "baseline required integrity"
+        }
+      ]
+    },
+    {
+      "asset_family": "experiment_study",
+      "identity_basis": "identity-basis-for-experiment_study",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "existing-mechanism",
+          "description": "baseline required integrity"
+        }
+      ]
+    },
+    {
+      "asset_family": "behavior_vocabulary",
+      "identity_basis": "identity-basis-for-behavior_vocabulary",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "existing-mechanism",
+          "description": "baseline required integrity"
+        },
+        {
+          "evidence_class": "governance_source",
+          "enforcement": "required",
+          "mechanism_ref": "controlled-vocabularies source",
+          "description": "authoritative origin"
+        }
+      ]
+    },
+    {
+      "asset_family": "participant_manifest",
+      "identity_basis": "identity-basis-for-participant_manifest",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "existing-mechanism",
+          "description": "baseline required integrity"
+        }
+      ]
+    },
+    {
+      "asset_family": "evidence_artifact",
+      "identity_basis": "identity-basis-for-evidence_artifact",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "existing-mechanism",
+          "description": "baseline required integrity"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "sample-selection",
+  "spec_version": "1.0.0",
+  "title": "Bounded uniform selection",
+  "description": "Draw two bounded uniform outcomes with replacement.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example",
+    "ref_version": "1.0.0"
+  },
+  "intended_scenario_ref": {
+    "ref_kind": "scenario",
+    "ref_id": "family-example"
+  },
+  "run_plan": {
+    "stochastic_controls": [
+      {
+        "control_id": "sample-control",
+        "role": "sampling",
+        "executable_binding": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "blake3-xof-v1"
+          },
+          "namespace": "sample-selection",
+          "root_entropy": {
+            "kind": "public-seed",
+            "encoding": "hex-fixed-width",
+            "value": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        }
+      }
+    ],
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop after one bounded episode."
+    },
+    "target_run_count": 2,
+    "selection_policies": {
+      "sample-host": {
+        "kind": "sample",
+        "policy_id": "sample-host",
+        "purpose": "nuisance-variation",
+        "point_ref": "payload-host",
+        "algorithm_profile": "uniform-index-v1",
+        "distribution": "uniform",
+        "replacement": "with-replacement",
+        "sample_count": 2,
+        "output_bound": 2,
+        "stochastic_control_ref": "sample-control",
+        "logical_coordinate_profile": "selection-coordinate-v1"
+      }
+    }
+  }
+}

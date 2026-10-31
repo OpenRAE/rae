@@ -1,0 +1,49 @@
+{
+  "schema_version": "participant-configuration-result/v1",
+  "participant_address": "participants.red",
+  "manifest_ref": "manifests/reference-red-agent.json",
+  "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "configuration": {
+    "implementation_identity": {
+      "name": "reference-red-agent",
+      "version": "1.0.0"
+    },
+    "manifest_version": "participant-implementation-manifest/v1",
+    "owner": {
+      "contract_id": "participant-configuration-result-v1",
+      "contract_version": "1",
+      "validator_id": "reference-participant-configuration",
+      "validator_version": "1"
+    },
+    "values": [
+      {
+        "target_id": "credentials.api",
+        "value_type": "string",
+        "origin": "override",
+        "value": {
+          "kind": "secret-reference",
+          "reference_id": "operator-secret.reference-red-api"
+        }
+      },
+      {
+        "target_id": "policy.mode",
+        "value_type": "string",
+        "origin": "override",
+        "value": {
+          "kind": "literal",
+          "value": "deterministic"
+        }
+      },
+      {
+        "target_id": "policy.temperature",
+        "value_type": "number",
+        "origin": "default",
+        "value": {
+          "kind": "literal",
+          "value": 0.25
+        }
+      }
+    ]
+  },
+  "configuration_digest": "sha256:3949cb272258d96d9506f23077c89cbb77d4dad2d0218fed74145bbd5a971655"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "invalid-fixed",
+  "spec_version": "1.0.0",
+  "title": "Invalid fixed policy",
+  "description": "A fixed policy must carry one outcome.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop."
+    },
+    "target_run_count": 1,
+    "selection_policies": {
+      "fixed-path": {
+        "kind": "fixed",
+        "policy_id": "fixed-path",
+        "purpose": "fixed-configuration",
+        "point_ref": "payload-path",
+        "output_bound": 1
+      }
+    }
+  }
+}

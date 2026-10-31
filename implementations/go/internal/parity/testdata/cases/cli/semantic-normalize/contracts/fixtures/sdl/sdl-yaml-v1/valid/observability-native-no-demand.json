@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "9e541184d9dcd003db1c42ee8384aaef2dcd8810d908ead7b5d3ccd983fe26f5"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: observability-plane-conformance\nnodes:\n  monitor:\n    type: compute\n    source:\n      name: exact-monitor-image\n      version: '*'\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    os_distribution: ubuntu\n    os_version: '24.04'\n    services:\n    - port: 80\n      protocol: tcp\n      name: http\n    runtime:\n      service_listeners:\n      - service_listener_id: telemetry\n        service: http\n        address: 0.0.0.0\n        port: 80\n        protocol: tcp\n        address_family: ipv4\n        scope: wildcard\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:ddbcf61bb764baea694c4f983a0faa94f1a822802017074071fa8ac50581b08e"
+        },
+        "field_count": 2,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "observability-plane-conformance",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

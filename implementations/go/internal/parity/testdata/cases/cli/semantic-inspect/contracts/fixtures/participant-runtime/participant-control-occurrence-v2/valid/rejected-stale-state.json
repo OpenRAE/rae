@@ -1,0 +1,63 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-occurrence-v2",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "95804e6eb0fe71c5b19ca5237d9f0e990d842c6d39a81002ba6edd3c245b285f"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "participant-control-occurrence-v2",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 21,
+        "members": [
+          "actor_ref",
+          "authorization_scope",
+          "clock_authority",
+          "episode_id",
+          "event_id",
+          "event_type",
+          "evidence_refs",
+          "extension_policy",
+          "ingested_at",
+          "object_marking_refs",
+          "occurred_at",
+          "occurrence",
+          "ordering_basis",
+          "participant_address",
+          "policy",
+          "producer_ref",
+          "provenance_refs",
+          "recorded_at",
+          "schema_name",
+          "schema_version",
+          "semantics"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

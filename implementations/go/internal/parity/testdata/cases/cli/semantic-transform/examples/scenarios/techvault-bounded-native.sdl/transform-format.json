@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "format",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "name: techvault-bounded-native\nversion: 1.0.0\ndescription: Bounded TechVault libvirt substrate used to certify exact VM/network\n  realization without guest image, placement, service, ACL, or SOC claims.\nnodes:\n  lab:\n    type: switch\n  demo:\n    type: compute\n    resources:\n      ram: 134217728\n      cpu: 1\n    os: linux\n    services: []\ninfrastructure:\n  lab:\n    properties:\n      cidr: 192.0.2.0/24\n      gateway: 192.0.2.1\n      internal: true\n  demo:\n    links:\n    - lab\n",
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "format",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "domain-profile-definition/v1",
+  "profile_schema": {
+    "dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_id": "urn:example:schema:repository",
+    "revision": "1.0.0",
+    "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+    "required_vocabularies": [],
+    "schema_document": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "urn:example:schema:repository",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "semantic_contract": {
+    "authority": "https://openrae.org/profiles",
+    "contract_id": "repository-semantics",
+    "revision": "1.0.0",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "allowed_contexts": [
+    "artifact-acquisition"
+  ]
+}

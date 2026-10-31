@@ -1,0 +1,62 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-apparatus-context-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "5644b2d667c3314d0ee88376b74798395843e9932e6e7f280dd6cbf97379c032"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-apparatus-context-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-apparatus-context-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 13,
+        "members": [
+          "apparatus_context_id",
+          "clocks",
+          "compatibility_declarations",
+          "components",
+          "configuration_parameters",
+          "context_version",
+          "declared_at",
+          "known_limitations",
+          "measurement_channels",
+          "observed_setup_evidence",
+          "schema_version",
+          "selected_manifests",
+          "stochastic_controls"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

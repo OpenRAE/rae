@@ -1,0 +1,61 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-evaluation-v2",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "42c6616594cba5c212534194940cfb098f3e74f4c5205376c0ed1aba49c2223c"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-evaluation-v2",
+      "diagnostics": [
+        {
+          "address": "participant-control-evaluation-v2",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 12,
+        "members": [
+          "commit",
+          "composition",
+          "effect_plan",
+          "evaluation_id",
+          "invocations",
+          "lost_advice",
+          "request",
+          "results",
+          "schema_version",
+          "state_proposals",
+          "support",
+          "unknown_field"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

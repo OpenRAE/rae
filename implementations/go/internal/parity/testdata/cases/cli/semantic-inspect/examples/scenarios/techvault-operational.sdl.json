@@ -1,0 +1,778 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "5c6a5e183613186cd679a0f06fd4ba417b38c7fcc92b132d8b80fa8df2f30aa2"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 103,
+        "declarations": [
+          {
+            "address": "conditions.wazuh-manager-health",
+            "kind": "conditions",
+            "model_path": "conditions.wazuh-manager-health",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.techvault-defensive-stack",
+            "kind": "features",
+            "model_path": "features.techvault-defensive-stack",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.techvault-webapp-service",
+            "kind": "features",
+            "model_path": "features.techvault-webapp-service",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.ad",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.ad",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-grafana-otel",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-otel-collector",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-tempo",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.cortex",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.cortex",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.db",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.dmz-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.dmz-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.dns",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.dns",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.fileshare",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.fileshare",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.internal-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.internal-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.kali",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.kali",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.kali-capture",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.kali-capture",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.misp",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.misp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.misp-db",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.misp-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.misp-redis",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.misp-redis",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.misp-suricata-sync",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.misp-suricata-sync",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.redteam-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.redteam-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.security-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.shuffle-backend",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.shuffle-backend",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.shuffle-frontend",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.shuffle-frontend",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.shuffle-opensearch",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.shuffle-opensearch",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.shuffle-orborus",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.shuffle-orborus",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.suricata",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.suricata",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.thehive",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.thehive",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.thehive-cassandra",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.thehive-cassandra",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.thehive-es",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.thehive-es",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.victim",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.victim",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-dashboard",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-dashboard",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-indexer",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-indexer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-manager",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-manager",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-sidecar-db",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-sidecar-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-sidecar-suricata",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-sidecar-suricata",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.webapp",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.webapp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.workstation",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.workstation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad",
+            "kind": "node",
+            "model_path": "nodes.ad",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad.services.kerberos",
+            "kind": "service",
+            "model_path": "nodes.ad.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad.services.ldap",
+            "kind": "service",
+            "model_path": "nodes.ad.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad.services.smb",
+            "kind": "service",
+            "model_path": "nodes.ad.services.2.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel",
+            "kind": "node",
+            "model_path": "nodes.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel.services.grafana",
+            "kind": "service",
+            "model_path": "nodes.aptl-grafana-otel.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector",
+            "kind": "node",
+            "model_path": "nodes.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-grpc",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo",
+            "kind": "node",
+            "model_path": "nodes.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo.services.tempo-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-tempo.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.cortex",
+            "kind": "node",
+            "model_path": "nodes.cortex",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.cortex.services.cortex-api",
+            "kind": "service",
+            "model_path": "nodes.cortex.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.db",
+            "kind": "node",
+            "model_path": "nodes.db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.db.services.postgres",
+            "kind": "service",
+            "model_path": "nodes.db.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.dmz-net",
+            "kind": "node",
+            "model_path": "nodes.dmz-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.dns",
+            "kind": "node",
+            "model_path": "nodes.dns",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.dns.services.dns",
+            "kind": "service",
+            "model_path": "nodes.dns.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.fileshare",
+            "kind": "node",
+            "model_path": "nodes.fileshare",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.fileshare.services.smb",
+            "kind": "service",
+            "model_path": "nodes.fileshare.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.internal-net",
+            "kind": "node",
+            "model_path": "nodes.internal-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.kali",
+            "kind": "node",
+            "model_path": "nodes.kali",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.kali-capture",
+            "kind": "node",
+            "model_path": "nodes.kali-capture",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.kali.services.ssh",
+            "kind": "service",
+            "model_path": "nodes.kali.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.misp",
+            "kind": "node",
+            "model_path": "nodes.misp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.misp-db",
+            "kind": "node",
+            "model_path": "nodes.misp-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.misp-db.services.mysql",
+            "kind": "service",
+            "model_path": "nodes.misp-db.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.misp-redis",
+            "kind": "node",
+            "model_path": "nodes.misp-redis",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.misp-redis.services.redis",
+            "kind": "service",
+            "model_path": "nodes.misp-redis.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.misp-suricata-sync",
+            "kind": "node",
+            "model_path": "nodes.misp-suricata-sync",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.misp.services.https",
+            "kind": "service",
+            "model_path": "nodes.misp.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.redteam-net",
+            "kind": "node",
+            "model_path": "nodes.redteam-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.security-net",
+            "kind": "node",
+            "model_path": "nodes.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-backend",
+            "kind": "node",
+            "model_path": "nodes.shuffle-backend",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-backend.services.shuffle-api",
+            "kind": "service",
+            "model_path": "nodes.shuffle-backend.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-frontend",
+            "kind": "node",
+            "model_path": "nodes.shuffle-frontend",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-frontend.services.http",
+            "kind": "service",
+            "model_path": "nodes.shuffle-frontend.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-frontend.services.https",
+            "kind": "service",
+            "model_path": "nodes.shuffle-frontend.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-opensearch",
+            "kind": "node",
+            "model_path": "nodes.shuffle-opensearch",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-opensearch.services.opensearch-rest",
+            "kind": "service",
+            "model_path": "nodes.shuffle-opensearch.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-opensearch.services.opensearch-transport",
+            "kind": "service",
+            "model_path": "nodes.shuffle-opensearch.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shuffle-orborus",
+            "kind": "node",
+            "model_path": "nodes.shuffle-orborus",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.suricata",
+            "kind": "node",
+            "model_path": "nodes.suricata",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.thehive",
+            "kind": "node",
+            "model_path": "nodes.thehive",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.thehive-cassandra",
+            "kind": "node",
+            "model_path": "nodes.thehive-cassandra",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.thehive-cassandra.services.cassandra",
+            "kind": "service",
+            "model_path": "nodes.thehive-cassandra.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.thehive-es",
+            "kind": "node",
+            "model_path": "nodes.thehive-es",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.thehive-es.services.elasticsearch",
+            "kind": "service",
+            "model_path": "nodes.thehive-es.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.thehive.services.thehive-api",
+            "kind": "service",
+            "model_path": "nodes.thehive.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.victim",
+            "kind": "node",
+            "model_path": "nodes.victim",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.victim.services.ssh",
+            "kind": "service",
+            "model_path": "nodes.victim.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-dashboard",
+            "kind": "node",
+            "model_path": "nodes.wazuh-dashboard",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-dashboard.services.dashboard",
+            "kind": "service",
+            "model_path": "nodes.wazuh-dashboard.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-indexer",
+            "kind": "node",
+            "model_path": "nodes.wazuh-indexer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-indexer.services.indexer-api",
+            "kind": "service",
+            "model_path": "nodes.wazuh-indexer.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager",
+            "kind": "node",
+            "model_path": "nodes.wazuh-manager",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.agent-events",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.syslog",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.2.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.wazuh-api",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-sidecar-db",
+            "kind": "node",
+            "model_path": "nodes.wazuh-sidecar-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-sidecar-suricata",
+            "kind": "node",
+            "model_path": "nodes.wazuh-sidecar-suricata",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.webapp",
+            "kind": "node",
+            "model_path": "nodes.webapp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.webapp.services.http",
+            "kind": "service",
+            "model_path": "nodes.webapp.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.workstation",
+            "kind": "node",
+            "model_path": "nodes.workstation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.workstation.services.ssh",
+            "kind": "service",
+            "model_path": "nodes.workstation.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.techvault",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "techvault",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "conditions",
+              "features",
+              "infrastructure",
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

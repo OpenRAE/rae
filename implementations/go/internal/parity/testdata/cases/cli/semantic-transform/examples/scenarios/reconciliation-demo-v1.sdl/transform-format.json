@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "format",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "20d82be186fe2d1a2498690a2132579d3323ae5393c13d1f7f4550ce6eb51c93"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "name: reconciliation-demo\nversion: 1.0.0\ndescription: Baseline version of the reconciliation demonstration pair. Compute intent\n  is authored without an operating system or virtualization mechanism, the scenario\n  imports no modules, and nothing regenerates per run or per instantiation, so the\n  pair plans offline and deterministically against the reference dry-run manifest.\nnodes:\n  lab:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    conditions:\n      health: ops\n    roles:\n      ops:\n        username: operator\n  database:\n    type: compute\n    resources:\n      ram: 2147483648\n      cpu: 2\n    conditions:\n      health: ops\n    roles:\n      ops:\n        username: operator\n  retired:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\ninfrastructure:\n  lab:\n    count: 1\n    properties:\n      cidr: 10.10.0.0/24\n      gateway: 10.10.0.1\n      internal: true\n  web:\n    count: 1\n    links:\n    - lab\n  database:\n    count: 1\n    links:\n    - lab\n  retired:\n    count: 1\n    links:\n    - lab\nconditions:\n  health:\n    command: /bin/true\n    interval: 15\npropositions:\n  health:\n    description: The governed web node has declared runtime state.\n    subjects:\n    - nodes.web\n    basis: declared_state\n    predicate:\n      kind: presence\n      property: runtime\n      semantic_ref: urn:raes:declared-property:runtime\n      operator: exists\nassertions:\n  health:\n    proposition: health\n    role: postcondition\n    polarity: positive\n  pre-health:\n    proposition: health\n    role: precondition\n    polarity: positive\nentities:\n  blue:\n    role: blue\nevents:\n  kickoff:\n    assertions:\n    - pre-health\n    description: kickoff\nscripts:\n  timeline:\n    start_time: 0\n    end_time: 60\n    speed: 1.0\n    events:\n      kickoff: 10\nobjectives:\n  initial:\n    owner: blue\n    success:\n      assertions:\n      - health\n    window:\n      scripts:\n      - timeline\n      events:\n      - kickoff\n      workflows:\n      - flow\n      steps:\n      - flow.branch\nworkflows:\n  flow:\n    description: primary\n    start: branch\n    steps:\n      branch:\n        type: decision\n        when:\n          assertions:\n          - pre-health\n        then: finish\n        else: finish\n      finish:\n        type: end\n",
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "format",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

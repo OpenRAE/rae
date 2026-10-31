@@ -1,0 +1,185 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 17,
+        "declarations": [
+          {
+            "address": "action_contracts.probe-customer-portal-login",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.probe-customer-portal-login",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.participant-agent",
+            "kind": "agents",
+            "model_path": "agents.participant-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "behavior_specifications.participant-behavior",
+            "kind": "behavior_specifications",
+            "model_path": "behavior_specifications.participant-behavior",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "clocks.scenario-clock",
+            "kind": "clocks",
+            "model_path": "clocks.scenario-clock",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "content.participant-observation",
+            "kind": "content",
+            "model_path": "content.participant-observation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.participant-observation.items.response",
+            "kind": "content-item",
+            "model_path": "content.participant-observation.items.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.enterprise-participant",
+            "kind": "entity",
+            "model_path": "entities.enterprise-participant",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.customer-portal",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.customer-portal",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.customer-portal",
+            "kind": "node",
+            "model_path": "nodes.customer-portal",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.customer-portal.services.http",
+            "kind": "service",
+            "model_path": "nodes.customer-portal.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "observation_boundaries.participant-view",
+            "kind": "observation_boundaries",
+            "model_path": "observation_boundaries.participant-view",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.automation-dwell",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "temporal_constraints.green-cadence",
+            "kind": "temporal_constraints",
+            "model_path": "temporal_constraints.green-cadence",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "temporal_constraints.hold-window",
+            "kind": "temporal_constraints",
+            "model_path": "temporal_constraints.hold-window",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "time_domains.scenario",
+            "kind": "time_domains",
+            "model_path": "time_domains.scenario",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "time_progression_policies.scenario-progression",
+            "kind": "time_progression_policies",
+            "model_path": "time_progression_policies.scenario-progression",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variables.attempts",
+            "kind": "variable",
+            "model_path": "variables.attempts",
+            "referenceable": true,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "automation-dwell",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "action_contracts",
+              "agents",
+              "behavior_specifications",
+              "clocks",
+              "content",
+              "entities",
+              "infrastructure",
+              "nodes",
+              "observation_boundaries",
+              "temporal_constraints",
+              "time_domains",
+              "time_progression_policies",
+              "variables"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

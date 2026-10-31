@@ -1,0 +1,60 @@
+{
+  "schema_version": "participant-boundary-flow-policy/v1",
+  "profile_id": "participant-boundary-flow-policy-v1",
+  "profile_revision": "rev1",
+  "authority_revision": "sem-233/rev1",
+  "title": "Participant boundary explicit-flow policy",
+  "description": "Closed two-coordinate policy algebra for conservative participant-boundary flow labels, derivations, releases, and exact final-sink decisions.",
+  "confidentiality_obligation_refs": [
+    "confidentiality:restricted",
+    "confidentiality:unknown"
+  ],
+  "integrity_obligation_refs": [
+    "integrity:endorsed",
+    "integrity:unknown",
+    "integrity:untrusted"
+  ],
+  "unknown_confidentiality_obligation_ref": "confidentiality:unknown",
+  "unknown_integrity_obligation_ref": "integrity:unknown",
+  "normalization": {
+    "rule_ref": "sem-233:canonical-sorted-unique-obligations",
+    "rule_revision": "rev1"
+  },
+  "order": {
+    "rule_ref": "sem-233:obligation-subset-order",
+    "rule_revision": "rev1"
+  },
+  "join": {
+    "rule_ref": "sem-233:coordinate-wise-set-union",
+    "rule_revision": "rev1"
+  },
+  "source_label_resolver": {
+    "rule_ref": "sem-233:source-label-resolver",
+    "rule_revision": "rev1"
+  },
+  "derivation_rule": {
+    "rule_ref": "sem-233:complete-possible-input-join",
+    "rule_revision": "rev1"
+  },
+  "declassification_authority": {
+    "rule_ref": "sem-233:confidentiality-release-authority",
+    "rule_revision": "rev1"
+  },
+  "endorsement_authority": {
+    "rule_ref": "sem-233:integrity-endorsement-authority",
+    "rule_revision": "rev1"
+  },
+  "sink_policy": {
+    "rule_ref": "sem-233:exact-final-sink-conjunction",
+    "rule_revision": "rev1"
+  },
+  "unknown_source_posture": "unsupported-top",
+  "nonclaims": [
+    "backend-realization",
+    "covert-channel-control",
+    "intentional-subversion-robustness",
+    "model-alignment",
+    "runtime-enforcement",
+    "universal-noninterference"
+  ]
+}

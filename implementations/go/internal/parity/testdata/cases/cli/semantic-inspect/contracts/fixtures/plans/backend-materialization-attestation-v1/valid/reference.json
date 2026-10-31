@@ -1,0 +1,44 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "backend-materialization-attestation-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "d949caedec52a9f9dbd4f05e8ae0983f0acf71039c26b8add72cb19d679eb014"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "backend-materialization-attestation-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 2,
+        "members": [
+          "contract_id",
+          "sdl"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

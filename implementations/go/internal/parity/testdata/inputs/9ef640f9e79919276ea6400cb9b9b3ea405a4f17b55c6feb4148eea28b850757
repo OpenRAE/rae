@@ -1,0 +1,70 @@
+{
+  "schema_version": "semantic-comparison-request/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "before": {
+    "canonical_identity": "external-concept-bindings:portable-scheme-examples",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:65e570fea7da8b380f7dbc7198c2458d8a465cd1543988dd0f1151e5e68b8622",
+    "exact_representation": null,
+    "artifact_kind": "external-concept-bindings",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "external-concept-bindings/v1",
+    "binding_set_id": "portable-scheme-examples",
+    "binding_set_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "external-concept-bindings:portable-scheme-examples",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:65e570fea7da8b380f7dbc7198c2458d8a465cd1543988dd0f1151e5e68b8622",
+    "exact_representation": null,
+    "artifact_kind": "external-concept-bindings",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "external-concept-bindings/v1",
+    "binding_set_id": "portable-scheme-examples",
+    "binding_set_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "external-concept-bindings:portable-scheme-examples"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "external-concept-bindings:portable-scheme-examples",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:65e570fea7da8b380f7dbc7198c2458d8a465cd1543988dd0f1151e5e68b8622",
+        "exact_representation": null,
+        "artifact_kind": "external-concept-bindings",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "external-concept-bindings/v1",
+        "binding_set_id": "portable-scheme-examples",
+        "binding_set_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "external-concept-bindings:portable-scheme-examples",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:65e570fea7da8b380f7dbc7198c2458d8a465cd1543988dd0f1151e5e68b8622",
+        "exact_representation": null,
+        "artifact_kind": "external-concept-bindings",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "external-concept-bindings/v1",
+        "binding_set_id": "portable-scheme-examples",
+        "binding_set_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:00d495ce5273be2cfca5047d96008de145e1165f9d62c22f8452e79419bdc9d6"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

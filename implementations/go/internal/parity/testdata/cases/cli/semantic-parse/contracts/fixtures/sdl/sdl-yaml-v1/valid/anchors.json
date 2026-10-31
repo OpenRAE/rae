@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "parse",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic parse",
+  "files": {
+    "input.yaml": "09655b74461a8a421121085c3d927e1b37ea6fc9c113d9b70a3b3b5d7895c900"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "parse",
+      "payload": {
+        "field_count": 2,
+        "phase": "parsed-authoring",
+        "root_type": "object",
+        "scenario_name": "canonical-anchors",
+        "semantic_validated": false
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

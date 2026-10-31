@@ -1,0 +1,51 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "authoring-adapter-profile-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "a9521868b0f9b381e1468da3f1a2bf02b0c834f414e6036059e7b3ffbdd86cab"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "authoring-adapter-profile-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 9,
+        "members": [
+          "canonicalization_profile",
+          "diagnostic_profile",
+          "max_cases",
+          "max_diagnostics",
+          "max_source_bytes",
+          "migration_policy",
+          "profile_id",
+          "semantic_profile_digest",
+          "source_profile"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

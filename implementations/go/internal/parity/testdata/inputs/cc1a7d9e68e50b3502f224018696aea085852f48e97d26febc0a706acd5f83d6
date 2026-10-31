@@ -1,0 +1,21 @@
+{
+  "schema_version": "controlled-vocabularies/v1",
+  "vocabularies": {
+    "provisioner-node-types": {
+      "title": "Provisioner Node Types",
+      "description": "Provisioner-supported node type vocabulary.",
+      "kind": "vocabulary",
+      "governed_scopes": [
+        "capabilities.provisioner.not_a_real_surface"
+      ],
+      "extension_policy": "governed-extension",
+      "extension_pattern": "^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "terms": {
+        "vm": {
+          "title": "Virtual Machine",
+          "description": "Provisioner can realize virtual machine nodes."
+        }
+      }
+    }
+  }
+}

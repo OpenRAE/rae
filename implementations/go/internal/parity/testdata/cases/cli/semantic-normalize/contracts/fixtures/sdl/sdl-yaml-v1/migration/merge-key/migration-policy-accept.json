@@ -1,0 +1,57 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--migration-policy",
+    "accept",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "f586fd21961fce86c468c68156ac20e877705b835719f9d166adf52efd144217"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [
+        {
+          "address": "/nodes/reuse",
+          "code": "sdl.noncanonical_merge",
+          "domain": "sdl-parse",
+          "severity": "warning"
+        }
+      ],
+      "migration_policy": "accept",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: migration-merge\nnodes:\n  shared:\n    type: switch\n  reuse:\n    type: switch\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:4006e23e3c5271162e4ece81d778784ee6ed0e80e0202b20048286adf2b4300b"
+        },
+        "field_count": 2,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "migration-merge",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

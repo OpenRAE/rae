@@ -1,0 +1,65 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-information-reconstruction-profile-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "a7c069736d890237a6f43786aab019ea62f86c620a07097bdfecf112fb7b5566"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-information-reconstruction-profile-v1",
+      "diagnostics": [
+        {
+          "address": "participant-information-reconstruction-profile-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 16,
+        "members": [
+          "accepted_input_contracts",
+          "accepted_order_semantics",
+          "algorithm_id",
+          "algorithm_version",
+          "description",
+          "determinism_basis",
+          "fixture_format",
+          "information_state_schema_version",
+          "normative_artifact_digest",
+          "normative_artifact_ref",
+          "profile_id",
+          "projection_version",
+          "proof_artifact_format",
+          "python_import_path",
+          "schema_version",
+          "title"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

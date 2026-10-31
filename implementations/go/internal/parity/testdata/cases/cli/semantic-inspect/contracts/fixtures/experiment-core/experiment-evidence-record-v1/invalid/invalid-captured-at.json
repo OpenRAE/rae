@@ -1,0 +1,65 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-evidence-record-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "77cba4b686b210d0ea7d4ff0e83599fffefb84940d22e25fcb7580aeb23309d9"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-evidence-record-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-evidence-record-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 16,
+        "members": [
+          "capture_requirement_ref",
+          "capture_spec_ref",
+          "capture_window_ref",
+          "captured_at",
+          "evidence_kind",
+          "evidence_record_id",
+          "output_contract",
+          "provenance_refs",
+          "raw_content",
+          "record_version",
+          "redaction_state",
+          "run_ref",
+          "schema_version",
+          "sensitivity",
+          "source_refs",
+          "task_ref"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

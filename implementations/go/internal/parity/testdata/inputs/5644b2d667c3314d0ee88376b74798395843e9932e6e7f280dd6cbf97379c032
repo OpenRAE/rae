@@ -1,0 +1,103 @@
+{
+  "schema_version": "experiment-apparatus-context/v1",
+  "apparatus_context_id": "bad-apparatus-manifest-ref",
+  "context_version": "1.0.0",
+  "declared_at": "2026-05-26T00:00:00Z",
+  "components": {
+    "processor": {
+      "component_kind": "processor",
+      "identity": {
+        "name": "processor",
+        "version": "1.0.0"
+      },
+      "manifest_ref": {
+        "ref_kind": "manifest",
+        "ref_id": "processor-manifest",
+        "ref_version": "processor-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "processor",
+          "ref_id": "processor",
+          "ref_version": "1.0.0"
+        }
+      }
+    },
+    "backend": {
+      "component_kind": "backend",
+      "identity": {
+        "name": "backend",
+        "version": "1.0.0"
+      },
+      "manifest_ref": {
+        "ref_kind": "manifest",
+        "ref_id": "backend-manifest",
+        "ref_version": "backend-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "backend",
+          "ref_id": "backend",
+          "ref_version": "1.0.0"
+        }
+      }
+    }
+  },
+  "selected_manifests": [
+    {
+      "ref_kind": "run",
+      "ref_id": "run-not-a-manifest"
+    }
+  ],
+  "compatibility_declarations": [
+    {
+      "ref_kind": "profile",
+      "ref_id": "reference-stack-v1"
+    }
+  ],
+  "configuration_parameters": [
+    {
+      "name": "worker-count",
+      "value": 1,
+      "value_kind": "apparatus"
+    }
+  ],
+  "stochastic_controls": [
+    {
+      "control_id": "task-seed",
+      "role": "seed",
+      "value": 12345
+    }
+  ],
+  "clocks": [
+    {
+      "clock_id": "range-wall-clock",
+      "authority": "backend wall clock",
+      "time_domain": "wall-clock"
+    }
+  ],
+  "measurement_channels": [
+    {
+      "ref_kind": "measurement-channel",
+      "ref_id": "evaluation-history-channel"
+    }
+  ],
+  "observed_setup_evidence": [
+    {
+      "artifact_id": "setup-attestation",
+      "role": "apparatus-evidence",
+      "media_type": "application/json",
+      "uri": "runs/bad/setup.json",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "size_bytes": 2048,
+      "created_at": "2026-05-26T00:09:30Z",
+      "source": "stub-backend setup attestation",
+      "sensitivity": "internal"
+    }
+  ],
+  "known_limitations": [
+    {
+      "category": "apparatus",
+      "note": "Invalid fixture isolates selected manifest reference kind."
+    }
+  ]
+}

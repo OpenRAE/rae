@@ -1,0 +1,61 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-context-change-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "8013d984576b1c10d44439530173391b24f0c327d3d14bfa4d200bcb3cd6855d"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-context-change-v1",
+      "diagnostics": [
+        {
+          "address": "participant-control-context-change-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 12,
+        "members": [
+          "actor_ref",
+          "asset_ref",
+          "authority_ref",
+          "change_id",
+          "effective_cut",
+          "evidence_refs",
+          "operation",
+          "provenance_refs",
+          "reason_ref",
+          "schema_version",
+          "scope_ref",
+          "successor_ref"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

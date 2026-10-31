@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "backend-manifest-v2",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "aa8ccef87cb1c41238cc56fd5195ba870d2b1ae2ae99440e88b721f0176bcb6b"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "backend-manifest-v2",
+      "diagnostics": [
+        {
+          "address": "backend-manifest-v2",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

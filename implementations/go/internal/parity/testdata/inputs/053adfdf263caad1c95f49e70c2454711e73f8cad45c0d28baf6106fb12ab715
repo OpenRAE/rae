@@ -1,0 +1,38 @@
+{
+  "schema_version": "backend-operation-response/v1",
+  "binding": {
+    "operation_id": "operation:mixed-edge",
+    "invocation_id": "invocation:mixed-edge",
+    "attempt_id": "attempt:1",
+    "worker_id": "worker:effects-1",
+    "deployment_id": "deployment:reference",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "route:portable",
+    "baseline_revision": "revision:7",
+    "context": {
+      "actor_id": "operator:mixed",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:mixed",
+      "run_scope": "run:mixed",
+      "operation_kind": "participant-crossing",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "request_digest": "sha256:28a8db987813e00f25f47eed676dd744831bcb92bb5d262f7bd97e05bd0ad1bd",
+  "sequence": 1,
+  "message": {
+    "kind": "admission",
+    "disposition": "willing",
+    "capability_digest": "sha256:b0b3ae8edfe9d4504cf3484a89f37a8ab1674e0240474e23232882728eb06351",
+    "reason": null
+  }
+}

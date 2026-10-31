@@ -1,0 +1,117 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 24,
+        "reference_bindings": {
+          "assertions.company-mail-visible": [
+            "assertions.company-mail-visible"
+          ],
+          "assertions.job-index-schema-visible": [
+            "assertions.job-index-schema-visible"
+          ],
+          "company-mail": [
+            "content.company-mail"
+          ],
+          "company-mail-readback": [
+            "evidence_requirements.company-mail-readback"
+          ],
+          "company-mail-visible": [
+            "assertions.company-mail-visible",
+            "propositions.company-mail-visible"
+          ],
+          "content.company-mail": [
+            "content.company-mail"
+          ],
+          "content.company-mail.items.welcome-message": [
+            "content.company-mail.items.welcome-message"
+          ],
+          "content.job-index-schema": [
+            "content.job-index-schema"
+          ],
+          "evidence_requirements.company-mail-readback": [
+            "evidence_requirements.company-mail-readback"
+          ],
+          "evidence_requirements.job-index-schema-readback": [
+            "evidence_requirements.job-index-schema-readback"
+          ],
+          "job-index-schema": [
+            "content.job-index-schema"
+          ],
+          "job-index-schema-readback": [
+            "evidence_requirements.job-index-schema-readback"
+          ],
+          "job-index-schema-visible": [
+            "assertions.job-index-schema-visible",
+            "propositions.job-index-schema-visible"
+          ],
+          "mail": [
+            "nodes.mail"
+          ],
+          "nodes.mail": [
+            "nodes.mail"
+          ],
+          "nodes.mail.services.imap": [
+            "nodes.mail.services.imap"
+          ],
+          "nodes.mail.services.search": [
+            "nodes.mail.services.search"
+          ],
+          "observation_boundaries.participant-mail-view": [
+            "observation_boundaries.participant-mail-view"
+          ],
+          "observation_boundaries.participant-search-view": [
+            "observation_boundaries.participant-search-view"
+          ],
+          "participant-mail-view": [
+            "observation_boundaries.participant-mail-view"
+          ],
+          "participant-search-view": [
+            "observation_boundaries.participant-search-view"
+          ],
+          "propositions.company-mail-visible": [
+            "propositions.company-mail-visible"
+          ],
+          "propositions.job-index-schema-visible": [
+            "propositions.job-index-schema-visible"
+          ],
+          "welcome-message": [
+            "content.company-mail.items.welcome-message"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "initial-service-state"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

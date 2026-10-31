@@ -1,0 +1,1046 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "144f39d33776b16b6057eb66038778d3446c8c6ae512b07774051abcb37e1e20"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 328,
+        "reference_bindings": {
+          "abuse-vpn": [
+            "action_contracts.abuse-vpn"
+          ],
+          "accounts.backup-operator": [
+            "accounts.backup-operator"
+          ],
+          "accounts.domain-admin": [
+            "accounts.domain-admin"
+          ],
+          "accounts.helpdesk-user": [
+            "accounts.helpdesk-user"
+          ],
+          "accounts.nurse-user": [
+            "accounts.nurse-user"
+          ],
+          "accounts.soc-analyst": [
+            "accounts.soc-analyst"
+          ],
+          "accounts.surgeon-user": [
+            "accounts.surgeon-user"
+          ],
+          "accounts.svc-ehr": [
+            "accounts.svc-ehr"
+          ],
+          "accounts.svc-sql": [
+            "accounts.svc-sql"
+          ],
+          "accounts.vendor-tech": [
+            "accounts.vendor-tech"
+          ],
+          "action_contracts.abuse-vpn": [
+            "action_contracts.abuse-vpn"
+          ],
+          "action_contracts.contain": [
+            "action_contracts.contain"
+          ],
+          "action_contracts.disable": [
+            "action_contracts.disable"
+          ],
+          "action_contracts.discover": [
+            "action_contracts.discover"
+          ],
+          "action_contracts.encrypt": [
+            "action_contracts.encrypt"
+          ],
+          "action_contracts.escalate": [
+            "action_contracts.escalate"
+          ],
+          "action_contracts.exfiltrate": [
+            "action_contracts.exfiltrate"
+          ],
+          "action_contracts.inspect": [
+            "action_contracts.inspect"
+          ],
+          "action_contracts.isolate": [
+            "action_contracts.isolate"
+          ],
+          "action_contracts.phish": [
+            "action_contracts.phish"
+          ],
+          "action_contracts.pivot": [
+            "action_contracts.pivot"
+          ],
+          "action_contracts.reissue-creds": [
+            "action_contracts.reissue-creds"
+          ],
+          "action_contracts.restore": [
+            "action_contracts.restore"
+          ],
+          "action_contracts.steal-cred": [
+            "action_contracts.steal-cred"
+          ],
+          "action_contracts.triage": [
+            "action_contracts.triage"
+          ],
+          "action_contracts.validate": [
+            "action_contracts.validate"
+          ],
+          "ad01": [
+            "nodes.ad01"
+          ],
+          "ad01-controls-hospital-domain": [
+            "relationships.ad01-controls-hospital-domain"
+          ],
+          "agents.blue-ir-agent": [
+            "agents.blue-ir-agent"
+          ],
+          "agents.blue-soc-agent": [
+            "agents.blue-soc-agent"
+          ],
+          "agents.red-initial": [
+            "agents.red-initial"
+          ],
+          "agents.red-operator": [
+            "agents.red-operator"
+          ],
+          "assertions.backup-catalog-intact": [
+            "assertions.backup-catalog-intact"
+          ],
+          "assertions.clinical-disruption-observed": [
+            "assertions.clinical-disruption-observed"
+          ],
+          "assertions.ehr-api-healthy": [
+            "assertions.ehr-api-healthy"
+          ],
+          "assertions.pacs-archive-healthy": [
+            "assertions.pacs-archive-healthy"
+          ],
+          "assertions.phi-staging-observed": [
+            "assertions.phi-staging-observed"
+          ],
+          "assertions.pre-clinical-disruption-observed": [
+            "assertions.pre-clinical-disruption-observed"
+          ],
+          "assertions.pre-phish-mail-delivered": [
+            "assertions.pre-phish-mail-delivered"
+          ],
+          "assertions.radiology-workflow-delayed": [
+            "assertions.radiology-workflow-delayed"
+          ],
+          "assertions.soc-pipeline-up": [
+            "assertions.soc-pipeline-up"
+          ],
+          "assertions.triage-case-submitted": [
+            "assertions.triage-case-submitted"
+          ],
+          "assertions.vendor-session-established": [
+            "assertions.vendor-session-established"
+          ],
+          "backup-catalog-intact": [
+            "assertions.backup-catalog-intact",
+            "conditions.backup-catalog-intact",
+            "propositions.backup-catalog-intact"
+          ],
+          "backup-manages-ehr": [
+            "relationships.backup-manages-ehr"
+          ],
+          "backup-net": [
+            "nodes.backup-net"
+          ],
+          "backup-operator": [
+            "accounts.backup-operator"
+          ],
+          "backup-runbook": [
+            "content.backup-runbook"
+          ],
+          "backup-vault": [
+            "nodes.backup-vault"
+          ],
+          "blue-detect-and-triage": [
+            "objectives.blue-detect-and-triage"
+          ],
+          "blue-ir-agent": [
+            "agents.blue-ir-agent"
+          ],
+          "blue-restore-clinical-services": [
+            "objectives.blue-restore-clinical-services"
+          ],
+          "blue-soc-agent": [
+            "agents.blue-soc-agent"
+          ],
+          "clinical-disruption-observed": [
+            "assertions.clinical-disruption-observed",
+            "conditions.clinical-disruption-observed",
+            "propositions.clinical-disruption-observed"
+          ],
+          "clinical-it": [
+            "nodes.clinical-it"
+          ],
+          "conditions.backup-catalog-intact": [
+            "conditions.backup-catalog-intact"
+          ],
+          "conditions.clinical-disruption-observed": [
+            "conditions.clinical-disruption-observed"
+          ],
+          "conditions.device-mesh-healthy": [
+            "conditions.device-mesh-healthy"
+          ],
+          "conditions.domain-auth-healthy": [
+            "conditions.domain-auth-healthy"
+          ],
+          "conditions.ehr-api-healthy": [
+            "conditions.ehr-api-healthy"
+          ],
+          "conditions.ehr-db-healthy": [
+            "conditions.ehr-db-healthy"
+          ],
+          "conditions.exchange-owa-healthy": [
+            "conditions.exchange-owa-healthy"
+          ],
+          "conditions.mail-queue-healthy": [
+            "conditions.mail-queue-healthy"
+          ],
+          "conditions.pacs-archive-healthy": [
+            "conditions.pacs-archive-healthy"
+          ],
+          "conditions.phi-staging-observed": [
+            "conditions.phi-staging-observed"
+          ],
+          "conditions.phish-mail-delivered": [
+            "conditions.phish-mail-delivered"
+          ],
+          "conditions.radiology-workflow-delayed": [
+            "conditions.radiology-workflow-delayed"
+          ],
+          "conditions.restore-runbook-ready": [
+            "conditions.restore-runbook-ready"
+          ],
+          "conditions.soc-pipeline-up": [
+            "conditions.soc-pipeline-up"
+          ],
+          "conditions.sso-healthy": [
+            "conditions.sso-healthy"
+          ],
+          "conditions.triage-case-submitted": [
+            "conditions.triage-case-submitted"
+          ],
+          "conditions.vendor-jump-online": [
+            "conditions.vendor-jump-online"
+          ],
+          "conditions.vendor-session-established": [
+            "conditions.vendor-session-established"
+          ],
+          "conditions.vpn-auth-healthy": [
+            "conditions.vpn-auth-healthy"
+          ],
+          "contain": [
+            "action_contracts.contain"
+          ],
+          "content.backup-runbook": [
+            "content.backup-runbook"
+          ],
+          "content.phi-records": [
+            "content.phi-records"
+          ],
+          "content.phishing-mailbox": [
+            "content.phishing-mailbox"
+          ],
+          "content.phishing-mailbox.items.payroll-adjustment": [
+            "content.phishing-mailbox.items.payroll-adjustment"
+          ],
+          "content.phishing-mailbox.items.vendor-followup": [
+            "content.phishing-mailbox.items.vendor-followup"
+          ],
+          "content.radiology-images": [
+            "content.radiology-images"
+          ],
+          "content.vendor-session-profile": [
+            "content.vendor-session-profile"
+          ],
+          "corp-it": [
+            "nodes.corp-it"
+          ],
+          "device-broker": [
+            "features.device-broker"
+          ],
+          "device-mesh-healthy": [
+            "conditions.device-mesh-healthy"
+          ],
+          "disable": [
+            "action_contracts.disable"
+          ],
+          "discover": [
+            "action_contracts.discover"
+          ],
+          "domain-admin": [
+            "accounts.domain-admin"
+          ],
+          "domain-auth-healthy": [
+            "conditions.domain-auth-healthy"
+          ],
+          "edr-sensor": [
+            "features.edr-sensor"
+          ],
+          "ehr-api-healthy": [
+            "assertions.ehr-api-healthy",
+            "conditions.ehr-api-healthy",
+            "propositions.ehr-api-healthy"
+          ],
+          "ehr-db": [
+            "nodes.ehr-db"
+          ],
+          "ehr-db-healthy": [
+            "conditions.ehr-db-healthy"
+          ],
+          "ehr-db-joins-hospital-domain": [
+            "relationships.ehr-db-joins-hospital-domain"
+          ],
+          "ehr-frontend": [
+            "nodes.ehr-frontend"
+          ],
+          "ehr-frontend-joins-hospital-domain": [
+            "relationships.ehr-frontend-joins-hospital-domain"
+          ],
+          "ehr-service": [
+            "features.ehr-service"
+          ],
+          "ehr-sso-path": [
+            "relationships.ehr-sso-path"
+          ],
+          "ehr-to-database": [
+            "relationships.ehr-to-database"
+          ],
+          "encrypt": [
+            "action_contracts.encrypt"
+          ],
+          "entities.hospital-blue": [
+            "entities.hospital-blue"
+          ],
+          "entities.hospital-blue.clinical-it": [
+            "entities.hospital-blue.clinical-it"
+          ],
+          "entities.hospital-blue.identity": [
+            "entities.hospital-blue.identity"
+          ],
+          "entities.hospital-blue.recovery": [
+            "entities.hospital-blue.recovery"
+          ],
+          "entities.hospital-blue.soc": [
+            "entities.hospital-blue.soc"
+          ],
+          "entities.ransom-crew": [
+            "entities.ransom-crew"
+          ],
+          "entities.vendor-support": [
+            "entities.vendor-support"
+          ],
+          "entities.white-cell": [
+            "entities.white-cell"
+          ],
+          "escalate": [
+            "action_contracts.escalate"
+          ],
+          "events.morning-advisory": [
+            "events.morning-advisory"
+          ],
+          "events.phishing-delivery": [
+            "events.phishing-delivery"
+          ],
+          "events.surgery-pressure": [
+            "events.surgery-pressure"
+          ],
+          "evidence_requirements.objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "exchange-auths-ad": [
+            "relationships.exchange-auths-ad"
+          ],
+          "exchange-mailbox": [
+            "features.exchange-mailbox"
+          ],
+          "exchange-owa-healthy": [
+            "conditions.exchange-owa-healthy"
+          ],
+          "exchange01": [
+            "nodes.exchange01"
+          ],
+          "exfiltrate": [
+            "action_contracts.exfiltrate"
+          ],
+          "features.device-broker": [
+            "features.device-broker"
+          ],
+          "features.edr-sensor": [
+            "features.edr-sensor"
+          ],
+          "features.ehr-service": [
+            "features.ehr-service"
+          ],
+          "features.exchange-mailbox": [
+            "features.exchange-mailbox"
+          ],
+          "features.hospital-ad": [
+            "features.hospital-ad"
+          ],
+          "features.hospital-adfs": [
+            "features.hospital-adfs"
+          ],
+          "features.immutable-backup": [
+            "features.immutable-backup"
+          ],
+          "features.mail-relay": [
+            "features.mail-relay"
+          ],
+          "features.pacs-service": [
+            "features.pacs-service"
+          ],
+          "features.siem-core": [
+            "features.siem-core"
+          ],
+          "features.sql-cluster": [
+            "features.sql-cluster"
+          ],
+          "features.vpn-concentrator": [
+            "features.vpn-concentrator"
+          ],
+          "helpdesk-user": [
+            "accounts.helpdesk-user"
+          ],
+          "hospital": [
+            "identity_domains.hospital"
+          ],
+          "hospital-ad": [
+            "features.hospital-ad"
+          ],
+          "hospital-adfs": [
+            "features.hospital-adfs"
+          ],
+          "hospital-blue": [
+            "entities.hospital-blue"
+          ],
+          "hospital-blue.clinical-it": [
+            "entities.hospital-blue.clinical-it"
+          ],
+          "hospital-blue.identity": [
+            "entities.hospital-blue.identity"
+          ],
+          "hospital-blue.recovery": [
+            "entities.hospital-blue.recovery"
+          ],
+          "hospital-blue.soc": [
+            "entities.hospital-blue.soc"
+          ],
+          "identity-net": [
+            "nodes.identity-net"
+          ],
+          "identity_domains.hospital": [
+            "identity_domains.hospital"
+          ],
+          "immutable-backup": [
+            "features.immutable-backup"
+          ],
+          "infrastructure.ad01": [
+            "infrastructure.ad01"
+          ],
+          "infrastructure.backup-net": [
+            "infrastructure.backup-net"
+          ],
+          "infrastructure.backup-vault": [
+            "infrastructure.backup-vault"
+          ],
+          "infrastructure.clinical-it": [
+            "infrastructure.clinical-it"
+          ],
+          "infrastructure.clinical-it.acls.allow-corp-clinical-apps": [
+            "infrastructure.clinical-it.acls.allow-corp-clinical-apps"
+          ],
+          "infrastructure.clinical-it.acls.allow-vendor-clinical-web": [
+            "infrastructure.clinical-it.acls.allow-vendor-clinical-web"
+          ],
+          "infrastructure.clinical-it.acls.deny-public-clinical": [
+            "infrastructure.clinical-it.acls.deny-public-clinical"
+          ],
+          "infrastructure.corp-it": [
+            "infrastructure.corp-it"
+          ],
+          "infrastructure.corp-it.acls.allow-public-mail-web": [
+            "infrastructure.corp-it.acls.allow-public-mail-web"
+          ],
+          "infrastructure.corp-it.acls.allow-vendor-support": [
+            "infrastructure.corp-it.acls.allow-vendor-support"
+          ],
+          "infrastructure.ehr-db": [
+            "infrastructure.ehr-db"
+          ],
+          "infrastructure.ehr-frontend": [
+            "infrastructure.ehr-frontend"
+          ],
+          "infrastructure.exchange01": [
+            "infrastructure.exchange01"
+          ],
+          "infrastructure.identity-net": [
+            "infrastructure.identity-net"
+          ],
+          "infrastructure.identity-net.acls.allow-clinical-identity": [
+            "infrastructure.identity-net.acls.allow-clinical-identity"
+          ],
+          "infrastructure.identity-net.acls.allow-corp-identity": [
+            "infrastructure.identity-net.acls.allow-corp-identity"
+          ],
+          "infrastructure.internet-edge": [
+            "infrastructure.internet-edge"
+          ],
+          "infrastructure.mail-gateway": [
+            "infrastructure.mail-gateway"
+          ],
+          "infrastructure.med-gateway": [
+            "infrastructure.med-gateway"
+          ],
+          "infrastructure.pacs01": [
+            "infrastructure.pacs01"
+          ],
+          "infrastructure.security-net": [
+            "infrastructure.security-net"
+          ],
+          "infrastructure.siem01": [
+            "infrastructure.siem01"
+          ],
+          "infrastructure.vendor-jump": [
+            "infrastructure.vendor-jump"
+          ],
+          "infrastructure.vendor-segment": [
+            "infrastructure.vendor-segment"
+          ],
+          "infrastructure.vendor-segment.acls.allow-public-vpn": [
+            "infrastructure.vendor-segment.acls.allow-public-vpn"
+          ],
+          "infrastructure.vendor-segment.acls.deny-clinical-backflow": [
+            "infrastructure.vendor-segment.acls.deny-clinical-backflow"
+          ],
+          "infrastructure.vpn-gateway": [
+            "infrastructure.vpn-gateway"
+          ],
+          "injects.phishing-wave": [
+            "injects.phishing-wave"
+          ],
+          "injects.surgery-escalation": [
+            "injects.surgery-escalation"
+          ],
+          "injects.vendor-advisory": [
+            "injects.vendor-advisory"
+          ],
+          "inspect": [
+            "action_contracts.inspect"
+          ],
+          "internet-edge": [
+            "nodes.internet-edge"
+          ],
+          "isolate": [
+            "action_contracts.isolate"
+          ],
+          "live-clinic": [
+            "scripts.live-clinic"
+          ],
+          "mail-gateway": [
+            "nodes.mail-gateway"
+          ],
+          "mail-queue-healthy": [
+            "conditions.mail-queue-healthy"
+          ],
+          "mail-relay": [
+            "features.mail-relay"
+          ],
+          "med-gateway": [
+            "nodes.med-gateway"
+          ],
+          "med-gateway-depends-ehr": [
+            "relationships.med-gateway-depends-ehr"
+          ],
+          "morning-advisory": [
+            "events.morning-advisory"
+          ],
+          "nodes.ad01": [
+            "nodes.ad01"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-adfs": [
+            "nodes.ad01.runtime.identity_authorities.hospital-adfs"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-adfs.relationships.adfs-federates-ehr": [
+            "nodes.ad01.runtime.identity_authorities.hospital-adfs.relationships.adfs-federates-ehr"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-adfs.services.adfs-saml": [
+            "nodes.ad01.runtime.identity_authorities.hospital-adfs.services.adfs-saml"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-adfs.subjects.ehr-application": [
+            "nodes.ad01.runtime.identity_authorities.hospital-adfs.subjects.ehr-application"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.policies.default-domain-password-policy": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.policies.default-domain-password-policy"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.relationships.ehr-service-appservices-membership": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.relationships.ehr-service-appservices-membership"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.relationships.nurse-clinical-membership": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.relationships.nurse-clinical-membership"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.services.ldap-endpoint": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.services.ldap-endpoint"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.appservices-group": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.appservices-group"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.clinical-group": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.clinical-group"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.ehr-service-principal": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.ehr-service-principal"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.nurse-user": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.nurse-user"
+          ],
+          "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.surgery-group": [
+            "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.surgery-group"
+          ],
+          "nodes.ad01.services.ad-dns": [
+            "nodes.ad01.services.ad-dns"
+          ],
+          "nodes.ad01.services.ad-ldap": [
+            "nodes.ad01.services.ad-ldap"
+          ],
+          "nodes.ad01.services.adfs-https": [
+            "nodes.ad01.services.adfs-https"
+          ],
+          "nodes.backup-net": [
+            "nodes.backup-net"
+          ],
+          "nodes.backup-vault": [
+            "nodes.backup-vault"
+          ],
+          "nodes.backup-vault.services.backup-api": [
+            "nodes.backup-vault.services.backup-api"
+          ],
+          "nodes.backup-vault.services.backup-nfs": [
+            "nodes.backup-vault.services.backup-nfs"
+          ],
+          "nodes.clinical-it": [
+            "nodes.clinical-it"
+          ],
+          "nodes.corp-it": [
+            "nodes.corp-it"
+          ],
+          "nodes.ehr-db": [
+            "nodes.ehr-db"
+          ],
+          "nodes.ehr-db.services.ehr-postgres": [
+            "nodes.ehr-db.services.ehr-postgres"
+          ],
+          "nodes.ehr-frontend": [
+            "nodes.ehr-frontend"
+          ],
+          "nodes.ehr-frontend.services.ehr-admin-api": [
+            "nodes.ehr-frontend.services.ehr-admin-api"
+          ],
+          "nodes.ehr-frontend.services.ehr-https": [
+            "nodes.ehr-frontend.services.ehr-https"
+          ],
+          "nodes.exchange01": [
+            "nodes.exchange01"
+          ],
+          "nodes.exchange01.services.exchange-owa": [
+            "nodes.exchange01.services.exchange-owa"
+          ],
+          "nodes.exchange01.services.exchange-smtp": [
+            "nodes.exchange01.services.exchange-smtp"
+          ],
+          "nodes.identity-net": [
+            "nodes.identity-net"
+          ],
+          "nodes.internet-edge": [
+            "nodes.internet-edge"
+          ],
+          "nodes.mail-gateway": [
+            "nodes.mail-gateway"
+          ],
+          "nodes.mail-gateway.services.mail-admin-ui": [
+            "nodes.mail-gateway.services.mail-admin-ui"
+          ],
+          "nodes.mail-gateway.services.smtp-inbound": [
+            "nodes.mail-gateway.services.smtp-inbound"
+          ],
+          "nodes.med-gateway": [
+            "nodes.med-gateway"
+          ],
+          "nodes.med-gateway.services.med-mqtt": [
+            "nodes.med-gateway.services.med-mqtt"
+          ],
+          "nodes.pacs01": [
+            "nodes.pacs01"
+          ],
+          "nodes.pacs01.services.dicom-store": [
+            "nodes.pacs01.services.dicom-store"
+          ],
+          "nodes.pacs01.services.pacs-web-ui": [
+            "nodes.pacs01.services.pacs-web-ui"
+          ],
+          "nodes.security-net": [
+            "nodes.security-net"
+          ],
+          "nodes.siem01": [
+            "nodes.siem01"
+          ],
+          "nodes.siem01.services.soc-search": [
+            "nodes.siem01.services.soc-search"
+          ],
+          "nodes.siem01.services.soc-ui": [
+            "nodes.siem01.services.soc-ui"
+          ],
+          "nodes.vendor-jump": [
+            "nodes.vendor-jump"
+          ],
+          "nodes.vendor-jump.services.vendor-rdp": [
+            "nodes.vendor-jump.services.vendor-rdp"
+          ],
+          "nodes.vendor-segment": [
+            "nodes.vendor-segment"
+          ],
+          "nodes.vpn-gateway": [
+            "nodes.vpn-gateway"
+          ],
+          "nodes.vpn-gateway.services.vpn-portal": [
+            "nodes.vpn-gateway.services.vpn-portal"
+          ],
+          "nodes.vpn-gateway.services.vpn-tunnel": [
+            "nodes.vpn-gateway.services.vpn-tunnel"
+          ],
+          "nurse-user": [
+            "accounts.nurse-user"
+          ],
+          "objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "objectives.blue-detect-and-triage": [
+            "objectives.blue-detect-and-triage"
+          ],
+          "objectives.blue-restore-clinical-services": [
+            "objectives.blue-restore-clinical-services"
+          ],
+          "objectives.red-disrupt-radiology": [
+            "objectives.red-disrupt-radiology"
+          ],
+          "objectives.red-establish-foothold": [
+            "objectives.red-establish-foothold"
+          ],
+          "objectives.red-stage-phi": [
+            "objectives.red-stage-phi"
+          ],
+          "pacs-archive-healthy": [
+            "assertions.pacs-archive-healthy",
+            "conditions.pacs-archive-healthy",
+            "propositions.pacs-archive-healthy"
+          ],
+          "pacs-service": [
+            "features.pacs-service"
+          ],
+          "pacs-sync-to-backup": [
+            "relationships.pacs-sync-to-backup"
+          ],
+          "pacs01": [
+            "nodes.pacs01"
+          ],
+          "payroll-adjustment": [
+            "content.phishing-mailbox.items.payroll-adjustment"
+          ],
+          "phi-records": [
+            "content.phi-records"
+          ],
+          "phi-staging-observed": [
+            "assertions.phi-staging-observed",
+            "conditions.phi-staging-observed",
+            "propositions.phi-staging-observed"
+          ],
+          "phish": [
+            "action_contracts.phish"
+          ],
+          "phish-mail-delivered": [
+            "conditions.phish-mail-delivered",
+            "propositions.phish-mail-delivered"
+          ],
+          "phishing-delivery": [
+            "events.phishing-delivery"
+          ],
+          "phishing-mailbox": [
+            "content.phishing-mailbox"
+          ],
+          "phishing-wave": [
+            "injects.phishing-wave"
+          ],
+          "pivot": [
+            "action_contracts.pivot"
+          ],
+          "pre-clinical-disruption-observed": [
+            "assertions.pre-clinical-disruption-observed"
+          ],
+          "pre-phish-mail-delivered": [
+            "assertions.pre-phish-mail-delivered"
+          ],
+          "pre-surgery": [
+            "scripts.pre-surgery"
+          ],
+          "propositions.backup-catalog-intact": [
+            "propositions.backup-catalog-intact"
+          ],
+          "propositions.clinical-disruption-observed": [
+            "propositions.clinical-disruption-observed"
+          ],
+          "propositions.ehr-api-healthy": [
+            "propositions.ehr-api-healthy"
+          ],
+          "propositions.pacs-archive-healthy": [
+            "propositions.pacs-archive-healthy"
+          ],
+          "propositions.phi-staging-observed": [
+            "propositions.phi-staging-observed"
+          ],
+          "propositions.phish-mail-delivered": [
+            "propositions.phish-mail-delivered"
+          ],
+          "propositions.radiology-workflow-delayed": [
+            "propositions.radiology-workflow-delayed"
+          ],
+          "propositions.soc-pipeline-up": [
+            "propositions.soc-pipeline-up"
+          ],
+          "propositions.triage-case-submitted": [
+            "propositions.triage-case-submitted"
+          ],
+          "propositions.vendor-session-established": [
+            "propositions.vendor-session-established"
+          ],
+          "radiology-images": [
+            "content.radiology-images"
+          ],
+          "radiology-workflow-delayed": [
+            "assertions.radiology-workflow-delayed",
+            "conditions.radiology-workflow-delayed",
+            "propositions.radiology-workflow-delayed"
+          ],
+          "ransom-crew": [
+            "entities.ransom-crew"
+          ],
+          "recovery-window": [
+            "scripts.recovery-window"
+          ],
+          "recovery_window": [
+            "variables.recovery_window"
+          ],
+          "red-disrupt-radiology": [
+            "objectives.red-disrupt-radiology"
+          ],
+          "red-establish-foothold": [
+            "objectives.red-establish-foothold"
+          ],
+          "red-initial": [
+            "agents.red-initial"
+          ],
+          "red-operator": [
+            "agents.red-operator"
+          ],
+          "red-stage-phi": [
+            "objectives.red-stage-phi"
+          ],
+          "reissue-creds": [
+            "action_contracts.reissue-creds"
+          ],
+          "relationships.ad01-controls-hospital-domain": [
+            "relationships.ad01-controls-hospital-domain"
+          ],
+          "relationships.backup-manages-ehr": [
+            "relationships.backup-manages-ehr"
+          ],
+          "relationships.ehr-db-joins-hospital-domain": [
+            "relationships.ehr-db-joins-hospital-domain"
+          ],
+          "relationships.ehr-frontend-joins-hospital-domain": [
+            "relationships.ehr-frontend-joins-hospital-domain"
+          ],
+          "relationships.ehr-sso-path": [
+            "relationships.ehr-sso-path"
+          ],
+          "relationships.ehr-to-database": [
+            "relationships.ehr-to-database"
+          ],
+          "relationships.exchange-auths-ad": [
+            "relationships.exchange-auths-ad"
+          ],
+          "relationships.med-gateway-depends-ehr": [
+            "relationships.med-gateway-depends-ehr"
+          ],
+          "relationships.pacs-sync-to-backup": [
+            "relationships.pacs-sync-to-backup"
+          ],
+          "relationships.vpn-vendor-support-path": [
+            "relationships.vpn-vendor-support-path"
+          ],
+          "restore": [
+            "action_contracts.restore"
+          ],
+          "restore-runbook-ready": [
+            "conditions.restore-runbook-ready"
+          ],
+          "scripts.live-clinic": [
+            "scripts.live-clinic"
+          ],
+          "scripts.pre-surgery": [
+            "scripts.pre-surgery"
+          ],
+          "scripts.recovery-window": [
+            "scripts.recovery-window"
+          ],
+          "security-net": [
+            "nodes.security-net"
+          ],
+          "siem-core": [
+            "features.siem-core"
+          ],
+          "siem01": [
+            "nodes.siem01"
+          ],
+          "soc-analyst": [
+            "accounts.soc-analyst"
+          ],
+          "soc-pipeline-up": [
+            "assertions.soc-pipeline-up",
+            "conditions.soc-pipeline-up",
+            "propositions.soc-pipeline-up"
+          ],
+          "sql-cluster": [
+            "features.sql-cluster"
+          ],
+          "sso-healthy": [
+            "conditions.sso-healthy"
+          ],
+          "steal-cred": [
+            "action_contracts.steal-cred"
+          ],
+          "stories.surgery-day": [
+            "stories.surgery-day"
+          ],
+          "surgeon-user": [
+            "accounts.surgeon-user"
+          ],
+          "surgery-day": [
+            "stories.surgery-day"
+          ],
+          "surgery-escalation": [
+            "injects.surgery-escalation"
+          ],
+          "surgery-pressure": [
+            "events.surgery-pressure"
+          ],
+          "surgery_day_speed": [
+            "variables.surgery_day_speed"
+          ],
+          "svc-ehr": [
+            "accounts.svc-ehr"
+          ],
+          "svc-sql": [
+            "accounts.svc-sql"
+          ],
+          "triage": [
+            "action_contracts.triage"
+          ],
+          "triage-case-submitted": [
+            "assertions.triage-case-submitted",
+            "conditions.triage-case-submitted",
+            "propositions.triage-case-submitted"
+          ],
+          "validate": [
+            "action_contracts.validate"
+          ],
+          "variables.recovery_window": [
+            "variables.recovery_window"
+          ],
+          "variables.surgery_day_speed": [
+            "variables.surgery_day_speed"
+          ],
+          "vendor-advisory": [
+            "injects.vendor-advisory"
+          ],
+          "vendor-followup": [
+            "content.phishing-mailbox.items.vendor-followup"
+          ],
+          "vendor-jump": [
+            "nodes.vendor-jump"
+          ],
+          "vendor-jump-online": [
+            "conditions.vendor-jump-online"
+          ],
+          "vendor-segment": [
+            "nodes.vendor-segment"
+          ],
+          "vendor-session-established": [
+            "assertions.vendor-session-established",
+            "conditions.vendor-session-established",
+            "propositions.vendor-session-established"
+          ],
+          "vendor-session-profile": [
+            "content.vendor-session-profile"
+          ],
+          "vendor-support": [
+            "entities.vendor-support"
+          ],
+          "vendor-tech": [
+            "accounts.vendor-tech"
+          ],
+          "vpn-auth-healthy": [
+            "conditions.vpn-auth-healthy"
+          ],
+          "vpn-concentrator": [
+            "features.vpn-concentrator"
+          ],
+          "vpn-gateway": [
+            "nodes.vpn-gateway"
+          ],
+          "vpn-vendor-support-path": [
+            "relationships.vpn-vendor-support-path"
+          ],
+          "white-cell": [
+            "entities.white-cell"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "hospital-ransomware-surgery-day"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,47 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "4e0507e382050b6720e111b878ff4c233f7f7d1fa5da6604ca14ce6953b5bede"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"evidence_requirements\":{\"listener-events\":{\"channel\":\"api_response\",\"integrity\":\"checksum\",\"loss_disclosure\":\"required\",\"observation_demand\":{\"collection\":\"require\",\"export\":\"disable\",\"integrity\":\"checksum\",\"mode\":\"selected\",\"purpose\":\"experimental\",\"redaction\":\"redact-sensitive\",\"retention\":\"disable\",\"rule_id\":\"listener-events\",\"scope\":\"/nodes/monitor\",\"selector\":{\"data_kind\":\"stream\",\"names\":[\"listener-events\"],\"semantic_scope\":\"/nodes/monitor\"}},\"redaction\":\"redact_sensitive\",\"retention\":\"not_retained\",\"scope_refs\":[\"nodes.monitor\"],\"sensitivity\":\"plain\",\"source_refs\":[\"nodes.monitor.runtime.service_listeners.telemetry\"],\"window\":\"run\"}},\"name\":\"observability-plane-conformance\",\"nodes\":{\"monitor\":{\"os\":\"linux\",\"os_distribution\":\"ubuntu\",\"os_version\":\"24.04\",\"resources\":{\"cpu\":1,\"ram\":1073741824},\"runtime\":{\"service_listeners\":[{\"address\":\"0.0.0.0\",\"address_family\":\"ipv4\",\"port\":80,\"protocol\":\"tcp\",\"scope\":\"wildcard\",\"service\":\"http\",\"service_listener_id\":\"telemetry\"}]},\"services\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"tcp\"}],\"source\":{\"name\":\"exact-monitor-image\",\"version\":\"*\"},\"type\":\"compute\"}}}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:2279f67fbf1eeb26b272eb1bee07d987c83d1dd4c6a8903d0f74e453dce02d85"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

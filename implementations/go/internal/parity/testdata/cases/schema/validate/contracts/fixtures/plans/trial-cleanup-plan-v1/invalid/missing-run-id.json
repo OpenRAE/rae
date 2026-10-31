@@ -1,0 +1,13 @@
+{
+  "args": [
+    "trial-cleanup-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "04040ced37bdd430caa03c8d66e3bd4406153fd2a5cdd9a7c1ea694f44daa4ff"
+  },
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

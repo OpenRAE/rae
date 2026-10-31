@@ -1,0 +1,146 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "1bca57381915eed042e554cce17156704f53f1d622062ecafab733df57bc7bcb"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 13,
+        "declarations": [
+          {
+            "address": "infrastructure.aptl-grafana-otel",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-otel-collector",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-tempo",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.security-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel",
+            "kind": "node",
+            "model_path": "nodes.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel.services.grafana",
+            "kind": "service",
+            "model_path": "nodes.aptl-grafana-otel.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector",
+            "kind": "node",
+            "model_path": "nodes.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-grpc",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo",
+            "kind": "node",
+            "model_path": "nodes.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo.services.tempo-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-tempo.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.security-net",
+            "kind": "node",
+            "model_path": "nodes.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.techvault-observability-core",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "techvault-observability-core",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "infrastructure",
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

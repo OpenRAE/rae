@@ -1,0 +1,59 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "authoring-adapter-profile-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "69caa88cf6a7648cbf7746738b655972d488a12ca91dad669f5ef1f7b4f0f2db"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "authoring-adapter-profile-v1",
+      "diagnostics": [
+        {
+          "address": "authoring-adapter-profile-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 10,
+        "members": [
+          "canonicalization_profile",
+          "diagnostic_profile",
+          "max_cases",
+          "max_diagnostics",
+          "max_source_bytes",
+          "migration_policy",
+          "profile_id",
+          "semantic_profile_digest",
+          "source_profile",
+          "unexpected"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,173 @@
+{
+  "schema_version": "semantic-profile/v1",
+  "profile_id": "reference-stack-v1",
+  "title": "Reference Stack Interoperability Profile",
+  "description": "Shared semantic assumptions for the current RAES reference authoring, exchange, processing, and execution stack.",
+  "concept_catalog_version": "concept-families/v1",
+  "authoring": {
+    "required_contracts": [
+      "sdl-authoring-input-v1",
+      "instantiated-scenario-v1",
+      "scenario-instantiation-request-v1",
+      "concept-families-v1"
+    ],
+    "required_concept_families": [
+      "actions-and-events",
+      "apparatus-declarations",
+      "assets",
+      "identities",
+      "observables",
+      "provenance-and-evidence",
+      "realization-and-disclosure",
+      "relationships",
+      "scenarios",
+      "tasks-runs-studies",
+      "time-and-apparatus",
+      "tools-and-artifacts"
+    ],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "sdl-native-authoring-surface",
+        "statement": "Authoring remains SDL-native while declared meaning is grounded in the shared concept authority rather than artifact-local labels."
+      },
+      {
+        "id": "gov-919-native-extension-discipline",
+        "statement": "RAES-native concept families follow the explicit extension-scope, relation-rule, and non-ambiguity discipline declared in the concept catalog."
+      }
+    ]
+  },
+  "exchange": {
+    "required_contracts": [
+      "processor-manifest-v2",
+      "backend-manifest-v2",
+      "runtime-snapshot-v1",
+      "workflow-result-envelope-v1",
+      "workflow-history-event-stream-v1",
+      "evaluation-result-envelope-v1",
+      "evaluation-history-event-stream-v1",
+      "operation-receipt-v1",
+      "operation-status-v1"
+    ],
+    "required_concept_families": [
+      "actions-and-events",
+      "apparatus-declarations",
+      "assets",
+      "identities",
+      "observables",
+      "provenance-and-evidence",
+      "realization-and-disclosure",
+      "relationships",
+      "scenarios",
+      "tasks-runs-studies",
+      "time-and-apparatus",
+      "tools-and-artifacts"
+    ],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "shared-v2-apparatus-envelope",
+        "statement": "Processor and backend capability exchange uses the shared v2 apparatus manifest envelope instead of divergent role-specific manifest shapes."
+      },
+      {
+        "id": "typed-runtime-envelope-exchange",
+        "statement": "Operational exchange surfaces preserve the published typed runtime snapshot, result, history, receipt, and status envelopes."
+      }
+    ]
+  },
+  "processing": {
+    "required_contracts": [
+      "processor-manifest-v2",
+      "provisioning-plan-v1",
+      "orchestration-plan-v1",
+      "evaluation-plan-v1",
+      "workflow-cancellation-request-v1",
+      "operation-receipt-v1",
+      "operation-status-v1",
+      "runtime-snapshot-v1"
+    ],
+    "required_concept_families": [
+      "apparatus-declarations",
+      "realization-and-disclosure",
+      "scenarios"
+    ],
+    "required_bindings": [
+      {
+        "scope": "capabilities.unsupported_surface",
+        "family": "scenarios"
+      },
+      {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+      }
+    ],
+    "behavior_assumptions": [
+      {
+        "id": "processor-shared-manifest-surface",
+        "statement": "Processors declare their interoperable processing surface through the shared v2 apparatus manifest, published contract versions, and concept bindings."
+      },
+      {
+        "id": "processor-plan-contract-discipline",
+        "statement": "Instantiation and planning produce only the published plan, cancellation, receipt, status, and snapshot contracts for interoperable downstream use."
+      }
+    ]
+  },
+  "execution": {
+    "required_contracts": [
+      "backend-manifest-v2",
+      "provisioning-plan-v1",
+      "orchestration-plan-v1",
+      "evaluation-plan-v1",
+      "operation-receipt-v1",
+      "operation-status-v1",
+      "runtime-snapshot-v1",
+      "workflow-result-envelope-v1",
+      "workflow-history-event-stream-v1",
+      "evaluation-result-envelope-v1",
+      "evaluation-history-event-stream-v1"
+    ],
+    "required_concept_families": [
+      "actions-and-events",
+      "assets",
+      "identities",
+      "observables",
+      "tools-and-artifacts"
+    ],
+    "required_bindings": [
+      {
+        "scope": "capabilities.provisioner.supported_node_types",
+        "family": "assets"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_os_families",
+        "family": "assets"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_content_types",
+        "family": "tools-and-artifacts"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_account_features",
+        "family": "identities"
+      },
+      {
+        "scope": "capabilities.orchestrator.supported_sections",
+        "family": "actions-and-events"
+      },
+      {
+        "scope": "capabilities.evaluator.supported_sections",
+        "family": "observables"
+      }
+    ],
+    "behavior_assumptions": [
+      {
+        "id": "backend-shared-manifest-surface",
+        "statement": "Execution targets declare interoperable realization capabilities through the shared v2 apparatus manifest and governed concept bindings."
+      },
+      {
+        "id": "execution-state-history-contract-discipline",
+        "statement": "Execution results, histories, and snapshots preserve the published typed control-plane envelopes rather than backend-local payload conventions."
+      }
+    ]
+  }
+}

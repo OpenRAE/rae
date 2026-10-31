@@ -1,0 +1,58 @@
+{
+  "actor_ref": "participant.behavior.red-agent",
+  "authorization_scope": "provision.node.web",
+  "clock_authority": "runtime.control-plane.clock",
+  "episode_id": "episode-1",
+  "event_id": "participant-control.episode-1.1",
+  "event_type": "participant-control-occurrence",
+  "evidence_refs": [
+    "evidence:test"
+  ],
+  "extension_policy": "closed",
+  "ingested_at": "2026-10-13T00:00:02Z",
+  "object_marking_refs": [
+    "marking:participant-control"
+  ],
+  "occurred_at": "2026-10-13T00:00:00Z",
+  "occurrence": {
+    "authority_basis_refs": [
+      "entities.red-team"
+    ],
+    "completion_evidence_ref": "evidence.completion-1",
+    "controlled_scope_refs": [
+      "provision.node.web"
+    ],
+    "controller_ref": "participant.behavior.red-agent",
+    "disposition": "accepted",
+    "effective_order": 10,
+    "expected_history_head": 0,
+    "expected_state_revision": 0,
+    "kind": "handoff",
+    "limitation_refs": [
+      "limitation.not-admitted"
+    ],
+    "occurrence_revision": 1,
+    "permitted_transition_ref": "participant.behavior-specification.controlled-red.permitted-transition.take",
+    "prior_state_ref": "participant.behavior-specification.controlled-red.controller-state.autonomous",
+    "resulting_state_ref": "participant.behavior-specification.controlled-red.controller-state.supervised",
+    "resulting_state_revision": 1,
+    "valid_from_order": 0,
+    "valid_until_order": 1000
+  },
+  "ordering_basis": "logical_clock",
+  "participant_address": "participant.behavior.red-agent",
+  "policy": {
+    "behavior_specification_ref": "participant.behavior-specification.controlled-red",
+    "form": "reusable-policy",
+    "policy_ref": "participant.behavior-specification.controlled-red.mixed-control-policy",
+    "policy_revision": "1.0.0"
+  },
+  "producer_ref": "runtime.control-plane.test",
+  "provenance_refs": [
+    "provenance:test"
+  ],
+  "recorded_at": "2026-10-13T00:00:01Z",
+  "schema_name": "participant-control-occurrence",
+  "schema_version": "2.0.0",
+  "semantics": "mixed-control-policy-occurrence/rev1"
+}

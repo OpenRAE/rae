@@ -1,0 +1,70 @@
+{
+  "schema_version": "semantic-comparison-request/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "before": {
+    "canonical_identity": "scenario:arena",
+    "canonicalization_profile": "raes-canonical-sdl/v1",
+    "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+    "exact_representation": null,
+    "artifact_kind": "scenario",
+    "lifecycle_phase": "normalized-authoring",
+    "source_profile": "sdl-normalized-authoring/v1",
+    "scenario_id": "arena",
+    "scenario_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "scenario:arena",
+    "canonicalization_profile": "raes-canonical-sdl/v1",
+    "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+    "exact_representation": null,
+    "artifact_kind": "scenario",
+    "lifecycle_phase": "normalized-authoring",
+    "source_profile": "sdl-normalized-authoring/v1",
+    "scenario_id": "arena",
+    "scenario_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "scenario:arena"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "scenario:arena",
+        "canonicalization_profile": "raes-canonical-sdl/v1",
+        "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+        "exact_representation": null,
+        "artifact_kind": "scenario",
+        "lifecycle_phase": "normalized-authoring",
+        "source_profile": "sdl-normalized-authoring/v1",
+        "scenario_id": "arena",
+        "scenario_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "scenario:arena",
+        "canonicalization_profile": "raes-canonical-sdl/v1",
+        "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+        "exact_representation": null,
+        "artifact_kind": "scenario",
+        "lifecycle_phase": "normalized-authoring",
+        "source_profile": "sdl-normalized-authoring/v1",
+        "scenario_id": "arena",
+        "scenario_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:8f8010ce87695090bed510a9e0808cd6321bd60e6cfc9b41aac8faf7ae17631c"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

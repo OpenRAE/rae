@@ -1,0 +1,1773 @@
+name: hospital-ransomware-surgery-day
+description: 'Surgery-day ransomware exercise for a regional hospital. The scenario
+  combines phishing, vendor access abuse, identity pivoting, EHR/PACS disruption,
+  and backup-driven recovery under clinical time pressure.
+
+  '
+nodes:
+  internet-edge:
+    type: switch
+    description: Public ingress for email, VPN, and external access
+  vendor-segment:
+    type: switch
+    description: Third-party support access zone
+  corp-it:
+    type: switch
+    description: Corporate productivity and identity-adjacent services
+  clinical-it:
+    type: switch
+    description: Clinical application tier
+  identity-net:
+    type: switch
+    description: Active Directory and SSO infrastructure
+  security-net:
+    type: switch
+    description: SIEM and response tooling network
+  backup-net:
+    type: switch
+    description: Backup and recovery network
+  mail-gateway:
+    type: compute
+    source:
+      name: secure-mail-gateway
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 1
+    os: linux
+    features:
+      mail-relay: mail-admin
+    conditions:
+      mail-queue-healthy: mail-admin
+    roles:
+      mail-admin:
+        username: postfix
+    services:
+    - port: 25
+      name: smtp-inbound
+    - port: 443
+      name: mail-admin-ui
+  vpn-gateway:
+    type: compute
+    source:
+      name: vpn-concentrator
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 2
+    os: linux
+    features:
+      vpn-concentrator: vpn-admin
+    conditions:
+      vpn-auth-healthy: vpn-admin
+      vendor-session-established: vpn-admin
+    roles:
+      vpn-admin:
+        username: netops
+        entities:
+        - hospital-blue.identity
+    services:
+    - port: 443
+      name: vpn-portal
+    - port: 1194
+      protocol: udp
+      name: vpn-tunnel
+  ad01:
+    type: compute
+    source:
+      name: windows-ad
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: windows
+    os_distribution: windows-server
+    os_version: '2022'
+    features:
+      hospital-ad: domain-admin
+      hospital-adfs: federation-admin
+    conditions:
+      domain-auth-healthy: domain-admin
+      sso-healthy: federation-admin
+    roles:
+      domain-admin:
+        username: Administrator
+        entities:
+        - hospital-blue.identity
+      federation-admin:
+        username: adfs_svc
+    services:
+    - port: 53
+      protocol: udp
+      name: ad-dns
+    - port: 389
+      name: ad-ldap
+    - port: 443
+      name: adfs-https
+    runtime:
+      identity_authorities:
+      - identity_authority_id: hospital-domain
+        kind: domain
+        name: Hospital Active Directory Domain
+        namespace: hospital.local
+        domain_name: HOSPITAL
+        realm: HOSPITAL.LOCAL
+        base_dn: DC=hospital,DC=local
+        services:
+        - service_id: ldap-endpoint
+          service: ad-ldap
+          protocol: ldap
+          address: dc.hospital.local
+          port: 389
+        subjects:
+        - subject_id: nurse-user
+          kind: user
+          name: nurse.jane
+          principal_name: nurse.jane@HOSPITAL.LOCAL
+          distinguished_name: CN=nurse.jane,OU=Clinical,DC=hospital,DC=local
+          domain: hospital.local
+          enabled: true
+          origin: directory
+          attributes:
+          - name: objectGUID
+            values:
+            - hospital-guid-nurse-jane
+            origin: directory
+        - subject_id: clinical-group
+          kind: group
+          name: Clinical
+          distinguished_name: CN=Clinical,OU=Groups,DC=hospital,DC=local
+          origin: directory
+        - subject_id: surgery-group
+          kind: group
+          name: Surgery
+          distinguished_name: CN=Surgery,OU=Groups,DC=hospital,DC=local
+          origin: directory
+        - subject_id: appservices-group
+          kind: group
+          name: AppServices
+          distinguished_name: CN=AppServices,OU=Groups,DC=hospital,DC=local
+          origin: directory
+        - subject_id: ehr-service-principal
+          kind: service_principal
+          name: ehrsvc
+          principal_name: ehrsvc@HOSPITAL.LOCAL
+          origin: directory
+          service_principal_names:
+          - HTTP/ehr.hospital.local
+        policies:
+        - policy_id: default-domain-password-policy
+          policy_kind: password
+          name: Default Domain Password Policy
+          applies_to_refs:
+          - hospital-domain
+          - ldap-endpoint
+          - nurse-clinical-membership
+          settings:
+          - name: min_length
+            values:
+            - '14'
+            origin: directory
+          - name: history_count
+            values:
+            - '24'
+            origin: directory
+        relationships:
+        - relationship_id: nurse-clinical-membership
+          relationship_type: member_of
+          source_ref: nurse-user
+          target_ref: clinical-group
+        - relationship_id: ehr-service-appservices-membership
+          relationship_type: member_of
+          source_ref: ehr-service-principal
+          target_ref: appservices-group
+      - identity_authority_id: hospital-adfs
+        kind: identity_provider
+        name: Hospital ADFS
+        namespace: https://adfs.hospital.local
+        issuer: https://adfs.hospital.local/adfs
+        services:
+        - service_id: adfs-saml
+          service: adfs-https
+          protocol: saml
+          address: adfs.hospital.local
+          port: 443
+        subjects:
+        - subject_id: ehr-application
+          kind: application
+          name: ehr-service
+          principal_name: https://ehr.hospital.local/
+          origin: federated
+        relationships:
+        - relationship_id: adfs-federates-ehr
+          relationship_type: federates_with
+          source_ref: hospital-adfs
+          target_ref: ehr-application
+  exchange01:
+    type: compute
+    source:
+      name: exchange-2019
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: windows
+    os_distribution: windows-server
+    os_version: '2019'
+    features:
+      exchange-mailbox: exchange-admin
+    conditions:
+      exchange-owa-healthy: exchange-admin
+      phish-mail-delivered: exchange-admin
+    roles:
+      exchange-admin:
+        username: exch_admin
+        entities:
+        - hospital-blue.identity
+    services:
+    - port: 443
+      name: exchange-owa
+    - port: 25
+      name: exchange-smtp
+  ehr-frontend:
+    type: compute
+    source:
+      name: ehr-web-tier
+      version: '*'
+    resources:
+      ram: 6442450944
+      cpu: 4
+    os: linux
+    features:
+      ehr-service: ehr-admin
+    conditions:
+      ehr-api-healthy: ehr-admin
+      clinical-disruption-observed: ehr-admin
+    roles:
+      ehr-admin:
+        username: ehrsvc
+        entities:
+        - hospital-blue.clinical-it
+    services:
+    - port: 443
+      name: ehr-https
+    - port: 8443
+      name: ehr-admin-api
+    asset_value:
+      confidentiality: critical
+      integrity: critical
+      availability: critical
+  ehr-db:
+    type: compute
+    source:
+      name: postgres-cluster
+      version: '*'
+    resources:
+      ram: 8589934592
+      cpu: 4
+    os: linux
+    features:
+      sql-cluster: dba
+    conditions:
+      ehr-db-healthy: dba
+      phi-staging-observed: dba
+    roles:
+      dba:
+        username: postgres
+        entities:
+        - hospital-blue.clinical-it
+    services:
+    - port: 5432
+      name: ehr-postgres
+    asset_value:
+      confidentiality: critical
+      integrity: critical
+  pacs01:
+    type: compute
+    source:
+      name: pacs-archive
+      version: '*'
+    resources:
+      ram: 6442450944
+      cpu: 4
+    os: linux
+    features:
+      pacs-service: pacs-admin
+    conditions:
+      pacs-archive-healthy: pacs-admin
+      radiology-workflow-delayed: pacs-admin
+    roles:
+      pacs-admin:
+        username: pacs
+        entities:
+        - hospital-blue.clinical-it
+    services:
+    - port: 104
+      name: dicom-store
+    - port: 8444
+      name: pacs-web-ui
+    asset_value:
+      confidentiality: high
+      integrity: high
+      availability: critical
+  med-gateway:
+    type: compute
+    source:
+      name: medical-device-broker
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 2
+    os: linux
+    features:
+      device-broker: device-admin
+    conditions:
+      device-mesh-healthy: device-admin
+    roles:
+      device-admin:
+        username: biomed
+        entities:
+        - hospital-blue.clinical-it
+    services:
+    - port: 8883
+      name: med-mqtt
+  backup-vault:
+    type: compute
+    source:
+      name: immutable-backup-appliance
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: linux
+    features:
+      immutable-backup: backup-admin
+    conditions:
+      backup-catalog-intact: backup-admin
+      restore-runbook-ready: backup-admin
+    roles:
+      backup-admin:
+        username: backupops
+        entities:
+        - hospital-blue.recovery
+    services:
+    - port: 443
+      name: backup-api
+    - port: 2049
+      name: backup-nfs
+  siem01:
+    type: compute
+    source:
+      name: siem-stack
+      version: '*'
+    resources:
+      ram: 8589934592
+      cpu: 4
+    os: linux
+    features:
+      siem-core: soc-admin
+      edr-sensor: soc-admin
+    conditions:
+      soc-pipeline-up: soc-admin
+      triage-case-submitted: soc-admin
+    roles:
+      soc-admin:
+        username: socadmin
+        entities:
+        - hospital-blue.soc
+    services:
+    - port: 5601
+      name: soc-ui
+    - port: 9200
+      name: soc-search
+  vendor-jump:
+    type: compute
+    source:
+      name: vendor-workstation
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 2
+    os: windows
+    os_distribution: windows-client
+    os_version: '11'
+    conditions:
+      vendor-jump-online: support
+    roles:
+      support:
+        username: support
+        entities:
+        - vendor-support
+    services:
+    - port: 3389
+      name: vendor-rdp
+infrastructure:
+  internet-edge:
+    count: 1
+    properties:
+      cidr: 10.70.0.0/24
+      gateway: 10.70.0.1
+  vendor-segment:
+    count: 1
+    properties:
+      cidr: 10.70.1.0/24
+      gateway: 10.70.1.1
+      internal: true
+    acls:
+    - name: allow-public-vpn
+      direction: in
+      from_net: internet-edge
+      protocol: tcp
+      ports:
+      - 443
+      action: allow
+    - name: deny-clinical-backflow
+      direction: in
+      from_net: clinical-it
+      action: deny
+  corp-it:
+    count: 1
+    properties:
+      cidr: 10.70.2.0/24
+      gateway: 10.70.2.1
+      internal: true
+    acls:
+    - name: allow-public-mail-web
+      direction: in
+      from_net: internet-edge
+      protocol: tcp
+      ports:
+      - 25
+      - 443
+      action: allow
+    - name: allow-vendor-support
+      direction: in
+      from_net: vendor-segment
+      protocol: tcp
+      ports:
+      - 443
+      action: allow
+  clinical-it:
+    count: 1
+    properties:
+      cidr: 10.70.3.0/24
+      gateway: 10.70.3.1
+      internal: true
+    acls:
+    - name: allow-corp-clinical-apps
+      direction: in
+      from_net: corp-it
+      protocol: tcp
+      ports:
+      - 443
+      - 8443
+      - 8444
+      action: allow
+    - name: allow-vendor-clinical-web
+      direction: in
+      from_net: vendor-segment
+      protocol: tcp
+      ports:
+      - 443
+      action: allow
+    - name: deny-public-clinical
+      direction: in
+      from_net: internet-edge
+      action: deny
+  identity-net:
+    count: 1
+    properties:
+      cidr: 10.70.4.0/24
+      gateway: 10.70.4.1
+      internal: true
+    acls:
+    - name: allow-corp-identity
+      direction: in
+      from_net: corp-it
+      protocol: tcp
+      ports:
+      - 53
+      - 389
+      - 443
+      action: allow
+    - name: allow-clinical-identity
+      direction: in
+      from_net: clinical-it
+      protocol: tcp
+      ports:
+      - 389
+      - 443
+      action: allow
+  security-net:
+    count: 1
+    properties:
+      cidr: 10.70.5.0/24
+      gateway: 10.70.5.1
+      internal: true
+  backup-net:
+    count: 1
+    properties:
+      cidr: 10.70.6.0/24
+      gateway: 10.70.6.1
+      internal: true
+  mail-gateway:
+    count: 1
+    links:
+    - internet-edge
+    - corp-it
+    - security-net
+  vpn-gateway:
+    count: 1
+    links:
+    - internet-edge
+    - vendor-segment
+    - corp-it
+  ad01:
+    count: 1
+    links:
+    - identity-net
+    - corp-it
+    - clinical-it
+  exchange01:
+    count: 1
+    links:
+    - corp-it
+    - identity-net
+    dependencies:
+    - ad01
+  ehr-frontend:
+    count: 1
+    links:
+    - clinical-it
+    - identity-net
+    dependencies:
+    - ehr-db
+    - ad01
+  ehr-db:
+    count: 1
+    links:
+    - clinical-it
+    - backup-net
+    dependencies:
+    - backup-vault
+  pacs01:
+    count: 1
+    links:
+    - clinical-it
+    - backup-net
+    dependencies:
+    - backup-vault
+  med-gateway:
+    count: 1
+    links:
+    - clinical-it
+    dependencies:
+    - ehr-frontend
+  backup-vault:
+    count: 1
+    links:
+    - backup-net
+    - security-net
+  siem01:
+    count: 1
+    links:
+    - security-net
+    - corp-it
+  vendor-jump:
+    count: 1
+    links:
+    - vendor-segment
+features:
+  mail-relay:
+    type: service
+    source:
+      name: postfix-relay
+      version: '*'
+  vpn-concentrator:
+    type: service
+    source:
+      name: openvpn-appliance
+      version: '*'
+  hospital-ad:
+    type: service
+    source:
+      name: active-directory-domain-services
+      version: '*'
+  hospital-adfs:
+    type: service
+    source:
+      name: adfs
+      version: '*'
+  exchange-mailbox:
+    type: service
+    source:
+      name: exchange-mailbox-role
+      version: '*'
+  ehr-service:
+    type: service
+    source:
+      name: epic-web
+      version: '*'
+  sql-cluster:
+    type: service
+    source:
+      name: postgresql-ha
+      version: '*'
+  pacs-service:
+    type: service
+    source:
+      name: orthanc-pacs
+      version: '*'
+  device-broker:
+    type: service
+    source:
+      name: mqtt-medical-gateway
+      version: '*'
+  immutable-backup:
+    type: service
+    source:
+      name: immutable-backup-vault
+      version: '*'
+  siem-core:
+    type: service
+    source:
+      name: wazuh-elastic-stack
+      version: '*'
+  edr-sensor:
+    type: artifact
+    source:
+      name: hospital-edr-agent
+      version: '*'
+    destination: /opt/edr
+conditions:
+  mail-queue-healthy:
+    command: /usr/local/bin/check-mail-queue
+    interval: 30
+  vpn-auth-healthy:
+    command: /usr/local/bin/check-vpn-auth
+    interval: 30
+  vendor-session-established:
+    proposition: vendor-session-established
+    command: /usr/local/bin/check-vendor-session
+    interval: 30
+  domain-auth-healthy:
+    command: /usr/local/bin/check-domain-auth
+    interval: 30
+  sso-healthy:
+    command: /usr/local/bin/check-sso
+    interval: 30
+  exchange-owa-healthy:
+    command: /usr/local/bin/check-exchange-owa
+    interval: 30
+  phish-mail-delivered:
+    proposition: phish-mail-delivered
+    command: /usr/local/bin/check-phish-delivery
+    interval: 60
+  ehr-api-healthy:
+    proposition: ehr-api-healthy
+    command: /usr/local/bin/check-ehr-api
+    interval: 15
+  clinical-disruption-observed:
+    proposition: clinical-disruption-observed
+    command: /usr/local/bin/check-clinical-disruption
+    interval: 30
+  ehr-db-healthy:
+    command: /usr/local/bin/check-postgres
+    interval: 15
+  phi-staging-observed:
+    proposition: phi-staging-observed
+    command: /usr/local/bin/check-staged-phi
+    interval: 60
+  pacs-archive-healthy:
+    proposition: pacs-archive-healthy
+    command: /usr/local/bin/check-pacs
+    interval: 15
+  radiology-workflow-delayed:
+    proposition: radiology-workflow-delayed
+    command: /usr/local/bin/check-radiology-delay
+    interval: 30
+  device-mesh-healthy:
+    command: /usr/local/bin/check-device-mesh
+    interval: 30
+  backup-catalog-intact:
+    proposition: backup-catalog-intact
+    command: /usr/local/bin/check-backup-catalog
+    interval: 30
+  restore-runbook-ready:
+    command: /usr/local/bin/check-restore-runbook
+    interval: 60
+  soc-pipeline-up:
+    proposition: soc-pipeline-up
+    command: /usr/local/bin/check-siem-ingest
+    interval: 30
+  triage-case-submitted:
+    proposition: triage-case-submitted
+    command: /usr/local/bin/check-triage-case
+    interval: 60
+  vendor-jump-online:
+    command: /usr/local/bin/check-vendor-rdp
+    interval: 30
+propositions:
+  backup-catalog-intact:
+    description: The governed backup-catalog-intact observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.backup-vault
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: backup-catalog-intact
+      semantic_ref: urn:raes:observable:backup-catalog-intact
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  clinical-disruption-observed:
+    description: The governed clinical-disruption-observed observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.ehr-frontend
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: clinical-disruption-observed
+      semantic_ref: urn:raes:observable:clinical-disruption-observed
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  ehr-api-healthy:
+    description: The governed ehr-api-healthy observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.ehr-frontend
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: ehr-api-healthy
+      semantic_ref: urn:raes:observable:ehr-api-healthy
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  pacs-archive-healthy:
+    description: The governed pacs-archive-healthy observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.pacs01
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: pacs-archive-healthy
+      semantic_ref: urn:raes:observable:pacs-archive-healthy
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  phi-staging-observed:
+    description: The governed phi-staging-observed observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.ehr-db
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: phi-staging-observed
+      semantic_ref: urn:raes:observable:phi-staging-observed
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  phish-mail-delivered:
+    description: The governed phish-mail-delivered observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.exchange01
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: phish-mail-delivered
+      semantic_ref: urn:raes:observable:phish-mail-delivered
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  radiology-workflow-delayed:
+    description: The governed radiology-workflow-delayed observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.pacs01
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: radiology-workflow-delayed
+      semantic_ref: urn:raes:observable:radiology-workflow-delayed
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  soc-pipeline-up:
+    description: The governed soc-pipeline-up observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.siem01
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: soc-pipeline-up
+      semantic_ref: urn:raes:observable:soc-pipeline-up
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  triage-case-submitted:
+    description: The governed triage-case-submitted observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.siem01
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: triage-case-submitted
+      semantic_ref: urn:raes:observable:triage-case-submitted
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  vendor-session-established:
+    description: The governed vendor-session-established observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.vpn-gateway
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: vendor-session-established
+      semantic_ref: urn:raes:observable:vendor-session-established
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+assertions:
+  backup-catalog-intact:
+    proposition: backup-catalog-intact
+    role: postcondition
+    polarity: positive
+  clinical-disruption-observed:
+    proposition: clinical-disruption-observed
+    role: postcondition
+    polarity: positive
+  ehr-api-healthy:
+    proposition: ehr-api-healthy
+    role: postcondition
+    polarity: positive
+  pacs-archive-healthy:
+    proposition: pacs-archive-healthy
+    role: postcondition
+    polarity: positive
+  phi-staging-observed:
+    proposition: phi-staging-observed
+    role: postcondition
+    polarity: positive
+  radiology-workflow-delayed:
+    proposition: radiology-workflow-delayed
+    role: postcondition
+    polarity: positive
+  soc-pipeline-up:
+    proposition: soc-pipeline-up
+    role: postcondition
+    polarity: positive
+  triage-case-submitted:
+    proposition: triage-case-submitted
+    role: postcondition
+    polarity: positive
+  vendor-session-established:
+    proposition: vendor-session-established
+    role: postcondition
+    polarity: positive
+  pre-clinical-disruption-observed:
+    proposition: clinical-disruption-observed
+    role: precondition
+    polarity: positive
+  pre-phish-mail-delivered:
+    proposition: phish-mail-delivered
+    role: precondition
+    polarity: positive
+evidence_requirements:
+  objective-truth-evidence:
+    description: Capture evidence used to decide authored proposition assertions.
+    source_refs:
+    - nodes.ehr-frontend
+    - nodes.backup-vault
+    - nodes.exchange01
+    - nodes.siem01
+    - nodes.pacs01
+    - nodes.vpn-gateway
+    - nodes.ehr-db
+    scope: authored objective, event, workflow, and participant assertion evaluation
+    boundary_kind: assertion_evaluation
+    channel: log
+    artifact_role: proposition_truth_evidence
+    media_types: [application/json]
+    sensitivity: plain
+    redaction: redact_secrets
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+entities:
+  hospital-blue:
+    name: Hospital Blue Team
+    role: blue
+    mission: Keep patient care and core services available throughout the incident
+    entities:
+      soc:
+        name: SOC
+      identity:
+        name: Identity Engineering
+      clinical-it:
+        name: Clinical IT
+      recovery:
+        name: Recovery Cell
+  vendor-support:
+    name: Vendor Support
+    role: green
+    mission: Maintain third-party support connection for imaging systems
+  ransom-crew:
+    name: Ransom Crew
+    role: red
+    mission: Steal PHI and disrupt radiology before the surgery window closes
+  white-cell:
+    name: White Cell
+    role: white
+injects:
+  vendor-advisory:
+    source:
+      name: vendor-advisory-pdf
+      version: '*'
+    from_entity: white-cell
+    to_entities:
+    - hospital-blue
+    - vendor-support
+    description: Advisory about intermittent VPN instability from the imaging vendor
+  phishing-wave:
+    source:
+      name: payroll-lure-pack
+      version: '*'
+    from_entity: ransom-crew
+    to_entities:
+    - hospital-blue
+    - vendor-support
+    description: Phishing lure targeting helpdesk and vendor support personnel
+  surgery-escalation:
+    source:
+      name: operating-room-escalation
+      version: '*'
+    from_entity: white-cell
+    to_entities:
+    - hospital-blue
+    description: Surgeons report delayed radiology access and demand ETA
+events:
+  morning-advisory:
+    injects:
+    - vendor-advisory
+  phishing-delivery:
+    assertions:
+    - pre-phish-mail-delivered
+    injects:
+    - phishing-wave
+  surgery-pressure:
+    assertions:
+    - pre-clinical-disruption-observed
+    injects:
+    - surgery-escalation
+scripts:
+  pre-surgery:
+    start_time: 0
+    end_time: 7200
+    speed: ${surgery_day_speed}
+    events:
+      morning-advisory: 600
+      phishing-delivery: 2700
+  live-clinic:
+    start_time: 7200
+    end_time: 18000
+    speed: ${surgery_day_speed}
+    events:
+      surgery-pressure: 10800
+  recovery-window:
+    start_time: 18000
+    end_time: ${recovery_window}
+    speed: ${surgery_day_speed}
+    events:
+      surgery-pressure: 21600
+stories:
+  surgery-day:
+    speed: ${surgery_day_speed}
+    scripts:
+    - pre-surgery
+    - live-clinic
+    - recovery-window
+content:
+  phi-records:
+    type: dataset
+    target: ehr-db
+    source:
+      name: synthetic-phi-seed
+      version: '*'
+    format: sql
+    sensitive: true
+    tags:
+    - phi
+    - patients
+  radiology-images:
+    type: dataset
+    target: pacs01
+    source:
+      name: dicom-archive-seed
+      version: '*'
+    format: dicom
+    sensitive: true
+    tags:
+    - radiology
+  phishing-mailbox:
+    type: dataset
+    target: exchange01
+    format: eml
+    items:
+    - name: payroll-adjustment
+      display_name: payroll-adjustment.eml
+      tags:
+      - phishing
+      - attachment
+      description: Message crafted to lure helpdesk review
+    - name: vendor-followup
+      display_name: vendor-followup.eml
+      tags:
+      - phishing
+      - vendor
+      description: Message impersonating the imaging vendor
+    sensitive: true
+  backup-runbook:
+    type: file
+    target: backup-vault
+    path: /srv/runbooks/hospital-recovery.md
+    text: Recover EHR, PACS, and device broker in dependency order.
+    sensitive: true
+  vendor-session-profile:
+    type: file
+    target: vendor-jump
+    path: C:\\Support\\session.ini
+    text: tenant=hospital\naccess=vpn\nprofile=imaging-support
+    sensitive: true
+identity_domains:
+  hospital:
+    profile: active_directory
+    dns_name: hospital.local
+    netbios_name: HOSPITAL
+    authority_account_ref: domain-admin
+accounts:
+  domain-admin:
+    username: Administrator
+    node: ad01
+    groups:
+    - Domain Admins
+    password_strength: strong
+  nurse-user:
+    username: nurse.jane
+    node: exchange01
+    groups:
+    - Clinical
+    password_strength: medium
+    mail: nurse.jane@hospital.local
+  surgeon-user:
+    username: surgeon.lee
+    node: ehr-frontend
+    groups:
+    - Surgery
+    password_strength: strong
+  helpdesk-user:
+    username: helpdesk
+    node: exchange01
+    groups:
+    - Helpdesk
+    password_strength: medium
+  svc-ehr:
+    username: ehrsvc
+    node: ehr-frontend
+    groups:
+    - AppServices
+    password_strength: weak
+    spn: HTTP/ehr.hospital.local
+    domain_ref: hospital
+  svc-sql:
+    username: ehrsql
+    node: ehr-db
+    groups:
+    - DBA
+    password_strength: weak
+    spn: POSTGRES/ehr-db.hospital.local
+    domain_ref: hospital
+  backup-operator:
+    username: backupops
+    node: backup-vault
+    groups:
+    - BackupAdmins
+    password_strength: strong
+  vendor-tech:
+    username: support
+    node: vendor-jump
+    groups:
+    - VendorSupport
+    password_strength: medium
+  soc-analyst:
+    username: socanalyst
+    node: siem01
+    groups:
+    - SOC
+    password_strength: strong
+relationships:
+  ad01-controls-hospital-domain:
+    type: domain_controller_for
+    source: ad01
+    target: hospital
+    domain_controller: {}
+  ehr-frontend-joins-hospital-domain:
+    type: joins_domain
+    source: ehr-frontend
+    target: hospital
+    domain_join:
+      controller_refs:
+      - ad01
+  ehr-db-joins-hospital-domain:
+    type: joins_domain
+    source: ehr-db
+    target: hospital
+    domain_join:
+      controller_refs:
+      - ad01
+  exchange-auths-ad:
+    type: authenticates_with
+    source: exchange-mailbox
+    target: hospital-ad
+  vpn-vendor-support-path:
+    type: authenticates_with
+    source: vendor-tech
+    target: vpn-concentrator
+    description: Vendor support uses VPN plus shared support credentials
+  ehr-sso-path:
+    type: federates_with
+    source: ehr-service
+    target: hospital-adfs
+    properties:
+      protocol: SAML
+  ehr-to-database:
+    type: connects_to
+    source: ehr-service
+    target: sql-cluster
+    properties:
+      protocol: tcp
+      port: '5432'
+  pacs-sync-to-backup:
+    type: replicates_to
+    source: pacs-service
+    target: immutable-backup
+  med-gateway-depends-ehr:
+    type: depends_on
+    source: device-broker
+    target: ehr-service
+  backup-manages-ehr:
+    type: manages
+    source: immutable-backup
+    target: ehr-db
+# Abstract action intent; backend realization and authorization remain separate.
+action_contracts:
+  abuse-vpn:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared AbuseVPN intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt AbuseVPN against the scenario-declared subject set.
+      target_refs:
+      - exchange01
+      - infrastructure.corp-it.acls.allow-vendor-support
+      - nodes.vpn-gateway.services.vpn-portal
+      - vpn-gateway
+      - vpn-vendor-support-path
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  contain:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Contain intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Contain against the scenario-declared subject set.
+      target_refs:
+      - backup-manages-ehr
+      - backup-vault
+      - ehr-db
+      - pacs01
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  disable:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Disable intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Disable against the scenario-declared subject set.
+      target_refs:
+      - ehr-db
+      - ehr-frontend
+      - pacs01
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  discover:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Discover intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Discover against the scenario-declared subject set.
+      target_refs:
+      - mail-gateway
+      - vendor-jump
+      - vpn-gateway
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  encrypt:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Encrypt intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Encrypt against the scenario-declared subject set.
+      target_refs:
+      - ehr-db
+      - ehr-frontend
+      - pacs01
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  escalate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Escalate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Escalate against the scenario-declared subject set.
+      target_refs:
+      - infrastructure.corp-it.acls.allow-vendor-support
+      - mail-gateway
+      - nodes.vpn-gateway.services.vpn-portal
+      - siem01
+      - vpn-gateway
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  exfiltrate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Exfiltrate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Exfiltrate against the scenario-declared subject set.
+      target_refs:
+      - ehr-db
+      - ehr-to-database
+      - phi-records
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  inspect:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Inspect intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Inspect against the scenario-declared subject set.
+      target_refs:
+      - infrastructure.corp-it.acls.allow-vendor-support
+      - mail-gateway
+      - nodes.vpn-gateway.services.vpn-portal
+      - siem01
+      - vpn-gateway
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  isolate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Isolate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Isolate against the scenario-declared subject set.
+      target_refs:
+      - mail-gateway
+      - siem01
+      - vpn-gateway
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  phish:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Phish intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Phish against the scenario-declared subject set.
+      target_refs:
+      - exchange01
+      - infrastructure.corp-it.acls.allow-vendor-support
+      - nodes.vpn-gateway.services.vpn-portal
+      - vpn-gateway
+      - vpn-vendor-support-path
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  pivot:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Pivot intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Pivot against the scenario-declared subject set.
+      target_refs:
+      - ehr-db
+      - ehr-to-database
+      - phi-records
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  reissue-creds:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared ReissueCreds intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt ReissueCreds against the scenario-declared subject set.
+      target_refs:
+      - backup-vault
+      - ehr-db
+      - pacs01
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  restore:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Restore intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Restore against the scenario-declared subject set.
+      target_refs:
+      - backup-manages-ehr
+      - backup-vault
+      - ehr-db
+      - pacs01
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  steal-cred:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared StealCred intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt StealCred against the scenario-declared subject set.
+      target_refs:
+      - mail-gateway
+      - vendor-jump
+      - vpn-gateway
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  triage:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Triage intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Triage against the scenario-declared subject set.
+      target_refs:
+      - infrastructure.corp-it.acls.allow-vendor-support
+      - mail-gateway
+      - nodes.vpn-gateway.services.vpn-portal
+      - siem01
+      - vpn-gateway
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  validate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Validate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Validate against the scenario-declared subject set.
+      target_refs:
+      - backup-manages-ehr
+      - backup-vault
+      - ehr-db
+      - pacs01
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+agents:
+  red-initial:
+    affiliations: [ransom-crew]
+    actions:
+    - phish
+    - abuse-vpn
+    - discover
+    - steal-cred
+    initial_knowledge:
+      hosts:
+      - mail-gateway
+      - vpn-gateway
+      - vendor-jump
+      subnets:
+      - internet-edge
+      - vendor-segment
+      services:
+      - smtp-inbound
+      - vpn-portal
+      - vendor-rdp
+      accounts:
+      - vendor-tech
+    allowed_subnets:
+    - internet-edge
+    - vendor-segment
+    - corp-it
+  red-operator:
+    affiliations: [ransom-crew]
+    actions:
+    - pivot
+    - exfiltrate
+    - encrypt
+    - disable
+    starting_accounts:
+    - svc-ehr
+    initial_knowledge:
+      hosts:
+      - ehr-frontend
+      - ehr-db
+      - pacs01
+      subnets:
+      - clinical-it
+      - backup-net
+      services:
+      - ehr-https
+      - ehr-postgres
+      - dicom-store
+      accounts:
+      - svc-sql
+      - backup-operator
+    allowed_subnets:
+    - clinical-it
+    - backup-net
+    - identity-net
+  blue-soc-agent:
+    affiliations: [hospital-blue.soc]
+    actions:
+    - inspect
+    - triage
+    - isolate
+    - escalate
+    starting_accounts:
+    - soc-analyst
+    initial_knowledge:
+      hosts:
+      - siem01
+      - mail-gateway
+      - vpn-gateway
+      subnets:
+      - security-net
+      - corp-it
+      services:
+      - soc-ui
+      - mail-admin-ui
+      - vpn-portal
+      accounts:
+      - helpdesk-user
+      - vendor-tech
+    allowed_subnets:
+    - security-net
+    - corp-it
+    - vendor-segment
+  blue-ir-agent:
+    affiliations: [hospital-blue.recovery]
+    actions:
+    - contain
+    - restore
+    - reissue-creds
+    - validate
+    starting_accounts:
+    - backup-operator
+    initial_knowledge:
+      hosts:
+      - backup-vault
+      - ehr-db
+      - pacs01
+      subnets:
+      - backup-net
+      - clinical-it
+      services:
+      - backup-api
+      - backup-nfs
+      - pacs-web-ui
+      accounts:
+      - svc-sql
+      - backup-operator
+    allowed_subnets:
+    - backup-net
+    - clinical-it
+    - identity-net
+objectives:
+  red-establish-foothold:
+    assigned_participant: red-initial
+    actions:
+    - phish
+    - abuse-vpn
+    targets:
+    - vpn-gateway
+    - exchange01
+    - nodes.vpn-gateway.services.vpn-portal
+    - infrastructure.corp-it.acls.allow-vendor-support
+    - vpn-vendor-support-path
+    success:
+      assertions:
+      - vendor-session-established
+    window:
+      stories:
+      - surgery-day
+      scripts:
+      - pre-surgery
+      events:
+      - phishing-delivery
+  red-stage-phi:
+    assigned_participant: red-operator
+    actions:
+    - pivot
+    - exfiltrate
+    targets:
+    - phi-records
+    - ehr-to-database
+    - ehr-db
+    success:
+      assertions:
+      - phi-staging-observed
+    window:
+      stories:
+      - surgery-day
+      scripts:
+      - live-clinic
+    depends_on:
+    - red-establish-foothold
+  red-disrupt-radiology:
+    owner: ransom-crew
+    targets:
+    - pacs01
+    - radiology-images
+    - pacs-sync-to-backup
+    success:
+      assertions:
+      - radiology-workflow-delayed
+      - clinical-disruption-observed
+    window:
+      stories:
+      - surgery-day
+      scripts:
+      - live-clinic
+      events:
+      - surgery-pressure
+    depends_on:
+    - red-stage-phi
+  blue-detect-and-triage:
+    assigned_participant: blue-soc-agent
+    actions:
+    - inspect
+    - triage
+    - escalate
+    targets:
+    - siem01
+    - vpn-gateway
+    - mail-gateway
+    - nodes.vpn-gateway.services.vpn-portal
+    - infrastructure.corp-it.acls.allow-vendor-support
+    success:
+      assertions:
+      - soc-pipeline-up
+      - triage-case-submitted
+    window:
+      stories:
+      - surgery-day
+      scripts:
+      - pre-surgery
+      - live-clinic
+  blue-restore-clinical-services:
+    assigned_participant: blue-ir-agent
+    actions:
+    - contain
+    - restore
+    - validate
+    targets:
+    - backup-vault
+    - ehr-db
+    - pacs01
+    - backup-manages-ehr
+    success:
+      assertions:
+      - ehr-api-healthy
+      - pacs-archive-healthy
+      - backup-catalog-intact
+    window:
+      stories:
+      - surgery-day
+      scripts:
+      - recovery-window
+    depends_on:
+    - blue-detect-and-triage
+    - red-disrupt-radiology
+variables:
+  surgery_day_speed:
+    type: number
+    default: 1.0
+    description: Story speed multiplier for the exercise day
+  recovery_window:
+    type: string
+    default: 8 hour
+    description: Total duration of the recovery story

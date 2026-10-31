@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "backend-manifest-v2",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "90eb04ecde075ae48c8b187e3136a22bfebad961b6fb9bdd256751ece8cda790"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "backend-manifest-v2",
+      "diagnostics": [
+        {
+          "address": "backend-manifest-v2",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 7,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

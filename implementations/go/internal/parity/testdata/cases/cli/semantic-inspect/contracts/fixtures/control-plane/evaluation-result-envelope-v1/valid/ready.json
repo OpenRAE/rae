@@ -1,0 +1,53 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "evaluation-result-envelope-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "a1cac4ca2daae9fc0a9df1b0c475263d0489bf0208f5706c0427db308aa35c82"
+  },
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "evaluation-result-envelope-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 11,
+        "members": [
+          "detail",
+          "evidence_refs",
+          "max_score",
+          "observed_at",
+          "passed",
+          "resource_type",
+          "run_id",
+          "score",
+          "state_schema_version",
+          "status",
+          "updated_at"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

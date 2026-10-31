@@ -1,0 +1,55 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "scientific-completeness-assessment-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "75881e8379ae1396571f4917fae5d87ec487359752099219d4d86b9cefed78d9"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "scientific-completeness-assessment-v1",
+      "diagnostics": [
+        {
+          "address": "scientific-completeness-assessment-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 6,
+        "members": [
+          "assessed_on",
+          "assessment_revision",
+          "concerns",
+          "profile_family",
+          "schema_version",
+          "taxonomy_revision"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

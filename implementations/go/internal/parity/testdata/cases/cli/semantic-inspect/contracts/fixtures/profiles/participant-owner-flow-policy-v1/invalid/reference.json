@@ -1,0 +1,73 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-owner-flow-policy-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "00b45447f878000797517d31bd6b3c53ed57906e8688cc38c058bd686d85a134"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-owner-flow-policy-v1",
+      "diagnostics": [
+        {
+          "address": "participant-owner-flow-policy-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 24,
+        "members": [
+          "authority_revision",
+          "confidentiality_obligation_refs",
+          "declassification_authority",
+          "derivation_rule",
+          "description",
+          "endorsement_authority",
+          "executable_policy",
+          "integrity_obligation_refs",
+          "join",
+          "memory",
+          "nonclaims",
+          "normalization",
+          "order",
+          "owner_clauses",
+          "profile_id",
+          "profile_revision",
+          "schema_version",
+          "sink_policy",
+          "source_label_resolver",
+          "title",
+          "unknown_confidentiality_obligation_ref",
+          "unknown_integrity_obligation_ref",
+          "unknown_source_posture",
+          "variability_revision"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,13 @@
+{
+  "args": [
+    "inject-trigger-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "777461eec3b06d23edfd009874b00e3c2f447f5d8c8485b0f630c2299a5b6b17"
+  },
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,105 @@
+name: enterprise-identity-tenancy
+version: 1.0.0
+description: Portable enterprise forest, carrier placement, and shared inference tenancy.
+
+nodes:
+  dc:
+    type: compute
+    os: windows
+    resources: {ram: 2 GiB, cpu: 2}
+    endpoint_persona: service
+  idp:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    endpoint_persona: service
+    services:
+      - name: oidc
+        port: 8443
+  carrier:
+    type: compute
+    os: linux
+    resources: {ram: 2 GiB, cpu: 2}
+    endpoint_persona: carrier
+  workforce:
+    type: compute
+    os: windows
+    resources: {ram: 1 GiB, cpu: 1}
+    endpoint_persona: workforce
+  inference:
+    type: compute
+    os: linux
+    resources: {ram: 2 GiB, cpu: 2}
+    endpoint_persona: service
+    services:
+      - name: inference-api
+        port: 8080
+
+accounts:
+  domain-admin:
+    username: Administrator
+    node: dc
+
+identity_domains:
+  corp:
+    profile: active_directory
+    dns_name: corp.example
+    netbios_name: CORP
+    authority_account_ref: domain-admin
+
+identity_forests:
+  enterprise:
+    root_domain_ref: corp
+    domain_refs: [corp]
+
+identity_facades:
+  workforce-oidc:
+    service_ref: nodes.idp.services.oidc
+    protocol: oidc
+
+deployment_tenants:
+  range-a: {}
+  shared-platform: {}
+
+deployment_cells:
+  range-a-cell:
+    tenant_ref: range-a
+    node_refs: [dc, idp, carrier, workforce]
+    cross_tenant_isolation: default_deny
+  shared-cell:
+    tenant_ref: shared-platform
+    node_refs: [inference]
+    cross_tenant_isolation: default_deny
+
+relationships:
+  dc-role:
+    type: domain_controller_for
+    source: dc
+    target: corp
+    domain_controller: {}
+  workforce-federation:
+    type: directory_federates_to
+    source: enterprise
+    target: workforce-oidc
+    identity_federation:
+      direction: authority_to_facade
+      protocol: ldap_tls
+      mapping_intent: groups_to_roles
+      tenant_claim_name: range_instance
+      tenant_claim_owner: facade
+  workforce-placement:
+    type: placed_on_carrier
+    source: workforce
+    target: carrier
+    carrier_placement:
+      kernel_boundary: shared_kernel
+  shared-inference:
+    type: uses_shared_service
+    source: range-a
+    target: nodes.inference.services.inference-api
+    shared_service:
+      tenant_isolation: stateless
+      workload_authentication: tenant_scoped_workload_identity
+      mutable_state_refs: []
+      mutable_state_owner: none
+      reset_generation_owner: none

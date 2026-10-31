@@ -1,0 +1,13 @@
+{
+  "args": [
+    "inject-occurrence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a87765c9925f0361be6ca301b873819b29fb929dcdfa4d9d5a6b53d034833635"
+  },
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,69 @@
+{
+  "event_id": "crossing-occurrence.requested.invalid",
+  "schema_name": "participant-crossing-occurrence",
+  "schema_version": "1.0.0",
+  "event_type": "participant-crossing-occurrence",
+  "extension_policy": "closed",
+  "participant_address": "participants.red.operator",
+  "episode_id": "episode-1",
+  "occurred_at": "2026-07-26T08:00:00Z",
+  "recorded_at": "2026-07-26T08:00:01Z",
+  "ingested_at": "2026-07-26T08:00:02Z",
+  "clock_authority": "clock.logical",
+  "ordering_basis": "logical_clock",
+  "actor_ref": "controller.human.red",
+  "producer_ref": "participant-runtime.red",
+  "provenance_refs": [
+    "provenance:crossing-invalid"
+  ],
+  "evidence_refs": [
+    "evidence:crossing-invalid"
+  ],
+  "object_marking_refs": [
+    "marking:participant-control"
+  ],
+  "authorization_scope": "scope:red-team",
+  "occurrence": {
+    "direction": "ingress",
+    "interaction_kind": "action-proposal",
+    "audience_scope_ref": "audience:red-operator",
+    "subject": {
+      "subject_kind": "participant-control-occurrence",
+      "contract_id": "participant-control-occurrence-v1",
+      "subject_ref": "control-occurrence.proposal.invalid",
+      "subject_revision": "1",
+      "participant_address": "participants.red.operator",
+      "episode_id": "episode-1"
+    },
+    "controller_ref": "controller.human.red",
+    "authority_basis_refs": [
+      "authority:red-team"
+    ],
+    "policy": {
+      "policy_id": "participant-crossing-policy:red",
+      "policy_revision": "revision-3",
+      "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+      "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+      "effective_order": 8,
+      "valid_from_order": 8,
+      "valid_until_order": 20
+    },
+    "effective_order": 10,
+    "order_model": "logical_clock",
+    "backend_posture": "exact",
+    "loss_and_limitations": [
+      "limitation:contract-only"
+    ],
+    "stage": "requested",
+    "request_id": "crossing-request.invalid",
+    "requested_operation": "admission",
+    "action_or_projection_ref": "action-contract:contain-host",
+    "required_evidence_refs": [
+      "evidence-requirement:crossing-decision"
+    ],
+    "payload": {
+      "raw_secret": "must-not-cross"
+    }
+  }
+}

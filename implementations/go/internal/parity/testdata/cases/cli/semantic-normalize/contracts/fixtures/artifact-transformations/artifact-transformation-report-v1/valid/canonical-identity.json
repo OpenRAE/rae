@@ -1,0 +1,43 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "artifact-transformation-report-v1",
+    "input.json"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.json": "fe57873c722e6957ce29ff9d037ece9f984e69824b9746e60c7a99eeba41f813"
+  },
+  "result": {
+    "exit_code": 3,
+    "stdout": {
+      "contract_id": "artifact-transformation-report-v1",
+      "diagnostics": [
+        {
+          "address": "",
+          "code": "cli.operation-unsupported",
+          "domain": "cli",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "normalize",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "unsupported",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

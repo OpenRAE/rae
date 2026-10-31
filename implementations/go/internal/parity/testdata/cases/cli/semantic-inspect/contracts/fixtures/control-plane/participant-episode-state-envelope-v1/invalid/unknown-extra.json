@@ -1,0 +1,61 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-episode-state-envelope-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "fbc97be9d3f4023f47d9a566d39c8f489830cb5405090e3e93ba2c43d1ccbaf9"
+  },
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-episode-state-envelope-v1",
+      "diagnostics": [
+        {
+          "address": "participant-episode-state-envelope-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 12,
+        "members": [
+          "episode_id",
+          "initialized_at",
+          "last_control_action",
+          "participant_address",
+          "previous_episode_id",
+          "sequence_number",
+          "state_schema_version",
+          "status",
+          "terminal_reason",
+          "terminated_at",
+          "unknown_field",
+          "updated_at"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}
