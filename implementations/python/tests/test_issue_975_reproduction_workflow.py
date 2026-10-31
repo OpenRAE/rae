@@ -1,5 +1,6 @@
 """The required canonical model-check lane also runs the isolated reproducer."""
 
+import json
 from pathlib import Path
 
 import yaml
@@ -17,7 +18,8 @@ def test_required_lane_demands_a_pinned_qualified_reproduction():
     assert "continue-on-error" not in replay
     assert "--offline --no-sync" in replay["run"]
     assert "--qualified" in replay["run"]
-    assert "sha256:76422aebb1413e345677eeaa4bea67005e74aa3d9289d185f63f4c69dc838339" in replay["run"]
+    pin = json.loads((ROOT / "specs/formal/participant-semantics/machine-check/pin.json").read_text())
+    assert f"--expected-manifest {pin['manifest_digest']}" in replay["run"]
     assert replay["env"]["RAES_MACHINE_CHECK_SOURCE_SHA"] == "${{ inputs.ref }}"
     uploads = [step for step in job["steps"] if "actions/upload-artifact@" in step.get("uses", "")]
     paths = "\n".join(step["with"]["path"] for step in uploads)
