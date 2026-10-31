@@ -576,7 +576,7 @@ adrs:
     pin: 61a5ea9d72a0afa1033d46131913f45b140286b6ddddcb59e0e1f6914b721cb9
   - id: ADR-100
     path: docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md
-    pin: 8a406230189370e90c5fcab4e29459f3bcb7dc71321a7b4da007e7011bf6f4fb
+    pin: 4003729e08f84ab3a2db51c546482880f103ee27152d74d5e02372020d811524
     amendments:
       - date: 2026-09-27
         ref: "#971"
@@ -584,6 +584,9 @@ adrs:
       - date: 2026-10-13
         ref: "#1395"
         summary: "Add the separate two-operation construction profile and projection, history-sensitive retries and bounded completed-result response loss; preserve single-operation evidence and separate equivalence and realization."
+      - date: 2026-10-31
+        ref: "#976"
+        summary: "Record completion of the ordered #971-#976 work and the SEM-232 ACTIVE transition; retained records bind subject-source digests and execution records bind the source revision."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     pin: 52e6089fddc86a2f3361d678687db4823f5c06cdad74a97d99cd7c97a9b94acc
