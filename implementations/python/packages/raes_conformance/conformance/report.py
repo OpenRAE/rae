@@ -189,17 +189,7 @@ def _validate_case_outcomes(report: BackendConformanceReport) -> None:
         raise ValueError("conformance report requires a backend or processor subject")
     if report.passed and not report.cases:
         raise ValueError("backend conformance report is marked passed without any case")
-    identities = [(case.contract_name, case.name) for case in report.cases]
-    if len(identities) != len(set(identities)):
-        raise ValueError("conformance report contains duplicate case identities")
-    if report.passed and (
-        report.unsupported_contract_gaps
-        or report.unsupported_capability_gaps
-        or any(diag.is_error for diag in report.diagnostics)
-    ):
-        raise ValueError("conformance report is marked passed with required gaps or top-level errors")
-    if report.passed and _missing_checks(report):
-        raise ValueError("conformance report is marked passed without every required check")
+    _validate_required_coverage(report)
     if report.native_conformance and (not report.passed or report.subject_kind != "backend"):
         raise ValueError("native conformance requires a passing backend report")
     for case in report.cases:
@@ -207,6 +197,23 @@ def _validate_case_outcomes(report: BackendConformanceReport) -> None:
             raise ValueError(f"conformance case {case.name!r} has inconsistent outcome and pass fields")
         if case.mixed_binding is not None:
             _validate_mixed_case(case, native=report.native_conformance)
+
+
+def _validate_required_coverage(report: BackendConformanceReport) -> None:
+    identities = [(case.contract_name, case.name) for case in report.cases]
+    if len(identities) != len(set(identities)):
+        raise ValueError("conformance report contains duplicate case identities")
+    if not report.passed:
+        return
+    gaps = (
+        report.unsupported_contract_gaps,
+        report.unsupported_capability_gaps,
+        any(diag.is_error for diag in report.diagnostics),
+    )
+    if any(gaps):
+        raise ValueError("conformance report is marked passed with required gaps or top-level errors")
+    if _missing_checks(report):
+        raise ValueError("conformance report is marked passed without every required check")
 
 
 def _validate_mixed_case(case: ConformanceCaseResult, *, native: bool) -> None:
@@ -345,31 +352,39 @@ def _validate_native_evidence(report: BackendConformanceReport) -> None:
     if not report.probe_set_digest or not any(case.probe_kind == "positive" for case in probes):
         raise ValueError("native conformance requires bound native probe evidence")
     for case in probes:
-        if (
-            not all(
-                (
-                    case.probe_digest,
-                    case.envelope_digest,
-                    case.configuration_digest,
-                    case.target_binding,
-                    case.evidence_refs,
-                )
+        _validate_native_binding(case, report.probe_set_digest)
+        _validate_native_observations(case)
+
+
+def _validate_native_binding(case: ConformanceCaseResult, probe_set_digest: str | None) -> None:
+    if (
+        not all(
+            (
+                case.probe_digest,
+                case.envelope_digest,
+                case.configuration_digest,
+                case.target_binding,
+                case.evidence_refs,
             )
-            or case.probe_set_digest != report.probe_set_digest
-            or case.cleanup_verified is not True
-            or case.residual_state
-        ):
-            raise ValueError("native conformance requires bound native probe and cleanup evidence")
-        if case.probe_kind == "positive" and (
-            not case.expected_observation_strengths
-            or not set(case.expected_observation_strengths) <= set(case.actual_observation_strengths)
-            or set(case.expected_operations) != set(case.accounted_operations)
-        ):
-            raise ValueError("native conformance requires complete native observation evidence")
-        if case.probe_kind == "negative" and (
-            case.native_state_unchanged is not True or case.portable_state_unchanged is not True
-        ):
-            raise ValueError("native conformance requires unchanged-state evidence for negative probes")
+        )
+        or case.probe_set_digest != probe_set_digest
+        or case.cleanup_verified is not True
+        or case.residual_state
+    ):
+        raise ValueError("native conformance requires bound native probe and cleanup evidence")
+
+
+def _validate_native_observations(case: ConformanceCaseResult) -> None:
+    if case.probe_kind == "positive" and (
+        not case.expected_observation_strengths
+        or not set(case.expected_observation_strengths) <= set(case.actual_observation_strengths)
+        or set(case.expected_operations) != set(case.accounted_operations)
+    ):
+        raise ValueError("native conformance requires complete native observation evidence")
+    if case.probe_kind == "negative" and (
+        case.native_state_unchanged is not True or case.portable_state_unchanged is not True
+    ):
+        raise ValueError("native conformance requires unchanged-state evidence for negative probes")
 
 
 def _validate_case_evidence(report: BackendConformanceReport) -> None:

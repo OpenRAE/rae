@@ -32,20 +32,23 @@ def case_for(name="positive", **changes):
     ],
 )
 def test_passing_report_cannot_hide_required_gaps_or_top_level_errors(changes):
+    report = report_for(case_for(), **changes)
     with pytest.raises(ValueError):
-        reports.backend_conformance_report_payload(report_for(case_for(), **changes))
+        reports.backend_conformance_report_payload(report)
 
 
 def test_duplicate_case_identity_cannot_satisfy_coverage():
     case = case_for()
+    report = report_for(case, case)
     with pytest.raises(ValueError, match="duplicate"):
-        reports.backend_conformance_report_payload(report_for(case, case))
+        reports.backend_conformance_report_payload(report)
 
 
 def test_failed_report_cannot_keep_a_native_qualification():
     case = replace(case_for(execution_basis="native-live"), passed=False, outcome="failed")
+    report = report_for(case, native_conformance=True)
     with pytest.raises(ValueError, match="native"):
-        reports.backend_conformance_report_payload(report_for(case, native_conformance=True))
+        reports.backend_conformance_report_payload(report)
 
 
 def test_expected_rejection_is_a_pass_and_retains_its_diagnostic():
@@ -65,8 +68,9 @@ def test_omitted_required_check_is_reported_without_achievement():
     payload = reports.backend_conformance_report_payload(report)
     assert payload["summary"]["missing_checks"] == [required[1]]
     assert payload["summary"]["achieved_profile"] is None
+    incomplete = replace(report, passed=True)
     with pytest.raises(ValueError, match="required"):
-        reports.backend_conformance_report_payload(replace(report, passed=True))
+        reports.backend_conformance_report_payload(incomplete)
 
 
 def test_human_view_preserves_support_gaps_limits_and_escapes_controls():
@@ -235,8 +239,9 @@ def test_backend_fixture_report_binds_profile_contracts_and_fixture_provenance()
 def test_a_mixed_native_and_hermetic_report_cannot_claim_native_qualification():
     native = case_for("native", execution_basis="native-live")
     hermetic = case_for("hermetic", execution_basis="hermetic-live")
+    report = report_for(native, hermetic, native_conformance=True)
     with pytest.raises(ValueError, match="native"):
-        reports.backend_conformance_report_payload(report_for(native, hermetic, native_conformance=True))
+        reports.backend_conformance_report_payload(report)
 
 
 def test_specialist_unsupported_combinations_keep_their_exact_evidence(tmp_path):
@@ -337,8 +342,9 @@ def test_text_preserves_cleanup_and_residual_state_without_terminal_controls():
 
 def test_native_label_without_bound_observations_is_rejected():
     native = case_for(execution_basis="native-live")
+    report = report_for(native, native_conformance=True)
     with pytest.raises(ValueError, match="native.*evidence"):
-        reports.backend_conformance_report_payload(report_for(native, native_conformance=True))
+        reports.backend_conformance_report_payload(report)
 
 
 def test_compilation_negative_cannot_borrow_a_planning_refusal():
@@ -387,4 +393,5 @@ def test_missing_positive_fixtures_do_not_hide_invalid_fixture_results(tmp_path)
     report = run_fixture_suite(profile="minimal", root=tmp_path / "fixtures", profiles_root=profiles)
     assert not report.passed
     assert len(report.cases) == 1
-    assert report.cases[0].name == "malformed" and report.cases[0].passed
+    assert report.cases[0].name == "malformed"
+    assert report.cases[0].passed

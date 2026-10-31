@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from raes_backend_protocols.capabilities import (
     PARTICIPANT_RUNTIME_POLICY_FEATURES,
@@ -183,18 +183,21 @@ def _unknown_profile_report(
             ),
         ),
     )
-    return replace(
-        fixture_report,
-        profile=profile_id,
-        passed=False,
-        claim=_bounded_conformance_claim(
+    return cast(
+        BackendConformanceReport,
+        replace(
+            fixture_report,
             profile=profile_id,
+            passed=False,
+            claim=_bounded_conformance_claim(
+                profile=profile_id,
+                cases=fixture_report.cases,
+                left_carrier_ref=f"backend-target:{target.name}",
+            ),
             cases=fixture_report.cases,
-            left_carrier_ref=f"backend-target:{target.name}",
+            contract_versions=dict(fixture_report.contract_versions),
+            diagnostics=diagnostics,
         ),
-        cases=fixture_report.cases,
-        contract_versions=dict(fixture_report.contract_versions),
-        diagnostics=diagnostics,
     )
 
 
@@ -439,7 +442,10 @@ def run_target_conformance(target: RuntimeTarget, **option_values: Any) -> Backe
         root=options.root,
         profiles_root=options.profiles_root,
     )
-    fixture_report = replace(fixture_report, subject_name=target.manifest.name, subject_version=target.manifest.version)
+    fixture_report = cast(
+        BackendConformanceReport,
+        replace(fixture_report, subject_name=target.manifest.name, subject_version=target.manifest.version),
+    )
     if any(diag.code == "conformance.profile-load-failed" for diag in fixture_report.diagnostics):
         return fixture_report
     if _to_known_profile(effective_profile) is None:
