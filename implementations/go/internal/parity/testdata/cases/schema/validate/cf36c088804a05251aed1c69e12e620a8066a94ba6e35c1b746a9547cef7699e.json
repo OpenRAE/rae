@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-projection-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "eb1c831f4f41cf12243e5867ff6634fab5d53979db9ae04fdf41931f61a59eb9"
+  },
+  "name": "contracts/fixtures/concept-authority/semantic-projection-report-v1/invalid/missing-scheme-revision",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

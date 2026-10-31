@@ -1,0 +1,14 @@
+{
+  "args": [
+    "authoring-adapter-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "85caa6cb2042ebf9f4f6e9f5c07eb6db64a4dd0ad30667415baaf8a471b951d4"
+  },
+  "name": "contracts/fixtures/authoring-adapters/authoring-adapter-vector-v1/invalid/unknown-field",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

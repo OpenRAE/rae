@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "scientific-completeness-assessment-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "75881e8379ae1396571f4917fae5d87ec487359752099219d4d86b9cefed78d9"
+  },
+  "name": "contracts/fixtures/profiles/scientific-completeness-assessment-v1/invalid/external-without-binding",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "scientific-completeness-assessment-v1",
+      "diagnostics": [
+        {
+          "address": "scientific-completeness-assessment-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

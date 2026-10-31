@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-correlation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "271f20d479c04f320f79d84af0abe144b1e9b029ce9184e9af4ce9d2dee5d544"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-correlation-v1/invalid/participant-address",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "external-concept-bindings-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "d034bea3a8402d6f8c7b5eb7787a91e0516e39ec20f99c892ef582afa4db27c8"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/invalid/stale-scheme-revision",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

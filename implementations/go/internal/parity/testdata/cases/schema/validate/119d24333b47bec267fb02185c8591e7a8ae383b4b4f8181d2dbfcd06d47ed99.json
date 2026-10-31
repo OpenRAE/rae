@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "b70c903d771e7d4c315ccff61111d2eaf2a5e0c7e3e37fdd4afe3feba8fc6437"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-v1/invalid/missing-event-kind",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

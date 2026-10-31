@@ -1,0 +1,14 @@
+{
+  "args": [
+    "associated-artifact-manifest-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "7e17c4547c1517be90ee18d10f99a3b667d871cdb03f9b8f68c6133c38b1f44d"
+  },
+  "name": "contracts/fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/run",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "8feb590d6695f14f534acb8324fbdb6e0ce470e8d998a7fc85f1ca652e343282"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-basic-draw",
+  "result": {
+    "jcs": "sha256:05fbe2f59ebe18b2a74b1ec01c2884aacb0541f15a870ece31e42490be892212",
+    "sorted_ascii": "sha256:05fbe2f59ebe18b2a74b1ec01c2884aacb0541f15a870ece31e42490be892212",
+    "sorted_unicode": "sha256:05fbe2f59ebe18b2a74b1ec01c2884aacb0541f15a870ece31e42490be892212"
+  },
+  "surface": "canonical"
+}

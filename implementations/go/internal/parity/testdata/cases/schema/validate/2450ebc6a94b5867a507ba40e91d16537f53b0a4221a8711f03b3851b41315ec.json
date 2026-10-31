@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-execution-service-state-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "f2c13b242405a08531c85c88473702e88c43a19281181e46228b4a085dbe9276"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-execution-service-state-v1/invalid/admitting-while-paused",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

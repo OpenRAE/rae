@@ -1,0 +1,14 @@
+{
+  "args": [
+    "domain-profile-definition-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "972ed481422002a0a6b77ee702092a9163cf5fab54406086fd057adbae3498fa"
+  },
+  "name": "contracts/fixtures/profiles/domain-profile-definition-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

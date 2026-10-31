@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "fbc97be9d3f4023f47d9a566d39c8f489830cb5405090e3e93ba2c43d1ccbaf9"
+  },
+  "name": "contracts/fixtures/control-plane/participant-episode-state-envelope-v1/invalid/unknown-extra",
+  "result": {
+    "jcs": "sha256:2da1b790602a285f705c331662fc592aeda060b0a5eb5df23a9772ba17a4afa4",
+    "sorted_ascii": "sha256:2da1b790602a285f705c331662fc592aeda060b0a5eb5df23a9772ba17a4afa4",
+    "sorted_unicode": "sha256:2da1b790602a285f705c331662fc592aeda060b0a5eb5df23a9772ba17a4afa4"
+  },
+  "surface": "canonical"
+}

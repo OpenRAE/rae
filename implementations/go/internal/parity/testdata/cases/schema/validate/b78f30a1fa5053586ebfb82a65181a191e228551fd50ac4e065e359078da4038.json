@@ -1,0 +1,14 @@
+{
+  "args": [
+    "operation-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2538947cf9ed3f958f3bc4dc30bf925f99fc7181b7c35c3e8babcad341ed179b"
+  },
+  "name": "contracts/fixtures/control-plane/operation-receipt-v1/invalid/missing-id",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

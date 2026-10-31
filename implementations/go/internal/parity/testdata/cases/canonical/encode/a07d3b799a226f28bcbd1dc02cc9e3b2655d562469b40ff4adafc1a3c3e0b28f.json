@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "3129e2b4050a4704aed48e43f1f11dfe4842a620bb896c16186e3e63d40ad34c"
+  },
+  "name": "contracts/fixtures/plans/admitted-trial-plan-v1/invalid/missing-plan-digest",
+  "result": {
+    "jcs": "sha256:2fd93a32e3cbe6b95e277d5de778497cebad452fd9f5892e4a6e90c1bc9f5a63",
+    "sorted_ascii": "sha256:2fd93a32e3cbe6b95e277d5de778497cebad452fd9f5892e4a6e90c1bc9f5a63",
+    "sorted_unicode": "sha256:2fd93a32e3cbe6b95e277d5de778497cebad452fd9f5892e4a6e90c1bc9f5a63"
+  },
+  "surface": "canonical"
+}

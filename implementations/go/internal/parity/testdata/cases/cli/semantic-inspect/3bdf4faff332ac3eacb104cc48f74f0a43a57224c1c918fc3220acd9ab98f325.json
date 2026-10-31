@@ -1,0 +1,58 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "associated-artifact-manifest-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "08d6ec554680e2da922f28b79082aedd4eb6dbcfd60fde0291cc7fe4b335e5a5"
+  },
+  "name": "contracts/fixtures/associated-artifacts/associated-artifact-manifest-v1/invalid/secret-bearing-uri",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "associated-artifact-manifest-v1",
+      "diagnostics": [
+        {
+          "address": "associated-artifact-manifest-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 8,
+        "members": [
+          "artifacts",
+          "canonicalization_profile",
+          "manifest_id",
+          "manifest_version",
+          "parent_ref",
+          "schema_version",
+          "scope",
+          "set_digest"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

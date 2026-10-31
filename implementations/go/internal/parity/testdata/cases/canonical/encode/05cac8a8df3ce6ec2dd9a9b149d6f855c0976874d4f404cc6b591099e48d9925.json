@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "77d7c540166e511dd877e2c0f0de0413248bc8407ffbe85c66238586323fd6df"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/cases/canonicalize-portable-contract",
+  "result": {
+    "jcs": "sha256:5a6cb25a253df4bca4eebe879b123057076a9ac26cd362cdc565c40d43eab5d9",
+    "sorted_ascii": "sha256:5a6cb25a253df4bca4eebe879b123057076a9ac26cd362cdc565c40d43eab5d9",
+    "sorted_unicode": "sha256:5a6cb25a253df4bca4eebe879b123057076a9ac26cd362cdc565c40d43eab5d9"
+  },
+  "surface": "canonical"
+}

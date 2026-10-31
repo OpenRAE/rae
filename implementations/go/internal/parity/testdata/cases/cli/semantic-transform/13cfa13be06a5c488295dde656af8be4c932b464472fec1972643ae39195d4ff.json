@@ -1,0 +1,43 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "format",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "99c69fd34eb13f8633818c9a78341d351e2dc942e5ff51d5925a36ee02387eec"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl/transform-format",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "name: techvault-guest-certified\ndescription: 'Minimal guest-certified realization scenario. One bounded appliance\n  node boots through the production apply path and is certified from inside the guest\n  - resource allocation, network addressing, file content, and service state are read\n  back from the realized guest, freshness-bound to a per-run challenge, with verified\n  teardown. RAES 7.0.0 used it for the removed libvirt guest certification; a backend\n  distribution can use it for its own proof.\n\n  '\nnodes:\n  guest-net:\n    type: switch\n  guest-vm:\n    type: compute\n    resources:\n      ram: 134217728\n      cpu: 1\n    os: linux\n    services:\n    - port: 9000\n      protocol: tcp\n      name: beacon\ninfrastructure:\n  guest-net:\n    properties:\n      cidr: 192.0.2.0/24\n      gateway: 192.0.2.1\n      internal: true\n  guest-vm:\n    links:\n    - guest-net\ncontent:\n  guest-marker:\n    type: file\n    target: guest-vm\n    path: /etc/raes/marker\n    text: 'guest-certified realization marker\n\n      '\n    sensitive: false\n",
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "format",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

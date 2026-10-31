@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "participant-opacity-analysis-evidence-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "129503f018ac6212908d35477c8b4b278aaf969897d7d62f8cd4460617fc0470"
+  },
+  "name": "contracts/fixtures/formal-analysis/participant-opacity-analysis-evidence-v1/invalid/universal-bounded-claim",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-opacity-analysis-evidence-v1",
+      "diagnostics": [
+        {
+          "address": "participant-opacity-analysis-evidence-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "4a84b53462e832447fa045aa3394a6fc6140a25a2659571dd10adc9d266d3b61"
+  },
+  "name": "contracts/fixtures/control-plane/batch-execution-receipt-v1/invalid/parallel-missing-proof",
+  "result": {
+    "jcs": "sha256:d7bced9a1db0c28ebe707555e25e48ced6206b3ce9fddd6479af131e701219de",
+    "sorted_ascii": "sha256:d7bced9a1db0c28ebe707555e25e48ced6206b3ce9fddd6479af131e701219de",
+    "sorted_unicode": "sha256:d7bced9a1db0c28ebe707555e25e48ced6206b3ce9fddd6479af131e701219de"
+  },
+  "surface": "canonical"
+}

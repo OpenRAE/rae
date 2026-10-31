@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-run-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a96cd50b4b8307240c6a3bb52b42caccf082034cc0ca0a3cf6ff25c9d0cbeaff"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-run-v1/invalid/realized-form-missing-target",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

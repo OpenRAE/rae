@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "77cba4b686b210d0ea7d4ff0e83599fffefb84940d22e25fcb7580aeb23309d9"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/invalid/invalid-captured-at",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

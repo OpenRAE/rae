@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "b70c903d771e7d4c315ccff61111d2eaf2a5e0c7e3e37fdd4afe3feba8fc6437"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-v1/invalid/missing-event-kind",
+  "result": {
+    "jcs": "sha256:a8767ede9e0a80d3d3959e8258c4c72159cdabb0326fe042acbf7090f97f8326",
+    "sorted_ascii": "sha256:a8767ede9e0a80d3d3959e8258c4c72159cdabb0326fe042acbf7090f97f8326",
+    "sorted_unicode": "sha256:a8767ede9e0a80d3d3959e8258c4c72159cdabb0326fe042acbf7090f97f8326"
+  },
+  "surface": "canonical"
+}

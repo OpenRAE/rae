@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-stage-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "3c8d6ce49e3fc4684afbdc626a124e654a8e7d17453ad2c58478d06673d9adad"
+  },
+  "name": "contracts/fixtures/control-plane/mixed-backend-stage-report-v1/valid/mixed-handoff-stale-01",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

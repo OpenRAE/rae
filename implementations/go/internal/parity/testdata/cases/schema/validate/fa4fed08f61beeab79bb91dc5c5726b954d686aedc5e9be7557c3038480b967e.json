@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2bccb2711edd7398f14e99b1066977337dfa7f73966a2dd0217469fff3ed176d"
+  },
+  "name": "contracts/fixtures/backend-manifest/backend-manifest-v2/invalid/non-backend-contract-version",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

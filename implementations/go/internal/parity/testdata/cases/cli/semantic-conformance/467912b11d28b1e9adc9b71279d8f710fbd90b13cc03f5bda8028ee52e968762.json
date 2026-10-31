@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-authoring-input-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "73c1bcd6adfc5220cda43bfce86751b6daf09b5f6633a2cbf6f24efb3d21df01"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/invalid/replacement-duplicate-triggers",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-authoring-input-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-authoring-input-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

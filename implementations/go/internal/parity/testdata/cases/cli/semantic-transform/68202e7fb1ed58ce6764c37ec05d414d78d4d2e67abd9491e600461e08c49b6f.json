@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "9b7acc3f4c8a1731600ee6152e34e09d1d84e9bc12b45c9047e27092b8239b7e"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl/transform-canonical",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"action_contracts\":{\"stop-web\":{\"behavioral_granularity\":\"atomic\",\"effects\":[{\"description\":\"The web service stops answering requests.\",\"effect_class\":\"intended_effect\",\"effect_id\":\"web-stopped\",\"target_refs\":[\"nodes.web.services.http\"]}],\"failure_classes\":[\"target_unavailable\",\"authority_denied\"],\"fidelity_claim\":\"States intent and expected effect; a backend supplies the mechanism.\",\"preconditions\":[{\"description\":\"The web service is reachable from the lab network.\",\"precondition_class\":\"target\",\"precondition_id\":\"web-reachable\",\"support_refs\":[\"nodes.web.services.http\"]}],\"procedure_basis\":\"Send one request that asks the web service to stop.\",\"realization_profile\":\"backend-declared\",\"semantic_version\":\"1.0.0\"}},\"agents\":{\"red-agent\":{\"actions\":[\"stop-web\"],\"affiliations\":[\"red-team\"],\"allowed_subnets\":[\"lab-network\"],\"initial_knowledge\":{\"hosts\":[\"workstation\"]}}},\"assertions\":{\"web-down-at-end\":{\"polarity\":\"negative\",\"proposition\":\"web-alive\",\"role\":\"postcondition\"},\"web-up-at-end\":{\"polarity\":\"positive\",\"proposition\":\"web-alive\",\"role\":\"postcondition\"}},\"conditions\":{\"web-alive\":{\"command\":\"curl -sf http://localhost/\",\"interval\":15,\"timeout\":5}},\"description\":\"A red participant tries to stop one web service while a blue team keeps it online.\",\"entities\":{\"blue-team\":{\"role\":\"blue\"},\"red-team\":{\"role\":\"red\"}},\"evidence_requirements\":{\"web-health-evidence\":{\"channel\":\"log\",\"description\":\"Keep each result of the web-alive probe.\",\"integrity\":\"checksum\",\"loss_disclosure\":\"required\",\"redaction\":\"none\",\"retention\":\"run_lifetime\",\"scope_refs\":[\"nodes.web.services.http\"],\"sensitivity\":\"plain\",\"source_refs\":[\"nodes.web\"],\"trigger_ref\":\"conditions.web-alive\"}},\"infrastructure\":{\"lab-network\":{\"count\":1,\"properties\":{\"cidr\":\"10.20.0.0/24\",\"gateway\":\"10.20.0.1\"}},\"web\":{\"count\":1,\"links\":[\"lab-network\"]},\"workstation\":{\"count\":1,\"links\":[\"lab-network\"]}},\"name\":\"guided-web-probe\",\"nodes\":{\"lab-network\":{\"type\":\"switch\"},\"web\":{\"conditions\":{\"web-alive\":\"operator\"},\"resources\":{\"cpu\":1,\"ram\":1073741824},\"roles\":{\"operator\":{\"username\":\"operator\"}},\"services\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"tcp\"}],\"type\":\"compute\"},\"workstation\":{\"resources\":{\"cpu\":1,\"ram\":1073741824},\"type\":\"compute\"}},\"objectives\":{\"keep-web-online\":{\"owner\":\"blue-team\",\"success\":{\"assertions\":[\"web-up-at-end\"]},\"targets\":[\"nodes.web.services.http\"]},\"take-web-offline\":{\"actions\":[\"stop-web\"],\"assigned_participant\":\"red-agent\",\"success\":{\"assertions\":[\"web-down-at-end\"]},\"targets\":[\"nodes.web.services.http\"]}},\"propositions\":{\"web-alive\":{\"basis\":\"observed_state\",\"description\":\"The web service answers HTTP requests.\",\"evidence_requirements\":[\"web-health-evidence\"],\"predicate\":{\"expected\":true,\"kind\":\"boolean\",\"operator\":\"equals\",\"property\":\"service-alive\",\"semantic_ref\":\"urn:raes:observable:service-alive\"},\"subjects\":[\"nodes.web.services.http\"]}}}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:c68e71f920e5025360329b8db2cd2c8a3e1e78d052ade6690d46b683df8e5df9"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

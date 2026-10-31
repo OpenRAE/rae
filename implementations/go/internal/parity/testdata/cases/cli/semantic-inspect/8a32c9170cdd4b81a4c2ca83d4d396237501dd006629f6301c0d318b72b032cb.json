@@ -1,0 +1,54 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "domain-profile-definition-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "0f86726837ac204a6766f1dac869f4211965c65b5ce4c1a96ddf764dd4bc652f"
+  },
+  "name": "contracts/fixtures/profiles/domain-profile-definition-v1/invalid/missing-coordinate",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "domain-profile-definition-v1",
+      "diagnostics": [
+        {
+          "address": "domain-profile-definition-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 4,
+        "members": [
+          "allowed_contexts",
+          "profile_schema",
+          "schema_version",
+          "semantic_contract"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

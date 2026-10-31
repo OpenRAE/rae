@@ -1,0 +1,207 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "9b7acc3f4c8a1731600ee6152e34e09d1d84e9bc12b45c9047e27092b8239b7e"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 20,
+        "declarations": [
+          {
+            "address": "action_contracts.stop-web",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.stop-web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.red-agent",
+            "kind": "agents",
+            "model_path": "agents.red-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.web-down-at-end",
+            "kind": "assertions",
+            "model_path": "assertions.web-down-at-end",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.web-up-at-end",
+            "kind": "assertions",
+            "model_path": "assertions.web-up-at-end",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.web-alive",
+            "kind": "conditions",
+            "model_path": "conditions.web-alive",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.blue-team",
+            "kind": "entity",
+            "model_path": "entities.blue-team",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.red-team",
+            "kind": "entity",
+            "model_path": "entities.red-team",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "evidence_requirements.web-health-evidence",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.web-health-evidence",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "infrastructure.lab-network",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.lab-network",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.web",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.workstation",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.workstation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.lab-network",
+            "kind": "node",
+            "model_path": "nodes.lab-network",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.web",
+            "kind": "node",
+            "model_path": "nodes.web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.web.roles.operator",
+            "kind": "node-role",
+            "model_path": "nodes.web.roles.operator",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.web.services.http",
+            "kind": "service",
+            "model_path": "nodes.web.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.workstation",
+            "kind": "node",
+            "model_path": "nodes.workstation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "objectives.keep-web-online",
+            "kind": "objectives",
+            "model_path": "objectives.keep-web-online",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.take-web-offline",
+            "kind": "objectives",
+            "model_path": "objectives.take-web-offline",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "propositions.web-alive",
+            "kind": "propositions",
+            "model_path": "propositions.web-alive",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.guided-web-probe",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "guided-web-probe",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "action_contracts",
+              "agents",
+              "assertions",
+              "conditions",
+              "entities",
+              "infrastructure",
+              "nodes",
+              "objectives",
+              "propositions"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {
+            "web-health-evidence": {
+              "source": "legacy-evidence-requirement"
+            }
+          }
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

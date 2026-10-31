@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "ee7501745b88a3be5e3f4cb15d5b97505db9d0bd47985d3ae1f630339796cba9"
+  },
+  "name": "contracts/fixtures/control-plane/batch-execution-receipt-v1/invalid/unknown-scheduling-policy",
+  "result": {
+    "jcs": "sha256:4b6b6829a306fc8261997863338e81cc0ef1b1808db0fb24876ad36167eadb7f",
+    "sorted_ascii": "sha256:4b6b6829a306fc8261997863338e81cc0ef1b1808db0fb24876ad36167eadb7f",
+    "sorted_unicode": "sha256:4b6b6829a306fc8261997863338e81cc0ef1b1808db0fb24876ad36167eadb7f"
+  },
+  "surface": "canonical"
+}

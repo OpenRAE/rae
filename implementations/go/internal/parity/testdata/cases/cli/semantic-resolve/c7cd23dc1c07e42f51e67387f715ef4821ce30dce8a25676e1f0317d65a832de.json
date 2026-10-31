@@ -1,0 +1,152 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "15a8cfc9db142f48085c7631226730741d2793659f7b3aecb2c1f452c777900e"
+  },
+  "name": "examples/scenarios/enterprise-identity-tenancy.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 36,
+        "reference_bindings": {
+          "accounts.domain-admin": [
+            "accounts.domain-admin"
+          ],
+          "carrier": [
+            "nodes.carrier"
+          ],
+          "corp": [
+            "identity_domains.corp"
+          ],
+          "dc": [
+            "nodes.dc"
+          ],
+          "dc-role": [
+            "relationships.dc-role"
+          ],
+          "deployment_cells.range-a-cell": [
+            "deployment_cells.range-a-cell"
+          ],
+          "deployment_cells.shared-cell": [
+            "deployment_cells.shared-cell"
+          ],
+          "deployment_tenants.range-a": [
+            "deployment_tenants.range-a"
+          ],
+          "deployment_tenants.shared-platform": [
+            "deployment_tenants.shared-platform"
+          ],
+          "domain-admin": [
+            "accounts.domain-admin"
+          ],
+          "enterprise": [
+            "identity_forests.enterprise"
+          ],
+          "identity_domains.corp": [
+            "identity_domains.corp"
+          ],
+          "identity_facades.workforce-oidc": [
+            "identity_facades.workforce-oidc"
+          ],
+          "identity_forests.enterprise": [
+            "identity_forests.enterprise"
+          ],
+          "idp": [
+            "nodes.idp"
+          ],
+          "inference": [
+            "nodes.inference"
+          ],
+          "nodes.carrier": [
+            "nodes.carrier"
+          ],
+          "nodes.dc": [
+            "nodes.dc"
+          ],
+          "nodes.idp": [
+            "nodes.idp"
+          ],
+          "nodes.idp.services.oidc": [
+            "nodes.idp.services.oidc"
+          ],
+          "nodes.inference": [
+            "nodes.inference"
+          ],
+          "nodes.inference.services.inference-api": [
+            "nodes.inference.services.inference-api"
+          ],
+          "nodes.workforce": [
+            "nodes.workforce"
+          ],
+          "range-a": [
+            "deployment_tenants.range-a"
+          ],
+          "range-a-cell": [
+            "deployment_cells.range-a-cell"
+          ],
+          "relationships.dc-role": [
+            "relationships.dc-role"
+          ],
+          "relationships.shared-inference": [
+            "relationships.shared-inference"
+          ],
+          "relationships.workforce-federation": [
+            "relationships.workforce-federation"
+          ],
+          "relationships.workforce-placement": [
+            "relationships.workforce-placement"
+          ],
+          "shared-cell": [
+            "deployment_cells.shared-cell"
+          ],
+          "shared-inference": [
+            "relationships.shared-inference"
+          ],
+          "shared-platform": [
+            "deployment_tenants.shared-platform"
+          ],
+          "workforce": [
+            "nodes.workforce"
+          ],
+          "workforce-federation": [
+            "relationships.workforce-federation"
+          ],
+          "workforce-oidc": [
+            "identity_facades.workforce-oidc"
+          ],
+          "workforce-placement": [
+            "relationships.workforce-placement"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "enterprise-identity-tenancy"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "2d443b588e6a2de4c5cf69389d5c14db04bccacc172d74a8e0e82fa5d1faf236"
+  },
+  "name": "contracts/fixtures/profiles/validation-profile-catalog-v1/invalid/dangling-reference",
+  "result": {
+    "jcs": "sha256:425e06a98d83364b6499e58fe5633250b6322d3ddef74cc8d18c182a85704451",
+    "sorted_ascii": "sha256:425e06a98d83364b6499e58fe5633250b6322d3ddef74cc8d18c182a85704451",
+    "sorted_unicode": "sha256:425e06a98d83364b6499e58fe5633250b6322d3ddef74cc8d18c182a85704451"
+  },
+  "surface": "canonical"
+}

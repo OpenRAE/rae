@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6c86da9172fa9a83337127e546db729b6c42ffa99cccc8bd4c53f1e58a11ecc6"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/invalid/sem216-analysis-output-as-evidence",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf"
+  },
+  "name": "examples/scenarios/participant-control-context/context-kit.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: context-example\ncontrol_context_assets:\n  shared:\n    schema_version: participant-control-context-asset/v1\n    asset_id: privacy-instruction\n    asset_version: one\n    kind: instruction\n    content:\n      artifact_id: instruction-one\n      role: documentation\n      media_type: text/plain\n      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      checksum:\n        algorithm: sha256\n        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      size_bytes: 34\n      created_at: '2026-10-26T00:00:00Z'\n      source: publisher-reference\n      satisfies_refs: []\n      sensitivity: restricted\n      description: null\n    participant_addresses: []\n    role_refs:\n    - red\n    - blue\n    publication_authority_ref: authorities.publisher\n    retention_policy_ref: retention.governed\n    provenance_refs:\n    - provenance.authoring\n  revised:\n    schema_version: participant-control-context-asset/v1\n    asset_id: privacy-instruction\n    asset_version: two\n    kind: directive\n    content:\n      artifact_id: instruction-one\n      role: documentation\n      media_type: text/plain\n      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      checksum:\n        algorithm: sha256\n        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      size_bytes: 34\n      created_at: '2026-10-26T00:00:00Z'\n      source: publisher-reference\n      satisfies_refs: []\n      sensitivity: restricted\n      description: null\n    participant_addresses: []\n    role_refs:\n    - red\n    - blue\n    publication_authority_ref: authorities.publisher\n    retention_policy_ref: retention.governed\n    provenance_refs:\n    - provenance.authoring\n  policy:\n    schema_version: participant-control-context-asset/v1\n    asset_id: operating-policy\n    asset_version: one\n    kind: policy\n    content:\n      artifact_id: instruction-one\n      role: documentation\n      media_type: text/plain\n      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      checksum:\n        algorithm: sha256\n        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      size_bytes: 34\n      created_at: '2026-10-26T00:00:00Z'\n      source: publisher-reference\n      satisfies_refs: []\n      sensitivity: restricted\n      description: null\n    participant_addresses: []\n    role_refs:\n    - red\n    - blue\n    publication_authority_ref: authorities.publisher\n    retention_policy_ref: retention.governed\n    provenance_refs:\n    - provenance.authoring\n  unselected:\n    schema_version: participant-control-context-asset/v1\n    asset_id: unselected-guidance\n    asset_version: one\n    kind: guidance\n    content:\n      artifact_id: instruction-one\n      role: documentation\n      media_type: text/plain\n      uri: urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      checksum:\n        algorithm: sha256\n        value: 8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\n      size_bytes: 34\n      created_at: '2026-10-26T00:00:00Z'\n      source: publisher-reference\n      satisfies_refs: []\n      sensitivity: restricted\n      description: null\n    participant_addresses: []\n    role_refs:\n    - red\n    - blue\n    publication_authority_ref: authorities.publisher\n    retention_policy_ref: retention.governed\n    provenance_refs:\n    - provenance.authoring\nagents:\n  red:\n    control_context:\n      briefing:\n        declaration_ref: shared\n        asset_ref:\n          asset_id: privacy-instruction\n          asset_version: one\n          asset_digest: sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a\n        disposition: selected\n    role: red\n  blue:\n    control_context:\n      briefing:\n        declaration_ref: shared\n        asset_ref:\n          asset_id: privacy-instruction\n          asset_version: one\n          asset_digest: sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a\n        disposition: withheld\n      rules:\n        declaration_ref: policy\n        asset_ref:\n          asset_id: operating-policy\n          asset_version: one\n          asset_digest: sha256:c2517111fa289e5c45be2c6cfa7e69efaa154f8e5389385ff0d687fded355ac1\n        disposition: selected\n    role: blue\nbehavior_specifications:\n  followup:\n    semantic_version: '1'\n    control_context:\n      followup:\n        declaration_ref: revised\n        asset_ref:\n          asset_id: privacy-instruction\n          asset_version: two\n          asset_digest: sha256:59bd1d08df2416bd6a58e2038b21e3c311a7b01bddabccfe693ef87e2b418ba4\n        disposition: selected\n    participant_refs:\n    - red\nmodule:\n  id: examples/context-kit\n  version: 1.0.0\n  exports:\n    agents:\n    - red\n    - blue\n    behavior_specifications:\n    - followup\n    control_context_assets:\n    - shared\n    - revised\n    - policy\n    - unselected\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:647d8e7d07b4e507d0470d301421dbadb02d9e848b1c28c7a9408609eed43b0d"
+        },
+        "field_count": 5,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "context-example",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

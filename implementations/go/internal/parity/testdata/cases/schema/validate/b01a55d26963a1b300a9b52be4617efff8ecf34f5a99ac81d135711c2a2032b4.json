@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-flow-control-relation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "20f2d8048d2a411245d77b50ee000f23e6f5813c0403a8d56e8179ed3249d293"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-flow-control-relation-v1/valid/conservative-release-chain",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

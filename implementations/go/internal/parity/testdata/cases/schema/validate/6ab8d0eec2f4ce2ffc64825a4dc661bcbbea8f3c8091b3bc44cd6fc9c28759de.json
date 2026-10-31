@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-run-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "16f82fd3908249ddff012dbc8885c9cdc3123e51cd4be01238d5747038570cf9"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-run-v1/invalid/augmentation-environment-without-effect",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

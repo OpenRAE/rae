@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-context-change-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "b1c6949ee3f0a95d0f07f5c7af26b4d57a7017ff54761660a83c65f63a1822e5"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-context-change-v1/invalid/same-version-successor",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

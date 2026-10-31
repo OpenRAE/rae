@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-semantic-migration-context-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a510711acf672c7e90e0a9a16fb2cf3d6aee06745857e3cd2e51052f98897716"
+  },
+  "name": "contracts/fixtures/sdl/sdl-semantic-migration-context-v1/invalid/implicit-adoption",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}
