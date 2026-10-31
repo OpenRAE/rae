@@ -94,7 +94,9 @@ So the record claims run separation, not principal separation.
 No human review or cryptographic authenticity is claimed.
 
 At retention, each reference must resolve to a GitHub record.
+Each record author must hold repository write authority.
 The reviewer and acceptance comments must follow the producer record on one issue.
+One author writes both, and the acceptance states one explicit decision for that reviewer run.
 The acceptance comment must name the measurement, execution, claim, and subject digests and the qualified run.
 The run head revision, model-check job result, artifact digest, and merge parents must match the review.
 Offline admission rechecks the retained bytes and joins only.
@@ -159,7 +161,7 @@ The public documentation boundary receives only allowlisted identifiers, counts,
 | Apparatus change during a run | Before-and-after stability digests | Drift during a run publishes nothing. |
 | Substituted native tool | Archive, executable, and installed-tree digests in the subject | A changed tool identity fails admission. |
 | Self-approved reproduction | Separate review record with distinct run references | Admission refuses a missing, joined, or self-referential review. |
-| Forged review references | Retain-time check against GitHub comment, run, job, artifact, and commit records | Retention refuses a missing, reordered, unbound, or mismatched record. |
+| Forged review references | Retain-time check against GitHub comment, author authority, run, job, artifact, and commit records | Retention refuses a missing, reordered, unauthorized, undecided, unbound, or mismatched record. |
 | Stale or substituted reproduction subject | Capture target must equal the current machine-check pin | Admission refuses a capture for another subject. |
 | Published fact drift | Structured comparison with admitted records | The publication test refuses any changed digest, count, or nonclaim. |
 | Claim promotion | Exact claim binding, catalog axes, and nonclaims | Proof, runtime, backend, noninterference, and opacity claims stay absent. |

@@ -205,7 +205,7 @@ API = "https://api.github.com/repos/OpenRAE/rae/"
 def github_records(reproduction, files, review, pin):
     """Server records that a genuine separate review leaves behind."""
     run = review["qualified_run"]
-    body = " ".join(
+    evidence = "\n".join(
         (
             reproduction.digest(files["measurement.json"]),
             reproduction.digest(files["execution.json"]),
@@ -215,21 +215,27 @@ def github_records(reproduction, files, review, pin):
         )
     )
 
-    def comment(ref, created_at, text):
+    def comment(ref, created_at, text, login="maintainer", association="MEMBER"):
         issue, comment_id = ref.removeprefix("https://github.com/OpenRAE/rae/issues/").split("#issuecomment-")
         return f"issues/comments/{comment_id}", {
             "html_url": ref,
             "issue_url": API + "issues/" + issue,
             "created_at": created_at,
             "body": text,
+            "user": {"login": login},
+            "author_association": association,
         }
 
     run_id = run["url"].rsplit("/", 1)[1]
+    reviewer_body = f"Reproduction review run.\nProducer run: {PRODUCER}\nSubject: {pin}\nRun: {run['url']}"
+    acceptance_body = (
+        f"Decision: accepted-bounded-reproduction\nReviewer run: {REVIEWER}\nProducer run: {PRODUCER}\n{evidence}"
+    )
     return dict(
         (
-            comment(PRODUCER, "2026-10-31T10:00:00Z", "producer run"),
-            comment(REVIEWER, "2026-10-31T11:00:00Z", "reviewer run"),
-            comment(ACCEPTANCE, "2026-10-31T12:00:00Z", "accepted " + body),
+            comment(PRODUCER, "2026-10-31T10:00:00Z", "producer run", login="producer"),
+            comment(REVIEWER, "2026-10-31T11:00:00Z", reviewer_body),
+            comment(ACCEPTANCE, "2026-10-31T12:00:00Z", acceptance_body),
             (f"actions/runs/{run_id}", {"html_url": run["url"], "head_sha": run["feature_sha"]}),
             (
                 f"actions/runs/{run_id}/jobs?per_page=100",
@@ -306,6 +312,13 @@ def test_retain_publishes_only_an_admitted_and_server_bound_capture(capture, mon
         "artifact-digest",
         "artifact-run",
         "merge-parents",
+        "untrusted-reviewer",
+        "untrusted-producer",
+        "different-acceptance-author",
+        "rejected-decision",
+        "contradictory-decision",
+        "acceptance-without-reviewer-run",
+        "reviewer-record-unbound",
     ],
 )
 def test_retain_refuses_review_references_without_matching_server_records(capture, monkeypatch, fault):
@@ -336,8 +349,24 @@ def test_retain_refuses_review_references_without_matching_server_records(captur
         records[f"actions/artifacts/{run['artifact_id']}"]["digest"] = "sha256:" + "9" * 64
     elif fault == "artifact-run":
         records[f"actions/artifacts/{run['artifact_id']}"]["workflow_run"]["id"] = 1
-    else:
+    elif fault == "merge-parents":
         records[f"git/commits/{SOURCE}"]["parents"].reverse()
+    elif fault == "untrusted-reviewer":
+        records[reviewer]["author_association"] = records[acceptance]["author_association"] = "NONE"
+    elif fault == "untrusted-producer":
+        records["issues/comments/" + PRODUCER.rsplit("-", 1)[1]]["author_association"] = "CONTRIBUTOR"
+    elif fault == "different-acceptance-author":
+        records[acceptance]["user"]["login"] = "someone-else"
+    elif fault == "rejected-decision":
+        records[acceptance]["body"] = records[acceptance]["body"].replace(
+            "Decision: accepted-bounded-reproduction", "Decision: rejected"
+        )
+    elif fault == "contradictory-decision":
+        records[acceptance]["body"] += "\nDecision: rejected"
+    elif fault == "acceptance-without-reviewer-run":
+        records[acceptance]["body"] = records[acceptance]["body"].replace("Reviewer run:", "Reviewer:")
+    else:
+        records[reviewer]["body"] = "reviewer run"
     staging, _stage, published = staged_retain(monkeypatch, files, review)
     with pytest.raises((EvidenceIntegrityError, OperationalError)):
         reproduction_record.retain(ROOT, staging, pin, fetch=fetcher(records))

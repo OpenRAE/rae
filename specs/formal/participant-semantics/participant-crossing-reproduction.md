@@ -64,6 +64,10 @@ Its target must equal the current machine-check pin.
 `retain` writes a new capture only after the same admission passes.
 It also checks the review references against GitHub records.
 The reviewer and acceptance comments must exist on the named issue after the producer record.
+Each record author must hold repository write authority on GitHub.
+One author must write both the reviewer record and the acceptance.
+The reviewer record must name the producer record, the subject digest, and the qualified run.
+The acceptance must state exactly one decision, `Decision: accepted-bounded-reproduction`, for the named reviewer run.
 The acceptance comment must name the measurement, execution, claim, and subject digests and the qualified run.
 The run head revision, model-check job result, artifact name, artifact digest, and merge parents must match.
 Offline admission checks retained bytes and joins only.
