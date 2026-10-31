@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 from raes_contracts.errors import OperationalError
-from tools.policy.structural_baseline import GitBaseRevision
+from tools.policy.structural_baseline import STRUCTURAL_BASELINE_PATH, GitBaseRevision
 from tools.python_closure_profiles import frozen_tool_command
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -161,3 +161,37 @@ def test_the_git_base_reader_reads_the_base_revision_and_detects_package_changes
     missing_revision = GitBaseRevision(tmp_path, "no-such-revision")
     with pytest.raises(OperationalError, match="not a commit"):
         missing_revision.read("tools/policy/structural_baseline.json")
+
+
+def _commit(repo: Path, files: dict[str, str], message: str) -> str:
+    _write(repo, files)
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-q", "-m", message)
+    return _git(repo, "rev-parse", "HEAD").strip()
+
+
+def test_the_git_base_reader_finds_an_adoption_commit_that_changes_no_package_source(tmp_path: Path) -> None:
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "user.email", "tests@example.invalid")
+    _git(tmp_path, "config", "user.name", "Tests")
+    base = _commit(tmp_path, {"pkgs/alpha/__init__.py": ""}, "base")
+    reader = GitBaseRevision(tmp_path, base)
+
+    assert reader.adoption(["pkgs"]) is None
+
+    adopted = _commit(tmp_path, {STRUCTURAL_BASELINE_PATH: "{}\n"}, "adopt")
+    _commit(tmp_path, {"pkgs/alpha/__init__.py": "x = 1\n", STRUCTURAL_BASELINE_PATH: "{ }\n"}, "change")
+    adoption = reader.adoption(["pkgs"])
+
+    assert adoption is not None
+    assert adoption.revision == adopted
+    assert adoption.read(STRUCTURAL_BASELINE_PATH) == "{}\n"
+
+
+def test_an_adoption_commit_that_changes_package_source_is_not_an_adoption(tmp_path: Path) -> None:
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "user.email", "tests@example.invalid")
+    _git(tmp_path, "config", "user.name", "Tests")
+    _commit(tmp_path, {STRUCTURAL_BASELINE_PATH: "{}\n", "pkgs/alpha/__init__.py": ""}, "root adoption")
+
+    assert GitBaseRevision(tmp_path, "HEAD").adoption(["pkgs"]) is None

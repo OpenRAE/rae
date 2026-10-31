@@ -2204,6 +2204,39 @@
       "title": "ParticipantFeatureSupportModel",
       "type": "object"
     },
+    "ParticipantInvocationToolActionCapabilitiesModel": {
+      "additionalProperties": false,
+      "description": "Exact composition version and finite per-invocation limits.",
+      "properties": {
+        "max_concurrent_tool_actions_per_invocation": {
+          "minimum": 1,
+          "title": "Max Concurrent Tool Actions Per Invocation",
+          "type": "integer"
+        },
+        "max_tool_actions_per_invocation": {
+          "minimum": 1,
+          "title": "Max Tool Actions Per Invocation",
+          "type": "integer"
+        },
+        "semantic_versions": {
+          "items": {
+            "const": "participant-invocation-tool-actions/v1",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Semantic Versions",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "semantic_versions",
+        "max_tool_actions_per_invocation",
+        "max_concurrent_tool_actions_per_invocation"
+      ],
+      "title": "ParticipantInvocationToolActionCapabilitiesModel",
+      "type": "object"
+    },
     "ParticipantResourceBudgetCapabilitiesModel": {
       "additionalProperties": false,
       "description": "Declared support plus configuration-bound logical pool capacity.",
@@ -2546,6 +2579,17 @@
           },
           "title": "Feature Support",
           "type": "array"
+        },
+        "invocation_tool_actions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantInvocationToolActionCapabilitiesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "max_autonomous_action_attempts": {
           "anyOf": [

@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
+from raes_contracts.json_pointer import escape_token
+
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES
 from .nodes import RuntimeConfiguration
 from .scenario import ExpandedScenario
@@ -24,10 +26,6 @@ _DECLARATION_SECTIONS = tuple(
 _CONSUMER_SECTIONS = frozenset(slot.value.split(".", 1)[0] for slot in ResourceConsumerSlot)
 
 
-def _segment(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
-
-
 def _remap(path: str, changes: list[tuple[str, str | None]], separators: tuple[str, ...]) -> str | None:
     for before, after in sorted(changes, key=lambda item: len(item[0]), reverse=True):
         if path == before or any(path.startswith(before + separator) for separator in separators):
@@ -45,7 +43,7 @@ def _inventory_path_changes(
         positions = {row[spec.id_field]: position for position, row in enumerate(rows)}
         for before, row in enumerate(getattr(original, spec.collection_name)):
             after = positions.get(getattr(row, spec.id_field))
-            pointer = f"/nodes/{_segment(name)}/runtime/{spec.collection_name}/"
+            pointer = f"/nodes/{escape_token(name)}/runtime/{spec.collection_name}/"
             model = f"nodes.{name}.runtime.{spec.collection_name}"
             pointer_changes.append((pointer + str(before), None if after is None else pointer + str(after)))
             model_changes.append((f"{model}[{before}]", None if after is None else f"{model}[{after}]"))
@@ -70,7 +68,7 @@ def _child_path_changes(
             if retained is None:
                 continue
             after, row = retained
-            pointer = f"/nodes/{_segment(name)}/runtime/{collection}/"
+            pointer = f"/nodes/{escape_token(name)}/runtime/{collection}/"
             model = f"nodes.{name}.runtime.{collection}"
             pointers, models = _list_path_changes(
                 (f"{pointer}{before}/{child}/", f"{model}[{before}].{child}"),
@@ -101,7 +99,7 @@ def _consumer_path_changes(
     section: str, name: str, original: list[StatefulResourceConsumer], selected: list[dict[str, Any]]
 ) -> tuple[PathChanges, PathChanges]:
     positions = {(row["node"], row["mount_destination"]): position for position, row in enumerate(selected)}
-    pointer = f"/{section}/{_segment(name)}/consumers/"
+    pointer = f"/{section}/{escape_token(name)}/consumers/"
     model = f"{section}.{name}.consumers"
     pointer_changes: PathChanges = []
     model_changes: PathChanges = []
@@ -119,7 +117,7 @@ def _declaration_path_changes(family: ExpandedScenario, payload: dict[str, Any])
         for name, original in getattr(family, section).items():
             retained = payload[section].get(name)
             if retained is None:
-                pointer_changes.append((f"/{section}/{_segment(name)}", None))
+                pointer_changes.append((f"/{section}/{escape_token(name)}", None))
                 model_changes.append((f"{section}.{name}", None))
                 continue
             # Protect declarations with qualified names from a removed shorter name's model-path prefix.
@@ -138,7 +136,7 @@ def _selection_path_changes(family: ExpandedScenario, payload: dict[str, Any]) -
         node = payload["nodes"].get(name)
         if node is None:
             for section in ("nodes", "infrastructure"):
-                pointer_changes.append((f"/{section}/{_segment(name)}", None))
+                pointer_changes.append((f"/{section}/{escape_token(name)}", None))
                 model_changes.append((f"{section}.{name}", None))
             continue
         # Protect nodes with qualified names from a removed shorter node's model-path prefix.

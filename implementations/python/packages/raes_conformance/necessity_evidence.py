@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import asdict, dataclass
 from typing import Protocol
 
@@ -15,6 +13,7 @@ from raes_contracts.contracts import (
     PropositionTruthResultModel,
     validate_experiment_run_against_task,
 )
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.satisfiability import canonical_contract_digest
 
 from .necessity_types import (
@@ -297,8 +296,7 @@ def _record_digest(
         "record_kind": type(record).__name__,
         **asdict(record),
     }
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
-    return "sha256:" + hashlib.sha256(encoded).hexdigest()
+    return sorted_json_digest(payload)
 
 
 def _identity(

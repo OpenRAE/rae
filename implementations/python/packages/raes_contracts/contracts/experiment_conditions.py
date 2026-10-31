@@ -7,6 +7,7 @@ from collections.abc import Callable
 
 from .._canonical import canonical_json_digest
 from ..evidence_proof import ValidatedRunEvidence
+from ..json_serialization import sorted_json_text
 from .base import _canonical_digest
 from .experiment_apparatus import ExperimentApparatusComponentModel
 from .experiment_artifacts import (
@@ -199,7 +200,7 @@ def _condition_assignment_run_criteria_signature(
                 parameter.name,
                 parameter.value_kind,
                 type(parameter.value).__name__,
-                json.dumps(parameter.value, sort_keys=True, separators=(",", ":")),
+                sorted_json_text(parameter.value),
             )
             for parameter in assignment.required_parameters
         )

@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, JsonValue, SerializerFunctionWrapHandler, model_serializer, model_validator
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.json_pointer import unescape_token
 
 from ._identifiers import PortableIdentifier, QualifiedName, require_module_identifier
 from ._phase_base import JSON_POINTER_RE as _JSON_POINTER_RE
@@ -184,7 +185,7 @@ class CapabilityConstraint(FrozenPhaseModel):
                 "/infrastructure/<id>/count, or "
                 "a concrete scalar below /nodes/<id>/runtime"
             )
-        declaration = parts[2].replace("~1", "/").replace("~0", "~")
+        declaration = unescape_token(parts[2])
         QualifiedName.parse(declaration)
         for index, value in enumerate(self.allowed_values):
             if any(_json_value_equal(value, prior) for prior in self.allowed_values[:index]):

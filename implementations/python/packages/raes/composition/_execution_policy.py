@@ -3,6 +3,7 @@
 from typing import Any
 
 from raes_contracts.execution_policy import ExecutionPolicy, ExecutionPolicyDocument, ExecutionPolicyScope
+from raes_contracts.json_pointer import escape_token, unescape_token
 
 from .._composition_provenance import prefixed_scope_pointer
 from ..execution_policy_scope import EXECUTION_SECTIONS
@@ -46,9 +47,9 @@ def _rewritten_policy(policy: ExecutionPolicy, symbols: dict[str, dict[str, str]
 def _rewritten_scope(pointer: str, symbols: dict[str, dict[str, str]]) -> str:
     parts = prefixed_scope_pointer(pointer, symbols=symbols).split("/")
     if len(parts) == 5 and parts[1] == "nodes" and parts[3] in {"features", "conditions", "injects"}:
-        identity = parts[4].replace("~1", "/").replace("~0", "~")
+        identity = unescape_token(parts[4])
         renamed = symbols[parts[3]].get(identity, identity)
-        parts[4] = renamed.replace("~", "~0").replace("/", "~1")
+        parts[4] = escape_token(renamed)
     return "/".join(parts)
 
 
@@ -71,7 +72,7 @@ def _rewritten_namespaces(
 
 
 def _renamed_owner(rule: ExecutionPolicyScope, pointer: list[str], old: str, new: str) -> tuple[str, ...] | None:
-    if len(pointer) >= 3 and old != pointer[2].replace("~1", "/").replace("~0", "~"):
+    if len(pointer) >= 3 and old != unescape_token(pointer[2]):
         return None
     old_owner = tuple(old.split(".")[:-1])
     if old_owner[: len(rule.namespace)] != rule.namespace:

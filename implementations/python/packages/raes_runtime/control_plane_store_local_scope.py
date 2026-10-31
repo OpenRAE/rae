@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import asdict, replace
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
@@ -212,7 +211,7 @@ class LocalStoreScopeMigrationMixin:
         ]
 
     def _backup_legacy_files(self, paths: list[Path]) -> Path:
-        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S.%fZ")
+        timestamp = self._wall_clock().strftime("%Y%m%dT%H%M%S.%fZ")
         backup_dir = self._base_dir / f"legacy-json-backup-{timestamp}"
         backup_dir.mkdir(mode=0o700)
         for path in paths:

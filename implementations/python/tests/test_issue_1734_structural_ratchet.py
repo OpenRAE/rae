@@ -142,12 +142,16 @@ class FakeBase:
     texts: dict[str, str | None]
     changed: bool = False
     revision: str = "base"
+    adopted: FakeBase | None = None
 
     def read(self, rel_path: str) -> str | None:
         return self.texts.get(rel_path)
 
     def sources_changed(self, roots: Sequence[str]) -> bool:
         return self.changed
+
+    def adoption(self, roots: Sequence[str]) -> FakeBase | None:
+        return self.adopted
 
 
 def _same_base(repo: Path) -> FakeBase:
@@ -354,6 +358,31 @@ def test_a_baseline_new_at_the_base_is_accepted_only_with_unchanged_package_sour
 
     assert _run(repo, base=FakeBase({}, changed=False)) == []
     assert _rules(_run(repo, base=FakeBase({}, changed=True))) == ["structural-baseline-bootstrap"]
+
+
+def test_the_adoption_commit_bounds_the_baselines_when_the_base_has_none(tmp_path: Path) -> None:
+    adopted_repo = _cyclic_repo(tmp_path / "adopted")
+    adopted = _same_base(adopted_repo)
+
+    assert _run(adopted_repo, FakeAnalyzer(adopted_repo, CYCLE_IMPORTS), FakeBase({}, True, adopted=adopted)) == []
+
+    repo = _cyclic_repo(
+        tmp_path / "current",
+        {"alpha/a.py": "from alpha import b\nfrom alpha.b import _x\n"},
+        private={"alpha.a": {"alpha.b._x": 1}},
+    )
+    failures = _run(repo, FakeAnalyzer(repo, CYCLE_IMPORTS), FakeBase({}, changed=True, adopted=adopted))
+
+    assert [(failure.rule_id, failure.message) for failure in failures] == [
+        ("structural-baseline-grown", "private_imports['alpha.a']['alpha.b._x'] grew to 1")
+    ]
+
+
+def test_an_adoption_commit_without_import_contracts_keeps_the_bootstrap_rule(tmp_path: Path) -> None:
+    repo = _repo(tmp_path, {})
+    adopted = FakeBase({STRUCTURAL_BASELINE_PATH: (repo / STRUCTURAL_BASELINE_PATH).read_text(encoding="utf-8")})
+
+    assert _rules(_run(repo, base=FakeBase({}, changed=True, adopted=adopted))) == ["structural-baseline-bootstrap"]
 
 
 def test_a_malformed_base_baseline_fails_closed(tmp_path: Path) -> None:

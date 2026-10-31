@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ._common import RealizationRelationResult, RelationBudget, closure_for, pointer, relation_result
+from ..json_pointer import pointer_from_tokens
+from ._common import RealizationRelationResult, RelationBudget, closure_for, relation_result
 from ._models import (
     RealizationClosure,
     RealizationClosurePosture,
@@ -43,19 +44,19 @@ def evaluate_closure(
     if closure is None:
         result = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Closure resolution exceeded max_operations.",
         )
     elif closure.posture is RealizationClosurePosture.UNDEFINED:
         result = relation_result(
             RealizationRelationStatus.UNSUPPORTED,
-            pointer(path),
+            pointer_from_tokens(path),
             undefined_message,
         )
     elif closure.posture is RealizationClosurePosture.CLOSED and has_extras:
         result = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             closed_message,
         )
     return result

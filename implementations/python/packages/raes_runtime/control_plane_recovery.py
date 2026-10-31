@@ -25,9 +25,9 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     operation_terminal_diagnostics,
 )
+from raes_contracts.timestamps import isoformat_z
 
 from .backend_calls import _BackendCallContext, _RealizationApplyContext, _validated_backend_result
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
@@ -303,7 +303,7 @@ def _commit_recovery_terminal(
     status = replace(
         record.status,
         state=state,
-        updated_at=_utc_now(),
+        updated_at=isoformat_z(control_plane.wall_clock()),
         diagnostics=operation_terminal_diagnostics(
             state,
             [*record.status.diagnostics, *diagnostics],
@@ -409,7 +409,7 @@ def resolve_indeterminate_operation(
         if idempotency_key == parent.idempotency_key:
             raise ConflictError("resolution requires a fresh idempotency key")
         child_id = str(uuid4())
-        submitted_at = _utc_now()
+        submitted_at = isoformat_z(control_plane.wall_clock())
         receipt = OperationReceipt(
             operation_id=child_id,
             domain=parent.receipt.domain,
@@ -447,7 +447,7 @@ def resolve_indeterminate_operation(
             raise ConflictError("indeterminate operation is already resolved") from None
         if claimed.receipt.operation_id != child_id:
             return claimed.receipt
-        terminal = replace(running, state=OperationState.SUCCEEDED, updated_at=_utc_now())
+        terminal = replace(running, state=OperationState.SUCCEEDED, updated_at=isoformat_z(control_plane.wall_clock()))
         control_plane._commit_terminal_operation(
             control_plane._snapshot,
             ControlPlaneOperationRecord(

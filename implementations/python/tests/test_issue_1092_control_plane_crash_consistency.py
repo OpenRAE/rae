@@ -48,6 +48,7 @@ from raes_contracts.runtime_state import (
     SnapshotEntry,
     operation_terminal_diagnostic,
 )
+from raes_contracts.timestamps import utc_now
 from raes_contracts.vocabulary import RealizationVerificationScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
@@ -2628,6 +2629,7 @@ def test_execution_helpers_return_the_durable_winner_when_an_idempotency_claim_l
 
     class _LosingClaimControlPlane:
         def __init__(self) -> None:
+            self.wall_clock = utc_now
             self._snapshot = RuntimeSnapshot()
             self._operation_lock = RLock()
             self._target = create_stub_target()

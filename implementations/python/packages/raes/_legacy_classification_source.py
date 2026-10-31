@@ -9,6 +9,7 @@ from typing import Any
 import rfc8785
 from pydantic import TypeAdapter, ValidationError
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.json_pointer import escape_token
 
 from ._base import contains_variable_token
 from ._errors import SDLParseError
@@ -45,10 +46,6 @@ class LegacyClassificationSource:
 
 class _LegacySourceRefusal(SDLParseError):
     """The exact historical extraction does not support this authored legacy source."""
-
-
-def _token(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
 
 
 def _strings(value: object) -> list[str]:
@@ -102,7 +99,7 @@ def _extract_entities(
     for name, item in entities.items():
         if not isinstance(item, dict):
             continue
-        path, ref = f"{pointer}/{_token(name)}", f"{subject}.{name}"
+        path, ref = f"{pointer}/{escape_token(name)}", f"{subject}.{name}"
         _extract_fields(
             item,
             pointer=path,
@@ -148,7 +145,7 @@ def _extract_application_routes(
             raise _LegacySourceRefusal("Route classification migration requires exact concrete route identity.")
         _extract_fields(
             route,
-            pointer=f"/nodes/{_token(node_name)}/runtime/applications/{app_index}/routes/{route_index}",
+            pointer=f"/nodes/{escape_token(node_name)}/runtime/applications/{app_index}/routes/{route_index}",
             subject=f"nodes.{node_name}.runtime.applications.{app_id}.routes.{route_id}",
             fields=("vulnerability_refs",),
             declarations=declarations,
@@ -217,7 +214,7 @@ def _extract_sections(
                 continue
             _extract_fields(
                 item,
-                pointer=f"/{section}/{_token(name)}",
+                pointer=f"/{section}/{escape_token(name)}",
                 subject=f"{section}.{name}",
                 fields=fields,
                 declarations=declarations,
@@ -242,7 +239,7 @@ def _extract_actions(actions: object, records: list[LegacyClassification]) -> No
                 raise _LegacySourceRefusal("Legacy action mappings require concrete identifiers.")
             records.append(
                 LegacyClassification(
-                    pointer=f"/action_contracts/{_token(name)}/external_mappings/{index}",
+                    pointer=f"/action_contracts/{escape_token(name)}/external_mappings/{index}",
                     subject_ref=f"action_contracts.{name}",
                     identifier=mapping.identifier,
                 )

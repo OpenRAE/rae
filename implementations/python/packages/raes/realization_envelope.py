@@ -30,13 +30,12 @@ raw sensitive values (R8 / ADR-070 §7).
 
 from __future__ import annotations
 
-import hashlib
-import json
 from copy import deepcopy
 from dataclasses import dataclass
 
 from pydantic import ValidationError
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.realization_envelope import RealizationEnvelopeModel, WitnessPolicy, scalar_in_domain
 
 from ._errors import SDLInstantiationError, SDLValidationError
@@ -388,13 +387,8 @@ def witness(envelope: RealizationEnvelopeModel, policy: WitnessPolicy | None = N
 # --------------------------------------------------------------------------- #
 
 
-def _probe_digest(payload: dict[str, object]) -> str:
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-    return "sha256:" + hashlib.sha256(canonical).hexdigest()
-
-
 def _positive_probe(payload: dict[str, object], *, path: str, domain_kind: str, variation: str) -> PositiveProbe:
-    return PositiveProbe(path, domain_kind, variation, _probe_digest(payload), payload)
+    return PositiveProbe(path, domain_kind, variation, sorted_json_digest(payload), payload)
 
 
 def generate_positive_probes(
@@ -482,7 +476,7 @@ def generate_negative_probes(
     seen: set[tuple[str, str]] = set()
     for probe in probes:
         candidate = _validate_witness_payload(probe.payload, envelope)
-        key = (probe.path, _probe_digest(probe.payload))
+        key = (probe.path, sorted_json_digest(probe.payload))
         if candidate.scenario is not None and not member(candidate.scenario, envelope).holds and key not in seen:
             safe.append(NegativeProbe(probe.path, probe.domain_kind, probe.variation, probe.payload))
             seen.add(key)

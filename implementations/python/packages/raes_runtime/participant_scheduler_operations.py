@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
-
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
@@ -20,6 +18,7 @@ from .participant_activity_support import (
     annotate_activity_history,
     persist_activity_state,
 )
+from .participant_invocation_tool_settlement import admit_outer_action, open_serial_invocation_tool_session
 from .participant_scheduler_activity_state import (
     next_activity_occurrence_state as _next_activity_occurrence_state,
 )
@@ -126,9 +125,10 @@ def _run_one_due_action(
     if request is None:
         return state
     predecessor = run.working
-    result, dispatched = _admit_due_action(context, request, predecessor)
-    if _record_stale_completion(request, run):
+    admission = _admit_due_action(context, request, predecessor, run, state.episode_id)
+    if admission is None or _record_stale_completion(request, run):
         return state
+    result, dispatched = admission
     protocol_violation = autonomous_action_result_violation(
         request,
         result,
@@ -144,12 +144,22 @@ def _admit_due_action(
     context: _DueActionContext,
     request: ParticipantActionAdmissionRequest,
     predecessor: RuntimeSnapshot,
-) -> tuple[object, bool]:
-    result = temporal_pre_dispatch_result(request, predecessor)
-    dispatched = result is None
-    if dispatched:
-        result = deepcopy(context.participant_runtime.admit_action(deepcopy(request), deepcopy(predecessor)))
-    return result, dispatched
+    run: SchedulerRunState,
+    episode_id: str,
+) -> tuple[object, bool] | None:
+    """Dispatch one due action and return its unvalidated result.
+
+    ``None`` means a pre-dispatch failure is already recorded. A dispatched
+    backend can return any value, including ``None``; the caller validates it.
+    """
+
+    result = temporal_pre_dispatch_result(request, predecessor, wall_clock=run.wall_clock)
+    if result is not None:
+        return result, False
+    opened, session = open_serial_invocation_tool_session(context, request, episode_id=episode_id, run=run)
+    if not opened:
+        return None
+    return admit_outer_action(context, request, predecessor, session, run), True
 
 
 def _record_stale_completion(request: ParticipantActionAdmissionRequest, run: SchedulerRunState) -> bool:
@@ -225,7 +235,7 @@ def _run_one_activity_action(
     run: SchedulerRunState,
 ) -> ParticipantAutonomousExecutionStateModel:
     request = _try_bound_action_request(context, state, run)
-    admission = _admit_activity_action(context, request, run) if request is not None else None
+    admission = _admit_activity_action(context, request, run, state.episode_id) if request is not None else None
     if admission is not None and not _record_stale_completion(request, run):
         result, dispatched, predecessor = admission
         protocol_violation = autonomous_action_result_violation(
@@ -245,15 +255,19 @@ def _admit_activity_action(
     context: _DueActionContext,
     request: ParticipantActionAdmissionRequest,
     run: SchedulerRunState,
+    episode_id: str,
 ) -> tuple[object, bool, RuntimeSnapshot] | None:
     predecessor = run.working
-    result = temporal_pre_dispatch_result(request, predecessor)
+    result = temporal_pre_dispatch_result(request, predecessor, wall_clock=run.wall_clock)
     if result is not None:
         return result, False, predecessor
-    if not reserve_activity_resources(context, request, run):
+    opened, session = open_serial_invocation_tool_session(context, request, episode_id=episode_id, run=run)
+    if not (opened and reserve_activity_resources(context, request, run)):
+        if session is not None:
+            session.close()
         return None
     predecessor = run.working
-    result = deepcopy(context.participant_runtime.admit_action(deepcopy(request), deepcopy(predecessor)))
+    result = admit_outer_action(context, request, predecessor, session, run)
     return result, True, predecessor
 
 

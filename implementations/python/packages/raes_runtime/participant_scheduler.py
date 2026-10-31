@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from asyncio import CancelledError
 from collections.abc import Callable, Iterable
+from typing import TypedDict, Unpack
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.timestamps import WallClock, utc_now
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 from .participant_activity import (
@@ -17,6 +19,10 @@ from .participant_activity import (
 from .participant_execution_scheduler_state import (
     execution_service_state,
     set_execution_clock_lifecycle,
+)
+from .participant_invocation_tool_settlement import (
+    InvocationToolActionConfiguration,
+    settle_invocation_tool_sessions,
 )
 from .participant_resource_budgets import initialize_participant_resource_budgets
 from .participant_scheduler_initialization import (
@@ -253,6 +259,14 @@ def _initialize_policy(
     )
 
 
+class RunDueOptions(TypedDict, total=False):
+    """Keyword options of one :meth:`ParticipantScheduler.run_due` pass."""
+
+    cancellation_sink: Callable[[ApplyResult], None] | None
+    invocation_tools: InvocationToolActionConfiguration | None
+    wall_clock: WallClock
+
+
 class ParticipantScheduler:
     """Deterministically selects due actions and delegates native execution."""
 
@@ -298,28 +312,41 @@ class ParticipantScheduler:
         participant_runtime: object,
         snapshot: RuntimeSnapshot,
         activity_controls: dict[str, ParticipantActivityRandomControl] | None = None,
-        *,
-        cancellation_sink: Callable[[ApplyResult], None] | None = None,
+        **options: Unpack[RunDueOptions],
     ) -> ApplyResult:
         """Run each due action; on cancellation, give the settled state to ``cancellation_sink``.
 
         A cancelled concurrent batch has fenced its indeterminate native work in the
         scheduler state. The commit owner must commit that state before the
-        cancellation leaves it, or the same action ids become due again.
+        cancellation leaves it, or the same action ids become due again. Tool
+        actions hosted by any dispatched invocation commit on both paths.
         """
 
-        run = SchedulerRunState(working=snapshot, diagnostics=[], changed=[])
+        for name in options.keys() - RunDueOptions.__optional_keys__:
+            raise TypeError(f"ParticipantScheduler.run_due() got an unexpected keyword argument {name!r}")
+        cancellation_sink = options.get("cancellation_sink")
+        run = SchedulerRunState(
+            working=snapshot,
+            diagnostics=[],
+            changed=[],
+            invocation_tools=options.get("invocation_tools"),
+            wall_clock=options.get("wall_clock", utc_now),
+        )
         resolved_activity_controls = activity_controls or {}
         try:
             for policy in policies:
                 _run_due_policy(policy, time_model, participant_runtime, resolved_activity_controls, run)
-                if run.failure is not None:
+                if run.failure is not None or run.deferred_cancellation is not None:
                     break
+            if run.deferred_cancellation is not None:
+                raise run.deferred_cancellation
         except CancelledError:
             # Cleanup: hand the settled scheduler state to its commit owner, then propagate (ADR-116 H4).
+            settle_invocation_tool_sessions(run)
             if cancellation_sink is not None:
                 cancellation_sink(run.result())
             raise
+        settle_invocation_tool_sessions(run)
         return run.result()
 
     @staticmethod

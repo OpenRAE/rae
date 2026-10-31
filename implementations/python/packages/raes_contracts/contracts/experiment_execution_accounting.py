@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
+from ..timestamps import parse_rfc3339_datetime
 from .base import ContractModel, NonEmptyString, PositiveInteger, PrefixedDigestString, Rfc3339DateTimeString
 from .experiment_bindings import ParticipantConfigurationResultModel
 from .experiment_evidence import ExperimentEvidenceRecordModel
@@ -34,13 +35,12 @@ class ExperimentAttemptAccountingModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_attempt(self) -> ExperimentAttemptAccountingModel:
-        from .base import _parse_rfc3339_datetime
 
-        start = _parse_rfc3339_datetime("started_at", self.started_at)
+        start = parse_rfc3339_datetime("started_at", self.started_at)
         if self.ended_at is not None:
             if self.execution_status in {"unknown", "running"}:
                 raise ValueError("unresolved execution must not claim an end time")
-            if _parse_rfc3339_datetime("ended_at", self.ended_at) < start:
+            if parse_rfc3339_datetime("ended_at", self.ended_at) < start:
                 raise ValueError("attempt end time precedes its start")
         if self.cleanup_receipt is not None and self.cleanup_receipt.execution_attempt_id != self.execution_attempt_id:
             raise ValueError("cleanup receipt must belong to its execution attempt")
@@ -112,18 +112,17 @@ def _validate_attempt_membership(run: ExperimentRunModel) -> None:
 
 
 def _validate_accounting_consistency(run: ExperimentRunModel) -> None:
-    from .base import _parse_rfc3339_datetime
 
     attempts = run.execution_accounting.attempts
-    start = _parse_rfc3339_datetime("started_at", run.started_at)
-    starts = [_parse_rfc3339_datetime("attempt started_at", item.started_at) for item in attempts]
+    start = parse_rfc3339_datetime("started_at", run.started_at)
+    starts = [parse_rfc3339_datetime("attempt started_at", item.started_at) for item in attempts]
     if start != starts[0] or starts != sorted(starts):
         raise ValueError("run start must match its first ordered attempt start")
     _validate_accounting_status(run)
     if run.ended_at is not None:
-        end = _parse_rfc3339_datetime("ended_at", run.ended_at)
+        end = parse_rfc3339_datetime("ended_at", run.ended_at)
         if any(
-            item.ended_at is not None and _parse_rfc3339_datetime("attempt ended_at", item.ended_at) > end
+            item.ended_at is not None and parse_rfc3339_datetime("attempt ended_at", item.ended_at) > end
             for item in attempts
         ):
             raise ValueError("run end must cover its retained attempt intervals")

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from ipaddress import ip_address
 from typing import TYPE_CHECKING
 from urllib.parse import quote, urlsplit
@@ -14,6 +13,7 @@ from pydantic import JsonValue, SecretStr
 from raes_contracts.contracts import BackendOperationControlModel, BackendOperationRequestModel, OperationStatusModel
 from raes_contracts.errors import AuthorizationError, InvalidInputError, OperationalError, RaesError
 from raes_contracts.operational_logging import get_logger
+from raes_contracts.timestamps import WallClock, utc_now
 
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole, _require_principal_shape
@@ -73,9 +73,14 @@ class RemoteOperationAuthority:
     """Instantiate separately for effect and control workers; no shared pool."""
 
     def __init__(
-        self, configuration: RemoteAuthorityConfiguration, *, transport: httpx.BaseTransport | None = None
+        self,
+        configuration: RemoteAuthorityConfiguration,
+        *,
+        transport: httpx.BaseTransport | None = None,
+        wall_clock: WallClock = utc_now,
     ) -> None:
         self.configuration = configuration
+        self._wall_clock = wall_clock
         self._client = httpx.Client(
             base_url=configuration.base_url.rstrip("/") + "/",
             transport=transport,
@@ -172,7 +177,7 @@ class RemoteOperationAuthority:
             action="observe",
             budget={
                 "origin_id": f"control:{identifier}",
-                "started_at": datetime.now(UTC).isoformat(),
+                "started_at": self._wall_clock().isoformat(),
                 "limit_ms": budget,
                 "remaining_ms": budget,
             },

@@ -152,7 +152,7 @@ class RuntimeControlPlane(RuntimeRunContext):
         self._assert_runtime_owner()
         if "run_scope" not in options:
             raise ValueError("a new run requires an explicit run scope")
-        for name in ("supervision", "distributed_execution", "profile"):
+        for name in ("supervision", "distributed_execution", "profile", "wall_clock"):
             if name in options and options[name] != getattr(self._engine.configuration, name):
                 raise ValueError("a run cannot replace engine execution configuration")
         config = replace(self._engine.configuration, **{"store": None, "initial_snapshot": None, **options})

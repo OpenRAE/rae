@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, TypedDict, Unpack, cast
 
+from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, RuntimeSnapshot
 
@@ -25,9 +26,18 @@ class InteractionCallOptions(TypedDict, total=False):
     realization: _RealizationApplyContext | None
     call: _BackendCallContext | None
     runtime_composition: bool
+    operation_aware: bool
     result_validator: Callable[[ApplyResult, RuntimeSnapshot], ApplyResult] | None
     idempotency_key: str
     identity: object | None
+
+
+@dataclass(frozen=True)
+class ComposedOperation:
+    """Identity and admitted context of the operation that runs one composition method."""
+
+    operation_id: str
+    context: OperationAdmissionContext
 
 
 @dataclass(frozen=True)
@@ -38,6 +48,8 @@ class _InteractionInvocation:
     runtime_composition: bool
     result_validator: Callable[[ApplyResult, RuntimeSnapshot], ApplyResult] | None
     cancelled: list[tuple[ApplyResult, RuntimeSnapshot]]
+    context: OperationAdmissionContext | None = None
+    operation_aware: bool = False
 
 
 def _cancellation_reader(
@@ -65,7 +77,14 @@ def _interaction_invoker(
         if invocation.runtime_composition:
             from .interaction_results import validated_composition_result
 
-            settled = method(predecessor, lambda value: invocation.cancelled.append((value, predecessor)))
+            def sink(value: ApplyResult) -> None:
+                invocation.cancelled.append((value, predecessor))
+
+            settled = (
+                method(predecessor, sink, ComposedOperation(operation_id, invocation.context))
+                if invocation.operation_aware
+                else method(predecessor, sink)
+            )
             result = validated_composition_result(plane, settled, predecessor, invocation.address)
         else:
             call = replace(invocation.call or _BackendCallContext(), operation_id=operation_id, attempt_id=attempt_id)
@@ -152,6 +171,7 @@ class RuntimeInteractionDispatchMixin:
         realization = options.pop("realization", None) or _RealizationApplyContext()
         call = options.pop("call", None)
         runtime_composition = options.pop("runtime_composition", False)
+        operation_aware = options.pop("operation_aware", False)
         result_validator = options.pop("result_validator", None)
         idempotency_key = options.pop("idempotency_key", "")
         identity = options.pop("identity", None)
@@ -173,7 +193,16 @@ class RuntimeInteractionDispatchMixin:
             self,
             method,
             args,
-            _InteractionInvocation(address, realization, call, runtime_composition, result_validator, cancelled),
+            _InteractionInvocation(
+                address,
+                realization,
+                call,
+                runtime_composition,
+                result_validator,
+                cancelled,
+                context=context,
+                operation_aware=operation_aware,
+            ),
         )
         receipt = execute_operation(
             self,

@@ -307,6 +307,7 @@ from .participant_information_state import (
     validate_participant_information_state_context,
     validate_participant_information_state_resolved_context,
 )
+from .participant_invocation_tools import ParticipantInvocationToolActionCapabilitiesModel
 from .participant_manifests import (
     BackendManifestV2Model,
     ParticipantExposurePolicyModel,
@@ -348,6 +349,7 @@ from .participant_runtime import (
     ParticipantBehaviorHistoryEventModel,
     ParticipantEpisodeHistoryEventModel,
     ParticipantEpisodeStateModel,
+    ParticipantInvocationToolContextModel,
     ParticipantOutcomeInterpretationRecordModel,
     ParticipantOutcomeSourceRecordModel,
     ParticipantOutcomeTargetRecordModel,

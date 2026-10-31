@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, model_validator
+from raes_contracts.json_pointer import unescape_token
 from raes_contracts.realization_structure import DEFAULT_REALIZATION_CONSTRAINT_LIMITS, validate_realization_value
 
 from ._base import VARIABLE_TOKEN_RE
@@ -59,7 +60,7 @@ class ParameterDerivation(FrozenPhaseModel):
 
         if _JSON_POINTER_RE.fullmatch(self.field_pointer) is None:
             raise ValueError("derivation field_pointer must be an RFC 6901 JSON Pointer")
-        QualifiedName.parse(self.field_pointer.split("/")[2].replace("~1", "/").replace("~0", "~"))
+        QualifiedName.parse(unescape_token(self.field_pointer.split("/")[2]))
         references = [segment for segment in self.segments if isinstance(segment, ParameterReferenceSegment)]
         if not references:
             raise ValueError("parameter derivation must reference an input")

@@ -9,6 +9,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..timestamps import parse_rfc3339_datetime
 from .base import (
     _CHECKSUM_VALUE_PATTERNS,
     ContractModel,
@@ -17,7 +18,6 @@ from .base import (
     NonNegativeInteger,
     Rfc3339DateTimeString,
     _canonical_digest,
-    _parse_rfc3339_datetime,
 )
 from .capabilities import ApparatusIdentityModel
 from .experiment_manifest_references import (
@@ -318,5 +318,5 @@ class ExperimentArtifactRefModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_artifact_created_at(self) -> ExperimentArtifactRefModel:
-        _parse_rfc3339_datetime("created_at", self.created_at)
+        parse_rfc3339_datetime("created_at", self.created_at)
         return self

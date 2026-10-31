@@ -23,8 +23,8 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     operation_terminal_diagnostics,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_mutation import external_control_plane_call
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
@@ -151,7 +151,7 @@ def _phase_operation(
         identity=identity,
     )
     operation_id = str(uuid4())
-    timestamp = _utc_now()
+    timestamp = isoformat_z(control_plane.wall_clock())
     receipt = OperationReceipt(
         operation_id=operation_id,
         domain=RuntimeDomain.PARTICIPANT,
@@ -314,7 +314,7 @@ def advance_mixed_composition(
         status=replace(
             running.status,
             state=terminal_state,
-            updated_at=_utc_now(),
+            updated_at=isoformat_z(control_plane.wall_clock()),
             diagnostics=operation_terminal_diagnostics(terminal_state, [] if diagnostic is None else [diagnostic]),
         ),
         result_history_heads={history_key: events[-1].event_id},

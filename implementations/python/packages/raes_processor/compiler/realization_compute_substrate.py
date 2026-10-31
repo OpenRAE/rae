@@ -4,6 +4,7 @@ from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.nodes import NodeType
 from raes.realization_designation import RealizationConstraintPosture
 from raes.scenario import InstantiatedScenario
+from raes_contracts.json_pointer import escape_token
 
 from ..semantics.realization import REALIZATION_DOMAIN, CompiledRealizationRequirement
 from .addresses import _node_address
@@ -28,7 +29,7 @@ def append_compute_substrate_requirements(
     for node_name, node in scenario.nodes.items():
         if node.type is NodeType.SWITCH:
             continue
-        pointer_name = node_name.replace("~", "~0").replace("/", "~1")
+        pointer_name = escape_token(node_name)
         field_pointer = f"/nodes/{pointer_name}"
         record = records_by_pointer.get(field_pointer)
         posture = record.posture if record is not None else RealizationConstraintPosture.OPEN

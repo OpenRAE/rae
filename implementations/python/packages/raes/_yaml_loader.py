@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
+from raes_contracts.json_pointer import pointer_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode
 
 from ._errors import (
@@ -191,4 +192,4 @@ def _decode_pointer(pointer: str) -> list[str]:
         return []
     if not pointer.startswith("/"):
         raise ValueError("base_pointer must be an RFC 6901 pointer")
-    return [token.replace("~1", "/").replace("~0", "~") for token in pointer[1:].split("/")]
+    return list(pointer_tokens(pointer))

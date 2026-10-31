@@ -9,6 +9,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind
 
+from ..graphs import has_cycle
 from ..versions import PARTICIPANT_FLOW_CONTROL_RELATION_V1_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .participant_crossing_vocab import ParticipantCrossingSubjectKind
@@ -331,22 +332,8 @@ def _subject_key(subject: ParticipantFlowSubjectReferenceModel) -> FlowSubjectKe
 
 
 def _reject_cycles(graph: dict[FlowSubjectKey, set[FlowSubjectKey]]) -> None:
-    visiting: set[FlowSubjectKey] = set()
-    visited: set[FlowSubjectKey] = set()
-
-    def visit(node: FlowSubjectKey) -> None:
-        if node in visiting:
-            raise ValueError("flow derivation cycle is not allowed")
-        if node in visited:
-            return
-        visiting.add(node)
-        for successor in graph.get(node, set()):
-            visit(successor)
-        visiting.remove(node)
-        visited.add(node)
-
-    for node in graph:
-        visit(node)
+    if has_cycle(graph):
+        raise ValueError("flow derivation cycle is not allowed")
 
 
 def _binding_source_ref(binding: ParticipantFlowCarrierBinding) -> str:

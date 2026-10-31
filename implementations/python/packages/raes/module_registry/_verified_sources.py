@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import os
 import stat
 from collections.abc import Mapping
@@ -12,6 +11,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, BinaryIO
 
 from pydantic import ValidationError
+from raes_contracts.digests import sha256_hasher
 
 from .._errors import SDLParseError
 from .._source_profile import SDLSourceParseOptions
@@ -118,7 +118,7 @@ def _require_expected_cache_file(
 def _capture_source_bytes(source: BinaryIO, *, capture_limit: int) -> tuple[bytes, int, str]:
     """Hash an entire admitted source while retaining only the parser limit."""
 
-    digest = hashlib.sha256()
+    digest = sha256_hasher()
     captured = bytearray()
     byte_count = 0
     while chunk := source.read(1024 * 1024):

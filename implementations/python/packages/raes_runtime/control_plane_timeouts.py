@@ -7,6 +7,7 @@ from datetime import datetime
 from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
+from raes_contracts.timestamps import parse_offset_timestamp_utc
 from raes_contracts.workflow import (
     WorkflowCompensationStatus,
     WorkflowExecutionState,
@@ -15,7 +16,7 @@ from raes_contracts.workflow import (
     WorkflowStatus,
 )
 
-from .control_plane_workflows import maybe_apply_compensation, parse_timestamp
+from .control_plane_workflows import maybe_apply_compensation
 
 TIMED_OUT_REASON = "workflow timed out"
 INVALID_RECONCILIATION_CLOCK = "workflow timeout reconciliation clock is invalid"
@@ -58,7 +59,7 @@ def workflow_timeout_update(
 
 def _reconciliation_clock(submitted_at: str) -> datetime:
     try:
-        return parse_timestamp(submitted_at)
+        return parse_offset_timestamp_utc(submitted_at)
     except ValueError:
         raise InvalidInputError(INVALID_RECONCILIATION_CLOCK) from None
 
@@ -109,8 +110,8 @@ def _workflow_has_timed_out(
     """Return whether elapsed wall time proves the declared timeout."""
 
     try:
-        started = parse_timestamp(normalized.started_at)
-        updated = parse_timestamp(normalized.updated_at)
+        started = parse_offset_timestamp_utc(normalized.started_at)
+        updated = parse_offset_timestamp_utc(normalized.updated_at)
     except ValueError:
         raise ConflictError(INVALID_WORKFLOW_TIMESTAMP) from None
     if updated < started:

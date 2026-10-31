@@ -8,8 +8,9 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import EXPERIMENT_RUN_SCHEMA_VERSION
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
 from .difficulty_provenance import DifficultyRunProvenanceModel
 from .experiment_apparatus import (
     ExperimentApparatusComponentModel,
@@ -124,7 +125,7 @@ class ExperimentInvalidationModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_invalidated_at(self) -> ExperimentInvalidationModel:
-        _parse_rfc3339_datetime("invalidated_at", self.invalidated_at)
+        parse_rfc3339_datetime("invalidated_at", self.invalidated_at)
         return self
 
 

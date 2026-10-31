@@ -5,6 +5,7 @@ from __future__ import annotations
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.planning import (
     RealizationAuthorityBound,
     RealizationAuthorityMode,
@@ -30,10 +31,6 @@ _PUBLICATION_SAFE_CAPABILITY_CONCERN_BY_KIND = {
     "os-version": "nodes.os_version",
     "node-architecture": "nodes.architecture",
 }
-
-
-def _payload_pointer(path: tuple[str, ...]) -> str:
-    return "/" + "/".join(token.replace("~", "~0").replace("/", "~1") for token in path)
 
 
 def _matching_requirement(
@@ -176,7 +173,7 @@ def _resolved_authority(
         field_path=authority.field_path,
         domain=authority.domain,
         requirement_kind=authority.requirement_kind,
-        payload_pointer=_payload_pointer(authority.payload_path),
+        payload_pointer=pointer_from_tokens(authority.payload_path),
         mode=mode,
         source=authority.source,
         provenance=authority.provenance,

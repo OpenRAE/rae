@@ -6,6 +6,7 @@ from typing import Any, cast
 from raes.observation_scope import semantic_scope_namespace
 from raes.scenario import InstantiatedScenario
 from raes_contracts.execution_policy import EffectiveExecutionPolicy, ExecutionPolicyDocument, resolve_execution_policy
+from raes_contracts.json_pointer import escape_token
 
 from ..models.resources import DomainControllerPlacement, ResolvedResource
 
@@ -33,7 +34,7 @@ _BINDING_GROUPS = frozenset({"feature_bindings", "condition_bindings", "inject_b
 
 
 def _pointer(section: str, name: str) -> str:
-    escaped = name.replace("~", "~0").replace("/", "~1")
+    escaped = escape_token(name)
     return f"/{section}/{escaped}"
 
 

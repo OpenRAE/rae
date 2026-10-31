@@ -19,6 +19,7 @@ from raes_contracts.domain_profiles import (
     DomainProfileDefinitionProvenanceModel,
 )
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.realization_profiles import PLAN_PROFILE_CONTRACT, PlanProfileAuthority, ProfileBindingConstraint
 from raes_contracts.realization_structure import (
     RealizationClosure,
@@ -66,14 +67,10 @@ def _software_refinements(scenario: InstantiatedScenario) -> Iterator[_Attachmen
                     yield _Attachment(
                         node_name,
                         f"{id_field}:{getattr(item, id_field)}",
-                        f"/nodes/{_escape(node_name)}/runtime/{path}/{index}"
+                        f"/nodes/{escape_token(node_name)}/runtime/{path}/{index}"
                         f"/refinements/{refinement_index}/profile_value",
                         refinement,
                     )
-
-
-def _escape(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
 
 
 def _value_metadata(scenario: InstantiatedScenario, attachment: _Attachment) -> RealizationNormalizationMetadata:
@@ -99,7 +96,7 @@ def _value_metadata(scenario: InstantiatedScenario, attachment: _Attachment) -> 
             )
         )
         children = value.items() if isinstance(value, dict) else enumerate(value)
-        pending.extend((f"{pointer}/{_escape(str(key))}", child) for key, child in children)
+        pending.extend((f"{pointer}/{escape_token(str(key))}", child) for key, child in children)
     return RealizationNormalizationMetadata(scopes=tuple(scopes))
 
 
