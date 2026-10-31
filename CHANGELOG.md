@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.2.0](https://github.com/OpenRAE/rae/compare/v10.1.0...v10.2.0) (2026-10-31)
+
+
+### Features
+
+* add a consumer parse that admits only pinned and locked local imports ([#1761](https://github.com/OpenRAE/rae/issues/1761)) ([2d52fce](https://github.com/OpenRAE/rae/commit/2d52fce3e596c17108bf213dc66884e0115937b3))
+* bind authored exposure to participant decision surfaces ([#1769](https://github.com/OpenRAE/rae/issues/1769)) ([036d1af](https://github.com/OpenRAE/rae/commit/036d1af96eeb97795c2ae5685fff9741c6d4dde7))
+* complete processor and backend conformance reporting ([#1762](https://github.com/OpenRAE/rae/issues/1762)) ([776bb01](https://github.com/OpenRAE/rae/commit/776bb012baff454599efb38327454d3e3b4b3670))
+* machine-check finite participant-crossing equivalence ([#1755](https://github.com/OpenRAE/rae/issues/1755)) ([74b0d3c](https://github.com/OpenRAE/rae/commit/74b0d3cbe612d4cb97abda2af7ee9cafc87a1226))
+* reproduce the finite participant-crossing decision ([#1760](https://github.com/OpenRAE/rae/issues/1760)) ([9bb852c](https://github.com/OpenRAE/rae/commit/9bb852c406d6444b5b0fdc8c0723bb88693e5bcd))
+
+
+### Bug Fixes
+
+* plan an open concern that the backend leaves empty without readback ([#1763](https://github.com/OpenRAE/rae/issues/1763)) ([34afe96](https://github.com/OpenRAE/rae/commit/34afe9696b610748888cff2c310727323fefe24d))
+
 ## [10.1.0](https://github.com/OpenRAE/rae/compare/v10.0.0...v10.1.0) (2026-10-30)
 
 
