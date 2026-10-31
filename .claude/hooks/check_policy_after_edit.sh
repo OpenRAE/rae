@@ -32,10 +32,22 @@ CHECKOUT=
 # A path with a ".." segment is not resolved, so the checker still refuses it.
 if [[ "/$ABSOLUTE_PATH/" != */../* ]]; then
   DIR=$ABSOLUTE_PATH
-  while DIR=${DIR%/*}; [[ -n "$DIR" && ! -e "$DIR/.git" ]]; do :; done
-  if [[ -n "$DIR" ]]; then
-    CHECKOUT=$(cd "$DIR" && pwd -P)
-  fi
+  while DIR=${DIR%/*}; [[ -n "$DIR" ]]; do
+    if [[ -L "$DIR" ]]; then
+      # A link to another checkout's root exposes its .git through the alias.
+      # Keep the link's owning checkout as the boundary instead. An alias
+      # outside any checkout has no such boundary; a contained alias is safe.
+      LINK_PARENT=${DIR%/*}
+      LINK_CHECKOUT=$(git -C "${LINK_PARENT:-/}" rev-parse --show-toplevel 2>/dev/null || true)
+      if [[ -n "$LINK_CHECKOUT" && "$LINK_CHECKOUT" != "$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null)" ]]; then
+        CHECKOUT=$LINK_CHECKOUT
+        break
+      fi
+    fi
+    if [[ -z "$CHECKOUT" && -e "$DIR/.git" ]]; then
+      CHECKOUT=$(cd "$DIR" && pwd -P)
+    fi
+  done
 fi
 case "$CHECKOUT" in
   "$PROJECT_DIR" | "$PROJECT_DIR"/*)

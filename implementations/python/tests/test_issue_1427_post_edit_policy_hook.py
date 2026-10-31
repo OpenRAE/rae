@@ -152,6 +152,8 @@ def project(tmp_path_factory: pytest.TempPathFactory) -> Path:
     worktree_tools = root / CHECKOUTS["claude-worktree"] / "tools"
     (root / "worktree-file-link.py").symlink_to(worktree_tools / "target.py")
     (root / "worktree-directory-link").symlink_to(worktree_tools, target_is_directory=True)
+    for name, checkout in {**CHECKOUTS, "without-checker": "vendor/other"}.items():
+        (root / f"{name}-root-link").symlink_to(root / checkout, target_is_directory=True)
     (root / "outside-directory-link").symlink_to(tmp_path_factory.mktemp("outside"), target_is_directory=True)
     return root
 
@@ -234,6 +236,25 @@ def test_a_link_out_of_the_checkout_stays_absolute(project: Path, link: str) -> 
     assert json.loads(result.stderr)["arguments"][-1] == str(project / link)
 
 
+@path_forms
+@pytest.mark.parametrize("checkout", ["claude-worktree", "nested-checkout", "without-checker"])
+def test_a_link_to_another_checkout_root_is_refused(project: Path, checkout: str, absolute: bool) -> None:
+    path = f"{checkout}-root-link/tools/target.py"
+    result = _run_hook(str(project / path) if absolute else path, project)
+    assert result.returncode == 1
+    assert json.loads(result.stderr) == {
+        "checkout": str(project),
+        "cwd": str(project),
+        "interpreter": "tooling",
+        "arguments": ["--check-set", "file-local", "--", str(project / path)],
+    }
+
+
+def test_a_link_to_the_same_checkout_root_is_checked(project: Path) -> None:
+    canonical = _run_hook(str(project / "tools/target.py"), project)
+    assert _outcome(_run_hook(str(project / "main-checkout-root-link/tools/target.py"), project)) == _outcome(canonical)
+
+
 PROBE = "implementations/python/packages/raes/_probe_policy_hook.py"
 
 
@@ -268,6 +289,11 @@ def policy_checkout(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Path]:
         os.mkfifo(base / "outside.fifo")
         (root / "escape.py").symlink_to(base / "outside.fifo")
         (root / "escape-directory").symlink_to(base, target_is_directory=True)
+        nested = root / "nested"
+        nested.mkdir()
+        _git(nested, "init", "-q")
+        os.mkfifo(nested / "target.py")
+        (root / "checkout-link").symlink_to(nested, target_is_directory=True)
         yield root
     finally:
         _remove_worktree(root)
@@ -287,7 +313,11 @@ def test_the_real_checker_reports_the_canonical_findings_for_an_alias(policy_che
 # A file or directory link out of the checkout is refused. Its target is a FIFO, so any read would block
 # until the hook's timeout instead of returning the refusal.
 @pytest.mark.integration
-@pytest.mark.parametrize("link", ["escape.py", "escape-directory/outside.fifo"], ids=["file-link", "directory-link"])
+@pytest.mark.parametrize(
+    "link",
+    ["escape.py", "escape-directory/outside.fifo", "checkout-link/target.py"],
+    ids=["file-link", "directory-link", "checkout-root-link"],
+)
 def test_a_link_out_of_the_checkout_is_refused_without_reading_its_target(policy_checkout: Path, link: str) -> None:
     file_path = str(policy_checkout / link)
     result = _run_hook(file_path, policy_checkout)
