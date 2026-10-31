@@ -104,3 +104,16 @@ Absent new authored selections, the existing v2 interface remains compatible.
 
 The document review applies short descriptions and consistent project technical nouns.
 Implementation tasks and test execution belong in the issue plan.
+
+## Retained evidence integrity
+
+Historical reproduction measurements retain the source pins from their original execution.
+A later package change does not change that execution.
+The existing fresh admission interface still requires current source equality.
+The retained admission interface requires the repository's selected reproduction capture pin.
+It checks the capture manifest digest, target subject, and measurement artifact digest.
+It compares all remaining measurement fields with the selected finite subject.
+It permits only the retained reproducer source map to differ from current source.
+This interface establishes retained integrity, without fresh execution or reviewer authentication.
+The selected manifest already binds the separate execution and review artifacts.
+No historical artifact or acceptance record changes.

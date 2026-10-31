@@ -1,6 +1,7 @@
 """Measure a fresh finite replay without asserting independent reviewer acceptance."""
 
 import argparse
+import re
 from pathlib import Path
 
 from raes_contracts.canonical import canonical_json_digest
@@ -42,6 +43,12 @@ def selected_bundle(root: Path, expected_manifest_digest: str) -> dict[str, byte
 
 
 def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
+    return _measurement_record(bundle, source_pins(root))
+
+
+def _measurement_record(
+    bundle: dict[str, bytes], reproducer_sources: dict[str, str]
+) -> dict:
     manifest = decoded(bundle["manifest.json"])
     result = decoded(bundle["result.json"])
     return {
@@ -56,7 +63,7 @@ def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
             name: digest(value) for name, value in sorted(bundle.items())
         },
         "producer_source_identity": manifest["source_identity"],
-        "reproducer_sources": source_pins(root),
+        "reproducer_sources": reproducer_sources,
         "corpus_manifest_digest": manifest["corpus_manifest_digest"],
         "mutation_review_subject_digest": manifest["mutation_review_subject_digest"],
         "tool": manifest["tool"],
@@ -76,6 +83,56 @@ def admit_measurement(
     expected = selected_bundle(root, expected_manifest_digest)
     if payload != encoded(measurement_record(root, expected)):
         raise EvidenceIntegrityError("invalid reproduction measurement")
+
+
+def admit_retained_measurement(
+    root: Path, payload: bytes, expected_manifest_digest: str
+) -> None:
+    """Check pinned archival integrity without claiming current-source replay."""
+    pin = decoded(read_bytes(root, OUTPUT_ROOT + "/pin.json"))
+    capture_digest = pin.get("manifest_digest")
+    if (
+        set(pin) != {"schema", "manifest_digest"}
+        or pin["schema"] != "participant-crossing-reproduction-pin/v1"
+        or not isinstance(capture_digest, str)
+        or re.fullmatch(r"sha256:[0-9a-f]{64}", capture_digest) is None
+    ):
+        raise EvidenceIntegrityError("invalid retained reproduction pin")
+    capture = read_bytes(
+        root,
+        OUTPUT_ROOT + "/capture-" + capture_digest.split(":", 1)[1] + "/manifest.json",
+    )
+    if digest(capture) != capture_digest:
+        raise EvidenceIntegrityError("retained reproduction capture drift")
+    manifest = decoded(capture)
+    if (
+        set(manifest)
+        != {"schema", "target_manifest_digest", "artifact_digests", "authenticity"}
+        or manifest["schema"] != "participant-crossing-reproduction-capture/v1"
+        or manifest["target_manifest_digest"] != expected_manifest_digest
+        or not isinstance(manifest["artifact_digests"], dict)
+        or manifest["artifact_digests"].get("measurement.json") != digest(payload)
+    ):
+        raise EvidenceIntegrityError("retained reproduction measurement drift")
+    record = decoded(payload)
+    retained_sources = record.get("reproducer_sources")
+    if (
+        not isinstance(retained_sources, dict)
+        or not 1 <= len(retained_sources) <= 10000
+        or not set(SOURCE_PATHS).issubset(retained_sources)
+        or any(
+            not isinstance(name, str)
+            or not isinstance(value, str)
+            or re.fullmatch(r"sha256:[0-9a-f]{64}", value) is None
+            for name, value in retained_sources.items()
+        )
+    ):
+        raise EvidenceIntegrityError("invalid retained reproducer source pins")
+    expected = _measurement_record(
+        selected_bundle(root, expected_manifest_digest), retained_sources
+    )
+    if payload != encoded(expected):
+        raise EvidenceIntegrityError("invalid retained reproduction measurement")
 
 
 def measure(root: Path, expected_manifest_digest: str) -> bytes:
