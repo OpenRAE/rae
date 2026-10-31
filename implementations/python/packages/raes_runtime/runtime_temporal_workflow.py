@@ -10,6 +10,8 @@ from temporalio.common import RetryPolicy
 from temporalio.exceptions import ActivityError
 
 with workflow.unsafe.imports_passed_through():
+    from raes_contracts.errors import InvalidInputError
+
     from .runtime_sequence_reference import RuntimeSequenceReference
 
 
@@ -49,7 +51,7 @@ class RaeRunWorkflow:
     async def run(self, payload: dict[str, Any]) -> str:
         reference = RuntimeSequenceReference.model_validate(payload)
         if reference.kind != "run":
-            raise ValueError("run workflow reference kind mismatch")
+            raise InvalidInputError("run workflow reference kind mismatch")
         self._reference = reference.model_dump(mode="json")
         return await _drive(self._reference)
 
@@ -67,6 +69,6 @@ class RaeExperimentWorkflow:
     async def run(self, payload: dict[str, Any]) -> str:
         reference = RuntimeSequenceReference.model_validate(payload)
         if reference.kind != "experiment":
-            raise ValueError("experiment workflow reference kind mismatch")
+            raise InvalidInputError("experiment workflow reference kind mismatch")
         self._reference = reference.model_dump(mode="json")
         return await _drive(self._reference)

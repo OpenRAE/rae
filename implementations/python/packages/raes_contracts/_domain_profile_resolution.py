@@ -13,6 +13,7 @@ from ._domain_profile_contracts import (
     DomainProfileResolutionOutcome,
 )
 from .diagnostics import Diagnostic
+from .errors import RaesError
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,7 +28,7 @@ class DomainProfileDefinitionResolution:
         return self.outcome is DomainProfileResolutionOutcome.RESOLVED
 
 
-class _ResolutionRefusal(RuntimeError):
+class _ResolutionRefusal(RaesError):
     def __init__(self, resolution: DomainProfileDefinitionResolution) -> None:
         self.resolution = resolution
         super().__init__(resolution.outcome.value)
@@ -140,12 +141,11 @@ def resolve_domain_profile_definition(
     try:
         _validate_namespace_authority(coordinate, context)
         selected = _select_exact_definition(coordinate, context)
-        resolution = DomainProfileDefinitionResolution(
-            outcome=DomainProfileResolutionOutcome.RESOLVED,
-            definition=selected.definition,
-            provenance=selected.provenance,
-            diagnostics=(),
-        )
     except _ResolutionRefusal as exc:
-        resolution = exc.resolution
-    return resolution
+        return exc.resolution
+    return DomainProfileDefinitionResolution(
+        outcome=DomainProfileResolutionOutcome.RESOLVED,
+        definition=selected.definition,
+        provenance=selected.provenance,
+        diagnostics=(),
+    )

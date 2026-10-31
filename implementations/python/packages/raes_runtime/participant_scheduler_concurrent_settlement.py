@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from asyncio import CancelledError
 from dataclasses import dataclass
+from itertools import islice
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
+from raes_contracts.operational_logging import get_logger
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
@@ -18,6 +21,8 @@ from .participant_scheduler_concurrent_state import (
 
 if TYPE_CHECKING:
     from .participant_scheduler_types import SchedulerRunState, _DueActionContext
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -110,8 +115,11 @@ def _settle_concurrent_service_state(
         prior = pre_batch.participant_execution_services.get(policy_address)
         settled = run.working.participant_execution_services.get(policy_address)
         if settled != prior:
-            raise ValueError("concurrent participant service settlement did not restore prior accounting")
-    except Exception, CancelledError:  # NOSONAR - settlement must not leak a backend-facing exception
+            raise ConflictError("concurrent participant service settlement did not restore prior accounting")
+    except (Exception, CancelledError) as exc:  # NOSONAR - settlement must not leak a backend-facing exception
+        cancelled = isinstance(exc, CancelledError)
+        if not cancelled:
+            _LOGGER.exception("concurrent participant service accounting was restored after a settlement failure")
         services = dict(run.working.participant_execution_services)
         prior = pre_batch.participant_execution_services.get(policy_address)
         if prior is None:
@@ -131,6 +139,9 @@ def _settle_concurrent_service_state(
                 message="Concurrent participant service accounting could not be settled normally and was restored.",
             ),
         )
+        if cancelled:
+            # Cleanup: the prior counters are restored; propagate the cancellation (ADR-116 H4).
+            raise
         return False
     return True
 
@@ -140,6 +151,7 @@ def _settle_indeterminate_concurrent_batch(
     *,
     code: str,
     message: str,
+    settled_count: int = 0,
 ) -> None:
     """Fence every submitted action after an unpairable dispatch outcome.
 
@@ -147,7 +159,8 @@ def _settle_indeterminate_concurrent_batch(
     or malformed result collection cannot prove that any native side effect did
     not occur.  Every submitted action is therefore settled as a non-retryable
     protocol failure while only this batch's service-accounting delta is
-    released.
+    released. The first ``settled_count`` actions already have a committed
+    outcome, and this settlement keeps it.
     """
 
     settlement.run.diagnostics.append(
@@ -158,11 +171,10 @@ def _settle_indeterminate_concurrent_batch(
             message=message,
         )
     )
-    for context, state, request in zip(
-        settlement.contexts,
-        settlement.states,
-        settlement.requests,
-        strict=True,
+    for context, state, request in islice(
+        zip(settlement.contexts, settlement.states, settlement.requests, strict=True),
+        settled_count,
+        None,
     ):
         _settle_failed_concurrent_occurrence(context, state, request, settlement.run)
     if _settle_concurrent_service_state(

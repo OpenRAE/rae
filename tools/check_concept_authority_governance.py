@@ -47,8 +47,10 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 from pydantic import ValidationError
 
@@ -56,6 +58,8 @@ from raes_contracts.contracts import (
     ConceptFamilyCatalogModel,
     ControlledVocabularyCatalogModel,
 )
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
 
@@ -93,6 +97,10 @@ RULE_VOCAB_INVALID = "concept-authority-vocabularies-catalog-invalid"
 RULE_ADR_DIR_MISSING = "concept-authority-adr-dir-missing"
 RULE_FAMILY_ADR_MISSING = "concept-authority-family-adr-missing"
 RULE_DANGLING_REFERENCE = "concept-authority-dangling-reference"
+# Besides the JSONDecodeError handled first, read_text() and json.loads() raise these for a catalog
+# that is not UTF-8, has an integer beyond the interpreter digit limit or nests beyond the decoder.
+_JSON_CONTENT_FAILURES = (ValueError, RecursionError)
+_UNREADABLE_JSON = "catalog is not UTF-8 JSON within the decoder limits"
 
 
 def _fail(rule_id: str, message: str, path: str | None = None) -> PolicyFailure:
@@ -133,6 +141,8 @@ def _load_families(repo_root: Path) -> tuple[ConceptFamilyCatalogModel | None, l
                 CONCEPT_FAMILIES_RELATIVE_PATH,
             )
         ]
+    except _JSON_CONTENT_FAILURES:
+        return None, [_fail(RULE_FAMILIES_INVALID, _UNREADABLE_JSON, CONCEPT_FAMILIES_RELATIVE_PATH)]
     try:
         catalog = ConceptFamilyCatalogModel.model_validate(payload)
     except ValidationError as exc:
@@ -167,6 +177,8 @@ def _load_vocabularies(repo_root: Path) -> tuple[ControlledVocabularyCatalogMode
                 CONTROLLED_VOCABULARIES_RELATIVE_PATH,
             )
         ]
+    except _JSON_CONTENT_FAILURES:
+        return None, [_fail(RULE_VOCAB_INVALID, _UNREADABLE_JSON, CONTROLLED_VOCABULARIES_RELATIVE_PATH)]
     try:
         catalog = ControlledVocabularyCatalogModel.model_validate(payload)
     except ValidationError as exc:
@@ -318,7 +330,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     failures = evaluate_concept_authority_governance(args.repo_root)
     exceptions_file = args.repo_root / "tools" / "policy" / "exceptions.yaml"
     if exceptions_file.is_file():
-        failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        try:
+            failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        except InvalidInputError as exc:
+            print(f"concept-authority-governance: {exc}", file=sys.stderr)
+            return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -330,4 +346,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

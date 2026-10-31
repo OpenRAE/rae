@@ -192,7 +192,7 @@ shared `task_ref`, and a compatible `scenario_snapshot_ref`. A repeated run
 MUST NOT be represented by mutating one run record, by a tag, or by a backend
 operation/workflow/episode identifier.
 
-Archival run records require a completed time interval, clock context, at least
+Complete archival run records require a completed time interval, clock context, at least
 one evidence artifact, and at least one result summary. Reported result
 summaries must identify the metric, carry a value, and link to evidence. Every
 result-summary evidence reference must resolve to an artifact id in the same
@@ -204,6 +204,57 @@ to emitted artifact bytes. Artifact ids and `satisfies_refs` entries alone do
 not prove satisfaction. If a task or metric evidence requirement carries digest
 or path metadata, the validated binding MUST satisfy those fields with its
 concrete checksum and URI/path.
+
+### Complete accounting of started work
+
+Every started admitted entry MUST remain represented under its allocated `run_id`.
+Authored retries MUST retain distinct attempt IDs within that run.
+Transport redelivery MUST NOT create a new run or attempt.
+A fresh replacement MUST retain its separate run ID and predecessor lineage.
+
+`record_state` defaults to `archival` for existing records.
+An explicit `partial` record MUST include `execution_accounting`.
+Partial records MAY lack an end time, apparatus context, evidence artifacts, or traceability.
+They MUST NOT invent missing facts or claim a successful scientific outcome.
+Each attempt records its known execution, capture, and cleanup state.
+An absent cleanup receipt MUST NOT imply successful cleanup.
+Unknown or running execution MUST NOT establish an end time.
+A run's start MUST match its first attempt start.
+Complete accounting MUST include each attempt's cleanup receipt.
+Archival execution accounting MUST include trial provenance and agree on plan and entry identities, attempt membership, operation references, cleanup references, and terminal attempt.
+Both record states MUST preserve admitted participant configurations, attempt limits, and exact cleanup receipt contents.
+Deterministic plans MAY have no stochastic controls; no control or parameter is invented to fill a field.
+Legacy records without typed accounting retain their non-empty parameter and control requirements.
+
+A missing or withheld result MAY have no evidence reference.
+A reported result MUST carry evidence references and pass the existing evidence checks.
+Partial records MUST NOT mint `ValidatedRunEvidence`.
+Evidence history above the scientific proof limit MUST remain retained through exact versioned references and protected source records.
+History retention MUST NOT enlarge the scientific proof limit.
+A valid measured result and a cleanup failure MAY coexist.
+Scientific outcome MUST come from the evaluation owner rather than execution status or measurement presence.
+Absent evaluation MUST remain `not-evaluated`.
+Successful execution MAY have a failed or inconclusive scientific outcome.
+Neither record storage nor evidence acceptance grants retry or resource-reuse permission.
+
+Study snapshots MAY pin an authored `definition_ref` with its original version and digest.
+That reference MUST identify the same study.
+Inherited study evidence relations keep the authored definition as their scope authority.
+Authoritative consumers MUST resolve that exact definition and verify unchanged inherited policy and evidence relations.
+Generated membership MUST reference exact stored run versions.
+The study MUST preserve intended target counts and disclose failed evidence checks or shortfalls.
+Accounting MUST distinguish runs, attempts, retries, replacements, and unresolved work.
+Metrics MUST state their observed and missing populations; missing values MUST NOT become implicit zeroes.
+Metric eligibility and study membership MUST use the same replacement-aware population.
+Replaced parents MUST remain in complete accounting but MUST NOT enter the eligible analysis population.
+Enabled replacement policies MUST use replacement-aware validation even when replacement history is empty.
+All archive paths MUST respect retained artifact version ownership and reject changed bytes before publication.
+Each writer MUST retain its exact candidate before external archive I/O and resume those bytes after an uncertain write.
+Additional accounting versions MAY pin an original run through `derived_from_refs` when scientific facts and prior lineage match exactly.
+Scientific checks and study evaluation membership MUST remain bound to the original exact artifact version.
+Original scientific versions MUST be resolvable from either runtime archive path; additional accounting versions MUST NOT create ambiguous competing originals.
+Accounting lineage MUST NOT transfer scientific proof to a new version or authorize changed scientific facts.
+Archive publication MUST retain referenced scientific versions and replacement history alongside additional accounting versions.
 
 ### Run Traceability
 
@@ -489,8 +540,10 @@ validator runs regardless of the embedding contract.
 18. `experiment-run-v1` is the canonical run provenance record. RAES MUST NOT
     publish a parallel run-provenance root schema for the same archival run
     facts unless a later ADR supersedes this boundary.
-19. Run traceability MUST link at least one capture specification and at least
-    one evidence record. Claim refs MUST be grounded by derived-measure refs.
+19. Complete archival run traceability MUST link at least one capture specification
+    and at least one evidence record. An explicit partial run MAY lack those facts.
+    It MUST carry typed execution accounting and MUST NOT claim evidence satisfaction.
+    Claim refs MUST be grounded by derived-measure refs.
 20. Realized-form disclosures MUST carry a realized reference or a realized
     value summary. Processor-realized disclosures MUST be attributed to a
     processor reference, and backend-realized disclosures MUST be attributed to

@@ -7,12 +7,15 @@ from typing import TYPE_CHECKING
 
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.realization_envelope import ObservationStrength, RealizationConcern
 from raes_contracts.realization_observation_demand import compute_substrate_demand_applies
 from raes_contracts.vocabulary import RealizationVerificationScope, observation_requirement_satisfied
 
 if TYPE_CHECKING:
     from raes_contracts.realization_observation import RealizationObservation
+
+_LOGGER = get_logger(__name__)
 
 
 def invoke_native_readback(
@@ -37,8 +40,11 @@ def invoke_native_readback(
         identities = {(item.address, item.concern) for item in observations}
         if len(identities) != len(observations):
             raise ValueError("native readback observations must identify unique concerns")
-        return list(diagnostics), observations
     except Exception as exc:
+        # Isolation: the backend producer and its result are foreign code.
+        _LOGGER.exception(
+            "native readback did not complete; resource inventory is preserved", exc_info=foreign_failure_record(exc)
+        )
         return [
             Diagnostic(
                 code="observation.native-readback-failed",
@@ -47,6 +53,7 @@ def invoke_native_readback(
                 message=f"Native readback did not complete ({type(exc).__name__}); resource inventory is preserved.",
             )
         ], ()
+    return list(diagnostics), observations
 
 
 def compute_substrate_readback_addresses(

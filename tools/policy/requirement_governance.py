@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import re
 from dataclasses import dataclass
-from http.client import HTTPException
 from pathlib import Path
 from typing import Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from .common import PolicyFailure, load_yaml, path_matches_any
 
@@ -17,19 +19,22 @@ UID_RE = re.compile(r"\b([A-Z]{3}-\d{3})\b", re.IGNORECASE)
 DEFAULT_HTTP_TIMEOUT_SECONDS = 5.0
 HTTP_TIMEOUT_ENV = "GC_HTTP_TIMEOUT_SECONDS"
 BASE_URL_ENV = "GC_BASE_URL"
+_MALFORMED_RESPONSE = "malformed response"
 # Name of the environment variable that carries the Ground Control bearer
 # credential (matches the MCP server's own GROUND_CONTROL_API_TOKEN). This is an
 # env-var name, not a credential value.
 BEARER_ENV = "GROUND_CONTROL_API_TOKEN"
 
 
-class GroundControlError(RuntimeError):
+class GroundControlError(OperationalError):
     """Base class for Ground Control client failures.
 
-    Subclasses RuntimeError so callers that only distinguish "the governance
-    gate could not be evaluated" keep working, while callers that need to tell
-    an auth rejection apart from a transport failure can catch the specific
-    subclasses below.
+    Ground Control is an external service, so its failures are operational
+    failures. Callers that only distinguish "the governance gate could not be
+    evaluated" catch this class, while callers that need to tell an auth
+    rejection apart from a transport failure catch the specific subclasses
+    below. Messages carry the HTTP status or the failure type only, never the
+    response body or the text of the transport error.
     """
 
 
@@ -49,6 +54,14 @@ class GroundControlAuthRequired(GroundControlError):
     unauthenticated Ground Control (HTTP 401/403) is never reported as
     infrastructure downtime.
     """
+
+
+def _transport_failure(reason: object) -> str:
+    """Name a transport failure by its type only; the reason text can carry host details."""
+
+    if isinstance(reason, BaseException):
+        return f"connection failed ({type(reason).__name__})"
+    return "connection failed"
 
 
 def resolve_timeout_seconds() -> float:
@@ -71,7 +84,9 @@ def _mcp_ground_control_env(repo_root: Path) -> dict[str, str]:
     """
     try:
         data = json.loads((repo_root / ".mcp.json").read_text(encoding="utf-8"))
-    except OSError, json.JSONDecodeError:
+    # The try holds only the read and the decoder. ValueError covers text that is not UTF-8, malformed
+    # JSON and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+    except OSError, ValueError, RecursionError:
         return {}
     servers = data.get("mcpServers") if isinstance(data, dict) else None
     server = servers.get("ground-control") if isinstance(servers, dict) else None
@@ -106,22 +121,64 @@ def resolve_token(repo_root: Path) -> str | None:
     return _resolve_from_env_or_mcp(repo_root, BEARER_ENV)
 
 
+_ORDER_POLICY = "tools/policy/requirement_order.yaml"
+
+
 def load_policy(repo_root: Path) -> dict[str, object]:
-    return load_yaml(repo_root / "tools" / "policy" / "requirement_order.yaml")
+    policy = load_yaml(repo_root / _ORDER_POLICY)
+    _require_order_policy_shape(policy)
+    return policy
+
+
+def _is_text_list(value: object) -> bool:
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+
+def _require_phases_shape(phases: object) -> None:
+    if not isinstance(phases, list) or not all(
+        isinstance(phase, dict) and isinstance(phase.get("id"), str) for phase in phases
+    ):
+        raise InvalidInputError(f"{_ORDER_POLICY} phases must be a list of mappings with a text id")
+    phase_ids = {phase["id"] for phase in phases}
+    for index, phase in enumerate(phases):
+        _require_phase_shape(index, phase, phase_ids)
+
+
+def _require_phase_shape(index: int, phase: dict[str, object], phase_ids: set[str]) -> None:
+    for field in ("requirements", "patterns", "blocked_until"):
+        if field in phase and not _is_text_list(phase[field]):
+            raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].{field} must be a list of text")
+    if not set(phase.get("blocked_until", [])) <= phase_ids:
+        raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].blocked_until names an unknown phase")
+    for pattern in phase.get("patterns", []):
+        try:
+            re.compile(pattern)
+        # re.compile reports a malformed pattern, a repetition count beyond its limit and
+        # excessive group nesting with these exceptions.
+        except (re.error, OverflowError, RecursionError) as exc:
+            raise InvalidInputError(f"{_ORDER_POLICY} phases[{index}].patterns has an invalid pattern") from exc
+
+
+def _require_order_policy_shape(policy: object) -> None:
+    """Refuse a requirement order policy whose structure the governance gate cannot read."""
+
+    if not isinstance(policy, dict) or not isinstance(policy.get("project"), str):
+        raise InvalidInputError(f"{_ORDER_POLICY} must be a mapping with a text project")
+    _require_phases_shape(policy.get("phases", []))
+    ownership = policy.get("ownership", {})
+    if not isinstance(ownership, dict) or not all(_is_text_list(roots) for roots in ownership.values()):
+        raise InvalidInputError(f"{_ORDER_POLICY} ownership must map phases to lists of text")
+    traceability = policy.get("traceability")
+    if not isinstance(traceability, dict) or not all(
+        _is_text_list(traceability.get(field)) for field in ("required_code_roots", "required_test_roots")
+    ):
+        raise InvalidInputError(f"{_ORDER_POLICY} traceability must have text lists of code and test roots")
 
 
 class RequirementClient(Protocol):
     def get_requirement(self, project: str, uid: str) -> dict[str, object]: ...
 
     def get_traceability(self, requirement_id: str) -> list[dict[str, object]]: ...
-
-
-def _http_error_body(exc: HTTPError) -> str:
-    """Return an HTTP error's body for the message, tolerating a truncated or dropped body."""
-    try:
-        return exc.read().decode("utf-8", errors="replace")
-    except (HTTPException, OSError) as read_exc:
-        return f"<body unreadable: {type(read_exc).__name__}>"
 
 
 class GroundControlHttpClient:
@@ -148,34 +205,64 @@ class GroundControlHttpClient:
                 request,
                 timeout=self.timeout_seconds,
             ) as response:
-                payload = response.read()
+                raw = response.read()
         except HTTPError as exc:
-            body = _http_error_body(exc)
+            # The response body is remote content; only the status code is reported.
             if exc.code in {401, 403}:
-                raise GroundControlAuthRequired(f"{exc.code}: {body}") from exc
-            raise GroundControlUnavailable(f"{exc.code}: {body}") from exc
+                raise GroundControlAuthRequired(f"HTTP {exc.code}") from exc
+            raise GroundControlUnavailable(f"HTTP {exc.code}") from exc
         except URLError as exc:
             # A socket read timeout raises TimeoutError, which is NOT a URLError
             # subclass, so it is handled separately below.
-            raise GroundControlUnavailable(str(exc.reason)) from exc
+            raise GroundControlUnavailable(_transport_failure(exc.reason)) from exc
         except TimeoutError as exc:
             raise GroundControlUnavailable("request timed out") from exc
-        except (HTTPException, OSError) as exc:
-            # A dropped connection (RemoteDisconnected), a truncated body
-            # (IncompleteRead) or a reset socket reaches here, not as URLError.
-            raise GroundControlUnavailable(f"transport failure: {type(exc).__name__}: {exc}") from exc
+        except (OSError, http.client.HTTPException) as exc:
+            # urlopen wraps only connection failures; a server that disconnects before or
+            # while it sends the response raises the socket or HTTP error itself.
+            raise GroundControlUnavailable(_transport_failure(exc)) from exc
         try:
-            return json.loads(payload.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            # A proxy login page or a mis-encoded reply: the governance answer
-            # was not received, so this is unavailability, not a policy result.
-            raise GroundControlUnavailable(f"response is not UTF-8 JSON: {type(exc).__name__}: {exc}") from exc
+            return json.loads(raw.decode("utf-8"))
+        except (ValueError, RecursionError) as exc:
+            # The try holds only the decoder. ValueError covers bytes that are not UTF-8, malformed JSON
+            # and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+            raise GroundControlUnavailable(_MALFORMED_RESPONSE) from exc
 
     def get_requirement(self, project: str, uid: str) -> dict[str, object]:
-        return self._request(f"/api/v1/requirements/uid/{uid}", params={"project": project})
+        requirement = self._request(f"/api/v1/requirements/uid/{uid}", params={"project": project})
+        # The governance gate reads the id, the uid and the text status of each requirement.
+        if (
+            not isinstance(requirement, dict)
+            or not isinstance(requirement.get("status"), str)
+            or not {"id", "uid"} <= requirement.keys()
+        ):
+            raise GroundControlUnavailable(_MALFORMED_RESPONSE)
+        return requirement
 
     def get_traceability(self, requirement_id: str) -> list[dict[str, object]]:
-        return self._request(f"/api/v1/requirements/{requirement_id}/traceability")
+        traceability = self._request(f"/api/v1/requirements/{requirement_id}/traceability")
+        if not isinstance(traceability, list) or not all(_is_traceability_link(link) for link in traceability):
+            raise GroundControlUnavailable(_MALFORMED_RESPONSE)
+        return traceability
+
+
+# The link fields that the governance gate compares and collects into a set.
+_TRACEABILITY_TEXT_FIELDS = (
+    "link_type",
+    "linkType",
+    "artifact_type",
+    "artifactType",
+    "artifact_identifier",
+    "artifactIdentifier",
+)
+
+
+def _is_traceability_link(link: object) -> bool:
+    """Return whether a link is an object whose type and identifier fields are text when present."""
+
+    return isinstance(link, dict) and all(
+        link.get(field) is None or isinstance(link.get(field), str) for field in _TRACEABILITY_TEXT_FIELDS
+    )
 
 
 @dataclass(frozen=True)

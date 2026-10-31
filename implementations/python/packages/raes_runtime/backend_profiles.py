@@ -7,6 +7,7 @@ from inspect import signature
 
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.profile_selections import authored_resource_profiles, selected_profile_authority
 from raes_contracts.realization_profiles import (
@@ -50,7 +51,7 @@ def _bounded_target_context(component: object) -> DomainProfileResolutionContext
         not isinstance(context, DomainProfileResolutionContextModel)
         or not validate_realization_value(context, python_carriers=True).conformant
     ):
-        raise ValueError("No bounded configured profile context")
+        raise InvalidInputError("No bounded configured profile context")
     return deepcopy(context)
 
 
@@ -60,12 +61,12 @@ def _require_admitted_plan_profiles(
     """Require the plan's profile authority to join the configured target context."""
 
     if profile_context_digest(context) != manifest.domain_profile_context_digest:
-        raise ValueError("Configured profile context no longer matches the admitted manifest")
+        raise InvalidInputError("Configured profile context no longer matches the admitted manifest")
     if profile_authority_violation(plan.profile_authority, context):
-        raise ValueError("Plan profiles are not independently admitted")
+        raise InvalidInputError("Plan profiles are not independently admitted")
     addresses = {op.address for op in plan.operations if op.action is not ChangeAction.DELETE}
     if any(profile_resource_address(binding) not in addresses for binding in plan.profile_authority.bindings):
-        raise ValueError("Plan profiles reference an unavailable resource")
+        raise InvalidInputError("Plan profiles reference an unavailable resource")
 
 
 def configured_profile_context(
@@ -77,14 +78,14 @@ def configured_profile_context(
     selected_profile_authority(bindings, None, plan.profile_authority)
     if plan.profile_authority is None:
         if any(op.profile_bindings for op in plan.operations):
-            raise ValueError("Unowned profile bindings are not execution authority")
+            raise InvalidInputError("Unowned profile bindings are not execution authority")
         return None
     if (
         plan.preparation is None
         or manifest is None
         or PLAN_PROFILE_CONTRACT not in manifest.supported_contract_versions
     ):
-        raise ValueError("Plan profile host was not negotiated")
+        raise InvalidInputError("Plan profile host was not negotiated")
     component = getattr(method, "__self__", None)
     validate_profile_target(manifest, component)
     context = _bounded_target_context(component)

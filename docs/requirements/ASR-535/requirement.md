@@ -61,3 +61,9 @@ ADR-081 governs relation discipline and current tests provide bounded evidence, 
 - IMPLEMENTS → SPEC `contracts/schemas/formal-analysis/participant-opacity-analysis-input-v1.json` (participant-opacity-analysis-input-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/formal-analysis/participant-opacity-model-check-input-v1.json` (participant-opacity-model-check-input-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/profiles/behavioral-relation-profile-v1.json` (behavioral-relation-profile-v1 published schema)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#973` (Bounded negative relation evidence with explicit nonclaims)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_corpus.py` (Measured decisions and independent witness admission)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_witnesses.py` (Measured decisions and independent witness admission)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_corpus.py` (False witness, claim promotion, source and artifact drift rejection)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_witnesses.py` (False witness, claim promotion, source and artifact drift rejection)

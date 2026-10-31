@@ -20,6 +20,7 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
@@ -53,7 +54,7 @@ def serialize_participant_view[ViewT: ContractModel](
     """Return a view only after its exact governed projection is committed."""
 
     if serialization.crossing_evidence is None:
-        raise ValueError("configured participant egress requires crossing evidence")
+        raise ConflictError("configured participant egress requires crossing evidence")
     with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CROSSING):
         return _serialize_participant_view_authorized(control_plane, view, serialization)
 
@@ -109,7 +110,7 @@ def _serialize_participant_view_authorized[ViewT: ContractModel](
                 delivered=False,
             )
             commit_prepared_crossing(control_plane, prepared)
-            raise PermissionError(_PROJECTION_NOT_PERMITTED)
+            raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
 
         sink_decision = _enforce_egress_flow_sink(control_plane, prepared)
         prepared = _enforce_egress_participant_control(control_plane, prepared)
@@ -149,9 +150,9 @@ def _replayed_projection_view[ViewT: ContractModel](view: ViewT, record: Control
     """Read back only a successful incumbent's governed projection."""
 
     if record is not None and record.status.state is not OperationState.SUCCEEDED:
-        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+        raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
     if record is None or record.result_payload is None:
-        raise ValueError("idempotent participant projection is missing its governed result")
+        raise ConflictError("idempotent participant projection is missing its governed result")
     return type(view).model_validate(record.result_payload)
 
 
@@ -168,11 +169,11 @@ def _governed_egress_view[ViewT: ContractModel](
         return view
     transformer = getattr(control_plane._crossing_policy_resolver, "transform_egress", None)
     if not callable(transformer):
-        raise ValueError("transformed participant egress requires a trusted view transformer")
+        raise ConflictError("transformed participant egress requires a trusted view transformer")
     with external_control_plane_call(control_plane):
         candidate = transformer(prepared.intent, prepared.governed_subject, view)
     if not isinstance(candidate, type(view)):
-        raise ValueError("participant egress transformation returned an invalid governed view")
+        raise InvalidInputError("participant egress transformation returned an invalid governed view")
     actual = _view_subject(
         candidate,
         participant_address=serialization.participant_address,
@@ -181,7 +182,7 @@ def _governed_egress_view[ViewT: ContractModel](
         runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
     )
     if actual != prepared.governed_subject:
-        raise ValueError("trusted egress transformation does not match its governed identity")
+        raise EvidenceIntegrityError("trusted egress transformation does not match its governed identity")
     return candidate
 
 
@@ -202,7 +203,7 @@ def _enforce_egress_flow_sink(
             sink_decision,
         )
         commit_prepared_crossing(control_plane, denied)
-        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+        raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
     return sink_decision
 
 
@@ -218,7 +219,7 @@ def _enforce_egress_participant_control(
         sink_kind=ParticipantFlowSinkKind.PARTICIPANT_OUTPUT,
     )
     if receipt is not None:
-        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+        raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
     return admitted
 
 
@@ -433,7 +434,7 @@ def _view_subject(
     payload.pop("generated_at", None)
     view_ref = payload.get("view_id")
     if not isinstance(view_ref, str) or not view_ref:
-        raise ValueError("participant projection requires an exact view identity")
+        raise InvalidInputError("participant projection requires an exact view identity")
     encoded = json.dumps(
         stable_projection_subject(payload, runtime_owned_revision_paths),
         sort_keys=True,

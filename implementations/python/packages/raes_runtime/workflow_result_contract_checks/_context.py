@@ -128,8 +128,9 @@ def _normalized_workflow_result(
 ) -> tuple[WorkflowExecutionState | None, list[Diagnostic]]:
     try:
         return WorkflowExecutionState.from_payload(workflow_result), []
-    except (TypeError, ValueError) as exc:
-        return None, [_contract_diagnostic(workflow_address, f"Workflow result payload is invalid: {exc}")]
+    except TypeError, ValueError:
+        # The validator text can echo backend values; the diagnostic stays value-free (E7).
+        return None, [_contract_diagnostic(workflow_address, "Workflow result payload is invalid.")]
 
 
 def _normalized_workflow_history(
@@ -155,8 +156,8 @@ def _normalize_workflow_history_payload(
     for event_payload in history_payload:
         try:
             normalized_history.append(WorkflowHistoryEvent.from_payload(event_payload))
-        except (TypeError, ValueError) as exc:
-            diagnostics.append(_contract_diagnostic(workflow_address, f"Workflow history payload is invalid: {exc}"))
+        except TypeError, ValueError:
+            diagnostics.append(_contract_diagnostic(workflow_address, "Workflow history payload is invalid."))
     return normalized_history, diagnostics
 
 
@@ -169,10 +170,8 @@ def _timestamp_diagnostics(
     for event in normalized_history:
         try:
             current_timestamp = _parse_timestamp(event.timestamp)
-        except ValueError as exc:
-            diagnostics.append(
-                _contract_diagnostic(workflow_address, f"Workflow history event timestamp is invalid: {exc}")
-            )
+        except ValueError:
+            diagnostics.append(_contract_diagnostic(workflow_address, "Workflow history event timestamp is invalid."))
             continue
         if previous_timestamp is not None and current_timestamp < previous_timestamp:
             diagnostics.append(_contract_diagnostic(workflow_address, "Workflow history timestamps must be monotonic."))

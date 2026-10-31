@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_snapshot_violations,
 )
@@ -23,7 +24,7 @@ def require_participant_information_state_snapshot(
         )
     )
     if violations:
-        raise ValueError(violations[0][1])
+        raise EvidenceIntegrityError(violations[0][1])
 
 
 __all__ = ["require_participant_information_state_snapshot"]

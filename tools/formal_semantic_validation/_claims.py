@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from tools.formal_semantic_validation._shape import _is_sequence
+from tools.formal_semantic_validation._shape import _hashable, _is_sequence, _lookup
 
 
 def recompute_claim_results(
@@ -19,7 +19,11 @@ def recompute_claim_results(
     if not all(_is_sequence(value) for value in (claim_classes, cases, observations, participant_observations)):
         return []
 
-    observations_by_case = {item.get("case_id"): item for item in observations if isinstance(item, Mapping)}
+    observations_by_case = {
+        item.get("case_id"): item
+        for item in observations
+        if isinstance(item, Mapping) and _hashable(item.get("case_id"))
+    }
     participant_count = len(participant_observations)
     derive_from_supported_controls = protocol.get("revision") == "2.0.0"
     return [
@@ -39,7 +43,7 @@ def _matching_case_count(cases: list[Mapping[str, object]], observations_by_case
     return sum(
         1
         for case in cases
-        if isinstance(observations_by_case.get(case.get("case_id")), Mapping)
+        if isinstance(_lookup(observations_by_case, case.get("case_id")), Mapping)
         and observations_by_case[case.get("case_id")].get("actual_outcome") == case.get("expected_outcome")
     )
 

@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -70,9 +71,9 @@ def test_source_and_contract_drift_never_relabels_evidence(tmp_path, path):
     target = root / path
     target.write_bytes(target.read_bytes() + b"\n")
     before = (root / export.OUTPUT_PATH / "manifest.json").read_bytes()
-    with pytest.raises(ValueError, match="drift"):
+    with pytest.raises(EvidenceIntegrityError, match="drift"):
         export.check(root)
-    with pytest.raises(ValueError, match="drift"):
+    with pytest.raises(EvidenceIntegrityError, match="drift"):
         export.publish(root)
     assert (root / export.OUTPUT_PATH / "manifest.json").read_bytes() == before
 
@@ -86,13 +87,13 @@ def test_shared_semantic_authority_and_truncation_publish_nothing(tmp_path, monk
     root = workspace(tmp_path)
     original = multi_concrete.successors
     monkeypatch.setattr(multi_concrete, "successors", multi_abstract.successors)
-    with pytest.raises(ValueError, match="independent"):
+    with pytest.raises(InvalidInputError, match="independent"):
         export.publish(root)
     assert not (root / export.OUTPUT_PATH).exists()
     monkeypatch.setattr(multi_concrete, "successors", original)
     graph = multi_abstract.build()
     monkeypatch.setattr(multi_abstract, "build", lambda: replace(graph, edges=graph.edges[:-1]))
-    with pytest.raises(ValueError, match="closure"):
+    with pytest.raises(InvalidInputError, match="closure"):
         export.publish(root)
     assert not (root / export.OUTPUT_PATH).exists()
 
@@ -103,7 +104,16 @@ def test_unsafe_profile_and_output_are_rejected(tmp_path):
     profile = root / export.PROFILE_PATH
     profile.unlink()
     profile.symlink_to(tmp_path / "unread")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
+        export.build_bundle(root)
+
+
+def test_multi_profile_of_another_parameter_kind_is_an_input_refusal(tmp_path):
+    export = producer()
+    root = workspace(tmp_path)
+    single = ROOT / "contracts/profiles/behavioral-relation/participant-crossing-dpbb-finite-v1.json"
+    shutil.copyfile(single, root / export.PROFILE_PATH)
+    with pytest.raises(InvalidInputError, match="expected exact multi-operation profile"):
         export.build_bundle(root)
 
 
@@ -122,5 +132,5 @@ def test_published_multi_bundle_retains_exact_graphs_and_reports_source_drift():
     assert derived["source_digests"] != manifest["source_digests"]
     for key in manifest.keys() - {"source_revision", "source_digests"}:
         assert derived[key] == manifest[key]
-    with pytest.raises(ValueError, match="drift"):
+    with pytest.raises(EvidenceIntegrityError, match="drift"):
         export.check(ROOT)

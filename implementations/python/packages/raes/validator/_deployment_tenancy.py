@@ -14,4 +14,5 @@ class _DeploymentTenancyMixin:
             is_unresolved=self._is_unresolved_var,
         )
         for issue in issues:
-            self._err(issue.message)
+            with self._owner(issue.owner):
+                self._err(issue.message)

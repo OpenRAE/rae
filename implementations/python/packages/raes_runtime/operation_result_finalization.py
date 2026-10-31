@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import OperationState
 
 from .backend_calls import _validated_backend_result
@@ -30,7 +31,7 @@ def finalize_protocol_result(
     execute_observation: bool = True,
 ) -> tuple[ApplyResult, dict[str, object] | None]:
     if canonical_json_digest(_snapshot_payload(result.snapshot)) != reference.digest:
-        raise ValueError("native result artifact commitment mismatch")
+        raise EvidenceIntegrityError("native result artifact commitment mismatch")
     accepted = _validated_backend_result(
         result,
         address=observation_request.address,
@@ -39,14 +40,14 @@ def finalize_protocol_result(
         call=call,
     )
     if any(d.is_error and d not in result.diagnostics for d in accepted.diagnostics):
-        raise ValueError("native operation result failed validation")
+        raise InvalidInputError("native operation result failed validation")
     # The reference commits the native proposal. Admission derives a distinct
     # runtime-owned accepted snapshot; the terminal owner commits that revision.
     if canonical_json_digest(_snapshot_payload(result.snapshot)) != reference.digest:
-        raise ValueError("native validation changed the committed proposal artifact")
+        raise EvidenceIntegrityError("native validation changed the committed proposal artifact")
     observation = None
     if execute_observation:
         accepted, observation = _apply_observation_result(accepted, observation_request)
     if state is OperationState.SUCCEEDED and not accepted.success:
-        raise ValueError("native operation release gates did not establish success")
+        raise InvalidInputError("native operation release gates did not establish success")
     return accepted, None if observation is None else observation.result_payload

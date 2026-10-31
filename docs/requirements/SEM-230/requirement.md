@@ -69,3 +69,8 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 - IMPLEMENTS → GITHUB_ISSUE `1070` (Modular participant-control semantic publication)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/modular-participant-control.md` (Reuses participant projection and exact-cut relation boundaries)
 - TESTS → TEST `implementations/python/tests/test_sem_235_modular_control.py` (Incumbent projection for supervisor-only injects)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#973` (Observable labels, policy-cut replay and divergence distinctions)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_mutations.py` (Exact semantic selectors and reversible fault deltas)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-counterexamples.md` (Revisioned projection and assurance boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_mutations.py` (Reachability, hidden actions, cut advancement, deadlock and completion)

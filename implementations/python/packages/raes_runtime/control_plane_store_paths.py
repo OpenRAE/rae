@@ -10,7 +10,10 @@ import stat
 from pathlib import Path
 from typing import Any
 
+from raes_contracts.errors import EvidenceIntegrityError, OperationalError
 from raes_contracts.runtime_state import RuntimeSnapshot
+
+from .control_plane_store_local_codec import exceeds_durable_nesting
 
 _PRIVATE_DIRECTORY_MODE = 0o700
 _PRIVATE_FILE_MODE = 0o600
@@ -36,7 +39,7 @@ def _require_safe_link_count(metadata: os.stat_result, path: Path, *, kind: str)
     link_count = getattr(metadata, "st_nlink", 1)
     unsafe = (kind == _DATABASE_FILE_KIND and link_count != 1) or (kind == "SQLite sidecar" and link_count > 1)
     if unsafe:
-        raise RuntimeError(f"local control-plane {kind} must not have hard links: {path}")
+        raise OperationalError(f"local control-plane {kind} must not have hard links: {path}")
 
 
 def _require_safe_store_path_metadata(
@@ -46,13 +49,13 @@ def _require_safe_store_path_metadata(
     kind: str,
 ) -> None:
     if stat.S_ISLNK(metadata.st_mode) or _store_path_is_reparse_point(metadata):
-        raise RuntimeError(f"local control-plane {kind} must not be a symlink or reparse point: {path}")
+        raise OperationalError(f"local control-plane {kind} must not be a symlink or reparse point: {path}")
     expected = stat.S_ISDIR(metadata.st_mode) if kind == "directory" else stat.S_ISREG(metadata.st_mode)
     if not expected:
-        raise RuntimeError(f"local control-plane {kind} has the wrong filesystem type: {path}")
+        raise OperationalError(f"local control-plane {kind} has the wrong filesystem type: {path}")
     get_effective_uid = getattr(os, "geteuid", None)
     if callable(get_effective_uid) and metadata.st_uid != get_effective_uid():
-        raise RuntimeError(f"local control-plane {kind} must be owned by the current user: {path}")
+        raise OperationalError(f"local control-plane {kind} must be owned by the current user: {path}")
     _require_safe_link_count(metadata, path, kind=kind)
 
 
@@ -68,7 +71,7 @@ def _secure_store_directory(path: Path, *, reject_insecure_existing: bool = Fals
     if os.name == "nt":
         return
     if existed and reject_insecure_existing and stat.S_IMODE(metadata.st_mode) != _PRIVATE_DIRECTORY_MODE:
-        raise RuntimeError(f"local control-plane directory must use private permissions 0700: {path}")
+        raise OperationalError(f"local control-plane directory must use private permissions 0700: {path}")
     flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_CLOEXEC", 0)
     flags |= getattr(os, "O_NOFOLLOW", 0)
     descriptor = os.open(path, flags)
@@ -78,7 +81,7 @@ def _secure_store_directory(path: Path, *, reject_insecure_existing: bool = Fals
         current_metadata = path.lstat()
         _require_safe_store_path_metadata(current_metadata, path, kind="directory")
         if not os.path.samestat(opened_metadata, current_metadata):
-            raise RuntimeError(f"local control-plane directory changed while it was opened: {path}")
+            raise OperationalError(f"local control-plane directory changed while it was opened: {path}")
         os.fchmod(descriptor, _PRIVATE_DIRECTORY_MODE)
     finally:
         os.close(descriptor)
@@ -90,22 +93,22 @@ def _secure_database_file(path: Path, *, allow_missing: bool) -> os.stat_result 
     except FileNotFoundError as exc:
         if allow_missing:
             return None
-        raise RuntimeError(f"local control-plane database file is missing: {path}") from exc
+        raise OperationalError(f"local control-plane database file is missing: {path}") from exc
     _require_safe_store_path_metadata(before, path, kind=_DATABASE_FILE_KIND)
     if os.name != "nt" and stat.S_IMODE(before.st_mode) != _PRIVATE_FILE_MODE:
         try:
             os.chmod(path, _PRIVATE_FILE_MODE, follow_symlinks=False)
         except (NotImplementedError, OSError) as exc:
-            raise RuntimeError(f"could not secure local control-plane database file: {path}") from exc
+            raise OperationalError(f"could not secure local control-plane database file: {path}") from exc
     try:
         after = path.lstat()
     except FileNotFoundError as exc:
-        raise RuntimeError(f"local control-plane database file disappeared while it was secured: {path}") from exc
+        raise OperationalError(f"local control-plane database file disappeared while it was secured: {path}") from exc
     _require_safe_store_path_metadata(after, path, kind=_DATABASE_FILE_KIND)
     if not os.path.samestat(before, after):
-        raise RuntimeError(f"local control-plane database file changed while it was secured: {path}")
+        raise OperationalError(f"local control-plane database file changed while it was secured: {path}")
     if os.name != "nt" and stat.S_IMODE(after.st_mode) != _PRIVATE_FILE_MODE:
-        raise RuntimeError(f"local control-plane database file must use private permissions 0600: {path}")
+        raise OperationalError(f"local control-plane database file must use private permissions 0600: {path}")
     return after
 
 
@@ -116,7 +119,7 @@ def _require_same_file(
     activity: str,
 ) -> None:
     if not os.path.samestat(before, after):
-        raise RuntimeError(f"local control-plane database file changed while {activity}: {path}")
+        raise OperationalError(f"local control-plane database file changed while {activity}: {path}")
 
 
 def _validate_sqlite_sidecar(path: Path) -> bool:
@@ -130,7 +133,7 @@ def _validate_sqlite_sidecar(path: Path) -> bool:
     if getattr(metadata, "st_nlink", 1) == 0:
         return False
     if os.name != "nt" and stat.S_IMODE(metadata.st_mode) != _PRIVATE_FILE_MODE:
-        raise RuntimeError(f"local control-plane SQLite sidecar must use private permissions 0600: {path}")
+        raise OperationalError(f"local control-plane SQLite sidecar must use private permissions 0600: {path}")
     return True
 
 
@@ -140,9 +143,18 @@ def _validate_sqlite_sidecars(database_path: Path) -> None:
 
 
 def _read_json_object(path: Path) -> dict[str, Any]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    """Read one legacy store file; a file that is not a JSON object is damaged stored state."""
+
+    try:
+        text = path.read_text(encoding="utf-8")
+        payload = json.loads(text)
+    except (ValueError, RecursionError) as exc:
+        # Text that is not UTF-8, not JSON, or beyond the decoder digit or depth limits.
+        raise EvidenceIntegrityError(f"legacy control-plane file is not valid JSON: {path.name}") from exc
     if not isinstance(payload, dict):
-        raise ValueError(f"legacy control-plane file must contain an object: {path.name}")
+        raise EvidenceIntegrityError(f"legacy control-plane file must contain an object: {path.name}")
+    if exceeds_durable_nesting(text, payload):
+        raise EvidenceIntegrityError(f"legacy control-plane file exceeds the durable nesting limit: {path.name}")
     return payload
 
 
@@ -158,13 +170,13 @@ def _fsync_directory(path: Path) -> None:
     except OSError as exc:
         if exc.errno in _UNSUPPORTED_DIRECTORY_FSYNC_ERRNOS:
             return
-        raise RuntimeError(f"could not durably synchronize local control-plane directory: {path}") from exc
+        raise OperationalError(f"could not durably synchronize local control-plane directory: {path}") from exc
     try:
         os.fsync(descriptor)
     except OSError as exc:
         if exc.errno in _UNSUPPORTED_DIRECTORY_FSYNC_ERRNOS:
             return
-        raise RuntimeError(f"could not durably synchronize local control-plane directory: {path}") from exc
+        raise OperationalError(f"could not durably synchronize local control-plane directory: {path}") from exc
     finally:
         os.close(descriptor)
 
@@ -176,7 +188,7 @@ def _fsync_regular_file(path: Path) -> None:
         with path.open("rb") as stream:
             os.fsync(stream.fileno())
     except OSError as exc:
-        raise RuntimeError(f"could not durably synchronize local control-plane file: {path}") from exc
+        raise OperationalError(f"could not durably synchronize local control-plane file: {path}") from exc
 
 
 def _copy_regular_file_durably(source: Path, destination: Path) -> None:

@@ -6,6 +6,7 @@ from datetime import datetime
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_contracts.workflow import WorkflowExecutionState, WorkflowStatus
@@ -139,7 +140,7 @@ def test_workflow_at_its_exact_deadline_is_timed_out():
 def test_workflow_with_future_started_at_is_rejected_without_mutation():
     history: dict[str, list[dict[str, object]]] = {}
 
-    with pytest.raises(ValueError, match=NON_MONOTONIC_WORKFLOW_CLOCK):
+    with pytest.raises(ConflictError, match=NON_MONOTONIC_WORKFLOW_CLOCK):
         _reconcile("2000-01-01T00:00:01Z", "2000-01-01T00:00:00Z", history=history)
 
     assert history == {}
@@ -156,7 +157,7 @@ def test_workflow_elapsed_time_normalizes_timezone_offsets():
 def test_workflow_with_unparseable_started_at_fails_without_synthesizing_timeout(started_at: str):
     history: dict[str, list[dict[str, object]]] = {}
 
-    with pytest.raises(ValueError, match=INVALID_WORKFLOW_TIMESTAMP):
+    with pytest.raises(ConflictError, match=INVALID_WORKFLOW_TIMESTAMP):
         _reconcile(started_at, "2000-01-01T00:01:00Z", history=history)
 
     assert history == {}
@@ -170,7 +171,7 @@ def test_workflow_with_unparseable_started_at_fails_without_synthesizing_timeout
     ],
 )
 def test_workflow_timestamps_require_explicit_offsets(started_at: str, updated_at: str):
-    with pytest.raises(ValueError, match=INVALID_WORKFLOW_TIMESTAMP):
+    with pytest.raises(ConflictError, match=INVALID_WORKFLOW_TIMESTAMP):
         _reconcile(
             started_at,
             "2000-01-02T00:00:00Z",
@@ -181,7 +182,7 @@ def test_workflow_timestamps_require_explicit_offsets(started_at: str, updated_a
 def test_reconciliation_clock_cannot_precede_latest_persisted_update():
     history: dict[str, list[dict[str, object]]] = {}
 
-    with pytest.raises(ValueError, match=NON_MONOTONIC_WORKFLOW_CLOCK):
+    with pytest.raises(ConflictError, match=NON_MONOTONIC_WORKFLOW_CLOCK):
         _reconcile(
             "2000-01-01T00:00:00Z",
             "2000-01-01T00:00:02Z",
@@ -193,7 +194,7 @@ def test_reconciliation_clock_cannot_precede_latest_persisted_update():
 
 
 def test_updated_at_cannot_precede_started_at():
-    with pytest.raises(ValueError, match=INVALID_WORKFLOW_TIMESTAMP):
+    with pytest.raises(ConflictError, match=INVALID_WORKFLOW_TIMESTAMP):
         _reconcile(
             "2000-01-01T00:00:01Z",
             "2000-01-01T00:00:02Z",
@@ -243,15 +244,15 @@ def test_large_elapsed_span_does_not_round_up_to_an_early_timeout():
 def test_unparseable_reconciliation_clock_is_raised_not_swallowed():
     """A bad caller-supplied ``now`` governs every workflow, so it must surface.
 
-    Reported as ``ValueError``; the HTTP adapter maps that to 409 rather than
+    Reported as ``InvalidInputError``; the HTTP adapter maps that to 409 rather than
     silently disabling timeouts for the whole pass.
     """
-    with pytest.raises(ValueError, match=INVALID_RECONCILIATION_CLOCK):
+    with pytest.raises(InvalidInputError, match=INVALID_RECONCILIATION_CLOCK):
         _reconcile("2000-01-01T00:00:00Z", "not-a-timestamp")
 
 
 def test_naive_reconciliation_clock_is_rejected():
-    with pytest.raises(ValueError, match=INVALID_RECONCILIATION_CLOCK):
+    with pytest.raises(InvalidInputError, match=INVALID_RECONCILIATION_CLOCK):
         _reconcile("2000-01-01T00:00:00Z", "2000-01-01T00:00:01")
 
 
@@ -262,7 +263,7 @@ def test_explicit_naive_reconciliation_clock_is_rejected_before_state_mutation()
     workflow_states = {_WORKFLOW_ADDRESS: _running_result("2000-01-01T00:00:00Z")}
     reconciliation_clock = datetime(2000, 1, 1, 0, 0, 1)
 
-    with pytest.raises(ValueError, match=INVALID_RECONCILIATION_CLOCK):
+    with pytest.raises(InvalidInputError, match=INVALID_RECONCILIATION_CLOCK):
         workflow_timeout_update(
             snapshot,
             _WORKFLOW_ADDRESS,
@@ -284,7 +285,7 @@ def test_malformed_persisted_workflow_state_fails_closed(persisted: object) -> N
         _WORKFLOW_ADDRESS: persisted,  # type: ignore[dict-item]
     }
 
-    with pytest.raises(ValueError, match=INVALID_WORKFLOW_STATE):
+    with pytest.raises(ConflictError, match=INVALID_WORKFLOW_STATE):
         workflow_timeout_update(
             snapshot,
             _WORKFLOW_ADDRESS,
@@ -326,7 +327,7 @@ def test_persisted_workflow_timeout_shape_is_validated(
         snapshot = RuntimeSnapshot()
         workflow_states = {_WORKFLOW_ADDRESS: _running_result("2000-01-01T00:00:00Z")}
 
-        with pytest.raises(ValueError, match=expected_error):
+        with pytest.raises(ConflictError, match=expected_error):
             workflow_timeout_update(
                 snapshot,
                 _WORKFLOW_ADDRESS,
@@ -347,7 +348,7 @@ def test_timestamp_parser_rejects_empty_and_non_string_inputs(raw: object) -> No
 def test_invalid_timeout_configuration_fails_closed(timeout_seconds: object):
     history: dict[str, list[dict[str, object]]] = {}
 
-    with pytest.raises(ValueError, match=INVALID_TIMEOUT_CONFIGURATION):
+    with pytest.raises(ConflictError, match=INVALID_TIMEOUT_CONFIGURATION):
         _reconcile(
             "2000-01-01T00:00:00Z",
             "2000-01-01T00:01:00Z",
@@ -385,7 +386,7 @@ def test_invalid_clock_is_rejected_even_when_control_plane_has_no_workflows():
     control_plane = RuntimeControlPlane(create_stub_target())
     before = control_plane._snapshot
 
-    with pytest.raises(ValueError, match=INVALID_RECONCILIATION_CLOCK):
+    with pytest.raises(InvalidInputError, match=INVALID_RECONCILIATION_CLOCK):
         control_plane.reconcile_workflow_timeouts(now="not-a-timestamp")
 
     assert control_plane._snapshot == before
@@ -421,7 +422,7 @@ def test_invalid_state_timestamp_cannot_trigger_timeout_compensation():
     snapshot = RuntimeSnapshot(entries={_WORKFLOW_ADDRESS: entry})
     workflow_states = {_WORKFLOW_ADDRESS: _running_result("2100-01-01T00:00:00Z")}
 
-    with pytest.raises(ValueError, match=NON_MONOTONIC_WORKFLOW_CLOCK):
+    with pytest.raises(ConflictError, match=NON_MONOTONIC_WORKFLOW_CLOCK):
         workflow_timeout_update(
             snapshot,
             _WORKFLOW_ADDRESS,

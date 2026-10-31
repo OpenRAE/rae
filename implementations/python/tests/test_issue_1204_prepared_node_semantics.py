@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.planner.realization_preparation import preparation_authority
 from raes_processor.semantics.realization_concerns import realization_concern_descriptors
@@ -93,7 +94,7 @@ def test_prepared_node_context_accepts_existing_compiler_owned_artifact_delivery
     validate_prepared_node_semantics(live)
     node = live["provision.node.cortex"]
     node.payload["spec"]["node"]["runtime"] = live["provision.node.thehive"].payload["spec"]["node"]["runtime"]
-    with pytest.raises(ValueError, match="delivery authority"):
+    with pytest.raises(InvalidInputError, match="delivery authority"):
         validate_prepared_node_semantics(live)
 
 

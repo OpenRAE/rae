@@ -13,6 +13,7 @@ from raes_conformance.conformance import probe_runtime, run_target_conformance, 
 from raes_conformance.conformance.target_planning import target_probe_execution_plan
 from raes_conformance.realization import ExecutionBasis, run_realization_conformance
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.runtime_state import RuntimeSnapshot, RuntimeSnapshotEnvelope
 from raes_operations.run_artifacts import RunMaterializationArchive, is_valid_run_id_label
 from raes_processor.reference import run_reference_processor
@@ -238,6 +239,32 @@ def test_positive_probe_with_planning_errors_never_reaches_the_harness(monkeypat
     for case in positive_cases:
         assert not case.passed
         assert [diagnostic.code for diagnostic in case.diagnostics] == ["conformance.positive-probe-plan-failed"]
+
+
+def test_positive_probe_refused_by_the_processor_never_reaches_the_harness(monkeypatch):
+    def refusing_processor(*args, **kwargs):
+        raise InvalidInputError("observation scope does not resolve")
+
+    monkeypatch.setattr(realization, "run_reference_processor", refusing_processor)
+
+    run, positives = _run_positive_probes(_honesty_target())
+
+    assert not positives
+    positive_cases = [case for case in run.cases if case.name.startswith("realization-positive-")]
+    assert positive_cases
+    for case in positive_cases:
+        assert [diagnostic.code for diagnostic in case.diagnostics] == ["conformance.positive-probe-plan-failed"]
+
+
+def test_positive_probe_planning_defect_is_not_reported_as_a_refusal(monkeypatch):
+    def defective_processor(*args, **kwargs):
+        raise RuntimeError("planner defect")
+
+    monkeypatch.setattr(realization, "run_reference_processor", defective_processor)
+
+    honesty_target = _honesty_target()
+    with pytest.raises(RuntimeError, match="planner defect"):
+        _run_positive_probes(honesty_target)
 
 
 class _UndrainedRuntime(RuntimeControlPlane):

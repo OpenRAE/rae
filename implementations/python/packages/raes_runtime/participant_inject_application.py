@@ -5,6 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import TYPE_CHECKING
 
+import rfc8785
 from raes_contracts.associated_artifacts import require_instantiated_scenario_reference
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.inject_occurrence_outcome import InjectOccurrenceCorrelationModel
@@ -17,6 +18,8 @@ from raes_contracts.contracts.participant_inject_application import (
     ParticipantInjectContentModel,
     ParticipantInjectDeliveryReceiptModel,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationKind, OperationState
 from raes_processor.models import ParticipantInjectDeliveryRuntime
 
@@ -36,12 +39,18 @@ if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
     from .participant_crossing_mediation import PreparedParticipantCrossing
 
+_LOGGER = get_logger(__name__)
+_PROJECTION_BINDING_DIFFERS = "inject delivery projection binding differs"
+_PROJECTION_UNAVAILABLE = "inject delivery projection is unavailable"
+_RESOLVER_FAILED = object()
+_BINDING_DIFFERS = "inject delivery binding differs"
+
 
 def deliver_participant_inject(
     plane: RuntimeControlPlane, application: object, *, identity: object | None = None
 ) -> ParticipantInjectDeliveryReceiptModel:
     if plane._inject_delivery is None:
-        raise ValueError("participant inject delivery is unavailable")
+        raise ConflictError("participant inject delivery is unavailable")
     if not isinstance(application, ParticipantInjectApplicationModel):
         raise TypeError("inject delivery requires a typed application")
     application = ParticipantInjectApplicationModel.model_validate(application.model_dump(mode="json"))
@@ -58,9 +67,9 @@ def deliver_participant_inject(
                 or existing.inject_delivery.application != application
                 or not plane._operation_read_allowed(existing, identity)
             ):
-                raise ValueError("inject delivery retry conflicts")
+                raise ConflictError("inject delivery retry conflicts")
             if existing.status.state is not OperationState.SUCCEEDED:
-                raise ValueError("inject delivery remains withheld")
+                raise ConflictError("inject delivery remains withheld")
             return ParticipantInjectDeliveryReceiptModel(
                 operation_id=existing.receipt.operation_id, delivery=deepcopy(existing.inject_delivery)
             )
@@ -77,17 +86,20 @@ def _authorized_binding(
         or identity.target_name != plane.target_name
         or identity.roles.isdisjoint({ControlPlaneRole.OPERATOR, ControlPlaneRole.BACKEND})
     ):
-        raise PermissionError("inject delivery authority is unavailable")
+        raise AuthorizationError("inject delivery authority is unavailable")
     delivery = plane._inject_delivery.model.participant_inject_deliveries.get(application.delivery_address)
-    if (
-        delivery is None
-        or delivery.participant_address != application.participant_address
-        or canonical_json_digest(delivery.spec) != application.delivery_digest
-    ):
-        raise ValueError("inject delivery binding differs")
+    if delivery is None or delivery.participant_address != application.participant_address:
+        raise ConflictError(_BINDING_DIFFERS)
+    try:
+        spec_digest = canonical_json_digest(delivery.spec)
+    # An installed spec can hold a value outside the canonical JSON domain, such as an integer of 2**53 or more.
+    except rfc8785.CanonicalizationError as exc:
+        raise ConflictError(_BINDING_DIFFERS) from exc
+    if spec_digest != application.delivery_digest:
+        raise ConflictError(_BINDING_DIFFERS)
     specification = plane._behavior_specifications.get(delivery.behavior_specification_address)
     if specification is None or application.delivery_address not in specification.participant_inject_delivery_addresses:
-        raise ValueError("inject delivery behavior specification is not installed")
+        raise ConflictError("inject delivery behavior specification is not installed")
     _require_audience(identity, delivery)
     return delivery
 
@@ -98,7 +110,7 @@ def _require_audience(identity: ControlPlaneIdentity, delivery: ParticipantInjec
         and binding.audience_scope_ref == delivery.audience_scope_ref
         for binding in identity.participant_audience_subjects
     ):
-        raise PermissionError("inject delivery audience is unavailable")
+        raise AuthorizationError("inject delivery audience is unavailable")
 
 
 def _require_cut(
@@ -107,10 +119,10 @@ def _require_cut(
     delivery: ParticipantInjectDeliveryRuntime,
 ) -> None:
     if plane._snapshot_state.revision != application.expected_snapshot_revision:
-        raise ValueError("inject delivery snapshot is stale")
+        raise ConflictError("inject delivery snapshot is stale")
     state = plane._snapshot.participant_episode_results.get(application.participant_address, {})
     if (state.get("episode_id"), state.get("status")) != (application.episode_id, "running"):
-        raise ValueError("inject delivery episode is not running")
+        raise ConflictError("inject delivery episode is not running")
     from .participant_inject_temporal import require_delivery_time
 
     require_delivery_time(plane._inject_delivery.model, delivery, plane._snapshot)
@@ -122,10 +134,7 @@ def require_projected_inject(
     content: ParticipantInjectContentModel,
     correlation: InjectOccurrenceCorrelationModel,
 ) -> ParticipantInjectContentModel:
-    try:
-        content = ParticipantInjectContentModel.model_validate(content.model_dump(mode="json"))
-    except ValueError, AttributeError, TypeError:
-        raise ValueError("inject delivery projection is invalid") from None
+    content = _revalidated_content(content)
     if (
         content.application != application
         or content.correlation != correlation
@@ -133,8 +142,20 @@ def require_projected_inject(
         or content.disclosed_item.artifact_id != delivery.result_item_address
         or content.observation_boundary_ref != delivery.observation_boundary_address
     ):
-        raise ValueError("inject delivery projection binding differs")
+        raise EvidenceIntegrityError(_PROJECTION_BINDING_DIFFERS)
     return content
+
+
+def _revalidated_content(content: ParticipantInjectContentModel) -> ParticipantInjectContentModel:
+    try:
+        return ParticipantInjectContentModel.model_validate(content.model_dump(mode="json"))
+    # Isolation: the content object comes from the installed delivery resolver.
+    except (ValueError, AttributeError, TypeError) as exc:
+        _LOGGER.warning(
+            "inject delivery resolver returned content that does not revalidate", exc_info=foreign_failure_record(exc)
+        )
+    # Raised after the handler, so the refusal carries no resolver exception as its context.
+    raise InvalidInputError("inject delivery projection is invalid")
 
 
 def _deliver(
@@ -149,11 +170,11 @@ def _deliver(
     content = require_projected_inject(application, delivery, resolution.content, correlation)
     cut = _projection_cut(resolution)
     if resolution.evidence.audience_scope_ref != delivery.audience_scope_ref:
-        raise ValueError("inject delivery projection binding differs")
+        raise EvidenceIntegrityError(_PROJECTION_BINDING_DIFFERS)
     if cut.request_ref != application.request_key or not set(delivery.evidence_requirement_addresses) <= set(
         resolution.evidence.required_evidence_refs
     ):
-        raise ValueError("inject delivery result or evidence binding differs")
+        raise EvidenceIntegrityError("inject delivery result or evidence binding differs")
     from .participant_inject_control import require_delivery_control
 
     require_delivery_control(plane, application, delivery, cut.effective_order, identity)
@@ -215,7 +236,7 @@ def submit_inject_effect(
     idempotency_key: str,
 ) -> None:
     if control_plane._inject_delivery is None:
-        raise ValueError("inject effect delivery owner is unavailable")
+        raise ConflictError("inject effect delivery owner is unavailable")
     delivery = control_plane._inject_delivery.model.participant_inject_deliveries.get(application.delivery_address)
     if (
         delivery is None
@@ -239,7 +260,7 @@ def submit_inject_effect(
             target.disclosure_ref.ref,
         )
     ):
-        raise ValueError("inject effect requires its exact fresh-result owner coordinates")
+        raise ConflictError("inject effect requires its exact fresh-result owner coordinates")
     control_plane.deliver_participant_inject(
         application.model_copy(update={"request_key": idempotency_key}),
         identity=principal,
@@ -255,7 +276,7 @@ def _world_correlation(
     world = plane._read_inject_record(application.world_operation_id, identity)
     correlation = plane.get_inject_correlation(application.world_operation_id, identity=identity)
     if world is None or correlation is None:
-        raise ValueError("inject delivery world predecessor is unavailable")
+        raise ConflictError("inject delivery world predecessor is unavailable")
     require_instantiated_scenario_reference(
         plane._inject_delivery.model.realization_instance, world.inject_occurrence.scenario
     )
@@ -266,7 +287,7 @@ def _world_correlation(
         or (placement.event, placement.script, placement.story)
         != (delivery.event_address, delivery.script_address, delivery.story_address)
     ):
-        raise ValueError("inject delivery occurrence anchor differs")
+        raise ConflictError("inject delivery occurrence anchor differs")
     _require_capture(plane, world)
     return correlation
 
@@ -276,7 +297,7 @@ def _require_capture(plane: RuntimeControlPlane, world: ControlPlaneOperationRec
     if any(demand.required for demand in plane._inject_delivery.model.observation_demands) and (
         capture is None or InjectCaptureResult.model_validate(capture).status != "succeeded"
     ):
-        raise ValueError("inject delivery evidence capture is unavailable")
+        raise ConflictError("inject delivery evidence capture is unavailable")
 
 
 def _resolve_delivery(
@@ -296,20 +317,31 @@ def _resolve_delivery(
                 deepcopy(plane._snapshot),
                 timeout_ms=plane._supervision.admission_ms,
             )
-    except Exception:
-        raise ValueError("inject delivery projection is unavailable") from None
+    # Isolation: the installed delivery resolver failed; its detail stays out of the refusal.
+    except Exception as exc:
+        _LOGGER.exception("inject delivery resolver failed", exc_info=foreign_failure_record(exc))
+        resolution = _RESOLVER_FAILED
+    if resolution is _RESOLVER_FAILED:
+        # Raised after the handler, so the refusal carries no resolver exception as its context.
+        raise ConflictError(_PROJECTION_UNAVAILABLE)
     plane._reload_derived_state()
     _require_cut(plane, application, delivery)
     if not isinstance(resolution, ParticipantInjectResolution):
-        raise ValueError("inject delivery projection is unavailable")
+        raise ConflictError(_PROJECTION_UNAVAILABLE)
     return resolution
 
 
 def _projection_cut(resolution: ParticipantInjectResolution) -> ParticipantControlLiveCut:
     try:
         return ParticipantControlLiveCut.model_validate(resolution.cut.model_dump(mode="json"))
-    except ValueError, AttributeError, TypeError:
-        raise ValueError("inject delivery order cut is unavailable") from None
+    # Isolation: the cut object comes from the installed delivery resolver.
+    except (ValueError, AttributeError, TypeError) as exc:
+        _LOGGER.warning(
+            "inject delivery resolver returned an order cut that does not revalidate",
+            exc_info=foreign_failure_record(exc),
+        )
+    # Raised after the handler, so the refusal carries no resolver exception as its context.
+    raise InvalidInputError("inject delivery order cut is unavailable")
 
 
 def require_delivery_policy_pin(
@@ -322,4 +354,4 @@ def require_delivery_policy_pin(
     ]
     policy = prepared.decision.occurrence.policy
     if (policy.policy_id, policy.policy_revision) != (delivery.policy_ref, delivery.policy_revision):
-        raise ValueError("inject delivery policy pin differs")
+        raise ConflictError("inject delivery policy pin differs")

@@ -8,6 +8,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.1.0](https://github.com/OpenRAE/rae/compare/v10.0.0...v10.1.0) (2026-10-30)
+
+
+### Features
+
+* admit and retain tool actions inside autonomous invocations ([#1749](https://github.com/OpenRAE/rae/issues/1749)) ([c013dfd](https://github.com/OpenRAE/rae/commit/c013dfd8f7236289e6f5b64d1387ce15832ee016))
+* **sdl:** add a rule source variation slot and resolve generated_by references ([#1748](https://github.com/OpenRAE/rae/issues/1748)) ([1e6f462](https://github.com/OpenRAE/rae/commit/1e6f4625dff2ca6dc7e4f93f291d02652f7fd789))
+
+
+### Bug Fixes
+
+* carry full-size materialization sources under a 4 MiB document limit ([#1746](https://github.com/OpenRAE/rae/issues/1746)) ([2a30a6f](https://github.com/OpenRAE/rae/commit/2a30a6ff186052180389b39f40fb85e98edb4897))
+* **evidence:** record combined-source research captures for dev ([#1751](https://github.com/OpenRAE/rae/issues/1751)) ([7909b70](https://github.com/OpenRAE/rae/commit/7909b700591c5e952542078aa7baec2907cc9a41))
+* **mcp:** report rejected tool arguments without their values ([#1588](https://github.com/OpenRAE/rae/issues/1588)) ([f73acac](https://github.com/OpenRAE/rae/commit/f73acaca589cb573839effad4a95185643392686))
+* **policy:** bound new structural baselines by their adoption commit ([#1752](https://github.com/OpenRAE/rae/issues/1752)) ([e74eb28](https://github.com/OpenRAE/rae/commit/e74eb280f3c0668e09d9b41b77ebf9997683ea11))
+* **runtime:** stop execution adapter portal before interpreter finalization ([#1745](https://github.com/OpenRAE/rae/issues/1745)) ([d16a9fb](https://github.com/OpenRAE/rae/commit/d16a9fb48f1d5ab25e150ce8a7ec3446c5a86796))
+* **sdl:** rename nested service, runtime and content-item references with their parent ([#1587](https://github.com/OpenRAE/rae/issues/1587)) ([2d72d8b](https://github.com/OpenRAE/rae/commit/2d72d8bbf8346547896ed1c6393d5aca6d365541))
+
+## [10.0.0](https://github.com/OpenRAE/rae/compare/v9.2.0...v10.0.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* add one exception hierarchy and value-free operational logging ([#1716](https://github.com/OpenRAE/rae/issues/1716))
+
+### Features
+
+* add one exception hierarchy and value-free operational logging ([#1716](https://github.com/OpenRAE/rae/issues/1716)) ([e6c1f00](https://github.com/OpenRAE/rae/commit/e6c1f008e3b32936189ed2fc7a8213229255b72d))
+* add participant-crossing counterexample corpus ([#1709](https://github.com/OpenRAE/rae/issues/1709)) ([dea4d1b](https://github.com/OpenRAE/rae/commit/dea4d1bed2cc4a5919627e9682bcf22b62b85a12))
+* add structural variation targets for node-dependent declarations ([#1735](https://github.com/OpenRAE/rae/issues/1735)) ([ad6bcbe](https://github.com/OpenRAE/rae/commit/ad6bcbea47624956fc86358fa192b84b501315be))
+* retain complete experiment run and study records ([#1704](https://github.com/OpenRAE/rae/issues/1704)) ([456ae3c](https://github.com/OpenRAE/rae/commit/456ae3cb49f34ee4679729a4984c7e606b79c070))
+
+
+### Bug Fixes
+
+* **evidence:** record combined-source research captures for dev ([#1737](https://github.com/OpenRAE/rae/issues/1737)) ([e9b4936](https://github.com/OpenRAE/rae/commit/e9b493623a1d32357bcd4cd8c6681fc8783e7962))
+
+## [9.2.0](https://github.com/OpenRAE/rae/compare/v9.1.0...v9.2.0) (2026-10-29)
+
+
+### Features
+
+* admit import-free scenario families for experiments ([#1700](https://github.com/OpenRAE/rae/issues/1700)) ([0fd7ca3](https://github.com/OpenRAE/rae/commit/0fd7ca30b1f17965263533e1a610731e4ab8ad8a))
+
+
+### Bug Fixes
+
+* **contracts:** report unquoted invalid dates in experiment specs as invalid yaml ([#1597](https://github.com/OpenRAE/rae/issues/1597)) ([ff1dd2c](https://github.com/OpenRAE/rae/commit/ff1dd2c374c116d1e8e5d822934515247e0a6e39))
+* **runtime:** derive provenance for prepared additions ([#1703](https://github.com/OpenRAE/rae/issues/1703)) ([0ab5bf5](https://github.com/OpenRAE/rae/commit/0ab5bf575d7d178df43022d80a009da0a073c0f0))
+* **runtime:** reject runtime fact timestamps without a utc offset ([#1594](https://github.com/OpenRAE/rae/issues/1594)) ([cfa5202](https://github.com/OpenRAE/rae/commit/cfa5202360c86a95397b1a418423e035a422a57b))
+
 ## [9.1.0](https://github.com/OpenRAE/rae/compare/v9.0.0...v9.1.0) (2026-10-28)
 
 

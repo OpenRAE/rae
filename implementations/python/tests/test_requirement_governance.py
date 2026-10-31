@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 
 import pytest
+from raes_contracts.errors import OperationalError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
@@ -132,7 +133,7 @@ def test_ground_control_http_client_bounds_external_requests(monkeypatch) -> Non
             return None
 
         def read(self) -> bytes:
-            return b'{"status":"ACTIVE"}'
+            return b'{"id":"req-asr-535","uid":"ASR-535","status":"ACTIVE"}'
 
     def fake_urlopen(request, *, timeout: float):
         observed["timeout"] = timeout
@@ -142,20 +143,21 @@ def test_ground_control_http_client_bounds_external_requests(monkeypatch) -> Non
 
     client = GroundControlHttpClient("http://ground-control.invalid")
 
-    assert client.get_requirement("project", "ASR-535") == {"status": "ACTIVE"}
+    assert client.get_requirement("project", "ASR-535") == {"id": "req-asr-535", "uid": "ASR-535", "status": "ACTIVE"}
     assert observed["timeout"] == 5.0
 
 
 @pytest.mark.parametrize(
     ("error", "message"),
     (
-        (HTTPError("http://ground-control.invalid", 503, "unavailable", None, BytesIO(b"offline")), "503: offline"),
-        (URLError("connection refused"), "connection refused"),
-        (TimeoutError(), "request timed out"),
-        (ConnectionResetError("reset by peer"), "ConnectionResetError: reset by peer"),
+        (HTTPError("http://ground-control.invalid", 503, "unavailable", None, BytesIO(b"offline")), "^HTTP 503$"),
+        (URLError("connection refused"), "^connection failed$"),
+        (URLError(ConnectionRefusedError(111, "refused")), r"^connection failed \(ConnectionRefusedError\)$"),
+        (TimeoutError(), "^request timed out$"),
+        (ConnectionResetError("reset by peer"), r"^connection failed \(ConnectionResetError\)$"),
     ),
 )
-def test_ground_control_http_client_maps_transport_failures_to_runtime_error(
+def test_ground_control_http_client_maps_transport_failures_to_unavailable(
     monkeypatch,
     error: Exception,
     message: str,
@@ -167,7 +169,7 @@ def test_ground_control_http_client_maps_transport_failures_to_runtime_error(
     monkeypatch.setattr(requirement_governance, "urlopen", failing_urlopen)
     client = GroundControlHttpClient("http://ground-control.invalid")
 
-    with pytest.raises(RuntimeError, match=message):
+    with pytest.raises(GroundControlUnavailable, match=message):
         client.get_requirement("project", "ASR-535")
 
 
@@ -221,35 +223,37 @@ def one_shot_ground_control(monkeypatch):
 @pytest.mark.parametrize(
     ("reply", "error_type", "message"),
     (
-        pytest.param(b"", GroundControlUnavailable, "RemoteDisconnected", id="closed-without-response"),
+        pytest.param(
+            b"", GroundControlUnavailable, r"^connection failed \(RemoteDisconnected\)$", id="closed-without-response"
+        ),
         pytest.param(
             _raw_reply("200 OK", b'{"status":', declared_length=64),
             GroundControlUnavailable,
-            "IncompleteRead",
+            r"^connection failed \(IncompleteRead\)$",
             id="truncated-body",
         ),
         pytest.param(
             _raw_reply("200 OK", b"<html><body>Sign in</body></html>", content_type="text/html"),
             GroundControlUnavailable,
-            "JSONDecodeError",
+            "^malformed response$",
             id="html-login-page",
         ),
         pytest.param(
             _raw_reply("200 OK", b'{"status": "\xff"}'),
             GroundControlUnavailable,
-            "UnicodeDecodeError",
+            "^malformed response$",
             id="non-utf8-json",
         ),
         pytest.param(
             _raw_reply("503 Service Unavailable", b"off", declared_length=64),
             GroundControlUnavailable,
-            "503: <body unreadable: IncompleteRead>",
+            "^HTTP 503$",
             id="truncated-503-body",
         ),
         pytest.param(
             _raw_reply("401 Unauthorized", b"auth", declared_length=64),
             GroundControlAuthRequired,
-            "401: <body unreadable: IncompleteRead>",
+            "^HTTP 401$",
             id="truncated-401-body",
         ),
     ),
@@ -276,6 +280,48 @@ def test_dropped_ground_control_reply_is_reported_as_unavailable(monkeypatch, ca
     err = capsys.readouterr().err
     assert "ground-control-unavailable" in err
     assert "RemoteDisconnected" in err
+
+
+def test_ground_control_failures_are_operational_errors() -> None:
+    assert issubclass(requirement_governance.GroundControlError, OperationalError)
+    assert issubclass(GroundControlUnavailable, requirement_governance.GroundControlError)
+    assert issubclass(GroundControlAuthRequired, requirement_governance.GroundControlError)
+
+
+@pytest.mark.parametrize("code", (401, 503))
+def test_ground_control_error_output_never_carries_the_response_body(monkeypatch, capsys, code: int) -> None:
+    sentinel = "SECRET-SENTINEL-gc-response-body"
+
+    def failing_urlopen(_request, *, timeout: float):
+        raise HTTPError("http://ground-control.invalid", code, "refused", None, BytesIO(sentinel.encode()))
+
+    monkeypatch.setattr(requirement_governance, "urlopen", failing_urlopen)
+    client = GroundControlHttpClient("http://ground-control.invalid", token="token")
+
+    with pytest.raises(requirement_governance.GroundControlError) as raised:
+        client.get_requirement("project", "ASR-1")
+    assert str(code) in str(raised.value)
+    assert sentinel not in str(raised.value)
+    rule_id, message = classify_ground_control_error(raised.value)
+    report_unevaluated(rule_id=rule_id, message=message, require_governance=True, as_json=False)
+    report_unevaluated(rule_id=rule_id, message=message, require_governance=True, as_json=True)
+    output = capsys.readouterr()
+    assert sentinel not in output.out + output.err
+
+
+def test_ground_control_transport_failure_never_carries_the_reason_text(monkeypatch) -> None:
+    sentinel = "SECRET-SENTINEL-gc-host-detail"
+
+    def failing_urlopen(_request, *, timeout: float):
+        raise URLError(OSError(-2, sentinel))
+
+    monkeypatch.setattr(requirement_governance, "urlopen", failing_urlopen)
+
+    client = GroundControlHttpClient("http://ground-control.invalid")
+    with pytest.raises(GroundControlUnavailable) as raised:
+        client.get_requirement("project", "ASR-1")
+    assert str(raised.value) == "connection failed (OSError)"
+    assert sentinel not in str(raised.value)
 
 
 def test_requirement_uid_context_precedence(monkeypatch) -> None:
@@ -611,7 +657,7 @@ def test_requirement_governance_accepts_camel_case_traceability_payload(tmp_path
 
 
 class _StubResponse:
-    def __init__(self, payload: bytes = b'{"status":"ACTIVE"}') -> None:
+    def __init__(self, payload: bytes = b'{"id":"req-asr-535","uid":"ASR-535","status":"ACTIVE"}') -> None:
         self._payload = payload
 
     def __enter__(self) -> _StubResponse:
@@ -649,7 +695,7 @@ def test_ground_control_http_client_sends_bearer_auth(monkeypatch) -> None:
     monkeypatch.setattr(requirement_governance, "urlopen", fake_urlopen)
     client = GroundControlHttpClient("http://ground-control.invalid", token="secret-token")
 
-    assert client.get_requirement("project", "ASR-535") == {"status": "ACTIVE"}
+    assert client.get_requirement("project", "ASR-535") == {"id": "req-asr-535", "uid": "ASR-535", "status": "ACTIVE"}
     assert captured["auth"] == "Bearer secret-token"
 
 
@@ -658,7 +704,7 @@ def test_ground_control_http_client_omits_auth_without_token(monkeypatch) -> Non
 
     def fake_urlopen(request, *, timeout: float):
         captured["auth"] = request.get_header("Authorization")
-        return _StubResponse(b"{}")
+        return _StubResponse()
 
     monkeypatch.setattr(requirement_governance, "urlopen", fake_urlopen)
 
@@ -686,7 +732,7 @@ def test_non_auth_http_error_raises_unavailable(monkeypatch) -> None:
     client = GroundControlHttpClient("http://ground-control.invalid")
 
     # A 503 is transport-unavailable, not an auth rejection.
-    with pytest.raises(GroundControlUnavailable, match="503: offline"):
+    with pytest.raises(GroundControlUnavailable, match="^HTTP 503$"):
         client.get_requirement("project", "ASR-1")
     # The two conditions are disjoint: an unavailable error must not be
     # catchable as an auth-required error.
@@ -820,3 +866,18 @@ def test_evaluate_against_ground_control_config_missing_fails_when_required(monk
     exit_code = evaluate_against_ground_control([], "GOV-918", require_governance=True, as_json=False)
     assert exit_code == 1
     assert "ground-control-config-missing" in capsys.readouterr().err
+
+
+def test_main_reports_a_malformed_governance_input_as_a_message(monkeypatch, capsys) -> None:
+    from raes_contracts.errors import InvalidInputError
+    from tools import check_requirement_governance as gate
+
+    def malformed(*_args, **_kwargs):
+        raise InvalidInputError("policy exception expires_at must be an ISO date")
+
+    monkeypatch.setattr(gate.sys, "argv", ["check_requirement_governance.py", "docs/requirements/x.md"])
+    monkeypatch.setattr(gate, "resolve_requirement_context", lambda *_args: ("ASR-1", None))
+    monkeypatch.setattr(gate, "_evaluate_legacy_context", malformed)
+
+    assert gate.main() == 1
+    assert "requirement-governance: policy exception expires_at must be an ISO date" in capsys.readouterr().err

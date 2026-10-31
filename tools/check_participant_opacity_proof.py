@@ -8,8 +8,10 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 from raes_contracts.behavioral_relation_profiles import (  # noqa: E402
     load_behavioral_relation_profile_revision,
@@ -19,7 +21,9 @@ from raes_contracts.behavioral_relations import (  # noqa: E402
     validate_behavioral_claim_binding,
 )
 from raes_contracts.contracts.base import BehavioralClaimBindingModel  # noqa: E402
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError  # noqa: E402
 from raes_contracts.json_ingress import parse_bounded_json_object  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 from tools.isabelle_tool import (  # noqa: E402
     ISABELLE_BUILD_TIMEOUT_SECONDS,
@@ -30,7 +34,6 @@ from tools.isabelle_tool import (  # noqa: E402
     ISABELLE_PROCESS_ADDRESS_SPACE_LIMIT_MIB,
     ISABELLE_SESSION,
     ISABELLE_SESSION_RELATIVE_PATH,
-    IsabelleToolError,
     expected_isabelle_result,
     run_isabelle_build,
 )
@@ -44,6 +47,8 @@ PROOF_TOOL_SOURCE_PATHS = (
     "tools/check_participant_opacity_proof.py",
     "tools/isabelle_sandbox.py",
     "tools/isabelle_tool.py",
+    "tools/bounded_tool_process.py",
+    "tools/debian_tree_decoder.py",
     "tools/maintained_client_acquisition.py",
     "tools/tooling_installed_tree.py",
     "tools/tooling_policy_gate.py",
@@ -104,7 +109,7 @@ FORBIDDEN_FEATURES = (
 _FORBIDDEN_RE = re.compile(r"\b(?:" + "|".join(FORBIDDEN_FEATURES) + r")\b", re.IGNORECASE)
 
 
-class ProofEvidenceError(ValueError):
+class ProofEvidenceError(EvidenceIntegrityError):
     """A stable failure from the repository-local mathematical-proof gate."""
 
 
@@ -137,12 +142,33 @@ def _require_object(value: Any, label: str) -> dict[str, Any]:
     return value
 
 
-def _resolve_repo_path(repo_root: Path, raw_path: Any) -> Path:
-    if not isinstance(raw_path, str) or not raw_path or "\\" in raw_path:
+def _has_utf8_form(value: str) -> bool:
+    # A string with an unpaired surrogate has no UTF-8 form, so no repository file has that name.
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
+def _safe_relative_path(raw_path: object) -> Path:
+    # The file system refuses a NUL character or a name without a UTF-8 form, so neither names a repository file.
+    if (
+        not isinstance(raw_path, str)
+        or not raw_path
+        or "\\" in raw_path
+        or "\x00" in raw_path
+        or not _has_utf8_form(raw_path)
+    ):
         raise ProofEvidenceError("proof evidence contains an unsafe repository path")
     relative = Path(raw_path)
     if relative.is_absolute() or ".." in relative.parts:
         raise ProofEvidenceError("proof evidence contains an unsafe repository path")
+    return relative
+
+
+def _resolve_repo_path(repo_root: Path, raw_path: object) -> Path:
+    relative = _safe_relative_path(raw_path)
     resolved = (repo_root / relative).resolve()
     root = repo_root.resolve()
     if resolved != root and root not in resolved.parents:
@@ -162,7 +188,11 @@ def _file_digest(path: Path) -> str:
 
 def _validate_digest_bound_path(repo_root: Path, payload: dict[str, Any], label: str) -> Path:
     path = _resolve_repo_path(repo_root, payload.get("path"))
-    if payload.get("digest") != _file_digest(path):
+    try:
+        digest = _file_digest(path)
+    except OSError as exc:
+        raise ProofEvidenceError(f"{label} repository file is unreadable") from exc
+    if payload.get("digest") != digest:
         raise ProofEvidenceError(f"{label} digest does not match its repository source")
     return path
 
@@ -172,7 +202,7 @@ def load_proof_manifest(
 ) -> dict[str, Any]:
     try:
         return parse_bounded_json_object(path.read_bytes(), max_bytes=MAX_MANIFEST_BYTES)
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         raise ProofEvidenceError("participant-opacity proof manifest is invalid") from exc
 
 
@@ -224,6 +254,9 @@ def _validate_sources(manifest: dict[str, Any], repo_root: Path) -> None:
     for source in sources:
         item = _require_object(source, "semantic source")
         _require_keys(item, {"requirement", "revision", "path", "digest"}, "semantic source")
+        # A JSON array or object is not hashable, and it never names a required source.
+        if isinstance(item["requirement"], (list, dict)):
+            raise ProofEvidenceError("proof evidence semantic sources do not cover SEM-230 and SEM-231")
         source_requirements.add(item["requirement"])
         _validate_digest_bound_path(repo_root, item, "semantic source")
     if source_requirements != {"SEM-230", "SEM-231"}:
@@ -238,6 +271,8 @@ def _validate_sources(manifest: dict[str, Any], repo_root: Path) -> None:
             {"issue", "artifact_revision", "path", "digest", "evidence_boundary"},
             "proof dependency",
         )
+        if isinstance(item["issue"], (list, dict)):
+            raise ProofEvidenceError("proof evidence dependency set is incomplete")
         dependency_issues.add(item["issue"])
         _validate_digest_bound_path(repo_root, item, "proof dependency")
     if dependency_issues != {810, 961, 962}:
@@ -304,7 +339,8 @@ def _validate_theorem_inventory(manifest: dict[str, Any], theory_text: str) -> N
         _require_keys(item, {"theorem_id", "statement", "mutation_id"}, "negative theorem")
         theorem_id = item["theorem_id"]
         negative_ids.append(theorem_id)
-        if NEGATIVE_THEOREMS.get(theorem_id) != item["mutation_id"]:
+        # A JSON array or object is not hashable, and it never names a declared negative theorem.
+        if isinstance(theorem_id, (list, dict)) or NEGATIVE_THEOREMS.get(theorem_id) != item["mutation_id"]:
             raise ProofEvidenceError("negative theorem mutation binding is invalid")
     if negative_ids != sorted(NEGATIVE_THEOREMS):
         raise ProofEvidenceError("negative theorem set or canonical order is invalid")
@@ -442,6 +478,23 @@ def _validate_toolchain(manifest: dict[str, Any], repo_root: Path) -> None:
     _validate_tool_sources(toolchain, repo_root)
 
 
+_SESSION_SOURCE_UNREADABLE = "proof session source is unreadable or not UTF-8"
+
+
+def _session_digest(path: Path) -> str:
+    try:
+        return _file_digest(path)
+    except OSError as exc:
+        raise ProofEvidenceError(_SESSION_SOURCE_UNREADABLE) from exc
+
+
+def _session_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ProofEvidenceError(_SESSION_SOURCE_UNREADABLE) from exc
+
+
 def _validate_session(manifest: dict[str, Any], repo_root: Path) -> str:
     session = _require_object(manifest["session"], "proof session")
     _require_keys(
@@ -469,12 +522,12 @@ def _validate_session(manifest: dict[str, Any], repo_root: Path) -> str:
         raise ProofEvidenceError("proof session declaration drifted")
     root_path = _resolve_repo_path(repo_root, session["root_path"])
     theory_path = _resolve_repo_path(repo_root, session["theory_path"])
-    if session["root_digest"] != _file_digest(root_path) or session["theory_digest"] != _file_digest(theory_path):
+    if session["root_digest"] != _session_digest(root_path) or session["theory_digest"] != _session_digest(theory_path):
         raise ProofEvidenceError("proof session source digest drifted")
-    root_text = root_path.read_text(encoding="utf-8")
+    root_text = _session_text(root_path)
     if "session Participant_Opacity = HOL +" not in root_text or "Participant_Opacity" not in root_text:
         raise ProofEvidenceError("proof session root does not bind the fixed HOL session")
-    theory_text = theory_path.read_text(encoding="utf-8")
+    theory_text = _session_text(theory_path)
     if not re.search(r"theory\s+Participant_Opacity\s+imports\s+Main\s+begin", theory_text):
         raise ProofEvidenceError("proof theory does not import exactly Isabelle/HOL Main")
     return theory_text
@@ -573,7 +626,8 @@ def main() -> int:
     try:
         manifest = load_proof_manifest()
         validate_proof_manifest(manifest)
-    except (ProofEvidenceError, IsabelleToolError) as exc:
+    except (ProofEvidenceError, OperationalError) as exc:
+        # OperationalError: IsabelleToolError and the artifact policy gate's ArtifactPolicyError.
         print(f"participant-opacity-proof: {exc}", file=sys.stderr)
         return 1
     print("participant-opacity-proof: verified")
@@ -581,4 +635,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

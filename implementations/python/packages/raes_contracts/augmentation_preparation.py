@@ -8,8 +8,13 @@ from pydantic import ConfigDict, Field, model_validator
 
 from ._base import ContractModel
 from .canonical import canonical_json_digest
-from .json_ingress import parse_bounded_json_object
-from .materialization import MATERIALIZATION_MAX_BYTES, MaterializationDigest
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from .materialization import (
+    MATERIALIZATION_MAX_BYTES,
+    MaterializationDigest,
+    MaterializationDocument,
+    require_materialization_document_bytes,
+)
 from .observation_demand import SemanticScope
 from .realization_structure import validate_realization_value
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
@@ -40,14 +45,18 @@ class AugmentationPreparation(ContractModel):
     contract_id: Literal["backend-augmentation-scope-v1"] = "backend-augmentation-scope-v1"
     coverage_profile: Literal["raes-materialization-effects/v1"] = "raes-materialization-effects/v1"
     binding_digest: MaterializationDigest
-    content: str = Field(min_length=1, max_length=MATERIALIZATION_MAX_BYTES)
+    content: MaterializationDocument
     effects: tuple[AugmentationEffect, ...] = Field(default=(), max_length=4096)
 
     @model_validator(mode="after")
     def _bounded_content(self) -> AugmentationPreparation:
         if sum(1 + len(effect.requirement_refs) + len(effect.affected_scopes) for effect in self.effects) > 16384:
             raise ValueError("prospective scope resolution exceeds the aggregate work budget")
-        value = parse_bounded_json_object(self.content, max_bytes=MATERIALIZATION_MAX_BYTES)
+        require_materialization_document_bytes(self.content, "prospective SDL content")
+        try:
+            value = parse_bounded_json_object(self.content, max_bytes=MATERIALIZATION_MAX_BYTES)
+        except StrictJsonIngressError as exc:
+            raise ValueError(f"prospective SDL content failed strict JSON ingress ({exc.code})") from exc
         if not validate_realization_value(value, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
             raise ValueError("prospective SDL exceeds portable bounds")
         if len({effect.field_pointer for effect in self.effects}) != len(self.effects):

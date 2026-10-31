@@ -32,6 +32,7 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantOpacityRuntimeEnforcementBindingModel,
     ParticipantOpacityRuntimeSupportModel,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError
 from raes_contracts.participant_opacity_runtime import (
     validate_participant_opacity_runtime_enforcement,
 )
@@ -545,7 +546,7 @@ def test_exact_retry_reuses_opacity_decision_and_changed_binding_conflicts() -> 
             "enforcement_rule_digest": canonical_json_digest({"rule": "changed"}),
         }
     )
-    with pytest.raises(ValueError, match="conflicts with the original request"):
+    with pytest.raises(ConflictError, match="conflicts with the original request"):
         admit(plane, idempotency_key="opacity-retry")
 
 
@@ -554,7 +555,7 @@ def test_governed_egress_normalizes_to_withheld_opportunity_before_return() -> N
     bound_identity = identity(audience_bound=True)
     crossing_evidence = evidence()
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         plane.get_participant_status_view(
             CROSSING_PARTICIPANT,
             identity=bound_identity,
@@ -584,7 +585,7 @@ def test_denied_egress_records_observable_denial_without_returning_a_view() -> N
     bound_identity = identity(audience_bound=True)
     crossing_evidence = evidence()
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         plane.get_participant_status_view(
             CROSSING_PARTICIPANT,
             identity=bound_identity,
@@ -675,7 +676,7 @@ def test_restart_requires_the_exact_persisted_opacity_context(tmp_path) -> None:
     stale.support = _support(stale.binding)
     restart_target = policy_capable_target("participant_ingress_admission")
     restart_store = LocalControlPlaneStore(tmp_path / "opacity-control-plane")
-    with pytest.raises(ValueError, match="restart context"):
+    with pytest.raises(EvidenceIntegrityError, match="restart context"):
         RuntimeControlPlane(
             restart_target,
             store=restart_store,

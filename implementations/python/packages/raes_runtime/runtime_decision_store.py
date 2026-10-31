@@ -5,8 +5,12 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
-from .control_plane_store_local_codec import decode_payload, encode_payload, transaction
+from raes_contracts.errors import EvidenceIntegrityError
+
+from .control_plane_store_local_codec import decode_contract, encode_payload, transaction
 from .runtime_decisions import require_identical_decision, validate_runtime_decision
+
+_DECISION_KIND = "runtime decision"
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -53,9 +57,9 @@ class SQLRuntimeDecisionStoreMixin:
             ).fetchall()
         decisions = []
         for identity, content, digest in rows:
-            decision = validate_runtime_decision(decode_payload(content, digest, kind="runtime decision"))
+            decision = decode_contract(content, digest, kind=_DECISION_KIND, rebuild=validate_runtime_decision)
             if decision.decision_id != identity:
-                raise ValueError("runtime decision identity does not match its durable key")
+                raise EvidenceIntegrityError("runtime decision identity does not match its durable key")
             decisions.append(decision)
         return tuple(decisions)
 
@@ -85,7 +89,7 @@ class SQLRuntimeDecisionStoreMixin:
                 select,
                 (candidate.decision_id,),
             ).fetchone()
-            existing = validate_runtime_decision(decode_payload(*row, kind="runtime decision"))
+            existing = decode_contract(*row, kind=_DECISION_KIND, rebuild=validate_runtime_decision)
             require_identical_decision(existing, candidate)
             return inserted
 

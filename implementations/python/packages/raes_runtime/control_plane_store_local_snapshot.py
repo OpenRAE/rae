@@ -14,8 +14,9 @@ from .control_plane_store_revision import (
     SnapshotState,
     next_snapshot_revision,
     require_snapshot_revision,
+    require_stored_snapshot_revision,
 )
-from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_from_payload, _snapshot_payload
+from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_payload, durable_snapshot_state
 
 _SNAPSHOT_KEY = "runtime-snapshot"
 
@@ -61,17 +62,15 @@ class LocalSnapshotRevisionStoreMixin:
         header = decode_payload(row[0], row[1], kind="runtime snapshot")
         from .control_plane_store_history_rows import history_generation
 
-        identity = (history_generation(connection), require_snapshot_revision(row[2]), row[1])
+        revision = require_stored_snapshot_revision(row[2])
+        identity = (history_generation(connection), revision, row[1])
         cached = _cached_snapshot_state(connection, identity, row[1])
         if cached is not None:
             return cached
         from .control_plane_store_history_rows import restore_history_rows
 
         payload = restore_history_rows(connection, header)
-        state = SnapshotState(
-            snapshot=_snapshot_from_payload(payload),
-            revision=require_snapshot_revision(row[2]),
-        )
+        state = durable_snapshot_state(payload, revision)
         if hasattr(connection, "pending_snapshot"):
             connection.pending_snapshot = (identity, state)
         return state

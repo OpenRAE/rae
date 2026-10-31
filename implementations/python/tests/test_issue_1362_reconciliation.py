@@ -3,6 +3,7 @@
 import pytest
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import backend_operation_control_digest
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -33,7 +34,7 @@ def test_only_verified_linked_absence_releases_exclusion_without_rewriting_paren
         # Unknown effect reports remain insufficient even with operator intent.
         plane.supervise_operation(receipt.operation_id, action="reconcile", control_id="unknown", identity=supervisor())
         rejected_identity = supervisor()
-        with pytest.raises(ValueError):
+        with pytest.raises(EvidenceIntegrityError, match="does not establish scoped absence"):
             plane.resolve_backend_absence(
                 receipt.operation_id, "unknown", idempotency_key="unknown-proof", identity=rejected_identity
             )

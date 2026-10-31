@@ -9,6 +9,7 @@ double here is explicitly synthetic.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import replace
 
 import pytest
@@ -49,6 +50,7 @@ from raes_contracts.behavioral_relation_profiles import load_behavioral_relation
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BackendManifestV2Model
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingGateDisposition
+from raes_contracts.errors import ConflictError
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from test_issue_964_participant_opacity_runtime import _OpacityResolver
 
@@ -265,7 +267,7 @@ def test_positive_declaration_rejects_missing_evidence_or_contracts() -> None:
             target.manifest.supported_contract_versions - {"participant-crossing-occurrence-v1"}
         ),
     )
-    with pytest.raises(ValueError, match="missing required contracts"):
+    with pytest.raises(ConflictError, match="missing required contracts"):
         resolve_participant_feature_support(
             manifest,
             FEATURE,
@@ -537,6 +539,23 @@ def test_secret_bearing_failures_are_sanitized_before_report_projection() -> Non
     assert SECRET_MARKER not in rendered
     assert "input_value" not in rendered
     assert not report.passed
+
+
+def test_harness_failure_is_logged_without_foreign_values(caplog: pytest.LogCaptureFixture) -> None:
+    class SecretReportHarness(OpacityHarness):
+        def reported_observation(self, target, case, point_ref):
+            raise ValueError(f"report {SECRET_MARKER}")
+
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        _run(SecretReportHarness())
+
+    records = [record for record in caplog.records if record.name.endswith("participant_opacity_probes")]
+    assert records
+    for record in records:
+        assert SECRET_MARKER not in record.getMessage()
+        assert SECRET_MARKER not in (record.exc_text or "")
+        assert "ForeignCodeFailure" in (record.exc_text or "")
+        assert "ValueError" not in (record.exc_text or "")
 
 
 def test_validator_refuses_realization_without_native_observed_evidence() -> None:

@@ -18,13 +18,14 @@ class _NodesInfraNetworkMixin:
 
     def _verify_nodes(self) -> None:
         for name, node in self._s.nodes.items():
-            if len(QualifiedName.parse(name).parts[-1]) > MAX_NODE_NAME_LENGTH:
-                self._err(f"Node '{name}' name exceeds 35 characters")
-            self._verify_node_ref_role_map(name, node, node.features, self._s.features, kind="feature")
-            self._verify_node_ref_role_map(name, node, node.conditions, self._s.conditions, kind="condition")
-            self._verify_node_ref_role_map(name, node, node.injects, self._s.injects, kind="inject")
-            self._verify_node_operating_system(name, node)
-            self._verify_node_architecture(name, node)
+            with self._owner(("nodes", name)):
+                if len(QualifiedName.parse(name).parts[-1]) > MAX_NODE_NAME_LENGTH:
+                    self._err(f"Node '{name}' name exceeds 35 characters")
+                self._verify_node_ref_role_map(name, node, node.features, self._s.features, kind="feature")
+                self._verify_node_ref_role_map(name, node, node.conditions, self._s.conditions, kind="condition")
+                self._verify_node_ref_role_map(name, node, node.injects, self._s.injects, kind="inject")
+                self._verify_node_operating_system(name, node)
+                self._verify_node_architecture(name, node)
 
     def _verify_node_operating_system(self, name: str, node: object) -> None:
         """Enforce the family -> distribution -> release dependency chain."""
@@ -80,13 +81,14 @@ class _NodesInfraNetworkMixin:
 
     def _verify_infrastructure(self) -> None:
         for name, infra in self._s.infrastructure.items():
-            if name not in self._s.nodes:
-                self._err(f"Infrastructure '{name}' does not match any defined node")
-            self._verify_infra_links(name, infra)
-            self._verify_infra_dependencies(name, infra)
-            self._verify_infra_count(name, infra)
-            self._verify_infra_property_ips(name, infra)
-            self._verify_infra_acls(name, infra)
+            with self._owner(("infrastructure", name)):
+                if name not in self._s.nodes:
+                    self._err(f"Infrastructure '{name}' does not match any defined node")
+                self._verify_infra_links(name, infra)
+                self._verify_infra_dependencies(name, infra)
+                self._verify_infra_count(name, infra)
+                self._verify_infra_property_ips(name, infra)
+                self._verify_infra_acls(name, infra)
 
     def _verify_infra_links(self, name: str, infra: object) -> None:
         for link in infra.links:
@@ -109,10 +111,11 @@ class _NodesInfraNetworkMixin:
         if name not in self._s.nodes:
             return
         node = self._s.nodes[name]
-        if node.type == NodeType.SWITCH and isinstance(infra.count, int) and infra.count > 1:
-            self._err(f"Switch node '{name}' cannot have count > 1")
-        if node.type == NodeType.COMPUTE and node.conditions and isinstance(infra.count, int) and infra.count > 1:
-            self._err(f"Node '{name}' has conditions and cannot have count > 1")
+        with self._owner(("nodes", name)):
+            if node.type == NodeType.SWITCH and isinstance(infra.count, int) and infra.count > 1:
+                self._err(f"Switch node '{name}' cannot have count > 1")
+            if node.type == NodeType.COMPUTE and node.conditions and isinstance(infra.count, int) and infra.count > 1:
+                self._err(f"Node '{name}' has conditions and cannot have count > 1")
 
     def _verify_infra_property_ips(self, name: str, infra: object) -> None:
         # Validate complex-properties IP assignments within their linked CIDR.
@@ -145,7 +148,8 @@ class _NodesInfraNetworkMixin:
         try:
             net = ip_network(cidr, strict=False)
         except ValueError:
-            self._err(f"Infrastructure '{link_name}' has invalid CIDR {cidr}")
+            with self._owner(("infrastructure", link_name)):
+                self._err(f"Infrastructure '{link_name}' has invalid CIDR {cidr}")
             return
         try:
             addr = ip_address(ip_str)
@@ -177,26 +181,29 @@ class _NodesInfraNetworkMixin:
             runtime = getattr(node, "runtime", None)
             if runtime is None or runtime.network is None:
                 continue
-            for endpoint in runtime.network.endpoints:
-                net = endpoint.network
-                if self._is_unresolved_var(net):
-                    continue
-                if net not in self._s.infrastructure:
-                    self._err(f"Node '{name}' runtime network endpoint references undefined network '{net}'")
-                    continue
-                if not self._is_switch_node(net):
-                    self._err(
-                        f"Node '{name}' runtime network endpoint network '{net}' must reference a switch/network entry"
-                    )
-                    continue
-                self._verify_endpoint_addressing(name, net, endpoint)
+            with self._owner(("nodes", name)):
+                for endpoint in runtime.network.endpoints:
+                    net = endpoint.network
+                    if self._is_unresolved_var(net):
+                        continue
+                    if net not in self._s.infrastructure:
+                        self._err(f"Node '{name}' runtime network endpoint references undefined network '{net}'")
+                        continue
+                    if not self._is_switch_node(net):
+                        self._err(
+                            f"Node '{name}' runtime network endpoint network '{net}' "
+                            "must reference a switch/network entry"
+                        )
+                        continue
+                    self._verify_endpoint_addressing(name, net, endpoint)
 
     def _verify_network_namespace_sharing(self) -> None:
         for source_name, source in self._s.nodes.items():
             namespace = self._network_namespace(source)
             if namespace is None:
                 continue
-            self._verify_network_namespace_relation(source_name, source, namespace.target_node_ref)
+            with self._owner(("nodes", source_name)):
+                self._verify_network_namespace_relation(source_name, source, namespace.target_node_ref)
 
     def _verify_network_namespace_relation(self, source_name: str, source: object, authored_target: str) -> None:
         if self._is_unresolved_var(authored_target):
@@ -294,12 +301,13 @@ class _NodesInfraNetworkMixin:
             observed_paths = self._node_observed_paths(node)
             attached_networks = self._runtime_endpoint_networks(runtime)
             for sensor in runtime.network_sensors:
-                self._verify_network_sensor(
-                    node_name=node_name,
-                    sensor=sensor,
-                    observed_paths=observed_paths,
-                    attached_networks=attached_networks,
-                )
+                with self._owner(("nodes", node_name)):
+                    self._verify_network_sensor(
+                        node_name=node_name,
+                        sensor=sensor,
+                        observed_paths=observed_paths,
+                        attached_networks=attached_networks,
+                    )
 
     @staticmethod
     def _runtime_endpoint_networks(runtime: object) -> set[str]:
@@ -368,12 +376,38 @@ class _NodesInfraNetworkMixin:
             observed_paths = self._node_observed_paths(node)
             sensor_ids = {sensor.network_sensor_id for sensor in runtime.network_sensors}
             for engine in runtime.network_detection_engines:
-                self._verify_network_detection_engine(
-                    node_name=node_name,
-                    engine=engine,
-                    service_names=service_names,
-                    observed_paths=observed_paths,
-                    sensor_ids=sensor_ids,
+                with self._owner(("nodes", node_name)):
+                    self._verify_network_detection_engine(
+                        node_name=node_name,
+                        engine=engine,
+                        service_names=service_names,
+                        observed_paths=observed_paths,
+                        sensor_ids=sensor_ids,
+                    )
+
+    def _verify_rule_source_generators(self) -> None:
+        """Resolve each rule source ``generated_by`` to exactly one declared forwarding agent.
+
+        Full scenario admission runs this pass. A bounded node context can omit
+        the node of the generating agent.
+        """
+        agents = self._forwarding_agents_by_address().keys()
+        sources = [
+            (node_name, engine, source)
+            for node_name, node in self._s.nodes.items()
+            if node.runtime is not None
+            for engine in node.runtime.network_detection_engines
+            for source in engine.rule_sources
+            if source.generated_by and not self._is_unresolved_var(source.generated_by)
+        ]
+        for node_name, engine, source in sources:
+            if len(self._declaration_index.resolve(source.generated_by) & agents) == 1:
+                continue
+            with self._owner(("nodes", node_name)):
+                self._err(
+                    f"Node '{node_name}' runtime network detection engine '{engine.network_detection_engine_id}' "
+                    f"rule_source '{source.source_id}' generated_by '{source.generated_by}' does not resolve to "
+                    "a declared forwarding agent"
                 )
 
     def _verify_network_detection_engine(

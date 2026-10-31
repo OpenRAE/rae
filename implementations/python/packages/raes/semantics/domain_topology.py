@@ -78,6 +78,7 @@ class _TopologyFacts:
 
 def _controller_detail_issues(
     label: str,
+    owner: tuple[str, str],
     controller_detail: object,
     join_detail: object,
 ) -> list[DomainTopologyIssue]:
@@ -87,6 +88,7 @@ def _controller_detail_issues(
             _issue(
                 "domain.relationship.controller-detail-required",
                 f"{label} type 'domain_controller_for' requires domain_controller detail",
+                owner,
             )
         )
     if join_detail is not None:
@@ -94,6 +96,7 @@ def _controller_detail_issues(
             _issue(
                 _RELATIONSHIP_DETAIL_MISMATCH,
                 f"{label} type 'domain_controller_for' must not carry domain_join detail",
+                owner,
             )
         )
     return issues
@@ -101,6 +104,7 @@ def _controller_detail_issues(
 
 def _join_detail_issues(
     label: str,
+    owner: tuple[str, str],
     controller_detail: object,
     join_detail: object,
 ) -> list[DomainTopologyIssue]:
@@ -110,6 +114,7 @@ def _join_detail_issues(
             _issue(
                 "domain.relationship.join-detail-required",
                 f"{label} type 'joins_domain' requires domain_join detail",
+                owner,
             )
         )
     if controller_detail is not None:
@@ -117,6 +122,7 @@ def _join_detail_issues(
             _issue(
                 _RELATIONSHIP_DETAIL_MISMATCH,
                 f"{label} type 'joins_domain' must not carry domain_controller detail",
+                owner,
             )
         )
     return issues
@@ -124,6 +130,7 @@ def _join_detail_issues(
 
 def _untyped_detail_issues(
     label: str,
+    owner: tuple[str, str],
     type_value: str,
     controller_detail: object,
     join_detail: object,
@@ -134,6 +141,7 @@ def _untyped_detail_issues(
             _issue(
                 _RELATIONSHIP_DETAIL_MISMATCH,
                 f"{label} carries domain topology detail but has type '{type_value}'",
+                owner,
             )
         )
     return issues
@@ -151,12 +159,13 @@ def _relationship_detail_issues(
         controller_detail = getattr(relationship, "domain_controller", None)
         join_detail = getattr(relationship, "domain_join", None)
         label = f"Relationship '{relationship_name}'"
+        owner = ("relationships", relationship_name)
         if type_value == RelationshipType.DOMAIN_CONTROLLER_FOR.value:
-            issues = _controller_detail_issues(label, controller_detail, join_detail)
+            issues = _controller_detail_issues(label, owner, controller_detail, join_detail)
         elif type_value == RelationshipType.JOINS_DOMAIN.value:
-            issues = _join_detail_issues(label, controller_detail, join_detail)
+            issues = _join_detail_issues(label, owner, controller_detail, join_detail)
         else:
-            issues = _untyped_detail_issues(label, type_value, controller_detail, join_detail)
+            issues = _untyped_detail_issues(label, owner, type_value, controller_detail, join_detail)
     return issues
 
 
@@ -199,6 +208,7 @@ def _topology_relationship(
 
     issues: list[DomainTopologyIssue] = []
     label = f"Relationship '{relationship_name}'"
+    owner = ("relationships", relationship_name)
     node_name = _resolve_section_ref(source_ref, "nodes", nodes)
     domain_name = _resolve_section_ref(target_ref, "identity_domains", identity_domains)
     if node_name is None:
@@ -206,6 +216,7 @@ def _topology_relationship(
             _issue(
                 "domain.relationship.source-unbound",
                 f"{label} domain topology source '{source_ref}' does not resolve to a node",
+                owner,
             )
         )
     elif not topology_source_allowed(nodes[node_name]):
@@ -214,6 +225,7 @@ def _topology_relationship(
             _issue(
                 "domain.relationship.source-not-vm",
                 f"{label} {role} source '{source_ref}' must be a compute node",
+                owner,
             )
         )
     if domain_name is None:
@@ -221,6 +233,7 @@ def _topology_relationship(
             _issue(
                 "domain.relationship.target-unbound",
                 f"{label} target '{target_ref}' does not resolve to an identity domain",
+                owner,
             )
         )
 
@@ -250,6 +263,7 @@ def _record_controller_relationship(
                 "domain.controller.duplicate",
                 f"Relationship '{topology.name}' repeats duplicate controller fact for node "
                 f"'{topology.node_name}' and identity domain '{topology.domain_name}'",
+                ("relationships", topology.name),
             )
         )
     else:
@@ -274,6 +288,7 @@ def _resolved_join_controllers(
                 _issue(
                     "domain.join.controller-unbound",
                     f"{topology.label} controller_ref '{controller_ref}' does not resolve to a node",
+                    ("relationships", topology.name),
                 )
             )
             continue
@@ -298,6 +313,7 @@ def _record_join_relationship(
                 "domain.join.duplicate",
                 f"Relationship '{topology.name}' repeats duplicate join fact for node "
                 f"'{topology.node_name}' and identity domain '{topology.domain_name}'",
+                ("relationships", topology.name),
             )
         )
         return

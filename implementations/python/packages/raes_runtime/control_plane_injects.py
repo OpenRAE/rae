@@ -20,6 +20,8 @@ from raes_contracts.contracts import (
     require_inject_trigger_retry,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationAdmissionContext, OperationKind, OperationReceipt, RuntimeDomain
 
 from .control_plane_execution import OperationExecutionRequest, execute_operation
@@ -31,6 +33,8 @@ from .control_plane_store import ControlPlaneOperationRecord
 from .inject_capture import InjectCaptureResult
 from .inject_execution import require_inject_plan
 
+_LOGGER = get_logger(__name__)
+
 
 def _authorize_trigger(plane: object, identity: object | None) -> None:
     if identity is None:
@@ -41,7 +45,7 @@ def _authorize_trigger(plane: object, identity: object | None) -> None:
         or identity.target_name != plane._target.name
         or not identity.roles.intersection({ControlPlaneRole.OPERATOR, ControlPlaneRole.BACKEND})
     ):
-        raise PermissionError("inject mutation authority is unavailable")
+        raise AuthorizationError("inject mutation authority is unavailable")
 
 
 def _inject_diagnostic() -> Diagnostic:
@@ -82,16 +86,28 @@ class RuntimeInjectMixin:
             self, kind=OperationKind.ORCHESTRATION, request=request, identity=identity
         )
         if (request.target_scope, request.run_scope) != (self._target_scope, self._run_scope):
-            raise ValueError("inject target/run scope mismatch")
+            raise ConflictError("inject target/run scope mismatch")
         incumbent = self._store.find_by_idempotency(request.request_key, context=context)
         if incumbent is not None:
             if not self._operation_read_allowed(incumbent, identity) or incumbent.inject_occurrence is None:
-                raise ValueError("inject retry conflicts with the original request")
-            require_inject_trigger_retry(incumbent.inject_occurrence, request, actor_id=context.actor_id)
+                raise ConflictError("inject retry conflicts with the original request")
+            try:
+                require_inject_trigger_retry(incumbent.inject_occurrence, request, actor_id=context.actor_id)
+            except ValueError as exc:
+                raise ConflictError("inject retry conflicts with the original request") from exc
             return incumbent.receipt
         try:
             admission = self._admit_inject(request, context)
-        except Exception:
+        except Exception as exc:
+            admission = None
+            if not isinstance(exc, RaesError):
+                # Isolation of the inject resolver: a failure refuses the inject like any admission refusal.
+                _LOGGER.exception(
+                    "inject admission failed in the inject resolver or its contract checks",
+                    exc_info=foreign_failure_record(exc),
+                )
+        if admission is None:
+            # Refused after the handler, so a refusal audit failure carries no resolver exception as its context.
             return self._reject_diagnostics(
                 domain=RuntimeDomain.ORCHESTRATION, context=context, diagnostics=[_inject_diagnostic()]
             )
@@ -117,10 +133,13 @@ class RuntimeInjectMixin:
             or self._distributed_execution is not None
             or self._target.orchestrator is None
         ):
-            raise ValueError("inject execution is unavailable in this composition")
-        require_inject_occurrence_provider(
-            self._target.operation_provider, self._target.manifest.supported_contract_versions
-        )
+            raise ConflictError("inject execution is unavailable in this composition")
+        try:
+            require_inject_occurrence_provider(
+                self._target.operation_provider, self._target.manifest.supported_contract_versions
+            )
+        except ValueError as exc:
+            raise ConflictError("inject execution is unavailable in this composition") from exc
         operation_id, revision = str(uuid4()), self._snapshot_state.revision
         with self._mutation_authority.external_call():
             admission = self._execution_adapter.call(
@@ -142,7 +161,7 @@ class RuntimeInjectMixin:
             or occurrence.operation_id != operation_id
             or occurrence.store_revision != str(revision)
         ):
-            raise ValueError("inject resolver changed the requested admission")
+            raise InvalidInputError("inject resolver changed the requested admission")
         return InjectAdmission(admission.plan, occurrence)
 
     def _inject_live_diagnostics(self, occurrence: InjectOccurrenceModel) -> list[Diagnostic]:
@@ -156,7 +175,12 @@ class RuntimeInjectMixin:
                     deepcopy(self._snapshot),
                     timeout_ms=self._supervision.admission_ms,
                 )
-        except Exception:
+        except Exception as exc:
+            if not isinstance(exc, RaesError):
+                # Isolation of the inject resolver: a failed revalidation refuses the live inject.
+                _LOGGER.exception(
+                    "inject revalidation failed in the inject resolver", exc_info=foreign_failure_record(exc)
+                )
             return [_inject_diagnostic()]
         return []
 
@@ -167,7 +191,7 @@ class RuntimeInjectMixin:
             with self._trusted_runtime_plan_lock:
                 model = self._trusted_orchestration_models.get(request.plan.digest)
             if model is None:
-                raise ValueError("inject schedule compiler context is unavailable")
+                raise ConflictError("inject schedule compiler context is unavailable")
             require_schedule(model, request, self._snapshot)
 
     def _read_inject_record(
@@ -232,7 +256,8 @@ class RuntimeInjectMixin:
             return None
         try:
             _authorized_binding(self, record.inject_delivery.application, identity)
-        except ValueError, PermissionError:
+        except AuthorizationError, ConflictError, InvalidInputError, NotFoundError:
+            # Any refusal of the delivery binding reads as an absent record.
             return None
         return deepcopy(record.inject_delivery)
 

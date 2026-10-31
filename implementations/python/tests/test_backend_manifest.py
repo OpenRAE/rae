@@ -10,6 +10,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from jsonschema import ValidationError as JSONSchemaValidationError
 from pydantic import ValidationError
+from raes_backend_protocols import capability_admission, participant_feature_admission
 from raes_backend_protocols.capabilities import (
     OBSERVATION_CAPABILITY_CAPTURE_KIND_SCOPE,
     OBSERVATION_CAPABILITY_CHANNEL_KIND_SCOPE,
@@ -35,6 +36,7 @@ from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_backend_protocols.provisioner_manifest import provisioner_from_model
 from raes_backend_stubs.stubs import create_stub_manifest
 from raes_contracts.contracts import BackendManifestV2Model
+from raes_contracts.errors import ConflictError
 from raes_contracts.manifest_authority import BACKEND_SUPPORTED_CONTRACT_IDS
 from raes_contracts.vocabulary import (
     GeneratedArtifactDeliveryMode,
@@ -445,11 +447,13 @@ def test_participant_feature_support_validates_api_407_declarations():
 
     assert declaration.support_level == ParticipantFeatureSupportLevel.EXACT
 
-    with pytest.raises(ValueError, match="governed participant behavior or interaction feature"):
+    with pytest.raises(ValueError, match="governed participant behavior or interaction feature") as caught:
         ParticipantFeatureSupport(
             feature="custom_feature",
             support_level=ParticipantFeatureSupportLevel.EXACT,
         )
+    # The message does not repeat the text of the vocabulary validators that rejected the term (E7).
+    assert "controlled vocabulary" not in str(caught.value)
 
     with pytest.raises(ValueError, match="disclosure_refs"):
         ParticipantFeatureSupport(
@@ -811,7 +815,7 @@ def test_participant_policy_feature_support_admission_fails_closed_and_demotes_a
     assert participant_feature_support_gaps(manifest, (feature,)) == (
         "participant feature 'participant_transformation' requires exact support; backend declares bounded",
     )
-    with pytest.raises(ValueError, match="explicit downgrade authorization"):
+    with pytest.raises(ConflictError, match="explicit downgrade authorization"):
         resolve_participant_feature_support(
             manifest,
             feature,
@@ -872,6 +876,28 @@ def test_participant_policy_feature_support_admission_rejects_missing_declaratio
     assert participant_feature_support_gaps(manifest, ("participant_ingress_admission",)) == (
         "participant feature 'participant_ingress_admission' has no explicit support declaration",
     )
+    with pytest.raises(ConflictError, match="no explicit support declaration"):
+        resolve_participant_feature_support(manifest, "participant_ingress_admission")
+
+
+def test_participant_feature_support_gaps_do_not_report_defects_as_gaps(monkeypatch: pytest.MonkeyPatch):
+    # Regression: a built-in ValueError catch once reported any defect inside resolution as a support gap.
+    def defective(*_args: object) -> None:
+        raise ValueError("resolution-defect")
+
+    monkeypatch.setattr(participant_feature_admission, "_participant_feature_declaration", defective)
+
+    manifest = create_stub_manifest()
+    with pytest.raises(ValueError, match="resolution-defect"):
+        participant_feature_support_gaps(manifest, ("participant_ingress_admission",))
+
+
+def test_time_model_capability_admission_refuses_with_a_conflict():
+    manifest = create_stub_manifest(with_time=False)
+
+    # Without a time capability, admission refuses before it reads the declaration.
+    with pytest.raises(ConflictError, match="backend does not declare time capabilities"):
+        capability_admission.require_time_model_capability(manifest, None)
 
 
 def test_backend_manifest_v2_feature_support_defaults_to_empty():

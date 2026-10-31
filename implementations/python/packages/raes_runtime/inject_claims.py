@@ -17,8 +17,11 @@ from raes_contracts.contracts import (
     validate_inject_occurrence_outcome,
 )
 from raes_contracts.contracts.participant_inject_application import ParticipantInjectContentModel
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, RaesError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationKind, OperationState
+
+from .record_immutability import immutable_value_error
 
 if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
@@ -140,29 +143,46 @@ def _require_evidence_references(evidence: InjectExecutionEvidence, outcome: Inj
 
 def require_inject_transition(prior: ControlPlaneOperationRecord, replacement: ControlPlaneOperationRecord) -> None:
     if prior.inject_occurrence != replacement.inject_occurrence:
-        raise ValueError("inject occurrence pins are immutable")
+        raise immutable_value_error("inject occurrence pins are immutable")
     if prior.inject_outcome is not None and prior.inject_outcome != replacement.inject_outcome:
-        raise ValueError("inject outcome is immutable")
+        raise immutable_value_error("inject outcome is immutable")
     if prior.inject_evidence is not None and prior.inject_evidence != replacement.inject_evidence:
-        raise ValueError("inject artifact evidence is immutable")
+        raise immutable_value_error("inject artifact evidence is immutable")
     if prior.inject_outcome is not None and prior.result_payload != replacement.result_payload:
-        raise ValueError("inject capture result is immutable")
+        raise immutable_value_error("inject capture result is immutable")
 
 
 def require_inject_history(records: Iterable[ControlPlaneOperationRecord]) -> None:
-    records = tuple(records)
-    _require_delivery_claims(records)
+    """Refuse a claim set that conflicts with the admitted claims (ConflictError)."""
+
+    _require_claim_history(tuple(records), ConflictError)
+
+
+def require_stored_inject_history(records: Iterable[ControlPlaneOperationRecord]) -> None:
+    """Refuse stored records whose claims do not replay as one admitted history (EvidenceIntegrityError).
+
+    No request made these records inconsistent: the stored evidence fails its replay.
+    """
+
+    _require_claim_history(tuple(records), EvidenceIntegrityError)
+
+
+def _require_claim_history(records: tuple[ControlPlaneOperationRecord, ...], refusal: type[RaesError]) -> None:
+    _require_delivery_claims(records, refusal)
     claims = sorted(
         (record.inject_occurrence for record in records if record.inject_occurrence is not None),
         key=lambda item: item.order.position,
     )
-    validate_inject_occurrence_claims(claims)
+    try:
+        validate_inject_occurrence_claims(claims)
+    except ValueError as exc:
+        raise refusal("inject occurrence claim reuses an admitted claim identity") from exc
     head = INJECT_GENESIS_HEAD
     for position, claim in enumerate(claims, 1):
         if claim.order.position != position:
-            raise ValueError("inject order position does not follow the admitted chain")
+            raise refusal("inject order position does not follow the admitted chain")
         if claim.order.predecessor != head:
-            raise ValueError("inject order head does not follow the preceding admitted claim")
+            raise refusal("inject order head does not follow the preceding admitted claim")
         head = inject_order_head(claim)
 
 
@@ -174,15 +194,15 @@ def require_inject_claim(
     existing = tuple(records)
     if any(item.receipt.operation_id == record.receipt.operation_id for item in existing):
         return
-    _require_delivery_claims((*existing, record))
+    _require_delivery_claims((*existing, record), ConflictError)
     if record.inject_occurrence is None:
         return
     if record.inject_occurrence.store_revision != str(revision):
-        raise ValueError("inject claim snapshot revision is stale")
+        raise ConflictError("inject claim snapshot revision is stale")
     require_inject_history((*existing, record))
 
 
-def _require_delivery_claims(records: tuple[ControlPlaneOperationRecord, ...]) -> None:
+def _require_delivery_claims(records: tuple[ControlPlaneOperationRecord, ...], refusal: type[RaesError]) -> None:
     """Called inside each store's existing atomic claim, including restored history."""
     by_id = {record.receipt.operation_id: record for record in records}
     worlds, controls = set(), set()
@@ -191,16 +211,16 @@ def _require_delivery_claims(records: tuple[ControlPlaneOperationRecord, ...]) -
         if content is None:
             continue
         application = content.application
-        _require_delivery_predecessor(record, by_id)
+        _require_delivery_predecessor(record, by_id, refusal)
         pair = (content.correlation.occurrence, application.delivery_address, application.control)
         if pair in worlds:
-            raise ValueError("inject result delivery is already claimed")
+            raise refusal("inject result delivery is already claimed")
         worlds.add(pair)
         if application.control is not None:
-            _require_control_predecessor(application.control.event_id, records)
+            _require_control_predecessor(application.control.event_id, records, refusal)
             pair = (application.control.event_id, application.delivery_address)
             if pair in controls:
-                raise ValueError("control occurrence delivery is already claimed")
+                raise refusal("control occurrence delivery is already claimed")
             controls.add(pair)
 
 
@@ -221,29 +241,36 @@ def require_delivery_record(record: ControlPlaneOperationRecord) -> None:
 
 
 def _require_delivery_predecessor(
-    record: ControlPlaneOperationRecord, by_id: Mapping[str, ControlPlaneOperationRecord]
+    record: ControlPlaneOperationRecord,
+    by_id: Mapping[str, ControlPlaneOperationRecord],
+    refusal: type[RaesError],
 ) -> None:
     content = record.inject_delivery
     application = content.application
     world = by_id.get(application.world_operation_id)
     if world is None or world.inject_outcome is None or world.invocation is None:
-        raise ValueError("inject delivery world predecessor is unavailable")
+        raise refusal("inject delivery world predecessor is unavailable")
     from raes_contracts.contracts import validate_inject_occurrence_correlation
 
-    validate_inject_occurrence_correlation(
-        world.inject_occurrence, world.invocation.request, world.inject_outcome, content.correlation
-    )
+    try:
+        validate_inject_occurrence_correlation(
+            world.inject_occurrence, world.invocation.request, world.inject_outcome, content.correlation
+        )
+    except ValueError as exc:
+        raise refusal("inject delivery correlation differs from its world predecessor") from exc
     if (world.receipt.context.target_scope, world.receipt.context.run_scope) != (
         record.receipt.context.target_scope,
         record.receipt.context.run_scope,
     ):
-        raise ValueError("inject delivery predecessor scope differs")
+        raise refusal("inject delivery predecessor scope differs")
 
 
-def _require_control_predecessor(event_id: str, records: tuple[ControlPlaneOperationRecord, ...]) -> None:
+def _require_control_predecessor(
+    event_id: str, records: tuple[ControlPlaneOperationRecord, ...], refusal: type[RaesError]
+) -> None:
     if not any(
         (candidate.result_payload or {}).get("participant_control_occurrence_ref") == event_id
         and candidate.status.state is OperationState.SUCCEEDED
         for candidate in records
     ):
-        raise ValueError("inject delivery accepted control predecessor is unavailable")
+        raise refusal("inject delivery accepted control predecessor is unavailable")

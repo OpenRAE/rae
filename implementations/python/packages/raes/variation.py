@@ -18,6 +18,7 @@ from ._base import SDLModel
 from ._identifiers import PortableIdentifier
 from ._reference_targetability import ReferencePurpose, reference_domain
 from .variation_structure import (
+    STRUCTURAL_MEMBER_KINDS,
     STRUCTURAL_TARGET_SPECS,
     AlternativeMember,
     QualifiedReference,
@@ -261,6 +262,21 @@ class GovernedReferenceVariationPoint(SDLModel):
     description: str = ""
 
 
+def _structural_member_kind_schema(member_kind: str, slots: tuple[str, ...]) -> dict[str, object]:
+    """Bind one structural slot group to its member kind in the published schema."""
+
+    return {
+        "if": {"properties": {"target": {"properties": {"slot": {"enum": list(slots)}}}}},
+        "then": {
+            "properties": {
+                "alternatives": {
+                    "additionalProperties": {"properties": {"kind": {"const": member_kind}}, "required": ["kind"]}
+                }
+            }
+        },
+    }
+
+
 class AlternativeVariationPoint(SDLModel):
     model_config = ConfigDict(
         json_schema_extra={
@@ -272,11 +288,10 @@ class AlternativeVariationPoint(SDLModel):
                         }
                     },
                     "then": {
-                        "if": {"properties": {"target": {"properties": {"slot": {"const": "nodes.presence"}}}}},
-                        "then": {"properties": {"alternatives": {"additionalProperties": {"required": ["present"]}}}},
-                        "else": {
-                            "properties": {"alternatives": {"additionalProperties": {"required": ["references"]}}}
-                        },
+                        "allOf": [
+                            _structural_member_kind_schema(member_kind, slots)
+                            for member_kind, slots in STRUCTURAL_MEMBER_KINDS.items()
+                        ]
                     },
                     "else": {"properties": {"alternatives": {"additionalProperties": {"required": ["reference"]}}}},
                 }

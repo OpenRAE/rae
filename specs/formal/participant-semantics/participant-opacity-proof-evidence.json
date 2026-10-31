@@ -289,7 +289,7 @@
     "tool_sources": [
       {
         "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:f0120269f98f89de5a4263c3d3c779762a0cbac490a4003356359596372966af"
+        "digest": "sha256:4529a7fc7ef72444662c1acdc4fad821469f33d647a4bc3794b721a355d0e630"
       },
       {
         "path": "tools/isabelle_sandbox.py",
@@ -297,39 +297,47 @@
       },
       {
         "path": "tools/isabelle_tool.py",
-        "digest": "sha256:be01495f6e58e325045c2a8cda358cf9b48d1f48f3bf708726c4e5e5a2bb2268"
+        "digest": "sha256:c1708a0be7dc066e3364ff2b2541f7af3f02003eaa0f7b6e4819f986e78128ed"
+      },
+      {
+        "path": "tools/bounded_tool_process.py",
+        "digest": "sha256:3572b854980cdf4906bf3838174748fcf6cddd14952bef6bf41cbbb1edfbb5bd"
+      },
+      {
+        "path": "tools/debian_tree_decoder.py",
+        "digest": "sha256:53fa0cc7d898d1447953e5249b26c8c2b5dcfebd816c16703280f51960e7d192"
       },
       {
         "path": "tools/maintained_client_acquisition.py",
-        "digest": "sha256:0529ca32a87d33aeca570d659dec8d12d7f3227d38726077a39f344f7cbf2dc0"
+        "digest": "sha256:235f86ca6c3bd722732bafdbd8a9932a988c436e13921eabf764ab5eee02c736"
       },
       {
         "path": "tools/tooling_installed_tree.py",
-        "digest": "sha256:84d272f07e970184ba65db7c4ffc2ebbdc4b381cb4a9ee5a1be373a40748a846"
+        "digest": "sha256:0cdd12c43f7d6e5eeede9ced406efb14e84bdb102ee8aab95f8b8f7d06fb0e3a"
       },
       {
         "path": "tools/tooling_policy_gate.py",
-        "digest": "sha256:2a83148d01ad827a2ccdfed8243d0c4abb2b944f57112df12be7b5720d3ec034"
+        "digest": "sha256:610acd11bc7bdd9624a233a4babd7ac56a79c07f1b02c7d631b38e0273344aef"
       },
       {
         "path": "tools/verified_tool_installation.py",
-        "digest": "sha256:3edbdd81087951d497f49d8dcb59ea859b13e40819e8492b329a7f5f5e668efe"
+        "digest": "sha256:b39d74773a1fb37d0c1c75877d6c2ea3cebd3a43e1ad8ce42d1c2a80d56b91e2"
       },
       {
         "path": "tools/verified_tree_archive.py",
-        "digest": "sha256:f806d12fb0053ee99c5f1fb86397c25a6eeca4b0d8492b1568f3949ad623acc2"
+        "digest": "sha256:33eef41f6db036f1a46d75b113007e54f185e12a8424ea9d5e9f19f6a118af7c"
       },
       {
         "path": "tools/verified_tree_installation.py",
-        "digest": "sha256:6b0b98830f65a7bdce132f1b3e920941950bbbcc44b25c876f6218fd4ac2484c"
+        "digest": "sha256:ff9eef21fcaa90e2a758796a1bf392c908c135a3864c7fc02406904c540c14b6"
       },
       {
         "path": "tools/verified_tree_manifest.py",
-        "digest": "sha256:a2b512cceddfa9f2c3c3c70511a4f29cd709d8728bfbf13f207aa79b577b96d2"
+        "digest": "sha256:7087d1e931c3b4509afbc8c5146d31f976e6b65cbd138b9a06e4b8dfdd87caeb"
       },
       {
         "path": "tools/verified_tree_validation.py",
-        "digest": "sha256:19bacd3659ca0d1b709cf7c1f11510b6048f7116958670a2ec4e9715666bbdcb"
+        "digest": "sha256:166e054b69c0a814762d9b707b4f189607870715c85485d2ae3dce2f3bc0ae83"
       }
     ]
   },

@@ -9,6 +9,13 @@ from ._types import (
     _BehaviorSpecificationReferenceContext,
 )
 
+# The vocabulary error text repeats the authored term, so these issues state the rule instead (E7).
+_UNGOVERNED_MODE_MESSAGE = "it is neither a listed term nor an accepted extension term of that vocabulary"
+_UNGOVERNED_FEATURE_MESSAGE = (
+    "it is neither a listed term nor an accepted extension term of the participant runtime behavior "
+    "or interaction feature vocabularies"
+)
+
 
 def _behavior_mode_issue(*, spec_name: str, behavior_mode: object) -> ParticipantBehaviorIssue | None:
     if not behavior_mode:
@@ -17,39 +24,35 @@ def _behavior_mode_issue(*, spec_name: str, behavior_mode: object) -> Participan
         from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 
         validate_controlled_vocabulary_scope_values("behavior_specifications.behavior_mode", [str(behavior_mode)])
-    except ValueError as exc:
+    except ValueError:
         return ParticipantBehaviorIssue(
             code="participant.behavior-spec-mode-ungoverned",
             participant_name="",
             spec_name=spec_name,
             ref=str(behavior_mode),
-            message=str(exc),
+            message=_UNGOVERNED_MODE_MESSAGE,
         )
     return None
 
 
 def _backend_feature_support_issue(*, spec_name: str, feature_ref: object) -> ParticipantBehaviorIssue | None:
-    try:
-        from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
+    from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
 
-        validation_errors: list[str] = []
-        for vocabulary_id in (
-            "participant-runtime-behavior-features",
-            "participant-runtime-interaction-features",
-        ):
-            try:
-                validate_controlled_vocabulary_value(vocabulary_id, str(feature_ref))
-                return None
-            except ValueError as exc:
-                validation_errors.append(str(exc))
-    except ValueError as exc:
-        validation_errors = [str(exc)]
+    for vocabulary_id in (
+        "participant-runtime-behavior-features",
+        "participant-runtime-interaction-features",
+    ):
+        try:
+            validate_controlled_vocabulary_value(vocabulary_id, str(feature_ref))
+        except ValueError:
+            continue
+        return None
     return ParticipantBehaviorIssue(
         code="participant.behavior-spec-feature-ungoverned",
         participant_name="",
         spec_name=spec_name,
         ref=str(feature_ref),
-        message="; ".join(validation_errors),
+        message=_UNGOVERNED_FEATURE_MESSAGE,
     )
 
 

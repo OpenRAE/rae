@@ -2056,7 +2056,7 @@ def test_wall_driver_cannot_advance_during_time_state_readback() -> None:
     def read_state() -> None:
         try:
             outcome.append(manager.read_time_state())
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             outcome.append(exc)
 
     reader = threading.Thread(target=read_state)

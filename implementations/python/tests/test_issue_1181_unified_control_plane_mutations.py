@@ -254,14 +254,14 @@ def test_one_mutation_authority_serializes_families_while_reads_remain_responsiv
     def provision() -> None:
         try:
             control_plane.submit_provisioning(ProvisioningPlan())
-        except BaseException as exc:  # pragma: no cover - assertion reports the exception
+        except BaseException as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.  # pragma: no cover - assertion reports the exception
             failures.append(exc)
 
     def reconcile() -> None:
         try:
             control_plane.reconcile_workflow_timeouts(now="2026-09-11T04:30:00Z")
             completed.set()
-        except BaseException as exc:  # pragma: no cover - assertion reports the exception
+        except BaseException as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.  # pragma: no cover - assertion reports the exception
             failures.append(exc)
 
     first = Thread(target=provision)
@@ -298,7 +298,7 @@ def test_admission_denial_does_not_wait_for_an_active_backend_mutation() -> None
     def provision() -> None:
         try:
             control_plane.submit_provisioning(ProvisioningPlan())
-        except BaseException as exc:  # pragma: no cover - assertion reports the exception
+        except BaseException as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.  # pragma: no cover - assertion reports the exception
             failure.append(exc)
 
     thread = Thread(target=provision)

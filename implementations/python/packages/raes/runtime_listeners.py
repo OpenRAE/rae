@@ -134,9 +134,10 @@ def _listener_address_or_var(value: str, *, field_name: str) -> str:
         return value
     try:
         ipaddress.ip_address(value)
-        return value
     except ValueError:
         pass
+    else:
+        return value
     if all(_HOSTNAME_LABEL.fullmatch(label) for label in value.split(".")):
         return value
     raise ValueError(f"{field_name} must be '*', an IP address, or a hostname")

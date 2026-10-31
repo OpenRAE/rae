@@ -10,12 +10,14 @@ import tomllib
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from tools.check_tooling_artifact_policy import (
     ARTIFACT_LOCK_PATH,
     PROFILES_PATH,
     evaluate_tooling_artifact_policy,
     select_tooling_host_profile,
 )
+from tools.tooling_policy_gate import ArtifactPolicyError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -472,7 +474,7 @@ class _FakeBootstrap:
 
     def install_python(self, _host: str, kit: Path, _artifact_id: str) -> dict:
         if self.fail_install:
-            raise ValueError("offline kit Python archive differs from the validated lock")
+            raise InvalidInputError("offline kit Python archive differs from the validated lock")
         (kit / "python" / "cpython-3.14.7" / "bin").mkdir(parents=True)
         return {"path": "python/cpython-3.14.7"}
 
@@ -520,7 +522,7 @@ def test_a_failed_setup_keeps_the_previous_kit_and_leaves_no_staging(
     kit = tmp_path / "cache" / "raes-bootstrap"
     prepare_kit(CONTAINER_HOST_PROFILE_ID, kit)
     fake_bootstrap.fail_install = True
-    with pytest.raises(ValueError, match="differs from the validated lock"):
+    with pytest.raises(InvalidInputError, match="differs from the validated lock"):
         prepare_kit(CONTAINER_HOST_PROFILE_ID, kit)
     assert (kit / "bin" / "uv").is_file()
     assert sorted(path.name for path in kit.parent.iterdir()) == ["raes-bootstrap"]
@@ -630,13 +632,42 @@ def test_setup_reports_a_failure_as_one_clear_line(
     )
 
 
+def test_setup_does_not_report_a_defect_as_a_setup_failure(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from tools import devcontainer_setup
+
+    def defective(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("setup defect")
+
+    monkeypatch.setattr(devcontainer_setup, "setup", defective)
+    with pytest.raises(RuntimeError, match="setup defect"):
+        devcontainer_setup.main([])
+    assert "devcontainer-setup:" not in capsys.readouterr().err
+
+
+def test_a_selection_parsing_defect_is_not_reported_as_an_invalid_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from tools import tooling_policy_gate
+    from tools.tool_versions import GITLEAKS_VERSION
+
+    def defective(_value: object) -> None:
+        raise TypeError("projection defect")
+
+    monkeypatch.setattr(tooling_policy_gate, "locked_installed_tree", defective)
+    document = _reviewed_selection("gitleaks", GITLEAKS_VERSION)
+    with pytest.raises(TypeError, match="projection defect"):
+        tooling_policy_gate._selection_from_document(document, "public-linux-x86_64")
+
+
 def test_the_locked_uv_client_installs_only_from_its_verified_archive(tmp_path: Path) -> None:
     from tools import bootstrap_profile
 
     kit = tmp_path / "kit"
     (kit / "archives" / "uv").mkdir(parents=True)
     (kit / "archives" / "uv" / "uv-x86_64-unknown-linux-gnu.tar.gz").write_bytes(b"not the reviewed archive")
-    with pytest.raises(ValueError) as caught:
+    with pytest.raises(InvalidInputError) as caught:
         bootstrap_profile.install_uv_payload("container-ubuntu-24.04-x86_64", kit, "uv")
     assert "differs from the validated lock" in str(caught.value)
 
@@ -687,7 +718,7 @@ def test_the_locked_uv_client_is_extracted_as_new_executables(tmp_path: Path, mo
         installed = kit / "bin" / name
         assert installed.read_bytes() == name.encode()
         assert installed.stat().st_mode & 0o111 == 0o111
-    with pytest.raises(ValueError, match="destination uv must be new"):
+    with pytest.raises(InvalidInputError, match="destination uv must be new"):
         bootstrap_profile.install_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
 
 
@@ -705,7 +736,7 @@ def test_an_unexpected_uv_archive_shape_is_refused(
     from tools import bootstrap_profile
 
     kit = _uv_kit(tmp_path, monkeypatch, members)
-    with pytest.raises(ValueError, match=reason):
+    with pytest.raises(InvalidInputError, match=reason):
         bootstrap_profile.install_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
 
 
@@ -713,7 +744,7 @@ def test_a_uv_payload_outside_the_host_selection_is_refused(tmp_path: Path, monk
     from tools import bootstrap_profile
 
     kit = _uv_kit(tmp_path, monkeypatch, {"uv-root/uv": b"uv", "uv-root/uvx": b"uvx"})
-    with pytest.raises(ValueError, match="not selected by the host profile"):
+    with pytest.raises(InvalidInputError, match="not selected by the host profile"):
         bootstrap_profile.install_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv-unreviewed")
 
 
@@ -731,7 +762,9 @@ def _launcher_selection(document: dict, *, version: str):
         platform_id="linux-x86_64",
         profile_id="public-linux-x86_64",
     ):
-        raise RuntimeError("development artifact policy failed before acquisition: invalid selection")
+        raise tooling_policy_gate.ArtifactPolicyError(
+            "development artifact policy failed before acquisition: invalid selection"
+        )
     return selection
 
 
@@ -767,7 +800,7 @@ def test_the_launcher_never_admits_a_non_image_artifact_by_identity_alone() -> N
         "abi": "native",
         "target": "x86_64-unknown-linux-gnu",
     }
-    with pytest.raises(RuntimeError, match="failed before acquisition"):
+    with pytest.raises(ArtifactPolicyError, match="failed before acquisition"):
         _launcher_selection(document, version=GITLEAKS_VERSION)
 
 
@@ -875,30 +908,65 @@ def test_native_host_sizing_is_not_a_second_policy_schema(tmp_path: Path) -> Non
 _BASE_IMAGE_RELEASE = "24.04"
 _BASE_IMAGE_PYTHON = (3, 12)
 _BASE_IMAGE_ENTRY_MODULES = ("tools.devcontainer_setup", "tools.check_tooling_artifact_policy")
+# The setup modules import repository tooling under `tools` and
+# `implementations`, and the standard-library-only shared exception and
+# logging modules from the source tree (ADR-116), so the closure follows all.
+_IMPORT_ROOTS = {
+    "tools": REPO_ROOT,
+    "implementations": REPO_ROOT,
+    "raes_contracts": REPO_ROOT / "implementations" / "python" / "packages",
+}
 
 
-def _setup_import_closure() -> set[str]:
-    """Return the repository modules that the base-image interpreter can import."""
+def _setup_import_closure() -> dict[str, Path]:
+    """Return the repository modules that the base-image interpreter can import.
+
+    Each key is the module path relative to its import root, the form the Ruff
+    target-version table uses.
+    """
+
+    return _import_closure(_BASE_IMAGE_ENTRY_MODULES, _IMPORT_ROOTS)
+
+
+def _imported_modules(module: str, path: Path, roots: dict[str, Path]) -> list[str]:
+    """Return the absolute names of the modules under ``roots`` that one module imports."""
+
+    package = module if path.name == "__init__.py" else module.rpartition(".")[0]
+    found: list[str] = []
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.ImportFrom):
+            if node.level:
+                # A relative import names a module in the package of the importer, up one package for each extra dot.
+                base = package.rsplit(".", node.level - 1)[0]
+                target = f"{base}.{node.module}" if node.module else base
+            else:
+                target = node.module or ""
+            if target.split(".")[0] in roots:
+                found.append(target)
+                found.extend(f"{target}.{alias.name}" for alias in node.names)
+        elif isinstance(node, ast.Import):
+            found.extend(alias.name for alias in node.names if alias.name.split(".")[0] in roots)
+    return found
+
+
+def _import_closure(entry_modules: tuple[str, ...], roots: dict[str, Path]) -> dict[str, Path]:
+    """Follow absolute and relative imports from the entry modules across the import roots."""
 
     seen: dict[str, Path] = {}
-    pending = list(_BASE_IMAGE_ENTRY_MODULES)
+    pending = list(entry_modules)
     while pending:
         module = pending.pop()
+        root = roots[module.split(".")[0]]
         relative = module.replace(".", "/")
-        candidates = (REPO_ROOT / f"{relative}.py", REPO_ROOT / relative / "__init__.py")
+        candidates = (root / f"{relative}.py", root / relative / "__init__.py")
         path = next((candidate for candidate in candidates if candidate.is_file()), None)
         if module in seen or path is None:
             continue
         seen[module] = path
         parts = module.split(".")
         pending.extend(".".join(parts[:index]) for index in range(1, len(parts)))
-        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-            if isinstance(node, ast.ImportFrom) and node.level == 0 and (node.module or "").split(".")[0] == "tools":
-                pending.append(node.module)
-                pending.extend(f"{node.module}.{alias.name}" for alias in node.names)
-            elif isinstance(node, ast.Import):
-                pending.extend(alias.name for alias in node.names if alias.name.split(".")[0] == "tools")
-    return {path.relative_to(REPO_ROOT).as_posix() for path in seen.values()}
+        pending.extend(_imported_modules(module, path, roots))
+    return {path.relative_to(roots[module.split(".")[0]]).as_posix(): path for module, path in seen.items()}
 
 
 def test_container_setup_modules_parse_on_the_base_image_interpreter() -> None:
@@ -906,9 +974,14 @@ def test_container_setup_modules_parse_on_the_base_image_interpreter() -> None:
     (base_image,) = [item for item in lock["artifacts"] if item["artifact_id"] == BASE_IMAGE_ARTIFACT_ID]
     assert base_image["version"] == _BASE_IMAGE_RELEASE
     closure = _setup_import_closure()
-    assert {"tools/bootstrap_profile.py", "tools/check_tooling_artifact_policy.py"} <= closure
-    for relative in sorted(closure):
-        ast.parse((REPO_ROOT / relative).read_text(encoding="utf-8"), relative, feature_version=_BASE_IMAGE_PYTHON)
+    assert {
+        "tools/bootstrap_profile.py",
+        "tools/check_tooling_artifact_policy.py",
+        "raes_contracts/errors.py",
+        "raes_contracts/operational_logging.py",
+    } <= closure.keys()
+    for relative, path in sorted(closure.items()):
+        ast.parse(path.read_text(encoding="utf-8"), relative, feature_version=_BASE_IMAGE_PYTHON)
 
 
 def test_lint_keeps_the_container_setup_modules_on_base_image_syntax() -> None:

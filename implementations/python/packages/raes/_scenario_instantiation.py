@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+from raes_contracts.json_pointer import is_array_index_token
 
 from ._base import VARIABLE_TOKEN_RE
 from ._capability_binding_normalization import normalize_capability_binding
@@ -87,7 +88,7 @@ def resolve_json_pointer(payload: object, pointer: str) -> object:
         if isinstance(current, Mapping):
             current = current[segment]
         elif isinstance(current, (list, tuple)):
-            if not segment.isascii() or not segment.isdigit() or (segment != "0" and segment.startswith("0")):
+            if not is_array_index_token(segment):
                 raise ValueError("JSON Pointer array index must be a canonical non-negative integer")
             current = current[int(segment)]
         else:

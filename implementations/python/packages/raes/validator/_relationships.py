@@ -18,10 +18,11 @@ class _RelationshipsMixin:
             if access is None:
                 continue
             label = f"Relationship '{name}'"
-            self._check_database_access_source(rel.source, label)
-            dbsvc = self._check_database_access_target(rel.target, label)
-            if dbsvc is not None:
-                self._check_database_access_role(access.role_ref, dbsvc, label)
+            with self._owner(("relationships", name)):
+                self._check_database_access_source(rel.source, label)
+                dbsvc = self._check_database_access_target(rel.target, label)
+                if dbsvc is not None:
+                    self._check_database_access_role(access.role_ref, dbsvc, label)
 
     def _check_database_access_source(self, source: str, label: str) -> None:
         if self._is_unresolved_var(source) or self._resolve_application_ref(source) is not None:
@@ -69,19 +70,21 @@ class _RelationshipsMixin:
             if not ref or self._is_unresolved_var(ref):
                 continue
             agents = self._resolve_forwarding_agent_refs(ref)
-            if not agents:
-                self._err(
-                    f"{label} forwarding_edge forwarder_ref '{ref}' does not resolve to a forwarding agent "
-                    "on any node or in scenario forwarding_agents"
-                )
-                continue
-            if len(agents) > 1:
-                self._err(
-                    f"{label} forwarding_edge forwarder_ref '{ref}' resolves to multiple forwarding agents; "
-                    "forwarding_agent_id values must be unique across scenario forwarding_agents and node runtimes"
-                )
-                continue
-            self._check_forwarding_edge_agreement(edge, agents[0], label)
+            with self._owner(("relationships", name)):
+                if not agents:
+                    self._err(
+                        f"{label} forwarding_edge forwarder_ref '{ref}' does not resolve to a forwarding agent "
+                        "on any node or in scenario forwarding_agents"
+                    )
+                    continue
+                if len(agents) > 1:
+                    self._err(
+                        f"{label} forwarding_edge forwarder_ref '{ref}' resolves to multiple forwarding agents; "
+                        "forwarding_agent_id values must be unique across scenario forwarding_agents "
+                        "and node runtimes"
+                    )
+                    continue
+                self._check_forwarding_edge_agreement(edge, agents[0], label)
 
     def _resolve_forwarding_agent_refs(self, ref: str) -> list[object]:
         """Resolve a ``forwarding_agent_id`` across node and scenario registries."""
@@ -141,9 +144,10 @@ class _RelationshipsMixin:
             if integration is None:
                 continue
             label = f"Relationship '{name}'"
-            self._check_service_integration_endpoint(integration.consumer_ref, "consumer_ref", label)
-            engine = self._check_service_integration_endpoint(integration.engine_ref, "engine_ref", label)
-            self._check_service_integration_auth_principal(integration.auth_principal_ref, engine, label)
+            with self._owner(("relationships", name)):
+                self._check_service_integration_endpoint(integration.consumer_ref, "consumer_ref", label)
+                engine = self._check_service_integration_endpoint(integration.engine_ref, "engine_ref", label)
+                self._check_service_integration_auth_principal(integration.auth_principal_ref, engine, label)
 
     def _check_service_integration_endpoint(self, ref: str, field_name: str, label: str) -> object | None:
         if not ref or self._is_unresolved_var(ref):

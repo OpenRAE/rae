@@ -158,6 +158,24 @@ def _nested_content_item_aliases(
     return aliases
 
 
+def nested_declaration_aliases(
+    scenario: ScenarioContent,
+    section_maps: Mapping[str, Mapping[str, str]],
+) -> dict[str, str]:
+    """Nested service, runtime-family and content-item aliases for renamed parents.
+
+    Only a node or content entry whose map target differs from its own key
+    yields aliases, from its declared children's canonical addresses to the
+    same paths under the new key. Composition and declaration rename share
+    this seam.
+    """
+    node_map = section_maps.get("nodes", {})
+    aliases = _nested_node_service_aliases(scenario, node_map)
+    aliases.update(nested_node_runtime_aliases(scenario, node_map))
+    aliases.update(_nested_content_item_aliases(scenario, section_maps.get("content", {})))
+    return aliases
+
+
 def symbol_index(
     scenario: ScenarioContent,
     *,
@@ -194,9 +212,7 @@ def symbol_index(
     named.update(entity_map)
     named.update(_qualified_section_aliases("entities", entity_map))
 
-    named.update(_nested_node_service_aliases(scenario, section_maps.get("nodes", {})))
-    named.update(nested_node_runtime_aliases(scenario, section_maps.get("nodes", {})))
-    named.update(_nested_content_item_aliases(scenario, section_maps.get("content", {})))
+    named.update(nested_declaration_aliases(scenario, section_maps))
 
     forwarding_agent_map = _section_rename_map(
         {agent.forwarding_agent_id: agent for agent in scenario.forwarding_agents},
@@ -248,4 +264,10 @@ def symbol_index(
     }
 
 
-__all__ = ["FORWARDING_AGENTS_SECTION", "HASHMAP_SECTIONS", "explicit_exports", "symbol_index"]
+__all__ = [
+    "FORWARDING_AGENTS_SECTION",
+    "HASHMAP_SECTIONS",
+    "explicit_exports",
+    "nested_declaration_aliases",
+    "symbol_index",
+]
