@@ -94,7 +94,5 @@ and malformed registry JSON is reported as a stable `SDLParseError` without
 including response bodies or decoder internals.
 
 Use `raes processor --help` and `raes conformance --help` for the processor and
-backend-contract surfaces. The [CLI API reference](../api/cli.rst) documents the
-main `raes` command and its `semantic`, `sdl`, `processor`, `conformance`,
-`libvirt`, `corpus`, and `runtime` groups. Run `raes --help` to list the
-groups of your installed version.
+backend-contract surfaces. The [CLI API reference](../api/cli.rst) lists the
+current command implementation.
