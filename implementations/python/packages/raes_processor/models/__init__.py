@@ -103,6 +103,11 @@ from .attribution import (
     ParticipantAttributionEvidenceBasis,
     ParticipantAttributionOrderingBasis,
 )
+from .authored_participant_exposure_v2 import (
+    AuthoredParticipantExposureV2,
+    deliver_authored_participant_decision_surface_v2,
+    validate_authored_participant_exposure_v2,
+)
 from .behavior_history_violations import (
     ParticipantHistoryAddressScope,
     iter_participant_behavior_history_violations,
@@ -334,6 +339,9 @@ __all__ = [
     "ParticipantRuntimeLifecyclePhase",
     "project_participant_decision_surface",
     "project_participant_decision_surface_v2",
+    "AuthoredParticipantExposureV2",
+    "deliver_authored_participant_decision_surface_v2",
+    "validate_authored_participant_exposure_v2",
     "resolve_participant_behavior_projection_anchor_v2",
     "resolve_participant_episode_readiness_anchor_v2",
     "ParticipantDecisionSurfaceProjectionInputV2",

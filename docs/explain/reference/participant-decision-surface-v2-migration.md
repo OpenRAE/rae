@@ -94,3 +94,25 @@ tests establish executable bounded evidence for the covered cases. They do not
 prove universal trace inclusion, alternating refinement, bisimulation, or
 reactive noninterference. Those claims require their separately declared
 relations, quantifier scopes, and proof evidence.
+
+## Authored exposure migration
+
+Existing SDL control-context slots now constrain the v2 projector.
+No SDL field rename or schema migration is required.
+Ordinary v2 callers without authored assets retain their existing interface.
+A caller exposing a compiled control-context asset must supply `authored_exposure`.
+Use `AuthoredParticipantExposureV2` with slot-keyed ACT-620 disclosure records and trusted validation context.
+Admitted trial configuration results can supply additional selections through its `configuration` field.
+The concrete runtime model must retain its instantiated scenario for owner validation.
+
+For delivery, use `deliver_authored_participant_decision_surface_v2` with delivered records and current authority.
+Projection permission does not authorize delivery after a policy change.
+The portable delivery helper remains a trusted-record binding primitive.
+It does not independently establish current asset authorization.
+
+The executable example is `implementations/python/tests/test_dsl_125_authored_exposure.py`.
+It parses a declaration, compiles direct or reusable intent, and projects initial and later decisions.
+It traces the descriptor digest through the context transformation, exposure binding, delivery digest, and assurance provenance.
+It also consumes a sealed ADR-094 configuration through the same slot join.
+The tests exercise refusal for withholding, unknown assets, scope changes, and revoked authority.
+V1 records retain their historical meaning and require trusted reprojection for v2 use.
