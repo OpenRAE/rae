@@ -16,6 +16,7 @@ from raes_processor.planner import (
     prepared_delivery_violation,
     prepared_node_disclosure,
     realization_authority_disclosure,
+    realization_cleanup_diagnostics,
     realization_disclosure,
     sanitize_plan_realization_snapshot,
     sanitize_prepared_node_snapshot,
@@ -212,22 +213,26 @@ def _realization_disclosure_result(
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
     """Disclose plan and supplemental realization authority over one result."""
 
-    # Failed apply results are cleanup inventory, not observation-success claims.
-    # Still check materialization authority and sanitize the snapshot; requiring
-    # the failed readback here would erase recoverable resources.
     plan = realization.plan
-    validation_plan = plan if result.success else replace(plan, observation_demands=())
+    supplemental = _supplemental_realization_requirements(realization)
+    if not result.success:
+        return realization_cleanup_diagnostics(
+            plan,
+            result.snapshot,
+            manifest=realization.manifest,
+            requirements=supplemental,
+            artifact_availability=realization.artifact_availability,
+        ), ()
     diagnostics, provenance = realization_authority_disclosure(
-        validation_plan,
+        plan,
         result.snapshot,
         manifest=realization.manifest,
     )
-    supplemental = _supplemental_realization_requirements(realization)
     if diagnostics:
         return diagnostics, provenance
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
-        validation_plan,
+        plan,
         result.snapshot,
         manifest=realization.manifest,
         artifact_availability=realization.artifact_availability,
