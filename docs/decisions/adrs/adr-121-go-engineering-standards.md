@@ -124,6 +124,9 @@ The Go code uses these idiomatic forms of contract-based development:
 - CI runs gremlins on the lines changed since the merge base with the base
   revision. Test efficacy and mutant coverage must each be above 90%. A change
   without mutants passes. Mutation testing runs in CI only.
+- A condition goes in an `if` statement, not in the expression of a `case`
+  clause. The coverage profile records no block for a `case` expression, so
+  gremlins cannot test its mutants.
 - A regression test is a test function whose name starts with `TestRegression`.
   It must build and fail at the merge base. The `regressiontest` command checks
   each new regression test.
@@ -300,4 +303,4 @@ judgment about meaning or context.
 
 | Date | Commit/PR | Summary |
 | --- | --- | --- |
-| 2026-10-31 | #1775 | Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials. Two lists use list format for ASD-STE100. |
+| 2026-10-31 | #1775 | Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials. |

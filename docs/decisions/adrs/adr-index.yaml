@@ -730,11 +730,11 @@ adrs:
     pin: 31c03fcaa4a342db746f1e62c41777aa718b191a81fdc2e62b13e24320f8647d
   - id: ADR-121
     path: docs/decisions/adrs/adr-121-go-engineering-standards.md
-    pin: 7f0711ef60ea8b68667b54e9aa587d43f9c20f4b5ec010cd868bebf654c79990
+    pin: 58c7ec30cb3f4ee26a09486be60423492d41b472c63d23b4325d84e967caba9d
     amendments:
       - date: 2026-10-31
         ref: "#1775"
-        summary: "Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials. Two lists use list format for ASD-STE100."
+        summary: "Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials."
   - id: ADR-122
     path: docs/decisions/adrs/adr-122-go-architecture-model.md
     pin: 2f88f11071929a0eed0b4ab10962a27dc6669046d53d7591c67ac27293e2d779
