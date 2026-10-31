@@ -250,6 +250,17 @@ ownership:
     - implementations/formal/participant_crossing/machine_check_publication.py
     - implementations/python/tests/test_issue_974_machine_check.py
     - implementations/python/tests/test_issue_974_machine_check_publication.py
+    # Issue #975 isolated measurements; reviewer acceptance remains separate.
+    - implementations/formal/participant_crossing/reproduction_checks.py
+    - implementations/python/tests/test_issue_975_reproduction_checks.py
+    - implementations/formal/participant_crossing/reproduction.py
+    - implementations/formal/participant_crossing/reproduction_sandbox.py
+    - implementations/python/tests/test_issue_975_reproduction.py
+    - implementations/python/tests/test_issue_975_reproduction_sandbox.py
+    - implementations/python/tests/test_issue_975_reproduction_workflow.py
+    - implementations/python/tests/test_issue_975_reproduction_record.py
+    - specs/formal/participant-semantics/participant-crossing-reproduction.md
+    - specs/formal/participant-semantics/reproduction
     - tools/check_participant_opacity_proof.py
     - specs/formal/participant-semantics/participant-opacity-proof-evidence.json
   authoring-adapter-conformance:
@@ -1243,6 +1254,8 @@ ownership:
     - docs/decisions/issue-972-runtime-crossing-mapping-preflight.md
     - docs/decisions/issue-974-finite-crossing-bisimulation-preflight.md
     - docs/governance/requirement-scopes/974.json
+    - docs/decisions/issue-975-independent-crossing-reproduction-preflight.md
+    - docs/governance/requirement-scopes/975.json
     - docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     - docs/requirements/SEM-233/requirement.md
     - contracts/schemas/sdl

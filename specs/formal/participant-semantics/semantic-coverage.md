@@ -52,7 +52,7 @@ judgment.
   families, not files. Every focused specification (every top-level `*.md` in
   this directory other than `README.md` and this index) is named in the
   normative location of at least one family row, and one row can name several:
-  `SEM-232.F` names five, `SEM-235.F` names three, and
+  `SEM-232.F` names seven, `SEM-235.F` names three, and
   `ifc-profile-variability.md` appears in both `SEM-233-ASR-536.F` and
   `SEM-235.F`. Every UID in the README's declared scope list appears in at
   least one row's requirement cell.
