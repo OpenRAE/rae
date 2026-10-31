@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "vector",
+  "files": {
+    "vector.json": "31cacc2f2a3518184e809cbda72672b32cf6e3956e07e76f7aee715814f3de23"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-rejection-then-accept",
+  "result": {
+    "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226167656e742d706f6c696379222c226c6f63616c5f636f6f7264696e617465223a342c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d64222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d64227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d64227d",
+    "draw": {
+      "rejection_attempts": 1,
+      "rejection_exhausted": false,
+      "value": "20"
+    },
+    "raw_block_hex": "ec14167e458c1a8fd85bb2a352dcc12007636b8388ccf185c2e8851aff3088c2",
+    "stream_key_hex": "dbe8eecef305c44dffc6889a4b4195963a668aed131944440a0922d0e4c4b051"
+  },
+  "surface": "randstream"
+}

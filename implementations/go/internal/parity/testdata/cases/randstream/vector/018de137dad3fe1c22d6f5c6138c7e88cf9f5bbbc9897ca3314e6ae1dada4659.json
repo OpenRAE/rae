@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "vector",
+  "files": {
+    "vector.json": "63ac7637305a2adabb0ecaf532920ee557c1e7eafad2f496aacf5ea6a890d53e"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-exhaustion",
+  "result": {
+    "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226f62736572766174696f6e2d6e6f697365222c226c6f63616c5f636f6f7264696e617465223a302c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d65222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d65227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d65227d",
+    "draw": {
+      "rejection_attempts": 2,
+      "rejection_exhausted": true,
+      "value": null
+    },
+    "raw_block_hex": "ede867fc0ed9f3f1df4c503451aa6d5ba1d76805e0d42772394b53e47deb5a45",
+    "stream_key_hex": "f3d133b83db4c97454bd75188af34ea0617285a0e77c8693b52884addf97838d"
+  },
+  "surface": "randstream"
+}

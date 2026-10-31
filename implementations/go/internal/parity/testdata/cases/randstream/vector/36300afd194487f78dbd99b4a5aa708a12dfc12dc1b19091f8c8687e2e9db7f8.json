@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "vector",
+  "files": {
+    "vector.json": "2a28dd1605597990a26126e6b2ddd8345a5b3bb1d71581795a98e02d040e104c"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-boundary-single-value",
+  "result": {
+    "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a227363686564756c65722d746965627265616b222c226c6f63616c5f636f6f7264696e617465223a312c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d63222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d63227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d63227d",
+    "draw": {
+      "rejection_attempts": 0,
+      "rejection_exhausted": false,
+      "value": "7"
+    },
+    "raw_block_hex": "f559feefd03d50c4db1d136833644e712cc4165d639f22fcae18761c22b1c904",
+    "stream_key_hex": "5bf3c27418c0416cc41520c0b3b7f126092cf1b429c909b86abd8a4d44f243fc"
+  },
+  "surface": "randstream"
+}
