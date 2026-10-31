@@ -54,19 +54,22 @@ def realization_cleanup_diagnostics(
         (item.address, item.requirement_kind): _cleanup_requirement(item, returned_snapshot)
         for item in plan_realization_requirements(declared_plan)
     }
-    cleanup_plan = replace(
-        declared_plan,
-        observation_demands=(),
-        realization_authority=tuple(
+    cleanup_authority = []
+    for item in declared_plan.realization_authority:
+        view = cleanup_views.get((item.address, item.requirement_kind))
+        cleanup_authority.append(
             replace(
                 item,
                 verification_scope=view.verification_scope,
                 required_observation_strength=view.required_observation_strength,
             )
-            if (view := cleanup_views.get((item.address, item.requirement_kind))) is not None
+            if view is not None
             else item
-            for item in declared_plan.realization_authority
-        ),
+        )
+    cleanup_plan: ProvisioningPlan = replace(
+        declared_plan,
+        observation_demands=(),
+        realization_authority=tuple(cleanup_authority),
     )
     diagnostics, _ = realization_authority_disclosure(cleanup_plan, returned_snapshot, manifest=manifest)
     supplemental, _ = realization_disclosure(

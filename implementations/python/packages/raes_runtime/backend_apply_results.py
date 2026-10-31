@@ -239,7 +239,7 @@ def _realization_disclosure_result(
     )
     diagnostics.extend(supplemental_diagnostics)
     prepared_provenance = ()
-    if result.success and not diagnostics and realization.completion_plan is not None:
+    if not diagnostics and realization.completion_plan is not None:
         prepared_diagnostics, prepared_provenance = prepared_node_disclosure(
             realization.completion_plan,
             result.snapshot,
