@@ -620,3 +620,15 @@ def test_malformed_lock_is_located_at_its_importing_document(tmp_path: Path, mon
     assert error.code is Code.LOCK_INVALID
     assert (error.path, error.diagnostics[0].pointer) == (Path("/mods/middle.sdl.yaml"), "/imports")
     assert "raes.lock.json" in str(error)
+
+
+def test_located_refusal_keeps_the_original_cause(tmp_path: Path) -> None:
+    (tmp_path / "main.yaml").write_text(
+        yaml.safe_dump({"name": "root", "imports": [{"source": "local:dir", "namespace": "x"}]}), encoding="utf-8"
+    )
+    (tmp_path / "dir").mkdir()
+    with pytest.raises(SDLImportError) as caught:
+        parse_sdl_file(tmp_path / "main.yaml")
+    assert caught.value.code is Code.SOURCE_UNREADABLE
+    assert caught.value.diagnostics[0].pointer == "/imports/0"
+    assert isinstance(caught.value.__cause__, OSError)

@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-31T06:24:57.749591+00:00",
+  "generated_at": "2026-10-31T06:54:40.313408+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -90,5 +90,5 @@
     }
   ],
   "snapshot_id": "issue-1757-supplied-sources-specification-replay",
-  "snapshot_sha256": "fe8d1cf502b524ea25181710d4e90791059b045db815acef3481e7fbf132913c"
+  "snapshot_sha256": "3df4be6ec53d472255aeb7549cbdf802b7c22195d32a15291d497520408b0108"
 }

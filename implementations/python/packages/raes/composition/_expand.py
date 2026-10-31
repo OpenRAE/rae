@@ -395,7 +395,7 @@ def _supplied_lockfile(resolved_path: Path, sources: SuppliedSources, budget: Co
         return decode_lockfile(raw, path=lock_path, max_bytes=budget.limits.max_input_bytes)
     except SDLImportError as exc:
         # Name the importing document, so a parent import does not claim a nested lock failure.
-        raise exc.with_location(resolved_path, "/imports") from exc
+        raise exc.with_location(resolved_path, "/imports") from exc.__cause__
 
 
 def _document_identity(path: Path, context: _ExpansionContext, traversal: CompositionTraversal) -> Path:
@@ -486,7 +486,7 @@ def expand_sdl_modules(
         except SDLImportError as exc:
             if exc.located:
                 raise
-            raise exc.with_location(path, f"/imports/{index}") from exc
+            raise exc.with_location(path, f"/imports/{index}") from exc.__cause__
         import_records.extend(import_add)
         capability_constraints.extend(capability_add)
         parameter_derivations.extend(derivation_add)

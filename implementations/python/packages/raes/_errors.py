@@ -168,7 +168,10 @@ class SDLImportError(SDLParseError):
         return bool(self.diagnostics[0].pointer)
 
     def with_location(self, path: Path, pointer: str) -> Self:
-        """Return the same refusal located at one import of one document."""
+        """Return the same refusal located at one import of one document.
+
+        Raise the result ``from`` the original ``__cause__``, so the root cause stays first in the chain.
+        """
 
         return type(self)(self.code, self.details, path, pointer=pointer)
 
