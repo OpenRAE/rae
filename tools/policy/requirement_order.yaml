@@ -44,6 +44,11 @@ phases:
   - id: observability-conformance
     requirements:
       - ASR-525
+  - id: conformance-support-reporting
+    requirements:
+      - ASR-526
+    blocked_until:
+      - reference-implementations
   - id: participant-relation-assurance
     requirements:
       - ASR-535

@@ -88,5 +88,11 @@ and malformed registry JSON is reported as a stable `SDLParseError` without
 including response bodies or decoder internals.
 
 Use `raes processor --help` and `raes conformance --help` for the processor and
-backend-contract surfaces. The [CLI API reference](../api/cli.rst) lists the
+backend-contract surfaces.
+`raes conformance processor` runs finite compilation and planning checks.
+`raes conformance backend --profile provisioning-only` checks the published fixtures.
+Both commands accept `--format text`; JSON remains the default.
+The report separates requested scope, achieved scope, support gaps, and evidence limits.
+Fixture success proves no native backend execution.
+The [CLI API reference](../api/cli.rst) lists the
 current command implementation.

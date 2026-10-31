@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass, field
+from importlib.metadata import PackageNotFoundError, version
 
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.digests import sha256_digest
 
 from raes_conformance.conformance.diagnostics import _diagnostic_payload
 from raes_conformance.conformance.mixed_backend_types import MixedBackendCaseBinding, mixed_case_binding_payload
@@ -106,6 +109,7 @@ class ConformanceCaseResult:
     environment_digest: str | None = None
     mixed_binding: MixedBackendCaseBinding | None = None
     modular_control: ModularControlEvidence | None = None
+    validation_strength: str | None = None
 
     def __post_init__(self) -> None:
         """Keep the closed outcome vocabulary aligned with the gating boolean."""
@@ -135,6 +139,15 @@ class BackendConformanceReport:
     diagnostics: tuple[Diagnostic, ...] = ()
     probe_set_digest: str | None = None
     native_conformance: bool = False
+    subject_kind: str = "backend"
+    subject_name: str | None = None
+    subject_version: str | None = None
+    profile_version: str | None = None
+    profile_digest: str | None = None
+    tool_version: str | None = None
+    contract_digests: dict[str, str] = field(default_factory=dict)
+    required_case_refs: tuple[str, ...] = ()
+    provenance: dict[str, object] = field(default_factory=dict)
 
 
 _UNIVERSAL_QUANTIFIER_SCOPES = frozenset({"all-admitted-inputs", "all-traces", "all-strategies"})
@@ -172,8 +185,23 @@ def _validate_case_outcomes(report: BackendConformanceReport) -> None:
     every mixed obligation natively, not just one unrelated case.
     """
 
+    if report.subject_kind not in {"backend", "processor"}:
+        raise ValueError("conformance report requires a backend or processor subject")
     if report.passed and not report.cases:
         raise ValueError("backend conformance report is marked passed without any case")
+    identities = [(case.contract_name, case.name) for case in report.cases]
+    if len(identities) != len(set(identities)):
+        raise ValueError("conformance report contains duplicate case identities")
+    if report.passed and (
+        report.unsupported_contract_gaps
+        or report.unsupported_capability_gaps
+        or any(diag.is_error for diag in report.diagnostics)
+    ):
+        raise ValueError("conformance report is marked passed with required gaps or top-level errors")
+    if report.passed and _missing_checks(report):
+        raise ValueError("conformance report is marked passed without every required check")
+    if report.native_conformance and (not report.passed or report.subject_kind != "backend"):
+        raise ValueError("native conformance requires a passing backend report")
     for case in report.cases:
         if case.passed != (case.outcome == "passed"):
             raise ValueError(f"conformance case {case.name!r} has inconsistent outcome and pass fields")
@@ -302,6 +330,46 @@ def _validate_claim_strength(report: BackendConformanceReport) -> None:
             "backend conformance report claims native conformance but no case executed "
             "on a native basis; fixture-only and hermetic evidence do not establish it"
         )
+    if report.native_conformance and any(
+        case.execution_basis not in {"fixture-only", "native-live"} for case in report.cases
+    ):
+        raise ValueError("native conformance requires a native basis for every execution obligation")
+    if report.native_conformance:
+        _validate_native_evidence(report)
+
+
+def _validate_native_evidence(report: BackendConformanceReport) -> None:
+    """Require retained observation and cleanup evidence from the native probe set."""
+
+    probes = [case for case in report.cases if case.probe_kind in {"positive", "negative"}]
+    if not report.probe_set_digest or not any(case.probe_kind == "positive" for case in probes):
+        raise ValueError("native conformance requires bound native probe evidence")
+    for case in probes:
+        if (
+            not all(
+                (
+                    case.probe_digest,
+                    case.envelope_digest,
+                    case.configuration_digest,
+                    case.target_binding,
+                    case.evidence_refs,
+                )
+            )
+            or case.probe_set_digest != report.probe_set_digest
+            or case.cleanup_verified is not True
+            or case.residual_state
+        ):
+            raise ValueError("native conformance requires bound native probe and cleanup evidence")
+        if case.probe_kind == "positive" and (
+            not case.expected_observation_strengths
+            or not set(case.expected_observation_strengths) <= set(case.actual_observation_strengths)
+            or set(case.expected_operations) != set(case.accounted_operations)
+        ):
+            raise ValueError("native conformance requires complete native observation evidence")
+        if case.probe_kind == "negative" and (
+            case.native_state_unchanged is not True or case.portable_state_unchanged is not True
+        ):
+            raise ValueError("native conformance requires unchanged-state evidence for negative probes")
 
 
 def _validate_case_evidence(report: BackendConformanceReport) -> None:
@@ -355,6 +423,17 @@ def backend_conformance_report_payload(report: BackendConformanceReport) -> dict
     validate_backend_conformance_report(report)
     return {
         "profile": report.profile,
+        "subject_kind": report.subject_kind,
+        "subject_name": report.subject_name,
+        "subject_version": report.subject_version,
+        "profile_version": report.profile_version,
+        "profile_digest": report.profile_digest,
+        "tool_version": report.tool_version,
+        "reporter_version": conformance_tool_version(),
+        "contract_digests": dict(report.contract_digests),
+        "required_case_refs": list(report.required_case_refs),
+        "provenance": dict(report.provenance),
+        "summary": _report_summary(report),
         "passed": report.passed,
         "native_conformance": report.native_conformance,
         "probe_set_digest": report.probe_set_digest,
@@ -369,6 +448,7 @@ def backend_conformance_report_payload(report: BackendConformanceReport) -> dict
                 "valid": case.valid,
                 "passed": case.passed,
                 "execution_basis": case.execution_basis,
+                "validation_strength": case.validation_strength,
                 "outcome": case.outcome,
                 "probe_kind": case.probe_kind,
                 "probe_digest": case.probe_digest,
@@ -407,6 +487,78 @@ def backend_conformance_report_payload(report: BackendConformanceReport) -> dict
         ],
         "diagnostics": [_diagnostic_payload(diag) for diag in report.diagnostics],
     }
+
+
+def _missing_checks(report: BackendConformanceReport) -> list[str]:
+    present = {f"conformance-case:{case.contract_name}:{case.name}" for case in report.cases}
+    return sorted(set(report.required_case_refs) - present)
+
+
+def _report_summary(report: BackendConformanceReport) -> dict[str, object]:
+    """Describe the selected finite scope without upgrading legacy observations."""
+
+    return {
+        "requested_profile": report.profile,
+        "achieved_profile": report.profile if report.passed else None,
+        "checks": {
+            outcome: sum(case.outcome == outcome for case in report.cases)
+            for outcome in dict.fromkeys(("passed", "failed", "unsupported", *(case.outcome for case in report.cases)))
+        },
+        "missing_checks": _missing_checks(report),
+        "validation_basis": {
+            "execution_bases": sorted({case.execution_basis for case in report.cases}),
+            "evidence_scope": report.claim.evidence_scope,
+            "quantifier_scope": report.claim.quantifier_scope,
+            "evidence_boundary": report.claim.evidence_boundary,
+        },
+        "support": [
+            {
+                "check": f"conformance-case:{case.contract_name}:{case.name}",
+                "feature": case.capability_feature,
+                "declared": case.declared_support_level,
+                "effective": case.effective_support_level,
+                "observed": case.outcome if case.evidence_origin == "observed-execution" else None,
+                "evidence_origin": case.evidence_origin,
+            }
+            for case in report.cases
+            if case.capability_feature is not None
+        ],
+        "limitations": list(
+            dict.fromkeys([*report.claim.limitations, *(item for case in report.cases for item in case.limitations)])
+        ),
+        "explicit_non_claims": list(
+            dict.fromkeys(
+                [
+                    *report.claim.explicit_non_claims,
+                    *(item for case in report.cases for item in case.explicit_non_claims),
+                ]
+            )
+        ),
+    }
+
+
+def contract_content_digests(schemas: dict[str, object]) -> dict[str, str]:
+    """Pin schema content using the existing schema-publication JSON encoding.
+
+    Schema bounds may exceed JCS's safe integer domain. Publication therefore
+    uses sorted, compact UTF-8 JSON rather than the artifact JCS helper.
+    """
+
+    return {
+        name: sha256_digest(
+            json.dumps(schema, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        )
+        for name, schema in schemas.items()
+    }
+
+
+def conformance_tool_version() -> str:
+    """Identify the installed producer without changing its release version."""
+
+    try:
+        return version("raes")
+    except PackageNotFoundError:
+        return "0.0.0+unknown"
 
 
 def _bounded_conformance_claim(
@@ -457,3 +609,7 @@ def _bounded_conformance_claim(
         ],
     )
     return validate_behavioral_claim_binding(binding)
+
+
+# Public seam for additional runners; retain the incumbent private hook for compatibility.
+bounded_conformance_claim = _bounded_conformance_claim

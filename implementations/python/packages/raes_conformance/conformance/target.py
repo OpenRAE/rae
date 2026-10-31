@@ -183,7 +183,8 @@ def _unknown_profile_report(
             ),
         ),
     )
-    return BackendConformanceReport(
+    return replace(
+        fixture_report,
         profile=profile_id,
         passed=False,
         claim=_bounded_conformance_claim(
@@ -394,6 +395,14 @@ def _known_profile_report(
         ),
         cases=cases,
         contract_versions=dict(fixture_report.contract_versions),
+        subject_name=target.manifest.name,
+        subject_version=target.manifest.version,
+        profile_version=fixture_report.profile_version,
+        profile_digest=fixture_report.profile_digest,
+        tool_version=fixture_report.tool_version,
+        contract_digests=dict(fixture_report.contract_digests),
+        provenance=dict(fixture_report.provenance),
+        required_case_refs=tuple(f"conformance-case:{case.contract_name}:{case.name}" for case in cases),
         unsupported_contract_gaps=contract_gaps,
         unsupported_capability_gaps=capability_gaps,
         diagnostics=tuple(diagnostics),
@@ -430,6 +439,7 @@ def run_target_conformance(target: RuntimeTarget, **option_values: Any) -> Backe
         root=options.root,
         profiles_root=options.profiles_root,
     )
+    fixture_report = replace(fixture_report, subject_name=target.manifest.name, subject_version=target.manifest.version)
     if any(diag.code == "conformance.profile-load-failed" for diag in fixture_report.diagnostics):
         return fixture_report
     if _to_known_profile(effective_profile) is None:
