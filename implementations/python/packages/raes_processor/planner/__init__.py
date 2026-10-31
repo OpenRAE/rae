@@ -17,6 +17,7 @@ from .realization_authority import (
     realization_authority_disclosure,
     sanitize_plan_realization_snapshot,
 )
+from .realization_cleanup import realization_cleanup_diagnostics
 from .realization_collections import prepared_node_collection_binding_violation, prepared_node_collection_violation
 from .realization_constraint_views import planned_constraint_requirements
 from .realization_preparation import prepared_delivery_violation, prepared_realization_violation
@@ -36,6 +37,7 @@ __all__ = [
     "planned_constraint_requirements",
     "realization_authority_diagnostics",
     "realization_authority_disclosure",
+    "realization_cleanup_diagnostics",
     "sanitize_plan_realization_snapshot",
     "sanitize_realization_snapshot",
     "snapshot_delete_order",
