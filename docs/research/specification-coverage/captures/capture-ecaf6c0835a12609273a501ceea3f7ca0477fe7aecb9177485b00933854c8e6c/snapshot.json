@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-31T06:54:40.313408+00:00",
+  "captured_at": "2026-10-31T07:15:32.301637+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -657,7 +657,7 @@
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "7653a5fb47c91140d984c3928b69ec154d68277314434594573d4ec773aaa4c8",
+      "content_sha256": "330eaa3a8c029f76a32a2fac13bc4512712cf9691a8f1ec08ba9f1afaf89322e",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -677,13 +677,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "b49ddb9d82f76d283e8acca2a541557734cbecad",
+  "raes_revision": "ebdb8c5b2fa87bec263ef588e4258259b934146d",
   "snapshot_id": "issue-1757-supplied-sources-specification-replay",
   "snapshot_revision": "1.0.0",
   "source_state": {
-    "base_revision": "b49ddb9d82f76d283e8acca2a541557734cbecad",
+    "base_revision": "ebdb8c5b2fa87bec263ef588e4258259b934146d",
     "checkout_state": "modified",
-    "implementation_digest": "7504d69f5acaf631c7e3879ccb572ae334dc5a3a1a3a6ac25cc1e3e7d8ed152f",
+    "implementation_digest": "86de09f5c2bf5f555819a30496bd0e50f7691eef968ddecb1647494cd80889f4",
     "profile": "python-reference-source/v2"
   }
 }

@@ -30,13 +30,7 @@ def normalize_bundle_path(base_relative: str, relative: str) -> str:
 
     normalized = relative.replace("\\", "/")
     candidate = PurePosixPath(normalized)
-    invalid_reference = (
-        not normalized
-        or "\x00" in normalized
-        or candidate.is_absolute()
-        or (candidate.parts and len(candidate.parts[0]) == 2 and candidate.parts[0][1] == ":")
-    )
-    if invalid_reference:
+    if _invalid_reference(normalized, candidate):
         raise SDLImportError(SDLImportErrorCode.PATH_INVALID, _ESCAPE_MESSAGE)
     parts = [] if base_relative == "." else list(PurePosixPath(base_relative).parts)
     for part in candidate.parts:
@@ -49,6 +43,13 @@ def normalize_bundle_path(base_relative: str, relative: str) -> str:
     if not parts:
         raise SDLImportError(SDLImportErrorCode.PATH_INVALID, _ESCAPE_MESSAGE)
     return PurePosixPath(*parts).as_posix()
+
+
+def _invalid_reference(normalized: str, candidate: PurePosixPath) -> bool:
+    """Return whether an authored path is empty, has a NUL, is absolute or names a drive."""
+
+    drive = bool(candidate.parts) and len(candidate.parts[0]) == 2 and candidate.parts[0][1] == ":"
+    return not normalized or "\x00" in normalized or candidate.is_absolute() or drive
 
 
 def _canonical_relative(path: str) -> bool:
@@ -123,6 +124,6 @@ class SuppliedSources:
     @staticmethod
     def _logical(path: Path) -> str:
         relative = path.as_posix().removeprefix("/")
-        if path.as_posix()[:1] != "/" or (relative and not _canonical_relative(relative)):
+        if not path.as_posix().startswith("/") or (relative and not _canonical_relative(relative)):
             raise SDLImportError(SDLImportErrorCode.PATH_INVALID, _ESCAPE_MESSAGE)
         return relative

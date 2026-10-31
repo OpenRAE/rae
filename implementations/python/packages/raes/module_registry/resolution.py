@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from ..parser import SDLSourceDocument
 
 _LOCKED_PREFIX = "locked:"
+_LOCAL_PREFIX = "local:"
 
 # The private request/signature seams (``_json_request``, ``_bytes_request``,
 # ``_extract_bundle_to_cache``, ``_verify_signatures``, ``_OCI_LIMITS``) are resolved
@@ -150,12 +151,12 @@ def resolve_import(
 
 def _resolve_import_with_context(import_decl: ImportDecl, context: _ResolutionContext) -> ResolvedModule:
     source = import_decl.normalized_source
-    if context.supplied_sources is not None and not source.startswith("local:"):
+    if context.supplied_sources is not None and not source.startswith(_LOCAL_PREFIX):
         # Refuse before dispatch, so no lock, registry or trust policy can select a source.
         raise SDLImportError(SDLImportErrorCode.SOURCE_REFUSED, "A supplied-source parse admits only local imports.")
     if source.startswith(_LOCKED_PREFIX):
         return _resolve_locked_import(import_decl, source, context=context)
-    if source.startswith("local:"):
+    if source.startswith(_LOCAL_PREFIX):
         return _resolve_local_import(import_decl, source, context=context)
     if not source.startswith("oci:"):
         raise SDLImportError(SDLImportErrorCode.SOURCE_REFUSED, f"Unsupported import source '{source}'")
@@ -273,7 +274,7 @@ def _resolve_local_import(
 ) -> ResolvedModule:
     from ..parser import _load_normalized_data
 
-    relative = source.removeprefix("local:")
+    relative = source.removeprefix(_LOCAL_PREFIX)
     sources = context.supplied_sources
     if sources is not None:
         require_import_pin(import_decl)

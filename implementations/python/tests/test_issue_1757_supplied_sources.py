@@ -198,11 +198,11 @@ def _warm_imports() -> None:
 
     parse_sdl_sources(_kit_sources(), _KIT_ROOT)
     parse_sdl_sources({"a.yaml": _bytes({"name": "plain", "nodes": {"vm": _HOST}})}, "a.yaml")
+    registry_root = {
+        "main.sdl.yaml": _bytes({"name": "x", "imports": [{"source": "oci:r.example/a/b", "namespace": "a"}]})
+    }
     with pytest.raises(SDLImportError):
-        parse_sdl_sources(
-            {"main.sdl.yaml": _bytes({"name": "x", "imports": [{"source": "oci:r.example/a/b", "namespace": "a"}]})},
-            "main.sdl.yaml",
-        )
+        parse_sdl_sources(registry_root, "main.sdl.yaml")
 
 
 def test_kit_pack_from_raes_pack_kit_add_parses_without_host_access(monkeypatch: pytest.MonkeyPatch) -> None:
