@@ -256,7 +256,10 @@ def test_manager_composes_all_phases_before_mutation_and_preserves_cumulative_wo
     from test_runtime_manager import RecordingEvaluator, RecordingOrchestrator, _full_scenario
 
     source = _full_scenario().model_dump(mode="json", exclude_unset=True)
-    source["realization"] = {"default": "open"}
+    source["realization"] = {
+        "default": "open",
+        "scopes": [{"field_pointer": "/nodes/host/runtime", "posture": "closed"}],
+    }
     source["nodes"]["host"] = source["nodes"].pop("vm")
     source["propositions"]["health"]["subjects"] = ["nodes.host"]
     execution = scoped_plan({"default": "open"}, content=source)
