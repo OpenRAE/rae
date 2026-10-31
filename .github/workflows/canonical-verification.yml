@@ -147,7 +147,7 @@ jobs:
         run: >-
           uv run --offline --no-sync --project implementations/python --frozen
           python -m implementations.formal.participant_crossing.reproduction
-          --expected-manifest sha256:76422aebb1413e345677eeaa4bea67005e74aa3d9289d185f63f4c69dc838339
+          --expected-manifest sha256:5ccba62ebb9e876ccf9a4626a2e1be4821907711b97e6c2a3396e670461ec592
           --qualified
       - name: Publish admitted finite model-check evidence
         if: ${{ success() }}

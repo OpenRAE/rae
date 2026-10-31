@@ -39,7 +39,7 @@ Every output byte must match the separately selected reviewed capture.
 After the existing tool acquisition and Python setup, run:
 
 ```sh
-PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest sha256:76422aebb1413e345677eeaa4bea67005e74aa3d9289d185f63f4c69dc838339
+PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest sha256:5ccba62ebb9e876ccf9a4626a2e1be4821907711b97e6c2a3396e670461ec592
 ```
 
 The expected result is an immutable `reproduction/capture-.../measurement.json` file.
