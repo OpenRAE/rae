@@ -16,8 +16,8 @@ from tools.formal_semantic_validation._types import (
 )
 from tools.policy.common import load_bounded_json_object, safe_repo_path
 from tools.research_evidence import (
-    current_release_path,
     evidence_key,
+    latest_recorded_release_path,
     validate_inventory,
 )
 
@@ -76,7 +76,7 @@ def load_retest_bundle(
     releases = load_release_bundles(repo_root)
     if not releases:
         raise InvalidInputError("the formal semantic-validation index selects no v2 retest release")
-    current_path = current_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
+    current_path = latest_recorded_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
     release = next(item for item in releases if item.manifest_path == current_path)
     if release.protocol.get("revision") != "2.0.0":
         raise InvalidInputError("the current formal capture must bind retest protocol 2.0.0")

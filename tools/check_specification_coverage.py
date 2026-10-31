@@ -47,7 +47,7 @@ from tools.specification_coverage._primitives import _failure, _sha256
 from tools.specification_coverage._protocol import _validate_protocol
 from tools.specification_coverage._snapshot import _validate_snapshot
 from tools.research_evidence import (
-    current_release_path,
+    latest_recorded_release_path,
     evidence_key,
     validate_inventory,
 )
@@ -87,7 +87,7 @@ def load_bundle(
 ) -> tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]:
     bundles = load_bundles(repo_root)
     records = _load_bundle_index(repo_root)
-    current = current_release_path(records, repo_root)
+    current = latest_recorded_release_path(records, repo_root)
     selected = dict(records)[current]
     return next(bundle for bundle in bundles if bundle[0] == selected)
 
@@ -139,7 +139,7 @@ def _load_bundle_record(
 def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
         records = _load_bundle_index(repo_root)
-        current_path = current_release_path(records, repo_root)
+        current_path = latest_recorded_release_path(records, repo_root)
         bundles = [
             (manifest_path, _load_bundle_record(repo_root, manifest_path, manifest))
             for manifest_path, manifest in records

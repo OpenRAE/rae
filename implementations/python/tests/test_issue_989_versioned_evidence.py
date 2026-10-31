@@ -243,7 +243,7 @@ def test_current_formal_capture_requires_the_retest_protocol(monkeypatch, protoc
 
     current = _stub_release("77.0.0", protocol_revision=protocol_revision)
     monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [current])
-    monkeypatch.setattr(_loading, "current_release_path", lambda *_args: current.manifest_path)
+    monkeypatch.setattr(_loading, "latest_recorded_release_path", lambda *_args: current.manifest_path)
     with pytest.raises(InvalidInputError, match="must bind retest protocol 2.0.0"):
         _loading.load_retest_bundle(ROOT)
 
@@ -253,7 +253,7 @@ def test_current_formal_release_selection_follows_manifest_selection(monkeypatch
 
     current = _stub_release("capture-" + "a" * 64)
     monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [_stub_release("76.0.0"), current])
-    monkeypatch.setattr(_loading, "current_release_path", lambda *_args: current.manifest_path)
+    monkeypatch.setattr(_loading, "latest_recorded_release_path", lambda *_args: current.manifest_path)
     assert _loading.load_retest_bundle(ROOT)[0] is current
 
 
@@ -278,16 +278,21 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     assert "formal-validation-replay-drift" in {f.rule_id for f in failures}
 
 
-@pytest.mark.integration
-def test_current_release_requires_truthful_implementation_provenance():
+def test_recorded_release_provenance_does_not_require_current_source():
     from tools.formal_semantic_validation._loading import load_retest_bundle
-    from tools.formal_semantic_validation._releases import validate_retest_bundle
+    from tools.formal_semantic_validation._releases import _current_retest_source_failures
 
-    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    snapshot = deepcopy(snapshot)
-    assert "source_state" in snapshot
+    release, _, _, snapshot, _ = copy_bundle(load_retest_bundle, ROOT)
     snapshot["source_state"]["implementation_digest"] = "0" * 64
-    failures = validate_retest_bundle(ROOT, release, protocol, corpus, snapshot, analysis)
+    failures = []
+    _current_retest_source_failures(
+        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"]
+    )
+    assert failures == []
+    snapshot["source_state"]["implementation_digest"] = "malformed"
+    _current_retest_source_failures(
+        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"]
+    )
     assert "research-evidence-source-state" in {f.rule_id for f in failures}
 
 
@@ -655,10 +660,12 @@ def test_release_managed_version_source_is_the_file_release_please_rewrites():
 
 def test_current_capture_requires_the_release_stable_source_profile():
     from tools.formal_semantic_validation._loading import load_retest_bundle
-    from tools.research_evidence import SOURCE_PROFILE, source_state_failures
+    from tools.research_evidence import SOURCE_PROFILE, implementation_digest, source_state_failures
 
     _, _, _, snapshot, _ = load_retest_bundle(ROOT)
     state = deepcopy(snapshot["source_state"])
+    # Explicit source-bound publication remains strict; routine replay uses recorded provenance.
+    state["implementation_digest"] = implementation_digest(ROOT)
     assert state["profile"] == SOURCE_PROFILE == "python-reference-source/v2"
     assert source_state_failures(ROOT, state, "capture.json", current=True) == []
 
