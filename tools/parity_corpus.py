@@ -20,7 +20,10 @@ parity data, so the recording drops it. The ``schema`` surface validates each
 contract fixture against its published schema, and its result is the verdict.
 The ``canonical`` surface encodes each JSON fixture and each edge input in the
 RFC 8785 form and in the two sorted ``json.dumps`` forms. Its result is the
-digest of each encoding, or ``null`` when the encoding refuses the input.
+digest of each encoding, or ``null`` when the encoding refuses the input. The
+``randstream`` surface runs the random-stream engine on each published vector:
+its result is the stream key, the canonical address bytes, the raw block, and
+the bounded draw of the vector.
 
 ``record`` writes the corpus. ``check`` records into memory and fails when the
 committed corpus differs, and it can write the fresh corpus for review.
@@ -47,8 +50,14 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 from jsonschema import Draft202012Validator  # noqa: E402
 from raes_cli.main import app  # noqa: E402
 from raes_conformance.conformance import contract_payload_root  # noqa: E402
+from raes_contracts import random_stream_engine  # noqa: E402
 from raes_contracts.canonical import canonical_json_bytes  # noqa: E402
 from raes_contracts.contracts import schema_bundle  # noqa: E402
+from raes_contracts.contracts.random_stream import (  # noqa: E402
+    ParticipantStreamAddressModel,
+    PublicSeedModel,
+    StreamAddressModel,
+)
 from raes_contracts.digests import sha256_digest  # noqa: E402
 from raes_contracts.json_serialization import (  # noqa: E402
     sorted_json_text_finite,
@@ -246,6 +255,16 @@ def canonical_cases(repo: Path) -> Iterator[Case]:
         )
 
 
+def randstream_cases(repo: Path) -> Iterator[Case]:
+    """Yield each published random-stream vector."""
+
+    for vector in sorted((repo / "contracts" / "fixtures" / "random-stream-vectors").rglob("*.json")):
+        name = vector.relative_to(repo).with_suffix("").as_posix()
+        yield Case(
+            surface="randstream", command="vector", name=name, args=(), files={"vector.json": vector.read_bytes()}
+        )
+
+
 def all_cases(repo: Path) -> list[Case]:
     """Return every case of the corpus, sorted by case path."""
 
@@ -254,6 +273,7 @@ def all_cases(repo: Path) -> list[Case]:
         *portable_cases(repo, supported_contracts()),
         *schema_cases(repo),
         *canonical_cases(repo),
+        *randstream_cases(repo),
     ]
     return sorted(cases, key=lambda case: case.path)
 
@@ -321,13 +341,44 @@ def run_canonical(case: Case) -> dict[str, object]:
     return result
 
 
+def run_randstream(case: Case) -> dict[str, object]:
+    """Run the random-stream engine on the inputs of a published vector."""
+
+    vector = json.loads(case.files["vector.json"])
+    profile = vector["profile_id"]
+    seed = random_stream_engine.decode_public_seed(PublicSeedModel.model_validate(vector["root_entropy"]))
+    key = random_stream_engine.derive_stream_key(profile_id=profile, root_entropy=seed)
+    model = ParticipantStreamAddressModel if profile == "blake3-xof-participant-v1" else StreamAddressModel
+    address = model.model_validate(vector["address"])
+    result: dict[str, object] = {
+        "stream_key_hex": key.hex(),
+        "address_canonical_bytes_hex": random_stream_engine.canonical_stream_address_bytes(address).hex(),
+        "raw_block_hex": random_stream_engine.raw_block(profile_id=profile, stream_key=key, address=address).hex(),
+    }
+    transform = vector.get("transform")
+    if transform is not None:
+        draw = random_stream_engine.draw_bounded_integer(
+            profile_id=profile,
+            stream_key=key,
+            address=address,
+            minimum=transform["minimum"],
+            maximum=transform["maximum"],
+            max_rejection_attempts=transform["max_rejection_attempts"],
+        )
+        result["draw"] = {
+            "value": None if draw.value is None else str(draw.value),
+            "rejection_attempts": draw.rejection_attempts,
+            "rejection_exhausted": draw.rejection_exhausted,
+        }
+    return result
+
+
 def run(repo: Path, case: Case) -> dict[str, object]:
     """Return the result of one case."""
 
-    if case.surface == "cli":
-        return run_cli(case)
-    if case.surface == "canonical":
-        return run_canonical(case)
+    runners = {"cli": run_cli, "canonical": run_canonical, "randstream": run_randstream}
+    if case.surface in runners:
+        return runners[case.surface](case)
     return run_schema(repo, case)
 
 

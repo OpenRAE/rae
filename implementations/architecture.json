@@ -20,6 +20,10 @@
         {
           "path": "github.com/gowebpki/jcs",
           "reason": "The RFC 8785 canonicalizer, packaged from the reference implementation of the RFC author."
+        },
+        {
+          "path": "github.com/zeebo/blake3",
+          "reason": "BLAKE3 key derivation and keyed extendable output with a correct seek, for the published random-stream profiles."
         }
       ]
     },
@@ -190,13 +194,21 @@
       "imports": []
     },
     {
+      "dir": "implementations/go/internal/base/randstream",
+      "layer": "base",
+      "public": true,
+      "doc": "The blake3-xof-v1 and blake3-xof-participant-v1 random-stream profiles.",
+      "imports": []
+    },
+    {
       "dir": "implementations/go/internal/parity",
       "layer": "parity",
       "public": false,
       "doc": "The golden corpus loader, the runner registry, and the corpus test.",
       "imports": [
         "implementations/go/internal/base/canonjson",
-        "implementations/go/internal/base/digest"
+        "implementations/go/internal/base/digest",
+        "implementations/go/internal/base/randstream"
       ]
     },
     {
