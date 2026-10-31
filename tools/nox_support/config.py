@@ -26,12 +26,21 @@ PUBLIC_DOCS_EXAMPLE_TESTS = (
     "implementations/python/tests/test_issue_938_landing_page.py::test_quickstart_prints_the_output_each_page_shows",
 )
 RUFF_CONFIG = PROJECT_ROOT / "pyproject.toml"
-OSV_LOCKFILE_PATH = PROJECT_ROOT / "uv.lock"
-OSV_REPORT_PATH = PROJECT_ROOT / "osv-scanner-report.json"
-# The locked tooling closure also runs in CI (for example the ADR-117 analyzers), so the
-# vulnerability gate scans it too.
-OSV_TOOLING_LOCKFILE_PATH = REPO_ROOT / "implementations" / "tooling" / "python" / "uv.lock"
-OSV_TOOLING_REPORT_PATH = PROJECT_ROOT / "osv-scanner-tooling-report.json"
+# The vulnerability gate scans every locked dependency closure that runs in CI: the project,
+# the Python tooling (for example the ADR-117 analyzers), and the Go tool module (ADR-106).
+OSV_SCAN_TARGETS = (
+    ("uv.lock", PROJECT_ROOT / "uv.lock", PROJECT_ROOT / "osv-scanner-report.json"),
+    (
+        "tooling uv.lock",
+        REPO_ROOT / "implementations" / "tooling" / "python" / "uv.lock",
+        PROJECT_ROOT / "osv-scanner-tooling-report.json",
+    ),
+    (
+        "Go tooling go.mod",
+        REPO_ROOT / "implementations" / "tooling" / "go" / "go.mod",
+        PROJECT_ROOT / "osv-scanner-go-tooling-report.json",
+    ),
+)
 COVERAGE_XML_PATH = PROJECT_ROOT / "coverage.xml"
 COVERAGE_JSON_PATH = PROJECT_ROOT / "coverage.json"
 MINIMUM_LINE_COVERAGE_PERCENT = 90.0

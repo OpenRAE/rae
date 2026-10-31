@@ -1,7 +1,7 @@
 ---
 id: SEM-232
 title: "Proof-Bearing Participant-Crossing Bisimulation"
-status: DRAFT
+status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 wave: 4
@@ -58,7 +58,7 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#973` (Build the participant-crossing bisimulation counterexample corpus)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#975` (Independently reproduce participant-crossing bisimulation)
-- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#976` (Publish reproduced participant-crossing bisimulation documentation)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#976` (Publish reproduced participant-crossing bisimulation documentation)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#811` (Design a proof-bearing participant-control bisimulation result)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md` (ADR-100: Proof-Bearing Participant-Crossing Bisimulation)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-bisimulation.md` (Participant-Crossing Bisimulation)
@@ -95,3 +95,33 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_checks.py` (Complete comparison inventory, exact original bytes and always-accept rejection)
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_record.py` (Retained qualified evidence, exact artifact joins and attributable agent acceptance)
 - DOCUMENTS → DOCUMENTATION `specs/formal/participant-semantics/reproduction/pin.json` (Immutable qualified reproduction and separate acceptance record)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Finite DPBB decision production and admission for participant-crossing-dpbb-finite-v1@rev2)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Closed result, claim, and subject-source manifest)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/export.py` (Independent model construction and model subject sources)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_corpus.py` (Mandatory mutation replay and corpus subject sources)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction.py` (Fresh isolated measurement bound to reproducer subject sources)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction_record.py` (Retained reproduction admission with separate reviewer validation)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/publication.py` (Published facts composed from the two admitted records)
+- IMPLEMENTS → CONFIG `contracts/concept-authority/behavioral-relations-v1.json` (Catalog rev14 records the finite model-check axis only)
+- IMPLEMENTS → DOCUMENTATION `specs/formal/participant-semantics/machine-check/pin.json` (Selected finite model-check capture)
+- IMPLEMENTS → DOCUMENTATION `specs/formal/participant-semantics/counterexamples/pin.json` (Selected mutation corpus capture)
+- IMPLEMENTS → DOCUMENTATION `docs/public/participant-control.md` (Reader-facing finite result, claim binding, publication facts, and nonclaims)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-976-crossing-evidence-identity-design.md` (Subject identity, execution provenance, admission, and publication)
+- TESTS → TEST `implementations/python/tests/test_issue_976_evidence_identity.py` (Apparatus changes keep records admissible; subject changes refuse them)
+- TESTS → TEST `implementations/python/tests/test_issue_976_reproduction_record.py` (Self-approved, detached, and stale reproduction records are refused)
+- TESTS → TEST `implementations/python/tests/test_issue_976_crossing_publication.py` (Published claim and facts equal the admitted records)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/behavioral_relations.py` (Retained rev13 catalog registry behind the rev14 finite model-check axis)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/scientific_completeness.py` (Reviewed selection of the 2026-10-31 assessment that cites the reproduced result)
+- IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json` (Behavioral-relation evidence for the reproduced finite result without profile promotion)
+- TESTS → TEST `implementations/python/tests/test_issue_811_participant_bisimulation_design.py` (Exact relation, bounded claim surface, and program dependencies)
+- TESTS → TEST `implementations/python/tests/test_behavioral_relations.py` (Catalog rev14 and retained revision validation)
+- TESTS → TEST `implementations/python/tests/test_scientific_scenario_completeness.py` (Current assessment selection and profile outcomes)
+- TESTS → TEST `implementations/python/tests/test_sem_230_information_flow_control.py` (Catalog rev14 keeps the policy-noninterference entry unchanged)
+- TESTS → TEST `implementations/python/tests/test_sem_231_participant_predicate_opacity.py` (Catalog rev14 keeps the opacity entry unchanged)
+- TESTS → TEST `implementations/python/tests/test_sem_233_adversarial_boundary_flow.py` (Catalog rev14 keeps the SEM-233 relation evidence unchanged)
+- TESTS → TEST `implementations/python/tests/test_issue_963_participant_opacity_proof.py` (Catalog rev14 keeps the opacity proof axis unchanged)
+- TESTS → TEST `implementations/python/tests/test_issue_964_participant_opacity_runtime.py` (Catalog rev14 keeps the opacity runtime axis unchanged)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction_attestation.py` (Retain-time binding of review references to GitHub comment, run, job, artifact, and commit records)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md` (ADR-100 amendment records the completed #971-#976 work and the ACTIVE transition)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping_export.py` (Mapping capture inventory binds the mapping test drivers and stays within the repository file-size limit)
