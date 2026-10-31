@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 
-from ._common import RelationBudget, pointer
+from ..json_pointer import pointer_from_tokens
+from ._common import RelationBudget
 from ._models import (
     RealizationAllOf,
     RealizationCollectionProfile,
@@ -34,7 +35,7 @@ def _spend_operation(
     activity: str,
 ) -> LimitViolation | None:
     if exhausted := budget.spend_operation():
-        return LimitViolation(pointer(path), f"{activity} exceeded {exhausted}.")
+        return LimitViolation(pointer_from_tokens(path), f"{activity} exceeded {exhausted}.")
     return None
 
 
@@ -46,11 +47,11 @@ def _admit_metadata(
 ) -> LimitViolation | None:
     violation = None
     if depth > budget.limits.max_depth:
-        violation = LimitViolation(pointer(path), "Constraint metadata exceeded max_depth.")
+        violation = LimitViolation(pointer_from_tokens(path), "Constraint metadata exceeded max_depth.")
     elif spent := _spend_operation(budget, path, "Constraint metadata admission"):
         violation = spent
     elif exhausted := budget.spend_scalar(value):
-        violation = LimitViolation(pointer(path), f"Constraint metadata exceeded {exhausted}.")
+        violation = LimitViolation(pointer_from_tokens(path), f"Constraint metadata exceeded {exhausted}.")
     elif isinstance(value, dict):
         violation = _admit_metadata_mapping(value, path, depth, budget)
     elif isinstance(value, (list, tuple)):
@@ -66,7 +67,7 @@ def _admit_metadata_mapping(
 ) -> LimitViolation | None:
     violation = None
     if len(value) > budget.limits.max_members:
-        violation = LimitViolation(pointer(path), "Constraint metadata exceeded max_members.")
+        violation = LimitViolation(pointer_from_tokens(path), "Constraint metadata exceeded max_members.")
     else:
         for key, child in value.items():
             violation = _admit_metadata(key, (*path, str(key), "$key"), depth + 1, budget)
@@ -85,7 +86,7 @@ def _admit_metadata_sequence(
 ) -> LimitViolation | None:
     violation = None
     if len(value) > budget.limits.max_members:
-        violation = LimitViolation(pointer(path), "Constraint metadata exceeded max_members.")
+        violation = LimitViolation(pointer_from_tokens(path), "Constraint metadata exceeded max_members.")
     else:
         for index, child in enumerate(value):
             violation = _admit_metadata(child, (*path, str(index)), depth + 1, budget)
@@ -102,7 +103,7 @@ def _admit_node(
 ) -> LimitViolation | None:
     violation = None
     if exhausted := budget.spend_node(depth):
-        violation = LimitViolation(pointer(path), f"Constraint admission exceeded {exhausted}.")
+        violation = LimitViolation(pointer_from_tokens(path), f"Constraint admission exceeded {exhausted}.")
     else:
         violation = _admit_metadata(
             {
@@ -171,7 +172,7 @@ def _admit_record_node(
     assert isinstance(node, RealizationRecordConstraint)
     violation = _admit_metadata(node.closure.model_dump(mode="json"), (*path, "closure"), 0, budget)
     if violation is None and len(node.fields) > budget.limits.max_members:
-        violation = LimitViolation(pointer(path), "Constraint record exceeded max_members.")
+        violation = LimitViolation(pointer_from_tokens(path), "Constraint record exceeded max_members.")
     if violation is None:
         for key, child in node.fields.items():
             violation = _admit_metadata(key, (*path, key, "$key"), 0, budget)
@@ -195,7 +196,9 @@ def _admit_keyed_node(
             member_path = (*path, str(index))
             exhausted = budget.spend_identity()
             if exhausted is not None:
-                violation = LimitViolation(pointer(member_path), f"Constraint admission exceeded {exhausted}.")
+                violation = LimitViolation(
+                    pointer_from_tokens(member_path), f"Constraint admission exceeded {exhausted}."
+                )
             else:
                 violation = _admit_metadata(member.identity, (*member_path, "identity"), 0, budget)
             if violation is None:
@@ -213,7 +216,7 @@ def _admit_children(
 ) -> LimitViolation | None:
     violation = None
     if len(children) > budget.limits.max_members:
-        violation = LimitViolation(pointer(path), "Constraint children exceeded max_members.")
+        violation = LimitViolation(pointer_from_tokens(path), "Constraint children exceeded max_members.")
     else:
         for index, child in enumerate(children):
             violation = _admit_node(child, (*path, str(index)), depth + 1, budget)
@@ -283,7 +286,7 @@ def _admit_keyed_metadata(
     }
     violation = _admit_metadata(metadata, (*path, "$collection"), 0, budget)
     if violation is None and len(node.aliases) > budget.limits.max_members:
-        violation = LimitViolation(pointer(path), "Constraint aliases exceeded max_members.")
+        violation = LimitViolation(pointer_from_tokens(path), "Constraint aliases exceeded max_members.")
     if violation is None:
         violation = _admit_aliases(node, path, budget)
     return violation
@@ -299,7 +302,7 @@ def _admit_aliases(
         alias_path = (*path, "aliases", str(index))
         exhausted = budget.spend_identity()
         if exhausted is not None:
-            violation = LimitViolation(pointer(alias_path), f"Constraint admission exceeded {exhausted}.")
+            violation = LimitViolation(pointer_from_tokens(alias_path), f"Constraint admission exceeded {exhausted}.")
         else:
             violation = _admit_metadata(
                 {"identity": alias.identity, "target": alias.target},

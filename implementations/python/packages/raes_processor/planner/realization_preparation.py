@@ -10,6 +10,7 @@ from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.json_pointer import pointer_tokens
 from raes_contracts.planning import ProvisioningPlan, RealizationAuthorityMode, ResolvedRealizationAuthority
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT, RealizationPreparationAuthority
@@ -69,13 +70,9 @@ def preparation_member_diagnostics(
     ]
 
 
-def _tokens(pointer: str) -> tuple[str, ...]:
-    return tuple(token.replace("~1", "/").replace("~0", "~") for token in pointer.split("/")[1:])
-
-
 def _value(payload: object, pointer: str) -> object:
     current = payload
-    for token in _tokens(pointer):
+    for token in pointer_tokens(pointer):
         if not isinstance(current, dict) or token not in current:
             return _MISSING
         current = current[token]
@@ -84,7 +81,7 @@ def _value(payload: object, pointer: str) -> object:
 
 def _remove(payload: dict[str, object], pointer: str) -> None:
     current = payload
-    tokens = _tokens(pointer)
+    tokens = pointer_tokens(pointer)
     for token in tokens[:-1]:
         if not isinstance(current.get(token), dict):
             return

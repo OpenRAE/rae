@@ -4012,9 +4012,12 @@ def test_adr_pin_gate_compares_a_base_revision_that_is_not_utf8(tmp_path: Path) 
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True, capture_output=True)
     _nox2_write(tmp_path / relative, head.replace("Body.", "Body \xff.").encode("latin-1"))
     subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True, capture_output=True)
-    base_tree = subprocess.run(
-        ["git", "write-tree"], cwd=tmp_path, check=True, capture_output=True, text=True
-    ).stdout.strip()
+    subprocess.run(
+        ["git", "-c", "user.name=Test", "-c", "user.email=t@example.com", "commit", "-q", "-m", "base"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+    )
     _nox2_write(tmp_path / relative, head)
     manifest = {
         "hash_algorithm": "sha256",
@@ -4022,7 +4025,7 @@ def test_adr_pin_gate_compares_a_base_revision_that_is_not_utf8(tmp_path: Path) 
     }
     _nox2_write(tmp_path / adr_gate.MANIFEST_PATH, json.dumps(manifest))
 
-    failures = adr_gate.evaluate_adr_immutability(tmp_path, base_rev=base_tree)
+    failures = adr_gate.evaluate_adr_immutability(tmp_path, base_rev="HEAD")
 
     assert [failure.rule_id for failure in failures] == [adr_gate.RULE_AMENDMENT_UNRECORDED]
 

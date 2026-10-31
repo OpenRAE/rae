@@ -8,8 +8,8 @@ from uuid import uuid4
 
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, OperationStatus
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import ControlPlaneOperationRecord
 from .interaction_results import validated_composition_result
@@ -34,7 +34,7 @@ def commit_driver_failure(plane: RuntimeControlPlane, result: ApplyResult) -> No
             predecessor,
             "runtime.participant-clock-driver",
         )
-        operation_id, timestamp = str(uuid4()), _utc_now()
+        operation_id, timestamp = str(uuid4()), isoformat_z(plane.wall_clock())
         context = operation_admission_context(
             plane,
             kind=OperationKind.COMPOSITION_PHASE,

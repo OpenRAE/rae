@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from uuid import uuid4
 
 from pydantic import ValidationError
@@ -13,6 +12,7 @@ from raes_contracts.contracts.participant_control import (
     ParticipantControlTargetKind,
 )
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.timestamps import isoformat_z
 from raes_processor.models import (
     MixedControlControllerStateRuntime,
     MixedControlTransitionRuntime,
@@ -61,7 +61,7 @@ def build_participant_control_occurrence(
     transition = context.transition
     state = context.state
     history = context.history
-    now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    now = isoformat_z(control_plane.wall_clock())
     detail: dict[str, object] = {
         "kind": intent.kind,
         "declaration_ref": transition.address,

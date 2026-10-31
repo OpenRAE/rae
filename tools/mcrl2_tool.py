@@ -37,6 +37,7 @@ def selection() -> LockedArtifactSelection:
         version=MCRL2_VERSION,
         platform_id="linux-x86_64",
         profile_id="model-check-linux-x86_64",
+        offline=True,
     )
     if (
         len(selected.raw_manifest) != 1

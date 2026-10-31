@@ -11,6 +11,7 @@ from raes_contracts.contracts.trial_controls import OperationSupervisionCapabili
 from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.planning import PlanScope
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.timestamps import WallClock, utc_now
 from raes_processor.models import ParticipantBehaviorSpecificationRuntime, RuntimeModel
 
 from .control_plane_profiles import ControlPlaneProfile
@@ -56,6 +57,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     inject_delivery: ParticipantInjectRuntimeBinding | None
     stochastic_controls: Iterable[ExperimentStochasticControlModel]
     required_operation_guarantees: tuple[OperationGuarantee, ...]
+    wall_clock: WallClock
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -82,8 +84,11 @@ class ControlPlaneConfiguration:
     inject_delivery: ParticipantInjectRuntimeBinding | None = None
     stochastic_controls: Iterable[ExperimentStochasticControlModel] = ()
     required_operation_guarantees: tuple[OperationGuarantee, ...] = ()
+    wall_clock: WallClock = utc_now
 
     def __post_init__(self) -> None:
+        if not callable(self.wall_clock):
+            raise TypeError("wall_clock must be a callable that returns an aware UTC datetime")
         guarantees = OperationSupervisionCapabilitiesModel(
             name="runtime-run", guarantees=self.required_operation_guarantees
         )

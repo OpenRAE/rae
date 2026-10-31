@@ -1,5 +1,105 @@
 # Backend conformance guardrails
 
+## Processor and backend report views
+
+ASR-526 uses the existing `BackendConformanceReport` family for both subjects.
+The legacy class name remains available.
+`subject_kind` identifies a processor or backend.
+Missing legacy identity or provenance fields remain unknown.
+`reporter_version` identifies the current projection tool.
+It does not replace the original producer version.
+
+The CLI prints JSON by default.
+Both formats use the same validated result and process status.
+
+```console
+raes conformance backend --profile provisioning-only --format text
+raes conformance processor --format json
+raes conformance processor --feature runtime-control-plane --format text
+```
+
+The last command reports unverified support and returns status 1.
+The processor command selects the reference processor and its finite `processor-compile-plan/v1` suite.
+The default backend manifest is the reference dry-run planning declaration.
+`--manifest` selects a local backend declaration for planning.
+No backend operation runs.
+
+The installed Python API accepts another explicit processor implementation.
+That implementation supplies `manifest_payload()` and `realize()`.
+`realize()` returns the existing portable `ReferenceProcessorResult`.
+
+```python
+from raes_conformance.conformance import (
+    ProcessorConformanceProbe,
+    backend_conformance_report_payload,
+    backend_conformance_report_text,
+    run_processor_conformance,
+)
+
+def check_processor(processor, planning_backend_manifest):
+    report = run_processor_conformance(
+        processor,
+        backend_manifest=planning_backend_manifest,
+    )
+    return backend_conformance_report_payload(report), backend_conformance_report_text(report)
+```
+
+`probes` selects explicit `ProcessorConformanceProbe` inputs.
+`requested_features` selects the requested feature subset.
+The current suite checks compilation and planning.
+Other requested features remain unverified, even when declared.
+A negative probe with no error codes requires a parser refusal.
+A semantic negative names its required error codes.
+An unrelated exception never satisfies a negative check.
+`expected_plan_addresses` binds a positive probe to expected operations.
+
+The runner consumes the processing declarations in `reference-stack-v1`.
+Passing the finite suite does not qualify that full semantic profile.
+The report retains the semantic profile version and digest separately.
+The validation-profile reference explains structural check requirements.
+It asserts no report-wide validation disclosure or achieved strength.
+Each check retains its actual validation and execution basis.
+
+### Qualification and support
+
+`summary.requested_profile` retains the requested profile or suite.
+`summary.achieved_profile` is `null` on failure.
+The claim's evidence boundary limits achievement to the selected checks.
+No fallback profile is inferred.
+Fixture success establishes fixture coverage only.
+Finite processor checks establish no native backend execution.
+
+Check totals count verdicts.
+An intended invalid fixture can pass through its expected rejection.
+Its error diagnostics remain visible.
+Top-level errors, missing required checks, and required support gaps prevent achievement.
+Duplicate case identities are invalid.
+Empty valid fixture directories remain incomplete.
+
+Support rows separate declarations, admission-effective support, and observed check outcomes.
+A declaration-derived effective level is not an observation.
+An absent observation remains unknown.
+Partial and unsupported support retain their constraints and limitations.
+The human view escapes terminal controls in all values.
+
+### Evidence and compatibility
+
+New fixture reports retain exact fixture-byte digests.
+Unknown fixture producer origin remains unknown.
+Schema content pins use the existing schema-publication JSON encoding.
+Profiles and selected probe sets retain their exact content pins.
+Reports retain safe references rather than source plans, credentials, or raw exceptions.
+A digest identifies content; it authenticates no producer.
+Producer authenticity remains the caller's trust boundary.
+Native qualification also requires retained probe pins, bound observations, and checked cleanup.
+
+The modular-control suite remains `modular-control-runtime/v2`.
+Mixed-backend results retain the `mixed-backend-probes/rev1` catalog coordinates.
+Their specialist bindings, versions, evidence references, and limitations remain unchanged.
+The reusable-control/mixed-runtime and distributed/portable-mixed combinations remain unsupported.
+A successful demonstration cannot replace a failed conformance result.
+These rules preserve fixture provenance distinctions required by issue #1344.
+
 The [modular control runner](modular-control-conformance.md) publishes ASR-538's
 installed shared-runtime probes. It requires explicit obligation/effect coverage
 and independent owner readback. Fixture validity does not establish that claim.

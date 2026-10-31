@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import sqlite3
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from typing import Any
 
+from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import EvidenceIntegrityError
+from raes_contracts.json_serialization import sorted_json_text
 
 # SQLite reports a file that is not a database, or a damaged database page, with these primary result codes.
 _INVALID_DATABASE_RESULT_CODES = frozenset({sqlite3.SQLITE_CORRUPT, sqlite3.SQLITE_NOTADB})
@@ -112,12 +113,12 @@ def transaction(connection: sqlite3.Connection) -> Iterator[None]:
 def encode_payload(payload: dict[str, Any]) -> tuple[str, str]:
     """Encode one canonical durable object with its integrity digest."""
 
-    content = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    content = sorted_json_text(payload)
     if exceeds_durable_nesting(content, payload):
         # Admission bounds each runtime value, so only a defect gives a deeper value.
         # The store does not write a value that it refuses to read.
         raise ValueError("durable value exceeds the durable nesting limit")
-    return content, hashlib.sha256(content.encode("utf-8")).hexdigest()
+    return content, sha256_hex(content.encode("utf-8"))
 
 
 def decode_payload(content: object, expected_digest: object, *, kind: str) -> dict[str, Any]:
@@ -129,7 +130,7 @@ def decode_payload(content: object, expected_digest: object, *, kind: str) -> di
 
     if not isinstance(content, str) or not isinstance(expected_digest, str):
         raise EvidenceIntegrityError(f"{kind} failed its durable integrity check")
-    actual_digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    actual_digest = sha256_hex(content.encode("utf-8"))
     if actual_digest != expected_digest:
         raise EvidenceIntegrityError(f"{kind} failed its durable integrity check")
     try:

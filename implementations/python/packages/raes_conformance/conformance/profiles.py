@@ -14,6 +14,7 @@ from raes_contracts.backend_profiles import (
     backend_profiles_root,
     load_backend_profile_from_path,
 )
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.corpus import FIXTURES, corpus_family_root
 from raes_contracts.diagnostics import Diagnostic
 
@@ -130,6 +131,7 @@ def required_contracts(
     profile: BackendProfileSelector,
     *,
     profiles_root: Path | None = None,
+    evidence: dict[str, object] | None = None,
 ) -> frozenset[str]:
     """Return the contracts a backend must honor for ``profile``.
 
@@ -144,13 +146,17 @@ def required_contracts(
     structured conformance diagnostics.
     """
 
-    return frozenset(_load_backend_profile(profile, profiles_root=profiles_root).required_contracts)
+    loaded = _load_backend_profile(profile, profiles_root=profiles_root)
+    if evidence is not None:
+        evidence.update(version=loaded.schema_version, digest=canonical_json_digest(loaded.model_dump(mode="json")))
+    return frozenset(loaded.required_contracts)
 
 
 def _resolve_required_contracts(
     profile: BackendProfileSelector,
     *,
     profiles_root: Path | None = None,
+    evidence: dict[str, object] | None = None,
 ) -> tuple[frozenset[str], tuple[Diagnostic, ...]]:
     """Load the profile's contract set, converting load failures to diagnostics.
 
@@ -165,7 +171,7 @@ def _resolve_required_contracts(
 
     profile_id = _to_profile_id(profile)
     try:
-        return required_contracts(profile, profiles_root=profiles_root), ()
+        return required_contracts(profile, profiles_root=profiles_root, evidence=evidence), ()
     # The loader reads and decodes one JSON file: OSError when it cannot be read, ValueError when it does not
     # decode or validate, RecursionError beyond the decoder nesting depth, and its own identity refusal.
     except (OSError, ValueError, RecursionError, BackendProfileIdentityError) as exc:

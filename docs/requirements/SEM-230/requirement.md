@@ -74,3 +74,9 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 - IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_mutations.py` (Exact semantic selectors and reversible fault deltas)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-counterexamples.md` (Revisioned projection and assurance boundary)
 - TESTS → TEST `implementations/python/tests/test_issue_973_crossing_mutations.py` (Reachability, hidden actions, cut advancement, deadlock and completion)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)

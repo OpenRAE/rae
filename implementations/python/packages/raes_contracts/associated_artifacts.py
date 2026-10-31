@@ -19,6 +19,7 @@ from raes import (
 )
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
+from .canonical import canonical_json_bytes
 from .contracts import (
     AssociatedArtifactManifestModel,
     ExperimentApparatusContextModel,
@@ -30,6 +31,7 @@ from .contracts import (
     OperationArtifactReferenceModel,
 )
 from .diagnostics import Diagnostic, Severity
+from .digests import sha256_digest
 from .json_ingress import parse_bounded_json_object
 
 _DOMAIN = "associated-artifact"
@@ -96,7 +98,7 @@ def associated_artifact_set_bytes(manifest: AssociatedArtifactManifestModel) -> 
         },
     }
     try:
-        return rfc8785.dumps(_normalized_canonical_value(projection))
+        return canonical_json_bytes(_normalized_canonical_value(projection))
     except rfc8785.CanonicalizationError as exc:
         raise ValueError("associated-artifact set canonicalization failed") from exc
 
@@ -104,8 +106,7 @@ def associated_artifact_set_bytes(manifest: AssociatedArtifactManifestModel) -> 
 def associated_artifact_set_digest(manifest: AssociatedArtifactManifestModel) -> str:
     """Derive the v1 lowercase SHA-256 identity for a manifest's artifact set."""
 
-    digest = hashlib.sha256(associated_artifact_set_bytes(manifest)).hexdigest()
-    return f"sha256:{digest}"
+    return sha256_digest(associated_artifact_set_bytes(manifest))
 
 
 def load_associated_artifact_manifest_json(source: str | bytes | bytearray) -> AssociatedArtifactManifestModel:

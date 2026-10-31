@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import base64
-import json
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from raes_contracts.json_serialization import sorted_json_text
 
 from .._errors import SDLParseError
 from ..scenario import ModuleDescriptor
@@ -34,7 +34,7 @@ def _signable_payload(
     single canonical signer-payload builder: publishing and resolving must produce
     the identical shape or verification fails closed.
     """
-    return json.dumps(
+    return sorted_json_text(
         {
             "module_id": module_descriptor.id,
             "module_version": module_descriptor.version,
@@ -42,8 +42,6 @@ def _signable_payload(
             "content_digest": content_digest,
             "root_file": root_file,
         },
-        sort_keys=True,
-        separators=(",", ":"),
     ).encode("utf-8")
 
 

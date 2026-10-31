@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from pydantic.json_schema import JsonSchemaValue
 
-from .base import _parse_rfc3339_datetime
+from ..timestamps import parse_rfc3339_datetime
 from .schema_invariants import _add_raes_invariant
 
 if TYPE_CHECKING:
@@ -21,8 +21,8 @@ def validate_run_difficulty_provenance(run: ExperimentRunModel) -> None:
     provenance = run.difficulty_provenance
     if provenance is None:
         return
-    started_at = _parse_rfc3339_datetime("started_at", run.started_at)
-    ended_at = _parse_rfc3339_datetime("ended_at", run.ended_at)
+    started_at = parse_rfc3339_datetime("started_at", run.started_at)
+    ended_at = parse_rfc3339_datetime("ended_at", run.ended_at)
     decisions_by_id = _difficulty_decision_times(run, started_at, ended_at)
     for intervention in provenance.interventions:
         _validate_difficulty_intervention_time(
@@ -44,7 +44,7 @@ def _difficulty_decision_times(
     for decision in run.difficulty_provenance.decisions:
         if decision.run_id != run.run_id:
             raise ValueError("difficulty decisions must match the archival run_id")
-        decided_at = _parse_rfc3339_datetime("difficulty decision decided_at", decision.decided_at)
+        decided_at = parse_rfc3339_datetime("difficulty decision decided_at", decision.decided_at)
         if decided_at < started_at or decided_at > ended_at:
             raise ValueError("difficulty decision timing must be within the run")
         decisions_by_id[decision.decision_id] = decided_at
@@ -60,7 +60,7 @@ def _validate_difficulty_intervention_time(
 ) -> None:
     if intervention.run_id != run.run_id:
         raise ValueError("difficulty interventions must match the archival run_id")
-    occurred_at = _parse_rfc3339_datetime(
+    occurred_at = parse_rfc3339_datetime(
         "difficulty intervention occurred_at",
         intervention.occurred_at,
     )

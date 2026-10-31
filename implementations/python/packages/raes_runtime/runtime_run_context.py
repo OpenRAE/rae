@@ -143,6 +143,7 @@ class RuntimeRunContext(
         engine: object,
     ) -> None:
         self._engine = engine
+        self.wall_clock = config.wall_clock
         self._required_operation_guarantees = config.required_operation_guarantees
         self._retired = False
         self._initialize_interaction(target, config)

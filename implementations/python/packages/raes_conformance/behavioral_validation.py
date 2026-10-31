@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -13,6 +11,7 @@ from raes_contracts.behavioral_relations import validate_behavioral_claim_bindin
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.errors import RaesError
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from ._realization_models import ExecutionBasis
@@ -121,8 +120,7 @@ class BehavioralProbeCase:
             "execution_basis": self.execution_basis.value,
             "mutates_state": self.mutates_state,
         }
-        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
-        return "sha256:" + hashlib.sha256(encoded).hexdigest()
+        return sorted_json_digest(payload)
 
 
 @dataclass(frozen=True)

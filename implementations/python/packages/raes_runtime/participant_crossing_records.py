@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
 from uuid import uuid4
 
 from raes_contracts.contracts.participant_crossing import (
@@ -19,6 +18,7 @@ from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     RuntimeSnapshot,
 )
+from raes_contracts.timestamps import WallClock, isoformat_z
 
 from .control_plane_mutation import external_control_plane_call
 from .control_plane_security import ControlPlaneIdentity
@@ -40,10 +40,6 @@ from .participant_crossing_policy import (
 from .participant_crossing_state_cut import expected_participant_history_heads as _expected_history_heads
 
 _RETAINED_HISTORY_INVALID = "retained participant crossing history does not validate"
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 @dataclass(frozen=True)
@@ -106,9 +102,8 @@ def _prepare_crossing_decision(
     identity = preparation.identity
     resolution = preparation.resolution
     support = preparation.support
-    gates = preparation.gates
     disposition = preparation.disposition
-    request, decision = _crossing_records(intent, identity, resolution, support, gates, disposition)
+    request, decision = _crossing_records(intent, preparation, wall_clock=control_plane.wall_clock)
     records = [request, decision]
     final_decision = decision
     final_disposition = disposition
@@ -137,14 +132,21 @@ def _prepare_crossing_decision(
                 fresh_support.gate,
             )
             fresh_disposition = _decision_disposition(fresh_gates, fresh_resolution)
+            fresh_preparation = _CrossingDecisionPreparation(
+                identity=identity,
+                resolution=fresh_resolution,
+                support=fresh_support,
+                gates=fresh_gates,
+                disposition=fresh_disposition,
+                expected_heads=preparation.expected_heads,
+                context=preparation.context,
+                idempotency_key=preparation.idempotency_key,
+            )
             fresh_request, fresh_decision = _crossing_records(
                 fresh_intent,
-                identity,
-                fresh_resolution,
-                fresh_support,
-                fresh_gates,
-                fresh_disposition,
+                fresh_preparation,
                 request_predecessor_refs=(transformed.event_id,),
+                wall_clock=control_plane.wall_clock,
             )
             records.extend((fresh_request, fresh_decision))
             final_decision = fresh_decision
@@ -187,15 +189,14 @@ def _prepare_crossing_decision(
 
 def _crossing_records(
     intent: ParticipantCrossingIntent,
-    identity: ControlPlaneIdentity,
-    resolution: ParticipantCrossingPolicyResolution,
-    support: _BackendSupport,
-    gates: ParticipantCrossingDecisionGatesModel,
-    disposition: ParticipantCrossingDecisionDisposition,
+    preparation: _CrossingDecisionPreparation,
     *,
     request_predecessor_refs: tuple[str, ...] = (),
+    wall_clock: WallClock,
 ) -> tuple[ParticipantCrossingOccurrenceModel, ParticipantCrossingOccurrenceModel]:
-    now = _utc_now()
+    identity, resolution, support = preparation.identity, preparation.resolution, preparation.support
+    gates, disposition = preparation.gates, preparation.disposition
+    now = isoformat_z(wall_clock())
     request_id = f"crossing-request.{uuid4()}"
     request_event_id = f"crossing-occurrence.requested.{uuid4()}"
     decision_id = f"crossing-decision.{uuid4()}"

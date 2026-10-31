@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
@@ -10,6 +9,9 @@ from typing import Any, Literal
 
 import rfc8785
 from pydantic import ConfigDict, model_validator
+from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
+from raes_contracts.digests import sha256_digest
+from raes_contracts.json_pointer import escape_token
 
 from ._base import SDLModel
 from ._errors import SDLError, SDLParseError
@@ -19,7 +21,6 @@ from .scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
 INSTANTIATED_SNAPSHOT_PROFILE = "raes-sdl-instantiated-snapshot/v2"
 MATERIALIZED_SDL_PROFILE = "raes-sdl-materialized/v1"
-_SHA256_PREFIX = "sha256:"
 _LEGACY_SNAPSHOT_PROJECTION_REVISION = "instantiated-snapshot-v1/node-architecture-default"
 # Twice the authoring depth limit leaves room for the snapshot envelope and provenance, and it
 # keeps the recursive copy and canonicalization far below the interpreter recursion limit.
@@ -60,18 +61,17 @@ def canonical_sdl_bytes(scenario: Scenario | ExpandedScenario) -> bytes:
         "module_node_variable_refs": scenario.module_node_variable_refs,
     }
     try:
-        return rfc8785.dumps(payload)
+        return canonical_json_bytes(payload)
     except rfc8785.CanonicalizationError as exc:
         raise SDLParseError("SDL canonicalization failed") from exc
 
 
 def canonical_sdl_digest(scenario: Scenario | ExpandedScenario) -> SDLCanonicalDigest:
     """Return the profile-labelled SHA-256 digest of canonical SDL semantic bytes."""
-    digest = hashlib.sha256(canonical_sdl_bytes(scenario)).hexdigest()
     return SDLCanonicalDigest(
         profile=SDL_CANONICAL_PROFILE,
         algorithm="sha256",
-        value=f"{_SHA256_PREFIX}{digest}",
+        value=sha256_digest(canonical_sdl_bytes(scenario)),
     )
 
 
@@ -81,7 +81,7 @@ def canonical_materialized_sdl_bytes(scenario: MaterializedScenario) -> bytes:
         raise SDLParseError("Materialized SDL identity requires a validated materialization description")
     scenario = admit_materialized_scenario(scenario)
     try:
-        return rfc8785.dumps(
+        return canonical_json_bytes(
             {
                 "profile": MATERIALIZED_SDL_PROFILE,
                 "scenario": scenario.model_dump(mode="json", by_alias=True, exclude_unset=True),
@@ -96,7 +96,7 @@ def canonical_materialized_sdl_digest(scenario: MaterializedScenario) -> SDLCano
     return SDLCanonicalDigest(
         profile=MATERIALIZED_SDL_PROFILE,
         algorithm="sha256",
-        value=_SHA256_PREFIX + hashlib.sha256(canonical_materialized_sdl_bytes(scenario)).hexdigest(),
+        value=sha256_digest(canonical_materialized_sdl_bytes(scenario)),
     )
 
 
@@ -198,7 +198,7 @@ def _migrate_legacy_snapshot_vm(
     nodes: dict[str, Any],
     existing: list[object],
 ) -> None:
-    pointer = f"/nodes/{_pointer_token(name)}"
+    pointer = f"/nodes/{escape_token(name)}"
     collision = any(
         isinstance(record, Mapping)
         and not record.get("namespace")
@@ -237,7 +237,7 @@ def migrate_legacy_instantiated_snapshot_join(
     if not changed:
         return value, submitted_digest, False
     try:
-        raw_digest = _SHA256_PREFIX + hashlib.sha256(rfc8785.dumps(value)).hexdigest()
+        raw_digest = canonical_json_digest(value)
     except rfc8785.CanonicalizationError as exc:
         raise ValueError("legacy instantiated snapshot canonicalization failed") from exc
     if not isinstance(value, Mapping):
@@ -265,14 +265,10 @@ def _legacy_instantiated_snapshot_projection_digest(value: Mapping[str, object])
             if isinstance(node, dict):
                 node.setdefault("architecture", None)
     try:
-        payload = rfc8785.dumps(projected)
+        payload = canonical_json_bytes(projected)
     except rfc8785.CanonicalizationError as exc:
         raise ValueError(f"legacy snapshot projection {_LEGACY_SNAPSHOT_PROJECTION_REVISION} failed") from exc
-    return _SHA256_PREFIX + hashlib.sha256(payload).hexdigest()
-
-
-def _pointer_token(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
+    return sha256_digest(payload)
 
 
 def canonical_instantiated_sdl_bytes(scenario: InstantiatedScenario) -> bytes:
@@ -291,7 +287,7 @@ def canonical_instantiated_sdl_bytes(scenario: InstantiatedScenario) -> bytes:
         scenario=admitted,
     )
     try:
-        return rfc8785.dumps(snapshot.model_dump(mode="json"))
+        return canonical_json_bytes(snapshot.model_dump(mode="json"))
     except rfc8785.CanonicalizationError as exc:
         raise SDLParseError("Instantiated SDL canonicalization failed") from exc
 
@@ -299,9 +295,8 @@ def canonical_instantiated_sdl_bytes(scenario: InstantiatedScenario) -> bytes:
 def canonical_instantiated_sdl_digest(scenario: InstantiatedScenario) -> SDLCanonicalDigest:
     """Return the profile-labelled digest of an instantiated snapshot."""
 
-    digest = hashlib.sha256(canonical_instantiated_sdl_bytes(scenario)).hexdigest()
     return SDLCanonicalDigest(
         profile=INSTANTIATED_SNAPSHOT_PROFILE,
         algorithm="sha256",
-        value=f"{_SHA256_PREFIX}{digest}",
+        value=sha256_digest(canonical_instantiated_sdl_bytes(scenario)),
     )

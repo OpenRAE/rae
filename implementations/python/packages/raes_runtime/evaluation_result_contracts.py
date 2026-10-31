@@ -17,8 +17,9 @@ from raes_contracts.evaluation import (
 from raes_contracts.immutable_history import EventHistory, HistoryMap
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
+from raes_contracts.timestamps import parse_timestamp_assuming_utc
 
-from .diagnostics import _failure_diagnostic, _parse_timestamp
+from .diagnostics import _failure_diagnostic
 
 _BACKEND_CONTRACT_INVALID = "runtime.backend-contract-invalid"
 _EVALUATION_RESULTS_ADDRESS = "runtime.apply.evaluation-results"
@@ -289,7 +290,7 @@ def _timestamp_diagnostics(
     previous_timestamp = None
     for event in normalized_history:
         try:
-            current_timestamp = _parse_timestamp(event.timestamp)
+            current_timestamp = parse_timestamp_assuming_utc(event.timestamp)
         except ValueError:
             diagnostics.append(
                 _contract_diagnostic(evaluation_address, "Evaluation history event timestamp is invalid.")

@@ -5,7 +5,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from threading import RLock
 from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
@@ -248,7 +248,7 @@ class RuntimeExperiment:
                 and record.attempt == ordinal
             ):
                 return record
-        now = datetime.now(UTC)
+        now = self.engine.wall_clock()
         controls = slot.plan.entries[entry.plan_entry_id].execution_controls
         attempt = TrialAttemptDecision(
             experiment_id=self.experiment_id,

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import contextlib
 import errno
-import hashlib
 import os
 import re
 import stat
@@ -24,6 +23,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, OperationalError
 
 if TYPE_CHECKING:
@@ -120,10 +120,7 @@ class RunMaterializationArchive:
                     data = handle.read(MATERIALIZATION_MAX_BYTES + 1)
         finally:
             os.close(directory)
-        if (
-            len(data) != record.artifact.size_bytes
-            or hashlib.sha256(data).hexdigest() != record.artifact.checksum.value
-        ):
+        if len(data) != record.artifact.size_bytes or sha256_hex(data) != record.artifact.checksum.value:
             raise EvidenceIntegrityError("materialization archive bytes do not match the retained record")
         # Bytes that match the record but are not bounded UTF-8 SDL text are not a valid retained artifact.
         try:
@@ -167,8 +164,8 @@ class RunMaterializationArchive:
                     "artifact_id": provenance.attestation_id,
                     "role": "materialization-attestation",
                     "media_type": "application/vnd.raes.sdl+yaml",
-                    "uri": "urn:sha256:" + hashlib.sha256(data).hexdigest(),
-                    "checksum": {"algorithm": "sha256", "value": hashlib.sha256(data).hexdigest()},
+                    "uri": "urn:sha256:" + sha256_hex(data),
+                    "checksum": {"algorithm": "sha256", "value": sha256_hex(data)},
                     "size_bytes": len(data),
                     "created_at": provenance.recorded_at.isoformat(),
                     "source": provenance.producer.name,

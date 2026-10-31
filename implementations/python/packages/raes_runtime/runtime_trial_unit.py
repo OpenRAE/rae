@@ -5,12 +5,13 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime
 from time import monotonic
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.trial_replacement_archive import replacement_resources_reusable
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
+from raes_contracts.json_serialization import sorted_json_text
 from raes_contracts.trial_unit import TrialUnitResult, validate_trial_unit_result
 
 from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
@@ -57,7 +58,7 @@ class RuntimeTrialUnit:
         self.services, self.attempt, self.identity = services, attempt, identity
         started = datetime.fromisoformat(attempt.started_at)
         deadline = datetime.fromisoformat(attempt.deadline)
-        now = datetime.now(UTC)
+        now = run.wall_clock()
         if now < started or deadline <= started:
             raise OperationalError("trial clock continuity is unavailable")
         # A local wall-clock adjustment cannot renew an admitted allowance.
@@ -181,9 +182,9 @@ class RuntimeTrialUnit:
                 TrialObservationDecision(
                     execution_attempt_id=request.execution_attempt_id,
                     observation=observation,
-                    observed_at=datetime.now(UTC).isoformat(),
+                    observed_at=run.wall_clock().isoformat(),
                     snapshot_json=(
-                        json.dumps(_snapshot_payload(result.snapshot), sort_keys=True, separators=(",", ":"))
+                        sorted_json_text(_snapshot_payload(result.snapshot))
                         if observation.kind == "configuration"
                         else None
                     ),
@@ -252,7 +253,7 @@ class RuntimeTrialUnit:
 
     def _interruption(self, cancelled: bool) -> TrialInterruptionDecision | None:
         run, request = self.run, self.request
-        expired = monotonic() >= self._deadline or datetime.now(UTC) >= datetime.fromisoformat(self.attempt.deadline)
+        expired = monotonic() >= self._deadline or run.wall_clock() >= datetime.fromisoformat(self.attempt.deadline)
         interruption = next(
             (
                 record
@@ -319,8 +320,8 @@ class RuntimeTrialUnit:
             TrialObservationDecision(
                 execution_attempt_id=request.execution_attempt_id,
                 observation=observation,
-                observed_at=datetime.now(UTC).isoformat(),
-                snapshot_json=json.dumps(_snapshot_payload(run.snapshot), sort_keys=True, separators=(",", ":")),
+                observed_at=run.wall_clock().isoformat(),
+                snapshot_json=sorted_json_text(_snapshot_payload(run.snapshot)),
             )
         )
         return "progress"

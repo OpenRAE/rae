@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pydantic import ValidationError
+from raes_contracts.json_pointer import pointer_from_tokens
 
 from ._classification_guard import CLASSIFICATION_MIGRATION_CODE
 from ._errors import (
@@ -49,8 +50,7 @@ def _dedupe_source_diagnostics(
 
 
 def _pointer_from_location(location: tuple[object, ...]) -> str:
-    tokens = [str(part) for part in location if str(part) != "[key]"]
-    return "".join(f"/{token.replace('~', '~0').replace('/', '~1')}" for token in tokens)
+    return pointer_from_tokens(str(part) for part in location if str(part) != "[key]")
 
 
 def _nearest_source_range(pointer: str, source_ranges: dict[str, SDLSourceRange]) -> SDLSourceRange:

@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.timestamps import parse_offset_timestamp_utc
 from raes_contracts.workflow import (
     WorkflowCompensationStatus,
     WorkflowExecutionContract,
@@ -12,8 +11,6 @@ from raes_contracts.workflow import (
     WorkflowHistoryEvent,
     WorkflowHistoryEventType,
 )
-
-_EXPLICIT_OFFSET_TIMESTAMP_ERROR = "timestamp must be an ISO-8601 value with an explicit UTC offset"
 
 
 def compiled_execution_contract(
@@ -187,21 +184,5 @@ def _compensated_workflow_payload(
     ).to_payload()
 
 
-def parse_timestamp(raw: str) -> datetime:
-    """Parse one explicit-offset ISO-8601 timestamp and normalize it to UTC."""
-
-    if not isinstance(raw, str) or not raw:
-        raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR)
-    normalized = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
-    try:
-        parsed = datetime.fromisoformat(normalized)
-        offset = parsed.utcoffset()
-    except OverflowError, TypeError, ValueError:
-        raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR) from None
-    if parsed.tzinfo is None or offset is None:
-        raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR)
-    try:
-        return parsed.astimezone(UTC)
-    except OverflowError:
-        # A valid local time near the datetime range limit can have no UTC form.
-        raise ValueError(_EXPLICIT_OFFSET_TIMESTAMP_ERROR) from None
+#: Public name kept for existing callers; ``raes_contracts.timestamps`` owns the parser (ADR-118).
+parse_timestamp = parse_offset_timestamp_utc

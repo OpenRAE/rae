@@ -6,6 +6,7 @@ from collections.abc import Collection, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from raes_contracts.json_pointer import pointer_from_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 from ._declarations import DeclarationIndex
@@ -230,7 +231,7 @@ def _collect_section_definitions(
                 "name": name,
                 "qualified_name": qualified_name,
                 "section": section,
-                "path": _encode_pointer(definition_path),
+                "path": pointer_from_tokens(definition_path),
                 "range": _range_from_node(key_node),
             }
         )
@@ -398,7 +399,7 @@ def _append_occurrence(
     occurrences.append(
         {
             "value": value,
-            "path": _encode_pointer(path),
+            "path": pointer_from_tokens(path),
             "kind": kind,
             "range": _range_from_node(node),
         }
@@ -481,13 +482,3 @@ def _location_from_mark(mark: Any | None) -> dict[str, int]:
     if mark is None:
         return {"line": 0, "column": 0}
     return {"line": mark.line + 1, "column": mark.column + 1}
-
-
-def _encode_pointer(tokens: list[str]) -> str:
-    if not tokens:
-        return ""
-    return "/" + "/".join(_escape_pointer_token(token) for token in tokens)
-
-
-def _escape_pointer_token(token: str) -> str:
-    return token.replace("~", "~0").replace("/", "~1")

@@ -41,6 +41,7 @@ from raes.module_registry import (
 )
 from raes.parser import parse_sdl_file
 from raes_cli.main import app
+from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import ConflictError, OperationalError
 from raes_processor.compiler import compile_runtime_model
 from typer.testing import CliRunner
@@ -1730,7 +1731,7 @@ def test_oci_manifest_malformed_json_has_stable_error(monkeypatch: pytest.Monkey
 
 def test_oci_config_malformed_json_has_stable_error(monkeypatch: pytest.MonkeyPatch):
     malformed = b'{"broken":'
-    digest = f"sha256:{module_registry._sha256_digest(malformed)}"
+    digest = f"sha256:{sha256_hex(malformed)}"
     monkeypatch.setattr(module_registry, "_bytes_request", lambda *args, **kwargs: malformed)
     manifest = {
         "config": {"digest": digest},
@@ -1937,7 +1938,7 @@ def test_oci_bundle_inventory_is_streamed_with_filtered_modes_and_implicit_direc
         {"mode": directory_mode, "path": ".", "type": "directory"},
         {"mode": directory_mode, "path": "nested", "type": "directory"},
         {
-            "digest": f"sha256:{module_registry._sha256_digest(payload)}",
+            "digest": f"sha256:{sha256_hex(payload)}",
             "mode": file_mode,
             "path": "nested/module.yaml",
             "size": len(payload),
@@ -2036,7 +2037,7 @@ def test_oci_bundle_inventory_rejects_file_directory_conflicts(
 ):
     bundle_bytes = _gzip_tar(members).getvalue()
     member_identity = repr(members).encode()
-    manifest_digest = "conflict-" + module_registry._sha256_digest(member_identity)
+    manifest_digest = "conflict-" + sha256_hex(member_identity)
     with pytest.raises(SDLParseError, match="conflicting file and directory paths"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle_bytes,
@@ -2384,8 +2385,8 @@ def test_verified_oci_cache_source_graph_rejects_replacement_after_tree_validati
 def test_oci_cache_entry_is_bound_to_bundle_digest(tmp_path: Path):
     first_bundle = _cache_test_bundle(b"name: first\n")
     second_bundle = _cache_test_bundle(b"name: second\n")
-    first_digest = f"sha256:{module_registry._sha256_digest(first_bundle)}"
-    second_digest = f"sha256:{module_registry._sha256_digest(second_bundle)}"
+    first_digest = f"sha256:{sha256_hex(first_bundle)}"
+    second_digest = f"sha256:{sha256_hex(second_bundle)}"
 
     first = module_registry._extract_bundle_to_cache(
         bundle_bytes=first_bundle,
@@ -2457,7 +2458,7 @@ def test_oci_cache_rejects_bundle_bytes_that_do_not_match_expected_digest(tmp_pa
 
 def test_oci_cache_concurrent_writers_extract_once(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     bundle = _cache_test_bundle(b"name: concurrent\n")
-    digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    digest = f"sha256:{sha256_hex(bundle)}"
     barrier = threading.Barrier(2)
     commits = 0
     real_commit = module_registry._install_version_directory
@@ -2491,8 +2492,8 @@ def test_oci_cache_concurrent_writers_extract_once(tmp_path: Path, monkeypatch: 
 def test_oci_cache_failed_pointer_preserves_prior_entry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     first_bundle = _cache_test_bundle(b"name: first\n")
     second_bundle = _cache_test_bundle(b"name: second\n")
-    first_digest = f"sha256:{module_registry._sha256_digest(first_bundle)}"
-    second_digest = f"sha256:{module_registry._sha256_digest(second_bundle)}"
+    first_digest = f"sha256:{sha256_hex(first_bundle)}"
+    second_digest = f"sha256:{sha256_hex(second_bundle)}"
     first = module_registry._extract_bundle_to_cache(
         bundle_bytes=first_bundle,
         manifest_digest="transaction",
@@ -2565,7 +2566,7 @@ def test_oci_cache_invalid_archive_leaves_no_partial_entry(tmp_path: Path):
         bad.size = len(bad_payload)
         archive.addfile(bad, io.BytesIO(bad_payload))
     bundle = buffer.getvalue()
-    content_digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    content_digest = f"sha256:{sha256_hex(bundle)}"
 
     with pytest.raises(SDLParseError, match="Path traversal"):
         module_registry._extract_bundle_to_cache(
@@ -2596,7 +2597,7 @@ def test_oci_cache_rejects_invalid_manifest_cache_key(tmp_path: Path):
 
 def test_oci_cache_repairs_unreadable_tree_manifest(tmp_path: Path):
     bundle = _cache_test_bundle(b"name: marker\n")
-    digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    digest = f"sha256:{sha256_hex(bundle)}"
     root = module_registry._extract_bundle_to_cache(
         bundle_bytes=bundle,
         manifest_digest="marker",
@@ -2622,7 +2623,7 @@ def test_oci_cache_repairs_unreadable_tree_manifest(tmp_path: Path):
 
 def test_oci_cache_rejects_invalid_gzip_without_partial_entry(tmp_path: Path):
     payload = b"not a gzip tar"
-    content_digest = f"sha256:{module_registry._sha256_digest(payload)}"
+    content_digest = f"sha256:{sha256_hex(payload)}"
     with pytest.raises(SDLParseError, match="not a valid gzip-compressed tar archive"):
         module_registry._extract_bundle_to_cache(
             bundle_bytes=payload,
@@ -2639,7 +2640,7 @@ def test_oci_cache_rejects_invalid_gzip_without_partial_entry(tmp_path: Path):
 
 def test_oci_cache_detects_noncommitting_transaction(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     bundle = _cache_test_bundle(b"name: no-commit\n")
-    digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    digest = f"sha256:{sha256_hex(bundle)}"
     monkeypatch.setattr(
         module_registry,
         "_install_version_directory",
@@ -2662,7 +2663,7 @@ def test_oci_cache_detects_noncommitting_transaction(tmp_path: Path, monkeypatch
 @pytest.mark.parametrize("tamper", ["content", "mode", "type", "missing", "extra", "symlink"])
 def test_oci_cache_hit_revalidates_complete_extracted_tree(tmp_path: Path, tamper: str):
     bundle = _cache_graph_bundle()
-    digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    digest = f"sha256:{sha256_hex(bundle)}"
     root = module_registry._extract_bundle_to_cache(
         bundle_bytes=bundle,
         manifest_digest=f"tree-{tamper}",
@@ -2719,7 +2720,7 @@ def test_oci_cache_hit_revalidates_complete_extracted_tree(tmp_path: Path, tampe
 @pytest.mark.parametrize("forgery", ["content", "directory-mode"])
 def test_oci_cache_rejects_tree_and_manifest_forged_together(tmp_path: Path, forgery: str):
     bundle = _cache_graph_bundle() if forgery == "directory-mode" else _cache_test_bundle(b"name: authentic\n")
-    digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    digest = f"sha256:{sha256_hex(bundle)}"
     root = module_registry._extract_bundle_to_cache(
         bundle_bytes=bundle,
         manifest_digest="coordinated-forgery",
@@ -2784,9 +2785,7 @@ def test_oci_cache_rebuilds_for_invalid_completion_manifest(tmp_path: Path, corr
         completion.write_bytes(module_registry._canonical_json_bytes(manifest))
     else:
         manifest["entries"][0]["mode"] ^= 0o100
-        manifest["tree_digest"] = (
-            f"sha256:{module_registry._sha256_digest(module_registry._canonical_json_bytes(manifest['entries']))}"
-        )
+        manifest["tree_digest"] = f"sha256:{sha256_hex(module_registry._canonical_json_bytes(manifest['entries']))}"
         completion.write_bytes(module_registry._canonical_json_bytes(manifest))
 
     repaired = module_registry._extract_bundle_to_cache(
@@ -3665,7 +3664,7 @@ nodes: {vm: {type: compute, os: linux, resources: {ram: 1 gib, cpu: 1}}}
 infrastructure: {vm: 1}
 """
     bundle = _gzip_tar([("module.yaml", root_bytes), ("nested/child.yaml", child_bytes)]).getvalue()
-    content_digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    content_digest = f"sha256:{sha256_hex(bundle)}"
     manifest_digest = "sha256:" + "a" * 64
     descriptor = {
         "id": "acme/shared",
@@ -3720,7 +3719,7 @@ infrastructure: {vm: 1}
     provenance = {entry.namespace: entry for entry in scenario.expansion_provenance.imports}
     assert provenance[("remote",)].content_digest == content_digest
     assert provenance[("remote",)].manifest_digest == manifest_digest
-    assert provenance[("remote", "child")].content_digest == (f"sha256:{module_registry._sha256_digest(child_bytes)}")
+    assert provenance[("remote", "child")].content_digest == (f"sha256:{sha256_hex(child_bytes)}")
 
 
 @pytest.mark.integration
@@ -3941,7 +3940,7 @@ module: {id: acme/child, version: 1.0.0}
             ),
         ]
     ).getvalue()
-    content_digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    content_digest = f"sha256:{sha256_hex(bundle)}"
     descriptor = module_registry.ModuleDescriptor(id="acme/remote-root", version="1.0.0")
     monkeypatch.setattr(
         module_registry_resolution,
@@ -4053,7 +4052,7 @@ imports:
                 "module": {"id": repository, "version": "1.0.0"},
                 "root_file": "module.yaml",
             },
-            f"sha256:{module_registry._sha256_digest(bundles[repository])}",
+            f"sha256:{sha256_hex(bundles[repository])}",
         )
 
     def fetch_bundle(*, repository: str, **_kwargs):
@@ -4384,12 +4383,12 @@ def _rewrite_config_field(layout_dir: Path, field: str, value: object) -> None:
     config = json.loads((blobs / config_digest.removeprefix("sha256:")).read_bytes())
     config[field] = value
     new_config_bytes = json.dumps(config, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    new_config_digest = f"sha256:{module_registry._sha256_digest(new_config_bytes)}"
+    new_config_digest = f"sha256:{sha256_hex(new_config_bytes)}"
     (blobs / new_config_digest.removeprefix("sha256:")).write_bytes(new_config_bytes)
     manifest["config"]["digest"] = new_config_digest
     manifest["config"]["size"] = len(new_config_bytes)
     new_manifest_bytes = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    new_manifest_digest = f"sha256:{module_registry._sha256_digest(new_manifest_bytes)}"
+    new_manifest_digest = f"sha256:{sha256_hex(new_manifest_bytes)}"
     (blobs / new_manifest_digest.removeprefix("sha256:")).write_bytes(new_manifest_bytes)
     index["manifests"][0]["digest"] = new_manifest_digest
     index["manifests"][0]["size"] = len(new_manifest_bytes)

@@ -535,7 +535,6 @@
       "raes.module_registry._cache_integrity._trusted_entry_projection": 1,
       "raes.module_registry._cache_integrity._validated_cache_root": 1,
       "raes.module_registry._cache_integrity._write_cache_tree_manifest": 1,
-      "raes.module_registry._digests._sha256_digest": 1,
       "raes.module_registry._extraction._HTTP_TIMEOUT_SECONDS": 1,
       "raes.module_registry._extraction._OCIResourceLimits": 1,
       "raes.module_registry._extraction._extract_tar_to_stage": 1,
@@ -601,15 +600,13 @@
       "raes.module_registry._filesystem._O_BINARY": 1,
       "raes.module_registry._filesystem._O_NOFOLLOW": 1,
       "raes.module_registry._filesystem._same_file_identity": 1,
-      "raes.parser._load_normalized_data": 1,
-      "raes.parser._source_document_from_bytes": 1
+      "raes.parser._load_normalized_data": 1
     },
     "raes.module_registry.models": {
       "raes.module_registry._verified_sources._VerifiedSourceBundle": 1
     },
     "raes.module_registry.publishing": {
       "raes.module_registry._cache_entry_lock": 1,
-      "raes.module_registry._digests._SHA256_PREFIX": 1,
       "raes.module_registry._digests._descriptor_digest": 1,
       "raes.module_registry._filesystem._install_version_directory": 1,
       "raes.module_registry._filesystem._iter_version_directories": 1,
@@ -621,7 +618,6 @@
       "raes.module_registry._filesystem._remove_path": 1,
       "raes.module_registry._filesystem._version_digest_prefix": 1,
       "raes.module_registry._filesystem._write_version_pointer": 1,
-      "raes.module_registry._sha256_digest": 1,
       "raes.module_registry._signable_payload": 1,
       "raes.module_registry.models._scenario_module_descriptor": 1,
       "raes.parser._load_normalized_data": 1
@@ -631,13 +627,11 @@
       "raes.module_registry._OCI_LIMITS": 1,
       "raes.module_registry._bytes_request": 3,
       "raes.module_registry._decode_json_object": 2,
-      "raes.module_registry._digests._SHA256_PREFIX": 1,
       "raes.module_registry._digests._descriptor_digest": 1,
       "raes.module_registry._digests._satisfies_version": 1,
       "raes.module_registry._digests._select_tag": 1,
       "raes.module_registry._extract_bundle_to_cache": 1,
       "raes.module_registry._json_request": 1,
-      "raes.module_registry._sha256_digest": 4,
       "raes.module_registry._verified_sources._VerifiedSourceBundle": 1,
       "raes.module_registry._verified_sources._local_resolved_source": 1,
       "raes.module_registry._verify_signatures": 1,
@@ -676,7 +670,6 @@
       "raes.semantics.objective_semantics._analysis._analyze_success": 1,
       "raes.semantics.objective_semantics._analysis._analyze_targets": 1,
       "raes.semantics.objective_semantics._analysis._analyze_window": 1,
-      "raes.semantics.objective_semantics._analysis._has_cycle": 1,
       "raes.semantics.objective_semantics._analysis._never_unresolved": 1,
       "raes.semantics.objective_semantics._analysis._objective_dependency_graph": 1,
       "raes.semantics.objective_semantics._analysis._ordered_unique": 1
@@ -766,12 +759,6 @@
       "raes.validator._runtime_listeners._RuntimeListenersMixin": 1,
       "raes.validator._support._NODES_PREFIX": 1
     },
-    "raes.validator._sections": {
-      "raes.validator._support._topological_sort": 1
-    },
-    "raes.validator._time_model": {
-      "raes.validator._support._topological_sort": 1
-    },
     "raes.validator._variation": {
       "raes.validator._variation_satisfiability._SelectionBudgetExceeded": 1,
       "raes.validator._variation_satisfiability._SelectionGroup": 1,
@@ -787,8 +774,7 @@
     "raes.validator._workflows_verify": {
       "raes.validator._support._AvailableStateContext": 1,
       "raes.validator._support._CompensationState": 1,
-      "raes.validator._support._WorkflowBuildState": 1,
-      "raes.validator._support._topological_sort": 1
+      "raes.validator._support._WorkflowBuildState": 1
     },
     "raes_cli.main": {
       "raes_cli.entrypoint._distribution_version": 1
@@ -940,7 +926,6 @@
       "raes_conformance.repeatability_types._new_repeatability_consistency_evidence": 1
     },
     "raes_contracts._description_assertions": {
-      "raes_contracts.realization_structure._common.pointer_tokens": 1,
       "raes_contracts.realization_structure._models.identity_key": 1
     },
     "raes_contracts._domain_profile_admission": {
@@ -974,9 +959,6 @@
     },
     "raes_contracts.contracts.associated_artifacts": {
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.backend_operation": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1
     },
     "raes_contracts.contracts.backend_operation_schema": {
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
@@ -1032,7 +1014,6 @@
     },
     "raes_contracts.contracts.experiment_apparatus": {
       "raes_contracts.contracts.base._canonical_digest": 1,
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.contracts.experiment_artifacts._format_reference": 1,
       "raes_contracts.contracts.experiment_artifacts._identity_matches_reference": 1,
       "raes_contracts.contracts.experiment_artifacts._manifest_reference_key": 1,
@@ -1046,14 +1027,12 @@
     },
     "raes_contracts.contracts.experiment_artifacts": {
       "raes_contracts.contracts.base._CHECKSUM_VALUE_PATTERNS": 1,
-      "raes_contracts.contracts.base._canonical_digest": 1,
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1
+      "raes_contracts.contracts.base._canonical_digest": 1
     },
     "raes_contracts.contracts.experiment_bindings": {
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
     },
     "raes_contracts.contracts.experiment_capture": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_plane": 1,
       "raes_contracts.contracts.validators._validate_unique_string_values": 1
@@ -1073,7 +1052,6 @@
       "raes_contracts.contracts.validators._validate_unique_string_values": 1
     },
     "raes_contracts.contracts.experiment_evidence": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.contracts.experiment_artifacts._validate_unique_experiment_references": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_plane": 1,
@@ -1082,9 +1060,6 @@
     },
     "raes_contracts.contracts.experiment_evidence_refinement": {
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.experiment_execution_accounting": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 2
     },
     "raes_contracts.contracts.experiment_execution_accounting_schema": {
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
@@ -1098,7 +1073,6 @@
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
     },
     "raes_contracts.contracts.experiment_run": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.contracts.experiment_apparatus._validate_apparatus_context_satisfies_constraints": 1,
       "raes_contracts.contracts.experiment_artifacts._experiment_reference_key": 1,
       "raes_contracts.contracts.experiment_artifacts._format_reference": 1,
@@ -1112,14 +1086,10 @@
       "raes_contracts.contracts.validators._validate_unique_string_values": 1
     },
     "raes_contracts.contracts.experiment_run_difficulty": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
     },
     "raes_contracts.contracts.experiment_run_evidence_validation": {
       "raes_contracts.evidence_proof._mint_validated_run_evidence": 1
-    },
-    "raes_contracts.contracts.experiment_run_timing": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1
     },
     "raes_contracts.contracts.experiment_spec": {
       "raes_contracts.contracts.experiment_selection._validate_selection_factor_joins": 1,
@@ -1266,9 +1236,6 @@
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.validators._validate_controlled_vocabulary_terms": 1
     },
-    "raes_contracts.contracts.realization_descriptions": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1
-    },
     "raes_contracts.contracts.reusable_assets": {
       "raes_contracts.contracts.schema_constraints._JSON_SCHEMA_DRAFT_2020_12": 1,
       "raes_contracts.contracts.schema_constraints._JSON_SCHEMA_KEY": 1,
@@ -1317,7 +1284,6 @@
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
     },
     "raes_contracts.contracts.validation_disclosure": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.contracts.schema_invariants._CARRIER_DISCLOSURES_INSTANCE_PATH": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.validation_disclosure_gates._EVIDENCE_REF_REQUIRED_STRENGTHS": 1,
@@ -1329,22 +1295,17 @@
     },
     "raes_contracts.description_projection": {
       "raes_contracts.realization_structure._common.closure_for": 1,
-      "raes_contracts.realization_structure._common.json_equal": 1,
-      "raes_contracts.realization_structure._common.pointer": 1,
-      "raes_contracts.realization_structure._common.pointer_tokens": 1
+      "raes_contracts.realization_structure._common.json_equal": 1
     },
     "raes_contracts.description_promotion": {
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.description_projection._bind_author": 1
     },
     "raes_contracts.description_reporting": {
-      "raes_contracts.contracts.experiment_artifacts._experiment_reference_key": 1,
-      "raes_contracts.realization_structure._common.pointer_tokens": 1
+      "raes_contracts.contracts.experiment_artifacts._experiment_reference_key": 1
     },
     "raes_contracts.evidence_satisfaction": {
       "raes_contracts._evidence_content_validation._EvidenceContentCache": 1,
       "raes_contracts._evidence_content_validation._validate_artifact_content": 1,
-      "raes_contracts.contracts.base._parse_rfc3339_datetime": 1,
       "raes_contracts.contracts.experiment_artifacts._identity_matches_reference": 1,
       "raes_contracts.contracts.experiment_artifacts._reference_satisfies_requirement": 1,
       "raes_contracts.evidence_proof._EVIDENCE_VALIDATION_KEY": 1,
@@ -1961,9 +1922,6 @@
     "raes_runtime.backend_snapshot_contracts": {
       "raes_runtime.diagnostics._failure_diagnostic": 1
     },
-    "raes_runtime.control_plane_admission": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
     "raes_runtime.control_plane_api": {
       "raes_runtime.control_plane_api._auth._ControlPlaneApiAuth": 1,
       "raes_runtime.control_plane_api._auth._require_route_transport_authority": 1,
@@ -2082,8 +2040,7 @@
     "raes_runtime.control_plane_recovery": {
       "raes_runtime.backend_calls._BackendCallContext": 1,
       "raes_runtime.backend_calls._RealizationApplyContext": 1,
-      "raes_runtime.backend_calls._validated_backend_result": 1,
-      "raes_runtime.control_plane_execution._utc_now": 1
+      "raes_runtime.backend_calls._validated_backend_result": 1
     },
     "raes_runtime.control_plane_resolution_records": {
       "raes_runtime.operation_reconciliation_ledger._matches_resolution_parent": 1
@@ -2136,7 +2093,6 @@
       "raes_runtime.control_plane_store_snapshots._snapshot_payload": 1
     },
     "raes_runtime.control_plane_store_maintenance": {
-      "raes_runtime.control_plane_execution._utc_now": 1,
       "raes_runtime.control_plane_store_paths._fsync_directory": 1,
       "raes_runtime.control_plane_store_paths._fsync_regular_file": 1,
       "raes_runtime.control_plane_store_paths._require_same_file": 1,
@@ -2172,20 +2128,14 @@
     "raes_runtime.control_plane_supervised_execution": {
       "raes_runtime.backend_calls._call_backend_diagnostics": 1,
       "raes_runtime.control_plane_execution._claim_running_operation": 1,
-      "raes_runtime.control_plane_execution._utc_now": 1,
       "raes_runtime.control_plane_store_snapshots._snapshot_payload": 1,
       "raes_runtime.diagnostics._has_error_diagnostic": 1
     },
-    "raes_runtime.control_plane_supervision": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
     "raes_runtime.control_plane_workflow_control": {
-      "raes_runtime.control_plane_execution._utc_now": 1,
       "raes_runtime.control_plane_timeouts._reconciliation_clock": 1
     },
     "raes_runtime.evaluation_result_contracts": {
-      "raes_runtime.diagnostics._failure_diagnostic": 1,
-      "raes_runtime.diagnostics._parse_timestamp": 1
+      "raes_runtime.diagnostics._failure_diagnostic": 1
     },
     "raes_runtime.interaction": {
       "raes_runtime.backend_calls._BackendCallContext": 1,
@@ -2237,20 +2187,10 @@
       "raes_runtime.mixed_backend_invocation._external": 1,
       "raes_runtime.participant_crossing_action._PreparedActionEffect": 1
     },
-    "raes_runtime.mixed_backend_invocation": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
-    "raes_runtime.mixed_runtime": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
     "raes_runtime.mixed_runtime_dispatch": {
       "raes_runtime.mixed_runtime_edge_execution._edge_action_dispatch": 1
     },
-    "raes_runtime.mixed_runtime_lifecycle": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
     "raes_runtime.mixed_runtime_phase": {
-      "raes_runtime.control_plane_execution._utc_now": 1,
       "raes_runtime.control_plane_store._require_same_idempotency_replay": 1,
       "raes_runtime.mixed_backend_invocation._external": 1,
       "raes_runtime.mixed_runtime_handoff_execution._HandoffResolution": 1,
@@ -2269,11 +2209,7 @@
     "raes_runtime.operation_provider_execution": {
       "raes_runtime.backend_calls._BackendCallContext": 1,
       "raes_runtime.backend_calls._RealizationApplyContext": 1,
-      "raes_runtime.backend_observation_calls._ObservationApplyRequest": 1,
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
-    "raes_runtime.operation_reconciliation": {
-      "raes_runtime.control_plane_execution._utc_now": 1
+      "raes_runtime.backend_observation_calls._ObservationApplyRequest": 1
     },
     "raes_runtime.operation_remote_authority": {
       "raes_runtime.control_plane_security._require_principal_shape": 1
@@ -2286,9 +2222,6 @@
       "raes_runtime.backend_observation_calls._apply_observation_result": 1,
       "raes_runtime.control_plane_store_snapshots._snapshot_payload": 1
     },
-    "raes_runtime.operation_worker_authority": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
     "raes_runtime.participant_control": {
       "raes_runtime.participant_control_diagnostics._NO_PARTICIPANT_RUNTIME_MESSAGE": 1,
       "raes_runtime.participant_control_diagnostics._participant_binding_address": 1,
@@ -2299,7 +2232,6 @@
       "raes_runtime.participant_control_mediation._history_head": 1
     },
     "raes_runtime.participant_control_effect_continuations": {
-      "raes_runtime.control_plane_execution._utc_now": 1,
       "raes_runtime.participant_control_evaluation_v2._EvaluationCut": 1,
       "raes_runtime.participant_control_records._linked_carrier": 1,
       "raes_runtime.participant_control_records._realization_audit": 1
@@ -2309,7 +2241,6 @@
       "raes_runtime.participant_control_effects._dispatched": 1
     },
     "raes_runtime.participant_control_effect_evidence": {
-      "raes_runtime.control_plane_execution._utc_now": 1,
       "raes_runtime.participant_control_records._linked_carrier": 1
     },
     "raes_runtime.participant_control_effect_owners": {
@@ -2337,12 +2268,6 @@
       "raes_runtime.participant_control_effects._realized_keys": 1,
       "raes_runtime.participant_control_provider_state._require_serial_state_chain": 1,
       "raes_runtime.participant_control_provider_state._scope_key": 1
-    },
-    "raes_runtime.participant_control_receipts": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
-    "raes_runtime.participant_control_records": {
-      "raes_runtime.control_plane_execution._utc_now": 1
     },
     "raes_runtime.participant_crossing_boundary": {
       "raes_runtime.participant_crossing_action._PreparedActionEffect": 1,
@@ -2377,9 +2302,6 @@
       "raes_runtime.participant_control_diagnostics._participant_binding_address": 1,
       "raes_runtime.participant_control_diagnostics._participant_binding_diagnostic": 1
     },
-    "raes_runtime.participant_driver_failure": {
-      "raes_runtime.control_plane_execution._utc_now": 1
-    },
     "raes_runtime.participant_effect_authority": {
       "raes_runtime.backend_realization_authority._RealizationApplyContext": 1
     },
@@ -2397,7 +2319,6 @@
       "raes_runtime.backend_calls._call_backend_apply": 1
     },
     "raes_runtime.participant_outcome_control": {
-      "raes_runtime.control_plane_execution._utc_now": 1,
       "raes_runtime.participant_control_mediation._require_participant_binding": 1
     },
     "raes_runtime.participant_resource_reservation": {
@@ -2481,9 +2402,6 @@
     "raes_runtime.runtime_experiment_records": {
       "raes_runtime.control_plane_store_snapshots._snapshot_from_payload": 1
     },
-    "raes_runtime.runtime_fact_binding_policy": {
-      "raes_runtime.runtime_fact_dispatch._parse_datetime": 1
-    },
     "raes_runtime.runtime_fact_bindings": {
       "raes_runtime.runtime_fact_dispatch._RuntimeFactDispatchBinding": 1,
       "raes_runtime.runtime_fact_dispatch._RuntimeFactDispatchFailure": 1
@@ -2528,7 +2446,6 @@
       "raes_runtime.workflow_result_contract_checks._step_checks._workflow_step_presence_diagnostics": 1
     },
     "raes_runtime.workflow_result_contract_checks._context": {
-      "raes_runtime.diagnostics._parse_timestamp": 1,
       "raes_runtime.workflow_result_contract_checks._models._ORCHESTRATION_HISTORY_ADDRESS": 1,
       "raes_runtime.workflow_result_contract_checks._models._ORCHESTRATION_RESULTS_ADDRESS": 1,
       "raes_runtime.workflow_result_contract_checks._models._WorkflowContext": 1,

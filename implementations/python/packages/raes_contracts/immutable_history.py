@@ -7,8 +7,6 @@ interfaces. Mutable input is copied and validated before it becomes a prefix.
 
 from __future__ import annotations
 
-import hashlib
-import json
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from types import MappingProxyType
 from typing import TYPE_CHECKING, cast
@@ -20,6 +18,9 @@ if TYPE_CHECKING:
 
 
 from rpds import HashTrieMap, HashTrieSet
+
+from .digests import sha256_hex
+from .json_serialization import sorted_json_text_finite
 
 HistoryIdentity = str | tuple[str, str]
 
@@ -37,7 +38,7 @@ HISTORY_FIELDS = (
     "participant_outcome_history",
     "shared_state_history",
 )
-_EMPTY_DIGEST = hashlib.sha256(b"").hexdigest()
+_EMPTY_DIGEST = sha256_hex(b"")
 
 
 def _immutable(*args: object, **kwargs: object) -> None:
@@ -166,10 +167,8 @@ class EventHistory(Sequence[dict[str, JsonValue]]):
         from .immutable_history_stats import value_costs
 
         frozen = cast(Mapping[str, object], _freeze(dict(payload)))
-        content = json.dumps(
-            mutable_history_value(frozen), sort_keys=True, separators=(",", ":"), allow_nan=False
-        ).encode()
-        digest = hashlib.sha256(bytes.fromhex(self.prefix_digest(len(self))) + content).hexdigest()
+        content = sorted_json_text_finite(mutable_history_value(frozen)).encode()
+        digest = sha256_hex(bytes.fromhex(self.prefix_digest(len(self))) + content)
         result = object.__new__(EventHistory)
         object.__setattr__(result, "_entries", self._entries.insert(len(self), (frozen, digest)))
         object.__setattr__(result, "_costs", self._costs.extend(value_costs(frozen), members=len(self) + 1))

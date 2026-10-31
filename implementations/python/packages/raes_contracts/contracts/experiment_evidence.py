@@ -8,12 +8,13 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import (
     EXPERIMENT_DERIVED_MEASURE_SCHEMA_VERSION,
     EXPERIMENT_EVIDENCE_RECORD_SCHEMA_VERSION,
 )
 from . import experiment_evidence_refinement as _evidence_refinement
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
 from .experiment_artifacts import (
     ExperimentDerivedMeasureReferenceModel,
     _validate_unique_experiment_references,
@@ -66,7 +67,7 @@ class ExperimentEvidenceRecordModel(ContractModel):
     @model_validator(mode="after")
     def _validate_evidence_record(self) -> ExperimentEvidenceRecordModel:
         validate_description_host(self.typed_description, "experiment-evidence-record-v1")
-        _parse_rfc3339_datetime("captured_at", self.captured_at)
+        parse_rfc3339_datetime("captured_at", self.captured_at)
         if (
             self.redaction_state == "withheld"
             and self.typed_description is not None
@@ -184,7 +185,7 @@ class ExperimentDerivedMeasureModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_derived_measure(self) -> ExperimentDerivedMeasureModel:
-        _parse_rfc3339_datetime("generated_at", self.generated_at)
+        parse_rfc3339_datetime("generated_at", self.generated_at)
         _validate_reported_value_status(
             self.value_status,
             self.value,

@@ -21,7 +21,9 @@ import raes.module_registry._verified_sources as verified_sources
 import raes.module_registry.resolution as module_registry_resolution
 from raes._errors import SDLParseError
 from raes._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLParserLimits, SDLSourceParseOptions
+from raes._supplied_sources import normalize_bundle_path
 from raes.composition import expand_sdl_modules
+from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import OperationalError
 
 
@@ -69,7 +71,7 @@ imports:
 """
     child_payload = b"name: child\nmodule: {id: acme/child, version: 1.0.0}\n"
     bundle = _bundle([("nested/module.yaml", root_payload), ("nested/child.yaml", child_payload)])
-    digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    digest = f"sha256:{sha256_hex(bundle)}"
     arguments = {
         "bundle_bytes": bundle,
         "manifest_digest": "snapshot-hit",
@@ -155,7 +157,7 @@ def test_verified_bundle_path_normalization_rejects_escape(
     relative: str,
 ) -> None:
     with pytest.raises(SDLParseError, match="escapes base directory"):
-        verified_sources._normalize_bundle_path(base_relative, relative)
+        normalize_bundle_path(base_relative, relative)
 
 
 @pytest.mark.parametrize("mismatch", ["type", "size", "mode"])
@@ -479,7 +481,7 @@ def test_oci_cache_host_failure_is_operational_not_an_invalid_bundle(
 
     monkeypatch.setattr(tarfile.TarFile, "extractall", fail_extract)
 
-    content_digest = f"sha256:{module_registry._sha256_digest(bundle)}"
+    content_digest = f"sha256:{sha256_hex(bundle)}"
     with pytest.raises(OperationalError) as exc_info:
         module_registry._extract_bundle_to_cache(
             bundle_bytes=bundle,

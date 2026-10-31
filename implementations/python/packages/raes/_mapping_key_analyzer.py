@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from raes_contracts.json_pointer import pointer_from_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 from ._errors import SDLParseDiagnostic, SDLSourcePosition, SDLSourceRange
@@ -106,7 +107,7 @@ class _MappingAnalyzer:
         active: set[int],
     ) -> None:
         if self._source_ranges is not None:
-            self._source_ranges[_encode_pointer(tokens)] = _range_from_node(node)
+            self._source_ranges[pointer_from_tokens(tokens)] = _range_from_node(node)
         identity = id(node)
         if identity in active:
             self._add_alias_cycle(node, tokens)
@@ -130,7 +131,7 @@ class _MappingAnalyzer:
             SDLParseDiagnostic(
                 code="sdl.alias_cycle",
                 message="Cyclic YAML aliases are not valid SDL authoring input.",
-                pointer=_encode_pointer(tokens),
+                pointer=pointer_from_tokens(tokens),
                 primary_range=_range_from_node(node),
                 source=self._source,
             )
@@ -174,7 +175,7 @@ class _MappingAnalyzer:
             SDLParseDiagnostic(
                 code="sdl.mapping_key_conflict",
                 message=_conflict_message(first, conflicting),
-                pointer=_encode_pointer([*tokens, conflicting.canonical]),
+                pointer=pointer_from_tokens([*tokens, conflicting.canonical]),
                 authored_keys=(first.authored, conflicting.authored),
                 primary_range=_range_from_node(conflicting.key_node),
                 related_range=_range_from_node(first.key_node),
@@ -198,7 +199,7 @@ class _MappingAnalyzer:
                 key_node,
                 code="sdl.noncanonical_merge",
                 message="YAML merge keys are migration syntax, not canonical sdl-yaml/v1.",
-                pointer=_encode_pointer(tokens),
+                pointer=pointer_from_tokens(tokens),
                 authored_keys=("<<", "<<"),
             )
             self._walk_merge_value(value_node, scope=scope, tokens=tokens, active=active)
@@ -213,12 +214,12 @@ class _MappingAnalyzer:
                 key_node,
                 code="sdl.noncanonical_field",
                 message=f"Structural field '{authored}' must use canonical spelling '{canonical}'.",
-                pointer=_encode_pointer([*tokens, canonical]),
+                pointer=pointer_from_tokens([*tokens, canonical]),
                 authored_keys=(authored, canonical),
             )
         child_tokens = [*tokens, canonical]
         if self._source_key_ranges is not None:
-            self._source_key_ranges[_encode_pointer(child_tokens)] = _range_from_node(key_node)
+            self._source_key_ranges[pointer_from_tokens(child_tokens)] = _range_from_node(key_node)
         self._validate_entry_identifiers(
             key_node,
             value_node,
@@ -285,7 +286,7 @@ class _MappingAnalyzer:
             SDLParseDiagnostic(
                 code="sdl.identifier.invalid",
                 message=message,
-                pointer=_encode_pointer(pointer_tokens),
+                pointer=pointer_from_tokens(pointer_tokens),
                 primary_range=_range_from_node(node),
                 source=self._source,
             )
@@ -301,7 +302,7 @@ class _MappingAnalyzer:
             SDLParseDiagnostic(
                 code="sdl.mapping_key_type",
                 message=message,
-                pointer=_encode_pointer([*tokens, authored]),
+                pointer=pointer_from_tokens([*tokens, authored]),
                 primary_range=_range_from_node(key_node),
                 source=self._source,
             )
@@ -477,9 +478,3 @@ def _range_from_node(node: Node) -> SDLSourceRange:
         start=SDLSourcePosition(node.start_mark.line + 1, node.start_mark.column + 1),
         end=SDLSourcePosition(node.end_mark.line + 1, node.end_mark.column + 1),
     )
-
-
-def _encode_pointer(tokens: list[str]) -> str:
-    if not tokens:
-        return ""
-    return "/" + "/".join(token.replace("~", "~0").replace("/", "~1") for token in tokens)

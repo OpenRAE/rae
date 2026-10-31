@@ -11,8 +11,9 @@ from pydantic_core import CoreSchema
 
 from ..evidence_output_validation import validate_evidence_media_declaration
 from ..observation_demand import ObservationDemandRule
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import EXPERIMENT_CAPTURE_SPEC_SCHEMA_VERSION
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
 from .experiment_artifacts import (
     ExperimentArtifactRefModel,
     ExperimentChecksumModel,
@@ -63,8 +64,8 @@ class ExperimentCaptureWindowModel(ContractModel):
         if self.starts_at is None and self.ends_at is None and self.trigger_ref is None:
             raise ValueError("capture windows must declare starts_at, ends_at, or trigger_ref")
         if self.starts_at is not None and self.ends_at is not None:
-            starts_at = _parse_rfc3339_datetime("starts_at", self.starts_at)
-            ends_at = _parse_rfc3339_datetime("ends_at", self.ends_at)
+            starts_at = parse_rfc3339_datetime("starts_at", self.starts_at)
+            ends_at = parse_rfc3339_datetime("ends_at", self.ends_at)
             if ends_at < starts_at:
                 raise ValueError("capture window ends_at must be greater than or equal to starts_at")
         return self

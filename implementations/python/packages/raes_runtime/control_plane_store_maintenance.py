@@ -13,9 +13,9 @@ from pathlib import Path
 
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.operational_logging import get_logger
+from raes_contracts.timestamps import WallClock, isoformat_z, utc_now
 
 from .control_plane_configuration import ControlPlaneConfiguration
-from .control_plane_execution import _utc_now
 from .control_plane_operation_context import runtime_target_scope
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
 from .control_plane_store_local import LocalControlPlaneStore
@@ -78,6 +78,7 @@ def maintain_local_control_plane_store(
     run_scope: str,
     backup_path: Path | None = None,
     conflict_policy: DestinationConflictPolicy = DestinationConflictPolicy.REFUSE,
+    wall_clock: WallClock = utc_now,
 ) -> LocalStoreMaintenanceResult:
     """Run one closed maintenance operation under runtime-exclusive authority."""
 
@@ -110,6 +111,7 @@ def maintain_local_control_plane_store(
                 target_scope=target_scope,
                 run_scope=normalized_run_scope,
                 conflict_policy=conflict_policy,
+                wall_clock=wall_clock,
             )
     return LocalStoreMaintenanceResult(operation)
 
@@ -226,6 +228,7 @@ def _restore_store(
     target_scope: str,
     run_scope: str,
     conflict_policy: DestinationConflictPolicy,
+    wall_clock: WallClock,
 ) -> None:
     require_single_worker_configuration()
     _secure_store_directory(store_path, reject_insecure_existing=True)
@@ -258,6 +261,7 @@ def _restore_store(
                     store_path,
                     target_scope=target_scope,
                     run_scope=run_scope,
+                    wall_clock=wall_clock,
                 )
             _require_no_sidecars(database_path)
             os.replace(working_path, database_path)
@@ -352,8 +356,9 @@ def _retain_pre_restore_copy(
     *,
     target_scope: str,
     run_scope: str,
+    wall_clock: WallClock,
 ) -> Path:
-    stamp = "".join(character for character in _utc_now() if character.isdigit())
+    stamp = "".join(character for character in isoformat_z(wall_clock()) if character.isdigit())
     destination = store_path / f"pre-restore-{stamp}.sqlite3"
     with _database_connection(database_path, mode="rw") as source:
         LocalControlPlaneStore._validate_persisted_state(

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Annotated, Literal
 from pydantic import Field, model_validator
 from raes.identifiers import PortableIdentifier
 
+from ..graphs import has_cycle
 from .base import ContractModel, NonEmptyString, PositiveInteger, SemanticProfileId
 from .experiment_bindings import LiteralBindingValueModel
 
@@ -277,7 +278,7 @@ def _validate_product_graph(policies: dict[str, ExperimentSelectionPolicyModel])
     }
     for product in products.values():
         _validate_product_policy(product, policies)
-    _validate_product_cycles(policies, products)
+    _validate_product_cycles(products)
 
 
 def _validate_product_policy(
@@ -306,33 +307,9 @@ def _product_output_bound(
     return expected
 
 
-def _validate_product_cycles(
-    policies: dict[str, ExperimentSelectionPolicyModel],
-    products: dict[str, ExperimentProductSelectionPolicyModel],
-) -> None:
-    visiting: set[str] = set()
-    visited: set[str] = set()
-    for policy_id in policies:
-        _visit_product_policy(policy_id, products, visiting, visited)
-
-
-def _visit_product_policy(
-    policy_id: str,
-    products: dict[str, ExperimentProductSelectionPolicyModel],
-    visiting: set[str],
-    visited: set[str],
-) -> None:
-    if policy_id in visiting:
+def _validate_product_cycles(products: dict[str, ExperimentProductSelectionPolicyModel]) -> None:
+    if has_cycle({policy_id: product.policy_refs for policy_id, product in products.items()}):
         raise ValueError("selection policy reference graph must be acyclic")
-    if policy_id in visited:
-        return
-    visiting.add(policy_id)
-    product = products.get(policy_id)
-    if product is not None:
-        for ref in product.policy_refs:
-            _visit_product_policy(ref, products, visiting, visited)
-    visiting.remove(policy_id)
-    visited.add(policy_id)
 
 
 def _validate_selection_factor_joins(spec: ExperimentSpecModel) -> None:

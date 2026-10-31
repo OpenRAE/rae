@@ -5,7 +5,6 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
 from raes_contracts.canonical import canonical_json_digest
@@ -24,6 +23,7 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     RuntimeSnapshot,
 )
+from raes_contracts.timestamps import WallClock, isoformat_z, utc_now
 
 from .backend_calls import _BackendCallContext, _RealizationApplyContext
 from .control_plane_lifecycle import runtime_owned
@@ -63,10 +63,6 @@ _TERMINAL_STATES = {
 _REVISION_RETRIES = 3
 
 
-def _now_iso() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
-
-
 def _request_payload(request: ParticipantToolActionRequest) -> dict[str, object]:
     return {
         "kind": TOOL_ACTION_RECORD_KIND,
@@ -92,6 +88,7 @@ class InvocationToolActionLedger:
     parent_operation_id: str
     parent_context: OperationAdmissionContext
     engine_admission: Callable[[], None] | None = None
+    wall_clock: WallClock = utc_now
 
     def effect_admission_refusal(self) -> str | None:
         """Return why new tool effects are refused now, or ``None``.
@@ -182,7 +179,10 @@ class InvocationToolActionLedger:
 
         running = cast(
             ControlPlaneOperationRecord,
-            replace(record, status=replace(record.status, state=OperationState.RUNNING, updated_at=_now_iso())),
+            replace(
+                record,
+                status=replace(record.status, state=OperationState.RUNNING, updated_at=isoformat_z(self.wall_clock())),
+            ),
         )
         self.store.save_record(running)
         return running
@@ -199,7 +199,9 @@ class InvocationToolActionLedger:
             ControlPlaneOperationRecord,
             replace(
                 record,
-                status=replace(record.status, state=_TERMINAL_STATES[settlement], updated_at=_now_iso()),
+                status=replace(
+                    record.status, state=_TERMINAL_STATES[settlement], updated_at=isoformat_z(self.wall_clock())
+                ),
                 result_payload={
                     **(record.result_payload or {}),
                     "settlement": settlement.value,
@@ -324,6 +326,7 @@ class RuntimeParticipantExecutionMixin:
                 self._participant_activity_controls,
                 cancellation_sink=cancellation_sink,
                 invocation_tools=self._invocation_tool_configuration(operation),
+                wall_clock=self.wall_clock,
             ),
             idempotency_key=state.phase_key,
             identity=state.identity,
@@ -346,6 +349,7 @@ class RuntimeParticipantExecutionMixin:
                     self._participant_activity_controls,
                     cancellation_sink=cancellation_sink,
                     invocation_tools=self._invocation_tool_configuration(operation),
+                    wall_clock=self.wall_clock,
                 ),
             )
             return result
@@ -364,6 +368,7 @@ class RuntimeParticipantExecutionMixin:
                 parent_operation_id=operation.operation_id,
                 parent_context=operation.context,
                 engine_admission=self._tool_engine_admission,
+                wall_clock=self.wall_clock,
             ),
             crossing_installed=getattr(self, "_crossing_policy_resolver", None) is not None,
         )

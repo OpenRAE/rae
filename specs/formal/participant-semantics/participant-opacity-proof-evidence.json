@@ -289,7 +289,7 @@
     "tool_sources": [
       {
         "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:4529a7fc7ef72444662c1acdc4fad821469f33d647a4bc3794b721a355d0e630"
+        "digest": "sha256:83a8b12b03ae97c11dd2ca88cf941b75d15c387a8b1bea7b7ce52632113b6dbc"
       },
       {
         "path": "tools/isabelle_sandbox.py",
@@ -317,7 +317,7 @@
       },
       {
         "path": "tools/tooling_policy_gate.py",
-        "digest": "sha256:610acd11bc7bdd9624a233a4babd7ac56a79c07f1b02c7d631b38e0273344aef"
+        "digest": "sha256:9769f97078e28d8bfe0c6f39cfd924772cb815e6a5e9e9489871f88415a92f18"
       },
       {
         "path": "tools/verified_tool_installation.py",
@@ -338,6 +338,98 @@
       {
         "path": "tools/verified_tree_validation.py",
         "digest": "sha256:166e054b69c0a814762d9b707b4f189607870715c85485d2ae3dce2f3bc0ae83"
+      },
+      {
+        "path": "implementations/tooling/python/pyproject.toml",
+        "digest": "sha256:a979ad42a537a00752bb1d5eae3496dc2277e001939cfad0ff75f4409e2c940d"
+      },
+      {
+        "path": "implementations/tooling/python/uv.lock",
+        "digest": "sha256:647210de15fc9fb4ab5109a1597f138f59f9023351278480eabcd547f8dc8e0b"
+      },
+      {
+        "path": "implementations/tooling/schemas/admission-policy.schema.json",
+        "digest": "sha256:1b287c57c69df53d6c6db74c4acaf72b5ad2d7f35752ce97cf30073b5842fffb"
+      },
+      {
+        "path": "implementations/tooling/schemas/artifact-lock.schema.json",
+        "digest": "sha256:d045ac1167dc28fb6992876c36842cbafcc4902b2abc5a96701d52ac9e99b006"
+      },
+      {
+        "path": "implementations/tooling/schemas/profiles.schema.json",
+        "digest": "sha256:2b73eb7d6c7a598f7fd55cecbe915ad955821f2067d1045d9ce8a4c9e16c366d"
+      },
+      {
+        "path": "implementations/tooling/schemas/selector-bindings.schema.json",
+        "digest": "sha256:d79f61943f45a9374cf2884fe4f16c884495cbad4560a6d98ca4ba9d3e61b13f"
+      },
+      {
+        "path": "tools/check_tooling_artifact_policy.py",
+        "digest": "sha256:acda46f693d6b3aeb0d66a1b2fb029bceb230f020d9d47bba4a5020fe40fa553"
+      },
+      {
+        "path": "tools/generate_python_closures.py",
+        "digest": "sha256:359841a8f82ec7fa75dfc44974b42941b57784f32b6ae2f60a809ff504bd81ba"
+      },
+      {
+        "path": "tools/generate_python_closures_locks.py",
+        "digest": "sha256:be8331bffc7ad16f125f403febdfded2ce2cfbf04f52b26e819e7811472b27da"
+      },
+      {
+        "path": "tools/policy/common.py",
+        "digest": "sha256:649af9102d18c1e1bef4e4c6a1f9c9823812d207d8a3ab6c82765df3b5447647"
+      },
+      {
+        "path": "tools/python_closure_profiles.py",
+        "digest": "sha256:1aab196ba59b6b7b5129e00c802eef5526035aa60606975ade747beb07ac54bc"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_actions.py",
+        "digest": "sha256:80894d9546a7d544ba4954f09ade71929207c8bc9daa7259e6777a8efd9943ae"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_artifacts.py",
+        "digest": "sha256:2cac55a48d739c4c8ccaba5a9bfc81fa2d086defc702d3483a8e34910467b2da"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_common.py",
+        "digest": "sha256:cc70abf454b39a8c337cb7e5343dbf55e6a1f9f420f9c0c7b07de9009fa7d961"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_container.py",
+        "digest": "sha256:b801d97686ee62b5a4eee8ee9795ddc829a05729db424e145a1fa6939776f5a0"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_devcontainer.py",
+        "digest": "sha256:3c10de53cd8ae48f9e4e41952ce32f3b16a6f0c575bde335246b37a24710efcb"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_discovery.py",
+        "digest": "sha256:fbeb7b3e44c59204474c2276d83eab50da747735c6d218c0b767d7d38c1b2b17"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_oci.py",
+        "digest": "sha256:3329f6be2e98ecefa1c42e8c5d1cbbb1c7edcd48c207a3b2233708a96a8f2c75"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_python.py",
+        "digest": "sha256:04902f85634da5ef1775e7c7728a0817ebd0cdcbed5d91a903d0e0fe4b367231"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_python_profiles.py",
+        "digest": "sha256:94d18f595b40862684a20cb0cff7a72340af106edb445ec9cc3dd89131faa064"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_selectors.py",
+        "digest": "sha256:226ab2f01c1388b79f19d767b002a21c190241e4f7a9578389ff89e11a6b14ba"
+      },
+      {
+        "path": "tools/tooling_artifact_selection.py",
+        "digest": "sha256:47e2097a4585f20f4cce25a3838d05919f443a72f4ed78fcd9a7c789b2810970"
+      },
+      {
+        "path": "tools/tooling_oci_selection.py",
+        "digest": "sha256:1ef00a78561ce2c1acb09cc3ad217fe958e525fdd6b20ed11d1cc44adca22a05"
       }
     ]
   },

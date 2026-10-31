@@ -15,8 +15,8 @@ from raes_contracts.contracts.participant_control_continuation import validate_p
 from raes_contracts.contracts.participant_control_decisions_v2 import derive_control_effect_plan_v2
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.runtime_state import OperationState
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_store import ControlPlaneOperationRecord
 from .participant_control_binding import control_context_admits, resolve_control_context
 from .participant_control_causal_state import validate_incremental_effect_admission
@@ -166,7 +166,7 @@ def _publish_continuation(
         ControlPlaneOperationRecord,
         replace(
             carrier,
-            status=replace(carrier.status, state=OperationState.SUCCEEDED, updated_at=_utc_now()),
+            status=replace(carrier.status, state=OperationState.SUCCEEDED, updated_at=isoformat_z(plane.wall_clock())),
             decision_history_heads=expected_participant_history_heads(plane._snapshot, participant),
             result_history_heads=expected_participant_history_heads(snapshot, participant),
         ),

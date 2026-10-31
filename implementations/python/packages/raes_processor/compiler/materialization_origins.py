@@ -14,6 +14,7 @@ from raes.runtime_inventory import runtime_inventory_collection_identity
 from raes.scenario import InstantiatedScenario, ScenarioContent
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -80,7 +81,7 @@ def materialization_collection_profiles(content: ScenarioContent) -> tuple[Reali
             if identity:
                 result.append(
                     RealizationCollectionProfile(
-                        field_pointer=_pointer(path),
+                        field_pointer=pointer_from_tokens(path),
                         collection_kind="sdl-collection",
                         identity_fields=identity,
                         closure=closure,
@@ -204,14 +205,10 @@ def validate_materialization_origins(source: InstantiatedScenario, materialized:
         raise InvalidInputError("materialization origins do not exactly account for the source differences")
 
 
-def _pointer(tokens: tuple[str, ...]) -> str:
-    return "".join("/" + token.replace("~", "~0").replace("/", "~1") for token in tokens)
-
-
 def _origin(change: str, before_path: tuple[str, ...], after_path: tuple[str, ...]) -> MaterializationOrigin:
     return MaterializationOrigin(
-        field_pointer=_pointer(before_path if change == "removed" else after_path),
-        source_pointer=None if change == "added" else _pointer(before_path),
+        field_pointer=pointer_from_tokens(before_path if change == "removed" else after_path),
+        source_pointer=None if change == "added" else pointer_from_tokens(before_path),
         change=change,
         origin=ExplicitnessProvenance.BACKEND_REALIZED,
     )
@@ -222,11 +219,11 @@ def _collection_identity(path: tuple[str, ...], profiles: _CollectionProfiles) -
     if path in profiles:
         identity = profiles[path]
     elif path and path[0] == "forwarding_agents":
-        identity = runtime_inventory_collection_identity("forwarding-agents", _pointer(path[1:]))
+        identity = runtime_inventory_collection_identity("forwarding-agents", pointer_from_tokens(path[1:]))
     elif len(path) == 3 and path[0] == "nodes" and path[2] == "services":
         identity = ("name",)
     elif len(path) >= 4 and path[0] == "nodes" and path[2] == "runtime":
-        identity = runtime_inventory_collection_identity(path[3].replace("_", "-"), _pointer(path[4:]))
+        identity = runtime_inventory_collection_identity(path[3].replace("_", "-"), pointer_from_tokens(path[4:]))
     return identity
 
 

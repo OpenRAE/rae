@@ -45,6 +45,7 @@ __all__ = [
     "load_sdl_fragment",
     "parse_sdl",
     "parse_sdl_file",
+    "parse_sdl_sources",
     "ArtifactTransformationPolicy",
     "CanonicalArtifactComparison",
     "PortableContractTransformationResult",
@@ -60,6 +61,8 @@ __all__ = [
     "select_scenario_family",
     "Scenario",
     "SDLError",
+    "SDLImportError",
+    "SDLImportErrorCode",
     "SDLInstantiationError",
     "SDLMigrationPolicy",
     "SDLParserLimits",
@@ -79,6 +82,8 @@ __all__ = [
 _LAZY_EXPORTS = {
     "raes._errors": (
         "SDLError",
+        "SDLImportError",
+        "SDLImportErrorCode",
         "SDLInstantiationError",
         "SDLParseDiagnostic",
         "SDLParseError",
@@ -138,6 +143,7 @@ _LAZY_EXPORTS = {
         "load_sdl_fragment",
         "parse_sdl",
         "parse_sdl_file",
+        "parse_sdl_sources",
     ),
     "raes.transformations": (
         "ArtifactTransformationPolicy",
