@@ -26,6 +26,7 @@ from raes_conformance.conformance.modular_control import (
 from raes_conformance.conformance.observability import (
     observability_evidence_conformance_diagnostics,
 )
+from raes_conformance.conformance.processor import ProcessorConformanceProbe, run_processor_conformance
 from raes_conformance.conformance.profiles import (
     BackendCapabilityProfile,
     BackendProfileSelector,
@@ -38,6 +39,7 @@ from raes_conformance.conformance.report import (
     ConformanceCaseResult,
     backend_conformance_report_payload,
 )
+from raes_conformance.conformance.report_text import backend_conformance_report_text
 from raes_conformance.conformance.semantics import (
     _fixture_case_diagnostics as _fixture_case_diagnostics,
 )
@@ -59,6 +61,9 @@ from raes_conformance.conformance.validators import (
 )
 
 __all__ = [
+    "ProcessorConformanceProbe",
+    "run_processor_conformance",
+    "backend_conformance_report_text",
     "MIXED_BACKEND_CASES",
     "BackendCapabilityProfile",
     "BackendConformanceReport",

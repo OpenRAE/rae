@@ -117,7 +117,7 @@ def _sdl_error_summary(source: Path, exc: InvalidInputError | OperationalError) 
     return f"error: could not compile {source}: {_failure_detail(exc)}"
 
 
-def _load_backend_manifest(manifest_path: Path | None) -> BackendManifest:
+def load_backend_manifest(manifest_path: Path | None) -> BackendManifest:
     """Resolve the backend manifest the plan targets.
 
     Defaults to the reference stub dry-run manifest -- the same target the MCP
@@ -161,6 +161,10 @@ def _load_backend_manifest(manifest_path: Path | None) -> BackendManifest:
         # Deeper backend-capability validators can interpolate rejected manifest
         # values into their messages; render a stable, input-free message.
         raise typer.BadParameter("manifest was rejected by backend capability validation") from exc
+
+
+# Preserve the established private hook for callers while commands share the public loader.
+_load_backend_manifest = load_backend_manifest
 
 
 def _execution_plan_payload(execution_plan: ExecutionPlan) -> dict[str, Any]:
