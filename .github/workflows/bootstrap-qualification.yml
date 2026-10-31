@@ -3,7 +3,7 @@ name: Bootstrap qualification
 # Qualify changed tooling components, not unrelated application or documentation edits.
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, go-cutover]
     paths:
       - '.github/workflows/bootstrap-qualification.yml'
       - '.devcontainer/**'
@@ -66,6 +66,22 @@ jobs:
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile generic-tools
+      - name: Exercise the locked Go toolchain and Go tool module
+        env:
+          HOST_PROFILE_ID: ${{ matrix.profile }}
+          GOTOOLCHAIN: local
+          GOFLAGS: -mod=readonly
+        run: |
+          kit="${RUNNER_TEMP}/go-kit"
+          mkdir "${kit}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile fetch-inputs "${HOST_PROFILE_ID}" "${kit}" --artifact-id go
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile install-go "${HOST_PROFILE_ID}" "${kit}" --go-artifact-id go > "${kit}/go.json"
+          export PATH="${kit}/$(jq -r .path "${kit}/go.json")/bin:${PATH}"
+          go -C implementations/tooling/go mod verify
+          go -C implementations/tooling/go tool golangci-lint version
+          go -C implementations/tooling/go tool gremlins --version
       - name: Exercise maintained curl behavior
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups --group acquisition-tests python \
@@ -157,9 +173,10 @@ jobs:
             --volume raes-development-cache:/home/raes/.cache --workdir "${DEVCONTAINER_WORKSPACE}" \
             --env PATH="${DEVCONTAINER_REMOTE_PATH}" raes-development-image:smoke bash -euo pipefail -c '
               test "$(id -u)" -ne 0
-              for tool in uv python nox pre-commit ruff gh git ssh gpg make jq less nano; do
+              for tool in uv python go nox pre-commit ruff gh git ssh gpg make jq less nano; do
                 command -v "${tool}"
               done
+              test "$(go env GOTOOLCHAIN)" = local
               test -x .git/hooks/pre-commit
               test ! -e .git/hooks/pre-push
               nox -s policy -- --skip-requirement

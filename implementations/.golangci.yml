@@ -1,0 +1,149 @@
+# Strict lint configuration for all Go code in this repository (ADR-121).
+# golangci-lint finds this file from each Go module below this directory.
+version: "2"
+
+run:
+  # A module must already match its reviewed go.sum (ADR-106).
+  modules-download-mode: readonly
+
+linters:
+  default: all
+  disable:
+    # Each disabled linter conflicts with the Google Go style guide or with a
+    # published contract, or an enabled check already covers it.
+    - cyclop # gocognit carries the complexity limit, as SonarCloud does.
+    - err113 # Google style permits fmt.Errorf; callers test sentinel errors where they need to.
+    - exhaustruct # Google style relies on zero values.
+    - funcorder # Not a Google style rule.
+    - funlen # Google style sets no length limit; gocognit limits complexity.
+    - gocyclo # gocognit carries the complexity limit.
+    - godox # Google style permits TODO comments that give context.
+    - gomodguard # Deprecated; gomodguard_v2 replaces it.
+    - lll # Google style sets no line length limit.
+    - maintidx # gocognit carries the complexity limit.
+    - mnd # Google style does not require a named constant for each number.
+    - nlreturn # Not a Google style rule.
+    - noinlineerr # Google style uses `if err := f(); err != nil`.
+    - nonamedreturns # Google style permits named results that document a function.
+    - paralleltest # Google style does not require parallel tests.
+    - prealloc # Google style asks for size hints only when the size is known.
+    - tagliatelle # JSON field names follow the published contracts.
+    - testpackage # Google style permits tests in the package under test.
+    - tparallel # Google style does not require parallel tests.
+    - varnamelen # Google style prefers short names in short scopes.
+    - wrapcheck # Google style adds context to an error only where it helps the reader.
+    - wsl # Not a Google style rule.
+    - wsl_v5 # Not a Google style rule.
+    - exhaustruct_v5 # Google style relies on zero values.
+  settings:
+    depguard:
+      rules:
+        dependencies:
+          # Standard library first. Each other import needs a reason here (ADR-121).
+          list-mode: strict
+          allow:
+            - $gostd
+            - github.com/OpenRAE/rae
+            # The go/analysis framework of the repository's own analyzers.
+            - golang.org/x/tools/go/analysis
+            - golang.org/x/tools/go/ast/inspector
+            - golang.org/x/tools/go/types/typeutil
+          deny:
+            - pkg: math/rand
+              desc: use crypto/rand, or the governed random streams for reproducible values
+            - pkg: log$
+              desc: use log/slog with value-free records (ADR-116)
+    errcheck:
+      check-type-assertions: true
+    exhaustive:
+      default-signifies-exhaustive: false
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: ^reflect\.DeepEqual$
+          msg: compare with cmp.Equal or cmp.Diff (Google Go style decisions)
+        - pattern: ^fmt\.Print(f|ln)?$
+          msg: write to an explicit io.Writer
+        - pattern: ^time\.Now$
+          msg: read the time from an injected clock (ADR-118)
+    gocognit:
+      # The SonarCloud cognitive complexity limit.
+      min-complexity: 15
+    gocritic:
+      enabled-checks:
+        # Google Go style decisions: "Use %q".
+        - sprintfQuotedString
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment # Google style favors readable field order over struct packing.
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: early-return
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: identical-branches
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        # Google Go style best practices: no util, common, helpers, or models packages.
+        - name: package-naming
+          arguments:
+            - checkExtraBadName: true
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: redundant-import-alias
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unnecessary-stmt
+        - name: unreachable-code
+        - name: unused-parameter
+        - name: use-any
+        - name: var-declaration
+        - name: var-naming
+    sloglint:
+      attr-only: true
+      static-msg: true
+      key-naming-case: snake
+    staticcheck:
+      checks: ["all"]
+  exclusions:
+    generated: strict
+    rules:
+      # The go/analysis API requires each analyzer to be a package-level variable.
+      - path: tooling/go/lint/
+        linters: [gochecknoglobals]
+        text: "^Analyzer is a global variable$"
+      # The go/analysis API requires a nil result from an analyzer that declares no result type.
+      - path: tooling/go/lint/
+        linters: [nilnil]
+        source: "return nil, nil"
+      # Repeated literals keep each test case readable on its own.
+      - path: _test\.go$
+        linters: [goconst]
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/OpenRAE/rae
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

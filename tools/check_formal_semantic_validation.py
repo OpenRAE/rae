@@ -23,7 +23,7 @@ for import_root in (REPO_ROOT, PYTHON_PACKAGES):
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.operational_logging import run_application
 
-from tools.research_evidence import current_release_path
+from tools.research_evidence import latest_recorded_release_path
 from tools.policy.common import PolicyFailure, load_bounded_json_object
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._claims import recompute_claim_results
@@ -87,7 +87,7 @@ def _participant_replay_failures(
     releases: list[EvidenceRelease],
     participant_test_runner: ParticipantTestRunner,
 ) -> list[PolicyFailure]:
-    selected = current_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
+    selected = latest_recorded_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
     latest = next(item for item in releases if item.manifest_path == selected)
     test_refs = _participant_test_refs(latest.protocol)
     replayed, detail = participant_test_runner(repo_root, test_refs)

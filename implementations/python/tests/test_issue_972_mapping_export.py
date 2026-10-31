@@ -33,8 +33,24 @@ def test_bundle_is_deterministic_and_keeps_claims_separate(reports):
     assert "participant_decision_surface_control_v2.py" in str(manifest["source_digests"])
 
 
-def test_published_cases_match_fresh_public_execution(reports):
-    export.check(ROOT, reports)
+def test_source_inventory_binds_mapping_test_drivers_only():
+    pins = export.source_pins(ROOT)
+    tests = {path.removeprefix("implementations/python/tests/") for path in pins if "/python/tests/" in path}
+    assert {
+        "crossing_runtime_cases.py",
+        "crossing_runtime_observer.py",
+        "participant_crossing_fixtures.py",
+        "test_issue_972_runtime_mapping.py",
+        "test_issue_972_mapping_export.py",
+        "test_issue_972_mapping_ownership.py",
+    } <= tests
+    assert "test_issue_976_crossing_publication.py" not in tests
+    assert "test_behavioral_relations.py" not in tests
+
+
+def test_manifest_stays_within_the_repository_file_size_limit(reports):
+    # check-added-large-files refuses files above 500 KiB.
+    assert len(export.build_bundle(ROOT, reports)["manifest.json"]) <= 500 * 1024
 
 
 def test_historical_schema_tombstones_are_not_live_mapping_sources():

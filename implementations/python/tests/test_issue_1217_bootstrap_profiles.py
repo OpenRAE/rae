@@ -664,6 +664,60 @@ def test_bootstrap_python_install_extracts_only_the_locked_relocatable_archive(
         bootstrap_profile.install_python_payload("host-a", kit_root, "cpython-3.14")
 
 
+def _locked_go_archive(monkeypatch: pytest.MonkeyPatch, kit_root: Path, root: str) -> Path:
+    payload_root = kit_root.parent / "payload"
+    (payload_root / "bin").mkdir(parents=True)
+    (payload_root / "bin/go").write_bytes(b"locked-go")
+    archive = kit_root / "archives/go/go.tar.gz"
+    archive.parent.mkdir(parents=True)
+    with tarfile.open(archive, "w:gz") as bundle:
+        bundle.add(payload_root, arcname=root)
+    raw = {"path": archive.name, "sha256": bootstrap_profile._sha256(archive), "size": archive.stat().st_size}
+    artifact = {"artifact_id": "go", "version": "1.27.3", "platform": {"raw_manifest": [raw]}}
+    monkeypatch.setattr(bootstrap_profile, "_load_host_selection", lambda _host_id: ({}, {"go": artifact}, "a" * 64))
+    return archive
+
+
+def test_bootstrap_go_install_extracts_the_locked_toolchain_as_a_new_goroot(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    kit_root = tmp_path / "kit"
+    archive = _locked_go_archive(monkeypatch, kit_root, "go")
+
+    result = bootstrap_profile.install_go_payload("host-a", kit_root, "go")
+
+    assert result == {"artifact_id": "go", "path": "go/go1.27.3"}
+    assert (kit_root / result["path"] / "bin/go").read_bytes() == b"locked-go"
+    with pytest.raises(InvalidInputError, match="^bootstrap Go destination must be new$"):
+        bootstrap_profile.install_go_payload("host-a", kit_root, "go")
+    archive.write_bytes(archive.read_bytes() + b"tampered")
+    with pytest.raises(InvalidInputError, match="^bootstrap Go archive differs from the validated lock$"):
+        bootstrap_profile.install_go_payload("host-a", kit_root, "go")
+
+
+def test_bootstrap_go_install_refuses_an_archive_outside_the_go_root(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    kit_root = tmp_path / "kit"
+    _locked_go_archive(monkeypatch, kit_root, "python")
+
+    with pytest.raises(InvalidInputError, match="^bootstrap Go archive has an unexpected root$"):
+        bootstrap_profile.install_go_payload("host-a", kit_root, "go")
+    assert not (kit_root / "go" / "go1.27.3").exists()
+
+
+def test_bootstrap_go_install_requires_the_host_profile_to_select_the_toolchain(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(bootstrap_profile, "_load_host_selection", lambda _host_id: ({}, {}, "a" * 64))
+
+    with pytest.raises(InvalidInputError, match="^bootstrap Go payload is not selected by the host profile$"):
+        bootstrap_profile.install_go_payload("host-a", tmp_path, "go")
+
+
 @pytest.mark.parametrize("locator_ref", [None, "primary", "mirror"])
 def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
     monkeypatch: pytest.MonkeyPatch,
