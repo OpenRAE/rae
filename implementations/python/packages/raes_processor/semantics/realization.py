@@ -277,8 +277,11 @@ def realization_disclosure(
 
     Absent *plan-side* evidence is different and is not a backend fault: when the
     plan declares no provisioning op for the resource, removes it (a ``DELETE``
-    op — expected absence), or carries no value for the concern, there is no
-    author baseline for this run to enforce, so the requirement is skipped.
+    op — expected absence), there is no applicable realization to enforce.
+    An open concern with no authored structure or constraint document still
+    requires an explicit runtime report when it has a verification floor.
+    Missing readback cannot establish an empty concern. Other absent plan-side
+    values have no author baseline to enforce and are skipped.
 
     Every honoured/realized concern is recorded as a
     ``RealizationProvenanceEntry``: ``author-declared`` when the backend honoured

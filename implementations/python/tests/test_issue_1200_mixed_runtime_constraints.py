@@ -5,6 +5,7 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
+from raes.runtime_configuration import RuntimeConfiguration
 from raes_contracts.apparatus import RealizationObservationCapability
 from raes_contracts.contracts import ProvisioningPlanModel
 from raes_contracts.contracts.plan_projection import provisioning_plan_model
@@ -161,9 +162,7 @@ def _returned(plan_value, runtime):
                 observation_strength=(authority.required_observation_strength or ObservationStrength.GUEST_OBSERVED),
             )
             for authority in plan_value.realization_authority
-            if authority.requirement_kind
-            in {"runtime-database-services", "runtime-packages", "runtime-dns-services", "runtime-environment"}
-            and authority.mode.value != "closed"
+            if authority.verification_scope is not None and authority.mode.value != "closed"
         ),
     )
 
@@ -220,10 +219,21 @@ def test_direct_counterexample_retains_exact_negative_control():
 def test_inherited_open_packages_preserve_exact_nmap(version, accepted, scope):
     nmap = {"manager": "apt", "name": "nmap", "version": "7.95"}
     _, portable, manifest = _fixture({"packages": [nmap]}, scope=scope)
+    runtime = {}
+    if scope == "/nodes/host/runtime":
+        # A broad open scope must explicitly report its empty sibling concerns.
+        runtime = RuntimeConfiguration(
+            linux_capabilities={},
+            operational_policy={"resource_limits": {}},
+            container={},
+            local_identity={},
+            network={},
+        ).model_dump(mode="json")
+    runtime["packages"] = [{"manager": "apt", "name": "curl", "version": "8.0"}, {**nmap, "version": version}]
     result = _apply(
         portable,
         manifest,
-        {"packages": [{"manager": "apt", "name": "curl", "version": "8.0"}, {**nmap, "version": version}]},
+        runtime,
     )
     assert result.success is accepted, result.diagnostics
     if not accepted:

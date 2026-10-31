@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-31T21:04:10.271980+00:00",
+  "generated_at": "2026-10-31T21:14:42.385468+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -57,7 +57,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "Six retained specification artifacts and their passing typed pointers were freshly replayed after the authored exposure changes. Missing and backend-specific concepts retain their bounded classifications.",
+  "plain_language_outcome": "The six retained artifacts were freshly executed through their owning boundaries. All passing typed pointers were checked. Existing coverage classifications and limitations remain; this corpus adds no claim of independent observation or backend honesty.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -90,5 +90,5 @@
     }
   ],
   "snapshot_id": "issue-1711-strict-layers-specification-replay",
-  "snapshot_sha256": "300b4da4ed21898dae8c0f6f03ee16e44527f37138e576477b9280829d365dad"
+  "snapshot_sha256": "295585d13a7eb5c6146cc1e86df1f0bff9732afdc3e2faccca2316e3f6443fba"
 }

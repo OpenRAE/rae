@@ -33,7 +33,9 @@ def _request():
             ),
         ),
     )
-    scenario = _scenario("realization:\n  default: open")
+    scenario = _scenario(
+        "realization:\n  default: open\n  scopes:\n    - {field_pointer: /nodes/web/runtime, posture: closed}"
+    )
     # One node makes the existing observation test adapter's coverage complete.
     scenario = scenario.model_copy(update={"nodes": {"web": scenario.nodes["web"]}})
     execution = plan(compile_runtime_model(scenario), manifest)
@@ -187,7 +189,9 @@ def test_runtime_validates_the_prepared_completion_not_the_unselected_template(o
     _, manifest = _request()
     backend = ConcreteValidationBackend()
     target = RuntimeTarget(name="preparation-test", manifest=manifest, provisioner=backend)
-    scenario = _scenario("realization:\n  default: open")
+    scenario = _scenario(
+        "realization:\n  default: open\n  scopes:\n    - {field_pointer: /nodes/web/runtime, posture: closed}"
+    )
     scenario = scenario.model_copy(update={"nodes": {"web": scenario.nodes["web"]}})
     from runtime_plan_fixtures import plan_for_target
 

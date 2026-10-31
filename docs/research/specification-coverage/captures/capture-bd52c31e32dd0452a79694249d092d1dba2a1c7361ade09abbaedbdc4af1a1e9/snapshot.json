@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-10-31T21:04:10.271980+00:00",
+  "captured_at": "2026-10-31T19:47:27.969128+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,17 +647,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "c77313f624bd50ca6eb4abb86003fb787b84685a7396ef964a63bf29ab0aded1",
+      "content_sha256": "d51e087b13266ae20200b899ae389e9d4c5c2cb491cce581e50b007aafcb690a",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "159ddaf2ac0de5ec65acb5200a06d52221962691896a7e6f0103241fc9b90dad",
+      "content_sha256": "b40ebeb007ebe5ab91e54043ec7c5f596f10617033f309a791db89030c37149b",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "4cf8e34195860c4370033aca286886a662a5e607c4baf7c65230bd95c15eca41",
+      "content_sha256": "90561058e872c3bc626cd2dee0e95ab52e24bf31d7209d622c6e8d12326b1bb0",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -677,13 +677,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "4f556a3c8404640f1af34dfbf171d742696761f4",
-  "snapshot_id": "issue-1711-strict-layers-specification-replay",
+  "raes_revision": "80b1607526a892f0df067d826de160a7db12ec67",
+  "snapshot_id": "issue-1805-open-concern-disclosure-specification-9073e1f23e5e",
   "snapshot_revision": "1.0.0",
   "source_state": {
-    "base_revision": "4f556a3c8404640f1af34dfbf171d742696761f4",
+    "base_revision": "80b1607526a892f0df067d826de160a7db12ec67",
     "checkout_state": "modified",
-    "implementation_digest": "d3cc9c59d7dd73fc0b3fac0c86017c2440e864838a6ef2a1db84476fb76773c0",
+    "implementation_digest": "9073e1f23e5e608b7a7185653522eef3d23cf716f0a58037eb0b4317f039c415",
     "profile": "python-reference-source/v2"
   }
 }

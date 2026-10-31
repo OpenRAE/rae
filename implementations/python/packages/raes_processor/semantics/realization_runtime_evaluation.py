@@ -83,13 +83,7 @@ def _evaluate_non_compute_registered_realization(
     op = declared_ops.get(requirement.address)
     if requirement.explicitness is None or path is None or op is None or op.action is ChangeAction.DELETE:
         return None, None
-    if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS:
-        realized_value = _observed_operating_system_value(requirement, returned_snapshot)
-    else:
-        snapshot_entry = returned_snapshot.entries.get(requirement.address)
-        realized_value = (
-            concern_value(snapshot_entry.payload, path) if snapshot_entry is not None else MISSING_CONCERN_VALUE
-        )
+    realized_value = realized_concern_value(requirement, returned_snapshot)
     if requirement.structure_error:
         result = silent_approximation_diagnostic(requirement), None
     elif (
@@ -109,12 +103,28 @@ def _evaluate_non_compute_registered_realization(
     return result
 
 
+def realized_concern_value(requirement: CompiledRealizationRequirement, returned_snapshot: RuntimeSnapshot) -> object:
+    """Read one registered concern without treating omission as emptiness."""
+
+    if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS:
+        return _observed_operating_system_value(requirement, returned_snapshot)
+    path = CONCERN_PAYLOAD_PATH.get(requirement.requirement_kind)
+    snapshot_entry = returned_snapshot.entries.get(requirement.address)
+    if path is None or snapshot_entry is None:
+        return MISSING_CONCERN_VALUE
+    return concern_value(snapshot_entry.payload, path)
+
+
 def _evaluate_open_realization(
     requirement: CompiledRealizationRequirement,
     realized_value: object,
     returned_snapshot: RuntimeSnapshot,
     manifest: BackendManifest | None,
 ) -> tuple[Diagnostic | None, RealizationProvenanceEntry | None]:
+    if realized_value is MISSING_CONCERN_VALUE and (
+        requirement.verification_scope is not None or requirement.required_observation_strength is not None
+    ):
+        return invalid_observation_diagnostic(requirement), None
     diagnostic: Diagnostic | None = None
     provenance: RealizationProvenanceEntry | None = None
     if realized_value is not MISSING_CONCERN_VALUE:
