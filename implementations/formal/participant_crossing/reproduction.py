@@ -1,6 +1,7 @@
 """Measure a fresh finite replay without asserting independent reviewer acceptance."""
 
 import argparse
+import re
 from pathlib import Path
 
 from raes_contracts.canonical import canonical_json_digest
@@ -25,13 +26,6 @@ SOURCE_PATHS = (
     ),
 )
 
-# Independently reconstructed from all 1,269 declared source files at this Git
-# revision. Keep this binding frozen; another revision needs its own review.
-_ARCHIVED_SOURCE_REVISION = "5925b6c49711e0f5fe7c3a1b1318c0715278ec40"
-_ARCHIVED_SOURCE_DIGEST = (
-    "sha256:ee5796389cfd4ff3e58699d6be4e442b88994a8e613d57848163c815676491be"
-)
-
 
 def source_pins(root: Path) -> dict[str, str]:
     return {
@@ -49,11 +43,12 @@ def selected_bundle(root: Path, expected_manifest_digest: str) -> dict[str, byte
 
 
 def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
-    return {**measurement_subject(bundle), "reproducer_sources": source_pins(root)}
+    return _measurement_record(bundle, source_pins(root))
 
 
-def measurement_subject(bundle: dict[str, bytes]) -> dict:
-    """Describe the admitted finite result without choosing a reproducer revision."""
+def _measurement_record(
+    bundle: dict[str, bytes], reproducer_sources: dict[str, str]
+) -> dict:
     manifest = decoded(bundle["manifest.json"])
     result = decoded(bundle["result.json"])
     return {
@@ -68,6 +63,7 @@ def measurement_subject(bundle: dict[str, bytes]) -> dict:
             name: digest(value) for name, value in sorted(bundle.items())
         },
         "producer_source_identity": manifest["source_identity"],
+        "reproducer_sources": reproducer_sources,
         "corpus_manifest_digest": manifest["corpus_manifest_digest"],
         "mutation_review_subject_digest": manifest["mutation_review_subject_digest"],
         "tool": manifest["tool"],
@@ -89,26 +85,54 @@ def admit_measurement(
         raise EvidenceIntegrityError("invalid reproduction measurement")
 
 
-def admit_historical_measurement(
-    root: Path, payload: bytes, expected_manifest_digest: str, source_revision: str
+def admit_retained_measurement(
+    root: Path, payload: bytes, expected_manifest_digest: str
 ) -> None:
-    """Check archive integrity against the reviewed revision, never current replay.
-
-    The caller must also verify the execution and review records that bind the
-    supplied revision to this measurement.
-    """
-    record = decoded(payload)
-    sources = record.get("reproducer_sources")
+    """Check pinned archival integrity without claiming current-source replay."""
+    pin = decoded(read_bytes(root, OUTPUT_ROOT + "/pin.json"))
+    capture_digest = pin.get("manifest_digest")
     if (
-        source_revision != _ARCHIVED_SOURCE_REVISION
-        or not isinstance(sources, dict)
-        or canonical_json_digest(sources) != _ARCHIVED_SOURCE_DIGEST
+        set(pin) != {"schema", "manifest_digest"}
+        or pin["schema"] != "participant-crossing-reproduction-pin/v1"
+        or not isinstance(capture_digest, str)
+        or re.fullmatch(r"sha256:[0-9a-f]{64}", capture_digest) is None
     ):
-        raise EvidenceIntegrityError("invalid historical reproduction source identity")
-    bundle = selected_bundle(root, expected_manifest_digest)
-    expected = {**measurement_subject(bundle), "reproducer_sources": sources}
+        raise EvidenceIntegrityError("invalid retained reproduction pin")
+    capture = read_bytes(
+        root,
+        OUTPUT_ROOT + "/capture-" + capture_digest.split(":", 1)[1] + "/manifest.json",
+    )
+    if digest(capture) != capture_digest:
+        raise EvidenceIntegrityError("retained reproduction capture drift")
+    manifest = decoded(capture)
+    if (
+        set(manifest)
+        != {"schema", "target_manifest_digest", "artifact_digests", "authenticity"}
+        or manifest["schema"] != "participant-crossing-reproduction-capture/v1"
+        or manifest["target_manifest_digest"] != expected_manifest_digest
+        or not isinstance(manifest["artifact_digests"], dict)
+        or manifest["artifact_digests"].get("measurement.json") != digest(payload)
+    ):
+        raise EvidenceIntegrityError("retained reproduction measurement drift")
+    record = decoded(payload)
+    retained_sources = record.get("reproducer_sources")
+    if (
+        not isinstance(retained_sources, dict)
+        or not 1 <= len(retained_sources) <= 10000
+        or not set(SOURCE_PATHS).issubset(retained_sources)
+        or any(
+            not isinstance(name, str)
+            or not isinstance(value, str)
+            or re.fullmatch(r"sha256:[0-9a-f]{64}", value) is None
+            for name, value in retained_sources.items()
+        )
+    ):
+        raise EvidenceIntegrityError("invalid retained reproducer source pins")
+    expected = _measurement_record(
+        selected_bundle(root, expected_manifest_digest), retained_sources
+    )
     if payload != encoded(expected):
-        raise EvidenceIntegrityError("invalid historical reproduction measurement")
+        raise EvidenceIntegrityError("invalid retained reproduction measurement")
 
 
 def measure(root: Path, expected_manifest_digest: str) -> bytes:

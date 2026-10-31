@@ -57,17 +57,6 @@ The earlier implementation-agent run remains the original producer.
 No human review is claimed.
 This immutable capture survives the hosted artifact retention period.
 
-Historical admission uses `reproduction.admit_historical_measurement`.
-It binds the retained source inventory to its recorded Git revision.
-The inventory digest was independently reconstructed from all 1,269 declared source files at that revision.
-This fixed binding permits offline validation in shallow checkouts.
-Unknown revisions, missing sources, added sources, and changed source pins fail admission.
-The caller must also check the execution, manifest, and review joins.
-Historical admission establishes archive integrity only.
-It does not establish a result for current sources.
-`reproduction.admit_measurement` still requires the current source inventory.
-The required hosted lane still performs fresh isolated reproduction on current code.
-
 ## Execution boundary and data flows
 
 ```mermaid
@@ -157,3 +146,14 @@ Issue 976 owns subsequent public and scientific claims.
 
 The review checks technical names, sentence limits, and one fact per sentence.
 It keeps architecture descriptions separate from implementation tasks.
+
+## Retained and fresh admission
+
+`reproduction.admit_measurement` checks a fresh measurement against current reproducer sources.
+`reproduction.admit_retained_measurement` checks the measurement selected by `reproduction/pin.json`.
+The retained path verifies the capture manifest, target subject, and exact measurement digest.
+It checks all subject and claim fields against the selected finite bundle.
+Only the reproducer source map retains the original execution's pins.
+A replacement payload, changed source map, or different subject fails admission.
+This path establishes archival integrity, without claiming fresh execution or authenticating reviewer acceptance.
+The separate execution and review records retain their existing digest joins and authority requirements.
