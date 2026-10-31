@@ -312,11 +312,15 @@ def evaluate_realization_constraint(
         return invalid
     scope_index = ScopeIndex.build(document, budget)
     if scope_index is None:
-        return relation_result(RealizationRelationStatus.LIMIT_EXCEEDED, "", "Scope indexing exceeded max_operations.")
-    scopes = evaluate_scope_overlays(document, actual, budget, scope_index)
-    context = EvaluationContext(document, budget, scope_index)
-    evaluated = _evaluate_recursive_node(context, document.root, actual, (), 0)
-    return combine_relation_results(
-        [evaluated, *scopes],
-        max_diagnostics=limits.max_diagnostics,
-    )
+        result = relation_result(
+            RealizationRelationStatus.LIMIT_EXCEEDED, "", "Scope indexing exceeded max_operations."
+        )
+    else:
+        scopes = evaluate_scope_overlays(document, actual, budget, scope_index)
+        context = EvaluationContext(document, budget, scope_index)
+        evaluated = _evaluate_recursive_node(context, document.root, actual, (), 0)
+        result = combine_relation_results(
+            [evaluated, *scopes],
+            max_diagnostics=limits.max_diagnostics,
+        )
+    return result

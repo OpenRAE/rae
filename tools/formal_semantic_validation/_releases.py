@@ -331,7 +331,6 @@ def validate_retest_bundle(
             failures,
             snapshot_path,
             release_revision=str(release_revision),
-            replay_current=replay_current,
         )
     _validate_protocol(repo_root, protocol, failures, protocol_path)
     cases_by_id = _validate_corpus(repo_root, protocol, corpus, failures, corpus_path)
@@ -369,7 +368,6 @@ def _current_retest_source_failures(
     path: str,
     *,
     release_revision: str,
-    replay_current: bool,
 ) -> None:
     failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=False))
     state = snapshot.get("source_state")

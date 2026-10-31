@@ -286,12 +286,12 @@ def test_recorded_release_provenance_does_not_require_current_source():
     snapshot["source_state"]["implementation_digest"] = "0" * 64
     failures = []
     _current_retest_source_failures(
-        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"], replay_current=True
+        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"]
     )
     assert failures == []
     snapshot["source_state"]["implementation_digest"] = "malformed"
     _current_retest_source_failures(
-        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"], replay_current=True
+        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"]
     )
     assert "research-evidence-source-state" in {f.rule_id for f in failures}
 

@@ -55,9 +55,10 @@ class ScopeIndex:
             if child is None:
                 return set()
             node = child
-        children: set[str] = set()
+        children: set[str] | None = set()
         for token in node.children:
             if budget.spend_operation():
-                return None
+                children = None
+                break
             children.add(token)
         return children

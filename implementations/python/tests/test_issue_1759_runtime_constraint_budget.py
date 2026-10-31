@@ -84,6 +84,7 @@ def test_scope_tree_construction_and_lookup_spend_budget():
     assert index is not None
     assert index.inherited_closure(("a", "b", "c"), closed, RelationBudget(tiny)) is None
     assert index.declared_children(("a", "b", "c"), RelationBudget(tiny)) is None
+    assert index.declared_children(("a", "b"), RelationBudget(tiny)) is None
 
 
 def test_scope_tree_uses_decoded_tokens_and_most_specific_closure():
