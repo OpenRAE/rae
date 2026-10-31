@@ -21,6 +21,10 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Failed inventory keeps authority checks without claiming successful readback)
+- TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Omitted open reports fail through compiled, portable, and runtime boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1805-open-concern-disclosure-design.md` (Explicit open readback and failed inventory architecture)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/backend_node_provenance.py` (Shared backend-introduced node concern provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_provenance.py` (Prepared membership concern and dedicated realization disclosure)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_apply_results.py` (Accepted runtime ledger assembly and provenance preservation)

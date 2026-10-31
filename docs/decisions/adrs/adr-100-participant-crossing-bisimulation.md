@@ -163,6 +163,8 @@ repository or immutable-container provenance, run without a shell or
 verification-time network, and record exact input, source, profile, mapping,
 tool, result, state-count, transition-count, mutation, and artifact digests.
 The design does not invent an archive checksum before acquisition.
+Retained records bind the digests of the sources that define the compared
+models and the evidence; the hosted execution record binds the source revision.
 
 TLC remains suitable for auxiliary finite deadlock, replay, atomicity, and
 progress properties, but property agreement is not bisimulation. Isabelle/HOL
@@ -196,8 +198,9 @@ positive result is independently reproduced.
 ### 7. Allocate requirement-backed work
 
 SEM-232 (canonical Ground Control requirement id
-`860b0b1e-55cc-42e6-9da8-b7eeeab7172c`) owns the machine-checkable result and
-remains DRAFT. Downstream work is ordered:
+`860b0b1e-55cc-42e6-9da8-b7eeeab7172c`) owns the machine-checkable result. It
+remained DRAFT until #976 completed the ordered work below; the requirement
+transition in #976 made it ACTIVE. Downstream work is ordered:
 
 - #971 — independent abstract and concrete formal models;
 - #972 — reference-runtime mapping after #971;
@@ -258,3 +261,4 @@ program publishes its evidence.
 |------|-----------|---------|
 | 2026-09-27 | #971 | Select executable profile/model rev2 and close the approved single-operation retry, history, ordering, and completion semantics; retain projection rev1 and separate runtime mapping. |
 | 2026-10-13 | #1395 | Add the separate participant-crossing-multi-operation-dpbb-finite-v1@rev1 construction and its revisioned projection, with at most two fresh identities, history-sensitive retries and bounded completed-result response loss; preserve #971's profile and evidence, and keep equivalence and realization unestablished. |
+| 2026-10-31 | #976 | Record completion of the ordered #971-#976 work and the SEM-232 ACTIVE transition; retained records bind subject-source digests while hosted execution records bind the source revision. |
