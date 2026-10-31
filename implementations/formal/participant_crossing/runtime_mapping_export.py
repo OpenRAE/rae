@@ -1,5 +1,6 @@
 """Source-bound mapping artifacts, separate from retained construction evidence."""
 
+import ast
 from collections import Counter
 from pathlib import Path
 
@@ -10,15 +11,22 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from tools.research_evidence import release_managed_source_bytes
 
 from . import export
-from .ingress import read_bytes, safe_path
+from .ingress import read_bytes, read_bytes_if_present, safe_path
 
 OUTPUT_ROOT = "specs/formal/participant-semantics/runtime-mapping"
 SOURCE_ROOTS = (
     "implementations/python/packages",
-    "implementations/python/tests",
     "implementations/formal/participant_crossing",
     "contracts",
     "tools",
+)
+TESTS_ROOT = "implementations/python/tests"
+# The mapping test modules and the local test modules they import produce the observed cases.
+TEST_DRIVERS = (
+    "crossing_runtime_cases.py",
+    "test_issue_972_runtime_mapping.py",
+    "test_issue_972_mapping_export.py",
+    "test_issue_972_mapping_ownership.py",
 )
 EXTRA_SOURCES = (
     "implementations/python/pyproject.toml",
@@ -33,8 +41,41 @@ ROOT = Path(__file__).resolve().parents[3]
 HISTORICAL_TOMBSTONES = "contracts/schema-publication/tombstones"
 
 
+def source_drift(root: Path, pins: dict[str, str]) -> list[str]:
+    """Return each pinned path whose current bytes differ from its pin. A removed path has drifted."""
+
+    drifted = []
+    for path, pin in pins.items():
+        content = read_bytes_if_present(root, path)
+        if content is None or export.digest(content) != pin:
+            drifted.append(path)
+    return sorted(drifted)
+
+
+def test_driver_paths(root: Path) -> set[str]:
+    """Return the mapping test modules and their transitive local test-module imports."""
+    pending, found = list(TEST_DRIVERS), set()
+    while pending:
+        name = pending.pop()
+        if name in found:
+            continue
+        found.add(name)
+        tree = ast.parse(read_bytes(root, f"{TESTS_ROOT}/{name}", max_bytes=16 * 1024 * 1024))
+        modules = {alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names}
+        modules |= {
+            node.module
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module and not node.level
+        }
+        for module in modules:
+            candidate = module.split(".")[0] + ".py"
+            if safe_path(root, f"{TESTS_ROOT}/{candidate}").is_file():
+                pending.append(candidate)
+    return {f"{TESTS_ROOT}/{name}" for name in found}
+
+
 def source_pins(root: Path) -> dict[str, str]:
-    paths = set(EXTRA_SOURCES)
+    paths = set(EXTRA_SOURCES) | test_driver_paths(root)
     for relative in SOURCE_ROOTS:
         directory = safe_path(root, relative)
         for path in directory.rglob("*"):
@@ -69,15 +110,12 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         raise EvidenceIntegrityError("mapping executing source identity drift")
     # The case reports come from the executing mapping code, not from repository input (rule E2).
     if not 1 <= len(reports) <= 64 or any(
-        item.get("classification")
-        not in {"match", "incompatible", "observation-gap", "invalid-evidence"}
+        item.get("classification") not in {"match", "incompatible", "observation-gap", "invalid-evidence"}
         for item in reports.values()
     ):
         raise ValueError("invalid mapping case inventory")
     current = export.build_bundle(root)
-    identity = parse_bounded_json_object(
-        current["manifest.json"], max_bytes=2 * 1024 * 1024, max_depth=32
-    )
+    identity = parse_bounded_json_object(current["manifest.json"], max_bytes=2 * 1024 * 1024, max_depth=32)
     if (
         identity["profile_id"],
         identity["profile_revision"],
@@ -91,9 +129,7 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
     ):
         raise EvidenceIntegrityError("mapping profile identity drift")
     retained_manifest_bytes = read_bytes(root, export.OUTPUT_PATH + "/manifest.json")
-    retained = parse_bounded_json_object(
-        retained_manifest_bytes, max_bytes=2 * 1024 * 1024, max_depth=32
-    )
+    retained = parse_bounded_json_object(retained_manifest_bytes, max_bytes=2 * 1024 * 1024, max_depth=32)
     model_pins = {}
     for name, expected in retained["artifact_digests"].items():
         relative = export.OUTPUT_PATH + "/" + name
@@ -101,13 +137,9 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         model_pins[relative] = export.digest(data)
         if model_pins[relative] != expected or current[name] != data:
             raise EvidenceIntegrityError("retained model artifact drift")
-    model_pins[export.OUTPUT_PATH + "/manifest.json"] = export.digest(
-        retained_manifest_bytes
-    )
+    model_pins[export.OUTPUT_PATH + "/manifest.json"] = export.digest(retained_manifest_bytes)
     cases = canonical_json_bytes(reports) + b"\n"
-    counts = dict(
-        sorted(Counter(item["classification"] for item in reports.values()).items())
-    )
+    counts = dict(sorted(Counter(item["classification"] for item in reports.values()).items()))
     manifest = {
         "schema": "participant-crossing-runtime-mapping/v1",
         "profile": "participant-crossing-dpbb-finite-v1@rev2",
@@ -115,14 +147,12 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "projection": "participant-crossing-projection@rev1",
         "taxonomy": "raes-behavioral-relations@rev8",
         "source_digests": pins,
-        "source_exclusions": {
-            HISTORICAL_TOMBSTONES: "Historical schema removals are not live runtime-mapping inputs."
-        },
+        "source_exclusions": {HISTORICAL_TOMBSTONES: "Historical schema removals are not live runtime-mapping inputs."},
         "model_artifact_digests": model_pins,
         "artifact_digests": {"cases.json": export.digest(cases)},
         "case_counts": counts,
         "case_count": len(reports),
-        "historical_source_drift": export.source_drift(root, retained["source_digests"]),
+        "historical_source_drift": source_drift(root, retained["source_digests"]),
         "equivalence_result": "not-established",
         "runtime_realization": "not-established",
         "backend_conformance": "not-established",

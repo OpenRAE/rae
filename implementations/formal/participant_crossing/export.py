@@ -23,7 +23,7 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from . import abstract, concrete
 from .aut import parse_aut as parse_aut
 from .aut import render_aut
-from .ingress import MAX_BYTES, read_bytes, read_bytes_if_present, safe_path
+from .ingress import MAX_BYTES, read_bytes, safe_path
 
 PROFILE_PATH = "contracts/profiles/behavioral-relation/participant-crossing-dpbb-finite-v1.json"
 OUTPUT_PATH = "specs/formal/participant-semantics/crossing-models/rev2"
@@ -56,21 +56,21 @@ SOURCE_PATHS = (
     "specs/formal/participant-semantics/information-flow-control.md",
     "implementations/python/uv.lock",
 )
+# Construction reads and stability-checks SOURCE_PATHS. The manifest binds only
+# the sources that define both graphs; replay detects any other effect on bytes.
+SUBJECT_SOURCE_PATHS = (
+    "implementations/formal/participant_crossing/abstract.py",
+    "implementations/formal/participant_crossing/concrete.py",
+    "implementations/formal/participant_crossing/graph.py",
+    "implementations/formal/participant_crossing/aut.py",
+    "implementations/formal/participant_crossing/export.py",
+    "specs/formal/participant-semantics/participant-crossing-models.md",
+    "specs/formal/participant-semantics/information-flow-control.md",
+)
 
 
 def digest(content: bytes) -> str:
     return "sha256:" + hashlib.sha256(content).hexdigest()
-
-
-def source_drift(root: Path, pins: dict[str, str]) -> list[str]:
-    """Return each pinned path whose current bytes differ from its pin. A removed path has drifted."""
-
-    drifted = []
-    for path, pin in pins.items():
-        content = read_bytes_if_present(root, path)
-        if content is None or digest(content) != pin:
-            drifted.append(path)
-    return sorted(drifted)
 
 
 # The CLI starts a fresh interpreter in this checkout. A caller may export a
@@ -181,8 +181,9 @@ def build_bundle(root: Path) -> dict[str, bytes]:
             "reachable_phases": sorted({state.phase for state in graph.states}),
         }
     catalog = _profile_catalog(profile.taxonomy_revision)
+    subject = {path: identities[path] for path in SUBJECT_SOURCE_PATHS}
     manifest = {
-        "schema": "participant-crossing-model-bundle/v1",
+        "schema": "participant-crossing-model-bundle/v2",
         "profile_id": profile.profile_id,
         "profile_revision": profile.profile_revision,
         "profile_digest": profile.canonical_digest,
@@ -190,8 +191,8 @@ def build_bundle(root: Path) -> dict[str, bytes]:
         "projection": "participant-crossing-projection@rev1",
         "catalog_revision": profile.taxonomy_revision,
         "catalog_digest": canonical_json_digest(catalog.model_dump(mode="json")),
-        "source_revision": canonical_json_digest(identities),
-        "source_digests": identities,
+        "source_revision": canonical_json_digest(subject),
+        "source_digests": subject,
         "domain_counts": {key: len(values) for key, values in profile.parameters.domains.model_dump().items()},
         "models": counts,
         "complete_reachable_fixed_point": True,

@@ -49,8 +49,28 @@ SOURCE_PATHS = tuple(
 )
 
 
+# Runs stability-check SOURCE_PATHS. The manifest binds only these subject
+# sources; the hosted execution record identifies the remaining apparatus.
+SUBJECT_SOURCE_PATHS = tuple(
+    sorted(
+        {
+            *corpus.SUBJECT_SOURCE_PATHS,
+            "implementations/formal/participant_crossing/machine_check.py",
+            "implementations/formal/participant_crossing/machine_check_evidence.py",
+            export.PROFILE_PATH,
+            corpus.OUTPUT_ROOT + "/pin.json",
+            "specs/formal/participant-semantics/participant-crossing-machine-check.md",
+        }
+    )
+)
+
+
 def source_pins(root: Path) -> dict[str, str]:
     return {path: export.digest(read_bytes(root, path)) for path in SOURCE_PATHS}
+
+
+def subject_pins(root: Path) -> dict[str, str]:
+    return {path: export.digest(read_bytes(root, path)) for path in SUBJECT_SOURCE_PATHS}
 
 
 def inputs(root: Path):
@@ -141,15 +161,14 @@ def manifest(
     retained: dict[str, bytes],
     pin: str,
 ) -> dict:
-    identities = source_pins(root)
+    identities = subject_pins(root)
     corpus_manifest = corpus.decoded(retained["manifest.json"])
     return {
-        "schema": "participant-crossing-machine-check/v1",
+        "schema": "participant-crossing-machine-check/v2",
         "source_digests": identities,
         "source_identity": canonical_json_digest(identities),
         "model_manifest_digest": export.digest(model["manifest.json"]),
         "retained_model_manifest_digest": corpus_manifest["baseline_manifest_digest"],
-        "historical_baseline_source_drift": corpus_manifest["historical_baseline_source_drift"],
         "corpus_manifest_digest": pin,
         "mutation_review_subject_digest": corpus_manifest["review_subject_digest"],
         "mapping": corpus_manifest["mapping"],

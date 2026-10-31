@@ -25,7 +25,7 @@ The current assessment is deliberately conservative. Only
 blocking concerns directly, including authored/observed-state binding,
 specificity, teardown, credentials, time and clocks, participant budgets,
 verifiers, hidden assets, and trajectories. Behavioral-relation semantics are
-now implemented as `raes-behavioral-relations@rev8`. Each stronger formal
+now implemented as `raes-behavioral-relations@rev14`. Each stronger formal
 relation retains its explicit assurance-axis status; the participant-opacity
 entry records one exact finite-model result without promoting it to a
 mathematical proof or runtime/backend result.
@@ -50,6 +50,12 @@ universal noninterference, projected-history equality, trace inclusion,
 simulation, refinement, strong or weak bisimulation, model checking, or proof.
 Documentation explains the assessed status; it does not change the canonical
 profile or assessment.
+
+Issue #976 publishes the 2026-10-31 assessment.
+It adds the reproduced finite participant-crossing model check to the behavioral-relation evidence.
+That result covers only the complete `participant-crossing-dpbb-finite-v1@rev2` carrier.
+It does not promote `participant-action-observation` or any profile outcome.
+The [participant control guide](../../public/participant-control.md) states its limits and nonclaims.
 
 Issue #1008 adds source-bound intentional-subversion harness evidence to this assessment.
 The [evaluation guide](../reference/adversarial-control-evaluation.md) separates
