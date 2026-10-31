@@ -719,3 +719,6 @@ adrs:
   - id: ADR-118
     path: docs/decisions/adrs/adr-118-shared-primitives-and-injected-wall-clock.md
     pin: 820039e194f03289ac345a469cd9e5105b285812b8d51612c8014146424da226
+  - id: ADR-119
+    path: docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md
+    pin: b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442

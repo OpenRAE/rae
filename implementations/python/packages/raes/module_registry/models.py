@@ -9,10 +9,18 @@ from typing import TYPE_CHECKING
 
 import yaml
 from pydantic import Field, ValidationError
+from raes_contracts.json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from raes_contracts.operational_logging import get_logger
 
 from .._base import SDLModel
-from .._errors import SDLParseDiagnostic, SDLParseError, SDLSourcePosition, SDLSourceRange
+from .._errors import (
+    SDLImportError,
+    SDLImportErrorCode,
+    SDLParseDiagnostic,
+    SDLParseError,
+    SDLSourcePosition,
+    SDLSourceRange,
+)
 from .._source_profile import DEFAULT_PARSER_LIMITS
 from .._source_validation import validate_source_graph, validate_source_tokens
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
@@ -28,6 +36,8 @@ if TYPE_CHECKING:
     from ._verified_sources import _VerifiedSourceBundle
 
 _LOGGER = get_logger(__name__)
+# A lock is an object of records of scalars; the bound leaves room only for that shape.
+_LOCKFILE_MAX_DEPTH = 8
 
 
 class RegistryTrustPolicy(SDLModel):
@@ -82,7 +92,8 @@ class ResolvedModule:
 def _scenario_module_descriptor(scenario: Scenario, *, source_id: str) -> ModuleDescriptor:
     if scenario.module is not None:
         return scenario.module
-    raise SDLParseError(
+    raise SDLImportError(
+        SDLImportErrorCode.DESCRIPTOR_MISSING,
         "Imported SDL units require an explicit module descriptor",
         path=Path(source_id),
     )
@@ -111,30 +122,62 @@ def load_trust_policy(base_dir: Path) -> TrustPolicy:
 
 def load_lockfile(base_dir: Path) -> Lockfile | None:
     path = base_dir / LOCKFILE_NAME
-    content = _read_workspace_config(path)
-    if content is None:
+    raw = _read_workspace_bytes(path)
+    if raw is None:
         return None
+    return decode_lockfile(raw, path=path)
+
+
+def decode_lockfile(
+    raw: bytes,
+    *,
+    path: Path,
+    max_bytes: int = DEFAULT_PARSER_LIMITS.max_input_bytes,
+) -> Lockfile:
+    """Decode one ``raes-lock/v1`` document from exact bytes (ADR-119 section 5).
+
+    The decoder refuses duplicate members, non-finite numbers, excess size or
+    depth, closed-key violations and an unsupported schema version. The
+    refusal names only the lock path, never a lock value.
+    """
+
     try:
-        return Lockfile.model_validate_json(content)
-    except ValidationError as exc:
-        raise _workspace_config_error(path, exc) from None
+        payload = parse_bounded_json_object(raw, max_bytes=max_bytes, max_depth=_LOCKFILE_MAX_DEPTH)
+        lockfile = Lockfile.model_validate(payload)
+    except StrictJsonIngressError, ValidationError:
+        raise _lockfile_error(path) from None
+    if lockfile.schema_version != LOCKFILE_SCHEMA_VERSION:
+        raise _lockfile_error(path)
+    return lockfile
+
+
+def _lockfile_error(path: Path) -> SDLImportError:
+    return SDLImportError(SDLImportErrorCode.LOCK_INVALID, f"Cannot load workspace configuration {path.name}.", path)
 
 
 def _read_workspace_config(path: Path) -> str | None:
+    raw = _read_workspace_bytes(path)
+    if raw is None:
+        return None
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise _workspace_config_error(path, exc) from None
+
+
+def _read_workspace_bytes(path: Path) -> bytes | None:
     try:
         with path.open("rb") as handle:
             raw = handle.read(DEFAULT_PARSER_LIMITS.max_input_bytes + 1)
-        if len(raw) > DEFAULT_PARSER_LIMITS.max_input_bytes:
-            raise _workspace_config_error(path)
-        return raw.decode("utf-8")
     except FileNotFoundError:
         return None
-    except UnicodeDecodeError as exc:
-        raise _workspace_config_error(path, exc) from None
     except OSError as exc:
         # ``from None`` keeps OS error text out of the parse error, so record the cause first (rule L3).
         _LOGGER.warning("workspace configuration %s could not be read", path.name, exc_info=True)
         raise _workspace_config_error(path, exc) from None
+    if len(raw) > DEFAULT_PARSER_LIMITS.max_input_bytes:
+        raise _workspace_config_error(path)
+    return raw
 
 
 def _workspace_config_error(path: Path, exc: Exception | None = None) -> SDLParseError:

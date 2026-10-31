@@ -7,8 +7,9 @@ than failing on the first error.
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 from raes_contracts.errors import InvalidInputError
 
@@ -103,6 +104,73 @@ class SDLParseError(SDLError):
         self.diagnostics = tuple(diagnostics)
         prefix = f"{path}: " if path else ""
         super().__init__(f"{prefix}{message}")
+
+
+class SDLImportErrorCode(StrEnum):
+    """Stable code of one import refusal (ADR-119 section 4)."""
+
+    SOURCE_REFUSED = "sdl.import.source-refused"
+    PHASE_REFUSED = "sdl.import.phase-refused"
+    PATH_INVALID = "sdl.import.path-invalid"
+    SOURCE_MISSING = "sdl.import.source-missing"
+    SOURCE_UNREADABLE = "sdl.import.source-unreadable"
+    LOCAL_DISABLED = "sdl.import.local-disabled"
+    REGISTRY_UNTRUSTED = "sdl.import.registry-untrusted"
+    DESCRIPTOR_MISSING = "sdl.import.descriptor-missing"
+    VERSION_MISMATCH = "sdl.import.version-mismatch"
+    PARAMETER_REFUSED = "sdl.import.parameter-refused"
+    DIGEST_MISSING = "sdl.import.digest-missing"
+    DIGEST_INVALID = "sdl.import.digest-invalid"
+    DIGEST_MISMATCH = "sdl.import.digest-mismatch"
+    LOCK_MISSING = "sdl.import.lock-missing"
+    LOCK_INVALID = "sdl.import.lock-invalid"
+    LOCK_RECORD_MISSING = "sdl.import.lock-record-missing"
+    LOCK_AMBIGUOUS = "sdl.import.lock-ambiguous"
+    LOCK_MISMATCH = "sdl.import.lock-mismatch"
+    NAMESPACE_INVALID = "sdl.import.namespace-invalid"
+    REVISION_MISMATCH = "sdl.import.revision-mismatch"
+    EXPORT_INVALID = "sdl.import.export-invalid"
+    COLLISION = "sdl.import.collision"
+    CYCLE = "sdl.import.cycle"
+    BUDGET_EXCEEDED = "sdl.import.budget-exceeded"
+
+
+class SDLImportError(SDLParseError):
+    """An import was refused; ``code`` identifies the refusal without message parsing.
+
+    The one diagnostic carries the code, the importing document and the JSON
+    Pointer of the import when the composition layer knows them.
+    """
+
+    def __init__(
+        self,
+        code: SDLImportErrorCode,
+        message: str,
+        path: Path | None = None,
+        *,
+        pointer: str = "",
+    ) -> None:
+        self.code = code
+        position = SDLSourcePosition(1, 1)
+        diagnostic = SDLParseDiagnostic(
+            code=code.value,
+            message=message,
+            pointer=pointer,
+            primary_range=SDLSourceRange(start=position, end=position),
+            source=None if path is None else str(path),
+        )
+        super().__init__(message, path=path, diagnostics=(diagnostic,))
+
+    @property
+    def located(self) -> bool:
+        """Return whether the refusal already names its import."""
+
+        return bool(self.diagnostics[0].pointer)
+
+    def with_location(self, path: Path, pointer: str) -> Self:
+        """Return the same refusal located at one import of one document."""
+
+        return type(self)(self.code, self.details, path, pointer=pointer)
 
 
 @dataclass(frozen=True)

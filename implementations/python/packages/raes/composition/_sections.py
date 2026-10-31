@@ -12,7 +12,7 @@ from typing import Any
 
 from raes_contracts.profile_selections import profile_selection_binding
 
-from .._errors import SDLParseError
+from .._errors import SDLImportError, SDLImportErrorCode
 from .._identifiers import QualifiedName
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
@@ -34,11 +34,17 @@ def _validate_descriptor_exports(
 ) -> None:
     for section_name, exported_names in descriptor.exports.items():
         if section_name not in {*_HASHMAP_SECTIONS, FORWARDING_AGENTS_SECTION}:
-            raise SDLParseError(f"Module '{descriptor.id}' exports unknown SDL section '{section_name}'")
+            raise SDLImportError(
+                SDLImportErrorCode.EXPORT_INVALID,
+                f"Module '{descriptor.id}' exports unknown SDL section '{section_name}'",
+            )
         _require_qualified_export_names(descriptor, section_name, exported_names)
         undefined = sorted(set(exported_names) - _section_names(scenario, section_name))
         if undefined:
-            raise SDLParseError(f"Module '{descriptor.id}' exports undefined {section_name}: " + ", ".join(undefined))
+            raise SDLImportError(
+                SDLImportErrorCode.EXPORT_INVALID,
+                f"Module '{descriptor.id}' exports undefined {section_name}: " + ", ".join(undefined),
+            )
 
 
 def _require_qualified_export_names(descriptor: ModuleDescriptor, section_name: str, exported_names: list[str]) -> None:
@@ -46,7 +52,9 @@ def _require_qualified_export_names(descriptor: ModuleDescriptor, section_name: 
         try:
             QualifiedName.parse(exported_name)
         except ValueError as exc:
-            raise SDLParseError(f"Module '{descriptor.id}' exports an invalid {section_name} name") from exc
+            raise SDLImportError(
+                SDLImportErrorCode.EXPORT_INVALID, f"Module '{descriptor.id}' exports an invalid {section_name} name"
+            ) from exc
 
 
 def _section_names(scenario: ScenarioContent, section_name: str) -> set[str]:

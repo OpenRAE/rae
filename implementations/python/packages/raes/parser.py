@@ -6,17 +6,19 @@ Provides ``parse_sdl()`` as the primary entry point. Handles:
 - Shorthand expansion (``source: "pkg"`` → ``{name: "pkg", version: "*"}``)
 """
 
-from collections.abc import Hashable
+from collections.abc import Hashable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Unpack
+from typing import Any, Literal, Unpack, cast
 
 from pydantic import ValidationError
 
 from ._base import contains_variable_token, is_variable_ref
-from ._composition_budget import ParsePrivateOptions
+from ._composition_budget import CompositionTraversal, ParsePrivateOptions
 from ._declaration_sources import attach_declaration_sources, semantic_source_diagnostics
 from ._errors import (
+    SDLImportError,
+    SDLImportErrorCode,
     SDLParseDiagnostic,
     SDLParseError,
     SDLSourcePosition,
@@ -45,6 +47,7 @@ from ._source_profile import (
     SDLSourceParseOptions,
 )
 from ._source_validation import _raise_source_limit
+from ._supplied_sources import SuppliedSources
 from ._yaml_loader import SDLSourceLocations, load_sdl_yaml
 from .materialization import MaterializedScenario
 from .scenario import ExpandedScenario, Scenario
@@ -78,16 +81,16 @@ def read_sdl_source(
         raise FileNotFoundError(f"SDL file not found: {path}")
     with path.open("rb") as source:
         raw_bytes = source.read(limits.max_input_bytes + 1)
-    return _source_document_from_bytes(raw_bytes, path=path, limits=limits)
+    return decode_sdl_source(raw_bytes, path=path, limits=limits)
 
 
-def _source_document_from_bytes(
+def decode_sdl_source(
     raw_bytes: bytes,
     *,
     path: Path,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
 ) -> SDLSourceDocument:
-    """Decode already-captured source bytes with the canonical diagnostics."""
+    """Decode already-captured source bytes with the byte limit and the canonical diagnostics."""
 
     if len(raw_bytes) > limits.max_input_bytes:
         _raise_source_limit(
@@ -369,6 +372,11 @@ def parse_sdl(
         source_key_ranges=source_key_ranges,
     )
     _reject_removed_scoring_sections(data, path=path)
+    traversal = private_options.get("_traversal")
+    if "materialization_provenance" in data and traversal is not None and traversal.sources is not None:
+        raise SDLImportError(
+            SDLImportErrorCode.PHASE_REFUSED, "A supplied root must be an authored scenario.", path=path
+        )
     if "materialization_provenance" in data:
         scenario_cls = MaterializedScenario
     elif data.get("imports"):
@@ -393,7 +401,7 @@ def parse_sdl(
             migration_policy=migration_policy,
             limits=limits,
             source_diagnostics=source_diagnostics,
-            _traversal=private_options.get("_traversal"),
+            _traversal=traversal,
             _declaration_sources=declaration_sources,
         )
         scenario_cls = ExpandedScenario
@@ -426,6 +434,57 @@ def parse_sdl(
         scenario._set_advisories([])
         scenario._set_semantic_validated(False)
     return scenario
+
+
+def parse_sdl_sources(
+    sources: Mapping[str, bytes],
+    root: str,
+    *,
+    source_format: str = SDL_SOURCE_FORMAT,
+    migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
+    limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
+) -> Scenario | ExpandedScenario:
+    """Parse untrusted SDL from caller-supplied bytes (ADR-119).
+
+    The operation reads only ``sources``. It never reads a file, the
+    environment or the network, and it never reads ``raes-trust.yaml``. Each
+    import at each depth must be ``local:``, must have a ``sha256:`` digest pin
+    and must match exactly one record in the ``raes.lock.json`` entry beside its
+    importing document.
+
+    Args:
+        sources: Canonical POSIX relative paths mapped to exact source bytes.
+            The operation copies each value one time.
+        root: The path of the root SDL document in ``sources``.
+        source_format: Versioned concrete-syntax profile identifier.
+        migration_policy: Strict rejection or explicit acceptance of recognized
+            legacy field/merge syntax.
+        limits: Source, lock and composition resource limits.
+
+    Returns:
+        A semantically validated ``Scenario``, or ``ExpandedScenario`` when the
+        root has imports.
+
+    Raises:
+        SDLImportError: An import or a supplied path was refused; ``code`` names why.
+        SDLParseError: The YAML or the structure of a document is not valid.
+        SDLValidationError: Semantic validation found errors.
+    """
+    supplied = SuppliedSources.capture(sources)
+    root_path, root_bytes = supplied.root(root)
+    document = decode_sdl_source(root_bytes, path=root_path, limits=limits)
+    # parse_sdl refuses a materialized root when the traversal carries supplied sources.
+    return cast(
+        Scenario | ExpandedScenario,
+        parse_sdl(
+            document.text,
+            path=root_path,
+            source_format=source_format,
+            migration_policy=migration_policy,
+            limits=limits,
+            _traversal=CompositionTraversal.supplied_root(limits, supplied),
+        ),
+    )
 
 
 def parse_sdl_file(path: Path, **kwargs: Any) -> Scenario | ExpandedScenario | MaterializedScenario:

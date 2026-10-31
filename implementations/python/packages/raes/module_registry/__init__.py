@@ -95,6 +95,7 @@ from .models import (
     RegistryTrustPolicy,
     ResolvedModule,
     TrustPolicy,
+    decode_lockfile,
     load_lockfile,
     load_trust_policy,
     write_lockfile,
