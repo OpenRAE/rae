@@ -26,8 +26,8 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, OperationalError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationReceipt, OperationState
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_store_history import require_expected_history_heads
 from .control_plane_supervision import persist_invocation_update, required_guarantees
 from .errors import RuntimeBudgetExhaustedError
@@ -133,7 +133,12 @@ def prepare_mixed_invocation(
         },
         command=mixed_backend_binding_reference(declaration),
         required_guarantees=required_guarantees(plane, "effect-observation", "cessation-evidence"),
-        budget={"origin_id": str(uuid4()), "started_at": _utc_now(), "limit_ms": budget, "remaining_ms": budget},
+        budget={
+            "origin_id": str(uuid4()),
+            "started_at": isoformat_z(plane.wall_clock()),
+            "limit_ms": budget,
+            "remaining_ms": budget,
+        },
     )
     time_state = snapshot.time_model_state
     if time_state is None:

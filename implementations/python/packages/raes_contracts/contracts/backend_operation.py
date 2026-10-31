@@ -9,12 +9,13 @@ from pydantic import ConfigDict, Field, model_validator
 from ..addressing import CompiledAddress
 from ..execution_policy import ExecutionPolicyCapabilities
 from ..operation_lifecycle import OperationAdmissionContext, OperationKind
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import (
     BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION,
     BACKEND_OPERATION_CONTROL_SCHEMA_VERSION,
     BACKEND_OPERATION_REQUEST_SCHEMA_VERSION,
 )
-from .base import ContractModel, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from .base import ContractModel, Rfc3339DateTimeString
 
 OperationIdentifier = Annotated[str, Field(min_length=1, max_length=256)]
 OperationDigest = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
@@ -57,7 +58,7 @@ class OperationBudgetModel(OperationContractModel):
 
     @model_validator(mode="after")
     def _budget_bounds(self) -> Self:
-        _parse_rfc3339_datetime("started_at", self.started_at)
+        parse_rfc3339_datetime("started_at", self.started_at)
         if self.remaining_ms > self.limit_ms:
             raise ValueError("remaining budget cannot exceed its original limit")
         return self

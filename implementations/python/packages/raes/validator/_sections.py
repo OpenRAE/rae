@@ -4,6 +4,7 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
 from pydantic import BaseModel
+from raes_contracts.graphs import has_cycle
 
 from .._base import VARIABLE_TOKEN_RE
 from .._stateful_resource_references import stateful_resource_reference_errors
@@ -17,7 +18,6 @@ from ..realization_designation import (
     resolve_json_pointer_surface,
 )
 from ..scenario import ExpandedScenario, Scenario
-from ._support import _topological_sort
 
 
 class _SectionsMixin:
@@ -174,7 +174,7 @@ class _SectionsMixin:
                         self._err(f"Feature '{name}' depends on undefined feature '{dep}'")
                 else:
                     dep_graph[name].append(dep)
-        if dep_graph and _topological_sort(dep_graph) is None:
+        if dep_graph and has_cycle(dep_graph):
             self._err("Feature dependency graph contains a cycle")
 
     def _verify_conditions(self) -> None:

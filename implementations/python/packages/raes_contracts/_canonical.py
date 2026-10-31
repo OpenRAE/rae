@@ -9,9 +9,9 @@ chain both route through here, keeping RFC 8785 canonicalization and the
 
 from __future__ import annotations
 
-import hashlib
-
 import rfc8785
+
+from .digests import sha256_digest
 
 #: A JSON value produced by ``model_dump(mode="json")`` — the only input these
 #: canonicalizers accept.
@@ -30,7 +30,7 @@ def canonical_json_digest(payload: JsonValue) -> str:
     The payload must already be JSON-compatible (e.g. ``model_dump(mode="json")``).
     """
 
-    return "sha256:" + hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
+    return sha256_digest(canonical_json_bytes(payload))
 
 
 #: Prefix marking a carrier that is outside the modelled realization value space.

@@ -12,6 +12,7 @@ from pathlib import Path
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.timestamps import WallClock, utc_now
 
 from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
 from .control_plane_store import (
@@ -109,8 +110,9 @@ class LocalControlPlaneStore(
         )
     )
 
-    def __init__(self, base_dir: Path) -> None:
+    def __init__(self, base_dir: Path, *, wall_clock: WallClock = utc_now) -> None:
         self._base_dir = base_dir
+        self._wall_clock = wall_clock
         self._database_path = self._base_dir / _DATABASE_NAME
         self._runtime_owner_path = self._base_dir / _RUNTIME_OWNER_LOCK_NAME
         self._active_runtime_lease: RuntimeOwnerLease | None = None

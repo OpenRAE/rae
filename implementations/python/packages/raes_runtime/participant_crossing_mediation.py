@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from typing import Protocol
 from uuid import uuid4
 
@@ -37,6 +36,7 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     operation_terminal_diagnostics,
 )
+from raes_contracts.timestamps import isoformat_z
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 
 from .control_plane_mutation import external_control_plane_call
@@ -51,10 +51,6 @@ from .participant_opacity_enforcement import (
 
 _POLICY_UNRESOLVED = "participant crossing policy could not be resolved"
 _OPACITY_BINDING_NOT_ADMITTED = "participant opacity runtime binding is not admitted by the resolver context"
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 class ParticipantCrossingIntent(ContractModel):
@@ -328,7 +324,7 @@ def _prepare_policy_unresolved(
         identity=identity,
     )
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     diagnostic = Diagnostic(
         code="runtime.participant-crossing-policy-unresolved",
         domain="participant",

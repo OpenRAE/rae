@@ -7,12 +7,13 @@ from raes_contracts.controlled_vocabularies import (
     validate_controlled_vocabulary_scope_values,
     validate_controlled_vocabulary_value,
 )
+from raes_contracts.graphs import has_cycle
 
 from ..orchestration import WorkflowStepType
 from ..participant_behavior import ParticipantActionGranularity, ParticipantInformationBoundaryClass
 from ..participant_behavior_specification import tool_affordance_reference
 from ..semantics.workflow import branch_closure
-from ._support import _AvailableStateContext, _CompensationState, _topological_sort, _WorkflowBuildState
+from ._support import _AvailableStateContext, _CompensationState, _WorkflowBuildState
 
 
 class _WorkflowVerifyMixin:
@@ -33,7 +34,7 @@ class _WorkflowVerifyMixin:
         build = self._build_workflow_step_graph(workflow_name, workflow, comp)
         self._verify_workflow_join_targets(workflow_name, workflow, build.join_targets)
         self._verify_workflow_unreferenced_joins(workflow_name, workflow, build.join_targets)
-        if build.graph and _topological_sort(build.graph) is None:
+        if build.graph and has_cycle(build.graph):
             self._err(f"Workflow '{workflow_name}' graph contains a cycle")
         if self._is_unresolved_var(workflow.start) or workflow.start not in workflow.steps:
             return
@@ -473,7 +474,7 @@ class _WorkflowVerifyMixin:
             workflow_name: sorted(callee for callee in callees if callee in comp.call_graph)
             for workflow_name, callees in comp.call_graph.items()
         }
-        if call_only and _topological_sort(call_only) is None:
+        if call_only and has_cycle(call_only):
             self._err("Workflow call graph contains a cycle")
         combined = {
             workflow_name: sorted(
@@ -481,7 +482,7 @@ class _WorkflowVerifyMixin:
             )
             for workflow_name in self._s.workflows
         }
-        if combined and _topological_sort(combined) is None:
+        if combined and has_cycle(combined):
             self._err("Combined workflow call/compensation graph contains a cycle")
 
     def _verify_compensation_targets(self, comp: _CompensationState) -> None:

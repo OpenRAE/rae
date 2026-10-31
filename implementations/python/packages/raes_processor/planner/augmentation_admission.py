@@ -25,6 +25,7 @@ from raes_contracts.augmentation_scope import (
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
+from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES
 from raes_contracts.planning import RealizationAuthorityMode
 from raes_contracts.realization_structure import (
@@ -255,10 +256,7 @@ def _ordinary_selection(
         declaration_names={"nodes": original.nodes, "content": original.content}
     ):
         descriptor = registered.descriptor
-        pointer = "/" + "/".join(
-            token.replace("~", "~0").replace("/", "~1")
-            for token in (descriptor.section, registered.declaration_name, *descriptor.authored_path)
-        )
+        pointer = pointer_from_tokens((descriptor.section, registered.declaration_name, *descriptor.authored_path))
         if descriptor.concern_kind in ordinary and pointer == difference.field_pointer:
             return any(
                 authority.field_path == registered.field_path

@@ -1,9 +1,8 @@
 """Canonical autonomous participant policy identity."""
 
-import hashlib
-import json
 from dataclasses import asdict
 
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 
@@ -82,5 +81,4 @@ def _policy_digest(
                 "resource_fairness": asdict(policy.resource_fairness),
             }
         )
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-    return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return sorted_json_digest(payload)

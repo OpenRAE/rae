@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-
 from raes_contracts.diagnostics import Diagnostic
 
 
@@ -18,12 +16,3 @@ def _failure_diagnostic(code: str, address: str, message: str) -> Diagnostic:
         address=address,
         message=message,
     )
-
-
-def _parse_timestamp(raw: str) -> datetime:
-    if raw.endswith("Z"):
-        raw = raw[:-1] + "+00:00"
-    parsed = datetime.fromisoformat(raw)
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=UTC)
-    return parsed

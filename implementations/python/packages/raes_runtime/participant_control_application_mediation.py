@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 
 
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
 from uuid import uuid4
 
 from pydantic import ValidationError
@@ -31,6 +30,7 @@ from raes_contracts.contracts.participant_control_occurrence_v2 import (
 )
 from raes_contracts.contracts.participant_control_occurrence_v2_policy import participant_control_validity_bounds
 from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
+from raes_contracts.timestamps import isoformat_z
 
 from .participant_control_operation import ParticipantControlOperationAuthority, participant_control_operation_artifacts
 from .participant_control_runtime import admitted_policy, archived_policies, resolve_live_cut
@@ -282,7 +282,7 @@ def _envelope(
     policy: ParticipantControlOccurrencePolicyModel,
     source: ParticipantControlPolicyStateModel,
 ) -> dict[str, object]:
-    now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    now = isoformat_z(plane.wall_clock())
     return {
         "event_id": f"participant-control.{uuid4()}",
         "schema_name": "participant-control-occurrence",

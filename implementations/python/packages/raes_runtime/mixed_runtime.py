@@ -38,8 +38,8 @@ from raes_contracts.runtime_state import (
     OperationState,
     OperationStatus,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
@@ -285,7 +285,7 @@ def _activation_operation(
         identity=identity,
     )
     operation_id = str(uuid4())
-    timestamp = _utc_now()
+    timestamp = isoformat_z(control_plane.wall_clock())
     receipt = OperationReceipt(
         operation_id=operation_id,
         domain=RuntimeDomain.PARTICIPANT,
@@ -372,7 +372,9 @@ def _commit_activation(
     )
     terminal = replace(
         running,
-        status=replace(running.status, state=OperationState.SUCCEEDED, updated_at=_utc_now()),
+        status=replace(
+            running.status, state=OperationState.SUCCEEDED, updated_at=isoformat_z(control_plane.wall_clock())
+        ),
     )
     context = running.status.context
     audit = AuditEvent(

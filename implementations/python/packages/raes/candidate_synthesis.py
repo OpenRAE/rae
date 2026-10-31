@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass
 
 from raes_contracts.canonical import canonical_json_digest
@@ -29,6 +28,7 @@ from raes_contracts.contracts import (
     SynthesisContributionKind,
     TransformationCheckOutcome,
 )
+from raes_contracts.digests import sha256_digest
 
 from ._transformation_support import SDL_CONTRACT_PROFILE, check, diagnostic
 from .canonical import canonical_sdl_digest
@@ -322,7 +322,7 @@ def synthesize_sdl_candidate(value: CandidateSynthesisInputModel) -> SDLCandidat
     )
     rendered = render_sdl_source(provisional)
     canonical_digest = canonical_sdl_digest(rendered.scenario)
-    exact_digest = f"sha256:{hashlib.sha256(rendered.content.encode('utf-8')).hexdigest()}"
+    exact_digest = sha256_digest(rendered.content.encode("utf-8"))
     input_digest = _input_digest(value)
     report = ArtifactTransformationReportModel(
         operation_profile=SYNTHESIS_PROFILE_ID,

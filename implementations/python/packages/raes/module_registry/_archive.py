@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import hashlib
 import os
 import tarfile
 from pathlib import PurePosixPath
 from typing import TYPE_CHECKING, Any
+
+from raes_contracts.digests import sha256_digest, sha256_hasher
 
 from .._errors import SDLParseError
 from ._cache_integrity import (
@@ -59,7 +60,7 @@ def _hash_archive_member(tar: tarfile.TarFile, member: tarfile.TarInfo) -> tuple
     extracted = tar.extractfile(member)
     if extracted is None:
         raise SDLParseError("Unable to read a regular file from the OCI module bundle")
-    digest = hashlib.sha256()
+    digest = sha256_hasher()
     size = 0
     with extracted:
         while chunk := extracted.read(_DECOMPRESSION_CHUNK_BYTES):
@@ -130,7 +131,7 @@ def _expected_cache_tree_manifest(
         "entries": entries,
         "root_file": root_file,
         "schema": _CACHE_TREE_SCHEMA,
-        "tree_digest": f"sha256:{hashlib.sha256(_canonical_json_bytes(entries)).hexdigest()}",
+        "tree_digest": sha256_digest(_canonical_json_bytes(entries)),
     }
     if len(_canonical_json_bytes(manifest)) > _limits().max_metadata_bytes:
         raise SDLParseError("OCI module cache integrity manifest exceeds the metadata limit")

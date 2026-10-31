@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
 
@@ -17,6 +15,7 @@ from raes_contracts.contracts.participant_execution import (
 )
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import RaesError
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -26,11 +25,6 @@ from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_fail
 from raes_conformance.conformance.report import ConformanceCaseResult
 
 _LOGGER = get_logger(__name__)
-
-
-def _probe_digest(payload: object) -> str:
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-    return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _participant_execution_probe_snapshot(
@@ -54,8 +48,8 @@ def _participant_execution_probe_snapshot(
         draining=False,
         quiescent=True,
         resources_released=False,
-        policy_digest=_probe_digest({"scope": scope}),
-        binding_digest=_probe_digest(
+        policy_digest=sorted_json_digest({"scope": scope}),
+        binding_digest=sorted_json_digest(
             [
                 {
                     "action": binding.action_contract_address,
@@ -64,7 +58,7 @@ def _participant_execution_probe_snapshot(
                 for binding in capability.execution_bindings
             ]
         ),
-        time_declaration_digest=_probe_digest({"clock": "time.clock.conformance"}),
+        time_declaration_digest=sorted_json_digest({"clock": "time.clock.conformance"}),
         scheduler_state_refs=(
             f"{scope}.state.participant.conformance",
             f"{scope}.state.participant.conformance-2",

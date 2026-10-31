@@ -10,8 +10,8 @@ from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, NotFoundError
 from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_actor_scope, operation_admission_context
 from .control_plane_supervision import authorize_supervisor
@@ -57,7 +57,7 @@ class RuntimeInvocationReconciliationMixin:
                 identity=identity,
                 parent_operation_id=operation_id,
             )
-            now, child_id = _utc_now(), str(uuid4())
+            now, child_id = isoformat_z(self.wall_clock()), str(uuid4())
             receipt = OperationReceipt(
                 operation_id=child_id, domain=parent.receipt.domain, submitted_at=now, accepted=True, context=context
             )
@@ -80,7 +80,7 @@ class RuntimeInvocationReconciliationMixin:
                 return claimed.receipt
             final = replace(
                 child,
-                status=replace(status, state=OperationState.SUCCEEDED, updated_at=_utc_now()),
+                status=replace(status, state=OperationState.SUCCEEDED, updated_at=isoformat_z(self.wall_clock())),
                 reconciliation=evidence,
             )
             self._commit_terminal_operation(self._snapshot, final, mode=TerminalCommitMode.OPERATION_ONLY)

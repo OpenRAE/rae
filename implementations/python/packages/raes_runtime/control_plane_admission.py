@@ -13,8 +13,8 @@ from raes_contracts.runtime_state import (
     OperationKind,
     OperationReceipt,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import (
@@ -57,7 +57,7 @@ class RuntimeAdmissionMixin:
         self._assert_runtime_owner()
         self._store.append_audit(
             AuditEvent(
-                timestamp=_utc_now(),
+                timestamp=isoformat_z(self.wall_clock()),
                 action=action,
                 identity=identity,
                 allowed=allowed,
@@ -108,7 +108,7 @@ class RuntimeAdmissionMixin:
     ) -> OperationReceipt:
         del idempotency_key, request_fingerprint
         operation_id = str(uuid4())
-        submitted_at = _utc_now()
+        submitted_at = isoformat_z(self.wall_clock())
         operation_context = context or operation_admission_context(
             self,
             kind={

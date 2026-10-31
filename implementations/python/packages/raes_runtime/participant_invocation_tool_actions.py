@@ -11,7 +11,6 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from raes_backend_protocols.participant_capabilities import ParticipantExecutionBinding, ParticipantRuntimeCapabilities
@@ -28,6 +27,7 @@ from raes_contracts.participant_tool_actions import (
     ParticipantToolActionSettlement,
     tool_action_instance_id,
 )
+from raes_contracts.timestamps import WallClock, isoformat_z, utc_now
 from raes_processor.models import (
     ParticipantAutonomousExecutionRuntime,
     ParticipantExecutionBindingRuntime,
@@ -54,10 +54,6 @@ _AUTHORITY_REFUSALS = {
 _ADMITTED = "admitted"
 _DISPATCHED = "dispatched"
 _SETTLED = "settled"
-
-
-def _now_iso() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 class HostedActionRegistry:
@@ -200,6 +196,7 @@ class ParticipantInvocationToolActions:
         configuration: InvocationToolActionConfiguration,
         scheduler_state_key: str,
         prior_history_length: int,
+        wall_clock: WallClock = utc_now,
     ) -> None:
         if outer.execution_scope_ref is None or outer.execution_generation is None:
             raise ValueError("invocation tool actions require a generation-bound outer invocation")
@@ -207,6 +204,7 @@ class ParticipantInvocationToolActions:
         self._episode_id = episode_id
         self._policy = policy
         self._configuration = configuration
+        self._wall_clock = wall_clock
         self.scheduler_state_key = scheduler_state_key
         self.prior_history_length = prior_history_length
         self._tool_contexts = tuple(context for context in outer.temporal_contexts if context.shared_time is None)
@@ -405,7 +403,7 @@ class ParticipantInvocationToolActions:
             execution_generation=self.execution_generation,
             tool_call_id=request.tool_call_id,
         )
-        admitted_at = _now_iso()
+        admitted_at = isoformat_z(self._wall_clock())
         record = self._write(
             lambda: self._configuration.ledger.record_admission(action_instance_id, request, admitted_at)
         )
@@ -666,7 +664,7 @@ class ParticipantInvocationToolActions:
         entry.state = _SETTLED
         entry.settlement = settlement
         entry.action_result = action_result
-        entry.settled_at = _now_iso()
+        entry.settled_at = isoformat_z(self._wall_clock())
         if settlement is not ParticipantToolActionSettlement.INDETERMINATE:
             # An indeterminate action keeps its interaction reservation; its effects may still run.
             registry.release(entry.action_instance_id)

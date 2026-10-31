@@ -8,6 +8,7 @@ import yaml
 from pydantic import Field
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ArtifactTransformationPreservationModel, ArtifactTransformationReportModel
+from raes_contracts.json_pointer import escape_token
 
 from ._base import SDLModel, is_variable_ref
 from ._errors import SDLError
@@ -35,7 +36,7 @@ class ParticipantIdentityMigrationContext(SDLModel):
 
 
 def _pointer(section: str, name: str) -> str:
-    return f"/{section}/" + name.replace("~", "~0").replace("/", "~1")
+    return f"/{section}/" + escape_token(name)
 
 
 def _legacy_objectives(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
