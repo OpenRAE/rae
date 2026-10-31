@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
 from uuid import uuid4
 
 from raes_contracts.contracts.participant_crossing import (
@@ -19,6 +18,7 @@ from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     RuntimeSnapshot,
 )
+from raes_contracts.timestamps import WallClock, isoformat_z
 
 from .control_plane_mutation import external_control_plane_call
 from .control_plane_security import ControlPlaneIdentity
@@ -40,10 +40,6 @@ from .participant_crossing_policy import (
 from .participant_crossing_state_cut import expected_participant_history_heads as _expected_history_heads
 
 _RETAINED_HISTORY_INVALID = "retained participant crossing history does not validate"
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 @dataclass(frozen=True)
@@ -108,7 +104,9 @@ def _prepare_crossing_decision(
     support = preparation.support
     gates = preparation.gates
     disposition = preparation.disposition
-    request, decision = _crossing_records(intent, identity, resolution, support, gates, disposition)
+    request, decision = _crossing_records(
+        intent, identity, resolution, support, gates, disposition, wall_clock=control_plane.wall_clock
+    )
     records = [request, decision]
     final_decision = decision
     final_disposition = disposition
@@ -145,6 +143,7 @@ def _prepare_crossing_decision(
                 fresh_gates,
                 fresh_disposition,
                 request_predecessor_refs=(transformed.event_id,),
+                wall_clock=control_plane.wall_clock,
             )
             records.extend((fresh_request, fresh_decision))
             final_decision = fresh_decision
@@ -194,8 +193,9 @@ def _crossing_records(
     disposition: ParticipantCrossingDecisionDisposition,
     *,
     request_predecessor_refs: tuple[str, ...] = (),
+    wall_clock: WallClock,
 ) -> tuple[ParticipantCrossingOccurrenceModel, ParticipantCrossingOccurrenceModel]:
-    now = _utc_now()
+    now = isoformat_z(wall_clock())
     request_id = f"crossing-request.{uuid4()}"
     request_event_id = f"crossing-occurrence.requested.{uuid4()}"
     decision_id = f"crossing-decision.{uuid4()}"

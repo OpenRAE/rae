@@ -45,8 +45,8 @@ from raes_contracts.runtime_state import (
     OperationState,
     OperationStatus,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_security import (
     ControlPlaneIdentity,
     ControlPlaneRole,
@@ -219,7 +219,7 @@ def claim_effect(
 
     context = _effect_claim_context(origin, request)
     operation_id = str(uuid4())
-    timestamp = _utc_now()
+    timestamp = isoformat_z(control_plane.wall_clock())
     from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
 
     record = ControlPlaneOperationRecord(

@@ -6,7 +6,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from ..errors import OperationalError
-from ._common import RelationBudget, closure_for, json_equal, pointer
+from ..json_pointer import pointer_from_tokens
+from ._common import RelationBudget, closure_for, json_equal
 from ._legacy import realization_member_identity
 from ._models import (
     RealizationClosurePosture,
@@ -35,7 +36,7 @@ def indexed_collection_for_downgrade(
     members: dict[str, object] = {}
     for item in value:
         if exhausted := budget.spend_identity():
-            raise CompatibilityLimit(pointer(path), f"Legacy projection exceeded {exhausted}.")
+            raise CompatibilityLimit(pointer_from_tokens(path), f"Legacy projection exceeded {exhausted}.")
         identity = realization_member_identity(item, fields)
         if identity is None or identity in members:
             return None

@@ -17,6 +17,7 @@ from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_vali
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
 from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetModel
 from raes_contracts.execution_policy import OptionalExecutionPolicy
+from raes_contracts.json_pointer import unescape_token
 
 from ._classification_guard import LegacyClassificationGuard
 from ._declaration_sources import DeclarationSource
@@ -113,7 +114,7 @@ def _constraint_node_refs(
             ("infrastructure", "count"),
         }:
             continue
-        node_name = parts[2].replace("~1", "/").replace("~0", "~")
+        node_name = unescape_token(parts[2])
         # ``architecture`` is populated only when present so nodes without an
         # architecture constraint keep a byte-identical canonical projection.
         refs.setdefault(node_name, {"os": None, "count": None})[field_name] = _legacy_constraint_name(

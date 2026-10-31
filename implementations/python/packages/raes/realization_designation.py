@@ -11,7 +11,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from raes_contracts.bounded_domains import DomainDescriptor
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint
-from raes_contracts.json_pointer import array_index
+from raes_contracts.json_pointer import array_index, pointer_tokens
 from raes_contracts.vocabulary import Closure
 
 from ._base import SDLModel
@@ -242,8 +242,7 @@ def resolve_json_pointer_surface(root: object, pointer: str) -> tuple[bool, obje
     if _JSON_POINTER_RE.fullmatch(pointer) is None:
         return False, None
     current = root
-    for raw_segment in pointer.split("/")[1:]:
-        segment = raw_segment.replace("~1", "/").replace("~0", "~")
+    for segment in pointer_tokens(pointer):
         if isinstance(current, BaseModel) and segment in type(current).model_fields:
             current = getattr(current, segment)
         elif isinstance(current, Mapping) and segment in current:

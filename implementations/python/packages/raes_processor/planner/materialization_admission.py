@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import replace
 
 from raes import (
@@ -17,6 +16,7 @@ from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.materialization import (
@@ -292,7 +292,7 @@ def validate_materialization_archive_record(
         provenance.attestation_id,
         canonical_materialized_sdl_digest(scenario).value,
         f"runs/{provenance.run_id}/attestations/{provenance.attestation_id}.sdl",
-        hashlib.sha256(data).hexdigest(),
+        sha256_hex(data),
         len(data),
         provenance.producer.name,
         provenance.recorded_at.isoformat(),

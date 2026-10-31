@@ -11,6 +11,7 @@ from functools import cache
 from pydantic import BaseModel
 
 from ..diagnostics import Diagnostic
+from ..json_pointer import pointer_from_tokens, pointer_tokens
 from ._models import (
     DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     DOCUMENT_SCALAR,
@@ -140,18 +141,6 @@ def relation_result(status: RealizationRelationStatus, pointer: str, message: st
     )
 
 
-def pointer_tokens(pointer: str) -> tuple[str, ...]:
-    return tuple(token.replace("~1", "/").replace("~0", "~") for token in pointer.split("/")[1:])
-
-
-def escape_pointer_token(token: str) -> str:
-    return token.replace("~", "~0").replace("/", "~1")
-
-
-def pointer(path: tuple[str, ...]) -> str:
-    return "" if not path else "/" + "/".join(escape_pointer_token(token) for token in path)
-
-
 def closure_for(
     document: RealizationConstraintDocument,
     local: RealizationClosure,
@@ -259,7 +248,7 @@ def _bounded_member_failure(
 ) -> RealizationRelationResult | None:
     """Validate one container member, including a record key's own scalar cost."""
 
-    current_pointer = pointer(path)
+    current_pointer = pointer_from_tokens(path)
     if isinstance(value, Mapping):
         if not isinstance(key, str):
             return relation_result(
@@ -282,7 +271,7 @@ def _bounded_container_failure(
     if len(value) > budget.limits.max_members:
         return relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Realization value validation exceeded max_members.",
         )
     children = value.items() if isinstance(value, Mapping) else enumerate(value)
@@ -314,7 +303,7 @@ def validate_bounded_value(
 ) -> RealizationRelationResult | None:
     from raes_contracts.immutable_history_stats import charge_immutable_history
 
-    current_pointer = pointer(path)
+    current_pointer = pointer_from_tokens(path)
     if budget.python_carriers and charge_immutable_history(value, depth, budget):
         return None
     if budget.python_carriers and isinstance(value, Enum):

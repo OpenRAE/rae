@@ -15,7 +15,7 @@ from .contracts import (
 )
 from .evidence_output_validation import resolve_evidence_output_contract
 from .json_ingress import JSONValue, StrictJsonIngressError, parse_bounded_json, parse_bounded_json_object
-from .json_pointer import array_index
+from .json_pointer import array_index, unescape_token
 from .uri_safety import validate_safe_absolute_uri
 
 _CHUNK_SIZE = 64 * 1024
@@ -77,7 +77,7 @@ def _json_pointer_resolves(document: object, pointer: str) -> bool:
         return True
     current = document
     for encoded in pointer.removeprefix("/").split("/"):
-        token = encoded.replace("~1", "/").replace("~0", "~")
+        token = unescape_token(encoded)
         if isinstance(current, dict) and token in current:
             current = current[token]
         elif isinstance(current, list) and (index := array_index(token, len(current))) is not None:

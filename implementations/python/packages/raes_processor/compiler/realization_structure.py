@@ -9,6 +9,7 @@ from pydantic import BaseModel, ValidationError
 from raes.explicitness import ExplicitnessClass, ExplicitnessRecord
 from raes.scenario import InstantiatedScenario
 from raes_contracts.errors import RaesError
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
     OpenRealizationValue,
@@ -62,9 +63,9 @@ class _StructureCompiler:
             source_key = key.removesuffix("_present").removesuffix("_commitment")
             child_path = f"{path}.{source_key}"
             if child_path in self.records:
-                fields[key] = self.build(child, child_path, f"{pointer}/{_escape(source_key)}", depth=depth + 1)
+                fields[key] = self.build(child, child_path, f"{pointer}/{escape_token(source_key)}", depth=depth + 1)
             else:
-                child_open = self.is_open(f"{pointer}/{_escape(source_key)}")
+                child_open = self.is_open(f"{pointer}/{escape_token(source_key)}")
                 if parent_open != child_open:
                     fields[key] = (
                         OpenRealizationValue(kind="open") if child_open else ExactRealizationValue(kind="exact")
@@ -149,10 +150,6 @@ def _unkeyed_structure(
     if mixed_open and not isinstance(authored_value, (list, dict, BaseModel)):
         return OpenRealizationValue(kind="open", taxonomy_sentinel=True), False, root_open
     return None, mixed_open, root_open
-
-
-def _escape(token: str) -> str:
-    return token.replace("~", "~0").replace("/", "~1")
 
 
 def compile_realization_structure(

@@ -5,13 +5,13 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from ..bounded_domains import scalar_in_domain
+from ..json_pointer import pointer_from_tokens
 from ..software_versions import VersionDomain, version_membership
 from ._common import (
     RealizationRelationResult,
     RelationBudget,
     combine_relation_results,
     json_equal,
-    pointer,
     relation_result,
     validate_bounded_value,
 )
@@ -49,7 +49,7 @@ def _evaluate_recursive_node(
     if exhausted := context.budget.spend_node(depth):
         result = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(path),
+            pointer_from_tokens(path),
             f"Recursive realization evaluation exceeded {exhausted}.",
         )
     else:
@@ -75,7 +75,7 @@ def _evaluate_literal(
     assert isinstance(rule, RealizationLiteral)
     return _comparison_result(
         json_equal(rule.value, actual),
-        pointer(path),
+        pointer_from_tokens(path),
         "Observed value does not satisfy the exact typed constraint.",
     )
 
@@ -90,7 +90,7 @@ def _evaluate_knowledge(
     assert isinstance(rule, RealizationKnowledgeValue)
     return relation_result(
         RealizationRelationStatus.UNRESOLVED,
-        pointer(path),
+        pointer_from_tokens(path),
         f"The {rule.state} knowledge state cannot establish conformance.",
     )
 
@@ -115,10 +115,12 @@ def _evaluate_domain(
     assert isinstance(rule, RealizationDomainValue)
     if isinstance(rule.domain, VersionDomain):
         status = RealizationRelationStatus(version_membership(actual, rule.domain))
-        return relation_result(status, pointer(path), "Version predicate evaluated under its selected relation.")
+        return relation_result(
+            status, pointer_from_tokens(path), "Version predicate evaluated under its selected relation."
+        )
     return _comparison_result(
         scalar_in_domain(actual, rule.domain),
-        pointer(path),
+        pointer_from_tokens(path),
         "Observed value is outside the declared bounded domain.",
     )
 
@@ -133,7 +135,7 @@ def _evaluate_graph_reference(
     assert isinstance(rule, RealizationGraphReference)
     return _comparison_result(
         scalar_in_domain(actual, rule.domain),
-        pointer(path),
+        pointer_from_tokens(path),
         "Graph identity is outside its governed reference domain.",
     )
 
@@ -150,13 +152,13 @@ def _evaluate_definition_reference(
     if context.reference_hops >= context.budget.limits.max_reference_hops:
         result = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Constraint definition resolution exceeded max_reference_hops.",
         )
     elif rule.target in context.reference_stack:
         result = relation_result(
             RealizationRelationStatus.INVALID,
-            pointer(path),
+            pointer_from_tokens(path),
             "Constraint definitions contain a reference cycle.",
         )
     else:
@@ -164,7 +166,7 @@ def _evaluate_definition_reference(
         if target is None:
             result = relation_result(
                 RealizationRelationStatus.INVALID,
-                pointer(path),
+                pointer_from_tokens(path),
                 "Constraint definition reference does not resolve in this document.",
             )
         else:
@@ -199,13 +201,13 @@ def _record_member_result(
     if child.presence is RealizationPresence.FORBIDDEN and present:
         result = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             "A forbidden member is present.",
         )
     elif child.presence is RealizationPresence.REQUIRED and not present:
         result = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             "A required member is absent.",
         )
     elif present and child.presence is not RealizationPresence.FORBIDDEN:
@@ -226,7 +228,7 @@ def _evaluate_record(
         results.append(
             relation_result(
                 RealizationRelationStatus.NONCONFORMANT,
-                pointer(path),
+                pointer_from_tokens(path),
                 "Observed value is not a record required by the recursive constraint.",
             )
         )

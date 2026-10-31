@@ -14,6 +14,7 @@ from typing import Any
 import yaml
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ArtifactTransformationPreservationModel, ArtifactTransformationReportModel
+from raes_contracts.json_pointer import pointer_from_tokens
 
 from ._errors import SDLError, SDLValidationError
 from ._mapping_scopes import normalize_field_key
@@ -47,10 +48,6 @@ _LIMITATIONS = (
     "Conversion preserves authored trace constraints; it is not evidence of an executed or equivalent runtime trace.",
     "Legacy proposal_revision values equal state revisions; converted proposals and decisions bind revision 1.",
 )
-
-
-def _pointer(*parts: str) -> str:
-    return "".join("/" + part.replace("~", "~0").replace("/", "~1") for part in parts)
 
 
 def _error_pointers(error: SDLValidationError) -> list[str]:
@@ -95,7 +92,7 @@ def _transition_refusals(spec_name: str, declaration: MixedControlParticipantOpe
     refusals: list[tuple[str, str]] = []
     established: set[tuple[str, int]] = set()
     for transition_id, transition in sorted(declaration.transitions.items(), key=lambda item: item[1].effective_order):
-        pointer = _pointer(_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id)
+        pointer = pointer_from_tokens((_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id))
         refusals += [(code, pointer) for code in _transition_codes(declaration, transition)]
         node = (transition.from_state_ref, transition.expected_state_revision)
         if node in established:
@@ -114,7 +111,7 @@ def _delivery_refusals(
         transition = declaration.transitions.get(binding.control_transition_ref or "")
         if transition is None:
             continue
-        pointer = _pointer(_SPECS, spec_name, "participant_inject_deliveries", binding_id)
+        pointer = pointer_from_tokens((_SPECS, spec_name, "participant_inject_deliveries", binding_id))
         refusals += [("order-time-mapping-required", pointer), ("policy-revision-conflated", pointer)]
         source = declaration.controller_states[transition.from_state_ref]
         destination = declaration.controller_states[transition.to_state_ref]
@@ -184,7 +181,7 @@ def _convert(payload: object, scenario: Scenario) -> tuple[dict[str, Any] | None
         refusals += _transition_refusals(spec_name, declaration)
         refusals += _delivery_refusals(spec_name, behavior_spec, declaration)
         affected += [
-            _pointer(_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id) + "/proposal_revision"
+            pointer_from_tokens((_SPECS, spec_name, _MIXED_CONTROL, _TRANSITIONS, transition_id)) + "/proposal_revision"
             for transition_id, transition in declaration.transitions.items()
             if transition.proposal_revision is not None
         ]

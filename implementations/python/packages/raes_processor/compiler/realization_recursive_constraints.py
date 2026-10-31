@@ -17,6 +17,7 @@ from raes.scenario import InstantiatedScenario
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.errors import RaesError
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -129,10 +130,6 @@ def _compiled_recursive_constraint(
     return None, document, binding, error, opened, False
 
 
-def _escape(token: str) -> str:
-    return token.replace("~", "~0").replace("/", "~1")
-
-
 def _source_child(source: object, key: str) -> object:
     if isinstance(source, Mapping):
         return source.get(key)
@@ -202,14 +199,14 @@ class _SourceMetadata:
         for key, child in projected.items():
             source_key = key.removesuffix("_present").removesuffix("_commitment")
             if scalar_alias:
-                self.collect(child, source, f"{pointer}/{_escape(key)}", path, source_pointer)
+                self.collect(child, source, f"{pointer}/{escape_token(key)}", path, source_pointer)
                 continue
             self.collect(
                 child,
                 _source_child(source, source_key),
-                f"{pointer}/{_escape(key)}",
+                f"{pointer}/{escape_token(key)}",
                 f"{path}.{source_key}",
-                f"{source_pointer}/{_escape(source_key)}",
+                f"{source_pointer}/{escape_token(source_key)}",
             )
         if isinstance(source, RuntimeSoftwareComponent):
             self._collect_software_constraints(source, pointer, path)

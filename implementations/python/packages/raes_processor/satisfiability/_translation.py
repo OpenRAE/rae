@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from functools import partial
 from typing import cast
 
-import rfc8785
 from raes.architectures import normalize_architecture
 from raes.canonical import canonical_sdl_digest
 from raes.infrastructure import ACLAction
@@ -17,7 +15,10 @@ from raes.runtime_values import parse_runtime_enum_identity
 from raes.scenario import ExpandedScenario, Scenario
 from raes.value_parsing import extract_variable_name, normalize_enum_value, variable_names_in_value
 from raes.variables import Variable, VariableType
+from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.diagnostics import DiagnosticModel
+from raes_contracts.digests import sha256_hex
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.satisfiability import (
     ConstraintClauseKind,
     ConstraintClauseModel,
@@ -142,7 +143,7 @@ def _translate_clauses(
                 clause_id=_stable_id("domain", name),
                 kind=ConstraintClauseKind.DECLARED_DOMAIN,
                 symbol_id=symbol.symbol_id,
-                source_address=f"/variables/{_pointer(name)}",
+                source_address=f"/variables/{escape_token(name)}",
                 allowed_values=symbol.domain,
             ),
             diagnostics,
@@ -183,7 +184,7 @@ def _target_clause(
         )
         return None
     return ConstraintClauseModel(
-        clause_id="target:" + hashlib.sha256(address.encode("utf-8")).hexdigest(),
+        clause_id="target:" + sha256_hex(address.encode("utf-8")),
         kind=ConstraintClauseKind.TARGET_DOMAIN,
         symbol_id=symbol.symbol_id,
         source_address=address,
@@ -196,7 +197,7 @@ def _symbol(
     variable: Variable,
     diagnostics: _DiagnosticAccumulator,
 ) -> ConstraintSymbolModel | None:
-    address = f"/variables/{_pointer(name)}"
+    address = f"/variables/{escape_token(name)}"
     values = _finite_domain_values(variable, address, diagnostics)
     if values is None:
         return None
@@ -205,8 +206,10 @@ def _symbol(
         VariableType.INTEGER: ConstraintSort.INTEGER,
         VariableType.BOOLEAN: ConstraintSort.BOOLEAN,
     }[variable.type]
-    canonical = tuple(sorted(values, key=rfc8785.dumps))
-    if len(canonical) > _MAX_DOMAIN_MEMBERS or len({rfc8785.dumps(item) for item in canonical}) != len(canonical):
+    canonical = tuple(sorted(values, key=canonical_json_bytes))
+    if len(canonical) > _MAX_DOMAIN_MEMBERS or len({canonical_json_bytes(item) for item in canonical}) != len(
+        canonical
+    ):
         diagnostics.add(_diagnostic(_DOMAIN_CODE, address, "The variable domain is invalid or exceeds its limit."))
         return None
     return ConstraintSymbolModel(
@@ -250,7 +253,7 @@ def _mapping_variable_occurrences(
     address: str,
 ) -> Iterator[VariableOccurrence]:
     for key in sorted(value, key=str):
-        yield from _variable_occurrences(value[key], f"{address}/{_pointer(str(key))}")
+        yield from _variable_occurrences(value[key], f"{address}/{escape_token(str(key))}")
 
 
 def _sequence_variable_occurrences(
@@ -321,11 +324,7 @@ def _diagnostic(code: str, address: str, message: str) -> DiagnosticModel:
     )
 
 
-def _pointer(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
-
-
 def _stable_id(prefix: str, value: str) -> str:
     """Keep ids closed and collision-resistant for every legal SDL identifier."""
 
-    return f"{prefix}:{hashlib.sha256(value.encode('utf-8')).hexdigest()}"
+    return f"{prefix}:{sha256_hex(value.encode('utf-8'))}"

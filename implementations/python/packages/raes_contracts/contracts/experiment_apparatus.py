@@ -8,6 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import (
     BACKEND_MANIFEST_V2_SCHEMA_VERSION,
     EXPERIMENT_APPARATUS_CONTEXT_SCHEMA_VERSION,
@@ -15,7 +16,7 @@ from ..versions import (
     PROCESSOR_MANIFEST_V2_SCHEMA_VERSION,
 )
 from . import experiment_task as _experiment_task
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _canonical_digest, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _canonical_digest
 from .capabilities import ApparatusIdentityModel
 from .experiment_artifacts import (
     ExperimentApparatusCompatibilityReferenceModel,
@@ -115,7 +116,7 @@ class ExperimentApparatusContextModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_instrument_context(self) -> ExperimentApparatusContextModel:
-        _parse_rfc3339_datetime("declared_at", self.declared_at)
+        parse_rfc3339_datetime("declared_at", self.declared_at)
         processor, backend = _require_processor_and_backend_components(self.components)
         selected_manifest_keys = _validate_selected_manifest_subject_uniqueness(self.selected_manifests)
         canonical_component_manifest_keys = _validate_core_component_manifest_refs(

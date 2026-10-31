@@ -9,6 +9,7 @@ from raes.observation_scope import (
 )
 from raes.scenario import InstantiatedScenario
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.observation_demand import (
     EffectiveObservationDemand,
     ObservationDemandDocument,
@@ -213,7 +214,7 @@ def _observation_collection_profiles(
     )
     return tuple(
         RealizationCollectionProfile(
-            field_pointer="/" + "/".join(_escape(token) for token in registered.field_path.split(".")),
+            field_pointer=pointer_from_tokens(registered.field_path.split(".")),
             collection_kind=registered.descriptor.concern_kind,
             identity_fields=registered.descriptor.collection_identity_fields,
             closure=closure,
@@ -223,10 +224,6 @@ def _observation_collection_profiles(
         )
         if registered.descriptor.collection_identity_fields
     )
-
-
-def _escape(token: str) -> str:
-    return token.replace("~", "~0").replace("/", "~1")
 
 
 __all__ = ["compile_observation_demands"]

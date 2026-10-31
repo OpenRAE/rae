@@ -4,14 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..json_pointer import array_index, is_array_index_token
-from ._common import (
-    RealizationRelationResult,
-    RelationBudget,
-    actual_identity,
-    pointer_tokens,
-    relation_result,
-)
+from ..json_pointer import array_index, is_array_index_token, pointer_tokens
+from ._common import RealizationRelationResult, RelationBudget, actual_identity, relation_result
 from ._models import (
     RealizationClosurePosture,
     RealizationConstraintDocument,

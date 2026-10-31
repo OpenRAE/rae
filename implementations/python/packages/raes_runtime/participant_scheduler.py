@@ -9,6 +9,7 @@ from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.timestamps import WallClock, utc_now
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 from .participant_activity import (
@@ -305,6 +306,7 @@ class ParticipantScheduler:
         *,
         cancellation_sink: Callable[[ApplyResult], None] | None = None,
         invocation_tools: InvocationToolActionConfiguration | None = None,
+        wall_clock: WallClock = utc_now,
     ) -> ApplyResult:
         """Run each due action; on cancellation, give the settled state to ``cancellation_sink``.
 
@@ -314,7 +316,9 @@ class ParticipantScheduler:
         actions hosted by any dispatched invocation commit on both paths.
         """
 
-        run = SchedulerRunState(working=snapshot, diagnostics=[], changed=[], invocation_tools=invocation_tools)
+        run = SchedulerRunState(
+            working=snapshot, diagnostics=[], changed=[], invocation_tools=invocation_tools, wall_clock=wall_clock
+        )
         resolved_activity_controls = activity_controls or {}
         try:
             for policy in policies:

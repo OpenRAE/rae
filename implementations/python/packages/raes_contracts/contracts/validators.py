@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel
 
 from ..corpus import CONCEPT_AUTHORITY, corpus_family_root
+from ..json_pointer import unescape_token
 from ..vocabulary import ConceptProvenanceCategory
 from .base import ContractModel
 
@@ -54,17 +55,13 @@ def _known_contract_ids() -> frozenset[str]:
     return frozenset(schema_bundle())
 
 
-def _decode_json_pointer_segment(segment: str) -> str:
-    return segment.replace("~1", "/").replace("~0", "~")
-
-
 def _resolve_schema_pointer(schema_root: dict[str, Any], pointer: str) -> dict[str, Any]:
     if not pointer.startswith("#/"):
         raise KeyError(pointer)
 
     current: object = schema_root
     for raw_segment in pointer[2:].split("/"):
-        segment = _decode_json_pointer_segment(raw_segment)
+        segment = unescape_token(raw_segment)
         if not isinstance(current, dict) or segment not in current:
             raise KeyError(pointer)
         current = current[segment]

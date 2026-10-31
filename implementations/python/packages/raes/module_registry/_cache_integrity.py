@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import stat
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any
 
+from raes_contracts.digests import sha256_digest, sha256_hasher
 from raes_contracts.errors import OperationalError
+from raes_contracts.json_serialization import sorted_json_text
 
 from .._errors import SDLParseError
 from ._filesystem import _O_BINARY, _O_NOFOLLOW, _same_file_identity
@@ -51,7 +52,7 @@ def _hash_cache_file(path: Path, expected: os.stat_result) -> tuple[int, str]:
         descriptor = os.open(path, flags)
     except OSError as exc:
         raise _CacheIntegrityError(_CACHE_INTEGRITY_ERROR) from exc
-    digest = hashlib.sha256()
+    digest = sha256_hasher()
     total = 0
     try:
         with os.fdopen(descriptor, "rb") as handle:
@@ -177,7 +178,7 @@ def _cache_tree_entries(root: Path) -> list[dict[str, Any]]:
 
 
 def _canonical_json_bytes(value: object) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    return (sorted_json_text(value) + "\n").encode("utf-8")
 
 
 def _cache_tree_manifest(*, root: Path, content_digest: str, root_file: str) -> dict[str, Any]:
@@ -187,7 +188,7 @@ def _cache_tree_manifest(*, root: Path, content_digest: str, root_file: str) -> 
         "entries": entries,
         "root_file": root_file,
         "schema": _CACHE_TREE_SCHEMA,
-        "tree_digest": f"sha256:{hashlib.sha256(_canonical_json_bytes(entries)).hexdigest()}",
+        "tree_digest": sha256_digest(_canonical_json_bytes(entries)),
     }
 
 
@@ -278,7 +279,7 @@ def _require_cache_manifest(value: object) -> dict[str, Any]:
 def _expected_manifest_projection(expected_manifest: object) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     manifest = _require_cache_manifest(expected_manifest)
     entries = manifest["entries"]
-    expected_tree_digest = f"sha256:{hashlib.sha256(_canonical_json_bytes(entries)).hexdigest()}"
+    expected_tree_digest = sha256_digest(_canonical_json_bytes(entries))
     _require_cache_integrity(manifest["tree_digest"] == expected_tree_digest)
     return manifest, _trusted_entry_projection(entries)
 
@@ -311,7 +312,7 @@ def _require_matching_cache_inventory(
 ) -> None:
     entries = _cache_tree_entries(version)
     _require_cache_integrity(manifest["entries"] == entries)
-    tree_digest = f"sha256:{hashlib.sha256(_canonical_json_bytes(entries)).hexdigest()}"
+    tree_digest = sha256_digest(_canonical_json_bytes(entries))
     _require_cache_integrity(manifest["tree_digest"] == tree_digest)
     _require_cache_integrity(_trusted_entry_projection(entries) == expected_entries)
 

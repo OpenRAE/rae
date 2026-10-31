@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
@@ -13,6 +11,7 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceSequenceCutModel,
     ParticipantDecisionSurfaceV2Model,
 )
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.participant_behavior import ParticipantBehaviorHistoryEventType
 from raes_contracts.participant_episode import (
     ParticipantEpisodeExecutionState,
@@ -42,10 +41,10 @@ class ParticipantBehaviorProjectionAnchorRequestV2:
 
 def _stable_projection_event_ref(event_domain: str, payload: Mapping[str, object]) -> str:
     try:
-        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+        digest = sorted_json_digest(payload)
     except (TypeError, ValueError) as exc:
         raise ValueError("decision-surface anchor events must have canonically serializable payloads") from exc
-    return f"participant-{event_domain}-event:sha256:{hashlib.sha256(canonical).hexdigest()}"
+    return f"participant-{event_domain}-event:{digest}"
 
 
 def _participant_episode_snapshot_context(

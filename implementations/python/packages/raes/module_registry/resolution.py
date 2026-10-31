@@ -8,13 +8,14 @@ from typing import TYPE_CHECKING, Any, TypedDict, Unpack
 from urllib.parse import quote
 
 from pydantic import ValidationError
+from raes_contracts.digests import SHA256_PREFIX, sha256_digest
 
 from .._errors import SDLParseDiagnostic, SDLParseError, SDLSourceRange
 from .._model_diagnostics import _model_parse_error
 from .._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLSourceParseOptions
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
-from ._digests import _SHA256_PREFIX, _descriptor_digest, _satisfies_version, _select_tag
+from ._digests import _descriptor_digest, _satisfies_version, _select_tag
 from ._verified_sources import _local_resolved_source, _VerifiedSourceBundle
 from .models import Lockfile, LockRecord, ResolvedModule, TrustPolicy, _scenario_module_descriptor, load_trust_policy
 
@@ -23,9 +24,8 @@ if TYPE_CHECKING:
 
 _LOCKED_PREFIX = "locked:"
 
-# The private digest/signature seams (``_sha256_digest``, ``_json_request``,
-# ``_bytes_request``, ``_extract_bundle_to_cache``, ``_verify_signatures``,
-# ``_OCI_LIMITS``) are resolved through the package facade with function-local
+# The private request/signature seams (``_json_request``, ``_bytes_request``,
+# ``_extract_bundle_to_cache``, ``_verify_signatures``, ``_OCI_LIMITS``) are resolved through the package facade with function-local
 # ``from . import`` at each use, rather than bound here from the submodules. A test
 # that patches ``raes.module_registry.<seam>`` then replaces the binding these
 # production calls use, exactly as the pre-split single-file module did.
@@ -106,8 +106,8 @@ def _verify_allowed_parameters(
 def _validate_digest_pin(actual_digest: str, expected_digest: str, *, source: str) -> None:
     if not expected_digest:
         return
-    normalized_actual = actual_digest.removeprefix(_SHA256_PREFIX)
-    normalized_expected = expected_digest.removeprefix(_SHA256_PREFIX)
+    normalized_actual = actual_digest.removeprefix(SHA256_PREFIX)
+    normalized_expected = expected_digest.removeprefix(SHA256_PREFIX)
     if normalized_actual != normalized_expected:
         raise SDLParseError(f"Digest mismatch for import '{source}': {expected_digest!r} != {actual_digest!r}")
 
@@ -221,7 +221,6 @@ def _resolve_local_import(
     context: _ResolutionContext,
 ) -> ResolvedModule:
     from ..parser import _load_normalized_data
-    from . import _sha256_digest
 
     relative = source.removeprefix("local:")
     if context.verified_sources is None:
@@ -246,7 +245,7 @@ def _resolve_local_import(
         imported_scenario,
         source_id=relative.replace("\\", "/"),
     )
-    content_digest = f"{_SHA256_PREFIX}{_sha256_digest(imported_source.raw_bytes)}"
+    content_digest = sha256_digest(imported_source.raw_bytes)
     if not _satisfies_version(descriptor.version, import_decl.version):
         raise SDLParseError(
             f"Import '{relative}' requested version {import_decl.version!r} but module declares {descriptor.version!r}"
@@ -284,7 +283,7 @@ def _resolve_oci_manifest(
     locked: LockRecord | None,
     source: str,
 ) -> tuple[str, dict[str, Any]]:
-    from . import _bytes_request, _decode_json_object, _json_request, _sha256_digest
+    from . import _bytes_request, _decode_json_object, _json_request
 
     manifest_ref = locked.manifest_digest if locked is not None else None
     if manifest_ref is None:
@@ -298,7 +297,7 @@ def _resolve_oci_manifest(
         f"{base_url}/v2/{quote(repository, safe='/')}/manifests/{quote(str(manifest_ref), safe=':@/')}",
         headers={"Accept": OCI_LAYOUT_MEDIA_TYPE},
     )
-    manifest_digest = f"{_SHA256_PREFIX}{_sha256_digest(manifest_bytes)}"
+    manifest_digest = sha256_digest(manifest_bytes)
     manifest = _decode_json_object(manifest_bytes, context=f"OCI manifest for '{source}'")
     if locked is not None and locked.manifest_digest != manifest_digest:
         raise SDLParseError(
@@ -310,7 +309,7 @@ def _resolve_oci_manifest(
 def _resolve_oci_config(
     *, base_url: str, repository: str, manifest: dict[str, Any], source: str
 ) -> tuple[dict[str, Any], str]:
-    from . import _bytes_request, _decode_json_object, _sha256_digest
+    from . import _bytes_request, _decode_json_object
 
     config = manifest.get("config", {})
     layers = manifest.get("layers", [])
@@ -337,20 +336,20 @@ def _resolve_oci_config(
     config_bytes = _bytes_request(
         f"{base_url}/v2/{quote(repository, safe='/')}/blobs/{quote(config_digest, safe=':@/')}"
     )
-    if f"{_SHA256_PREFIX}{_sha256_digest(config_bytes)}" != config_digest:
+    if sha256_digest(config_bytes) != config_digest:
         raise SDLParseError(f"OCI module '{source}' config digest verification failed")
     config_payload = _decode_json_object(config_bytes, context=f"OCI config for '{source}'")
     return config_payload, layer_digest
 
 
 def _fetch_oci_bundle(*, base_url: str, repository: str, layer_digest: str, source: str) -> bytes:
-    from . import _OCI_LIMITS, _bytes_request, _sha256_digest
+    from . import _OCI_LIMITS, _bytes_request
 
     bundle_bytes = _bytes_request(
         f"{base_url}/v2/{quote(repository, safe='/')}/blobs/{quote(layer_digest, safe=':@/')}",
         max_bytes=_OCI_LIMITS.max_bundle_bytes,
     )
-    if f"{_SHA256_PREFIX}{_sha256_digest(bundle_bytes)}" != layer_digest:
+    if sha256_digest(bundle_bytes) != layer_digest:
         raise SDLParseError(f"OCI module '{source}' bundle digest verification failed")
     return bundle_bytes
 
@@ -429,7 +428,7 @@ def _resolve_oci_import(
         )
     verified_sources = _extract_bundle_to_cache(
         bundle_bytes=bundle_bytes,
-        manifest_digest=manifest_digest.replace(_SHA256_PREFIX, ""),
+        manifest_digest=manifest_digest.replace(SHA256_PREFIX, ""),
         content_digest=content_digest,
         root_file=root_file,
         base_dir=base_dir,

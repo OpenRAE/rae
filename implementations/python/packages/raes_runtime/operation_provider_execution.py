@@ -23,10 +23,10 @@ from raes_contracts.errors import ConflictError, EvidenceIntegrityError, Invalid
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
+from raes_contracts.timestamps import isoformat_z
 
 from .backend_calls import _BackendCallContext, _RealizationApplyContext
 from .backend_observation_calls import _ObservationApplyRequest
-from .control_plane_execution import _utc_now
 from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_supervised_execution import claim_accepted, invocation_request, settle
 from .control_plane_supervision import persist_invocation_update
@@ -204,7 +204,7 @@ def execute_provider_operation(
         if native_request.inject_occurrence is not None
         else getattr(native_request.plan, "operation_id", None) or str(uuid4())
     )
-    backend_request = invocation_request(plane, native_request, operation_id, _utc_now())
+    backend_request = invocation_request(plane, native_request, operation_id, isoformat_z(plane.wall_clock()))
     deadline = monotonic() + backend_request.budget.remaining_ms / 1000
 
     def remaining() -> int:
@@ -360,7 +360,7 @@ def _start_local_provider(
         ControlPlaneOperationRecord,
         replace(
             record,
-            status=replace(record.status, state=OperationState.RUNNING, updated_at=_utc_now()),
+            status=replace(record.status, state=OperationState.RUNNING, updated_at=isoformat_z(plane.wall_clock())),
             invocation=record.invocation.model_copy(update={"consumed": True}),
         ),
     )

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime
 from types import MappingProxyType
 
 from raes_contracts.contracts.runtime_facts import (
@@ -14,6 +13,7 @@ from raes_contracts.contracts.runtime_facts import (
 )
 from raes_contracts.errors import RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.timestamps import parse_offset_datetime
 
 _LOGGER = get_logger(__name__)
 
@@ -37,7 +37,7 @@ class RuntimeFactBindingAdmission:
             raise ValueError("trusted binding admission requires authority_refs")
         if not self.selections:
             raise ValueError("trusted binding admission requires compiled selections")
-        _parse_datetime(self.requested_at, "requested_at")
+        parse_offset_datetime(self.requested_at, "requested_at")
         sink_ids = [selection.sink.sink_id for selection in self.selections]
         target_fields = [selection.sink.target_field for selection in self.selections]
         if len(sink_ids) != len(set(sink_ids)):
@@ -116,26 +116,6 @@ class RuntimeFactDispatchCommand:
 
     def __repr__(self) -> str:
         return "RuntimeFactDispatchCommand(<protected>)"
-
-
-def _parse_datetime(value: object, field_name: str = "timestamp") -> datetime:
-    """Parse an ISO 8601 date-time that carries an explicit UTC offset.
-
-    Naive and date-only values have no defined instant and would make later
-    order comparisons raise ``TypeError``, so they are rejected here. The
-    message names the field and the rule, never the rejected value.
-    """
-
-    message = f"{field_name} must be an ISO 8601 date-time with an explicit UTC offset"
-    if not isinstance(value, str):
-        raise ValueError(message)
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00").replace("z", "+00:00"))
-    except ValueError:
-        raise ValueError(message) from None
-    if parsed.utcoffset() is None:
-        raise ValueError(message)
-    return parsed
 
 
 def _value_matches_type(value: object, value_type: str) -> bool:

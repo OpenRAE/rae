@@ -13,8 +13,8 @@ from raes_contracts.contracts.participant_control_evaluation_v2 import Participa
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
 from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationState, operation_terminal_diagnostics
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_store import AuditEvent
 from .participant_crossing_state_cut import expected_participant_history_heads
 
@@ -99,7 +99,10 @@ def commit_effect_outcome(
             mode="json"
         ),
         status=replace(
-            claim.status, state=state, updated_at=_utc_now(), diagnostics=operation_terminal_diagnostics(state, [])
+            claim.status,
+            state=state,
+            updated_at=isoformat_z(plane.wall_clock()),
+            diagnostics=operation_terminal_diagnostics(state, []),
         ),
     )
     plane._commit_participant_transition(

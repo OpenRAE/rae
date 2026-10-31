@@ -1,14 +1,14 @@
 """Participant action contracts, observation boundaries, outcome-interpretation rules."""
 
-import hashlib
 from collections.abc import Callable
 
-import rfc8785
 from raes.participant_outcome_semantics import (
     OutcomeInterpretationSourceLayer,
     OutcomeInterpretationTargetLayer,
 )
 from raes.scenario import InstantiatedScenario
+from raes_contracts.canonical import canonical_json_bytes
+from raes_contracts.digests import sha256_hex
 
 from ..models import (
     ParticipantActionContractRuntime,
@@ -84,8 +84,7 @@ def _compiled_argument_shape(
 ) -> tuple[str, tuple[dict[str, object], ...]]:
     raw_arguments = contract_spec.get("arguments", {})
     arguments = raw_arguments if isinstance(raw_arguments, dict) else {}
-    canonical = rfc8785.dumps(arguments)
-    digest = hashlib.sha256(canonical).hexdigest()
+    digest = sha256_hex(canonical_json_bytes(arguments))
     definitions = tuple(
         {"name": str(name), **definition}
         for name, definition in sorted(arguments.items())
