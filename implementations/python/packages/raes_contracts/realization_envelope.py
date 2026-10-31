@@ -153,7 +153,7 @@ class WitnessPolicy(ContractModel):
 class RealizationEnvelopeModel(ContractModel):
     """A versioned expression denoting a set of SDL scenario instances."""
 
-    schema_version: Literal["realization-envelope/v1"] = "realization-envelope/v1"
+    schema_version: Literal["realization-envelope/v1"] = REALIZATION_ENVELOPE_SCHEMA_VERSION
     id: NonEmptyString
     scope: EnvelopeScope
     domains: dict[NonEmptyString, DomainDescriptor] = Field(default_factory=dict)
@@ -513,7 +513,7 @@ def realization_envelope_digest(payload: Mapping[str, Any] | ContractModel) -> s
         material["configuration"] = _realizer_configuration_payload(payload.configuration)
     elif isinstance(payload, Mapping) and {"id", "expression", "configuration", "concerns"} <= payload.keys():
         material = {
-            "schema_version": payload.get("schema_version", "realization-envelope/v1"),
+            "schema_version": payload.get("schema_version", REALIZATION_ENVELOPE_SCHEMA_VERSION),
             "contract_id": payload.get("contract_id", "realization-envelope-v1"),
             "id": payload["id"],
             "expression": RealizationEnvelopeModel.model_validate(payload["expression"]).model_dump(mode="json"),
@@ -532,7 +532,7 @@ def realization_envelope_digest(payload: Mapping[str, Any] | ContractModel) -> s
 class BackendRealizationEnvelopeModel(ContractModel):
     """Published backend carrier: shared set expression plus truthful realization claims."""
 
-    schema_version: Literal["realization-envelope/v1"] = "realization-envelope/v1"
+    schema_version: Literal["realization-envelope/v1"] = REALIZATION_ENVELOPE_SCHEMA_VERSION
     contract_id: Literal["realization-envelope-v1"] = "realization-envelope-v1"
     id: NonEmptyString
     expression: RealizationEnvelopeModel

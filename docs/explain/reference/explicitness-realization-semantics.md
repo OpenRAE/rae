@@ -395,3 +395,13 @@ is `active`: the classifier, typed scoped designation cascade, compiler carrier,
 planner gate, runtime non-approximation/disclosure gate, and snapshot
 provenance delivery are implemented together. Treat the prose above as
 architecture guidance for those surfaces and the spec as the binding contract.
+
+## Constraint evaluation work
+
+`evaluate_realization_constraint` applies finite limits to constraint admission
+and value evaluation. The evaluator builds a temporary tree of decoded scope
+tokens for each call. Inherited closure and closed-scope child checks share that
+tree. Tree construction and lookup consume the evaluation operation budget.
+This avoids scanning all scopes for each application route or nested container.
+The default limits remain unchanged. Exhausted work returns `limit-exceeded`;
+matching input values do not bypass exact constraints or scope checks.

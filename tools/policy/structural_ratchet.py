@@ -13,6 +13,7 @@ from collections import Counter, defaultdict
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, cast
 
 from raes_contracts.errors import InvalidInputError
 
@@ -306,19 +307,21 @@ def _layer_allows(positions: Mapping[str, tuple[int, bool]], source: str, target
 
 def _settings(policy: dict[str, object]) -> _Settings:
     roots, rules = _module_boundaries(policy.get("module_boundaries"))
-    block = policy.get("structural_checks")
+    block = _structural_checks(policy.get("structural_checks"))
     return _Settings(
-        max_ancestors=_ancestor_limit(block),
+        max_ancestors=block["max_repository_ancestors"],
         coverage_roots=roots,
-        allowed_imports={module: rule["allowed_top_level_imports"] for module, rule in rules.items()},  # type: ignore[misc]
+        allowed_imports={
+            module: cast(frozenset[str], rule["allowed_top_level_imports"]) for module, rule in rules.items()
+        },
         boundary_rules=rules,
-        dynamic_import_allowlist=parse_dynamic_import_allowlist(
-            block.get("dynamic_import_allowlist") if isinstance(block, dict) else None
-        ),
+        dynamic_import_allowlist=parse_dynamic_import_allowlist(block.get("dynamic_import_allowlist")),
     )
 
 
-def _ancestor_limit(block: object) -> int:
+def _structural_checks(block: object) -> dict[str, Any]:
+    """Return the validated ``structural_checks`` block (ADR-117)."""
+
     required = {"adr", "max_repository_ancestors"}
     if not isinstance(block, dict) or not required <= set(block) <= {*required, "dynamic_import_allowlist"}:
         raise InvalidInputError(
@@ -330,7 +333,7 @@ def _ancestor_limit(block: object) -> int:
         raise InvalidInputError("structural_checks.adr must be a non-empty string")
     if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
         raise InvalidInputError("structural_checks.max_repository_ancestors must be a positive integer")
-    return limit
+    return block
 
 
 def _module_boundaries(boundaries: object) -> tuple[tuple[str, ...], dict[str, dict[str, object]]]:
@@ -342,19 +345,22 @@ def _module_boundaries(boundaries: object) -> tuple[tuple[str, ...], dict[str, d
         raise InvalidInputError("module_boundaries.package_coverage_roots must be a non-empty list of strings")
     if not isinstance(modules, list) or not all(isinstance(module, dict) for module in modules):
         raise InvalidInputError("module_boundaries.modules must be a list of mappings")
-    rules = {
-        str(module.get("id")): {
-            "id": str(module.get("id")),
-            "allowed_top_level_imports": frozenset(str(name) for name in module.get("allowed_top_level_imports") or ()),
-            "forbidden_import_prefixes": tuple(str(item) for item in module.get("forbidden_import_prefixes") or ()),
-            "public_import_prefixes": {
-                str(key): tuple(str(prefix) for prefix in value)
-                for key, value in (module.get("public_import_prefixes") or {}).items()
-            },
-        }
-        for module in modules
-    }
+    rules = {str(module.get("id")): _module_rule(module) for module in modules}
     return tuple(roots), rules
+
+
+def _module_rule(module: dict[str, Any]) -> dict[str, object]:
+    """Return the import rule of one ADR-036 module entry with normalized value types."""
+
+    return {
+        "id": str(module.get("id")),
+        "allowed_top_level_imports": frozenset(str(name) for name in module.get("allowed_top_level_imports") or ()),
+        "forbidden_import_prefixes": tuple(str(item) for item in module.get("forbidden_import_prefixes") or ()),
+        "public_import_prefixes": {
+            str(key): tuple(str(prefix) for prefix in value)
+            for key, value in (module.get("public_import_prefixes") or {}).items()
+        },
+    }
 
 
 def _scope_failures(index: SourceIndex, contracts: ImportContracts) -> list[PolicyFailure]:

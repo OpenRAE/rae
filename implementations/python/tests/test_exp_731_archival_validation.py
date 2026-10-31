@@ -121,12 +121,13 @@ def test_authoritative_archival_study_validation_resolves_relation_artifacts() -
     )
     evidence_by_run = {run.run_id: evidence_inputs}
     relation_capture_specs = {invalid_capture_spec.capture_spec_id: invalid_capture_spec}
+    relation_scenarios = {scenario.name: AuthoredScenarioEvidenceView(scenario)}
     with pytest.raises(ValueError, match="integrity-requirements.*preserve"):
         validate_experiment_study_against_tasks_and_runs(
             study,
             [task],
             [run],
             evidence_by_run=evidence_by_run,
-            relation_scenarios={scenario.name: AuthoredScenarioEvidenceView(scenario)},
+            relation_scenarios=relation_scenarios,
             relation_capture_specs=relation_capture_specs,
         )

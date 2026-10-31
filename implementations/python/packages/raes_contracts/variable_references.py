@@ -2,7 +2,7 @@
 
 import re
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import AfterValidator, WithJsonSchema
 
@@ -27,7 +27,7 @@ _VARIABLE_REF_RE = re.compile(r"^" + VARIABLE_TOKEN_PATTERN + r"$")
 VARIABLE_REFERENCE_SCHEMA_MARKER = "x-raes-variable-reference"
 
 
-def is_variable_ref(v: Any) -> bool:
+def is_variable_ref(v: object) -> bool:
     """Return whether ``v`` is a full ``${var_name}`` placeholder."""
     return isinstance(v, str) and _VARIABLE_REF_RE.fullmatch(v) is not None
 
@@ -83,12 +83,12 @@ def normalize_enum_value(v: str) -> str:
     return v.lower().replace("-", "_") if isinstance(v, str) else v
 
 
-def parse_enum_or_var(
-    value: Any,
-    enum_cls: type[Enum],
+def parse_enum_or_var[E: Enum](
+    value: object,
+    enum_cls: type[E],
     *,
     field_name: str = "value",
-) -> Any:
+) -> E | str | None:
     """Parse an enum-backed field while allowing full ``${var}`` placeholders."""
     if value is None or is_variable_ref(value):
         return value
@@ -105,7 +105,7 @@ def parse_enum_or_var(
 
 
 def parse_int_or_var(
-    value: Any,
+    value: object,
     *,
     minimum: int | None = None,
     maximum: int | None = None,
@@ -131,7 +131,7 @@ def parse_int_or_var(
 
 
 def parse_float_or_var(
-    value: Any,
+    value: object,
     *,
     minimum: float | None = None,
     maximum: float | None = None,
@@ -163,20 +163,17 @@ def parse_float_or_var(
     return parsed
 
 
-def parse_bool_or_var(value: Any, *, field_name: str = "value") -> bool | str:
+_TRUE_WORDS = frozenset({"true", "1", "yes", "on"})
+_FALSE_WORDS = frozenset({"false", "0", "no", "off"})
+
+
+def parse_bool_or_var(value: object, *, field_name: str = "value") -> bool | str | None:
     """Parse a boolean field while allowing ``${var}`` placeholders."""
-    if is_variable_ref(value) or value is None:
+    if value is None or isinstance(value, bool) or is_variable_ref(value):
         return value
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        lowered = value.strip().lower()
-        truthy = {"true", "1", "yes", "on"}
-        falsy = {"false", "0", "no", "off"}
-        if lowered in truthy:
-            return True
-        if lowered in falsy:
-            return False
+    lowered = value.strip().lower() if isinstance(value, str) else None
+    if lowered in _TRUE_WORDS or lowered in _FALSE_WORDS:
+        return lowered in _TRUE_WORDS
     raise ValueError(f"{field_name} must be a boolean")
 
 

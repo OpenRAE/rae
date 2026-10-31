@@ -29,7 +29,7 @@ use that passes on one of these callables or the ``importlib``,
 from __future__ import annotations
 
 import ast
-from collections.abc import Callable, Hashable, Sequence
+from collections.abc import Callable, Hashable, Iterator, Sequence
 from dataclasses import dataclass, field
 from importlib.util import resolve_name
 
@@ -230,11 +230,10 @@ class _Program:
         if module not in self.index.modules:
             return _UNKNOWN_VALUES
         analysis = self.module(module)
-        if name.startswith("_") and not analysis.declares_all:
-            return None
-        if name not in analysis.root.bindings and not analysis.root.star_sources:
-            return None
-        return self.module_attribute(module, name)
+        exported = (analysis.declares_all or not name.startswith("_")) and (
+            name in analysis.root.bindings or bool(analysis.root.star_sources)
+        )
+        return self.module_attribute(module, name) if exported else None
 
 
 @dataclass(frozen=True)
@@ -342,39 +341,20 @@ class _ModuleAnalysis:
         elif isinstance(node, ast.Nonlocal):
             scope.nonlocal_names.update(node.names)
         elif isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.asname:
-                    scope.bind(alias.asname, self._module_value(alias.name))
-                else:
-                    top = alias.name.partition(".")[0]
-                    scope.bind(top, self._module_value(top))
+            self._bind_import(node, scope)
         elif isinstance(node, ast.ImportFrom):
             self._bind_from_import(node, scope)
-        elif isinstance(node, ast.Assign):
-            simple = len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
-            for target in node.targets:
-                for name in _names(target):
-                    scope.bind(name, _Pending(node.value) if simple else _UNKNOWN)
-        elif isinstance(node, ast.AnnAssign):
-            pending = node.value is not None and isinstance(node.target, ast.Name)
-            for name in _names(node.target):
-                scope.bind(name, _Pending(node.value) if pending else _UNKNOWN)
-        elif isinstance(node, ast.AugAssign | ast.NamedExpr | ast.For | ast.AsyncFor):
-            for name in _names(node.target):
+        elif isinstance(node, ast.Assign | ast.AnnAssign):
+            for name, value in _assignment_bindings(node):
+                scope.bind(name, value)
+        else:
+            for name in _untracked_binding_names(node):
                 scope.bind(name, _UNKNOWN)
-        elif isinstance(node, ast.withitem) and node.optional_vars is not None:
-            for name in _names(node.optional_vars):
-                scope.bind(name, _UNKNOWN)
-        elif isinstance(node, ast.ExceptHandler) and node.name:
-            scope.bind(node.name, _UNKNOWN)
-        elif isinstance(node, ast.Delete):
-            for target in node.targets:
-                for name in _names(target):
-                    scope.bind(name, _UNKNOWN)
-        elif isinstance(node, ast.MatchAs | ast.MatchStar) and node.name:
-            scope.bind(node.name, _UNKNOWN)
-        elif isinstance(node, ast.MatchMapping) and node.rest:
-            scope.bind(node.rest, _UNKNOWN)
+
+    def _bind_import(self, node: ast.Import, scope: _Scope) -> None:
+        for alias in node.names:
+            bound = alias.asname or alias.name.partition(".")[0]
+            scope.bind(bound, self._module_value(alias.name if alias.asname else bound))
 
     def _bind_from_import(self, node: ast.ImportFrom, scope: _Scope) -> None:
         source = self._absolute(("." * node.level) + (node.module or ""), self._package) if node.level else node.module
@@ -470,17 +450,27 @@ class _ModuleAnalysis:
         for node in ast.walk(self._module.tree):
             scope = self._node_scope.get(node, self.root)
             if isinstance(node, ast.Call):
-                kinds = self.resolve(node.func, scope) & _CALLS
-                if kinds:
-                    resolved = self._all_call_targets(node, kinds, scope)
-                    if resolved is None:
-                        findings.append((scope.owner, node.lineno))
-                    else:
-                        targets.update(resolved)
-            elif isinstance(node, ast.Name | ast.Attribute) and isinstance(node.ctx, ast.Load):
-                if self.resolve(node, scope) & _TRACKED and not self._passes_through(node):
-                    findings.append((scope.owner, node.lineno))
+                self._inspect_call(node, scope, targets, findings)
+            elif self._passes_on_tracked_value(node, scope):
+                findings.append((scope.owner, node.lineno))
         return targets, findings
+
+    def _inspect_call(self, call: ast.Call, scope: _Scope, targets: set[str], findings: list[tuple[str, int]]) -> None:
+        kinds = self.resolve(call.func, scope) & _CALLS
+        if not kinds:
+            return
+        resolved = self._all_call_targets(call, kinds, scope)
+        if resolved is None:
+            findings.append((scope.owner, call.lineno))
+        else:
+            targets.update(resolved)
+
+    def _passes_on_tracked_value(self, node: ast.AST, scope: _Scope) -> bool:
+        """Report whether a load of a tracked callable or module leaves the uses that the check can follow."""
+
+        if not isinstance(node, ast.Name | ast.Attribute) or not isinstance(node.ctx, ast.Load):
+            return False
+        return bool(self.resolve(node, scope) & _TRACKED) and not self._passes_through(node)
 
     def _all_call_targets(self, call: ast.Call, kinds: Values, scope: _Scope) -> set[str] | None:
         """Return the targets of a call for each import function that its callable can be, else ``None``."""
@@ -497,14 +487,10 @@ class _ModuleAnalysis:
         """Report whether a use of a tracked value stays visible: a call, an attribute or a simple alias."""
 
         parent = self._parents.get(node)
-        if isinstance(parent, ast.Call):
-            return parent.func is node
         if isinstance(parent, ast.Attribute):
             scope = self._node_scope.get(node, self.root)
             return parent.value is node and not any(value.startswith("call:") for value in self.resolve(node, scope))
-        if isinstance(parent, ast.Assign):
-            return parent.value is node and len(parent.targets) == 1 and isinstance(parent.targets[0], ast.Name)
-        return isinstance(parent, ast.AnnAssign) and parent.value is node and isinstance(parent.target, ast.Name)
+        return _is_callable_or_alias_value(parent, node)
 
     def _call_targets(self, call: ast.Call, kind: str, scope: _Scope) -> set[str] | None:
         if kind == _DUNDER_IMPORT:
@@ -512,16 +498,9 @@ class _ModuleAnalysis:
         name = _argument(call, 0, "name")
         literal = _string(name)
         if literal is None:
-            if kind == _IMPORT_MODULE and self._from_lazy_table(name, call, scope):
-                return set(self._lazy_targets)
-            return None
-        resolved = self._relative(literal, _argument(call, 1, "package"))
-        if resolved is None:
-            return None
-        if kind == _FIND_SPEC:
-            parent = resolved.rpartition(".")[0]
-            return {parent} if parent else set()
-        return {resolved}
+            lazy = kind == _IMPORT_MODULE and self._from_lazy_table(name, call, scope)
+            return set(self._lazy_targets) if lazy else None
+        return _loaded_modules(kind, self._relative(literal, _argument(call, 1, "package")))
 
     def _relative(self, name: str, package: ast.AST | None) -> str | None:
         if not name.startswith("."):
@@ -541,41 +520,110 @@ class _ModuleAnalysis:
             return None
 
     def _dunder_import_targets(self, call: ast.Call) -> set[str] | None:
-        name = _string(_argument(call, 0, "name"))
-        level_node = _argument(call, 4, "level")
-        level = 0 if level_node is None else _integer(level_node)
-        if name is None or level is None or level < 0:
-            return None
-        if level:
-            if not _is_globals_call(_argument(call, 1, "globals")):
-                return None
-            base = self._absolute("." * level + name, self._package)
-        else:
-            base = name or None
-        fromlist_node = _argument(call, 3, "fromlist")
-        items = () if fromlist_node is None or _is_empty(fromlist_node) else _strings(fromlist_node)
+        base = self._dunder_import_base(call)
+        items = _fromlist(_argument(call, 3, "fromlist"))
         if base is None or items is None:
             return None
         modules = self._program.index.modules
         return {base, *(f"{base}.{item}" for item in items if f"{base}.{item}" in modules)}
 
+    def _dunder_import_base(self, call: ast.Call) -> str | None:
+        """Return the absolute module that ``__import__`` loads first, or ``None`` when no literal names it."""
+
+        name = _string(_argument(call, 0, "name"))
+        level_node = _argument(call, 4, "level")
+        level = 0 if level_node is None else _integer(level_node)
+        if name is None or level is None or level < 0:
+            return None
+        if not level:
+            return name or None
+        globals_given = _is_globals_call(_argument(call, 1, "globals"))
+        return self._absolute("." * level + name, self._package) if globals_given else None
+
     def _from_lazy_table(self, argument: ast.AST | None, call: ast.Call, scope: _Scope) -> bool:
-        if not self._lazy_targets or not isinstance(argument, ast.Name) or scope.owner != _LAZY_GETATTR:
-            return False
-        if not isinstance(scope.node, ast.FunctionDef) or self._parents.get(scope.node) is not self._module.tree:
+        if not self._is_lazy_getattr(scope) or not isinstance(argument, ast.Name):
             return False
         if len(scope.bindings.get(argument.id, ())) != 1 or argument.id in scope.global_names | scope.nonlocal_names:
             return False
-        current = self._parents.get(call)
-        while current is not None and current is not scope.node:
-            if isinstance(current, ast.For) and _loop_binds(current, argument.id):
-                return True
+        loops = (node for node in self._ancestors(call, scope.node) if isinstance(node, ast.For))
+        return any(_loop_binds(loop, argument.id) for loop in loops)
+
+    def _is_lazy_getattr(self, scope: _Scope) -> bool:
+        """Report whether ``scope`` is the module-level ``__getattr__`` of a module with a lazy table."""
+
+        return (
+            bool(self._lazy_targets)
+            and scope.owner == _LAZY_GETATTR
+            and isinstance(scope.node, ast.FunctionDef)
+            and self._parents.get(scope.node) is self._module.tree
+        )
+
+    def _ancestors(self, node: ast.AST, stop: ast.AST | None) -> Iterator[ast.AST]:
+        current = self._parents.get(node)
+        while current is not None and current is not stop:
+            yield current
             current = self._parents.get(current)
-        return False
 
 
 def _names(target: ast.AST) -> list[str]:
     return [node.id for node in ast.walk(target) if isinstance(node, ast.Name)]
+
+
+# Statements that bind a target expression, and nodes that bind one name, to values the check does not track.
+_TARGET_FIELDS = {ast.AugAssign: "target", ast.NamedExpr: "target", ast.For: "target", ast.AsyncFor: "target"}
+_NAME_FIELDS = {ast.ExceptHandler: "name", ast.MatchAs: "name", ast.MatchStar: "name", ast.MatchMapping: "rest"}
+
+
+def _assignment_bindings(node: ast.Assign | ast.AnnAssign) -> list[tuple[str, str | _Pending]]:
+    """Return each name that an assignment binds: a simple one to its value, any other to an untracked value."""
+
+    if isinstance(node, ast.Assign):
+        simple = len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
+        value: str | _Pending = _Pending(node.value) if simple else _UNKNOWN
+        return [(name, value) for target in node.targets for name in _names(target)]
+    pending = node.value is not None and isinstance(node.target, ast.Name)
+    value = _Pending(node.value) if pending else _UNKNOWN
+    return [(name, value) for name in _names(node.target)]
+
+
+def _untracked_binding_names(node: ast.AST) -> list[str]:
+    """Return the names that a node binds to a value the check does not track."""
+
+    targets: list[ast.AST] = []
+    if type(node) in _TARGET_FIELDS:
+        targets = [getattr(node, _TARGET_FIELDS[type(node)])]
+    elif isinstance(node, ast.withitem) and node.optional_vars is not None:
+        targets = [node.optional_vars]
+    elif isinstance(node, ast.Delete):
+        targets = list(node.targets)
+    names = [name for target in targets for name in _names(target)]
+    single = getattr(node, _NAME_FIELDS[type(node)], None) if type(node) in _NAME_FIELDS else None
+    return [*names, single] if single else names
+
+
+def _is_callable_or_alias_value(parent: ast.AST | None, node: ast.AST) -> bool:
+    """Report whether ``node`` is the callable of a call or the whole value of a simple assignment."""
+
+    if isinstance(parent, ast.Call):
+        return parent.func is node
+    if isinstance(parent, ast.Assign):
+        return parent.value is node and len(parent.targets) == 1 and isinstance(parent.targets[0], ast.Name)
+    return isinstance(parent, ast.AnnAssign) and parent.value is node and isinstance(parent.target, ast.Name)
+
+
+def _loaded_modules(kind: str, resolved: str | None) -> set[str] | None:
+    """Return the modules that ``import_module`` or ``find_spec`` loads for a resolved target."""
+
+    if resolved is None:
+        return None
+    if kind == _FIND_SPEC:
+        parent = resolved.rpartition(".")[0]
+        return {parent} if parent else set()
+    return {resolved}
+
+
+def _fromlist(node: ast.AST | None) -> tuple[str, ...] | None:
+    return () if node is None or _is_empty(node) else _strings(node)
 
 
 class _Unresolvable(ast.AST):
@@ -583,14 +631,13 @@ class _Unresolvable(ast.AST):
 
 
 def _argument(call: ast.Call, position: int, keyword: str) -> ast.AST | None:
-    for item in call.keywords:
-        if item.arg == keyword:
-            return item.value
-    if any(isinstance(item, ast.Starred) for item in call.args[: position + 1]):
+    named = next((item.value for item in call.keywords if item.arg == keyword), None)
+    if named is not None:
+        return named
+    starred = any(isinstance(item, ast.Starred) for item in call.args[: position + 1])
+    if starred or (position >= len(call.args) and any(item.arg is None for item in call.keywords)):
         return _Unresolvable()
-    if position < len(call.args):
-        return call.args[position]
-    return _Unresolvable() if any(item.arg is None for item in call.keywords) else None
+    return call.args[position] if position < len(call.args) else None
 
 
 def _string(node: ast.AST | None) -> str | None:
@@ -672,6 +719,19 @@ def _lazy_export_targets(module: SourceModule, parents: dict[ast.AST, ast.AST]) 
     the check models, and no string may name the table. Otherwise the module has no lazy targets.
     """
 
+    table = _lazy_exports_table(module, parents)
+    if table is None:
+        return ()
+    keys = [key.value for key in table.keys if isinstance(key, ast.Constant) and isinstance(key.value, str)]
+    if len(keys) != len(table.keys):
+        raise InvalidInputError(f"{module.rel_path}: {LAZY_EXPORTS_NAME} keys must be string literals")
+    package = module.name if module.is_package else module.name.rpartition(".")[0]
+    return tuple(key if not key.startswith(".") else resolve_name(key, package) for key in keys)
+
+
+def _lazy_exports_table(module: SourceModule, parents: dict[ast.AST, ast.AST]) -> ast.Dict | None:
+    """Return the module's literal lazy table when it is bound once, only read and never named by a string."""
+
     values = [value for statement in module.tree.body if (value := _lazy_exports_value(statement)) is not None]
     stores = [
         node
@@ -679,35 +739,40 @@ def _lazy_export_targets(module: SourceModule, parents: dict[ast.AST, ast.AST]) 
         if isinstance(node, ast.Name) and node.id == LAZY_EXPORTS_NAME and not isinstance(node.ctx, ast.Load)
     ]
     if len(values) != 1 or len(stores) != 1 or not values[0].keys:
-        return ()
-    for node in ast.walk(module.tree):
-        if isinstance(node, ast.Constant) and node.value == LAZY_EXPORTS_NAME:
-            return ()
-        if isinstance(node, ast.Name) and node.id == LAZY_EXPORTS_NAME and isinstance(node.ctx, ast.Load):
-            if not _is_modeled_read(node, parents):
-                return ()
-    keys = [key.value for key in values[0].keys if isinstance(key, ast.Constant) and isinstance(key.value, str)]
-    if len(keys) != len(values[0].keys):
-        raise InvalidInputError(f"{module.rel_path}: {LAZY_EXPORTS_NAME} keys must be string literals")
-    package = module.name if module.is_package else module.name.rpartition(".")[0]
-    return tuple(key if not key.startswith(".") else resolve_name(key, package) for key in keys)
+        return None
+    return values[0] if all(_leaves_table_unchanged(node, parents) for node in ast.walk(module.tree)) else None
+
+
+def _leaves_table_unchanged(node: ast.AST, parents: dict[ast.AST, ast.AST]) -> bool:
+    """Report whether a node does not name the lazy table, or only reads it in a way that the check models."""
+
+    if isinstance(node, ast.Constant):
+        return node.value != LAZY_EXPORTS_NAME
+    if isinstance(node, ast.Name) and node.id == LAZY_EXPORTS_NAME and isinstance(node.ctx, ast.Load):
+        return _is_modeled_read(node, parents)
+    return True
 
 
 def _is_modeled_read(node: ast.Name, parents: dict[ast.AST, ast.AST]) -> bool:
     """Report whether a use of the lazy table only reads it: a loop, a read method, a subscript or a membership test."""
 
     parent = parents.get(node)
+    if isinstance(parent, ast.Attribute):
+        call = parents.get(parent)
+        is_read_call = isinstance(call, ast.Call) and call.func is parent
+        return parent.value is node and parent.attr in _LAZY_READS and is_read_call
+    return _is_read_position(parent, node)
+
+
+def _is_read_position(parent: ast.AST | None, node: ast.AST) -> bool:
+    """Report whether ``parent`` iterates ``node``, reads an item of it or tests membership in it."""
+
     if isinstance(parent, ast.For | ast.AsyncFor | ast.comprehension):
         return parent.iter is node
     if isinstance(parent, ast.Subscript):
         return parent.value is node and isinstance(parent.ctx, ast.Load)
-    if isinstance(parent, ast.Compare):
-        in_test = all(isinstance(operator, ast.In | ast.NotIn) for operator in parent.ops)
-        return in_test and any(item is node for item in parent.comparators)
-    if isinstance(parent, ast.Attribute) and parent.value is node and parent.attr in _LAZY_READS:
-        call = parents.get(parent)
-        return isinstance(call, ast.Call) and call.func is parent
-    return False
+    in_test = isinstance(parent, ast.Compare) and all(isinstance(op, ast.In | ast.NotIn) for op in parent.ops)
+    return in_test and any(item is node for item in parent.comparators)
 
 
 def _lazy_exports_value(statement: ast.stmt) -> ast.Dict | None:

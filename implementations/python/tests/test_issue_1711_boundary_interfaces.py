@@ -13,7 +13,7 @@ from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
-from raes import canonical_sdl_digest, parse_sdl
+from raes import SDLParseError, canonical_sdl_digest, parse_sdl
 from raes.associated_artifacts import ScenarioArtifactParent
 from raes.authored_scenario_evidence import AuthoredScenarioEvidenceView
 from raes.instantiate import instantiate_scenario
@@ -147,5 +147,5 @@ def test_authored_scenario_view_defers_digest_errors_until_identity_is_read() ->
     view = AuthoredScenarioEvidenceView(broken)  # type: ignore[arg-type]
 
     assert view.evidence_requirements == {}
-    with pytest.raises(Exception):  # noqa: B017 - the digest error type belongs to the SDL
+    with pytest.raises(SDLParseError, match="requires an authoring scenario"):
         _ = view.scenario_identity

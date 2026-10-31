@@ -17,15 +17,16 @@ RAES_REQUIREMENT_UID=SEM-232 uv run --offline --no-sync --project implementation
 
 The nox session never synchronizes dependencies or acquires missing tools.
 Missing inputs fail the check.
-The separately reviewed `machine-check/pin.json` selects the immutable result capture.
-The `record` CLI creates a new content-addressed capture after intentional source changes.
-It does not overwrite the pin or historical evidence.
+Routine verification runs the current graphs and fixed negative controls.
+It requires the expected positive baseline decision.
+It does not require a new publication after a source edit.
 
-The canonical CI job uses `-- --publish` with the same nox session.
-That operation requires fresh native replay.
-It also checks the evidence and hosted execution record.
-The job uploads only its fixed admitted inventory.
-Source revisions and host identities stay in a separate record.
+The separately reviewed `machine-check/pin.json` selects an immutable research result.
+Use `record` only when collecting a new source-bound research claim.
+It does not overwrite the pin or historical evidence.
+Explicit publication uses `-- --publish` with the same nox session.
+Publication requires exact native replay and a qualified hosted execution record.
+Public and scientific claims require their separate reproduction and publication work.
 The manifest binds only subject sources.
 Each run checks the apparatus sources for stability.
 Public and scientific claims cite only the admitted reproduction record.

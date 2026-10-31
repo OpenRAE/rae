@@ -472,7 +472,9 @@ def load_behavioral_relation_profile_from_path(
         profile = BehavioralRelationProfileModel.model_validate(payload)
     except OSError, StrictJsonIngressError, ValidationError:
         # A trusted profile path fails here only when the artifact or installation is damaged.
-        _LOGGER.exception("behavioral relation profile %s failed bounded ingress", profile_id)
+        # False positive for log injection: the value-free logger escapes the message and renders the exception
+        # by type and code location only (ADR-116), and profile_id passed the allowlist check above.
+        _LOGGER.exception("behavioral relation profile %s failed bounded ingress", profile_id)  # NOSONAR
         raise BehavioralAuthorityArtifactError(_PROFILE_INVALID) from None
     if profile.profile_id != profile_id:
         raise BehavioralAuthorityArtifactError(

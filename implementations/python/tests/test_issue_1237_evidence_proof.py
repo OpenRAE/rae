@@ -314,11 +314,14 @@ def test_a_blake3_evidence_artifact_satisfies_content_validation() -> None:
     )
 
     assert proof.bindings[0].artifact_digest == f"blake3:{checksum['value']}"
+    capture_specs = {spec.capture_spec_id: spec}
+    evidence_records = {record.evidence_record_id: record}
+    altered_readers = {run.evidence_artifacts[0].artifact_id: io.BytesIO(payload[:-1] + b" ")}
     with pytest.raises(ValueError, match="checksum does not match the captured bytes"):
         validate_experiment_run_evidence(
             task,
             run,
-            capture_specs={spec.capture_spec_id: spec},
-            evidence_records={record.evidence_record_id: record},
-            artifact_readers={run.evidence_artifacts[0].artifact_id: io.BytesIO(payload[:-1] + b" ")},
+            capture_specs=capture_specs,
+            evidence_records=evidence_records,
+            artifact_readers=altered_readers,
         )

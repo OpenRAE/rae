@@ -95,11 +95,9 @@ def test_sealing_validates_a_history_map_with_a_caller_selected_policy_again():
     assert sealed is not forged
     assert sealed.policy is history_policy(field)
     assert not sealed.shape_valid
-    with pytest.raises(ValueError):
-        seal_history(
-            "participant_control_evaluation_history",
-            HistoryMap("participant_control_evaluation_history", forged, DEFAULT_HISTORY_POLICY),
-        )
+    forged_evaluations = HistoryMap("participant_control_evaluation_history", forged, DEFAULT_HISTORY_POLICY)
+    with pytest.raises(ValueError, match="not a valid API-424 evaluation"):
+        seal_history("participant_control_evaluation_history", forged_evaluations)
 
 
 def test_portable_export_is_plain_json_and_cannot_mutate_the_retained_history():

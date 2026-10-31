@@ -224,6 +224,15 @@ def contract_schemas() -> dict[str, dict[str, Any]]:
     """Return the raw contract schemas that ``raes_contracts`` owns, with their invariant annotations."""
 
     bundle = {**_core_schema_bundle(), **runtime_schema_bundle()}
+    _annotate_capture_and_relation_invariants(bundle)
+    _annotate_participant_opacity_invariants(bundle)
+    _annotate_study_completeness_and_catalog_invariants(bundle)
+    return bundle
+
+
+def _annotate_capture_and_relation_invariants(bundle: dict[str, dict[str, Any]]) -> None:
+    """Annotate the capture specification and the behavioral relation catalog and profiles."""
+
     add_raes_invariant(
         bundle["experiment-capture-spec-v1"],
         "capture-media-type-provable",
@@ -267,6 +276,11 @@ def contract_schemas() -> dict[str, dict[str, Any]]:
             {"contract_id": "behavioral-relations-v1", "instance_path": "#"},
         ],
     )
+
+
+def _annotate_participant_opacity_invariants(bundle: dict[str, dict[str, Any]]) -> None:
+    """Annotate the participant opacity analysis and model-check contracts."""
+
     add_raes_invariant(
         bundle["participant-opacity-analysis-input-v1"],
         "participant-opacity-finite-carrier-counts",
@@ -341,6 +355,11 @@ def contract_schemas() -> dict[str, dict[str, Any]]:
             {"contract_id": "behavioral-relations-v1", "instance_path": "#"},
         ],
     )
+
+
+def _annotate_study_completeness_and_catalog_invariants(bundle: dict[str, dict[str, Any]]) -> None:
+    """Annotate the study, completeness, fact-binding and validation-catalog contracts."""
+
     add_raes_invariant(
         bundle["experiment-study-v1"],
         "study-behavioral-claim-catalog-resolution",
@@ -414,7 +433,6 @@ def contract_schemas() -> dict[str, dict[str, Any]]:
             }
         ],
     )
-    return bundle
 
 
 __all__ = ["contract_schemas"]

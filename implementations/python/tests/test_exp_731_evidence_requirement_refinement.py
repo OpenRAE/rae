@@ -251,12 +251,14 @@ def test_refinement_fails_closed_when_a_declared_dimension_is_not_monotone() -> 
         _relation(scenario, authority_ref, dimensions=["integrity-requirements"])
     )
     capture_spec = _capture_spec(authority_ref, integrity=["timestamped"])
+    view = AuthoredScenarioEvidenceView(scenario)
+    capture_specs = {capture_spec.capture_spec_id: capture_spec}
 
     with pytest.raises(ValueError, match="integrity-requirements.*preserve"):
         validate_evidence_requirement_relations(
             (relation,),
-            scenario=AuthoredScenarioEvidenceView(scenario),
-            capture_specs={capture_spec.capture_spec_id: capture_spec},
+            scenario=view,
+            capture_specs=capture_specs,
         )
 
 
@@ -268,12 +270,14 @@ def test_artifact_role_refinement_rejects_an_added_alternative() -> None:
         _relation(scenario, authority_ref, dimensions=["artifact-roles"])
     )
     capture_spec = _capture_spec(authority_ref, artifact_roles=["event-log", "unrelated-role"])
+    view = AuthoredScenarioEvidenceView(scenario)
+    capture_specs = {capture_spec.capture_spec_id: capture_spec}
 
     with pytest.raises(ValueError, match="artifact-roles.*must not add accepted values"):
         validate_evidence_requirement_relations(
             (relation,),
-            scenario=AuthoredScenarioEvidenceView(scenario),
-            capture_specs={capture_spec.capture_spec_id: capture_spec},
+            scenario=view,
+            capture_specs=capture_specs,
         )
 
 
@@ -285,11 +289,10 @@ def test_refinement_rejects_changed_scenario_identity_and_wrong_authority() -> N
     relation_payload["base_scenario_ref"]["ref_digest"] = "sha256:" + "0" * 64
     relation = ExperimentEvidenceRequirementRelationModel.model_validate(relation_payload)
     capture_specs = {"capture-event-log-detail": _capture_spec(authority_ref)}
+    view = AuthoredScenarioEvidenceView(scenario)
 
     with pytest.raises(ValueError, match="base_scenario_ref must match"):
-        validate_evidence_requirement_relations(
-            (relation,), scenario=AuthoredScenarioEvidenceView(scenario), capture_specs=capture_specs
-        )
+        validate_evidence_requirement_relations((relation,), scenario=view, capture_specs=capture_specs)
 
     wrong_task = copy.deepcopy(task_payload)
     wrong_task["scenario_ref"] = _scenario_ref(scenario)

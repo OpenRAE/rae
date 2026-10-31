@@ -49,13 +49,24 @@ its existing exact bytes. Repeating the same capture is idempotent. A different
 capture creates another directory, so parallel branches do not overwrite one
 another's evidence files.
 
-Current evidence must match the live implementation digest. Among matching
-captures, the newest offset-aware capture date selects current replay. Future
-dates and ambiguous dates with different pins fail closed. A content-addressed
-wrapper of a numbered capture takes precedence only when both document pins
-are identical. A newer release number cannot make stale source evidence current.
-After a source-changing merge, collect a fresh combined-source capture rather
-than rewriting either branch's observations.
+## Routine verification
+
+A new source edit does not require a new research capture.
+Routine CI replays the latest recorded formal and specification cases against current code.
+Changed outcomes, invalid artifacts, and broken joins still fail.
+The recorded package digests describe the source used for the saved observation.
+They are not a prerequisite for replay and do not establish current coverage.
+Capture dates select the recorded cases; future and ambiguous dates are rejected.
+
+The finite model job runs the current graphs and fixed negative controls.
+It requires the expected positive baseline decision.
+It does not republish or independently reproduce a historical capture.
+The explicit publication and reproduction commands remain available for a deliberate research claim.
+Historical inventories, document pins, and capture retention records remain intact.
+
+Record fresh research when a specific claim needs a new observation.
+Do not update an old observation's source digest to describe new code.
+Source-bound publication still requires the selected capture to match the live implementation.
 
 ## Numbered publication during integration
 

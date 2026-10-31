@@ -95,32 +95,49 @@ def validate_workflow_step_result(
     if attempts < 0:
         errors.append("attempts must be >= 0")
 
-    if lifecycle not in {"pending", "running", "completed"}:
+    if lifecycle not in _STEP_LIFECYCLES:
         errors.append(f"lifecycle '{lifecycle}' is invalid")
         return tuple(errors)
 
+    errors.extend(_lifecycle_violations(contract, lifecycle, outcome, attempts))
+    errors.extend(_outcome_violations(contract, lifecycle, outcome))
+    errors.extend(_attempt_limit_violations(contract, lifecycle, attempts))
+    return tuple(errors)
+
+
+_STEP_LIFECYCLES = frozenset({"pending", "running", "completed"})
+
+
+def _lifecycle_violations(
+    contract: WorkflowStepSemanticContract, lifecycle: str, outcome: str | None, attempts: int
+) -> list[str]:
+    errors: list[str] = []
     if lifecycle != "completed" and outcome is not None:
         errors.append("non-completed steps may not report an outcome")
-
     if lifecycle == "pending" and attempts != 0:
         errors.append("pending steps must report 0 attempts")
-
     if lifecycle == "running" and contract.state_observable and attempts < 1:
         errors.append("running observable steps must report at least 1 attempt")
+    return errors
 
-    if lifecycle == "completed" and contract.state_observable:
-        if outcome is None:
-            errors.append("completed observable steps must report an outcome")
-        elif outcome not in contract.observable_outcomes:
-            allowed = ", ".join(contract.observable_outcomes)
-            errors.append(f"outcome '{outcome}' is invalid for step type '{contract.step_type}' (allowed: {allowed})")
 
-    if lifecycle == "completed" and contract.fixed_attempts is not None:
-        if attempts != contract.fixed_attempts:
-            errors.append(
-                f"completed '{contract.step_type}' steps must report exactly {contract.fixed_attempts} attempts"
-            )
-    elif contract.fixed_attempts is not None and attempts > contract.fixed_attempts:
-        errors.append(f"'{contract.step_type}' steps may not exceed {contract.fixed_attempts} attempts")
+def _outcome_violations(contract: WorkflowStepSemanticContract, lifecycle: str, outcome: str | None) -> list[str]:
+    if lifecycle != "completed" or not contract.state_observable or outcome in contract.observable_outcomes:
+        return []
+    if outcome is None:
+        return ["completed observable steps must report an outcome"]
+    allowed = ", ".join(contract.observable_outcomes)
+    return [f"outcome '{outcome}' is invalid for step type '{contract.step_type}' (allowed: {allowed})"]
 
-    return tuple(errors)
+
+def _attempt_limit_violations(contract: WorkflowStepSemanticContract, lifecycle: str, attempts: int) -> list[str]:
+    fixed = contract.fixed_attempts
+    if fixed is None:
+        return []
+    if lifecycle == "completed":
+        return (
+            [f"completed '{contract.step_type}' steps must report exactly {fixed} attempts"]
+            if attempts != fixed
+            else []
+        )
+    return [f"'{contract.step_type}' steps may not exceed {fixed} attempts"] if attempts > fixed else []
