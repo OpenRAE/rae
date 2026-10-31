@@ -49,8 +49,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import yaml
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
 for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
@@ -63,6 +61,7 @@ from raes_contracts.operational_logging import run_application
 
 from tools.policy.adr import parse_adr_file
 from tools.policy.common import (
+    YAML_CONTENT_FAILURES,
     PolicyFailure,
     apply_exceptions,
     failures_to_json,
@@ -260,7 +259,7 @@ def _accepted_adrs(repo_root: Path) -> dict[str, Path]:
     return accepted
 
 
-def _git_show(repo_root: Path, gitref: str) -> str | None:
+def _git_show(repo_root: Path, gitref: str, *, follow_symlinks: bool = False) -> str | None:
     """Content of a path at a git ref (``<rev>:<path>`` or ``:<path>`` for the
     index). Returns None when the path does not exist at that ref.
 
@@ -271,6 +270,24 @@ def _git_show(repo_root: Path, gitref: str) -> str | None:
     # index path can reach git; git would read a value that starts with "-" as an option.
     if not re.match(r"^(?:\w[\w./@^~{}-]*(?::[\w./-]+)?|:[\w./-]+)\Z", gitref, re.ASCII):
         raise InvalidInputError("a git revision must not start with '-' or contain other characters")
+    if follow_symlinks:
+        # Git resolves links in the historical tree, never against the checkout.
+        # Index reads keep using show: cat-file cannot follow index symlinks.
+        proc = subprocess.run(
+            ["git", "cat-file", "--batch", "--follow-symlinks"],
+            input=f"{gitref}\n".encode(),
+            cwd=repo_root,
+            capture_output=True,
+        )
+        if proc.returncode != 0:
+            return None
+        header, _, payload = proc.stdout.partition(b"\n")
+        fields = header.split()
+        # Missing/dangling/looping links, directories and links outside the tree
+        # have no blob response. In particular, an outside link is never read.
+        if len(fields) != 3 or fields[1] != b"blob":
+            return None
+        return payload[: int(fields[2])].decode("utf-8", errors="surrogateescape")
     command = ["git", "show", "--end-of-options", gitref]
     try:
         proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True)
@@ -301,10 +318,10 @@ def _base_manifest_paths(repo_root: Path, base: str) -> dict[str, str]:
     (``./`` and ``//`` segments removed) because ``git show`` needs the literal
     tree path. Empty when the base has no readable manifest (for example a
     revision before ADR-059)."""
-    text = _git_show(repo_root, f"{base}:{MANIFEST_PATH}")
+    text = _git_show(repo_root, f"{base}:{MANIFEST_PATH}", follow_symlinks=True)
     try:
         raw = yaml.safe_load(text) if text is not None else None
-    except yaml.YAMLError:
+    except (yaml.YAMLError, *YAML_CONTENT_FAILURES):
         raw = None
     entries = raw.get("adrs") if isinstance(raw, dict) else None
     if not isinstance(entries, list):
@@ -318,9 +335,11 @@ def _base_manifest_paths(repo_root: Path, base: str) -> dict[str, str]:
 
 def _base_copy(repo_root: Path, base: str, recorded: str | None, rel: str) -> str | None:
     """The ADR's text at ``base``: at the base manifest's ``recorded`` path, else
-    at its current path ``rel``. None only when neither exists at ``base``."""
+    at its current path ``rel``. Resolve symlinks in that revision so a renamed
+    file remains comparable even when its old manifest path used a link.
+    None only when neither path resolves to a blob at ``base``."""
     for path in dict.fromkeys((recorded or rel, rel)):
-        text = _git_show(repo_root, f"{base}:{path}")
+        text = _git_show(repo_root, f"{base}:{path}", follow_symlinks=True)
         if text is not None:
             return text
     return None

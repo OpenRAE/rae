@@ -106,7 +106,9 @@ def test_renamed_accepted_adr_passes_when_unchanged_or_amended(repo: Path, mode:
 
 
 @pytest.mark.parametrize(
-    "base_rev", ["no-such-rev", "0" * 40, "--all"], ids=["unknown-name", "all-zero-sha", "option-like"]
+    "base_rev",
+    ["no-such-rev", "0" * 40, "--all", "HEAD^{tree}"],
+    ids=["unknown-name", "all-zero-sha", "option-like", "tree-instead-of-commit"],
 )
 def test_unresolvable_base_rev_fails_with_named_rule(repo: Path, base_rev: str) -> None:
     _write_adr(repo, ORIGINAL_NAME, EDITED_BODY)
@@ -135,8 +137,20 @@ def test_cli_reports_unresolvable_base_rev(
         "- not a mapping\n",
         "hash_algorithm: sha256\nadrs: {}\n",
         "adrs:\n- not-an-entry\n- {id: ADR-001}\n",
+        "date: 2026-99-99\n",
+        "value: !!bool unknown\n",
+        "value: !!int ''\n",
     ],
-    ids=["absent", "invalid-yaml", "not-a-mapping", "adrs-not-a-list", "no-usable-entry"],
+    ids=[
+        "absent",
+        "invalid-yaml",
+        "not-a-mapping",
+        "adrs-not-a-list",
+        "no-usable-entry",
+        "invalid-date",
+        "invalid-bool",
+        "invalid-int",
+    ],
 )
 def test_base_without_usable_manifest_compares_at_current_path(repo: Path, base_manifest: str | None) -> None:
     manifest = repo / ADR_DIR / "adr-index.yaml"
@@ -191,3 +205,66 @@ def test_accepted_adr_absent_at_base_is_treated_as_newly_added(repo: Path, mode:
     _write_adr(repo, ORIGINAL_NAME, EDITED_BODY)
 
     assert _evaluate(repo, mode) == []
+
+
+@pytest.mark.parametrize("mode", ["base-rev", "staged"])
+@pytest.mark.parametrize("link_type", ["directory", "file", "chain"])
+@pytest.mark.parametrize(
+    ("body", "amended", "unrecorded"),
+    [(EDITED_BODY, False, True), (ORIGINAL_BODY, False, False), (EDITED_BODY, True, False)],
+    ids=["unrecorded-edit", "content-unchanged", "amendment-recorded"],
+)
+def test_renamed_adr_compares_through_base_symlink_after_link_is_removed(
+    repo: Path, mode: str, link_type: str, body: str, amended: bool, unrecorded: bool
+) -> None:
+    if link_type == "file":
+        link = repo / "docs/adr-link.md"
+        link.symlink_to(f"decisions/adrs/{ORIGINAL_NAME}")
+        recorded_path = link.relative_to(repo).as_posix()
+    else:
+        link = repo / "docs/decisions/adrs-link"
+        link.symlink_to("adrs", target_is_directory=True)
+        if link_type == "chain":
+            link = repo / "docs/adrs-chain"
+            link.symlink_to("decisions/adrs-link", target_is_directory=True)
+        recorded_path = f"{link.relative_to(repo).as_posix()}/{ORIGINAL_NAME}"
+    _write_adr(repo, ORIGINAL_NAME, ORIGINAL_BODY, recorded_path=recorded_path)
+    assert evaluate_adr_immutability(repo) == []  # the base manifest is valid
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "pin ADR through an in-repository symlink")
+
+    _rename(repo, body, amended=amended)
+    link.unlink()  # resolution must use the historical tree, not the checkout
+
+    failures = _evaluate(repo, mode)
+
+    assert [(failure.rule_id, failure.path) for failure in failures] == (
+        [(adr_gate.RULE_AMENDMENT_UNRECORDED, (ADR_DIR / RENAMED_NAME).as_posix())] if unrecorded else []
+    )
+
+
+@pytest.mark.parametrize("target", ["/outside.md", "../../../outside.md", "missing.md", "link"])
+def test_base_blob_read_refuses_outside_dangling_and_looping_symlinks(repo: Path, target: str) -> None:
+    link = repo / "docs/decisions/link"
+    link.symlink_to(target)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "add an unresolvable symlink")
+
+    assert adr_gate._git_show(repo, "HEAD:docs/decisions/link", follow_symlinks=True) is None
+
+
+@pytest.mark.parametrize("payload", [b"", b"text\r\nwith a final newline\n", b"non-UTF8: \xff\n"])
+def test_base_blob_read_preserves_exact_bytes(repo: Path, payload: bytes) -> None:
+    (repo / "payload.bin").write_bytes(payload)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "add historical blob bytes")
+
+    text = adr_gate._git_show(repo, "HEAD:payload.bin", follow_symlinks=True)
+
+    assert text is not None
+    assert text.encode("utf-8", errors="surrogateescape") == payload
+
+
+@pytest.mark.parametrize("path", ["docs/decisions/adrs", "missing.md"])
+def test_base_blob_read_requires_an_existing_blob(repo: Path, path: str) -> None:
+    assert adr_gate._git_show(repo, f"HEAD:{path}", follow_symlinks=True) is None
