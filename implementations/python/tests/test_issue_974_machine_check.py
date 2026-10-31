@@ -175,15 +175,3 @@ def test_tooling_validation_dependency_drift_invalidates_both_producers(monkeypa
         machine.check_sources(ROOT)
     with pytest.raises(EvidenceIntegrityError, match="executing source drift"):
         corpus.build_bundle(ROOT)
-
-
-def test_archived_admission_checks_artifacts_without_current_source_claims(result, monkeypatch):
-    from implementations.formal.participant_crossing import machine_check as machine
-
-    pin = machine.digest(result["manifest.json"])
-    monkeypatch.setattr(machine, "check_sources", lambda _: pytest.fail("archive checked current source"))
-    machine.admit_retained_bundle(result, pin)
-    changed = dict(result)
-    changed["result.json"] += b" "
-    with pytest.raises(EvidenceIntegrityError, match="artifact drift"):
-        machine.admit_retained_bundle(changed, pin)

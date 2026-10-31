@@ -87,3 +87,14 @@ The control is separation of stored provenance from current executable checks.
 A changed behavioral result still fails CI.
 A source-only edit does not require a new research record.
 No network, credential, storage, or execution privilege changes are needed.
+
+## Integration with the published finite result
+
+The development branch now provides a narrower subject-source identity and a shared reproduction-record reader.
+Use those owners for publication and retained-record admission.
+The routine model job uses their existing `machine_check replay` command.
+It checks the expected finite decision and negative controls without uploading or independently reproducing a research record.
+Retained-record admission uses the shared `reproduction_record` reader.
+The published machine-check design remains part of the original pinned subject.
+This note and the tooling README describe the reduced routine CI path.
+The published claim, retained records, and their new coverage remain intact.

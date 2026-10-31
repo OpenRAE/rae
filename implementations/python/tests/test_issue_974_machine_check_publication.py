@@ -20,7 +20,7 @@ def test_nox_verification_is_offline_without_environment_synchronization():
     args, kwargs = calls[0]
     assert "--offline" in args
     assert "--no-sync" in args
-    assert args[-2:] == ("implementations.formal.participant_crossing.machine_check", "verify")
+    assert args[-2:] == ("implementations.formal.participant_crossing.machine_check", "replay")
     assert kwargs["env"]["PYTHONPATH"] == "implementations/python/packages:."
 
 

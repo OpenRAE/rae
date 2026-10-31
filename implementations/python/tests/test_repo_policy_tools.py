@@ -646,7 +646,7 @@ def test_completion_uses_targeted_feedback(monkeypatch: pytest.MonkeyPatch) -> N
 
 @pytest.mark.parametrize(
     "posargs,entrypoint",
-    [([], "verify"), (["--publish"], "implementations.formal.participant_crossing.machine_check_publication")],
+    [([], "replay"), (["--publish"], "implementations.formal.participant_crossing.machine_check_publication")],
 )
 def test_machine_check_session_dispatches_declared_modes(monkeypatch, posargs, entrypoint) -> None:
     noxfile = load_noxfile_with_fake_nox(monkeypatch)

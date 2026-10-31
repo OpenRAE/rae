@@ -5,7 +5,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from raes_contracts.errors import EvidenceIntegrityError
 
 
 def test_recorded_selection_does_not_hash_current_source(tmp_path, monkeypatch):
@@ -21,15 +20,16 @@ def test_recorded_selection_does_not_hash_current_source(tmp_path, monkeypatch):
     assert evidence.latest_recorded_release_path(records, tmp_path) == "newer"
 
 
-def test_finite_verification_checks_current_decision_without_retained_publication(monkeypatch):
+def test_ordinary_application_edit_keeps_model_records_admissible(monkeypatch):
     from implementations.formal.participant_crossing import machine_check as machine
+    from test_issue_976_evidence_identity import checkout_with_changed
 
-    monkeypatch.setattr(machine, "load_retained", lambda _: pytest.fail("saved publication required"))
-    monkeypatch.setattr(machine, "build_bundle", lambda _: {"result.json": b'{"equivalent":true}'})
-    machine.verify(Path("."))
-    monkeypatch.setattr(machine, "build_bundle", lambda _: {"result.json": b'{"equivalent":false}'})
-    with pytest.raises(EvidenceIntegrityError):
-        machine.verify(Path("."))
+    checkout_with_changed(
+        monkeypatch, "implementations/python/packages/raes_contracts/realization_structure/_evaluation.py"
+    )
+    machine.admit_bundle(
+        Path(__file__).resolve().parents[3], *machine.load_retained(Path(__file__).resolve().parents[3])
+    )
 
 
 def test_nox_runs_current_finite_verification():
@@ -40,4 +40,4 @@ def test_nox_runs_current_finite_verification():
         SimpleNamespace(run=lambda *args, **kwargs: calls.append(args)),
         SimpleNamespace(run=lambda name, action: action()),
     )
-    assert calls[0][-1] == "verify"
+    assert calls[0][-1] == "replay"
