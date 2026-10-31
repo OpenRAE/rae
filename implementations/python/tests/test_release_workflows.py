@@ -1655,6 +1655,8 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         'go vet -vettool="$(command -v raesvet)" ./...',
         "go test -race -covermode=atomic -coverprofile=cover.out ./...",
         "exit !(total >= 90)",
+        "go test -list '^Fuzz' ./...",
+        '-fuzztime 20s "${package}" || exit 1',
         'gremlins unleash --diff "${MERGE_BASE}" --threshold-efficacy 90 --threshold-mcover 90',
         'regressiontest -base "${MERGE_BASE}"',
     ):

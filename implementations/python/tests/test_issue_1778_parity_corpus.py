@@ -158,3 +158,29 @@ def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.Monk
     assert pc.main(["record", "--repo-root", str(repo)]) == 0
     assert pc.main(["check", "--repo-root", str(repo)]) == 0
     assert "files match" in capsys.readouterr().out
+
+
+def test_canonical_cases_cover_each_json_fixture_and_each_edge_input(repo: Path) -> None:
+    names = {case.name for case in pc.canonical_cases(repo)}
+
+    assert "contracts/fixtures/family/demo-v1/valid/one" in names
+    assert sum(name.startswith("edge/") for name in names) == len(pc.CANONICAL_EDGE_TEXTS)
+
+
+def test_canonical_results_record_each_form_or_its_refusal() -> None:
+    def result(text: str) -> dict[str, object]:
+        return pc.run_canonical(pc.Case("canonical", "encode", "x", (), {"value.json": text.encode()}))
+
+    def digest(text: bytes) -> str:
+        return "sha256:" + pc.digest(text)
+
+    assert result("1.0") == {"jcs": digest(b"1"), "sorted_ascii": digest(b"1.0"), "sorted_unicode": digest(b"1.0")}
+    assert result('"é"') == {
+        "jcs": digest('"é"'.encode()),
+        "sorted_ascii": digest(b'"\\u00e9"'),
+        "sorted_unicode": digest('"é"'.encode()),
+    }
+    assert result("9007199254740992")["jcs"] is None
+    assert result("9007199254740992")["sorted_ascii"] == digest(b"9007199254740992")
+    for refused in ("NaN", "1e400", "[1] 2"):
+        assert result(refused) == {"jcs": None, "sorted_ascii": None, "sorted_unicode": None}

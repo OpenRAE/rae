@@ -544,6 +544,14 @@ jobs:
             echo "Go statement coverage ${total}% is below the 90% floor (ADR-121)" >&2
             exit 1
           fi
+      - name: Fuzz each fuzz target for a bounded time
+        working-directory: ${{ matrix.path }}
+        run: |
+          go test -list '^Fuzz' ./... |
+            awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
+            while read -r package target; do
+              go test -run '^$' -fuzz "^${target}\$" -fuzztime 20s "${package}" || exit 1
+            done
       - name: Resolve the comparison base
         id: base
         env:
