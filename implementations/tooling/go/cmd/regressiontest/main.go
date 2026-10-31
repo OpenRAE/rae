@@ -237,15 +237,14 @@ func baseOutcome(ctx context.Context, dir, name string) string {
 	cmd := exec.CommandContext(ctx, "go", "test", "-count=1", "-run", "^"+regexp.QuoteMeta(name)+"$", ".") //nolint:gosec // G204: see the comment above.
 	cmd.Dir = dir
 	output, err := cmd.CombinedOutput()
-	var exit *exec.ExitError
-	switch {
-	case err == nil:
+	if err == nil {
 		return name + ": passes on the base revision; a regression test must fail there"
-	case errors.As(err, &exit) && bytes.Contains(output, []byte("--- FAIL: "+name+" ")):
-		return ""
-	default:
-		return name + ": does not build or run on the base revision; a regression test must fail there\n" + string(output)
 	}
+	var exit *exec.ExitError
+	if errors.As(err, &exit) && bytes.Contains(output, []byte("--- FAIL: "+name+" ")) {
+		return ""
+	}
+	return name + ": does not build or run on the base revision; a regression test must fail there\n" + string(output)
 }
 
 // git runs a git command in dir and returns its trimmed standard output.

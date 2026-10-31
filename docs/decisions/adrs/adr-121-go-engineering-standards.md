@@ -31,10 +31,16 @@ Google publishes its Go style guide as three documents. The
 normative. [Best Practices](https://google.github.io/styleguide/go/best-practices)
 is advisory.
 
-These current standards are specific to Python: ruff, the ADR-015 cap on file
-length, the ADR-117 ratchets, Coverage.py under ADR-103, the ADR-116 exception
-classes, and the nox graph of ADR-014. ADR-106 admits the Go toolchain and the
-Go tool module (issue #1773 amendment).
+These current standards are specific to Python:
+
+- ruff;
+- the ADR-015 cap on file length;
+- the ADR-117 ratchets;
+- Coverage.py under ADR-103;
+- the ADR-116 exception classes;
+- the nox graph of ADR-014.
+
+ADR-106 admits the Go toolchain and the Go tool module (issue #1773 amendment).
 
 ## Decision
 
@@ -118,6 +124,9 @@ The Go code uses these idiomatic forms of contract-based development:
 - CI runs gremlins on the lines changed since the merge base with the base
   revision. Test efficacy and mutant coverage must each be above 90%. A change
   without mutants passes. Mutation testing runs in CI only.
+- A condition goes in an `if` statement, not in the expression of a `case`
+  clause. The coverage profile records no block for a `case` expression, so
+  gremlins cannot test its mutants.
 - A regression test is a test function whose name starts with `TestRegression`.
   It must build and fail at the merge base. The `regressiontest` command checks
   each new regression test.
@@ -141,12 +150,17 @@ digests are admitted.
 | ADR-116 exception classes | Section 6 |
 | ADR-014 nox lanes | The `go` job of the canonical graph until issue #1801 |
 
-These standards stay and apply to the Go code: the documentation style guide,
-Vale, and ASD-STE100 prose; ADRs and their pins; requirement traceability;
-contract governance under ADR-009 and ADR-061; pull request title and body
-guards; secret, vulnerability, and code scanning; artifact admission under
-ADR-106 and ADR-107; the SonarCloud quality gate; and the assurance levels of
-ADR-007 and ADR-018.
+These standards stay and apply to the Go code:
+
+- the documentation style guide, Vale, and ASD-STE100 prose;
+- ADRs and their pins;
+- requirement traceability;
+- contract governance under ADR-009 and ADR-061;
+- pull request title and body guards;
+- secret, vulnerability, and code scanning;
+- artifact admission under ADR-106 and ADR-107;
+- the SonarCloud quality gate;
+- the assurance levels of ADR-007 and ADR-018.
 
 ## Alternatives Considered
 
