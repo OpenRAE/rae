@@ -1514,14 +1514,18 @@ The authored interactive-access specialization satisfies:
 - **IA2 — stable identity:** every map key is a portable local identifier,
   cannot be a variable, and is preserved through composition and compilation.
 - **IA3 — closed target/channel:** every concrete `target_ref` resolves to one
-  member of `COMPUTE`, and every concrete channel is exactly `ssh` or `rdp`.
+  member of `COMPUTE`. Every concrete channel is `ssh`, `rdp`, or a typed
+  domain-profile binding that its field owns (ADR-120). No other string is a
+  channel. A typed channel enters a plan only when the target admits its exact
+  profile semantics.
 - **IA4 — account authority:** when `account_ref` is present, it resolves to an
   account on `resolve_N(target_ref)` and that account occurs in `p`'s concrete
   `starting_accounts` set.
 - **IA5 — endpoint uniqueness:** for distinct ids `i,j` in `IA(p)`, the pairs
   `(resolve_N(target_i), channel_i)` and
-  `(resolve_N(target_j), channel_j)` differ. The same pair may occur for
-  different participants.
+  `(resolve_N(target_j), channel_j)` differ. The identity of a typed channel
+  is its profile coordinate. The same pair may occur for different
+  participants.
 - **IA6 — explicit absence:** `IA(p) = {}` means no authored interactive access.
   OS, roles, images, services, listeners, ACLs, ports, accounts, credentials,
   actions, and apparatus capabilities cannot synthesize an entry.
@@ -1531,8 +1535,10 @@ The authored interactive-access specialization satisfies:
   evidence. No predicate is inferred from another.
 - **IA8 — no locator or secret carriage:** the closed record admits no host,
   address, URL, port, username, password, key, token, credential, provider
-  option, or portal session. A backend may add realization data only outside
-  SDL and must not rewrite the authored declaration.
+  option, or portal session. A typed channel value is public profile data that
+  its pinned definition checks at admission; it is not one of these carriers.
+  A backend may add realization data only outside SDL and must not rewrite the
+  authored declaration.
 
 Whole-field variables defer IA3-IA5 only until binding. Instantiation and direct
 artifact admission rerun the same predicates over concrete values; unresolved
