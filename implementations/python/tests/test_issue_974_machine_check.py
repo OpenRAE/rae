@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import pytest
-from raes_contracts.errors import EvidenceIntegrityError, OperationalError
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
 from test_issue_973_crossing_corpus import constructed as constructed
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -133,8 +133,6 @@ def test_source_drift_before_or_during_comparison_cannot_publish(monkeypatch, co
 
 def test_complete_carrier_and_independent_authority_are_required(monkeypatch):
     from dataclasses import replace
-
-    from raes_contracts.errors import InvalidInputError
 
     from implementations.formal.participant_crossing import abstract, concrete
     from implementations.formal.participant_crossing import machine_check as machine
