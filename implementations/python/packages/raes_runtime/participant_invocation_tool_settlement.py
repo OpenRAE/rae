@@ -85,6 +85,7 @@ def open_invocation_tool_session(
         configuration=configuration,
         scheduler_state_key=context.key,
         prior_history_length=len(predecessor.participant_behavior_history.get(context.participant_address, ())),
+        wall_clock=run.wall_clock,
     )
     # Register cleanup ownership before backend code runs; the port stays inactive until dispatch.
     run.tool_sessions.append(session)

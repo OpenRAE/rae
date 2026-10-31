@@ -8,6 +8,7 @@ from raes.nodes import Node
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import ProvisioningPlan, ProvisionOp
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
 
@@ -40,7 +41,7 @@ def prepared_node_disclosure(
         records.extend(backend_node_concern_provenance(operation.address, name, node, supplied, governing_scope=scope))
         for requirement in _dedicated_requirements(operation, node, scope):
             if requirement.requirement_kind == "compute-substrate":
-                pointer_name = name.replace("~", "~0").replace("/", "~1")
+                pointer_name = escape_token(name)
                 diagnostic, record = evaluate_compute_substrate(
                     replace(requirement, governing_scope=f"#/nodes/{pointer_name}"), selected, snapshot, manifest
                 )

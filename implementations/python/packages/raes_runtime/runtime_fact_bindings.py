@@ -19,13 +19,13 @@ from raes_contracts.contracts.runtime_facts import (
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.timestamps import parse_offset_datetime
 
 from .runtime_fact_binding_policy import (
     RuntimeFactActionDisposition,
     absence_action_disposition,
     aggregate_action_disposition,
     candidate_visible,
-    parse_datetime,
     projection_visible,
     validate_binding,
 )
@@ -108,7 +108,7 @@ class RuntimeFactBindingPlane:
             if value is None:
                 continue
             try:
-                parse_datetime(value, field_name)
+                parse_offset_datetime(value, field_name)
             except ValueError as exc:
                 raise InvalidInputError(
                     f"{field_name} must be an ISO 8601 date-time with an explicit UTC offset"
@@ -288,19 +288,21 @@ class RuntimeFactBindingPlane:
         candidate_fact_ids: list[str],
     ) -> list[RuntimeFactVersionModel]:
         visible: list[RuntimeFactVersionModel] = []
-        requested_at = parse_datetime(admission.requested_at, "requested_at")
+        requested_at = parse_offset_datetime(admission.requested_at, "requested_at")
         for fact_id in candidate_fact_ids:
             history = self._versions.get(fact_id)
             if not history:
                 continue
             eligible = [
-                version for version in history if parse_datetime(version.observed_at, "observed_at") <= requested_at
+                version
+                for version in history
+                if parse_offset_datetime(version.observed_at, "observed_at") <= requested_at
             ]
             if not eligible:
                 continue
             version = max(
                 eligible,
-                key=lambda item: (parse_datetime(item.observed_at, "observed_at"), item.sequence),
+                key=lambda item: (parse_offset_datetime(item.observed_at, "observed_at"), item.sequence),
             )
             declaration = self._declarations[fact_id]
             if not candidate_visible(request, sink, declaration, version):

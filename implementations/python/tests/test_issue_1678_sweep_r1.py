@@ -912,6 +912,7 @@ def test_effect_claim_detects_the_idempotency_claim_conflict_by_type(
     from types import SimpleNamespace
 
     from raes_contracts.operation_lifecycle import OperationAdmissionContext, OperationKind
+    from raes_contracts.timestamps import utc_now
     from raes_runtime import participant_control_receipts as receipts
     from raes_runtime.control_plane_store import IDEMPOTENCY_CLAIM_CONFLICT
     from raes_runtime.errors import IdempotencyClaimConflictError
@@ -932,7 +933,7 @@ def test_effect_claim_detects_the_idempotency_claim_conflict_by_type(
     def _claim(_record: object) -> object:
         raise conflict(IDEMPOTENCY_CLAIM_CONFLICT)
 
-    plane = SimpleNamespace(_claim_record=_claim)
+    plane = SimpleNamespace(_claim_record=_claim, wall_clock=utc_now)
     # A v1 effect request, which has no retained v2 claim to look up.
     request = SimpleNamespace()
     if typed:

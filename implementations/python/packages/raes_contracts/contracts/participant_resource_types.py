@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from typing import Literal
 
+from ..digests import sha256_hex
 from ..domain_profiles import DomainProfileCoordinateModel
 
 PARTICIPANT_RESOURCE_BUDGET_POLICY_SCHEMA_VERSION = "participant-resource-budget-policy/v1"
@@ -114,7 +114,7 @@ def participant_resource_pool_state_ref(
         ),
         separators=(",", ":"),
     )
-    return "participant-resource-pool:sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return "participant-resource-pool:sha256:" + sha256_hex(canonical.encode("utf-8"))
 
 
 __all__ = [

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from uuid import uuid4
 
 from pydantic import ValidationError
@@ -23,6 +22,7 @@ from raes_contracts.runtime_state import (
     operation_terminal_diagnostics,
     validate_changed_addresses,
 )
+from raes_contracts.timestamps import isoformat_z
 
 from .backend_calls import _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
@@ -39,10 +39,6 @@ from .diagnostics import _has_error_diagnostic
 from .observation_results import PreparedObservationExecution
 
 __all__ = ("apply_authorized_participant_action",)
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def execute_participant_action(
@@ -85,7 +81,7 @@ def _execute_participant_action_locked(
         identity=identity,
     )
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     target_address = getattr(request, "participant_address", "")
     changed_addresses = [target_address] if isinstance(target_address, str) and target_address else []
     try:
@@ -137,7 +133,7 @@ def _execute_participant_action_locked(
             domain=RuntimeDomain.PARTICIPANT,
             state=final_state,
             submitted_at=submitted_at,
-            updated_at=_utc_now(),
+            updated_at=isoformat_z(control_plane.wall_clock()),
             context=context,
             diagnostics=operation_terminal_diagnostics(final_state, [*status.diagnostics, *result.diagnostics]),
             changed_addresses=list(result.changed_addresses),
@@ -268,7 +264,7 @@ def _claim_running_operation(
     current_state_rejects_new_claim: bool,
 ) -> tuple[str, str, RuntimeSnapshot, OperationReceipt, OperationReceipt]:
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     snapshot = request.base_snapshot if request.base_snapshot is not None else control_plane._snapshot
     status = OperationStatus(
         operation_id=operation_id,
@@ -368,7 +364,7 @@ def _commit_operation_result(
         domain=request.domain,
         state=final_state,
         submitted_at=outcome.submitted_at,
-        updated_at=_utc_now(),
+        updated_at=isoformat_z(control_plane.wall_clock()),
         context=request.context,
         diagnostics=operation_terminal_diagnostics(
             final_state,

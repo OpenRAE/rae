@@ -16,7 +16,9 @@ from typing import Any
 from cryptography.exceptions import UnsupportedAlgorithm
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from raes_contracts.digests import SHA256_PREFIX, sha256_digest
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
+from raes_contracts.json_serialization import sorted_json_text
 
 from .._errors import SDLParseError
 from ..scenario import ImportDecl, ModuleDescriptor
@@ -26,7 +28,7 @@ from ._constants import (
     OCI_LAYOUT_MEDIA_TYPE,
     OCI_LAYOUT_SCHEMA_VERSION,
 )
-from ._digests import _SHA256_PREFIX, _descriptor_digest
+from ._digests import _descriptor_digest
 from ._filesystem import (
     _install_version_directory,
     _iter_version_directories,
@@ -41,8 +43,8 @@ from ._filesystem import (
 )
 from .models import _scenario_module_descriptor
 
-# ``_sha256_digest`` / ``_signable_payload`` are resolved through the package
-# facade with function-local ``from . import`` so a test that patches
+# ``_signable_payload`` is resolved through the package facade with
+# function-local ``from . import`` so a test that patches
 # ``raes.module_registry.<seam>`` replaces the binding these production calls use,
 # exactly as the pre-split single-file module did.
 
@@ -207,7 +209,7 @@ def _layout_expected_files(
             blobs=blobs,
             manifest_digest=manifest_digest,
         ),
-        **{f"blobs/sha256/{digest.removeprefix(_SHA256_PREFIX)}": payload for digest, payload in blobs.items()},
+        **{f"blobs/sha256/{digest.removeprefix(SHA256_PREFIX)}": payload for digest, payload in blobs.items()},
     }
 
 
@@ -409,7 +411,6 @@ def publish_module_to_oci_layout(
     private_key_path: Path | None = None,
 ) -> dict[str, Any]:
     from ..parser import parse_sdl_file
-    from . import _sha256_digest
 
     try:
         canonical_root = root_path.resolve(strict=True)
@@ -421,7 +422,7 @@ def publish_module_to_oci_layout(
         source_id=canonical_root.name,
     )
     bundle_bytes = _build_module_bundle(canonical_root)
-    content_digest = f"{_SHA256_PREFIX}{_sha256_digest(bundle_bytes)}"
+    content_digest = sha256_digest(bundle_bytes)
     signatures = _build_signatures(
         descriptor,
         content_digest=content_digest,
@@ -435,8 +436,8 @@ def publish_module_to_oci_layout(
         "module": descriptor.model_dump(mode="python", by_alias=True),
         "signatures": signatures,
     }
-    config_bytes = json.dumps(config_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    config_digest = f"{_SHA256_PREFIX}{_sha256_digest(config_bytes)}"
+    config_bytes = sorted_json_text(config_payload).encode("utf-8")
+    config_digest = sha256_digest(config_bytes)
     manifest_payload = {
         "schemaVersion": 2,
         "mediaType": OCI_LAYOUT_MEDIA_TYPE,
@@ -457,8 +458,8 @@ def publish_module_to_oci_layout(
             "io.raes.module.id": descriptor.id,
         },
     }
-    manifest_bytes = json.dumps(manifest_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    manifest_digest = f"{_SHA256_PREFIX}{_sha256_digest(manifest_bytes)}"
+    manifest_bytes = sorted_json_text(manifest_payload).encode("utf-8")
+    manifest_digest = sha256_digest(manifest_bytes)
     layout_dir = _write_oci_layout(
         output_dir=output_dir,
         descriptor=descriptor,

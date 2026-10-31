@@ -10,7 +10,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from enum import StrEnum
-from hashlib import sha256
 from typing import TYPE_CHECKING
 
 from . import participant_binding_validation as _binding_validation
@@ -21,6 +20,7 @@ from .contracts import (
     ParticipantObservationDetailsModel,
 )
 from .contracts.participant_invocation_tools import INVOCATION_TOOL_ACTIONS_SEMANTICS
+from .digests import sha256_digest, sha256_hex
 from .participant_behavior import (
     ParticipantAdmissionDisposition,
     ParticipantBehaviorHistoryEventType,
@@ -162,7 +162,7 @@ def tool_action_instance_id(
     """
 
     identity = "\0".join((invocation_action_instance_id, episode_id, str(execution_generation), tool_call_id)).encode()
-    return TOOL_ACTION_ID_PREFIX + sha256(identity).hexdigest()
+    return TOOL_ACTION_ID_PREFIX + sha256_hex(identity)
 
 
 @dataclass(frozen=True)
@@ -199,11 +199,8 @@ def participant_tool_action_events(
     temporal_contexts = [
         context_model for context_model in outer.temporal_contexts if context_model.shared_time is None
     ]
-    post_state_digest = (
-        "sha256:"
-        + sha256(
-            f"{record.action_instance_id}\0{record.settlement.value}\0{record.action_result.status}".encode()
-        ).hexdigest()
+    post_state_digest = sha256_digest(
+        f"{record.action_instance_id}\0{record.settlement.value}\0{record.action_result.status}".encode()
     )
     common = {
         "participant_address": request.participant_address,

@@ -716,3 +716,6 @@ adrs:
       - date: 2026-10-30
         ref: "#1752"
         summary: "I6: the adoption commit bounds a baseline that is absent at the base revision. Thus a dev to main promotion can pass."
+  - id: ADR-118
+    path: docs/decisions/adrs/adr-118-shared-primitives-and-injected-wall-clock.md
+    pin: 820039e194f03289ac345a469cd9e5105b285812b8d51612c8014146424da226

@@ -3,6 +3,7 @@
 from collections.abc import Mapping
 
 from pydantic import BaseModel
+from raes_contracts.json_pointer import pointer_tokens
 
 
 def normalize_capability_binding(scenario: BaseModel, pointer: str, value: object) -> object:
@@ -12,7 +13,7 @@ def normalize_capability_binding(scenario: BaseModel, pointer: str, value: objec
     rules. Identity equality remains the caller's responsibility; this helper
     neither changes a constraint nor interprets an extension's meaning.
     """
-    parts = [part.replace("~1", "/").replace("~0", "~") for part in pointer.split("/")[1:]]
+    parts = pointer_tokens(pointer)
     owner: object = scenario
     for part in parts[:-1]:
         if isinstance(owner, BaseModel):

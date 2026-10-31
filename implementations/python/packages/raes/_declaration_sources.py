@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+from raes_contracts.digests import sha256_digest
+from raes_contracts.json_pointer import pointer_from_tokens
 
 from ._errors import SDLParseDiagnostic, SDLSourceRange, SDLValidationError
 from ._identifiers import QualifiedName
@@ -27,10 +28,6 @@ class DeclarationSource:
     module_id: str | None
     namespace: tuple[str, ...]
     content_digest: str
-
-
-def model_pointer(tokens: tuple[str, ...]) -> str:
-    return "".join(f"/{token.replace('~', '~0').replace('/', '~1')}" for token in tokens)
 
 
 def _declaration_value(scenario: ScenarioContent, tokens: tuple[str, ...]) -> object:
@@ -56,10 +53,10 @@ def capture_declaration_sources(
 ) -> dict[str, DeclarationSource]:
     from ._declarations import build_declaration_index
 
-    digest = "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
+    digest = sha256_digest(content.encode("utf-8"))
     sources = {}
     for declaration in build_declaration_index(scenario, raise_on_collision=False).declarations:
-        pointer = model_pointer(declaration.model_tokens)
+        pointer = pointer_from_tokens(declaration.model_tokens)
         value = _declaration_value(scenario, declaration.model_tokens)
         source_range = key_ranges.get(pointer) if isinstance(value, Mapping | BaseModel) else value_ranges.get(pointer)
         if source_range is not None:
@@ -128,7 +125,7 @@ def semantic_source_diagnostics(error: SDLValidationError, scenario: ScenarioCon
             SDLParseDiagnostic(
                 code="sdl.semantic",
                 message=finding.message,
-                pointer=model_pointer(declaration.model_tokens),
+                pointer=pointer_from_tokens(declaration.model_tokens),
                 primary_range=location.source_range,
                 stage="semantic_validation",
                 source=location.source,

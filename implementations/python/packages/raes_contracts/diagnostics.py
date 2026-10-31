@@ -6,6 +6,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .json_pointer import escape_token
+
 
 class Severity(str, Enum):
     """Diagnostic severity level."""
@@ -66,7 +68,7 @@ def portable_diagnostic_payload(diagnostic: Diagnostic) -> dict[str, Any]:
     try:
         return DiagnosticModel(**diagnostic_payload(diagnostic)).model_dump(mode="json")
     except ValueError:
-        pointer = "" if not address else f"/{address.replace('~', '~0').replace('/', '~1')}"
+        pointer = "" if not address else f"/{escape_token(address)}"
         return DiagnosticModel(**{**diagnostic_payload(diagnostic), "address": pointer}).model_dump(mode="json")
 
 

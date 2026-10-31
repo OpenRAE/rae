@@ -10,6 +10,7 @@ from typing import Any
 from pydantic_core import to_jsonable_python
 from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp
 from raes_contracts.realization_structure import (
     RealizationClosure,
@@ -61,7 +62,7 @@ def _origin_children(value: object) -> Iterable[tuple[object, object]]:
 def _backend_origins(value: object, path: str = "") -> dict[str, RealizationOrigin]:
     origins = {path: RealizationOrigin.BACKEND}
     for key, child in _origin_children(value):
-        token = str(key).replace("~", "~0").replace("/", "~1")
+        token = escape_token(str(key))
         origins.update(_backend_origins(child, f"{path}/{token}"))
     return origins
 

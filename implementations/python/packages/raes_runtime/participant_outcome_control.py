@@ -11,9 +11,9 @@ from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInpu
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
+from raes_contracts.timestamps import isoformat_z
 from raes_processor.models import ParticipantBehaviorRuntime, ParticipantOutcomeInterpretationRuleRuntime, RuntimeModel
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
@@ -125,7 +125,7 @@ class ParticipantOutcomeControlMixin:
                 self._snapshot,
                 rule,
                 request,
-                timestamp=_utc_now(),
+                timestamp=isoformat_z(self.wall_clock()),
                 actor_ref=identity.identity,
                 authorization_scope="role:operator",
             )

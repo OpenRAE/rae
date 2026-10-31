@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 
 from pydantic import BaseModel
+from raes_contracts.json_pointer import escape_token
 
 from ._base import extract_variable_name
 from .nodes import Node
@@ -13,10 +14,6 @@ from .phase_contracts import CapabilityConstraint, ParameterDerivation
 from .runtime_resource_limits import RuntimeProcessResourceLimit
 from .scenario import ExpandedScenario, Scenario
 from .variables import Variable
-
-
-def _json_pointer_segment(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
 
 
 def _finite_domain_constraint(
@@ -56,7 +53,7 @@ def _process_limit_capability_constraints(
     variables: Mapping[str, Variable],
 ) -> list[CapabilityConstraint]:
     constraints: list[CapabilityConstraint] = []
-    node_pointer = f"/nodes/{_json_pointer_segment(node_name)}"
+    node_pointer = f"/nodes/{escape_token(node_name)}"
     for index, process_limit in enumerate(process_limits):
         pointer = f"{node_pointer}/runtime/operational_policy/resource_limits/process_limits/{index}"
         constraints.extend(
@@ -80,7 +77,7 @@ def _node_capability_constraints(
     node: Node,
     variables: Mapping[str, Variable],
 ) -> list[CapabilityConstraint]:
-    node_pointer = f"/nodes/{_json_pointer_segment(node_name)}"
+    node_pointer = f"/nodes/{escape_token(node_name)}"
     constraints = _present_constraints(
         _finite_domain_constraint(
             field_pointer=f"{node_pointer}/os",
@@ -163,7 +160,7 @@ def _runtime_scalar_constraints(
         constraint
         for name, child in children
         for constraint in _runtime_scalar_constraints(
-            child, pointer=f"{pointer}/{_json_pointer_segment(str(name))}", variables=variables, capture=capture
+            child, pointer=f"{pointer}/{escape_token(str(name))}", variables=variables, capture=capture
         )
     ]
 
@@ -186,7 +183,7 @@ def capture_capability_constraints(
         constraints.extend(
             _present_constraints(
                 _finite_domain_constraint(
-                    field_pointer=f"/infrastructure/{_json_pointer_segment(node_name)}/count",
+                    field_pointer=f"/infrastructure/{escape_token(node_name)}/count",
                     value=infrastructure.count,
                     variables=scenario.variables,
                 )
@@ -203,7 +200,7 @@ def capture_parameter_derivations(scenario: Scenario | ExpandedScenario) -> tupl
         for name, node in scenario.nodes.items()
         for derivation in _runtime_scalar_constraints(
             node.runtime,
-            pointer=f"/nodes/{_json_pointer_segment(name)}/runtime",
+            pointer=f"/nodes/{escape_token(name)}/runtime",
             variables=scenario.variables,
             capture=capture_parameter_derivation,
         )

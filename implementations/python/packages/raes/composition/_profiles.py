@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.json_pointer import escape_token, unescape_token
 from raes_contracts.profile_selections import profile_selection_binding
 
 from .._errors import SDLParseError
@@ -92,9 +93,9 @@ def _rewrite_owner(address: str, symbols: dict[str, dict[str, str]]) -> str:
         return _RESOURCE_PREFIX + _rewrite_compiled_owner(address.removeprefix(_RESOURCE_PREFIX), symbols)
     parts = address.split("/")
     if len(parts) >= 3:
-        section = parts[1].replace("~1", "/").replace("~0", "~")
+        section = unescape_token(parts[1])
         names = symbols.get(section)
         if isinstance(names, Mapping):
-            name = parts[2].replace("~1", "/").replace("~0", "~")
-            parts[2] = _maybe_rename(name, names).replace("~", "~0").replace("/", "~1")
+            name = unescape_token(parts[2])
+            parts[2] = escape_token(_maybe_rename(name, names))
     return "/".join(parts)

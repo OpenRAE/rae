@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import replace
-from hashlib import sha256
 from typing import cast
 
 from raes_contracts.contracts import (
@@ -13,6 +12,7 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
+from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
@@ -122,7 +122,7 @@ def _bound_action_instance_id(
     segment: int,
 ) -> str:
     identity = f"{action_instance_id}:episode={state.episode_id}:segment={segment}:generation={service.generation}"
-    return "participant-action-" + sha256(identity.encode()).hexdigest()
+    return "participant-action-" + sha256_hex(identity.encode())
 
 
 def _bound_temporal_context(

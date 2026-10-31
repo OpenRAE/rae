@@ -4,15 +4,12 @@ from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
+from raes_contracts.json_pointer import escape_token, pointer_tokens
 from raes_contracts.sdl_semantic_migration import SDLSentinelDecision
 from raes_contracts.vocabulary import Closure
 
 from .realization_designation import RealizationDesignationRecord, designation_records, resolve_realization_designation
 from .scenario import Scenario
-
-
-def _token(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
 
 
 def sentinel_pointers(value: object, pointer: str = "") -> set[str]:
@@ -24,10 +21,10 @@ def sentinel_pointers(value: object, pointer: str = "") -> set[str]:
         for name in value.model_fields_set:
             field = type(value).model_fields[name]
             key = field.serialization_alias or field.alias or name
-            found.update(sentinel_pointers(getattr(value, name), f"{pointer}/{_token(key)}"))
+            found.update(sentinel_pointers(getattr(value, name), f"{pointer}/{escape_token(key)}"))
     elif isinstance(value, dict):
         for key, child in value.items():
-            found.update(sentinel_pointers(child, f"{pointer}/{_token(key)}"))
+            found.update(sentinel_pointers(child, f"{pointer}/{escape_token(key)}"))
     elif isinstance(value, (list, tuple)):
         for index, child in enumerate(value):
             found.update(sentinel_pointers(child, f"{pointer}/{index}"))
@@ -54,7 +51,7 @@ def apply_sentinel_decisions(
 
 
 def _decision_parent(payload: dict[str, Any], pointer: str) -> tuple[dict[str, Any] | list[Any], str]:
-    parts = [part.replace("~1", "/").replace("~0", "~") for part in pointer.split("/")[1:]]
+    parts = pointer_tokens(pointer)
     parent: dict[str, Any] | list[Any] = payload
     for part in parts[:-1]:
         parent = parent[int(part)] if isinstance(parent, list) else parent[part]

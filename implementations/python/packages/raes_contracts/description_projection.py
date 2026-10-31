@@ -9,6 +9,7 @@ from .canonical import canonical_json_digest
 from .contracts.realization_descriptions import DescriptionFactModel, TypedRealizationDescriptionModel
 from .description_coverage import DescriptionCoverageScope, coverage_matches
 from .diagnostics import Diagnostic
+from .json_pointer import pointer_from_tokens, pointer_tokens
 from .realization_structure import (
     RealizationConstraintDocument,
     RealizationKeyedCollectionConstraint,
@@ -22,7 +23,7 @@ from .realization_structure import (
     evaluate_realization_constraint,
     validate_realization_value,
 )
-from .realization_structure._common import closure_for, json_equal, pointer, pointer_tokens
+from .realization_structure._common import closure_for, json_equal
 
 
 def description_result(status: str, code: str, message: str) -> RealizationRelationResult:
@@ -197,7 +198,7 @@ def _comparison_facts(facts: tuple[DescriptionFactModel, ...]) -> Iterator[Descr
             children = tuple(
                 fact.model_copy(
                     update={
-                        "subject": pointer((*pointer_tokens(fact.subject), key)),
+                        "subject": pointer_from_tokens((*pointer_tokens(fact.subject), key)),
                         "value": value,
                     }
                 )

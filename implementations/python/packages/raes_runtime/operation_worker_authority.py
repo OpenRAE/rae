@@ -20,8 +20,8 @@ from raes_contracts.contracts.base import ContractModel
 from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationState
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
@@ -175,7 +175,9 @@ class RuntimeWorkerAuthorityMixin:
                 ControlPlaneOperationRecord,
                 replace(
                     record,
-                    status=replace(record.status, state=OperationState.RUNNING, updated_at=_utc_now()),
+                    status=replace(
+                        record.status, state=OperationState.RUNNING, updated_at=isoformat_z(self.wall_clock())
+                    ),
                     invocation=record.invocation.model_copy(update={"consumed": True}),
                 ),
             )

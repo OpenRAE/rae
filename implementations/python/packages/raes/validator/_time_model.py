@@ -1,7 +1,8 @@
 """Semantic checks for the shared RAES time model."""
 
+from raes_contracts.graphs import has_cycle
+
 from ..time_model import TimeDomainMapping, TimeReplayBehavior, TimeResetBehavior
-from ._support import _topological_sort
 
 
 class _TimeModelMixin:
@@ -26,7 +27,7 @@ class _TimeModelMixin:
         for name, mapping in self._s.time_domain_mappings.items():
             with self._owner(("time_domain_mappings", name)):
                 self._verify_time_domain_mapping(name, mapping, graph, pairs)
-        if graph and _topological_sort(graph) is None:
+        if graph and has_cycle(graph):
             self._err("Time-domain mapping graph contains a cycle")
 
     def _verify_time_domain_mapping(

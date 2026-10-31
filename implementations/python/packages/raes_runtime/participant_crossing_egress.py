@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import replace
 from typing import cast
 from uuid import uuid4
@@ -21,6 +19,7 @@ from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
 from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
@@ -435,16 +434,12 @@ def _view_subject(
     view_ref = payload.get("view_id")
     if not isinstance(view_ref, str) or not view_ref:
         raise InvalidInputError("participant projection requires an exact view identity")
-    encoded = json.dumps(
-        stable_projection_subject(payload, runtime_owned_revision_paths),
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
+    subject_digest = sorted_json_digest(stable_projection_subject(payload, runtime_owned_revision_paths))
     return ParticipantCrossingSubjectReferenceModel(
         subject_kind=subject_kind,
         contract_id=f"{subject_kind.value}-v1",
         subject_ref=view_ref,
-        subject_digest=f"sha256:{hashlib.sha256(encoded).hexdigest()}",
+        subject_digest=subject_digest,
         participant_address=participant_address,
         episode_id=episode_id,
     )
