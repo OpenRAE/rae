@@ -1,6 +1,7 @@
 """Authority-preserving validation of failed apply cleanup inventory."""
 
 from dataclasses import replace
+from typing import cast
 
 from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import BackendManifest
@@ -66,10 +67,13 @@ def realization_cleanup_diagnostics(
             if view is not None
             else item
         )
-    cleanup_plan: ProvisioningPlan = replace(
-        declared_plan,
-        observation_demands=(),
-        realization_authority=tuple(cleanup_authority),
+    cleanup_plan = cast(
+        "ProvisioningPlan",
+        replace(
+            declared_plan,
+            observation_demands=(),
+            realization_authority=tuple(cleanup_authority),
+        ),
     )
     diagnostics, _ = realization_authority_disclosure(cleanup_plan, returned_snapshot, manifest=manifest)
     supplemental, _ = realization_disclosure(
