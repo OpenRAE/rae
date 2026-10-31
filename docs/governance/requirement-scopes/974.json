@@ -52,6 +52,9 @@
       "SEM-232",
       "ASR-535"
     ],
+    "implementations/python/tests/test_issue_973_model_check_workflow.py": [
+      "SEM-232"
+    ],
     "implementations/python/tests/test_issue_974_machine_check.py": [
       "SEM-232",
       "ASR-535"
@@ -59,6 +62,9 @@
     "implementations/python/tests/test_issue_974_machine_check_publication.py": [
       "SEM-232",
       "ASR-535"
+    ],
+    "implementations/python/tests/test_repo_policy_tools.py": [
+      "SEM-232"
     ],
     "noxfile.py": [
       "SEM-232"
@@ -293,6 +299,27 @@
     ],
     "specs/formal/participant-semantics/participant-crossing-machine-check.md": [
       "SEM-232"
+    ],
+    "specs/formal/participant-semantics/participant-opacity-proof-evidence.json": [
+      "ASR-535"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-6f99f4e7d179c521754f32bd74fba39ddfcd0391e385e1f71d109c0540b2def2/cases.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-6f99f4e7d179c521754f32bd74fba39ddfcd0391e385e1f71d109c0540b2def2/manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-9e62b2402a9f271aa85bf2e3d8b61c0abc50115ea8b82afc39a223f92f576343/cases.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-9e62b2402a9f271aa85bf2e3d8b61c0abc50115ea8b82afc39a223f92f576343/manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/family-rows.md": [
+      "SEM-232"
+    ],
+    "tools/check_participant_opacity_proof.py": [
+      "ASR-535"
     ],
     "tools/mcrl2_tool.py": [
       "SEM-232"

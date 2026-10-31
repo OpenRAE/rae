@@ -65,6 +65,29 @@ def test_missing_tooling_environment_cannot_trigger_dependency_acquisition(monke
         mcrl2_tool.selection()
 
 
+@pytest.mark.parametrize(
+    "dependency",
+    [
+        "tools/check_tooling_artifact_policy.py",
+        "tools/tooling_artifact_selection.py",
+        "tools/tooling_artifact_policy_common.py",
+        "implementations/tooling/schemas/profiles.schema.json",
+        "implementations/tooling/schemas/admission-policy.schema.json",
+    ],
+)
+def test_existing_proof_also_refuses_validation_dependency_drift(monkeypatch, dependency):
+    from tools import check_participant_opacity_proof as proof
+
+    manifest = proof.load_proof_manifest()
+    proof.validate_proof_manifest(manifest, repo_root=ROOT, run_prover=False)
+    original = proof._file_digest
+    monkeypatch.setattr(
+        proof, "_file_digest", lambda path: "sha256:" + "0" * 64 if path == ROOT / dependency else original(path)
+    )
+    with pytest.raises(proof.ProofEvidenceError, match="source digest"):
+        proof._validate_tool_sources(manifest["toolchain"], ROOT)
+
+
 @pytest.mark.parametrize("native", ["bubblewrap\t0.11.0\n", "bubblewrap\tunsafe/path\n", ""])
 def test_execution_record_uses_only_verified_allowlisted_host_fields(monkeypatch, native):
     from implementations.formal.participant_crossing import machine_check_publication as publication

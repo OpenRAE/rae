@@ -38,25 +38,34 @@ from tools.isabelle_tool import (  # noqa: E402
     run_isabelle_build,
 )
 from tools.tool_versions import ISABELLE_VERSION  # noqa: E402
-from tools.tooling_policy_gate import LockedManifestEntry, load_tooling_artifact_selection  # noqa: E402
+from tools.tooling_policy_gate import (  # noqa: E402
+    VALIDATION_SOURCE_PATHS,
+    LockedManifestEntry,
+    load_tooling_artifact_selection,
+)
 
 MANIFEST_RELATIVE_PATH = Path("specs/formal/participant-semantics/participant-opacity-proof-evidence.json")
 # Every source that selects, admits, or revalidates the executed prover is
 # digest-bound, including the shared tree and publication transaction.
-PROOF_TOOL_SOURCE_PATHS = (
-    "tools/check_participant_opacity_proof.py",
-    "tools/isabelle_sandbox.py",
-    "tools/isabelle_tool.py",
-    "tools/bounded_tool_process.py",
-    "tools/debian_tree_decoder.py",
-    "tools/maintained_client_acquisition.py",
-    "tools/tooling_installed_tree.py",
-    "tools/tooling_policy_gate.py",
-    "tools/verified_tool_installation.py",
-    "tools/verified_tree_archive.py",
-    "tools/verified_tree_installation.py",
-    "tools/verified_tree_manifest.py",
-    "tools/verified_tree_validation.py",
+PROOF_TOOL_SOURCE_PATHS = tuple(
+    dict.fromkeys(
+        (
+            "tools/check_participant_opacity_proof.py",
+            "tools/isabelle_sandbox.py",
+            "tools/isabelle_tool.py",
+            "tools/bounded_tool_process.py",
+            "tools/debian_tree_decoder.py",
+            "tools/maintained_client_acquisition.py",
+            "tools/tooling_installed_tree.py",
+            "tools/tooling_policy_gate.py",
+            "tools/verified_tool_installation.py",
+            "tools/verified_tree_archive.py",
+            "tools/verified_tree_installation.py",
+            "tools/verified_tree_manifest.py",
+            "tools/verified_tree_validation.py",
+            *VALIDATION_SOURCE_PATHS,
+        )
+    )
 )
 THEORY_RELATIVE_PATH = ISABELLE_SESSION_RELATIVE_PATH / "Participant_Opacity.thy"
 ROOT_RELATIVE_PATH = ISABELLE_SESSION_RELATIVE_PATH / "ROOT"

@@ -79,6 +79,9 @@ The current adapter permits at most 512 states and 65,536 AUT bytes per input.
 An excess fails the check. It must never trim inputs.
 The whole run needs a time limit and a fixed comparison inventory.
 Per-child limits alone do not bound the complete job.
+The existing opacity proof also uses the shared tooling gate.
+Its source binding must cover the same validation chain and schemas.
+Its theorem, profile, kernel result, and historical reproduction record keep their existing meanings.
 
 ## Result and trust boundary
 

@@ -250,6 +250,8 @@ ownership:
     - implementations/formal/participant_crossing/machine_check_publication.py
     - implementations/python/tests/test_issue_974_machine_check.py
     - implementations/python/tests/test_issue_974_machine_check_publication.py
+    - tools/check_participant_opacity_proof.py
+    - specs/formal/participant-semantics/participant-opacity-proof-evidence.json
   authoring-adapter-conformance:
     - contracts/README.md
     - contracts/fixtures/authoring-adapters

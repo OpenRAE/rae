@@ -75,3 +75,4 @@ ADR-081 governs relation discipline and current tests provide bounded evidence, 
 - IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_publication.py` (Qualified hosted provenance and admitted artifact inventory)
 - TESTS → TEST `implementations/python/tests/test_issue_974_machine_check_publication.py` (Offline verification and refusal of unadmitted publication)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)
+- IMPLEMENTS → CODE_FILE `tools/check_participant_opacity_proof.py` (Exact shared tooling-validator and schema provenance for the existing proof axis)

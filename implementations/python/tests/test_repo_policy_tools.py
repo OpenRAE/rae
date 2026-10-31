@@ -86,6 +86,7 @@ NOX_SUPPORT_MODULES = (
     "policy_lanes",
     "test_lanes",
     "compatibility_lanes",
+    "machine_check_lane",
     "graph",
 )
 
@@ -220,6 +221,7 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "lint",
         "local-installation-qualification",
         "osv_scan",
+        "participant-crossing-machine-check",
         "participant-opacity-proof",
         "policy",
         "proof-input-qualification",

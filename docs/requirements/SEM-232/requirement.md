@@ -82,3 +82,5 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - TESTS → TEST `implementations/python/tests/test_issue_974_machine_check_publication.py` (Offline verification and refusal of unadmitted publication)
 - DOCUMENTS → CODE_FILE `tools/tooling_policy_gate.py` (Shared validation-source inventory and offline installed-validator boundary)
 - DOCUMENTS → CODE_FILE `tools/mcrl2_tool.py` (Pinned native checker refuses a missing tooling environment without acquisition fallback)
+- TESTS → TEST `implementations/python/tests/test_issue_973_model_check_workflow.py` (Canonical finite-check publication remains mandatory, offline and isolated)
+- TESTS → TEST `implementations/python/tests/test_repo_policy_tools.py` (Public finite-check nox session inventory and helper dependency graph)
