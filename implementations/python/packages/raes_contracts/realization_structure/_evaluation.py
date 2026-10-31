@@ -36,6 +36,7 @@ from ._models import (
     RealizationSequenceConstraint,
     RecursiveRealizationStructure,
 )
+from ._scope_index import ScopeIndex
 from ._scopes import evaluate_scope_overlays
 
 
@@ -309,8 +310,11 @@ def evaluate_realization_constraint(
     budget = RelationBudget(limits)
     if invalid := validate_bounded_value(actual, (), 0, budget):
         return invalid
-    scopes = evaluate_scope_overlays(document, actual, budget)
-    context = EvaluationContext(document, budget)
+    scope_index = ScopeIndex.build(document, budget)
+    if scope_index is None:
+        return relation_result(RealizationRelationStatus.LIMIT_EXCEEDED, "", "Scope indexing exceeded max_operations.")
+    scopes = evaluate_scope_overlays(document, actual, budget, scope_index)
+    context = EvaluationContext(document, budget, scope_index)
     evaluated = _evaluate_recursive_node(context, document.root, actual, (), 0)
     return combine_relation_results(
         [evaluated, *scopes],

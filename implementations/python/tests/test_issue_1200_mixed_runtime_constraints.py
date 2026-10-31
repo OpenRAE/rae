@@ -162,7 +162,13 @@ def _returned(plan_value, runtime):
             )
             for authority in plan_value.realization_authority
             if authority.requirement_kind
-            in {"runtime-database-services", "runtime-packages", "runtime-dns-services", "runtime-environment"}
+            in {
+                "runtime-database-services",
+                "runtime-packages",
+                "runtime-dns-services",
+                "runtime-environment",
+                "runtime-applications",
+            }
             and authority.mode.value != "closed"
         ),
     )
@@ -459,3 +465,25 @@ def test_missing_value_or_observation_does_not_establish_satisfaction(missing):
     result = _apply(portable, manifest, runtime, observe=missing != "observation")
     assert not result.success
     assert not result.snapshot.realization_provenance
+
+
+@pytest.mark.parametrize("changed", [False, True])
+def test_applications_runtime_gate_accepts_matching_fifteen_routes(changed):
+    applications = [
+        {
+            "application_id": "portal",
+            "framework": "flask",
+            "routes": [{"route_id": f"route-{i}", "path": f"/route-{i}", "methods": ["GET"]} for i in range(15)],
+        }
+    ]
+    _, portable, manifest = _fixture(
+        {"applications": applications},
+        scope="/nodes/host/runtime/applications",
+    )
+    observed = deepcopy(applications)
+    if changed:
+        observed[0]["routes"][0]["path"] = "/wrong"
+    result = _apply(portable, manifest, {"applications": observed})
+    assert result.success is not changed, result.diagnostics
+    if changed:
+        assert not result.snapshot.entries
