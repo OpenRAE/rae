@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-31T03:15:07.607323+00:00",
+  "generated_at": "2026-10-31T03:38:24.121209+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -90,5 +90,5 @@
     }
   ],
   "snapshot_id": "issue-1710-shared-primitives-specification-replay",
-  "snapshot_sha256": "a91cd39dfa3bc91982a42f3dec4b8e6983e23b9e52c936eccdf1392bfad651de"
+  "snapshot_sha256": "941f97723af2f66a687f48a7395d71c250999282c4d446125d584b75a2e7b8c7"
 }

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from uuid import uuid4
 
 from raes_contracts.contracts.participant_crossing import (
@@ -132,15 +132,19 @@ def _prepare_crossing_decision(
                 fresh_support.gate,
             )
             fresh_disposition = _decision_disposition(fresh_gates, fresh_resolution)
+            fresh_preparation = _CrossingDecisionPreparation(
+                identity=identity,
+                resolution=fresh_resolution,
+                support=fresh_support,
+                gates=fresh_gates,
+                disposition=fresh_disposition,
+                expected_heads=preparation.expected_heads,
+                context=preparation.context,
+                idempotency_key=preparation.idempotency_key,
+            )
             fresh_request, fresh_decision = _crossing_records(
                 fresh_intent,
-                replace(
-                    preparation,
-                    resolution=fresh_resolution,
-                    support=fresh_support,
-                    gates=fresh_gates,
-                    disposition=fresh_disposition,
-                ),
+                fresh_preparation,
                 request_predecessor_refs=(transformed.event_id,),
                 wall_clock=control_plane.wall_clock,
             )
