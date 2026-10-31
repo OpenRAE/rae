@@ -1,0 +1,62 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 975,
+  "primary_requirement_uid": "SEM-232",
+  "requirement_uids": [
+    "SEM-232",
+    "ASR-535"
+  ],
+  "bindings": {
+    ".github/workflows/canonical-verification.yml": [
+      "SEM-232"
+    ],
+    "docs/decisions/issue-975-independent-crossing-reproduction-preflight.md": [
+      "SEM-232"
+    ],
+    "docs/governance/requirement-scopes/975.json": [
+      "SEM-232"
+    ],
+    "docs/requirements/ASR-535/requirement.md": [
+      "ASR-535"
+    ],
+    "docs/requirements/SEM-232/requirement.md": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/README.md": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/reproduction.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/formal/participant_crossing/reproduction_sandbox.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/python/tests/test_issue_975_reproduction.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/python/tests/test_issue_975_reproduction_sandbox.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/python/tests/test_issue_975_reproduction_workflow.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "specs/formal/participant-semantics/participant-crossing-reproduction.md": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage.md": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/family-rows.md": [
+      "SEM-232"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "SEM-232"
+    ]
+  }
+}

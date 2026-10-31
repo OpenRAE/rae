@@ -29,6 +29,32 @@ Source revisions and host identities stay in a separate record.
 Public and scientific claims require the separate reproduction work.
 They also require the planned publication work.
 
+## Fresh reproduction measurement
+
+The reproducer starts a fresh Python worker with no network or ambient environment.
+It copies declared source and data files without compiled caches or producer results.
+The worker repeats the complete native decision and negative corpus.
+Every output byte must match the separately selected reviewed capture.
+
+After the existing tool acquisition and Python setup, run:
+
+```sh
+PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest sha256:76422aebb1413e345677eeaa4bea67005e74aa3d9289d185f63f4c69dc838339
+```
+
+The expected result is an immutable `reproduction/capture-.../measurement.json` file.
+A different digest, missing input, or unavailable sandbox fails the command.
+The command never downloads tools or dependencies.
+The `--qualified` option requires the existing hosted execution profile.
+It stages measurement and allowlisted execution provenance for the canonical CI artifact.
+
+A measurement does not authenticate a reviewer or establish independent acceptance.
+The reviewer must select and review its exact digest and corpus review subject.
+They must supply an attributable review record and state their separation from production.
+Missing review leaves issue 975 incomplete.
+The [reproduction design](../../../specs/formal/participant-semantics/participant-crossing-reproduction.md)
+defines the execution, review, and claim boundaries.
+
 ## Negative corpus
 
 The corpus tests five faults in the complete rev2 models.

@@ -84,3 +84,10 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - DOCUMENTS → CODE_FILE `tools/mcrl2_tool.py` (Pinned native checker refuses a missing tooling environment without acquisition fallback)
 - TESTS → TEST `implementations/python/tests/test_issue_973_model_check_workflow.py` (Canonical finite-check publication remains mandatory, offline and isolated)
 - TESTS → TEST `implementations/python/tests/test_repo_policy_tools.py` (Public finite-check nox session inventory and helper dependency graph)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction.py` (Issue 975 fresh measurement; independent acceptance requires a separate attributable review)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction_sandbox.py` (Issue 975 fresh measurement; independent acceptance requires a separate attributable review)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-reproduction.md` (Isolation, exact subject and separate reviewer authority)
+- TESTS → TEST `implementations/python/tests/test_issue_975_reproduction.py` (Exact comparison, isolated execution and refusal of self-approved measurement)
+- TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_sandbox.py` (Exact comparison, isolated execution and refusal of self-approved measurement)
+- TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_workflow.py` (Exact comparison, isolated execution and refusal of self-approved measurement)
