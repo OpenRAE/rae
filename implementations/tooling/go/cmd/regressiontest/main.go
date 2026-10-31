@@ -154,16 +154,16 @@ func addedTests(ctx context.Context, root, mergeBase, module string) (map[string
 // newRegressionTests returns the regression tests in head that base does not declare.
 // A base file that does not parse declares none.
 func newRegressionTests(path string, base, head []byte) ([]string, error) {
-	existing, _ := regressionTests(path, base)
-	current, err := regressionTests(path, head)
+	existing, _ := findRegressionTests(path, base)
+	current, err := findRegressionTests(path, head)
 	if err != nil {
 		return nil, err
 	}
 	return slices.DeleteFunc(current, func(name string) bool { return slices.Contains(existing, name) }), nil
 }
 
-// regressionTests returns the names of the top-level regression test functions in a Go source file.
-func regressionTests(path string, source []byte) ([]string, error) {
+// findRegressionTests returns the names of the top-level regression test functions in a Go source file.
+func findRegressionTests(path string, source []byte) ([]string, error) {
 	if len(source) == 0 {
 		return nil, nil
 	}

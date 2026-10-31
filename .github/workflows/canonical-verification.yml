@@ -557,6 +557,11 @@ jobs:
         working-directory: ${{ matrix.path }}
         env:
           MERGE_BASE: ${{ steps.base.outputs.merge_base }}
+          # gremlins matches the paths of git diff against mutant paths, which
+          # are relative to the module. git diff must use the same base.
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: diff.relative
+          GIT_CONFIG_VALUE_0: "true"
         run: gremlins unleash --diff "${MERGE_BASE}" --threshold-efficacy 90 --threshold-mcover 90
       - name: Check that each new regression test fails on the base
         working-directory: ${{ matrix.path }}

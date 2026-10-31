@@ -103,6 +103,7 @@ def test_sonar_project_binding_matches_scanner_configuration() -> None:
     assert ground_control["sonarcloud"]["organization"] == sonar_properties["sonar.organization"]
     assert set(sonar_properties["sonar.sources"].split(",")) == {
         "implementations/python/packages",
+        "implementations/tooling/go",
         "noxfile.py",
         "tools",
     }

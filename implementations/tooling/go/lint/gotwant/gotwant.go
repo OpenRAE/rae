@@ -2,7 +2,9 @@
 // before the actual value.
 //
 // The Google Go style decisions require failure messages to print the actual
-// value first ("got before want").
+// value first ("got before want"). A diff key such as "(-want +got)" states the
+// order of a diff explicitly, as the style decisions recommend, so the analyzer
+// ignores it.
 package gotwant
 
 import (
@@ -10,6 +12,7 @@ import (
 	"go/constant"
 	"go/types"
 	"regexp"
+	"strings"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/ast/inspector"
@@ -54,6 +57,7 @@ func isTestingFailure(pass *analysis.Pass, call *ast.CallExpr) bool {
 }
 
 func wantsBeforeGot(format string) bool {
+	format = strings.ReplaceAll(format, "-want +got", "")
 	got := gotWord.FindStringIndex(format)
 	want := wantWord.FindStringIndex(format)
 	return got != nil && want != nil && want[0] < got[0]

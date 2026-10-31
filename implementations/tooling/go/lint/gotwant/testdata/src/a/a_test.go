@@ -9,6 +9,8 @@ func TestMessages(t *testing.T) {
 	t.Errorf("want %d, got %d", want, got) // want `failure message prints want before got; print got first`
 	t.Fatalf("Add(): want %d, got %d", want, got) // want `failure message prints want before got; print got first`
 	t.Logf("want %d, got %d", want, got)
+	t.Errorf("Add() mismatch (-want +got):\n%s", "diff")
+	t.Errorf("Add() mismatch (-want +got): want %d, got %d", want, got) // want `failure message prints want before got; print got first`
 	t.Errorf("wanted %d, gotten %d", want, got)
 	message := "want %d, got %d"
 	t.Errorf(message, want, got)

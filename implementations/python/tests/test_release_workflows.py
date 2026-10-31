@@ -437,7 +437,15 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The full gate is an explicit fail-closed aggregate that distinguishes skips.
     gate = workflow["jobs"]["gate"]
     assert gate["if"] == "always()"
-    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "model-check", "coverage-reduce", "go"}
+    assert set(gate["needs"]) == {
+        "test-shard",
+        "integration",
+        "checks",
+        "proof",
+        "model-check",
+        "coverage-reduce",
+        "go",
+    }
 
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
@@ -1644,3 +1652,6 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         'regressiontest -base "${MERGE_BASE}"',
     ):
         assert command in scripts, command
+    mutation = next(step for step in go["steps"] if "gremlins unleash" in step.get("run", ""))
+    assert mutation["env"]["GIT_CONFIG_KEY_0"] == "diff.relative"
+    assert mutation["env"]["GIT_CONFIG_VALUE_0"] == "true"

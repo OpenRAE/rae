@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestRegressionTestsListsTopLevelRegressionTests(t *testing.T) {
+func TestFindRegressionTestsListsTopLevelTests(t *testing.T) {
 	source := []byte(`package p
 
 import "testing"
@@ -22,18 +22,18 @@ func TestRegressionB(t *testing.T) {}
 
 type s struct{}
 `)
-	got, err := regressionTests("p_test.go", source)
+	got, err := findRegressionTests("p_test.go", source)
 	if err != nil {
-		t.Fatalf("regressionTests() error = %v", err)
+		t.Fatalf("findRegressionTests() error = %v", err)
 	}
 	if want := []string{"TestRegressionA", "TestRegressionB"}; !slices.Equal(got, want) {
-		t.Errorf("regressionTests() = %v, want %v", got, want)
+		t.Errorf("findRegressionTests() = %v, want %v", got, want)
 	}
 }
 
-func TestRegressionTestsRejectsInvalidSource(t *testing.T) {
-	if _, err := regressionTests("p_test.go", []byte("package")); err == nil {
-		t.Error("regressionTests() error = nil, want a parse error")
+func TestFindRegressionTestsRejectsInvalidSource(t *testing.T) {
+	if _, err := findRegressionTests("p_test.go", []byte("package")); err == nil {
+		t.Error("findRegressionTests() error = nil, want a parse error")
 	}
 }
 

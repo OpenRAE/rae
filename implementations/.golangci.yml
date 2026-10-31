@@ -18,6 +18,7 @@ linters:
     - funlen # Google style sets no length limit; gocognit limits complexity.
     - gocyclo # gocognit carries the complexity limit.
     - godox # Google style permits TODO comments that give context.
+    - gomodguard # Deprecated; gomodguard_v2 replaces it.
     - lll # Google style sets no line length limit.
     - maintidx # gocognit carries the complexity limit.
     - mnd # Google style does not require a named constant for each number.
