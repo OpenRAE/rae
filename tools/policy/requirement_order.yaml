@@ -266,6 +266,13 @@ ownership:
     - implementations/python/tests/test_issue_975_reproduction_record.py
     - specs/formal/participant-semantics/participant-crossing-reproduction.md
     - specs/formal/participant-semantics/reproduction
+    # Issue #976 retained-record admission and publication facts from admitted evidence.
+    - implementations/formal/participant_crossing/reproduction_record.py
+    - implementations/formal/participant_crossing/reproduction_attestation.py
+    - implementations/formal/participant_crossing/publication.py
+    - implementations/python/tests/test_issue_976_reproduction_record.py
+    - implementations/python/tests/test_issue_976_crossing_publication.py
+    - implementations/python/tests/test_issue_976_evidence_identity.py
     - tools/check_participant_opacity_proof.py
     - specs/formal/participant-semantics/participant-opacity-proof-evidence.json
   authoring-adapter-conformance:
@@ -507,6 +514,10 @@ ownership:
     - implementations/python/packages/raes_runtime/control_plane_api_models.py
     - implementations/python/packages/raes_runtime/control_plane_submission.py
     - implementations/python/packages/raes_runtime/manager.py
+    # Issue #298 rechecks typed descriptor profile admission at runtime plan admission (ADR-120).
+    - implementations/python/packages/raes_runtime/manager_plan_admission.py
+    # Issue #298 repins the ADR index identity digests for ADR-120.
+    - tools/policy/historical_identity_records.json
     - implementations/python/tests
     - specs/formal/participant-semantics
     - specs/formal/sdl-phases
@@ -588,6 +599,8 @@ ownership:
     - implementations/python/packages/raes_runtime/observation_results.py
     # Prepared-resource provenance remains runtime-owned (issue #1697).
     - implementations/python/packages/raes_runtime/backend_apply_results.py
+    # Issue #298: runtime plan admission rechecks typed descriptor profiles (ADR-120).
+    - implementations/python/packages/raes_runtime/manager_plan_admission.py
     - docs/migration/runtime-lifetime.md
     - contracts/fixtures/experiment-core/experiment-evidence-record-v1
     - implementations/python/tests
@@ -1261,6 +1274,25 @@ ownership:
     - docs/governance/requirement-scopes/974.json
     - docs/decisions/issue-975-independent-crossing-reproduction-preflight.md
     - docs/governance/requirement-scopes/975.json
+    - docs/decisions/issue-976-reproduced-crossing-publication-preflight.md
+    - docs/governance/requirement-scopes/976.json
+    # Issue #976 publication surfaces for the reproduced finite crossing result.
+    - docs/decisions/issue-976-crossing-evidence-identity-design.md
+    - docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md
+    - docs/decisions/adrs/adr-index.yaml
+    - tools/policy/historical_identity_records.json
+    - contracts/concept-authority/behavioral-relations-v1.json
+    - contracts/concept-authority/history/behavioral-relations-v1-rev13.json
+    - contracts/fixtures/concept-authority/behavioral-relations-v1/valid/reference.json
+    - contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json
+    - docs/explain/sdl/lineage.md
+    - docs/explain/sdl/scientific-scenario-completeness.md
+    - docs/public/participant-control.md
+    - docs/requirements/GOV-942/requirement.md
+    - docs/research/participant-bisimulation/implementation-program.md
+    - docs/research/participant-bisimulation/index.md
+    - specs/agent-guidance/agent-guidance.yaml
+    - specs/sdl/scientific-scenario-completeness.md
     - docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     - docs/requirements/SEM-233/requirement.md
     - contracts/schemas/sdl

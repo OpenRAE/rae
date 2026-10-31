@@ -5,7 +5,7 @@ The same owner describes workload identity use and resource-policy attachment.
 `runtime.platform_applications` can describe service-owned secrets, versions and consumer selections.
 These optional descriptions do not imply deployment, effective access or secret disclosure.
 See [cloud resource access](../../../specs/sdl/cloud-resource-access.md)
-and the [cross-project example](../../../examples/scenarios/cloud-secret-cross-project.sdl.yaml).
+and the [cross-project example](../../../examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml).
 
 A scenario is a YAML document with a required top-level `name`, optional
 top-level metadata and composition fields, and the authoring sections catalogued
@@ -1974,7 +1974,7 @@ agents:
     interactive_access:                 # explicit access-carrier availability
       primary-shell:                    # stable participant-local declaration id
         target_ref: user0               # compute-node ref; bare or nodes.user0
-        channel: ssh                    # closed vocabulary: ssh or rdp
+        channel: ssh                    # ssh, rdp, or a typed profile binding
         account_ref: phished-user       # optional; same compute node + starting account
 ```
 
@@ -2010,10 +2010,15 @@ generalises `allowed_subnets`, which remains restricted to switch-backed
 infrastructure.
 
 `interactive_access` is a keyed registry of authored access-carrier
-availability. Each value is closed: `target_ref` resolves to a compute node, `channel` is
-exactly `ssh` or `rdp` (or a whole-field variable before instantiation), and an
-optional `account_ref` resolves to an account on that compute node that is already in the
-participant's `starting_accounts`. The same concrete target/channel pair may
+availability. Each value is closed. `target_ref` resolves to a compute node.
+`channel` is `ssh`, `rdp`, a typed domain-profile binding, or a whole-field variable
+before instantiation. Any other string is a parse error. An optional `account_ref`
+resolves to an account on that compute node that is already in the participant's
+`starting_accounts`. A typed channel uses the owner of
+[ADR-120](../../decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md):
+`sdl-authoring-input-v1`, the JSON Pointer of the field, phase `authoring`, use
+`constraint` and context `participant-interactive-access-channel`. Planning refuses
+it unless the target admits its exact profile semantics. The same concrete target/channel pair may
 appear only once per participant after bare/qualified reference normalization;
 different participants may declare it independently. Stable registry keys are
 portable local identifiers and mapping order has no priority or fallback

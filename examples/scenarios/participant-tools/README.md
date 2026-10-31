@@ -21,7 +21,7 @@ session or runs a scan.
 | Tool | `tool_ref`, which names one scenario `content` identity |
 | Affordance | `behavior_specifications.<spec>.tool_affordances.<id>` |
 | Invocation interface | The bound action contract's `arguments`, reached through the compiled action address; the affordance copies none of it |
-| Access interface and channel | `agents.<name>.interactive_access.<id>`: a compute-node `target_ref`, `channel` `ssh` or `rdp`, optional `account_ref` |
+| Access interface and channel | `agents.<name>.interactive_access.<id>`: a compute-node `target_ref`, `channel` `ssh`, `rdp` or a typed profile binding that the target admits (ADR-120), optional `account_ref` |
 | Scope and availability | The owning specification's `participant_refs` or `participant_role_refs` and `authority_scope_refs`, the participant's own `actions` and `observation_boundaries`, and the action contract's preconditions and argument domains |
 
 ## Imports

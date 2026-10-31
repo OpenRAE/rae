@@ -13,7 +13,6 @@ from pydantic import ValidationError
 from raes_contracts.errors import InvalidInputError
 
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
-from tools.research_evidence import surface_digest
 from tools.specification_coverage._keys import (
     _ARTIFACT_KEYS,
     _IMPLEMENTATION_SURFACE_KEYS,
@@ -33,27 +32,11 @@ from tools.specification_coverage._primitives import (
 )
 
 
-def _surface_digest_valid(
-    repo_root: Path, recorded_path: object, expected_path: str, expected_sha: object, *, replay_current: bool
-) -> bool:
-    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha):
-        return False
-    try:
-        current = not replay_current or (
-            recorded_path == expected_path and expected_sha == surface_digest(repo_root, expected_path)
-        )
-    except OSError, InvalidInputError:
-        current = False
-    return current
-
-
 def _surface_entry_failures(
     repo_root: Path,
     surface: dict[str, object],
     failures: list[PolicyFailure],
     path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
     surface_id = surface.get("surface_id")
     hashable_id = _hashable(surface_id)
@@ -85,7 +68,7 @@ def _surface_entry_failures(
         )
         return
     expected_sha = surface.get("content_sha256")
-    if not _surface_digest_valid(repo_root, recorded_path, expected_path, expected_sha, replay_current=replay_current):
+    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha):
         failures.append(
             _failure(
                 "specification-coverage-implementation-identity",
@@ -100,8 +83,6 @@ def _validate_implementation_surfaces(
     snapshot: dict[str, object],
     failures: list[PolicyFailure],
     path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
     surfaces = _bounded_list(
         snapshot.get("implementation_surfaces"),
@@ -135,7 +116,7 @@ def _validate_implementation_surfaces(
             label=f"implementation_surfaces[{index}]",
             path=path,
         ):
-            _surface_entry_failures(repo_root, surface, failures, path, replay_current=replay_current)
+            _surface_entry_failures(repo_root, surface, failures, path)
 
 
 def _execute_sdl_artifact(path: Path) -> dict[str, object]:
