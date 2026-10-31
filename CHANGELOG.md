@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.1.0](https://github.com/OpenRAE/rae/compare/v10.0.0...v10.1.0) (2026-10-30)
+
+
+### Features
+
+* admit and retain tool actions inside autonomous invocations ([#1749](https://github.com/OpenRAE/rae/issues/1749)) ([c013dfd](https://github.com/OpenRAE/rae/commit/c013dfd8f7236289e6f5b64d1387ce15832ee016))
+* **sdl:** add a rule source variation slot and resolve generated_by references ([#1748](https://github.com/OpenRAE/rae/issues/1748)) ([1e6f462](https://github.com/OpenRAE/rae/commit/1e6f4625dff2ca6dc7e4f93f291d02652f7fd789))
+
+
+### Bug Fixes
+
+* carry full-size materialization sources under a 4 MiB document limit ([#1746](https://github.com/OpenRAE/rae/issues/1746)) ([2a30a6f](https://github.com/OpenRAE/rae/commit/2a30a6ff186052180389b39f40fb85e98edb4897))
+* **evidence:** record combined-source research captures for dev ([#1751](https://github.com/OpenRAE/rae/issues/1751)) ([7909b70](https://github.com/OpenRAE/rae/commit/7909b700591c5e952542078aa7baec2907cc9a41))
+* **mcp:** report rejected tool arguments without their values ([#1588](https://github.com/OpenRAE/rae/issues/1588)) ([f73acac](https://github.com/OpenRAE/rae/commit/f73acaca589cb573839effad4a95185643392686))
+* **policy:** bound new structural baselines by their adoption commit ([#1752](https://github.com/OpenRAE/rae/issues/1752)) ([e74eb28](https://github.com/OpenRAE/rae/commit/e74eb280f3c0668e09d9b41b77ebf9997683ea11))
+* **runtime:** stop execution adapter portal before interpreter finalization ([#1745](https://github.com/OpenRAE/rae/issues/1745)) ([d16a9fb](https://github.com/OpenRAE/rae/commit/d16a9fb48f1d5ab25e150ce8a7ec3446c5a86796))
+* **sdl:** rename nested service, runtime and content-item references with their parent ([#1587](https://github.com/OpenRAE/rae/issues/1587)) ([2d72d8b](https://github.com/OpenRAE/rae/commit/2d72d8bbf8346547896ed1c6393d5aca6d365541))
+
 ## [10.0.0](https://github.com/OpenRAE/rae/compare/v9.2.0...v10.0.0) (2026-10-30)
 
 
