@@ -26,6 +26,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_apply_results.py` (Accepted runtime ledger assembly and provenance preservation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_node_defaults.py` (Typed default comparison preserves supplied concern values and closed authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/artifact_requirements.py` (Artifact satisfaction contracts use neutral base primitives)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/artifact_requirement_contract.py` (Artifact satisfaction contracts use neutral base primitives)
 - TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_provenance.py` (Prepared addition provenance, failure, lifecycle, persistence and native proposal integrity)
 - TESTS → TEST `implementations/python/tests/test_issue_1099_compiler_explicitness_performance.py` (Explicitness snapshot preserves runtime and plan semantics with one reconstruction)
 - TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_reporting.py` (First-party preparation with materialization, descendant reporting, refresh and deletion)
@@ -245,7 +246,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Process-limit contract exports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/capabilities.py` (Process-limit capability contract model)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/vocabulary.py` (Governed process-limit resource and scope vocabulary)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_envelope_carrier.py` (Selected-configuration binding for typed process-limit capability domains)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_envelope.py` (Selected-configuration binding for typed process-limit capability domains)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/provisioning.py` (Supplied concern presence and process-limit provenance compilation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_process_limits.py` (Typed process-limit admission and constraint semantics)
 - TESTS → TEST `implementations/python/tests/test_issue_1066_runtime_resource_limits.py` (Absent, exact, constrained, open, unsupported, substituted, excess, and evidence conformance)
@@ -277,15 +278,16 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_identity.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/compute_substrate.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_constraints.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/snapshot_entry.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/plan_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_collections.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_profiles.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_binding.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_common.py`

@@ -5,11 +5,11 @@ from __future__ import annotations
 import pytest
 from raes._errors import SDLParseError, SDLValidationError
 from raes.observability_plane_semantics import (
-    ObservabilityEvidencePlane,
     classify_sdl_section_plane,
     collect_scenario_native_observability_refs,
 )
 from raes.parser import parse_sdl
+from raes_contracts.observability_planes import ObservabilityEvidencePlane
 
 OBSERVABILITY_REF = "nodes.siem.runtime.service_listeners.siem-http"
 

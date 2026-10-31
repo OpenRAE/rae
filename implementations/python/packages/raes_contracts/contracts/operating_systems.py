@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pydantic import Field, model_validator
 
+from ..controlled_vocabularies import validate_controlled_vocabulary_value
 from ..operating_systems import validate_operating_system_pair
 from .base import ContractModel, NonEmptyString
 
@@ -17,7 +18,6 @@ class ObservedOperatingSystemIdentityModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_vocabulary(self) -> ObservedOperatingSystemIdentityModel:
-        from ..controlled_vocabularies import validate_controlled_vocabulary_value
 
         validate_controlled_vocabulary_value("provisioner-os-families", self.family)
         validate_controlled_vocabulary_value("os-distributions", self.distribution)

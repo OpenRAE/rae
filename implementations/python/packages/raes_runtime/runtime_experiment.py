@@ -10,8 +10,8 @@ from threading import RLock
 from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
 
-from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts import AdmittedTrialPlanModel
+from raes_contracts.contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts.trial_controls import required_trial_operation_guarantees
 from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError
 from raes_contracts.trial_unit import TrialUnitRequest

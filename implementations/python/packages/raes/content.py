@@ -15,13 +15,14 @@ from typing import Annotated, Literal
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.profile_selections import profile_selection_binding
+from raes_contracts.runtime_values import reject_duplicates
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value, parse_bool_or_var
 
-from ._base import SDLModel, normalize_enum_value, parse_bool_or_var
-from ._identifiers import PortableIdentifier
 from ._source import Source
 from .runtime_generated_value import GeneratedArtifactValueSource
-from .runtime_values import reject_duplicates
 
 
 class ContentType(str, Enum):

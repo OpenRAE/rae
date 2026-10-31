@@ -10,12 +10,11 @@ from raes_contracts.domain_profiles import (
     DomainProfileResolutionContextModel,
 )
 from raes_contracts.observation_demand import (
-    AchievedObservationValue,
     ObservationBasis,
     ObservationDemandResolution,
     ObservationSelector,
-    realization_description_report,
 )
+from raes_contracts.observation_reporting import AchievedObservationValue, realization_description_report
 from test_issue_1209_description_profiles import profiled_payload
 from test_issue_1209_descriptions import description_payload
 from test_issue_1212_runtime_boundaries import _demands

@@ -32,8 +32,8 @@ def test_exact_native_policy_and_contextual_willingness_are_both_required():
 
     from raes_contracts import contracts
     from raes_contracts.contracts.backend_operation_validation import require_backend_execution_policy_admission
+    from raes_contracts.contracts.plan_projection import runtime_plan_digest
     from raes_contracts.execution_policy import ExecutionPolicyCapabilities
-    from raes_contracts.plan_projection import runtime_plan_digest
     from test_issue_1360_backend_operations import capabilities, request_payload, response
 
     scenario = parse_sdl("""
@@ -105,7 +105,7 @@ def test_preparation_admission_preserves_primary_and_scoped_policies():
     from raes_backend_protocols.manifest import backend_manifest_v2_model
     from raes_contracts.canonical import canonical_json_digest
     from raes_contracts.execution_policy import EffectiveExecutionPolicy, ExecutionPolicyCapabilities
-    from raes_contracts.realization_preparation import RealizationPreparationAuthority
+    from raes_contracts.planning import RealizationPreparationAuthority
     from raes_contracts.runtime_state import RuntimeSnapshot
     from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
     from test_issue_1204_backend_preparation import _PreparingBackend, _request

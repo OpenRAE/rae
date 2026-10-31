@@ -8,16 +8,19 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from .contracts import (
-    ActivityStreamsActivityTypesSourceModel,
-    AtlasTacticsSourceModel,
-    AttackEnterpriseTacticsSourceModel,
+from raes_contracts.contracts.external_concept_bindings import (
     ExternalConceptBindingDocumentModel,
     ExternalConceptSchemeCoordinateModel,
     ExternalConceptSubjectModel,
+)
+from raes_contracts.contracts.vocabulary_sources import (
+    ActivityStreamsActivityTypesSourceModel,
+    AtlasTacticsSourceModel,
+    AttackEnterpriseTacticsSourceModel,
     FipaCommunicativeActsSourceModel,
     NistCsfDefensiveCategorySourceModel,
 )
+
 from .contracts.base import ContractModel, NonEmptyString, PrefixedDigestString
 from .diagnostics import Diagnostic, Severity
 from .uri_safety import validate_safe_absolute_uri

@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .contracts import ReferenceModelCatalogModel
+from raes_contracts.contracts.catalogs import ReferenceModelCatalogModel
+
 from .corpus import CONCEPT_AUTHORITY, corpus_family_root
 
 

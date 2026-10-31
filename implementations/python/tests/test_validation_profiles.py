@@ -9,12 +9,12 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.validation_profiles import (
     ValidationProfileCatalogModel,
     load_validation_profile_catalog,
     select_validation_profile,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CATALOG_PATH = REPO_ROOT / "contracts/profiles/validation/validation-profile-catalog-v1.json"

@@ -7,8 +7,8 @@ or Artifact) with dependency graphs. The validator detects cycles.
 from enum import Enum
 
 from pydantic import Field, field_validator
+from raes_contracts.variable_references import normalize_enum_value
 
-from ._base import normalize_enum_value
 from ._classification_guard import LegacyClassificationGuard
 from ._source import Source
 

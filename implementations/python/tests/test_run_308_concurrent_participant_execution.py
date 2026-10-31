@@ -12,7 +12,6 @@ from raes_contracts.contracts import (
     ParticipantJointActionRecordModel,
     ParticipantTimeManagementContextModel,
     RuntimeSnapshotEnvelopeModel,
-    schema_bundle,
 )
 from raes_contracts.participant_concurrency import (
     iter_participant_concurrency_snapshot_violations,
@@ -21,6 +20,7 @@ from raes_contracts.participant_concurrency import (
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.participant_result_contracts import participant_runtime_state_contract_diagnostics
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 STATE_ADDRESS = "hosts.web01.service.http"

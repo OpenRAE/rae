@@ -14,7 +14,7 @@ from raes_conformance.behavioral_validation import (
     BehavioralSubjectKind,
     run_behavioral_validation_probe,
 )
-from raes_contracts.contracts import BehavioralClaimBindingModel
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
 
 _DIGEST_A = "sha256:" + "a" * 64

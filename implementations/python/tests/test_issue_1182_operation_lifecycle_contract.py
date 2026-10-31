@@ -9,7 +9,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.contracts import OperationReceiptModel, OperationStatusModel, schema_bundle
+from raes_contracts.contracts import OperationReceiptModel, OperationStatusModel
 from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from raes_contracts.errors import ConflictError
 from raes_contracts.planning import (
@@ -40,6 +40,7 @@ from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPla
 from raes_runtime.control_plane_store import ControlPlaneOperationRecord, InMemoryControlPlaneStore
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_records import _record_from_payload, _record_payload
+from raes_schemas import schema_bundle
 
 pytestmark = pytest.mark.control_plane_conformance
 

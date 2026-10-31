@@ -5,16 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pydantic import ValidationError
-from raes.artifact_requirements import ArtifactMechanismProfile, ArtifactRequirement
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes.artifact_requirements import ArtifactRequirement
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.apparatus import RealizationSupportDeclaration
+from raes_contracts.artifact_identity import ArtifactMechanismProfile
 from raes_contracts.artifact_requirements import (
     ArtifactAvailabilityContext,
     ArtifactRequirementAvailability,
     ArtifactSatisfactionDisclosureModel,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import ChangeAction, ProvisionOp
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
 from raes_contracts.vocabulary import RealizationSupportMode

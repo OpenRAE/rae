@@ -22,21 +22,22 @@ from raes import (
 )
 from raes._source_profile import SDLMigrationPolicy
 from raes.canonical import migrate_legacy_instantiated_snapshot_join
-from raes.explicitness import ExplicitnessClass
 from raes.instantiate import instantiate_scenario
 from raes.nodes import NodeType
 from raes.realization_designation import ComputeRealizationConcern, RealizationConstraintPosture
 from raes_backend_stubs.stubs import create_stub_manifest, create_stub_target
 from raes_contracts.bounded_domains import EnumDomain, ExactDomain
-from raes_contracts.exploit_path import ExploitPathAnalysisInputModel
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_envelope import ObservationStrength, RealizationConcern
-from raes_contracts.realization_observation import RealizationObservation, bind_compute_substrate_observations
+from raes_contracts.realization_observation import RealizationObservation
+from raes_contracts.realization_operational_observation import bind_compute_substrate_observations
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
-from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
 from raes_processor.compiler import compile_runtime_model
+from raes_processor.exploit_path.evidence import ExploitPathAnalysisInputModel
 from raes_processor.planner import plan
+from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
 from raes_processor.semantics.realization import realization_disclosure
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api_models import _provisioning_plan

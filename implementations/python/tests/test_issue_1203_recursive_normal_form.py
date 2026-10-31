@@ -9,7 +9,6 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 from raes_contracts.bounded_domains import EnumDomain, GovernedReferenceDomain, NullDomain
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
     OpenRealizationValue,
@@ -43,6 +42,7 @@ from raes_contracts.realization_structure import (
     structure_matches,
     upgrade_legacy_realization_structure,
 )
+from raes_schemas import schema_bundle
 
 
 def _closed() -> RealizationClosure:

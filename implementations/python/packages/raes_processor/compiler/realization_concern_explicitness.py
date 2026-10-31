@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
+from raes.explicitness import ExplicitnessRecord
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 
 _PATH_TOKEN_RE = re.compile(r"[^.\[\]]+")
 _RANK = {

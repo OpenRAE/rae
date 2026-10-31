@@ -3,7 +3,7 @@
 import pytest
 from raes import parse_sdl
 from raes_backend_stubs.manifest import create_stub_manifest
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 
@@ -98,7 +98,7 @@ execution_policy:
 def test_policy_round_trip_and_digest_preserve_original_admission():
     from raes_cli.processor import _execution_plan_payload
     from raes_contracts.contracts import ProvisioningPlanModel
-    from raes_contracts.plan_projection import provisioning_plan_digest
+    from raes_contracts.contracts.plan_projection import provisioning_plan_digest
     from raes_runtime.control_plane_api_models import _provisioning_plan
 
     scenario = parse_sdl("""
@@ -218,8 +218,8 @@ execution_policy: {default: {policy_id: one-workflow-invocation, response: termi
     assert workflow.control_steps["try"].max_attempts == 3
     assert compiled.execution_policies[workflow.address][0].policy.retry.max_attempts == 1
     from raes import SDLValidationError
-    from raes.evidence_requirements import EvidenceRequirement
     from raes.validator import SemanticValidator
+    from raes_contracts.evidence_requirements import EvidenceRequirement
     from raes_contracts.execution_policy import ExecutionPolicyDocument
 
     scenario.evidence_requirements["clean"] = EvidenceRequirement(

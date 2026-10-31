@@ -5,6 +5,7 @@
     "grimp": "3.18",
     "import-linter": "2.15",
     "max_repository_ancestors": 7,
+    "ruff": "0.15.9",
     "sibling_depth": 10
   },
   "cycle_components": {
@@ -59,186 +60,6 @@
       [
         "raes_conformance.conformance.modular_control",
         "raes_conformance.conformance.modular_control_policy"
-      ]
-    ],
-    "raes_contracts": [
-      [
-        "raes_contracts._behavioral_profile_loader",
-        "raes_contracts._canonical",
-        "raes_contracts._description_assertions",
-        "raes_contracts._domain_profile_admission",
-        "raes_contracts._domain_profile_contracts",
-        "raes_contracts._domain_profile_resolution",
-        "raes_contracts._domain_profile_validation",
-        "raes_contracts._evidence_content_validation",
-        "raes_contracts._participant_crossing_multi_profile",
-        "raes_contracts._participant_crossing_profile",
-        "raes_contracts._participant_opacity_model",
-        "raes_contracts._participant_opacity_model_check",
-        "raes_contracts._planning_validation",
-        "raes_contracts._snapshot_updates",
-        "raes_contracts.admitted_trial_plan_ingress",
-        "raes_contracts.augmentation_preparation",
-        "raes_contracts.authoring_adapters",
-        "raes_contracts.backend_profiles",
-        "raes_contracts.behavioral_relation_profiles",
-        "raes_contracts.behavioral_relations",
-        "raes_contracts.bounded_domains",
-        "raes_contracts.canonical",
-        "raes_contracts.compute_substrate",
-        "raes_contracts.contracts",
-        "raes_contracts.controlled_vocabularies",
-        "raes_contracts.description_coverage",
-        "raes_contracts.description_projection",
-        "raes_contracts.description_reporting",
-        "raes_contracts.domain_profiles",
-        "raes_contracts.evidence_output_validation",
-        "raes_contracts.evidence_proof",
-        "raes_contracts.evidence_satisfaction",
-        "raes_contracts.execution_policy",
-        "raes_contracts.exploit_path",
-        "raes_contracts.immutable_history",
-        "raes_contracts.immutable_history_stats",
-        "raes_contracts.materialization",
-        "raes_contracts.mixed_runtime_history",
-        "raes_contracts.observation_demand",
-        "raes_contracts.observation_demand_resolution",
-        "raes_contracts.observation_demand_scope",
-        "raes_contracts.observation_demand_validation",
-        "raes_contracts.observation_lifecycle",
-        "raes_contracts.observation_reporting",
-        "raes_contracts.participant_autonomous_state",
-        "raes_contracts.participant_behavior",
-        "raes_contracts.participant_binding",
-        "raes_contracts.participant_binding_events",
-        "raes_contracts.participant_binding_history",
-        "raes_contracts.participant_binding_validation",
-        "raes_contracts.participant_configuration",
-        "raes_contracts.participant_control_evaluation_history",
-        "raes_contracts.participant_flow_policy_profiles",
-        "raes_contracts.participant_information_reconstruction_profiles",
-        "raes_contracts.participant_native_execution",
-        "raes_contracts.participant_opacity",
-        "raes_contracts.participant_outcome_history",
-        "raes_contracts.participant_temporal",
-        "raes_contracts.participant_temporal_assessment",
-        "raes_contracts.participant_temporal_history_index",
-        "raes_contracts.plan_projection",
-        "raes_contracts.planned_realization_constraint",
-        "raes_contracts.planning",
-        "raes_contracts.provenance",
-        "raes_contracts.random_stream_engine",
-        "raes_contracts.random_stream_profiles",
-        "raes_contracts.realization_collections",
-        "raes_contracts.realization_envelope",
-        "raes_contracts.realization_envelope_carrier",
-        "raes_contracts.realization_observation",
-        "raes_contracts.realization_observation_binding",
-        "raes_contracts.realization_observation_demand",
-        "raes_contracts.realization_operational_observation",
-        "raes_contracts.realization_preparation",
-        "raes_contracts.realization_profiles",
-        "raes_contracts.realization_structure",
-        "raes_contracts.resource_measure_profiles",
-        "raes_contracts.runtime_state",
-        "raes_contracts.runtime_value_limits",
-        "raes_contracts.satisfiability",
-        "raes_contracts.scientific_completeness",
-        "raes_contracts.semantic_comparison",
-        "raes_contracts.software_versions",
-        "raes_contracts.validation_profiles"
-      ],
-      [
-        "raes_contracts.participant_episode",
-        "raes_contracts.participant_episode_snapshot"
-      ]
-    ],
-    "raes_contracts.contracts": [
-      [
-        "raes_contracts.contracts.admitted_trial_plan",
-        "raes_contracts.contracts.admitted_trial_plan_components",
-        "raes_contracts.contracts.associated_artifacts",
-        "raes_contracts.contracts.backend_preparation",
-        "raes_contracts.contracts.batch_execution",
-        "raes_contracts.contracts.bundle",
-        "raes_contracts.contracts.bundle_runtime",
-        "raes_contracts.contracts.capabilities",
-        "raes_contracts.contracts.catalogs",
-        "raes_contracts.contracts.experiment_allocation",
-        "raes_contracts.contracts.experiment_apparatus",
-        "raes_contracts.contracts.experiment_artifacts",
-        "raes_contracts.contracts.experiment_bindings",
-        "raes_contracts.contracts.experiment_capture",
-        "raes_contracts.contracts.experiment_conditions",
-        "raes_contracts.contracts.experiment_disclosure",
-        "raes_contracts.contracts.experiment_evidence",
-        "raes_contracts.contracts.experiment_evidence_refinement",
-        "raes_contracts.contracts.experiment_execution_accounting",
-        "raes_contracts.contracts.experiment_factorial",
-        "raes_contracts.contracts.experiment_factorial_treatments",
-        "raes_contracts.contracts.experiment_run",
-        "raes_contracts.contracts.experiment_selection",
-        "raes_contracts.contracts.experiment_spec",
-        "raes_contracts.contracts.experiment_study",
-        "raes_contracts.contracts.experiment_study_contract",
-        "raes_contracts.contracts.experiment_task",
-        "raes_contracts.contracts.experiment_treatments",
-        "raes_contracts.contracts.feature_support",
-        "raes_contracts.contracts.manifests",
-        "raes_contracts.contracts.materialization_attestation",
-        "raes_contracts.contracts.mixed_backend_binding",
-        "raes_contracts.contracts.mixed_backend_schema",
-        "raes_contracts.contracts.mixed_backend_stages",
-        "raes_contracts.contracts.mixed_composition",
-        "raes_contracts.contracts.observation_capture",
-        "raes_contracts.contracts.participant_control",
-        "raes_contracts.contracts.participant_control_applicability",
-        "raes_contracts.contracts.participant_control_composition",
-        "raes_contracts.contracts.participant_control_composition_v2",
-        "raes_contracts.contracts.participant_control_context",
-        "raes_contracts.contracts.participant_control_coordinates",
-        "raes_contracts.contracts.participant_control_decisions_v2",
-        "raes_contracts.contracts.participant_control_effect_composition",
-        "raes_contracts.contracts.participant_control_effects",
-        "raes_contracts.contracts.participant_control_evaluation_v2",
-        "raes_contracts.contracts.participant_control_invocation",
-        "raes_contracts.contracts.participant_control_occurrence_v2",
-        "raes_contracts.contracts.participant_control_profiles",
-        "raes_contracts.contracts.participant_control_results",
-        "raes_contracts.contracts.participant_control_selection",
-        "raes_contracts.contracts.participant_control_support_v2",
-        "raes_contracts.contracts.participant_crossing",
-        "raes_contracts.contracts.participant_decision_surface",
-        "raes_contracts.contracts.participant_decision_surface_exposure",
-        "raes_contracts.contracts.participant_decision_surface_exposure_v2",
-        "raes_contracts.contracts.participant_decision_surface_v2",
-        "raes_contracts.contracts.participant_envelopes",
-        "raes_contracts.contracts.participant_flow_control_context",
-        "raes_contracts.contracts.participant_information_state",
-        "raes_contracts.contracts.participant_information_state_sources",
-        "raes_contracts.contracts.participant_manifests",
-        "raes_contracts.contracts.participant_observation",
-        "raes_contracts.contracts.participant_outcomes",
-        "raes_contracts.contracts.participant_owner_flow",
-        "raes_contracts.contracts.participant_owner_flow_admission",
-        "raes_contracts.contracts.participant_runtime",
-        "raes_contracts.contracts.participant_tool_support",
-        "raes_contracts.contracts.participant_views",
-        "raes_contracts.contracts.processor_capabilities",
-        "raes_contracts.contracts.random_stream",
-        "raes_contracts.contracts.realization_plans",
-        "raes_contracts.contracts.reusable_assets",
-        "raes_contracts.contracts.schema_constraints",
-        "raes_contracts.contracts.semantic_profiles",
-        "raes_contracts.contracts.time_manifest_capabilities",
-        "raes_contracts.contracts.trial_coordinate_order",
-        "raes_contracts.contracts.trial_provenance",
-        "raes_contracts.contracts.validators"
-      ],
-      [
-        "raes_contracts.contracts.trial_analysis",
-        "raes_contracts.contracts.trial_replacement_analysis",
-        "raes_contracts.contracts.trial_replacement_archive"
       ]
     ],
     "raes_runtime": [
@@ -941,84 +762,18 @@
     "raes_contracts._participant_opacity_model_check": {
       "raes_contracts._participant_opacity_model._validate_model_check_claim_scope": 1
     },
-    "raes_contracts.authoring_adapters": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts": {
-      "raes_contracts.contracts.validators._collapse_nullable_optional_schema": 1,
-      "raes_contracts.contracts.validators._resolve_instance_path_schema": 1,
-      "raes_contracts.contracts.validators._resolve_ref_schema": 1,
-      "raes_contracts.contracts.validators._resolve_schema_pointer": 1,
-      "raes_contracts.contracts.validators._validate_reference_model_schema_binding": 1
-    },
-    "raes_contracts.contracts.admitted_trial_plan": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.artifact_transformations": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.associated_artifacts": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.backend_operation_schema": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.batch_execution": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.bundle": {
-      "raes_contracts.contracts.bundle_runtime._runtime_schema_bundle": 1,
-      "raes_contracts.contracts.reusable_assets._backend_profile_schema_for_bundle": 1,
-      "raes_contracts.contracts.reusable_assets._event_stream_schema": 1,
-      "raes_contracts.contracts.schema_constraints._attach_compiled_address_map_constraints": 1,
-      "raes_contracts.contracts.schema_constraints._attach_instantiation_invariants": 1,
-      "raes_contracts.contracts.schema_constraints._attach_json_schema_metadata": 1,
-      "raes_contracts.contracts.schema_constraints._attach_plan_identity_constraints": 1,
-      "raes_contracts.contracts.schema_constraints._attach_sdl_identifier_constraints": 1,
-      "raes_contracts.contracts.schema_constraints._raes_semantic_invariant_profile_schema_for_bundle": 1,
-      "raes_contracts.contracts.schema_constraints._validate_raes_semantic_invariant_annotations": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
-      "raes_contracts.contracts.schema_invariants._attach_experiment_datetime_invariants": 1,
-      "raes_contracts.contracts.schema_invariants._attach_initial_service_state_invariants": 1,
-      "raes_contracts.contracts.schema_invariants._attach_participant_temporal_invariants": 1,
-      "raes_contracts.contracts.schema_invariants._attach_raes_semantic_profile": 1,
-      "raes_contracts.contracts.schema_invariants._attach_stateful_resource_invariants": 1
-    },
     "raes_contracts.contracts.bundle_runtime": {
-      "raes_contracts.contracts.reusable_assets._event_stream_schema": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_plane": 1
-    },
-    "raes_contracts.contracts.candidate_synthesis": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.candidate_synthesis_profiles": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.capabilities": {
-      "raes_contracts.contracts.validators._validate_controlled_vocabulary_terms": 1
-    },
-    "raes_contracts.contracts.catalogs": {
-      "raes_contracts.contracts.validators._authoritative_concept_family_ids": 1,
-      "raes_contracts.contracts.validators._known_contract_ids": 1,
-      "raes_contracts.contracts.validators._uco_cyber_concept_family_provenance": 1,
-      "raes_contracts.contracts.validators._validate_reference_model_schema_binding": 1
     },
     "raes_contracts.contracts.difficulty_adaptation": {
       "raes_contracts.contracts.difficulty_observations._validate_difficulty_evidence_reference": 1
     },
     "raes_contracts.contracts.experiment_analysis": {
       "raes_contracts.contracts.experiment_artifacts._experiment_reference_key": 1,
-      "raes_contracts.contracts.experiment_artifacts._format_reference": 1,
       "raes_contracts.contracts.experiment_conditions._run_satisfies_condition_assignment": 1
     },
     "raes_contracts.contracts.experiment_apparatus": {
-      "raes_contracts.contracts.base._canonical_digest": 1,
-      "raes_contracts.contracts.experiment_artifacts._format_reference": 1,
-      "raes_contracts.contracts.experiment_artifacts._identity_matches_reference": 1,
-      "raes_contracts.contracts.experiment_artifacts._manifest_reference_key": 1,
-      "raes_contracts.contracts.experiment_artifacts._reference_satisfies_requirement": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.experiment_artifacts._manifest_reference_key": 1
     },
     "raes_contracts.contracts.experiment_archival": {
       "raes_contracts.contracts.base._payload_get": 1,
@@ -1026,134 +781,46 @@
       "raes_contracts.contracts.base._validate_rfc3339_payload_field": 1
     },
     "raes_contracts.contracts.experiment_artifacts": {
-      "raes_contracts.contracts.base._CHECKSUM_VALUE_PATTERNS": 1,
-      "raes_contracts.contracts.base._canonical_digest": 1
-    },
-    "raes_contracts.contracts.experiment_bindings": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.base._CHECKSUM_VALUE_PATTERNS": 1
     },
     "raes_contracts.contracts.experiment_capture": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_plane": 1,
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.experiment_conditions": {
-      "raes_contracts.contracts.base._canonical_digest": 1,
-      "raes_contracts.contracts.experiment_artifacts._format_reference": 1,
-      "raes_contracts.contracts.experiment_artifacts._identity_matches_reference": 1,
-      "raes_contracts.contracts.experiment_artifacts._reference_satisfies_requirement": 1
-    },
-    "raes_contracts.contracts.experiment_difficulty": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.schema_invariants._add_raes_plane": 1
     },
     "raes_contracts.contracts.experiment_disclosure": {
-      "raes_contracts.contracts.experiment_artifacts._validate_unique_experiment_references": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
+      "raes_contracts.contracts.experiment_artifacts._validate_unique_experiment_references": 1
     },
     "raes_contracts.contracts.experiment_evidence": {
       "raes_contracts.contracts.experiment_artifacts._validate_unique_experiment_references": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.schema_invariants._add_raes_plane": 1,
       "raes_contracts.contracts.schema_invariants._extend_reported_value_status_schema": 1,
       "raes_contracts.contracts.schema_invariants._validate_reported_value_status": 1
     },
-    "raes_contracts.contracts.experiment_evidence_refinement": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.experiment_execution_accounting_schema": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.experiment_factorial_treatments": {
-      "raes_contracts.contracts.experiment_factorial._condition_bindings": 1,
-      "raes_contracts.contracts.experiment_factorial._factorial_condition_count": 1,
-      "raes_contracts.contracts.experiment_factorial._validate_supplied_materializations": 1
-    },
-    "raes_contracts.contracts.experiment_manifest_references": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
     "raes_contracts.contracts.experiment_run": {
       "raes_contracts.contracts.experiment_apparatus._validate_apparatus_context_satisfies_constraints": 1,
       "raes_contracts.contracts.experiment_artifacts._experiment_reference_key": 1,
-      "raes_contracts.contracts.experiment_artifacts._format_reference": 1,
-      "raes_contracts.contracts.experiment_artifacts._reference_satisfies_requirement": 1,
       "raes_contracts.contracts.experiment_bindings._validate_realized_bindings": 1,
       "raes_contracts.contracts.experiment_run_stochastic._validate_run_stochastic_draw_control_refs": 1,
       "raes_contracts.contracts.schema_invariants._add_carrier_validation_basis_disclosure_invariant": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.schema_invariants._extend_reported_value_status_schema": 1,
-      "raes_contracts.contracts.schema_invariants._validate_reported_value_status": 1,
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.experiment_run_difficulty": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.experiment_run_evidence_validation": {
-      "raes_contracts.evidence_proof._mint_validated_run_evidence": 1
+      "raes_contracts.contracts.schema_invariants._validate_reported_value_status": 1
     },
     "raes_contracts.contracts.experiment_spec": {
       "raes_contracts.contracts.experiment_selection._validate_selection_factor_joins": 1,
       "raes_contracts.contracts.experiment_selection._validate_selection_policy_registry": 1,
-      "raes_contracts.contracts.experiment_study._validate_condition_factor_levels": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.experiment_study": {
-      "raes_contracts.contracts.experiment_conditions._condition_assignment_run_criteria_signature": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.experiment_study._validate_condition_factor_levels": 1
     },
     "raes_contracts.contracts.experiment_study_contract": {
       "raes_contracts.contracts.experiment_study._validate_condition_factor_levels": 1,
-      "raes_contracts.contracts.schema_invariants._add_carrier_validation_basis_disclosure_invariant": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.schema_invariants._add_carrier_validation_basis_disclosure_invariant": 1
     },
     "raes_contracts.contracts.experiment_task": {
-      "raes_contracts.contracts.schema_invariants._add_carrier_validation_basis_disclosure_invariant": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.experiment_treatments": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.external_concept_bindings": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.feature_support": {
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.inject_occurrence_schema": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.manifests": {
-      "raes_contracts.contracts.base._PROCESSOR_CONCEPT_BINDING_SCOPES": 1,
-      "raes_contracts.contracts.validators._validate_canonical_concept_bindings": 1,
-      "raes_contracts.contracts.validators._validate_controlled_vocabulary_terms": 1,
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.materialization_attestation": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.mixed_backend_schema": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.mixed_composition": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.schema_invariants._add_carrier_validation_basis_disclosure_invariant": 1
     },
     "raes_contracts.contracts.mixed_composition_resolution": {
       "raes_contracts.contracts.mixed_composition._validate_profile_limits": 1
     },
-    "raes_contracts.contracts.observation_capture": {
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.participant_context": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.participant_control": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
     "raes_contracts.contracts.participant_control_composition_v2": {
       "raes_contracts.contracts.participant_control_invocation._satisfied": 1
-    },
-    "raes_contracts.contracts.participant_control_context": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
     },
     "raes_contracts.contracts.participant_control_continuation": {
       "raes_contracts.contracts.participant_control_effect_composition._retained_claims": 1,
@@ -1177,16 +844,10 @@
       "raes_contracts.contracts.participant_control_effect_composition._retained_claims": 1,
       "raes_contracts.contracts.participant_control_effect_composition._validate_effect_bounds": 1
     },
-    "raes_contracts.contracts.participant_control_occurrence_v2": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
     "raes_contracts.contracts.participant_control_resolution": {
       "raes_contracts.contracts.participant_control_composition._validate_ifc_result": 1,
       "raes_contracts.contracts.participant_control_inject_resolution._validate_inject": 1,
       "raes_contracts.contracts.participant_control_security_resolution._validate_security_fact": 1
-    },
-    "raes_contracts.contracts.participant_crossing": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
     },
     "raes_contracts.contracts.participant_crossing_prefix": {
       "raes_contracts.contracts.participant_crossing_indexes._RecordIndexes": 1,
@@ -1201,40 +862,18 @@
       "raes_contracts.contracts.participant_crossing_indexes._RecordIndexes": 1,
       "raes_contracts.contracts.participant_crossing_indexes._index_records": 1
     },
-    "raes_contracts.contracts.participant_decision_surface": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
     "raes_contracts.contracts.participant_decision_surface_v2": {
       "raes_contracts.contracts.participant_decision_surface._require_unique": 1,
       "raes_contracts.contracts.participant_decision_surface._surface_entry_indexes": 1,
       "raes_contracts.contracts.participant_decision_surface._validate_surface_affordances": 1,
       "raes_contracts.contracts.participant_decision_surface._validate_surface_form_relations": 1,
-      "raes_contracts.contracts.participant_decision_surface_v2_validation._validate_participant_decision_surface_v2": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.participant_decision_surface_v2_validation._validate_participant_decision_surface_v2": 1
     },
     "raes_contracts.contracts.participant_flow_control": {
-      "raes_contracts.contracts.participant_flow_control_semantics._require_canonical_refs": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.participant_flow_control_semantics._require_canonical_refs": 1
     },
     "raes_contracts.contracts.participant_flow_control_validation": {
       "raes_contracts.contracts.participant_flow_control_incumbent_validation._validate_bindings": 1
-    },
-    "raes_contracts.contracts.participant_information_state": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.participant_manifests": {
-      "raes_contracts.contracts.base._BACKEND_CONCEPT_BINDING_SCOPES": 1,
-      "raes_contracts.contracts.base._PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES": 1,
-      "raes_contracts.contracts.validators._validate_canonical_concept_bindings": 1,
-      "raes_contracts.contracts.validators._validate_controlled_vocabulary_terms": 1,
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.participant_tool_support": {
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.random_stream": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
-      "raes_contracts.contracts.validators._validate_controlled_vocabulary_terms": 1
     },
     "raes_contracts.contracts.reusable_assets": {
       "raes_contracts.contracts.schema_constraints._JSON_SCHEMA_DRAFT_2020_12": 1,
@@ -1242,56 +881,20 @@
       "raes_contracts.contracts.schema_invariants._DEFS_KEY": 1
     },
     "raes_contracts.contracts.schema_constraints": {
-      "raes_contracts.contracts.base._BACKEND_CONCEPT_BINDING_SCOPES": 1,
-      "raes_contracts.contracts.base._PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES": 1,
-      "raes_contracts.contracts.base._PROCESSOR_CONCEPT_BINDING_SCOPES": 1,
       "raes_contracts.contracts.base._RAES_SEMANTIC_INVARIANT_PROFILE_URI": 1,
-      "raes_contracts.contracts.bundle._schema_bundle_template": 1,
-      "raes_contracts.contracts.schema_invariants._DEFS_KEY": 1,
-      "raes_contracts.contracts.schema_invariants._INSTANTIATED_SNAPSHOT_CONTRACT_ID": 1,
-      "raes_contracts.contracts.schema_invariants._INSTANTIATION_INVARIANT_CONTRACT_ID": 1,
-      "raes_contracts.contracts.schema_invariants._SATISFIABILITY_EVIDENCE_CONTRACT_ID": 1,
-      "raes_contracts.contracts.schema_invariants._SCHEMA_MAP_KEYS": 1,
-      "raes_contracts.contracts.schema_invariants._SCHEMA_SUBSCHEMA_KEYS": 1,
-      "raes_contracts.contracts.schema_invariants._SDL_AUTHORING_CONTRACT_ID": 1,
-      "raes_contracts.contracts.schema_invariants._SDL_IDENTIFIER_CONTRACT_IDS": 1
-    },
-    "raes_contracts.contracts.schema_factoring": {
-      "raes_contracts.contracts.schema_invariants._SCHEMA_MAP_KEYS": 1,
-      "raes_contracts.contracts.schema_invariants._SCHEMA_SUBSCHEMA_KEYS": 1
+      "raes_contracts.contracts.schema_invariants._DEFS_KEY": 1
     },
     "raes_contracts.contracts.schema_invariants": {
       "raes_contracts.contracts.base._RAES_SEMANTIC_INVARIANT_PROFILE_URI": 1
     },
     "raes_contracts.contracts.semantic_profiles": {
-      "raes_contracts.contracts.schema_constraints._SEMANTIC_PROFILE_PHASE_ALLOWED_BINDING_SCOPES": 1,
-      "raes_contracts.contracts.validators._authoritative_concept_family_ids": 1,
-      "raes_contracts.contracts.validators._known_contract_ids": 1
-    },
-    "raes_contracts.contracts.semantic_projection": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.time_manifest_capabilities": {
-      "raes_contracts.contracts.validators._validate_unique_string_values": 1
-    },
-    "raes_contracts.contracts.trial_cleanup": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.trial_provenance": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.contracts.trial_replacement": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
+      "raes_contracts.contracts.schema_constraints._SEMANTIC_PROFILE_PHASE_ALLOWED_BINDING_SCOPES": 1
     },
     "raes_contracts.contracts.validation_disclosure": {
       "raes_contracts.contracts.schema_invariants._CARRIER_DISCLOSURES_INSTANCE_PATH": 1,
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
       "raes_contracts.contracts.validation_disclosure_gates._EVIDENCE_REF_REQUIRED_STRENGTHS": 1,
       "raes_contracts.contracts.validation_disclosure_gates._STRENGTH_RANK": 1,
       "raes_contracts.contracts.validation_disclosure_gates._STRENGTH_REQUIRED_GATES": 1
-    },
-    "raes_contracts.contracts.vocabulary_sources": {
-      "raes_contracts.contracts.base._CONTROLLED_VOCABULARY_GOVERNED_SCOPES": 1
     },
     "raes_contracts.description_projection": {
       "raes_contracts.realization_structure._common.closure_for": 1,
@@ -1302,17 +905,6 @@
     },
     "raes_contracts.description_reporting": {
       "raes_contracts.contracts.experiment_artifacts._experiment_reference_key": 1
-    },
-    "raes_contracts.evidence_satisfaction": {
-      "raes_contracts._evidence_content_validation._EvidenceContentCache": 1,
-      "raes_contracts._evidence_content_validation._validate_artifact_content": 1,
-      "raes_contracts.contracts.experiment_artifacts._identity_matches_reference": 1,
-      "raes_contracts.contracts.experiment_artifacts._reference_satisfies_requirement": 1,
-      "raes_contracts.evidence_proof._EVIDENCE_VALIDATION_KEY": 1,
-      "raes_contracts.evidence_proof._mint_validated_run_evidence": 1
-    },
-    "raes_contracts.exploit_path": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
     },
     "raes_contracts.participant_behavior": {
       "raes_contracts._participant_behavior_types._LIFECYCLE_ENUM_FIELDS": 1,
@@ -1333,22 +925,6 @@
     },
     "raes_contracts.planning": {
       "raes_contracts.run_scope._validate_optional_run_id": 1
-    },
-    "raes_contracts.realization_observation": {
-      "raes_contracts.realization_operational_observation._native_compute_substrate_observation_valid": 1,
-      "raes_contracts.realization_operational_observation._prior_disclosure_reusable": 1
-    },
-    "raes_contracts.runtime_state": {
-      "raes_contracts._snapshot_updates._snapshot_updates": 1,
-      "raes_contracts._snapshot_updates._validate_snapshot_update_keys": 1
-    },
-    "raes_contracts.semantic_comparison": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1
-    },
-    "raes_contracts.semantic_comparison_results": {
-      "raes_contracts.contracts.schema_invariants._add_raes_invariant": 1,
-      "raes_contracts.semantic_comparison._IDENTITY_PATTERN": 1,
-      "raes_contracts.semantic_comparison._require_sorted_unique": 1
     },
     "raes_contracts.semantic_projection": {
       "raes_contracts.semantic_projection_facts._SemanticProjectionFact": 1,
@@ -2468,5 +2044,1376 @@
       "raes_runtime.workflow_result_contract_checks._WorkflowContext": 1
     }
   },
-  "schema": "raes.structural-baseline/v1"
+  "schema": "raes.structural-baseline/v1",
+  "private_member_accesses": {
+    "raes._declaration_sources": {
+      "_set_declaration_sources": 1
+    },
+    "raes._language_context": {
+      "_set_declaration_sources": 1
+    },
+    "raes._transformation_remove": {
+      "_set_advisories": 1,
+      "_set_semantic_validated": 1,
+      "_set_source_diagnostics": 1
+    },
+    "raes._transformation_rename": {
+      "_set_advisories": 1,
+      "_set_semantic_validated": 1,
+      "_set_source_diagnostics": 1
+    },
+    "raes.composition._import_admission": {
+      "_set_declaration_sources": 1
+    },
+    "raes.family_admission": {
+      "_set_advisories": 1,
+      "_set_declaration_sources": 1,
+      "_set_semantic_validated": 1,
+      "_set_source_diagnostics": 1
+    },
+    "raes.instantiate": {
+      "_set_advisories": 2,
+      "_set_declaration_sources": 1,
+      "_set_semantic_validated": 2
+    },
+    "raes.materialization": {
+      "_set_advisories": 1,
+      "_set_declaration_sources": 1,
+      "_set_semantic_validated": 1
+    },
+    "raes.parameter_derivations": {
+      "_render": 1
+    },
+    "raes.parser": {
+      "_set_advisories": 2,
+      "_set_semantic_validated": 2,
+      "_set_source_diagnostics": 1
+    },
+    "raes.realization_envelope": {
+      "_set_semantic_validated": 1
+    },
+    "raes.validator._sections": {
+      "_set_explicitness": 1
+    },
+    "raes_backend_protocols.participant_reset": {
+      "_episode_counter": 3,
+      "_history": 3,
+      "_results": 3
+    },
+    "raes_conformance.conformance.participant_temporal_probes": {
+      "_stop_participant_clock_driver": 1
+    },
+    "raes_conformance.necessity_validation": {
+      "_has_authentic_assembly": 1
+    },
+    "raes_conformance.repeatability_validation": {
+      "_has_authentic_assembly": 1
+    },
+    "raes_contracts.contracts.participant_control_episode_prefix": {
+      "_fold": 1
+    },
+    "raes_processor.satisfiability._solver": {
+      "_check_consumed": 1
+    },
+    "raes_processor.trial_compiler.compiler": {
+      "_EntryCompilationAuthority": 1
+    },
+    "raes_runtime.control_plane_api": {
+      "_supervision": 1
+    },
+    "raes_runtime.control_plane_api._auth": {
+      "_target_scope": 1
+    },
+    "raes_runtime.control_plane_api._operation_routes": {
+      "_project_snapshot_read": 2,
+      "_target_scope": 4
+    },
+    "raes_runtime.control_plane_api._participant_routes": {
+      "_project_snapshot_read": 1,
+      "_target_scope": 2
+    },
+    "raes_runtime.control_plane_api_guards": {
+      "_target_scope": 1
+    },
+    "raes_runtime.control_plane_api_participant_retrieval": {
+      "_project_snapshot_read": 2,
+      "_target_scope": 1
+    },
+    "raes_runtime.control_plane_composition": {
+      "_admitted_backend_requests": 1,
+      "_command_commitment_key": 1,
+      "_control_deadlines": 1,
+      "_deployment_id": 1,
+      "_distributed_execution": 1,
+      "_effect_admission_stopped": 2,
+      "_engine": 1,
+      "_execution_adapter": 1,
+      "_execution_deadlines": 1,
+      "_execution_generation": 1,
+      "_inject_delivery": 1,
+      "_inject_execution": 1,
+      "_operation_evidence": 1,
+      "_store": 5,
+      "_store_commits": 1,
+      "_supervision": 1,
+      "_target": 3
+    },
+    "raes_runtime.control_plane_evaluation": {
+      "_target": 1
+    },
+    "raes_runtime.control_plane_execution": {
+      "_claim_record": 3,
+      "_commit_terminal_operation": 3,
+      "_materialization_archive": 1,
+      "_mutation_authority": 2,
+      "_operation_lock": 2,
+      "_reject_diagnostics": 2,
+      "_reload_derived_state": 2,
+      "_snapshot": 3,
+      "_store_commits": 1,
+      "_target": 3
+    },
+    "raes_runtime.control_plane_health": {
+      "_assert_runtime_owner": 1,
+      "_closed": 1,
+      "_closing": 1,
+      "_durability_poisoned": 1,
+      "_lifecycle_condition": 1,
+      "_operation_lock": 1,
+      "_operations": 1,
+      "_run_scope": 1,
+      "_runtime_lease": 1,
+      "_runtime_ready": 1,
+      "_store": 1,
+      "_target_scope": 1
+    },
+    "raes_runtime.control_plane_injects": {
+      "_target": 1
+    },
+    "raes_runtime.control_plane_lifecycle": {
+      "_owner": 1
+    },
+    "raes_runtime.control_plane_local_execution": {
+      "_execution_adapter": 3,
+      "_information_state_context_resolver": 2,
+      "_materialization_archive": 2,
+      "_mutation_authority": 2,
+      "_store_commits": 1,
+      "_target": 3
+    },
+    "raes_runtime.control_plane_recovery": {
+      "_claim_record": 1,
+      "_commit_terminal_operation": 2,
+      "_execution_adapter": 1,
+      "_operation_lock": 1,
+      "_operations": 2,
+      "_refresh_operation_records": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 3,
+      "_supervision": 1,
+      "_target": 1
+    },
+    "raes_runtime.control_plane_resolution_records": {
+      "_target": 1
+    },
+    "raes_runtime.control_plane_store": {
+      "_snapshot_from_payload": 1,
+      "_snapshot_payload": 1
+    },
+    "raes_runtime.control_plane_store_history_rows": {
+      "_generation": 1
+    },
+    "raes_runtime.control_plane_store_maintenance": {
+      "_connection": 1,
+      "_database_path": 1,
+      "_scope_metadata": 1,
+      "_validate_persisted_state": 2
+    },
+    "raes_runtime.control_plane_store_memory": {
+      "_IDEMPOTENCY_KEY_CONFLICT": 1,
+      "_assert_runtime_owner": 1,
+      "_raise_new_claim_block": 4,
+      "_release_runtime_owner": 1,
+      "_require_operation_audit_binding": 2,
+      "_require_operation_record_transition": 2,
+      "_require_same_idempotency_replay": 1,
+      "_require_terminal_commit_mode": 1,
+      "_require_terminal_operation_audit": 1,
+      "_require_terminal_operation_transition": 1,
+      "_require_terminal_retry_mode": 1
+    },
+    "raes_runtime.control_plane_store_postgresql": {
+      "_generation": 1,
+      "_owner": 1
+    },
+    "raes_runtime.control_plane_store_postgresql_mutations": {
+      "_effect_admission_is_stopped": 1,
+      "_insert_audit": 3,
+      "_load_audits": 2,
+      "_load_records": 2,
+      "_load_snapshot_state": 5,
+      "_raise_new_claim_block": 3,
+      "_require_operation_audit_binding": 1,
+      "_require_operation_record_transition": 3,
+      "_require_same_idempotency_replay": 1,
+      "_require_terminal_commit_mode": 1,
+      "_require_terminal_operation_audit": 1,
+      "_require_terminal_operation_transition": 1,
+      "_require_terminal_retry_mode": 1,
+      "_upsert_record": 5
+    },
+    "raes_runtime.control_plane_store_postgresql_projection": {
+      "_generation": 1,
+      "_load_records": 2,
+      "_pending_snapshots": 3,
+      "_snapshot_cache": 1
+    },
+    "raes_runtime.control_plane_store_sql_changes": {
+      "_load_record": 1,
+      "_load_records": 2
+    },
+    "raes_runtime.control_plane_submission": {
+      "_plan_authorization_diagnostics": 1,
+      "_snapshot": 1,
+      "_store_commits": 1,
+      "_target": 2,
+      "_target_scope": 1
+    },
+    "raes_runtime.control_plane_supervised_execution": {
+      "_admitted_backend_requests": 1,
+      "_claim_record": 1,
+      "_commit_terminal_operation": 1,
+      "_deployment_id": 2,
+      "_distributed_execution": 2,
+      "_durability_poisoned": 1,
+      "_effect_admission_stopped": 2,
+      "_execution_adapter": 2,
+      "_execution_deadlines": 1,
+      "_execution_generation": 2,
+      "_mutation_authority": 1,
+      "_operations": 3,
+      "_poison_runtime_durability": 1,
+      "_reject_diagnostics": 2,
+      "_reload_derived_state": 3,
+      "_require_state_writer": 2,
+      "_required_operation_guarantees": 1,
+      "_snapshot": 3,
+      "_snapshot_state": 2,
+      "_store": 3,
+      "_supervision": 2,
+      "_target": 2
+    },
+    "raes_runtime.control_plane_supervision": {
+      "_publish_committed_state": 1,
+      "_required_operation_guarantees": 1,
+      "_resynchronize_after_store_error": 1,
+      "_run_scope": 1,
+      "_store": 1,
+      "_target": 1,
+      "_target_scope": 1
+    },
+    "raes_runtime.inject_capture": {
+      "_execution_adapter": 1,
+      "_mutation_authority": 1,
+      "_snapshot": 1,
+      "_target": 4
+    },
+    "raes_runtime.inject_outcomes": {
+      "_execution_adapter": 2,
+      "_inject_execution": 2,
+      "_mutation_authority": 1,
+      "_operation_evidence": 1,
+      "_supervision": 1
+    },
+    "raes_runtime.interaction_results": {
+      "_information_state_context_resolver": 1
+    },
+    "raes_runtime.interaction_time": {
+      "_participant_activity_controls": 1,
+      "_participant_execution_policies": 1,
+      "_participant_execution_time_model": 1,
+      "_participant_scheduler": 1,
+      "_target": 1
+    },
+    "raes_runtime.manager": {
+      "_RuntimeApplyState": 1
+    },
+    "raes_runtime.manager_inventory": {
+      "_information_state_context_resolver": 1,
+      "_interaction_backend_call": 1,
+      "_materialization_archive": 1,
+      "_target": 1
+    },
+    "raes_runtime.manager_lifecycle": {
+      "_clock_driver_stop_refusal": 1,
+      "_distributed_execution": 1,
+      "_engine": 2,
+      "_participant_driver_apply_precondition": 1,
+      "_reload_derived_state_if_unpinned": 1,
+      "_resource_claim": 1
+    },
+    "raes_runtime.mixed_backend_action": {
+      "_execution_deadlines": 1,
+      "_execution_generation": 1,
+      "_information_state_context_resolver": 1,
+      "_mixed_runtime": 2,
+      "_operations": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 2,
+      "_store": 1,
+      "_supervision": 2
+    },
+    "raes_runtime.mixed_backend_invocation": {
+      "_deployment_id": 2,
+      "_durability_poisoned": 1,
+      "_effect_admission_stopped": 1,
+      "_execution_adapter": 1,
+      "_execution_deadlines": 1,
+      "_execution_generation": 2,
+      "_mixed_runtime": 2,
+      "_mutation_authority": 1,
+      "_operations": 1,
+      "_reject_diagnostics": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 3,
+      "_snapshot_state": 1,
+      "_supervision": 9
+    },
+    "raes_runtime.mixed_runtime": {
+      "_commit_participant_transition": 1,
+      "_mixed_runtime": 1,
+      "_snapshot": 4
+    },
+    "raes_runtime.mixed_runtime_dispatch": {
+      "_mixed_runtime": 1,
+      "_snapshot": 4
+    },
+    "raes_runtime.mixed_runtime_handoff_execution": {
+      "_snapshot": 1
+    },
+    "raes_runtime.mixed_runtime_lifecycle": {
+      "_claim_record": 1,
+      "_commit_participant_transition": 2,
+      "_mixed_runtime": 2,
+      "_mutation_authority": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 1
+    },
+    "raes_runtime.mixed_runtime_phase": {
+      "_claim_record": 1,
+      "_commit_participant_transition": 1,
+      "_composition_operation_kind": 1,
+      "_mixed_runtime": 2,
+      "_reload_derived_state": 1,
+      "_snapshot": 5,
+      "_store": 2,
+      "_supervision": 1
+    },
+    "raes_runtime.mixed_runtime_recovery": {
+      "_operations": 2,
+      "_snapshot": 1
+    },
+    "raes_runtime.operation_command_commitment": {
+      "_command_commitment_key": 1
+    },
+    "raes_runtime.operation_control_budget": {
+      "_control_deadlines": 7
+    },
+    "raes_runtime.operation_provider_control": {
+      "_durability_poisoned": 1,
+      "_execution_deadlines": 1,
+      "_supervision": 1,
+      "_target": 1
+    },
+    "raes_runtime.operation_provider_execution": {
+      "_admitted_backend_requests": 1,
+      "_distributed_execution": 3,
+      "_durability_poisoned": 2,
+      "_effect_admission_stopped": 1,
+      "_execution_adapter": 8,
+      "_execution_deadlines": 3,
+      "_expire_backend_invocation": 1,
+      "_information_state_context_resolver": 1,
+      "_materialization_archive": 2,
+      "_mutation_authority": 5,
+      "_operation_evidence": 1,
+      "_operations": 4,
+      "_poison_runtime_durability": 2,
+      "_reject_diagnostics": 1,
+      "_reload_derived_state": 4,
+      "_snapshot": 1,
+      "_store": 2,
+      "_store_commits": 1,
+      "_supervision": 5,
+      "_target": 6
+    },
+    "raes_runtime.operation_reconciliation": {
+      "_execution_adapter": 1,
+      "_mutation_authority": 1,
+      "_operation_evidence": 1,
+      "_supervision": 1
+    },
+    "raes_runtime.operation_worker_authority": {
+      "_admitted_backend_requests": 1,
+      "_deployment_id": 1,
+      "_effect_admission_stopped": 1,
+      "_execution_deadlines": 1,
+      "_execution_generation": 1,
+      "_run_scope": 1,
+      "_store": 1,
+      "_target": 1,
+      "_target_scope": 1
+    },
+    "raes_runtime.participant_control_action_admission": {
+      "_mixed_control": 2,
+      "_snapshot": 3
+    },
+    "raes_runtime.participant_control_application_mediation": {
+      "_mixed_control": 1,
+      "_snapshot": 6
+    },
+    "raes_runtime.participant_control_archive_projection": {
+      "_control_archive_projections": 1,
+      "_mixed_control": 1,
+      "_snapshot": 1
+    },
+    "raes_runtime.participant_control_binding": {
+      "_snapshot": 1
+    },
+    "raes_runtime.participant_control_cancellation": {
+      "_distributed_execution": 2,
+      "_execution_adapter": 1,
+      "_mutation_authority": 2,
+      "_operation_read_allowed": 2,
+      "_operations": 4,
+      "_reload_derived_state": 1,
+      "_snapshot": 2,
+      "_snapshot_state": 1
+    },
+    "raes_runtime.participant_control_effect_continuations": {
+      "_commit_participant_transition": 1,
+      "_snapshot": 5
+    },
+    "raes_runtime.participant_control_effect_drain": {
+      "_operation_lock": 1,
+      "_operations": 3,
+      "_reload_derived_state": 1
+    },
+    "raes_runtime.participant_control_effect_evidence": {
+      "_commit_participant_transition": 1,
+      "_operations": 2,
+      "_snapshot": 2
+    },
+    "raes_runtime.participant_control_effect_owners": {
+      "_distributed_execution": 1,
+      "_inject_execution": 1,
+      "_mixed_control": 1,
+      "_operation_evidence": 1,
+      "_snapshot_state": 1,
+      "_target": 1
+    },
+    "raes_runtime.participant_control_effects": {
+      "_mutation_authority": 1,
+      "_operations": 1,
+      "_reload_derived_state": 1
+    },
+    "raes_runtime.participant_control_episode_admission": {
+      "_information_state_context_resolver": 1,
+      "_mixed_control": 2,
+      "_mutation_authority": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 2,
+      "_snapshot_state": 2
+    },
+    "raes_runtime.participant_control_evaluation_v2": {
+      "_assert_runtime_owner": 1,
+      "_effect_admission_stopped": 1,
+      "_execution_adapter": 1,
+      "_execution_generation": 2,
+      "_snapshot": 3,
+      "_snapshot_state": 2,
+      "_store": 2,
+      "_supervision": 2
+    },
+    "raes_runtime.participant_control_mediation": {
+      "_behavior_specifications": 1,
+      "_claim_record": 1,
+      "_commit_control_transition": 1,
+      "_participant_control_lock": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 6,
+      "_store": 1
+    },
+    "raes_runtime.participant_control_operation_index": {
+      "_control_operation_index": 1,
+      "_operations": 1
+    },
+    "raes_runtime.participant_control_orchestration": {
+      "_snapshot": 2
+    },
+    "raes_runtime.participant_control_parent_outcomes": {
+      "_snapshot": 1,
+      "_store": 1
+    },
+    "raes_runtime.participant_control_projection": {
+      "_control_state_projection": 1,
+      "_operation_lock": 2,
+      "_snapshot": 1
+    },
+    "raes_runtime.participant_control_receipts": {
+      "_claim_record": 1,
+      "_store": 1
+    },
+    "raes_runtime.participant_control_records": {
+      "_claim_record": 1,
+      "_commit_participant_transition": 1,
+      "_snapshot": 1
+    },
+    "raes_runtime.participant_control_replay": {
+      "_mixed_control": 2,
+      "_snapshot": 1
+    },
+    "raes_runtime.participant_control_request": {
+      "_assert_runtime_owner": 1,
+      "_store": 1
+    },
+    "raes_runtime.participant_control_runtime": {
+      "_behavior_specifications": 1,
+      "_execution_adapter": 1,
+      "_mixed_control": 3,
+      "_mutation_authority": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 1,
+      "_snapshot_state": 2,
+      "_supervision": 1
+    },
+    "raes_runtime.participant_control_targets": {
+      "_operations": 1,
+      "_run_scope": 1,
+      "_snapshot": 2,
+      "_target_scope": 1
+    },
+    "raes_runtime.participant_crossing_action": {
+      "_commit_terminal_operation": 1,
+      "_snapshot": 2
+    },
+    "raes_runtime.participant_crossing_boundary": {
+      "_claim_record": 1,
+      "_commit_participant_transition": 2,
+      "_mixed_runtime": 2,
+      "_mutation_authority": 1,
+      "_participant_control_lock": 1,
+      "_reload_derived_state": 2,
+      "_snapshot": 1,
+      "_snapshot_state": 2
+    },
+    "raes_runtime.participant_crossing_commit": {
+      "_claim_record": 1,
+      "_commit_participant_transition": 1
+    },
+    "raes_runtime.participant_crossing_egress": {
+      "_crossing_policy_resolver": 2,
+      "_participant_control_lock": 1,
+      "_reload_derived_state_if_unpinned": 1,
+      "_snapshot": 4,
+      "_store": 1
+    },
+    "raes_runtime.participant_crossing_intents": {
+      "_snapshot": 4
+    },
+    "raes_runtime.participant_crossing_mediation": {
+      "_snapshot": 5
+    },
+    "raes_runtime.participant_crossing_policy": {
+      "_target": 1
+    },
+    "raes_runtime.participant_crossing_records": {
+      "_crossing_policy_resolver": 2,
+      "_crossing_prefixes": 1,
+      "_snapshot": 5
+    },
+    "raes_runtime.participant_crossing_transform": {
+      "_crossing_policy_resolver": 2
+    },
+    "raes_runtime.participant_decision_surface_control_v2": {
+      "_snapshot": 1
+    },
+    "raes_runtime.participant_driver_failure": {
+      "_commit_terminal_operation": 1,
+      "_mutation_authority": 1,
+      "_pacing_failure_snapshot": 1,
+      "_participant_clock_driver": 1,
+      "_participant_execution_lock": 1,
+      "_reload_derived_state": 1,
+      "_snapshot": 1,
+      "_store": 1
+    },
+    "raes_runtime.participant_flow_sink": {
+      "_claim_record": 1,
+      "_commit_participant_transition": 1,
+      "_snapshot": 2
+    },
+    "raes_runtime.participant_inject_application": {
+      "_behavior_specifications": 1,
+      "_execution_adapter": 1,
+      "_inject_delivery": 9,
+      "_mutation_authority": 1,
+      "_operation_read_allowed": 1,
+      "_read_inject_record": 1,
+      "_reload_derived_state": 2,
+      "_snapshot": 4,
+      "_snapshot_state": 1,
+      "_store": 2,
+      "_supervision": 1
+    },
+    "raes_runtime.participant_inject_control": {
+      "_inject_delivery": 2,
+      "_mixed_control": 2,
+      "_operations": 1,
+      "_snapshot": 2
+    },
+    "raes_runtime.participant_outcome_control": {
+      "_participant_outcome_model": 1
+    },
+    "raes_runtime.participant_retrieval": {
+      "_snapshot": 1
+    },
+    "raes_runtime.participant_submission_options": {
+      "_reject_submission": 1,
+      "_target": 2
+    },
+    "raes_runtime.runtime_engine": {
+      "_abort_runtime_close": 2,
+      "_active_runtime_calls": 1,
+      "_begin_runtime_close": 2,
+      "_close_runtime_lease": 1,
+      "_close_runtime_provider": 1,
+      "_closed": 4,
+      "_closing": 1,
+      "_distributed_execution": 1,
+      "_drain_runtime_calls": 1,
+      "_effect_admission_stopped": 2,
+      "_execution_adapter": 1,
+      "_lifecycle_condition": 7,
+      "_lifecycle_local": 1,
+      "_operations": 1,
+      "_reload_derived_state": 1,
+      "_resource_claim": 1,
+      "_retired": 4,
+      "_run_scope": 6,
+      "_settle_shutdown_invocations": 1,
+      "_snapshot": 2,
+      "_stop_participant_clock_driver": 2,
+      "_store": 12
+    },
+    "raes_runtime.runtime_experiment": {
+      "_engine": 1,
+      "_required_operation_guarantees": 1,
+      "_run_scope": 1,
+      "_store": 7,
+      "_supervision": 1
+    },
+    "raes_runtime.runtime_experiment_admission": {
+      "_execution_adapter": 2,
+      "_store_commits": 1,
+      "_supervision": 3,
+      "_target": 5
+    },
+    "raes_runtime.runtime_experiment_progress": {
+      "_attempt": 2,
+      "_engine": 3,
+      "_progress": 4,
+      "_resource_claim": 2,
+      "_run_scope": 1,
+      "_runtime_call": 2,
+      "_slots": 1,
+      "_store": 2,
+      "_unit": 2
+    },
+    "raes_runtime.runtime_experiment_records": {
+      "_advance_lease": 1,
+      "_authorize": 1,
+      "_run": 1,
+      "_slots": 2,
+      "_store": 3
+    },
+    "raes_runtime.runtime_experiment_replacement": {
+      "_execution_adapter": 2,
+      "_store": 6,
+      "_supervision": 2,
+      "_units": 1
+    },
+    "raes_runtime.runtime_module_step": {
+      "_operations": 2,
+      "_reload_derived_state": 1,
+      "_run_scope": 1,
+      "_store": 3
+    },
+    "raes_runtime.runtime_operation_routing": {
+      "_runtime_call": 1
+    },
+    "raes_runtime.runtime_record_publication": {
+      "_execution_adapter": 2,
+      "_store": 4,
+      "_supervision": 2
+    },
+    "raes_runtime.runtime_record_validation": {
+      "_execution_adapter": 1,
+      "_supervision": 1
+    },
+    "raes_runtime.runtime_resource_ownership": {
+      "_owner": 1
+    },
+    "raes_runtime.runtime_run_cleanup": {
+      "_clock_driver_stop_refusal": 1,
+      "_destroy_delete_plan": 1,
+      "_information_state_context_resolver": 1,
+      "_interaction_backend_call": 1,
+      "_target": 3
+    },
+    "raes_runtime.runtime_run_driver": {
+      "_apply_precondition_failure": 1,
+      "_finalize_participant_driver_apply": 1,
+      "_interaction_plan": 1,
+      "_operations": 1,
+      "_participant_clock_driver": 1,
+      "_participant_driver_apply_precondition": 1,
+      "_reload_derived_state": 1,
+      "_run_scope": 8,
+      "_store": 5,
+      "_target": 1
+    },
+    "raes_runtime.runtime_run_preparation": {
+      "_execution_adapter": 1,
+      "_materialization_archive": 1,
+      "_mutation_authority": 1,
+      "_participant_execution_policies": 2,
+      "_participant_execution_time_model": 1,
+      "_participant_scheduler": 2,
+      "_run_scope": 1,
+      "_snapshot": 1,
+      "_store": 1,
+      "_supervision": 1,
+      "_target": 1,
+      "_time_declaration": 1
+    },
+    "raes_runtime.runtime_sequence_authority": {
+      "_admitted_experiment": 1,
+      "_authorize": 1,
+      "_sequence_bindings": 2,
+      "_store": 3,
+      "_target": 1
+    },
+    "raes_runtime.runtime_study_records": {
+      "_store": 2
+    },
+    "raes_runtime.runtime_temporal_delivery": {
+      "_connected": 1
+    },
+    "raes_runtime.runtime_trial_unit": {
+      "_assert_runtime_owner": 1,
+      "_engine": 3,
+      "_execution_adapter": 2,
+      "_experiments": 1,
+      "_interaction_backend_call": 2,
+      "_mutation_authority": 1,
+      "_resource_claim": 1,
+      "_run_scope": 1,
+      "_runtime_call": 1,
+      "_store": 8,
+      "_supervision": 2,
+      "_target_scope": 1
+    }
+  },
+  "function_imports": {
+    "raes._declaration_sources": {
+      "raes._declarations": 3
+    },
+    "raes._module_declarations": {
+      "raes.module_registry._digests": 1
+    },
+    "raes.canonical": {
+      "raes._legacy_snapshot_classifications": 1,
+      "raes.instantiate": 1
+    },
+    "raes.composition._import_admission": {
+      "raes.validator": 1
+    },
+    "raes.instantiate": {
+      "raes._behavior_authoring": 1
+    },
+    "raes.materialization": {
+      "raes.validator": 1
+    },
+    "raes.module_registry._archive": {
+      "raes.module_registry": 1
+    },
+    "raes.module_registry._cache": {
+      "raes.module_registry": 2
+    },
+    "raes.module_registry._cache_integrity": {
+      "raes.module_registry": 1
+    },
+    "raes.module_registry._verified_sources": {
+      "raes.parser": 2
+    },
+    "raes.module_registry.publishing": {
+      "raes.module_registry": 2,
+      "raes.parser": 2
+    },
+    "raes.module_registry.resolution": {
+      "raes.module_registry": 4,
+      "raes.parser": 4
+    },
+    "raes.parser": {
+      "raes._source_profile": 1,
+      "raes.composition": 1
+    },
+    "raes.participant_control_context": {
+      "raes._declarations": 1,
+      "raes._scenario_instantiation": 1,
+      "raes.entities": 2,
+      "raes.semantics.participant_behavior": 1,
+      "raes.validator": 1
+    },
+    "raes.realization_envelope": {
+      "raes._realization_envelope_projection": 1
+    },
+    "raes.scenario": {
+      "raes._behavior_authoring": 1
+    },
+    "raes.selected_scenario": {
+      "raes.canonical": 1
+    },
+    "raes.validator": {
+      "raes._declarations": 1,
+      "raes._errors": 1
+    },
+    "raes.validator._content_objectives": {
+      "raes.participant_control_context": 1
+    },
+    "raes_backend_protocols.backend_manifest": {
+      "raes_backend_protocols.capabilities": 1
+    },
+    "raes_backend_protocols.capability_admission": {
+      "raes_backend_protocols.capabilities": 1
+    },
+    "raes_backend_stubs.manifest": {
+      "raes_runtime.registry": 1
+    },
+    "raes_cli.entrypoint": {
+      "raes_cli.main": 1,
+      "raes_contracts.operational_logging": 1
+    },
+    "raes_conformance.conformance.modular_control": {
+      "raes_conformance.conformance.modular_control_policy": 1
+    },
+    "raes_conformance.conformance.modular_control_policy": {
+      "raes_conformance.conformance.modular_control": 1
+    },
+    "raes_conformance.conformance.report": {
+      "raes_conformance.conformance.modular_control_report": 1
+    },
+    "raes_conformance.conformance.snapshot_semantics": {
+      "raes_contracts.runtime_state": 1
+    },
+    "raes_mcp.tools.authoring.tools": {
+      "raes": 6
+    },
+    "raes_mcp.tools.completeness": {
+      "raes_contracts.scientific_completeness": 1
+    },
+    "raes_mcp.tools.experiment_authoring": {
+      "raes_contracts.experiment_spec": 1
+    },
+    "raes_mcp.tools.inspection._common": {
+      "raes": 2
+    },
+    "raes_mcp.tools.inspection._elements": {
+      "raes.entities": 2
+    },
+    "raes_mcp.tools.inspection._references": {
+      "raes.nodes": 1
+    },
+    "raes_mcp.tools.inspection._summary": {
+      "raes.nodes": 1
+    },
+    "raes_mcp.tools.operation_support": {
+      "raes": 1,
+      "raes_backend_stubs.stubs": 1,
+      "raes_contracts.errors": 2,
+      "raes_processor.compiler": 1,
+      "raes_processor.planner": 1
+    },
+    "raes_mcp.tools.operations": {
+      "raes": 1,
+      "raes.agent_guidance": 1,
+      "raes_backend_protocols.manifest": 1,
+      "raes_backend_stubs.stubs": 1,
+      "raes_processor.manifest": 1
+    },
+    "raes_operations.run_artifacts": {
+      "raes.canonical": 1,
+      "raes.formatting": 1,
+      "raes.materialization": 1,
+      "raes.parser": 1
+    },
+    "raes_processor.compiler._mixed_control_policy": {
+      "raes_processor.compiler.alias_index": 1
+    },
+    "raes_processor.compiler.materialization_origins": {
+      "raes.prospective_content": 1,
+      "raes_contracts.materialization": 1
+    },
+    "raes_processor.planner.materialization_admission": {
+      "raes_processor.planner.core": 1
+    },
+    "raes_processor.planner.materialization_lineage": {
+      "raes": 1,
+      "raes_processor.planner.materialization_admission": 1
+    },
+    "raes_processor.planner.realization_authority": {
+      "raes_processor.semantics.realization_snapshot_sanitization": 1
+    },
+    "raes_processor.planner.stateful_admission": {
+      "raes_contracts.domain_profiles": 1
+    },
+    "raes_processor.semantics.realization_concern_projections": {
+      "raes.runtime_listeners": 1
+    },
+    "raes_runtime.backend_calls": {
+      "raes_runtime.backend_inventory": 1
+    },
+    "raes_runtime.backend_materialization": {
+      "raes_runtime.backend_inventory": 1
+    },
+    "raes_runtime.backend_preparation": {
+      "raes_contracts.profile_selections": 1
+    },
+    "raes_runtime.backend_profiles": {
+      "raes_contracts.planning": 1
+    },
+    "raes_runtime.control_plane": {
+      "raes_runtime.runtime_experiment": 1,
+      "raes_runtime.runtime_experiment_records": 1,
+      "raes_runtime.runtime_sequence_authority": 2
+    },
+    "raes_runtime.control_plane_admission": {
+      "raes_runtime.control_plane_recovery": 1,
+      "raes_runtime.operation_invocation_ledger": 1
+    },
+    "raes_runtime.control_plane_api._supervision_routes": {
+      "raes_runtime.control_plane_api._responses": 1
+    },
+    "raes_runtime.control_plane_api_models": {
+      "raes_contracts.planning": 1
+    },
+    "raes_runtime.control_plane_composition": {
+      "raes_runtime.control_plane_store_bounded": 1,
+      "raes_runtime.control_plane_store_compatibility": 1,
+      "raes_runtime.registry_target_validation": 1
+    },
+    "raes_runtime.control_plane_durability": {
+      "raes_runtime.control_plane_store_changes": 1,
+      "raes_runtime.participant_control_effect_evidence": 1,
+      "raes_runtime.participant_control_projection": 1
+    },
+    "raes_runtime.control_plane_execution": {
+      "raes_runtime.control_plane_supervised_execution": 1,
+      "raes_runtime.participant_control_episode_admission": 1
+    },
+    "raes_runtime.control_plane_injects": {
+      "raes_runtime.inject_capture": 1,
+      "raes_runtime.inject_schedule": 1,
+      "raes_runtime.participant_inject_application": 2
+    },
+    "raes_runtime.control_plane_lifecycle": {
+      "raes_contracts.runtime_state": 1,
+      "raes_runtime.control_plane_recovery": 1,
+      "raes_runtime.control_plane_store_bounded": 1,
+      "raes_runtime.control_plane_supervised_execution": 1
+    },
+    "raes_runtime.control_plane_local_execution": {
+      "raes_contracts.planning": 1,
+      "raes_runtime.backend_calls": 1,
+      "raes_runtime.backend_observation_calls": 1,
+      "raes_runtime.control_plane_supervised_execution": 1
+    },
+    "raes_runtime.control_plane_mutation": {
+      "raes_runtime.operation_execution_adapter": 1
+    },
+    "raes_runtime.control_plane_plan_authorization": {
+      "raes_processor.planner.mixed_control_admission": 2
+    },
+    "raes_runtime.control_plane_recovery": {
+      "raes_runtime.mixed_runtime_dispatch": 1,
+      "raes_runtime.participant_control_operation_index": 1
+    },
+    "raes_runtime.control_plane_store": {
+      "raes_runtime.operation_reconciliation_ledger": 1
+    },
+    "raes_runtime.control_plane_store_history_rows": {
+      "raes_runtime.control_plane_store_local_invocations": 1
+    },
+    "raes_runtime.control_plane_store_local": {
+      "raes_runtime.control_plane_store_history_rows": 1,
+      "raes_runtime.control_plane_store_sql_changes": 1
+    },
+    "raes_runtime.control_plane_store_local_cache": {
+      "raes_contracts.snapshot_histories": 1
+    },
+    "raes_runtime.control_plane_store_local_records": {
+      "raes_runtime.control_plane_store_sql_changes": 2
+    },
+    "raes_runtime.control_plane_store_local_snapshot": {
+      "raes_contracts.snapshot_histories": 1,
+      "raes_runtime.control_plane_store_history_rows": 5
+    },
+    "raes_runtime.control_plane_store_memory": {
+      "raes_runtime.control_plane_store_changes": 1,
+      "raes_runtime.operation_ledger_transactions": 1,
+      "raes_runtime.participant_control_operation_index": 1
+    },
+    "raes_runtime.control_plane_store_postgresql": {
+      "raes_runtime.control_plane_store": 1,
+      "raes_runtime.control_plane_store_local_invocations": 1,
+      "raes_runtime.control_plane_store_postgresql_mutations": 1,
+      "raes_runtime.control_plane_store_postgresql_projection": 3,
+      "raes_runtime.control_plane_store_postgresql_schema": 4,
+      "raes_runtime.inject_claims": 2
+    },
+    "raes_runtime.control_plane_store_postgresql_mutations": {
+      "raes_runtime.control_plane_store_local_codec": 1,
+      "raes_runtime.control_plane_store_postgresql_projection": 2,
+      "raes_runtime.control_plane_store_records": 1
+    },
+    "raes_runtime.control_plane_store_postgresql_projection": {
+      "raes_contracts.runtime_state": 1,
+      "raes_contracts.snapshot_histories": 2,
+      "raes_runtime.control_plane_store_history_rows": 1,
+      "raes_runtime.control_plane_store_local_invocations": 1
+    },
+    "raes_runtime.control_plane_store_postgresql_schema": {
+      "raes_runtime.runtime_decision_store": 1
+    },
+    "raes_runtime.control_plane_store_revision": {
+      "raes_contracts.snapshot_histories": 1
+    },
+    "raes_runtime.control_plane_store_snapshots": {
+      "raes_contracts.contracts.materialization_attestation": 1,
+      "raes_contracts.immutable_history": 1
+    },
+    "raes_runtime.control_plane_store_sql_changes": {
+      "raes_runtime.control_plane_store_local_codec": 1,
+      "raes_runtime.control_plane_store_records": 1
+    },
+    "raes_runtime.control_plane_store_transitions": {
+      "raes_runtime.inject_claims": 2,
+      "raes_runtime.participant_control_effect_evidence": 1
+    },
+    "raes_runtime.control_plane_supervised_execution": {
+      "raes_runtime.control_plane_execution": 1,
+      "raes_runtime.operation_provider_execution": 1
+    },
+    "raes_runtime.control_plane_supervision": {
+      "raes_runtime.control_plane_supervised_execution": 1,
+      "raes_runtime.operation_provider_control": 1
+    },
+    "raes_runtime.inject_claims": {
+      "raes_contracts.contracts": 1,
+      "raes_runtime.inject_capture": 1,
+      "raes_runtime.participant_inject_control": 1
+    },
+    "raes_runtime.inject_execution": {
+      "raes_runtime.inject_capture": 1
+    },
+    "raes_runtime.inject_outcomes": {
+      "raes_runtime.control_plane_supervised_execution": 1,
+      "raes_runtime.inject_capture": 1
+    },
+    "raes_runtime.interaction": {
+      "raes_contracts.runtime_state": 1,
+      "raes_runtime.control_plane_operation_context": 1,
+      "raes_runtime.errors": 1,
+      "raes_runtime.operation_policy_admission": 1,
+      "raes_runtime.runtime_run_driver": 1
+    },
+    "raes_runtime.interaction_dispatch": {
+      "raes_runtime.interaction_results": 2,
+      "raes_runtime.registry": 1
+    },
+    "raes_runtime.mixed_backend_action": {
+      "raes_runtime.control_plane_store": 1,
+      "raes_runtime.mixed_backend_invocation": 1
+    },
+    "raes_runtime.mixed_runtime": {
+      "raes_contracts.contracts": 1,
+      "raes_runtime.mixed_runtime_phase": 1
+    },
+    "raes_runtime.mixed_runtime_dispatch": {
+      "raes_runtime.mixed_backend_action": 1
+    },
+    "raes_runtime.mixed_runtime_phase": {
+      "raes_runtime.control_plane_store": 1,
+      "raes_runtime.mixed_backend_action": 1,
+      "raes_runtime.mixed_backend_invocation": 3
+    },
+    "raes_runtime.mixed_runtime_recovery": {
+      "raes_runtime.participant_crossing_mediation": 1
+    },
+    "raes_runtime.mixed_runtime_result": {
+      "raes_runtime.mixed_backend_action": 2
+    },
+    "raes_runtime.operation_invocation_ledger": {
+      "raes_contracts.canonical": 1,
+      "raes_contracts.contracts": 1,
+      "raes_contracts.contracts.participant_control_decisions_v2": 1,
+      "raes_runtime.operation_reconciliation_ledger": 1,
+      "raes_runtime.participant_control_effect_continuations": 1
+    },
+    "raes_runtime.operation_provider_control": {
+      "raes_runtime.mixed_backend_installation": 1
+    },
+    "raes_runtime.operation_provider_execution": {
+      "raes_contracts.contracts.backend_operation_validation": 1,
+      "raes_runtime.inject_execution": 1,
+      "raes_runtime.inject_outcomes": 1,
+      "raes_runtime.operation_temporal": 1
+    },
+    "raes_runtime.operation_reconciliation": {
+      "raes_runtime.control_plane_security": 1,
+      "raes_runtime.control_plane_store": 1,
+      "raes_runtime.mixed_backend_installation": 1
+    },
+    "raes_runtime.operation_remote_authority": {
+      "raes_runtime.runtime_sequence_reference": 1
+    },
+    "raes_runtime.operation_temporal": {
+      "raes_runtime.runtime_temporal_delivery": 1
+    },
+    "raes_runtime.operation_temporal_worker": {
+      "raes_contracts.contracts.backend_operation": 1,
+      "raes_runtime.operation_execution_adapter": 2,
+      "raes_runtime.operation_temporal_workflow": 1,
+      "raes_runtime.runtime_temporal_workflow": 1
+    },
+    "raes_runtime.operation_transcript_policy": {
+      "raes_runtime.operation_invocation_ledger": 1
+    },
+    "raes_runtime.operation_worker_authority": {
+      "raes_contracts.contracts": 1,
+      "raes_runtime.operation_provider_execution": 3
+    },
+    "raes_runtime.participant_control_action_admission": {
+      "raes_contracts.diagnostics": 1,
+      "raes_contracts.runtime_state": 1,
+      "raes_runtime.participant_control_archive_projection": 1,
+      "raes_runtime.participant_control_runtime": 1
+    },
+    "raes_runtime.participant_control_application_mediation": {
+      "raes_contracts.contracts.participant_control_episode_prefix": 1,
+      "raes_contracts.snapshot_histories": 1,
+      "raes_runtime.control_plane_security": 1,
+      "raes_runtime.participant_control_archive_projection": 1,
+      "raes_runtime.participant_control_cancellation": 1,
+      "raes_runtime.participant_control_intents": 1,
+      "raes_runtime.participant_control_mediation": 1
+    },
+    "raes_runtime.participant_control_cancellation": {
+      "raes_runtime.control_plane_supervision": 1,
+      "raes_runtime.operation_control_budget": 1,
+      "raes_runtime.operation_provider_control": 1,
+      "raes_runtime.participant_control_receipts": 1
+    },
+    "raes_runtime.participant_control_causal_state": {
+      "raes_contracts.contracts.participant_control_continuation": 1,
+      "raes_runtime.participant_control_projection": 1
+    },
+    "raes_runtime.participant_control_cut": {
+      "raes_contracts.immutable_history": 1
+    },
+    "raes_runtime.participant_control_effect_continuations": {
+      "raes_contracts.snapshot_histories": 1,
+      "raes_runtime.participant_control_projection": 1
+    },
+    "raes_runtime.participant_control_effect_drain": {
+      "raes_runtime.participant_control_effects": 1,
+      "raes_runtime.participant_control_operation_index": 1,
+      "raes_runtime.participant_control_projection": 1
+    },
+    "raes_runtime.participant_control_effect_evidence": {
+      "raes_contracts.contracts.participant_control_decisions_v2": 2,
+      "raes_contracts.contracts.participant_control_resolution": 2,
+      "raes_contracts.immutable_history": 1,
+      "raes_contracts.snapshot_histories": 1,
+      "raes_runtime.participant_control_operation_index": 1,
+      "raes_runtime.participant_control_projection": 3,
+      "raes_runtime.participant_control_receipts": 1,
+      "raes_runtime.participant_control_records": 1
+    },
+    "raes_runtime.participant_control_effect_owners": {
+      "raes_contracts.contracts.participant_control_continuation": 1,
+      "raes_runtime.participant_control_binding": 1,
+      "raes_runtime.participant_control_effects": 1,
+      "raes_runtime.participant_control_evaluation_v2": 1,
+      "raes_runtime.participant_control_mediation": 1,
+      "raes_runtime.participant_control_receipts": 4,
+      "raes_runtime.participant_inject_application": 2
+    },
+    "raes_runtime.participant_control_effects": {
+      "raes_runtime.control_plane_operation_context": 1,
+      "raes_runtime.participant_control_effect_drain": 2,
+      "raes_runtime.participant_control_effect_evidence": 1,
+      "raes_runtime.participant_control_effect_owners": 6,
+      "raes_runtime.participant_control_evaluation_v2": 1,
+      "raes_runtime.participant_control_operation_index": 1,
+      "raes_runtime.participant_control_projection": 2
+    },
+    "raes_runtime.participant_control_episode_admission": {
+      "raes_runtime.participant_control_action_admission": 1
+    },
+    "raes_runtime.participant_control_evaluation_v2": {
+      "raes_runtime.participant_control_effect_evidence": 1,
+      "raes_runtime.participant_control_effect_owners": 1,
+      "raes_runtime.participant_control_orchestration": 2,
+      "raes_runtime.participant_control_projection": 1
+    },
+    "raes_runtime.participant_control_mediation": {
+      "raes_runtime.participant_control_application_mediation": 1
+    },
+    "raes_runtime.participant_control_operation_index": {
+      "raes_contracts.runtime_state": 1,
+      "raes_runtime.control_plane_resolution_records": 1,
+      "raes_runtime.operation_reconciliation_ledger": 1,
+      "raes_runtime.participant_control_effect_evidence": 1,
+      "raes_runtime.participant_control_receipts": 1
+    },
+    "raes_runtime.participant_control_orchestration": {
+      "raes_contracts.snapshot_histories": 1,
+      "raes_runtime.participant_control_effect_evidence": 1,
+      "raes_runtime.participant_control_evaluation_v2": 1
+    },
+    "raes_runtime.participant_control_parent_outcomes": {
+      "raes_runtime.participant_control_effect_evidence": 1,
+      "raes_runtime.participant_control_receipts": 1
+    },
+    "raes_runtime.participant_control_projection": {
+      "raes_contracts.contracts.participant_control_composition": 2,
+      "raes_runtime.participant_control_causal_state": 1,
+      "raes_runtime.participant_control_effects": 2
+    },
+    "raes_runtime.participant_control_receipts": {
+      "raes_contracts.contracts.participant_control_decisions_v2": 3,
+      "raes_runtime.participant_control_effect_evidence": 1,
+      "raes_runtime.participant_control_effect_owners": 1,
+      "raes_runtime.participant_control_operation_index": 2
+    },
+    "raes_runtime.participant_control_replay": {
+      "raes_runtime.participant_inject_control": 1
+    },
+    "raes_runtime.participant_control_runtime": {
+      "raes_runtime.participant_control_operation_index": 1
+    },
+    "raes_runtime.participant_control_targets": {
+      "raes_contracts.immutable_history": 1,
+      "raes_runtime.participant_control_operation_index": 1
+    },
+    "raes_runtime.participant_crossing_action": {
+      "raes_contracts.diagnostics": 1,
+      "raes_contracts.runtime_state": 1,
+      "raes_runtime.control_plane_store": 1
+    },
+    "raes_runtime.participant_crossing_boundary": {
+      "raes_runtime.mixed_backend_action": 2,
+      "raes_runtime.participant_control_action_admission": 1
+    },
+    "raes_runtime.participant_crossing_egress": {
+      "raes_runtime.participant_inject_application": 2
+    },
+    "raes_runtime.participant_crossing_mediation": {
+      "raes_runtime.participant_crossing_policy": 1,
+      "raes_runtime.participant_crossing_records": 1
+    },
+    "raes_runtime.participant_crossing_policy": {
+      "raes_runtime.mixed_runtime_dispatch": 1
+    },
+    "raes_runtime.participant_crossing_records": {
+      "raes_contracts.contracts.participant_crossing_prefix": 1,
+      "raes_contracts.snapshot_histories": 1
+    },
+    "raes_runtime.participant_episode_control": {
+      "raes_runtime.mixed_runtime_lifecycle": 1
+    },
+    "raes_runtime.participant_execution_control": {
+      "raes_runtime.control_plane_recovery": 1,
+      "raes_runtime.participant_driver_failure": 1,
+      "raes_runtime.participant_scheduler": 1
+    },
+    "raes_runtime.participant_inject_application": {
+      "raes_contracts.contracts.participant_control_occurrence_v2": 1,
+      "raes_runtime.participant_inject_control": 2,
+      "raes_runtime.participant_inject_temporal": 1
+    },
+    "raes_runtime.participant_opacity_enforcement": {
+      "raes_contracts.participant_opacity_runtime": 1,
+      "raes_runtime.participant_crossing_mediation": 1
+    },
+    "raes_runtime.participant_resource_budgets": {
+      "raes_runtime.participant_resource_reservation": 1
+    },
+    "raes_runtime.participant_scheduler_concurrency": {
+      "raes_runtime.participant_scheduler_operations": 2,
+      "raes_runtime.participant_scheduler_time": 1,
+      "raes_runtime.participant_scheduler_types": 1
+    },
+    "raes_runtime.participant_scheduler_concurrent_commit": {
+      "raes_runtime.participant_scheduler_operations": 1
+    },
+    "raes_runtime.participant_scheduler_concurrent_dispatch": {
+      "raes_runtime.participant_scheduler_operations": 1
+    },
+    "raes_runtime.participant_scheduler_concurrent_settlement": {
+      "raes_runtime.participant_scheduler_operations": 1
+    },
+    "raes_runtime.registry_scenario": {
+      "raes_contracts.errors": 1,
+      "raes_processor.compiler": 1,
+      "raes_processor.models": 1,
+      "raes_runtime.manager": 1
+    },
+    "raes_runtime.runtime_decisions": {
+      "raes_runtime.runtime_resource_ownership": 1
+    },
+    "raes_runtime.runtime_engine": {
+      "raes_runtime.control_plane_store": 1,
+      "raes_runtime.runtime_decisions": 1,
+      "raes_runtime.runtime_run_context": 1,
+      "raes_runtime.runtime_trial_decisions": 2
+    },
+    "raes_runtime.runtime_experiment": {
+      "raes_runtime.runtime_experiment_progress": 1,
+      "raes_runtime.runtime_experiment_replacement": 1
+    },
+    "raes_runtime.runtime_experiment_progress": {
+      "raes_runtime.runtime_experiment": 2,
+      "raes_runtime.runtime_experiment_replacement": 1
+    },
+    "raes_runtime.runtime_experiment_records": {
+      "raes_runtime.runtime_record_publication": 1,
+      "raes_runtime.runtime_record_validation": 2,
+      "raes_runtime.runtime_study_records": 1
+    },
+    "raes_runtime.runtime_run_context": {
+      "raes_runtime.control_plane_evaluation": 1,
+      "raes_runtime.participant_control_replay": 1,
+      "raes_runtime.runtime_run_driver": 1
+    },
+    "raes_runtime.runtime_run_preparation": {
+      "raes_runtime.participant_scheduler": 1
+    },
+    "raes_runtime.runtime_trial_unit": {
+      "raes_contracts.runtime_state": 1,
+      "raes_runtime.control_plane_mutation": 1
+    }
+  }
 }

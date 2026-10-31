@@ -12,7 +12,7 @@ from ..uri_safety import validate_safe_absolute_uri
 from .base import ContractModel, Sha256DigestString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .participant_decision_state_cut import ParticipantDecisionSurfaceStateCutModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 __all__ = [
     "ParticipantControlContextAssetModel",
@@ -31,7 +31,7 @@ class _ControlContextModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "control-context-trusted-agreement",
             "Full conformance requires trusted exact version, lifecycle, authority, recipient, "

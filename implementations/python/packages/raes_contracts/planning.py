@@ -8,26 +8,29 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal
 
-from raes.explicitness import ExplicitnessProvenance
+from pydantic import ConfigDict, Field
 
-from raes_contracts import _planning_validation as _validation
+from raes_contracts._base import ContractModel
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import DomainDescriptor
 from raes_contracts.compute_substrate import validate_planned_substrate_targets
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.execution_policy import EffectiveExecutionPolicy
+from raes_contracts.explicitness import ExplicitnessProvenance
 from raes_contracts.materialization import MaterializationSource
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planned_realization_constraint import PlannedRealizationConstraint as PlannedRealizationConstraint
-from raes_contracts.realization_preparation import RealizationPreparationAuthority
+from raes_contracts.realization_collections import PreparedNodeCollectionAuthority
 from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
 from raes_contracts.run_scope import PlanScope, _validate_optional_run_id
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
+from .execution_policy import validate_effective_execution_policies
+
 _INVALID_PLAN_PURPOSE = "Invalid plan purpose"
 
 if TYPE_CHECKING:
-    from raes_contracts.contracts import RealizationEnvelopeIdentityModel
+    from raes_contracts.contracts.realization_plans import RealizationEnvelopeIdentityModel
     from raes_contracts.domain_profiles import DomainProfileBindingModel
     from raes_contracts.realization_profiles import PlanProfileAuthority
 
@@ -318,7 +321,7 @@ class PlanOperation:
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)
-        _validation._validate_operation_policy(self)
+        _validate_operation_policy(self)
         for dependency in (*self.ordering_dependencies, *self.refresh_dependencies):
             require_compiled_address(dependency, field_name="dependency address")
 
@@ -336,6 +339,20 @@ class OrchestrationOp(PlanOperation):
 
 class EvaluationOp(PlanOperation):
     """Evaluation reconciliation operation."""
+
+
+BACKEND_PREPARATION_CONTRACT = "backend-realization-preparation-v1"
+
+
+class RealizationPreparationAuthority(ContractModel):
+    """Conditional execution authority sealed into the original authenticated plan."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    contract_id: Literal["backend-realization-preparation-v1"] = BACKEND_PREPARATION_CONTRACT
+    manifest_digest: str = Field(pattern=r"^sha256:[a-f0-9]{64}$")
+    node_collection: PreparedNodeCollectionAuthority | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 @dataclass(frozen=True)
@@ -373,12 +390,12 @@ class ProvisioningPlan:
             raise ValueError("ProvisioningPlan operation_id must be non-empty when present")
         _validate_optional_run_id(self.run_id, owner="ProvisioningPlan run_id")
         _validate_optional_run_id(self.instantiation_id, owner="ProvisioningPlan instantiation_id")
-        _validation._validate_plan_addresses(self.resources, self.operations, domain=RuntimeDomain.PROVISIONING)
+        _validate_plan_addresses(self.resources, self.operations, domain=RuntimeDomain.PROVISIONING)
         validate_planned_substrate_targets(
             ((item.address, item.concern) for item in self.realization_constraints),
             (op.address for op in self.operations if op.action != ChangeAction.DELETE and op.resource_type == "node"),
         )
-        _validation._validate_realization_authority(self.operations, self.realization_authority)
+        _validate_realization_authority(self.operations, self.realization_authority)
 
     @property
     def actionable_operations(self) -> list[ProvisionOp]:
@@ -404,7 +421,7 @@ class OrchestrationPlan:
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:
             raise ValueError(_INVALID_PLAN_PURPOSE)
-        _validation._validate_plan_addresses(
+        _validate_plan_addresses(
             self.resources,
             self.operations,
             self.startup_order,
@@ -439,7 +456,7 @@ class EvaluationPlan:
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:
             raise ValueError(_INVALID_PLAN_PURPOSE)
-        _validation._validate_plan_addresses(
+        _validate_plan_addresses(
             self.resources,
             self.operations,
             self.startup_order,
@@ -453,21 +470,73 @@ class EvaluationPlan:
         return [op for op in self.operations if op.action != ChangeAction.UNCHANGED]
 
 
-__all__ = (
+def _validate_plan_addresses(
+    resources: dict[str, PlannedResource],
+    operations: list[PlanOperation],
+    startup_order: list[str] | None = None,
+    *,
+    domain: RuntimeDomain,
+) -> None:
+    for map_key, resource in resources.items():
+        require_compiled_address(map_key, field_name="resource map key")
+        if map_key != resource.address:
+            raise ValueError("Plan resource map key must equal embedded address")
+        if resource.domain is not domain:
+            raise ValueError("Plan resource domain must equal the plan domain")
+        require_plan_operation_identity(domain, resource.address, resource.resource_type)
+    operation_addresses = [operation.address for operation in operations]
+    for operation in operations:
+        require_plan_operation_identity(domain, operation.address, operation.resource_type)
+    if len(operation_addresses) != len(set(operation_addresses)):
+        raise ValueError("Plan operation addresses must be unique")
+    if startup_order is None:
+        return
+    for address in startup_order:
+        require_compiled_address(address, field_name="startup_order address")
+    if len(startup_order) != len(set(startup_order)):
+        raise ValueError("Plan startup_order addresses must be unique")
+    unknown = set(startup_order) - set(operation_addresses)
+    if unknown:
+        raise ValueError("Plan startup_order must reference admitted operation addresses")
+
+
+def _validate_realization_authority(
+    operations: list[PlanOperation],
+    authority: tuple[ResolvedRealizationAuthority, ...],
+) -> None:
+    identities = [(entry.address, entry.requirement_kind) for entry in authority]
+    if len(identities) != len(set(identities)):
+        raise ValueError("Provisioning plan realization authority must identify unique concerns")
+    pointers = [(entry.address, entry.payload_pointer) for entry in authority]
+    if len(pointers) != len(set(pointers)):
+        raise ValueError("Provisioning plan realization authority payload pointers must be unique per resource")
+    admitted_addresses = {operation.address for operation in operations if operation.action is not ChangeAction.DELETE}
+    stale = sorted({entry.address for entry in authority} - admitted_addresses)
+    if stale:
+        raise ValueError("Provisioning plan realization authority must reference non-delete operations")
+
+
+def _validate_operation_policy(operation: PlanOperation) -> None:
+    validate_effective_execution_policies(operation.execution_policy, operation.execution_policy_scopes)
+
+
+__all__ = [
+    "BACKEND_PREPARATION_CONTRACT",
     "ChangeAction",
     "EvaluationOp",
     "EvaluationPlan",
     "OrchestrationOp",
     "OrchestrationPlan",
-    "PlanOperation",
-    "PlanScope",
     "PLAN_ADDRESS_ROOT_BY_DOMAIN",
     "PLAN_RESOURCE_TYPES_BY_DOMAIN",
+    "PlanOperation",
+    "PlanScope",
     "PlannedResource",
     "ProvisionOp",
     "ProvisioningPlan",
     "RealizationAuthorityBound",
     "RealizationAuthorityMode",
+    "RealizationPreparationAuthority",
     "RealizationResolutionSource",
     "ResolvedRealizationAuthority",
     "RuntimeDomain",
@@ -475,9 +544,9 @@ __all__ = (
     "planned_node_resources",
     "planned_node_source",
     "planned_node_spec",
+    "planned_realization_authority",
     "planned_resource_authored_name",
     "planned_resource_name",
     "planned_resource_payload",
-    "planned_realization_authority",
     "require_plan_operation_identity",
-)
+]

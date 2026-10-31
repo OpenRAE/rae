@@ -6,8 +6,8 @@ from dataclasses import replace
 import pytest
 from raes_backend_protocols.capabilities import OperatingSystemCompatibility
 from raes_backend_stubs.stubs import StubProvisioner
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_observation import ObservedOperatingSystemIdentity, RealizationObservationDisclosure
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ObservationStrength, RealizationSupportMode, RealizationVerificationScope
 from raes_processor.compiler import compile_runtime_model

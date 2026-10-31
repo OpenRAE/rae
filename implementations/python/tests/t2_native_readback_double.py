@@ -16,14 +16,14 @@ from raes_backend_stubs.stubs import create_stub_components
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, RealizationConcern
-from raes_contracts.realization_observation import (
-    RealizationObservation,
+from raes_contracts.realization_observation import RealizationObservation
+from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
+from raes_contracts.realization_operational_observation import (
     bind_compute_substrate_observations,
     compute_substrate_readback_addresses,
+    invoke_native_readback,
     missing_compute_substrate_readbacks,
 )
-from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
-from raes_contracts.realization_operational_observation import invoke_native_readback
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 from raes_contracts.vocabulary import ObservationStrength
 from raes_runtime.registry import RuntimeTarget

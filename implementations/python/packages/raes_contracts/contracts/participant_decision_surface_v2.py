@@ -31,7 +31,7 @@ from .participant_decision_surface_exposure_v2 import ParticipantDecisionSurface
 from .participant_decision_surface_v2_validation import _validate_participant_decision_surface_v2
 from .participant_manifests import DigestString
 from .participant_runtime import ParticipantRuntimeDeliveryBasis
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 _SURFACE_V2_VALIDATOR = "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
 
@@ -264,7 +264,7 @@ class ParticipantDecisionSurfaceV2Model(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "decision-surface-v2-plane-separation",
             "The participant view contains only participant-available choice material; derivation, policy, evidence, "
@@ -272,7 +272,7 @@ class ParticipantDecisionSurfaceV2Model(ContractModel):
             validator=_SURFACE_V2_VALIDATOR,
             inputs=[{"contract_id": "participant-decision-surface-v2", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "decision-surface-v2-exact-cut-policy",
             "Each exposed item is bound to the derivation state cut and exact policy decision, independently of the "
@@ -280,14 +280,14 @@ class ParticipantDecisionSurfaceV2Model(ContractModel):
             validator=_SURFACE_V2_VALIDATOR,
             inputs=[{"contract_id": "participant-decision-surface-v2", "instance_path": "#/assurance"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "decision-surface-v2-delivery-before-selection",
             "A surface is actionable only in delivered state, with delivery bound to the canonical participant view.",
             validator=_SURFACE_V2_VALIDATOR,
             inputs=[{"contract_id": "participant-decision-surface-v2", "instance_path": "#/delivery"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "decision-surface-v2-explicit-memory-scope",
             "Assurance declares whether participant-visible memory persists across episodes; an episode-local claim "

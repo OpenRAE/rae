@@ -23,7 +23,7 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from . import abstract, concrete
 from .aut import parse_aut as parse_aut
 from .aut import render_aut
-from .ingress import MAX_BYTES, read_bytes, safe_path
+from .ingress import MAX_BYTES, read_bytes, read_bytes_if_present, safe_path
 
 PROFILE_PATH = "contracts/profiles/behavioral-relation/participant-crossing-dpbb-finite-v1.json"
 OUTPUT_PATH = "specs/formal/participant-semantics/crossing-models/rev2"
@@ -39,7 +39,6 @@ SOURCE_PATHS = (
     "implementations/formal/participant_crossing/export.py",
     _PACKAGE + "raes_contracts/_participant_crossing_profile.py",
     _PACKAGE + "raes_contracts/behavioral_relation_profiles.py",
-    _PACKAGE + "raes_contracts/_behavioral_profile_loader.py",
     _PACKAGE + "raes_contracts/canonical.py",
     _PACKAGE + "raes_contracts/_canonical.py",
     _PACKAGE + "raes_contracts/json_ingress.py",
@@ -61,6 +60,17 @@ SOURCE_PATHS = (
 
 def digest(content: bytes) -> str:
     return "sha256:" + hashlib.sha256(content).hexdigest()
+
+
+def source_drift(root: Path, pins: dict[str, str]) -> list[str]:
+    """Return each pinned path whose current bytes differ from its pin. A removed path has drifted."""
+
+    drifted = []
+    for path, pin in pins.items():
+        content = read_bytes_if_present(root, path)
+        if content is None or digest(content) != pin:
+            drifted.append(path)
+    return sorted(drifted)
 
 
 # The CLI starts a fresh interpreter in this checkout. A caller may export a

@@ -14,10 +14,14 @@ kind + bounded attributes + typed references — never raw object bodies.
 """
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    parse_optional_bool_or_var,
+    parse_runtime_enum_or_var,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
 
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel
 from .runtime_platform_application_content import (
     RuntimePlatformApplicationCapability,
     RuntimePlatformApplicationConnector,
@@ -48,7 +52,6 @@ from .runtime_secret_service import (
     RuntimeSecretVersion,
     RuntimeServiceSecret,
 )
-from .runtime_values import parse_optional_bool_or_var, parse_runtime_enum_or_var, require_symbol
 
 __all__ = [
     "RuntimeCloudServiceLimit",

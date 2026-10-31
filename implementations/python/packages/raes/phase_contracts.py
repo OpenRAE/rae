@@ -9,13 +9,13 @@ from typing import Annotated, Literal
 
 from pydantic import Field, JsonValue, SerializerFunctionWrapHandler, model_serializer, model_validator
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.identifiers import PortableIdentifier, QualifiedName, require_module_identifier
 from raes_contracts.json_pointer import unescape_token
 
-from ._identifiers import PortableIdentifier, QualifiedName, require_module_identifier
 from ._phase_base import JSON_POINTER_RE as _JSON_POINTER_RE
 from ._phase_base import FrozenPhaseModel, JSONScalar
 from ._phase_base import json_value_equal as _json_value_equal
-from .explicitness import ExplicitnessClass, ExplicitnessProvenance
 from .parameter_derivations import ParameterDerivation
 from .realization_designation import RealizationConstraintRecord, RealizationDesignationRecord
 

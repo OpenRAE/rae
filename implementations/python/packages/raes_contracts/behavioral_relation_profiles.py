@@ -1,31 +1,21 @@
-"""Closed, corpus-backed parameter profiles for behavioral relations."""
+"""Closed, corpus-backed parameter profiles for behavioral relations and their bounded loaders."""
 
 from __future__ import annotations
 
+import os
+import stat
+from functools import cache
+from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field, GetJsonSchemaHandler, model_validator
+from pydantic import Field, GetJsonSchemaHandler, ValidationError, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
-from ._behavioral_profile_loader import (
-    SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS as SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS,
-)
-from ._behavioral_profile_loader import (
-    behavioral_relation_profile_path as behavioral_relation_profile_path,
-)
-from ._behavioral_profile_loader import (
-    behavioral_relation_profiles_root as behavioral_relation_profiles_root,
-)
-from ._behavioral_profile_loader import (
-    load_behavioral_relation_profile as load_behavioral_relation_profile,
-)
-from ._behavioral_profile_loader import (
-    load_behavioral_relation_profile_from_path as load_behavioral_relation_profile_from_path,
-)
-from ._behavioral_profile_loader import (
-    load_behavioral_relation_profile_revision as load_behavioral_relation_profile_revision,
-)
+from raes_contracts._base import ContractModel, NonEmptyString, PrefixedDigestString
+from raes_contracts.behavioral_claims import BehavioralTaxonomyRevision
+from raes_contracts.identifiers import is_portable_identifier
+
 from ._participant_crossing_multi_profile import (
     MultiParticipantCrossingParametersModel,
     multi_crossing_profile_schema_join,
@@ -39,13 +29,11 @@ from ._participant_crossing_profile import (
     crossing_profile_schema_join,
     validate_crossing_profile_join,
 )
+from .behavioral_authority_errors import BehavioralAuthorityArtifactError, BehavioralAuthorityUnsupportedError
 from .canonical import canonical_json_digest
-from .contracts.base import (
-    BehavioralTaxonomyRevision,
-    ContractModel,
-    NonEmptyString,
-    PrefixedDigestString,
-)
+from .corpus import PROFILES, corpus_family_root
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from .operational_logging import get_logger
 from .versions import BEHAVIORAL_RELATION_PROFILE_SCHEMA_VERSION
 
 ProfileId = Annotated[
@@ -432,20 +420,127 @@ class BehavioralRelationProfileModel(ContractModel):
         return canonical_json_digest(self.model_dump(mode="json"))
 
 
+_LOGGER = get_logger(__name__)
+_MAX_PROFILE_BYTES = 256 * 1024
+_PROFILE_INVALID = "behavioral relation profile JSON or contract is invalid"
+SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS = frozenset(
+    {
+        "participant-opacity-baseline-v1",
+        "participant-opacity-runtime-reference-v1",
+        "participant-opacity-theorem-v1",
+        "participant-crossing-dpbb-finite-v1",
+        "participant-crossing-multi-operation-dpbb-finite-v1",
+    }
+)
+
+
+def behavioral_relation_profiles_root() -> Path:
+    return corpus_family_root(PROFILES) / "behavioral-relation"
+
+
+def _validate_profile_id(profile_id: str) -> None:
+    if not is_portable_identifier(profile_id):
+        raise BehavioralAuthorityUnsupportedError(
+            "requested behavioral relation profile id must be a portable identifier"
+        )
+    if profile_id not in SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS:
+        raise BehavioralAuthorityUnsupportedError("requested behavioral relation profile is unsupported")
+
+
+def behavioral_relation_profile_path(profile_id: str) -> Path:
+    _validate_profile_id(profile_id)
+    return behavioral_relation_profiles_root() / f"{profile_id}.json"
+
+
+def load_behavioral_relation_profile_from_path(
+    profile_id: str,
+    path: Path,
+) -> BehavioralRelationProfileModel:
+    """Load one trusted profile path after strict bounded JSON ingress."""
+
+    _validate_profile_id(profile_id)
+    try:
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        with os.fdopen(descriptor, "rb") as stream:
+            if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                raise BehavioralAuthorityArtifactError(_PROFILE_INVALID)
+            content = stream.read(_MAX_PROFILE_BYTES + 1)
+        payload = parse_bounded_json_object(
+            content,
+            max_bytes=_MAX_PROFILE_BYTES,
+        )
+        profile = BehavioralRelationProfileModel.model_validate(payload)
+    except OSError, StrictJsonIngressError, ValidationError:
+        # A trusted profile path fails here only when the artifact or installation is damaged.
+        _LOGGER.exception("behavioral relation profile %s failed bounded ingress", profile_id)
+        raise BehavioralAuthorityArtifactError(_PROFILE_INVALID) from None
+    if profile.profile_id != profile_id:
+        raise BehavioralAuthorityArtifactError(
+            "behavioral relation profile artifact identity does not match the requested profile"
+        )
+    return profile
+
+
+@cache
+def load_behavioral_relation_profile(
+    profile_id: str,
+) -> BehavioralRelationProfileModel:
+    return load_behavioral_relation_profile_from_path(
+        profile_id,
+        behavioral_relation_profile_path(profile_id),
+    )
+
+
+_HISTORICAL_PROFILE_PATHS = {
+    (
+        "participant-opacity-baseline-v1",
+        "sem-231/rev2",
+    ): behavioral_relation_profiles_root() / "history" / "participant-opacity-baseline-v1-sem-231-rev2.json",
+    (
+        "participant-opacity-runtime-reference-v1",
+        "sem-231/runtime-rev1",
+    ): behavioral_relation_profiles_root()
+    / "history"
+    / "participant-opacity-runtime-reference-v1-sem-231-runtime-rev1.json",
+}
+
+
+@cache
+def load_behavioral_relation_profile_revision(
+    profile_id: str,
+    profile_revision: str,
+) -> BehavioralRelationProfileModel:
+    """Resolve an exact immutable profile revision for evidence replay."""
+
+    _validate_profile_id(profile_id)
+    historical_path = _HISTORICAL_PROFILE_PATHS.get((profile_id, profile_revision))
+    if historical_path is not None:
+        profile = load_behavioral_relation_profile_from_path(profile_id, historical_path)
+        if profile.profile_revision != profile_revision:
+            raise BehavioralAuthorityArtifactError(
+                "historical behavioral relation profile revision does not match its registry entry"
+            )
+        return profile
+    current = load_behavioral_relation_profile(profile_id)
+    if current.profile_revision == profile_revision:
+        return current
+    raise BehavioralAuthorityUnsupportedError("requested behavioral relation profile revision is unsupported")
+
+
 __all__ = [
-    "HIDDEN",
-    "INPUT_CLASSES",
-    "VISIBLE",
-    "ParticipantCrossingParametersModel",
-    "MultiParticipantCrossingParametersModel",
-    "ActiveOpacityStrategyModel",
     "AbstractOpacityCarrierModel",
+    "ActiveOpacityStrategyModel",
     "BehavioralRelationProfileModel",
     "CoalitionOpacityObserverModel",
     "FiniteOpacityCarrierModel",
+    "HIDDEN",
+    "INPUT_CLASSES",
+    "MultiParticipantCrossingParametersModel",
     "OpacityFiniteBoundsModel",
+    "ParticipantCrossingParametersModel",
     "ParticipantPredicateOpacityParametersModel",
     "SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS",
+    "VISIBLE",
     "behavioral_relation_profile_path",
     "behavioral_relation_profiles_root",
     "load_behavioral_relation_profile",

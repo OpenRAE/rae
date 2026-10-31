@@ -2,8 +2,9 @@
 
 from dataclasses import dataclass
 
-from .contracts import ParticipantActionResultModel
-from .participant_binding_validation import require_non_empty
+from raes_contracts.contracts.participant_binding_validation import require_non_empty
+from raes_contracts.contracts.participant_runtime import ParticipantActionResultModel
+
 from .runtime_state import ApplyResult
 
 

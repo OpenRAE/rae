@@ -25,16 +25,17 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import Field, GetJsonSchemaHandler, model_validator
+from pydantic import Field, GetJsonSchemaHandler, StrictInt, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.identifiers import PortableIdentifier
+
+from raes_contracts.identifiers import PortableIdentifier
 
 from ..versions import RANDOM_STREAM_PROFILE_SCHEMA_VERSION, RANDOM_STREAM_VECTOR_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, NonNegativeInteger, PositiveInteger, SemanticProfileId
 from .experiment_references import ExperimentReferenceModel
-from .schema_invariants import _add_raes_invariant
-from .validators import _validate_controlled_vocabulary_terms
+from .schema_invariants import add_raes_invariant
+from .validators import validate_controlled_vocabulary_terms
 
 RANDOM_STREAM_DRAW_PURPOSE_SCOPE = "random_streams.draw_purpose"
 
@@ -136,7 +137,7 @@ class StreamAddressModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_draw_purpose(self) -> StreamAddressModel:
-        _validate_controlled_vocabulary_terms(RANDOM_STREAM_DRAW_PURPOSE_SCOPE, [self.draw_purpose])
+        validate_controlled_vocabulary_terms(RANDOM_STREAM_DRAW_PURPOSE_SCOPE, [self.draw_purpose])
         return self
 
     @classmethod
@@ -147,7 +148,7 @@ class StreamAddressModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "random-stream-address-draw-purpose-governed",
             "draw_purpose must be a term from the random_streams.draw_purpose controlled vocabulary.",
@@ -170,7 +171,7 @@ class ParticipantStreamAddressModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_address(self) -> ParticipantStreamAddressModel:
-        _validate_controlled_vocabulary_terms(RANDOM_STREAM_DRAW_PURPOSE_SCOPE, [self.draw_purpose])
+        validate_controlled_vocabulary_terms(RANDOM_STREAM_DRAW_PURPOSE_SCOPE, [self.draw_purpose])
         if not self.policy_address.startswith("participant.autonomous-execution."):
             raise ValueError("participant stream policy_address must be a compiled autonomous-execution address")
         if not self.participant_address.startswith("participant.behavior."):
@@ -185,7 +186,7 @@ class ParticipantStreamAddressModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-random-stream-address-governed",
             (
@@ -196,6 +197,20 @@ class ParticipantStreamAddressModel(ContractModel):
             inputs=[{"contract_id": "controlled-vocabularies-v1", "instance_path": "#"}],
         )
         return json_schema
+
+
+AllocationOrdinal = Annotated[StrictInt, Field(ge=0, le=999999)]
+
+
+class AllocationStreamAddressModel(ContractModel):
+    """A plan-scope slot, never an SDL point or a selected trial coordinate."""
+
+    address_profile: Literal["allocation-address-v1"] = "allocation-address-v1"
+    namespace: PortableIdentifier
+    allocation_policy_id: PortableIdentifier
+    draw_purpose: Literal["condition-assignment"] = "condition-assignment"
+    slot: AllocationOrdinal
+    local_coordinate: Literal[0] = 0
 
 
 class RandomStreamControlBindingModel(ContractModel):
@@ -290,7 +305,7 @@ class RandomStreamProfileModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "random-stream-profile-transform-keys-match",
             "transforms dict keys must match each entry's embedded transform_id.",
@@ -339,7 +354,7 @@ class RandomStreamDrawRecordModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "random-stream-draw-record-local-coordinate-matches-address",
             "local_coordinate must match address.local_coordinate.",
@@ -349,7 +364,7 @@ class RandomStreamDrawRecordModel(ContractModel):
             ),
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/stochastic_draws"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "random-stream-draw-record-outcome-matches-exhaustion",
             "outcome must be present exactly when rejection_exhausted is false, and absent when true.",

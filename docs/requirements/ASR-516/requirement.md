@@ -25,7 +25,7 @@ Retains the RAES conformance responsibility while HUB-6 owns cross-product task 
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1005-asr-516-authoring-adapter-semantic-consistency-preflight.md` (ASR-516 authoring adapter semantic consistency architecture preflight)
 - IMPLEMENTS → DOCUMENTATION `specs/conformance/authoring-adapters.md` (Bounded authoring observation and independent comparison-axis contract)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/authoring_adapters.py` (Closed vector, profile and comparison contracts)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py` (Published authoring contract registration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py` (Published authoring contract registration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/authoring_adapters.py` (Profile-bound corpus loading and authoring-path comparison)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/_authoring_observations.py` (Production output admission and incumbent evidence projection)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/validators.py` (Authoring conformance model registration)

@@ -200,11 +200,8 @@ def test_protocol_result_finalization_is_bounded_while_an_archive_remains_blocke
 @pytest.mark.parametrize("distributed", [False, True])
 @pytest.mark.parametrize("collection_fails", [False, True])
 def test_protocol_success_runs_and_retains_the_native_observation_lifecycle(distributed, collection_fails):
-    from raes_contracts.observation_demand import (
-        ObservationDemandRule,
-        ObservationLifecycleStage,
-        normalize_observation_demands,
-    )
+    from raes_contracts.observation_demand import ObservationDemandRule, ObservationLifecycleStage
+    from raes_contracts.observation_demand_resolution import normalize_observation_demands
     from raes_runtime.observation_execution import ConfiguredObservationRuntime
     from test_issue_1212_observation_demand import _document, _runtime_capability, _runtime_capability_id, _selector
     from test_issue_1362_distributed_authority import Dispatcher, worker

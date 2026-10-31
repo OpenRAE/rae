@@ -334,7 +334,7 @@ def test_new_wire_coordinates_have_schema_and_model_shape_parity():
 
     from jsonschema import Draft202012Validator
     from raes_backend_protocols.manifest import backend_manifest_payload
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     validator = Draft202012Validator(schema_bundle()["backend-manifest-v2"])
     original = backend_manifest_payload(supported_manifest(max_bindings=2))

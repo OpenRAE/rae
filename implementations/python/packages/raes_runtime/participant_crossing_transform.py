@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingSubjectReferenceModel
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
 from .control_plane_mutation import external_control_plane_call
 from .participant_control_intents import ParticipantControlIntent, ParticipantControlIntentBase

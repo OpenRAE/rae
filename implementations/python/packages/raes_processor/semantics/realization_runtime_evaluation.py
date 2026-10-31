@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_resource_limits import (
     process_resource_limit_capability_admits,
     process_resource_limit_identity_digest,
@@ -16,6 +15,7 @@ from raes_contracts.apparatus import (
 )
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.realization_structure import (
     RealizationRelationStatus,

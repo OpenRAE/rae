@@ -146,7 +146,7 @@ def _cached_snapshot_state(
     if pending is not None and pending[0] == identity:
         return pending[1]
     cache = getattr(connection, "snapshot_cache", None)
-    from raes_contracts.immutable_history import snapshot_history_roots_match
+    from raes_contracts.snapshot_histories import snapshot_history_roots_match
 
     if (
         cache is not None

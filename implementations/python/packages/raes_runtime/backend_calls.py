@@ -6,9 +6,9 @@ from dataclasses import dataclass, is_dataclass
 
 from pydantic import BaseModel
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import RaesError
-from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot

@@ -8,13 +8,12 @@ from raes_contracts.contracts.realization_descriptions import TypedRealizationDe
 from raes_contracts.description_coverage import DescriptionCoverageUnsatisfied
 from raes_contracts.description_projection import assess_realization_description, description_conflict
 from raes_contracts.observation_demand import (
-    AchievedObservationValue,
     ObservationBasis,
     ObservationDemandMode,
     ObservationDemandResolution,
     ObservationSelector,
-    realization_description_report,
 )
+from raes_contracts.observation_reporting import AchievedObservationValue, realization_description_report
 from raes_contracts.realization_structure import RealizationClosure
 from test_issue_1209_description_relations import authored_and_capture
 from test_issue_1209_descriptions import description_payload

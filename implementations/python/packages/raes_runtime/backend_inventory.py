@@ -7,8 +7,8 @@ from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive
 from raes_contracts.errors import RaesError
-from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.materialization_inventory import InventoryInvariant
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import ProvisioningPlan

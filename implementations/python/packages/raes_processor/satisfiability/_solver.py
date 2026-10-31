@@ -9,7 +9,8 @@ from typing import Literal
 
 import z3
 from raes_contracts.errors import OperationalError
-from raes_contracts.satisfiability import NormalizedConstraintModel, SatisfiabilityOutcome
+
+from raes_processor.satisfiability.evidence import NormalizedConstraintModel, SatisfiabilityOutcome
 
 SOLVER_TIMEOUT_MS: Literal[5000] = 5000
 _MAX_OPERATIONAL_REASON_CHARS = 256

@@ -8,10 +8,10 @@ from dataclasses import replace
 import pytest
 from pydantic import TypeAdapter
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.apparatus import RealizationObservationCapability
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry

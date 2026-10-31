@@ -15,8 +15,8 @@ from mixed_control_rev1_scenarios import delivery_binding, legacy_scenario, rev1
 from mixed_control_v2_support import History
 from pydantic import TypeAdapter, ValidationError
 from raes.participant_behavior_specification import MixedControlDeclaration
-from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes_contracts.contracts import ParticipantControlOccurrenceV2Model
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCHEMAS = (

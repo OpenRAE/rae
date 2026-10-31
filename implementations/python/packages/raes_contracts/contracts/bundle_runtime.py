@@ -60,10 +60,10 @@ from .participant_views import (
 )
 from .reusable_assets import (
     ReusableAssetTrustPolicyModel,
-    _event_stream_schema,
+    event_stream_schema,
 )
 from .runtime_facts import RuntimeFactBindingPlaneModel
-from .schema_invariants import _add_raes_invariant, _add_raes_plane
+from .schema_invariants import _add_raes_plane, add_raes_invariant
 
 
 def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
@@ -85,7 +85,7 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
             validator = "raes_contracts.contracts.ParticipantControlSelectionV2Model.model_validate"
         else:
             validator = "raes_contracts.contracts.ParticipantControlSelectionModel.model_validate"
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "participant-control-resolved-context"
             if "evaluation" in contract_id
@@ -100,7 +100,7 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
     return schemas
 
 
-def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
+def runtime_schema_bundle() -> dict[str, dict[str, Any]]:
     return {
         "participant-control-context-asset-v1": ParticipantControlContextAssetModel.model_json_schema(),
         "participant-control-context-change-v1": ParticipantControlContextChangeModel.model_json_schema(),
@@ -109,16 +109,16 @@ def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
         **inject_occurrence_schema_bundle(),
         **_participant_control_schema_bundle(),
         **mixed_backend_schema_bundle(),
-        "evaluation-history-event-stream-v1": _event_stream_schema(
+        "evaluation-history-event-stream-v1": event_stream_schema(
             "EvaluationHistoryEventStream",
             EvaluationHistoryEventModel.model_json_schema(),
         ),
         "participant-episode-state-envelope-v1": ParticipantEpisodeStateModel.model_json_schema(),
-        "participant-episode-history-event-stream-v1": _event_stream_schema(
+        "participant-episode-history-event-stream-v1": event_stream_schema(
             "ParticipantEpisodeHistoryEventStream",
             ParticipantEpisodeHistoryEventModel.model_json_schema(),
         ),
-        "participant-behavior-history-event-stream-v1": _event_stream_schema(
+        "participant-behavior-history-event-stream-v1": event_stream_schema(
             "ParticipantBehaviorHistoryEventStream",
             ParticipantBehaviorHistoryEventModel.model_json_schema(),
         ),

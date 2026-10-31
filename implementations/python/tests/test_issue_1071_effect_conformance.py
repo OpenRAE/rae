@@ -110,9 +110,9 @@ def test_effect_reopen_retains_exact_claim_and_owner(tmp_path):
 
 def test_world_inject_executes_a_fresh_occurrence_and_matches_file_readback(tmp_path):
     from participant_inject_runtime_fixtures import configured_plane
-    from raes.participant_inject_delivery import ParticipantInjectDelivery
     from raes_contracts.canonical import canonical_json_digest
     from raes_contracts.contracts.participant_control_effects import ControlInjectEffectModel
+    from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
     from raes_runtime.participant_control_effects import ParticipantControlEffectOperation
     from raes_runtime.time_coordinator import TimeCoordinator
     from test_issue_1368_control_inject_owner import effect_target

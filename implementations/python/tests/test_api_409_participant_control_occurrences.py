@@ -11,10 +11,10 @@ from pydantic import ValidationError
 from raes_contracts.contracts import (
     ParticipantControlDeclarationModel,
     ParticipantControlOccurrenceModel,
-    schema_bundle,
     validate_participant_control_occurrence_context,
 )
 from raes_contracts.contracts.participant_control import ParticipantControlTargetContextModel
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CONTRACT_ID = "participant-control-occurrence-v1"

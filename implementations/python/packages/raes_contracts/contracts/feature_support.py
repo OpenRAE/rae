@@ -8,10 +8,11 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..controlled_vocabularies import load_controlled_vocabulary_catalog
 from ..manifest_authority import PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES
 from ..vocabulary import ParticipantFeatureSupportLevel
 from .base import ContractModel, NonEmptyString
-from .validators import _validate_unique_string_values
+from .validators import validate_unique_string_values
 
 _PARTICIPANT_FEATURE_SUPPORT_VOCABULARY_IDS = (
     "participant-runtime-behavior-features",
@@ -20,7 +21,6 @@ _PARTICIPANT_FEATURE_SUPPORT_VOCABULARY_IDS = (
 
 
 def _validate_participant_feature_support_term(feature: str) -> None:
-    from ..controlled_vocabularies import load_controlled_vocabulary_catalog
 
     catalog = load_controlled_vocabulary_catalog()
     for vocabulary_id in _PARTICIPANT_FEATURE_SUPPORT_VOCABULARY_IDS:
@@ -49,10 +49,10 @@ class ParticipantFeatureSupportModel(ContractModel):
     @model_validator(mode="after")
     def _validate_feature_support_declaration(self) -> ParticipantFeatureSupportModel:
         _validate_participant_feature_support_term(self.feature)
-        _validate_unique_string_values("constraint_refs", self.constraint_refs)
-        _validate_unique_string_values("limitation_refs", self.limitation_refs)
-        _validate_unique_string_values("disclosure_refs", self.disclosure_refs)
-        _validate_unique_string_values("evidence_refs", self.evidence_refs)
+        validate_unique_string_values("constraint_refs", self.constraint_refs)
+        validate_unique_string_values("limitation_refs", self.limitation_refs)
+        validate_unique_string_values("disclosure_refs", self.disclosure_refs)
+        validate_unique_string_values("evidence_refs", self.evidence_refs)
         if self.support_level != ParticipantFeatureSupportLevel.EXACT and not self.disclosure_refs:
             raise ValueError(
                 f"feature_support entry '{self.feature}' declares support_level "

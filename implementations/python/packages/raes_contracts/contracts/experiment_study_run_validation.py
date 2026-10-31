@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from ..evidence_proof import ValidatedRunEvidence
+from raes_contracts.contracts.evidence_satisfaction import ValidatedRunEvidence
+
 from .experiment_apparatus import ExperimentTaskModel
 from .experiment_run import ExperimentRunModel, validate_experiment_run_structure_against_task
 from .experiment_run_evidence_validation import (

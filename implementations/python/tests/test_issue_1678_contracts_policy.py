@@ -174,9 +174,9 @@ def test_optional_observation_failure_is_a_logged_loss(records):
         ObservationLifecycleDecision,
         ObservationPurpose,
         ObservationSelector,
-        execute_observation_lifecycle,
-        normalize_observation_demands,
     )
+    from raes_contracts.observation_demand_resolution import normalize_observation_demands
+    from raes_contracts.observation_lifecycle import execute_observation_lifecycle
 
     selector = ObservationSelector(semantic_scope="/nodes/kali", data_kind="stream", names=("filesystem-trace",))
     document = ObservationDemandDocument(
@@ -231,7 +231,7 @@ def test_behavioral_profile_loader_hides_and_logs_a_damaged_artifact(tmp_path, r
         load_behavioral_relation_profile_from_path(profile_id, damaged)
     assert refused.value.__suppress_context__ is True
     assert SENTINEL not in str(refused.value)
-    [record] = records("raes_contracts._behavioral_profile_loader")
+    [record] = records("raes_contracts.behavioral_relation_profiles")
     assert "StrictJsonIngressError" in record.exc_text
     _assert_value_free(record)
 
@@ -251,7 +251,7 @@ def test_teaching_profile_loader_keeps_value_error_for_a_damaged_artifact(tmp_pa
 
 def test_damaged_published_evidence_schema_and_emitted_json_stay_value_errors(tmp_path, monkeypatch):
     from raes_contracts import evidence_output_validation
-    from raes_contracts._evidence_content_validation import _parse_contract_document
+    from raes_contracts.contracts.evidence_satisfaction import _parse_contract_document
 
     content = _DUPLICATE_OBJECT.encode()
     with pytest.raises(ValueError, match="does not satisfy the declared output_contract") as emitted:
@@ -266,7 +266,7 @@ def test_damaged_published_evidence_schema_and_emitted_json_stay_value_errors(tm
     )
     monkeypatch.setattr(evidence_output_validation, "corpus_family_root", lambda _family: tmp_path)
     with pytest.raises(ValueError, match="no valid published schema") as schema:
-        evidence_output_validation.resolve_evidence_output_contract("experiment-evidence-record-v1")
+        evidence_output_validation.resolve_evidence_output_schema("experiment-evidence-record-v1")
     assert isinstance(schema.value.__cause__, StrictJsonIngressError)
 
 
@@ -375,7 +375,7 @@ def test_autonomous_state_violation_names_fields_without_snapshot_values():
 
 def test_stream_address_canonicalization_failure_omits_the_address_value():
     from raes_contracts.contracts.random_stream import StreamAddressModel, TrialCoordinateModel
-    from raes_contracts.random_stream_engine import canonical_stream_address_bytes
+    from raes_contracts.contracts.random_stream_engine import canonical_stream_address_bytes
 
     oversized = 2**60 + 1678
     address = StreamAddressModel.model_construct(
@@ -392,7 +392,10 @@ def test_stream_address_canonicalization_failure_omits_the_address_value():
 
 
 def test_profile_and_corpus_messages_omit_host_paths(tmp_path, monkeypatch):
-    from raes_contracts.random_stream_profiles import load_random_stream_profile_from_path, random_stream_profile_path
+    from raes_contracts.contracts.random_stream_profiles import (
+        load_random_stream_profile_from_path,
+        random_stream_profile_path,
+    )
 
     artifact = tmp_path / "profile.json"
     artifact.write_text(random_stream_profile_path("blake3-xof-v1").read_text(encoding="utf-8"), encoding="utf-8")

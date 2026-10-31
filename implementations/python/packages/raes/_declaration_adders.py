@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING
 
+from raes_contracts.identifiers import QualifiedName
+
 from ._declaration_index import Declaration, DeclarationIndex
-from ._identifiers import QualifiedName
 from ._module_symbols import HASHMAP_SECTIONS
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild
 from .variation import AlternativeVariationPoint, structural_members

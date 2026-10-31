@@ -6,8 +6,8 @@ from dataclasses import replace
 import pytest
 import yaml
 from raes import instantiate_scenario, parse_sdl
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_observation import RealizationObservationDisclosure
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_contracts.vocabulary import ObservationStrength
 from raes_processor.compiler import compile_runtime_model

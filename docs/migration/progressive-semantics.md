@@ -13,7 +13,8 @@ small closed model with no ambiguous sentinel leaves:
 
 ```python
 from raes import render_sdl_source
-from raes.semantic_migration import SDLSemanticMigrationContext, migrate_sdl_semantics
+from raes.semantic_migration import migrate_sdl_semantics
+from raes.semantic_migration_context import SDLSemanticMigrationContext
 from raes.semantic_revisions import source_byte_digest
 
 source = "name: example\nnodes: {host: {type: compute}}\n"

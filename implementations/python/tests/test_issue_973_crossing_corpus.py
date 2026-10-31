@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import pytest
-from raes_contracts.errors import EvidenceIntegrityError, OperationalError
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -70,6 +70,24 @@ def test_executing_source_drift_stops_before_checker(monkeypatch) -> None:
     monkeypatch.setattr(corpus, "compare", lambda *args, **kwargs: pytest.fail("checker ran with stale source"))
     with pytest.raises(EvidenceIntegrityError, match="executing source"):
         corpus.build_bundle(ROOT)
+
+
+def test_a_removed_historical_source_is_drift_and_an_unsafe_one_is_refused(tmp_path: Path) -> None:
+    from implementations.formal.participant_crossing.export import digest, source_drift
+
+    (tmp_path / "kept.py").write_bytes(b"same")
+    (tmp_path / "changed.py").write_bytes(b"new")
+    (tmp_path / "link.py").symlink_to(tmp_path / "kept.py")
+    pins = {
+        "kept.py": digest(b"same"),
+        "changed.py": digest(b"old"),
+        "removed.py": digest(b"gone"),
+        "gone/deep.py": digest(b"gone"),
+    }
+
+    assert source_drift(tmp_path, pins) == ["changed.py", "gone/deep.py", "removed.py"]
+    with pytest.raises(InvalidInputError, match="unsafe"):
+        source_drift(tmp_path, {"link.py": digest(b"same")})
 
 
 def test_calibration_pairs_keep_distinct_relation_expectations() -> None:

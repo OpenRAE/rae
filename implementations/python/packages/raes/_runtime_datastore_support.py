@@ -4,7 +4,7 @@ Split out of ``runtime_datastore_partitions.py`` (ADR-015 file-size governance).
 Used by both the node child models and the partition/cluster/setting children.
 """
 
-from .runtime_filesystem import RuntimeSensitivityClassification
+from raes_contracts.runtime_values import RuntimeSensitivityClassification
 
 # Sensitivity classes whose raw value must never be recorded.
 _REDACTED_SENSITIVITIES = (

@@ -7,7 +7,7 @@ import yaml
 from pydantic import ValidationError
 from raes._errors import SDLParseError, SDLValidationError
 from raes.parser import parse_sdl
-from raes.participant_outcome_semantics import OutcomeInterpretationRule
+from raes_contracts.participant_outcome_semantics import OutcomeInterpretationRule
 from raes_processor.compiler import compile_runtime_model
 from test_sem_215_participant_outcome_interpretation import RULE_ADDRESS, _scenario_yaml
 

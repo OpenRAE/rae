@@ -11,7 +11,6 @@ import jsonschema
 import pytest
 from pydantic import ValidationError
 from raes._errors import SDLParseError
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, parse_sdl_file
 from raes.realization_designation import (
@@ -32,6 +31,7 @@ from raes_contracts.apparatus import (
     RealizationObservationCapability,
     RealizationSupportDeclaration,
 )
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import (
     ChangeAction,
     ProvisioningPlan,

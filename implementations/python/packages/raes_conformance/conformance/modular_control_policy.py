@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from raes import parse_sdl
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_contracts.errors import EvidenceIntegrityError, RaesError
 from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.operational_logging import get_logger
-from raes_contracts.plan_projection import provisioning_plan_model
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_runtime.registry import RuntimeTarget

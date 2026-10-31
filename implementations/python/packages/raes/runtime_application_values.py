@@ -1,11 +1,15 @@
 """Sensitivity-governed values exposed through runtime application routes."""
 
 from pydantic import ConfigDict, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
+    enforce_observed_value_redaction,
+    parse_runtime_enum_or_var,
+)
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from .runtime_filesystem import RuntimeSensitivityClassification, redacted_raw_value_schema
-from .runtime_values import enforce_observed_value_redaction, parse_runtime_enum_or_var
-from .runtime_vocabulary import GovernedVocabulary
+from .runtime_filesystem import redacted_raw_value_schema
 
 _REDACTED_SENSITIVITIES = (
     RuntimeSensitivityClassification.REDACTED,

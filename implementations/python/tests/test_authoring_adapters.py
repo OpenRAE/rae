@@ -15,10 +15,10 @@ from raes_conformance.authoring_adapters import (
 )
 from raes_contracts.authoring_adapters import AuthoringAdapterComparisonModel, parse_authoring_vector
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.diagnostics import DiagnosticModel, Severity
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import StrictJsonIngressError
+from raes_schemas import schema_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
 

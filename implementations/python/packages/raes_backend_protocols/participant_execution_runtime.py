@@ -5,14 +5,12 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionServiceStateModel,
 )
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantActionApplyResult,
-)
+from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .participant_action_commit import reject_participant_action_outcome

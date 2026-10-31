@@ -22,13 +22,13 @@ from raes_contracts.account_credentials import (
     value_free_account_placement_payload,
 )
 from raes_contracts.contracts import BackendManifestV2Model
-from raes_contracts.diagnostics import diagnostic_payload
-from raes_contracts.errors import InvalidInputError, OperationalError
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.diagnostics import diagnostic_payload
+from raes_contracts.errors import InvalidInputError, OperationalError
 from raes_contracts.planning import ChangeAction
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.exploit_path import (

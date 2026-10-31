@@ -21,9 +21,9 @@ import raes_runtime.participant_scheduler_operations as scheduler_operations
 import yaml
 from raes.parser import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing_prefix import CrossingPrefix
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, OperationalError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
 from raes_runtime.control_plane import RuntimeControlPlane

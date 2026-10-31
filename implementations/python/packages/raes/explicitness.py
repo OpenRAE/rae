@@ -9,13 +9,13 @@ from enum import Enum
 from typing import Protocol, cast
 
 from pydantic import BaseModel
+from raes_contracts.explicitness import ExplicitnessClass as _ExplicitnessClass
+from raes_contracts.explicitness import ExplicitnessProvenance as _ExplicitnessProvenance
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE, extract_variable_name
 
-from ._base import VARIABLE_TOKEN_RE, extract_variable_name
 from .variables import Variable
 
 __all__ = [
-    "ExplicitnessClass",
-    "ExplicitnessProvenance",
     "ExplicitnessRecord",
     "ExplicitnessResult",
     "classify_authoring_specificity",
@@ -25,31 +25,15 @@ __all__ = [
 ]
 
 _OPEN_ENUM_SENTINELS = frozenset({"unknown", "other"})
-_EXPLICITNESS_ORDER: dict[ExplicitnessClass, int] = {}
+_EXPLICITNESS_ORDER: dict[_ExplicitnessClass, int] = {}
 _PATH_TOKEN_RE = re.compile(r"[^.\[\]]+|\[\d+\]")
-
-
-class ExplicitnessClass(str, Enum):
-    """SEM-218 author-intent class for a declaration."""
-
-    EXACT = "exact"
-    CONSTRAINED = "constrained"
-    OPEN = "open"
-
-
-class ExplicitnessProvenance(str, Enum):
-    """Where the classified value came from in the SDL lifecycle."""
-
-    AUTHOR_DECLARED = "author-declared"
-    PROCESSOR_DERIVED = "processor-derived"
-    BACKEND_REALIZED = "backend-realized"
 
 
 _EXPLICITNESS_ORDER.update(
     {
-        ExplicitnessClass.OPEN: 0,
-        ExplicitnessClass.CONSTRAINED: 1,
-        ExplicitnessClass.EXACT: 2,
+        _ExplicitnessClass.OPEN: 0,
+        _ExplicitnessClass.CONSTRAINED: 1,
+        _ExplicitnessClass.EXACT: 2,
     }
 )
 
@@ -59,8 +43,8 @@ class ExplicitnessRecord:
     """Classification metadata for one SDL model path."""
 
     path: str
-    classification: ExplicitnessClass
-    provenance: ExplicitnessProvenance = ExplicitnessProvenance.AUTHOR_DECLARED
+    classification: _ExplicitnessClass
+    provenance: _ExplicitnessProvenance = _ExplicitnessProvenance.AUTHOR_DECLARED
     reason: str = ""
     variables: tuple[str, ...] = ()
 
@@ -130,7 +114,7 @@ def _classify_field(
     if exact and record is not None and not record.variables:
         classifier.records[path] = ExplicitnessRecord(
             path=path,
-            classification=ExplicitnessClass.EXACT,
+            classification=_ExplicitnessClass.EXACT,
             reason="owning model supplies exact extension identity",
         )
     return dict(classifier.records), tuple(classifier.errors)
@@ -180,7 +164,7 @@ def classify_authoring_specificity(
             normalized_path,
             ExplicitnessRecord(
                 path=normalized_path,
-                classification=ExplicitnessClass.OPEN,
+                classification=_ExplicitnessClass.OPEN,
                 reason="explicitly admitted open/underspecified concern; not backend-realization permission",
             ),
         )
@@ -200,7 +184,7 @@ def derive_instantiated_explicitness(
         if path not in instantiated_paths:
             continue
         provenance = (
-            ExplicitnessProvenance.PROCESSOR_DERIVED if record.variables else ExplicitnessProvenance.AUTHOR_DECLARED
+            _ExplicitnessProvenance.PROCESSOR_DERIVED if record.variables else _ExplicitnessProvenance.AUTHOR_DECLARED
         )
         reason = record.reason
         if record.variables:
@@ -246,7 +230,7 @@ class _ExplicitnessClassifier:
             if field_name in exact_fields and child_record is not None and not child_record.variables:
                 child_record = ExplicitnessRecord(
                     path=child_path,
-                    classification=ExplicitnessClass.EXACT,
+                    classification=_ExplicitnessClass.EXACT,
                     reason="owning model supplies exact extension identity",
                 )
                 self.records[child_path] = child_record
@@ -299,15 +283,15 @@ class _ExplicitnessClassifier:
                 )
             record = ExplicitnessRecord(
                 path=path,
-                classification=ExplicitnessClass.CONSTRAINED,
+                classification=_ExplicitnessClass.CONSTRAINED,
                 reason=_variable_constraint_reason(variable_names, self._variables),
                 variables=variable_names,
             )
             self.records[path] = record
             return record
 
-        classification = ExplicitnessClass.OPEN if _is_open_enum_sentinel(value) else ExplicitnessClass.EXACT
-        reason = "open taxonomy sentinel" if classification is ExplicitnessClass.OPEN else "authored concrete value"
+        classification = _ExplicitnessClass.OPEN if _is_open_enum_sentinel(value) else _ExplicitnessClass.EXACT
+        reason = "open taxonomy sentinel" if classification is _ExplicitnessClass.OPEN else "authored concrete value"
         record = ExplicitnessRecord(path=path, classification=classification, reason=reason)
         self.records[path] = record
         return record
@@ -342,8 +326,8 @@ def _is_open_enum_sentinel(value: object) -> bool:
     return isinstance(value, Enum) and isinstance(value.value, str) and value.value in _OPEN_ENUM_SENTINELS
 
 
-def _weakest_class(classes: Iterable[ExplicitnessClass]) -> ExplicitnessClass:
-    weakest = ExplicitnessClass.EXACT
+def _weakest_class(classes: Iterable[_ExplicitnessClass]) -> _ExplicitnessClass:
+    weakest = _ExplicitnessClass.EXACT
     for classification in classes:
         if _EXPLICITNESS_ORDER[classification] < _EXPLICITNESS_ORDER[weakest]:
             weakest = classification

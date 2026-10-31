@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any, Literal, Unpack, cast
 
 from pydantic import ValidationError
+from raes_contracts.variable_references import contains_variable_token, is_variable_ref
 
-from ._base import contains_variable_token, is_variable_ref
 from ._composition_budget import CompositionTraversal, ParsePrivateOptions
 from ._declaration_sources import attach_declaration_sources, semantic_source_diagnostics
 from ._errors import (

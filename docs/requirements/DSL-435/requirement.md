@@ -63,7 +63,7 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - IMPLEMENTS → ADR `docs/decisions/issue-1276-per-run-random-values-preflight.md` (Configurable per-run random values preflight)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1276` (Configurable random value generation for per-run scenario values)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Published plan model run/instantiation scope identity for issue #1276)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py` (Plan projection and digest scope identity for issue #1276)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/plan_projection.py` (Plan projection and digest scope identity for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_capability_schema.py` (Provisioner capability schema conditionals for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Plan API round-trip scope identity for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction.py` (RuntimeManager run/instantiation scope threading for issue #1276)

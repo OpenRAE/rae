@@ -1,9 +1,9 @@
 {
-  "content_hash": "a0bbfb4ec59b959ba22be81cbd29d1bb3356e1388362ce75d57ac965a5a6ffcc",
+  "content_hash": "7ede75d2bba4e5402140862f8a39b367f376e9297ea062552deb4ffc2eeca7a0",
   "contract_id": "artifact-requirement-v1",
   "last_change": {
-    "content_hash": "a0bbfb4ec59b959ba22be81cbd29d1bb3356e1388362ce75d57ac965a5a6ffcc",
-    "summary": "Publish model-enforced omission rules for redacted runtime/image values and commands, and expected-absent filesystem facts (#1241 review)."
+    "content_hash": "7ede75d2bba4e5402140862f8a39b367f376e9297ea062552deb4ffc2eeca7a0",
+    "summary": "Point the semantic-invariant validator locator at the module that now owns the validator (issue #1711, ADR-121). The schema shape and the invariant do not change."
   },
   "schema_path": "contracts/schemas/artifact-requirements/artifact-requirement-v1.json",
   "stability": "draft"

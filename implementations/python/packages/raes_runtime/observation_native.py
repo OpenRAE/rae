@@ -3,12 +3,8 @@
 from functools import partial
 
 from raes_backend_protocols.capabilities import BackendManifest
-from raes_contracts.observation_demand import (
-    AchievedObservationValue,
-    ObservationBasis,
-    ObservationLifecycleStage,
-    ObservationSelector,
-)
+from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage, ObservationSelector
+from raes_contracts.observation_reporting import AchievedObservationValue
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, RealizationConcern
 from raes_contracts.realization_observation_demand import observation_field_selector_matches

@@ -21,7 +21,6 @@ from raes_contracts.contracts import (
     AdmittedExecutionControlModel,
     BackendManifestV2Model,
     CleanupCapabilitiesModel,
-    schema_bundle,
 )
 from raes_contracts.contracts.trial_cleanup import (
     CleanStateClaimModel,
@@ -37,6 +36,7 @@ from raes_contracts.contracts.trial_cleanup import (
     validate_trial_cleanup_receipt,
 )
 from raes_contracts.errors import ConflictError
+from raes_schemas import schema_bundle
 
 FIXTURES_ROOT = Path(__file__).resolve().parents[3] / "contracts" / "fixtures"
 FIXTURE_GROUPS = {

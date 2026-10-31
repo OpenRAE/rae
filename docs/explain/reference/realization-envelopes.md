@@ -24,7 +24,7 @@ to claim more than it can show.
 Every governed concern carries an **observation source**. The released wire
 field and enum retain the legacy name `observation_strength`, but the values are
 provenance alternatives rather than a total order. The vocabulary is closed
-(`raes_contracts.realization_envelope_carrier.ObservationStrength`):
+(`raes_contracts.vocabulary.ObservationStrength`):
 
 | Source | Meaning |
 | --- | --- |

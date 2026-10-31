@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from pydantic import ValidationError
 
-from .contracts import (
+from raes_contracts.contracts.participant_information_state import (
     ParticipantInformationStateContextResolver,
     ParticipantInformationStateRecordModel,
     validate_participant_information_state_resolved_context,

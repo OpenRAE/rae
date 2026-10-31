@@ -6,10 +6,8 @@ import textwrap
 
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.participant_episode import (
-    ParticipantEpisodeTerminalReason,
-    iter_participant_episode_snapshot_violations,
-)
+from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_runtime.control_plane import RuntimeControlPlane
 from runtime_plan_fixtures import plan_for_target
 

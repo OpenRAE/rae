@@ -122,11 +122,7 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "artifact_digests": {"cases.json": export.digest(cases)},
         "case_counts": counts,
         "case_count": len(reports),
-        "historical_source_drift": sorted(
-            name
-            for name, digest in retained["source_digests"].items()
-            if export.digest(read_bytes(root, name)) != digest
-        ),
+        "historical_source_drift": export.source_drift(root, retained["source_digests"]),
         "equivalence_result": "not-established",
         "runtime_realization": "not-established",
         "backend_conformance": "not-established",

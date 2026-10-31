@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .participant_action_validation import autonomous_action_result_violation

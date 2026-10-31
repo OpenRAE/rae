@@ -9,9 +9,14 @@ from urllib.parse import urlsplit
 from pydantic import Field, GetJsonSchemaHandler, WithJsonSchema, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
+from raes_contracts.sdl_model import SDLModel
 from raes_contracts.uri_safety import validate_safe_absolute_uri
+from raes_contracts.variable_references import (
+    VARIABLE_REFERENCE_SCHEMA_MARKER,
+    VARIABLE_TOKEN_PATTERN,
+    is_variable_ref,
+)
 
-from ._base import VARIABLE_REFERENCE_SCHEMA_MARKER, VARIABLE_TOKEN_PATTERN, SDLModel, is_variable_ref
 from .architectures import PackageArchitectureString, normalize_architecture
 
 _HTTPS_URI_OR_VARIABLE_PATTERN = rf"^(?:https://[^\s#]+|{VARIABLE_TOKEN_PATTERN})$"

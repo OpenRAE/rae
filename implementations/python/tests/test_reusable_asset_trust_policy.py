@@ -16,12 +16,9 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-from raes_contracts.contracts import (
-    REUSABLE_ASSET_FAMILIES,
-    ReusableAssetTrustPolicyModel,
-    schema_bundle,
-)
+from raes_contracts.contracts import REUSABLE_ASSET_FAMILIES, ReusableAssetTrustPolicyModel
 from raes_contracts.versions import REUSABLE_ASSET_TRUST_POLICY_SCHEMA_VERSION
+from raes_schemas import schema_bundle
 from tools.check_schema_publication import load_schema_publication_catalog
 
 REPO_ROOT = Path(__file__).resolve().parents[3]

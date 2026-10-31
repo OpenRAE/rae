@@ -206,7 +206,7 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
         "import json\n"
         "from raes_contracts.corpus import corpus_root, corpus_family_root\n"
         "from raes_contracts.provenance import load_sdl_lineage_ledger, sdl_lineage_ledger_path\n"
-        "from raes_contracts.evidence_output_validation import evidence_output_registrations, resolve_evidence_output_contract\n"
+        "from raes_contracts.contracts.evidence_output_contracts import evidence_output_registrations, resolve_evidence_output_contract\n"
         "evidence_fixtures = {\n"
         "  'experiment-evidence-record-v1': 'experiment-core/experiment-evidence-record-v1/valid/reference.json',\n"
         "  'participant-behavior-history-event-stream-v1': 'control-plane/participant-behavior-history-event-stream-v1/valid/terminal-observation.json',\n"

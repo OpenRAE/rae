@@ -17,7 +17,7 @@ from .base import (
     NonEmptyString,
     NonNegativeInteger,
     Rfc3339DateTimeString,
-    _canonical_digest,
+    casefold_digest,
 )
 from .capabilities import ApparatusIdentityModel
 from .experiment_manifest_references import (
@@ -128,12 +128,12 @@ def _manifest_reference_key(
     return (
         reference.ref_id,
         reference.ref_version,
-        _canonical_digest(reference.ref_digest),
+        casefold_digest(reference.ref_digest),
         reference.ref_path,
         subject_ref.ref_kind if subject_ref is not None else None,
         subject_ref.ref_id if subject_ref is not None else None,
         subject_ref.ref_version if subject_ref is not None else None,
-        _canonical_digest(subject_ref.ref_digest) if subject_ref is not None else None,
+        casefold_digest(subject_ref.ref_digest) if subject_ref is not None else None,
         subject_ref.ref_path if subject_ref is not None else None,
     )
 
@@ -143,9 +143,9 @@ def _reference_scalar_fields_mismatch(
 ) -> bool:
     kind_or_id_mismatch = candidate.ref_kind != requirement.ref_kind or candidate.ref_id != requirement.ref_id
     version_mismatch = requirement.ref_version is not None and candidate.ref_version != requirement.ref_version
-    digest_mismatch = requirement.ref_digest is not None and _canonical_digest(
-        candidate.ref_digest
-    ) != _canonical_digest(requirement.ref_digest)
+    digest_mismatch = requirement.ref_digest is not None and casefold_digest(candidate.ref_digest) != casefold_digest(
+        requirement.ref_digest
+    )
     path_mismatch = requirement.ref_path is not None and candidate.ref_path != requirement.ref_path
     return kind_or_id_mismatch or version_mismatch or digest_mismatch or path_mismatch
 
@@ -159,12 +159,10 @@ def _reference_subject_satisfies_requirement(
     candidate_subject = getattr(candidate, "subject_ref", None)
     if candidate_subject is None:
         return False
-    return _reference_satisfies_requirement(candidate_subject, requirement_subject)
+    return reference_satisfies_requirement(candidate_subject, requirement_subject)
 
 
-def _reference_satisfies_requirement(
-    candidate: ExperimentReferenceModel, requirement: ExperimentReferenceModel
-) -> bool:
+def reference_satisfies_requirement(candidate: ExperimentReferenceModel, requirement: ExperimentReferenceModel) -> bool:
     if _reference_scalar_fields_mismatch(candidate, requirement):
         return False
     return _reference_subject_satisfies_requirement(candidate, requirement)
@@ -206,7 +204,7 @@ def _experiment_reference_key(
         reference.ref_kind,
         reference.ref_id,
         reference.ref_version,
-        _canonical_digest(getattr(reference, "ref_digest", None)),
+        casefold_digest(getattr(reference, "ref_digest", None)),
         getattr(reference, "ref_path", None),
         _experiment_reference_key(subject_ref) if subject_ref is not None else None,
     )
@@ -221,14 +219,14 @@ def _validate_unique_experiment_references(
     for reference in references:
         key = _experiment_reference_key(reference)
         if key in seen:
-            duplicates.append(_format_reference(reference))
+            duplicates.append(format_reference(reference))
         seen.add(key)
     if duplicates:
         joined = ", ".join(sorted(set(duplicates)))
         raise ValueError(f"{field_name} must not contain duplicates: {joined}")
 
 
-def _identity_matches_reference(identity: ApparatusIdentityModel, reference: ExperimentReferenceModel) -> bool:
+def identity_matches_reference(identity: ApparatusIdentityModel, reference: ExperimentReferenceModel) -> bool:
     if reference.ref_digest is not None or reference.ref_path is not None:
         return False
     if identity.name != reference.ref_id:
@@ -236,7 +234,7 @@ def _identity_matches_reference(identity: ApparatusIdentityModel, reference: Exp
     return reference.ref_version is None or identity.version == reference.ref_version
 
 
-def _format_reference(reference: ExperimentReferenceModel) -> str:
+def format_reference(reference: ExperimentReferenceModel) -> str:
     if reference.ref_version is None:
         return f"{reference.ref_kind}:{reference.ref_id}"
     return f"{reference.ref_kind}:{reference.ref_id}@{reference.ref_version}"

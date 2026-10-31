@@ -26,20 +26,19 @@ from raes_contracts.contracts import (
     ProcessorManifestV2Model,
     RaesSemanticInvariantEntryModel,
     RaesSemanticInvariantProfileReferenceModel,
-    schema_bundle,
     validate_experiment_apparatus_context_against_manifests,
     validate_experiment_run_archival_datetimes,
     validate_experiment_run_structure_against_task,
     validate_experiment_study_structure_against_tasks_and_runs,
-    validate_raes_semantic_invariant_annotations,
 )
-from raes_contracts.contracts import bundle as contract_bundle
 from raes_contracts.manifest_authority import (
     BACKEND_SUPPORTED_CONTRACT_IDS,
     PARTICIPANT_IMPLEMENTATION_SUPPORTED_CONTRACT_IDS,
     PROCESSOR_SUPPORTED_CONTRACT_IDS,
     PROCESSOR_SUPPORTED_SDL_VERSION_IDS,
 )
+from raes_schemas import bundle as contract_bundle
+from raes_schemas import schema_bundle, validate_raes_semantic_invariant_annotations
 
 EXPERIMENT_CORE_FIXTURE_MODELS = {
     "experiment-apparatus-context-v1": ExperimentApparatusContextModel,
@@ -111,7 +110,7 @@ def _invariant_by_id(schema: dict, invariant_id: str) -> dict:
 
 def test_schema_bundle_caches_generation_but_returns_isolated_copies(mocker):
     contract_bundle._schema_bundle_template.cache_clear()
-    generate = mocker.spy(contract_bundle, "_raw_schema_bundle")
+    generate = mocker.spy(contract_bundle, "contract_schemas")
     try:
         first = schema_bundle()
         second = schema_bundle()

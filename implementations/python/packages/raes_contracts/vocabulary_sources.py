@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import json
 
-from .contracts import (
+from raes_contracts.contracts.vocabulary_sources import (
     ActivityStreamsActivityTypesSourceModel,
     AtlasTacticsSourceModel,
     AttackEnterpriseTacticsSourceModel,
     FipaCommunicativeActsSourceModel,
     NistCsfDefensiveCategorySourceModel,
 )
+
 from .corpus import CONCEPT_AUTHORITY, corpus_family_root
 
 

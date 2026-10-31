@@ -5,13 +5,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from raes.participant_control_context import ResolvedControlContextSelection
-from raes.semantics.workflow import WorkflowStepSemanticContract
 from raes_backend_protocols.capabilities import WorkflowFeature, WorkflowStatePredicateFeature
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalBindingModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.participant_behavior import ParticipantObservationStatus
 from raes_contracts.versions import WORKFLOW_STATE_SCHEMA_VERSION
 from raes_contracts.workflow import WorkflowExecutionContract, WorkflowResultContract, WorkflowStepOutcome
+from raes_contracts.workflow.semantics import WorkflowStepSemanticContract
 
 from .mixed_control_resources import MixedControlPolicyRuntime, ParticipantInjectDeliveryControlRuntime
 from .participant_resources import (

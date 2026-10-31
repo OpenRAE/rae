@@ -17,7 +17,6 @@ from raes_contracts.contracts import (
     ParticipantInformationStateSourceCoordinate,
     ParticipantInformationStateValidationContext,
     ParticipantObservationEnvelopeModel,
-    schema_bundle,
     validate_participant_information_state_context,
 )
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, RuntimeSnapshotEnvelope
@@ -34,6 +33,7 @@ from raes_runtime.participant_result_contracts import (
     participant_runtime_history_transition_diagnostics,
     participant_runtime_state_contract_diagnostics,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OBSERVATION_FIXTURE = (
@@ -725,7 +725,7 @@ def test_context_view_accepts_information_state_as_a_closed_source_layer() -> No
 
 
 def test_reconstruction_profile_loader_is_closed_and_path_safe() -> None:
-    from raes_contracts.participant_information_reconstruction_profiles import (
+    from raes_contracts.contracts.participant_information_reconstruction_profiles import (
         load_participant_information_reconstruction_profile,
         participant_information_reconstruction_profile_path,
     )

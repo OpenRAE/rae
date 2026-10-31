@@ -187,7 +187,7 @@ def test_activity_deadline_rejection_does_not_consume_native_resources(source) -
 
 def test_temporal_indeterminacy_never_triggers_native_retry() -> None:
     from implementations.python.tests.test_dsl_437_benign_participant_execution import _activity_control
-    from raes.participant_behavior import ParticipantFailureClass
+    from raes_contracts.participant_action_semantics import ParticipantFailureClass
 
     class FailedWithoutTiming(_NativeParticipantRuntime):
         def _model_action(self, request, snapshot, *, episode_id):
@@ -215,7 +215,7 @@ def test_temporal_indeterminacy_never_triggers_native_retry() -> None:
 @pytest.mark.parametrize("event", ["start", "end", "observed", "effective"])
 def test_temporal_assessment_uses_selected_event_not_submission_time(event: str) -> None:
     from raes_contracts.contracts.participant_temporal import ParticipantTemporalEvidenceModel
-    from raes_contracts.participant_temporal import assess_temporal_guarantee
+    from raes_contracts.contracts.participant_temporal_history import assess_temporal_guarantee
     from raes_runtime.time_coordinator import TimeCoordinator
 
     scenario, target = _temporal_target(_bound_deadline_payload(event), _TemporalEvidenceRuntime())
@@ -237,8 +237,8 @@ def test_temporal_assessment_uses_selected_event_not_submission_time(event: str)
 
 def test_deadline_is_inclusive_at_the_exact_superdense_coordinate() -> None:
     from raes_contracts.contracts.participant_temporal import ParticipantTemporalEvidenceModel
+    from raes_contracts.contracts.participant_temporal_history import assess_temporal_guarantee
     from raes_contracts.contracts.time_model import TimeCoordinateModel
-    from raes_contracts.participant_temporal import assess_temporal_guarantee
     from raes_runtime.time_coordinator import TimeCoordinator
 
     scenario, target = _temporal_target(_bound_deadline_payload(), _TemporalEvidenceRuntime())

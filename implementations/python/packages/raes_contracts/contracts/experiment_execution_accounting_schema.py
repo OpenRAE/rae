@@ -2,11 +2,12 @@
 
 from typing import Any
 
+from .schema_invariants import add_raes_invariant
+
 
 def add_record_shape_schema(schema: dict[str, Any]) -> None:
-    from .schema_invariants import _add_raes_invariant
 
-    _add_raes_invariant(
+    add_raes_invariant(
         schema,
         "run-execution-accounting-consistent",
         "Execution accounting preserves unique ordered attempts, run-bound evidence and cleanup, "

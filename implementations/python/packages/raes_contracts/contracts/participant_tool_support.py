@@ -10,7 +10,7 @@ from ..manifest_authority import PARTICIPANT_TOOL_FEATURES
 from ..vocabulary import ParticipantFeatureSupportLevel
 from .base import ContractModel
 from .feature_support import ParticipantFeatureSupportModel
-from .validators import _validate_unique_string_values
+from .validators import validate_unique_string_values
 
 TOOL_PROFILE_SEMANTICS = "participant-tool-profile/v1"
 _TOOL_LIMIT_FIELDS = ("max_bindings_per_profile", "max_participants_per_binding")
@@ -30,7 +30,7 @@ class ParticipantToolProfilesModel(ContractModel):
 
     @model_validator(mode="after")
     def _unique_versions(self) -> ParticipantToolProfilesModel:
-        _validate_unique_string_values("semantic_versions", self.semantic_versions)
+        validate_unique_string_values("semantic_versions", self.semantic_versions)
         return self
 
     def capacity_refs(self) -> set[str]:
@@ -93,7 +93,7 @@ class ProcessorParticipantToolsModel(ParticipantToolProfilesModel):
     @model_validator(mode="after")
     def _tool_support(self) -> ProcessorParticipantToolsModel:
         names = [entry.feature for entry in self.feature_support]
-        _validate_unique_string_values("feature_support", names)
+        validate_unique_string_values("feature_support", names)
         if not set(names).issubset(PARTICIPANT_TOOL_FEATURES):
             raise ValueError("processor participant_tools accepts only governed tool features")
         positive = {entry.feature for entry in self.feature_support if entry.support_level != "unsupported"}

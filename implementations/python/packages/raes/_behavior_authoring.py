@@ -3,8 +3,7 @@
 from collections.abc import Iterator, Mapping
 
 from pydantic import BaseModel, ValidationError
-
-from ._identifiers import PRIVATE_NAMESPACE_SEGMENT, identifier_refusal
+from raes_contracts.identifiers import PRIVATE_NAMESPACE_SEGMENT, identifier_refusal
 
 _REFERENCE_FIELDS = (
     "participant_refs",

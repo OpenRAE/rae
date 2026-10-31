@@ -248,7 +248,7 @@ def finalize_evaluation_commits(
     previous: RuntimeSnapshot, proposed: RuntimeSnapshot, record: ControlPlaneOperationRecord
 ) -> RuntimeSnapshot:
     """Seal only newly appended prepared records under the actual commit owner."""
-    from raes_contracts.immutable_history import seal_history
+    from raes_contracts.snapshot_histories import seal_history
 
     history = proposed.participant_control_evaluation_history
     if history is previous.participant_control_evaluation_history:

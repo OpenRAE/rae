@@ -4,10 +4,12 @@ from dataclasses import replace
 from typing import cast
 
 from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
-from raes_contracts.participant_binding import (
+from raes_contracts.contracts.participant_action_admission import (
     ParticipantActionAdmissionRequest,
-    ParticipantActionApplyResult,
     participant_action_admission_request_violations,
+)
+from raes_contracts.participant_binding import (
+    ParticipantActionApplyResult,
     participant_implementation_actor_provenance,
 )
 from raes_contracts.runtime_state import RuntimeSnapshot

@@ -32,7 +32,7 @@ from .participant_crossing import (
 )
 from .participant_runtime import ParticipantRuntimeMappingLoss, ParticipantRuntimeOrderingBasis
 from .realization_plans import RealizationEnvelopeIdentityModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 MIXED_COMPOSITION_CONTRACT_ID = "mixed-participant-composition-profile-v1"
 MIXED_COMPOSITION_SCHEMA_VERSION = MIXED_PARTICIPANT_COMPOSITION_PROFILE_SCHEMA_VERSION
@@ -340,7 +340,7 @@ class MixedParticipantCompositionProfileModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "mixed-composition-root-local-graph-valid",
             "The sealed root has exact keyed identities, closed references, one provider per target and phase, "
@@ -350,7 +350,7 @@ class MixedParticipantCompositionProfileModel(ContractModel):
             ),
             inputs=[{"contract_id": MIXED_COMPOSITION_CONTRACT_ID, "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "mixed-composition-trusted-context-required",
             "Schema validity does not resolve scenario targets, manifests, envelopes, participant features, "

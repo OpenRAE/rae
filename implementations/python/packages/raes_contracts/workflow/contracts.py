@@ -6,9 +6,6 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from raes.semantics.workflow import WorkflowStepSemanticContract
-from raes.semantics.workflow import validate_workflow_step_result as _validate_workflow_step_result
-
 from raes_contracts._validation import (
     require_dict,
     require_non_empty_string,
@@ -16,6 +13,8 @@ from raes_contracts._validation import (
     require_strings,
 )
 from raes_contracts.versions import WORKFLOW_STATE_SCHEMA_VERSION
+from raes_contracts.workflow.semantics import WorkflowStepSemanticContract
+from raes_contracts.workflow.semantics import validate_workflow_step_result as _validate_workflow_step_result
 
 
 @dataclass(frozen=True)

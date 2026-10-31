@@ -91,7 +91,7 @@ backend execution, delivery or observation.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/__init__.py` (DSL-142 composition reference rewriting)
 - DOCUMENTS → GITHUB_ISSUE `794` (Assess and design formal participant I/O control with information-flow and bisimulation semantics)
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-io-control/requirement-disposition.md` (Issue #794 participant information-flow/control requirement disposition)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/participant_inject_delivery.py` (DSL-142 participant inject delivery authoring model)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_inject_delivery.py` (DSL-142 participant inject delivery authoring model)
 - IMPLEMENTS → GITHUB_ISSUE `797` (DSL-142 — Participant-Directed Inject Binding And Delivery)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/participant_behavior_specification.py` (DSL-142 participant behavior delivery relation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_inject_deliveries.py` (DSL-142 typed participant delivery compiler metadata)

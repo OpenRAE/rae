@@ -1,16 +1,36 @@
 """Schema-first re-export facade for RAES artifact-boundary contracts."""
 
 # ruff: noqa: F401, F403
+from raes_contracts.behavioral_claims import (
+    BehavioralClaimBindingModel,
+    BehavioralRelationId,
+    BehavioralTaxonomyRevision,
+)
+from raes_contracts.contracts.participant_flow_control_context import (
+    ParticipantFlowObligationAuthorityCoordinate,
+    ParticipantOwnerFlowSinkResolution,
+)
+from raes_contracts.contracts.participant_information_reconstruction_profiles import (
+    ParticipantInformationReconstructionProfileModel,
+)
+from raes_contracts.contracts.trial_replacement_analysis import (
+    TrialReplacementStudyInputs,
+    validate_replacement_trial_study,
+)
+
 from ..artifact_requirements import (
     ArtifactAcquisitionTimingModel,
     ArtifactAvailabilityContext,
     ArtifactMechanismCapability,
     ArtifactRequirementAvailability,
-    ArtifactRequirementContractModel,
-    ArtifactRequirementSource,
     ArtifactSatisfactionDisclosureModel,
-    artifact_requirement_invariant_violations,
-    validate_artifact_requirement_invariants,
+)
+from ..controlled_vocabularies import (
+    ControlledVocabularyCatalogModel,
+    ControlledVocabularyDefinitionModel,
+    ControlledVocabularySourceModel,
+    ControlledVocabularyTermId,
+    ControlledVocabularyTermModel,
 )
 from ..execution_policy import (
     EffectiveExecutionPolicy,
@@ -30,7 +50,6 @@ from ..vocabulary import (
     WorkflowStatePredicateFeature,
 )
 from ._backend_operation_exports import *
-from ._bundle_access import schema_bundle
 from ._candidate_synthesis_facade import *
 from ._evidence_requirement_exports import *
 from ._experiment_design_exports import *
@@ -68,13 +87,7 @@ from .artifact_transformations import (
     TransformationCheckOutcome,
 )
 from .associated_artifacts import AssociatedArtifactManifestModel, AssociatedArtifactSetDigestString
-from .base import (
-    BehavioralClaimBindingModel,
-    BehavioralRelationId,
-    BehavioralTaxonomyRevision,
-    ContractModel,
-    ControlledVocabularyTermId,
-)
+from .base import ContractModel
 from .base import NonEmptyString as NonEmptyString
 from .batch_execution import BatchExecutionReceiptModel as BatchExecutionReceiptModel
 from .batch_execution import validate_batch_execution_receipt as validate_batch_execution_receipt
@@ -298,7 +311,6 @@ from .participant_flow_control_validation import (
     validate_participant_flow_control_resolved_context,
 )
 from .participant_information_state import (
-    ParticipantInformationReconstructionProfileModel,
     ParticipantInformationStateContextResolver,
     ParticipantInformationStateRecordModel,
     ParticipantInformationStateSourceCoordinate,
@@ -330,12 +342,7 @@ from .participant_occurrences import (
     validate_participant_crossing_occurrence_context,
 )
 from .participant_outcomes import ParticipantOutcomeReportV2Model
-from .participant_owner_flow import (
-    ParticipantFlowObligationAuthorityCoordinate,
-    ParticipantOwnerFlowClauseModel,
-    ParticipantOwnerFlowPolicyProfileModel,
-    ParticipantOwnerFlowSinkResolution,
-)
+from .participant_owner_flow import ParticipantOwnerFlowClauseModel, ParticipantOwnerFlowPolicyProfileModel
 from .participant_runtime import (
     ParticipantActionEffectResultModel,
     ParticipantActionPreconditionResultModel,
@@ -443,7 +450,6 @@ from .schema_constraints import (
     RaesSemanticInvariantInputModel,
     RaesSemanticInvariantProfileModel,
     RaesSemanticInvariantProfileReferenceModel,
-    validate_raes_semantic_invariant_annotations,
 )
 from .semantic_profiles import (
     SemanticBehaviorAssumptionModel,
@@ -453,11 +459,9 @@ from .semantic_profiles import (
 from .semantic_projection import *
 from .trial_analysis import (
     AdmittedTrialPlanReconciliation,
-    TrialReplacementStudyInputs,
     reconcile_admitted_trial_plan,
     validate_admitted_trial_run,
     validate_admitted_trial_study,
-    validate_replacement_trial_study,
 )
 from .trial_cleanup import CleanStateClaimModel as CleanStateClaimModel
 from .trial_cleanup import CleanStateRequirementModel as CleanStateRequirementModel
@@ -478,11 +482,6 @@ from .trial_provenance import TrialProcessorPlanReferenceModel as TrialProcessor
 from .trial_provenance import TrialRunProvenanceModel as TrialRunProvenanceModel
 from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 from .validation_disclosure import ValidationBasisDisclosureDocumentModel
-from .validators import _collapse_nullable_optional_schema as _collapse_nullable_optional_schema
-from .validators import _resolve_instance_path_schema as _resolve_instance_path_schema
-from .validators import _resolve_ref_schema as _resolve_ref_schema
-from .validators import _resolve_schema_pointer as _resolve_schema_pointer
-from .validators import _validate_reference_model_schema_binding as _validate_reference_model_schema_binding
 from .vocabulary_sources import (
     ActivityStreamsActivityTypeSourceTermModel,
     ActivityStreamsActivityTypesSourceModel,
@@ -490,10 +489,6 @@ from .vocabulary_sources import (
     AtlasTacticsSourceModel,
     AttackEnterpriseTacticSourceTermModel,
     AttackEnterpriseTacticsSourceModel,
-    ControlledVocabularyCatalogModel,
-    ControlledVocabularyDefinitionModel,
-    ControlledVocabularySourceModel,
-    ControlledVocabularyTermModel,
     FipaCommunicativeActSourceTermModel,
     FipaCommunicativeActsSourceModel,
     NistCsfDefensiveCategorySourceModel,

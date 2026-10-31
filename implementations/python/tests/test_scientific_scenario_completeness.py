@@ -19,7 +19,6 @@ from raes_conformance.conformance import (  # noqa: E402
     _fixture_case_diagnostics,
     validate_contract_payload,
 )
-from raes_contracts.contracts import schema_bundle  # noqa: E402
 from raes_contracts.scientific_completeness import (  # noqa: E402
     DeliveryStatus,
     ProfileDisposition,
@@ -29,6 +28,7 @@ from raes_contracts.scientific_completeness import (  # noqa: E402
     load_scientific_completeness_assessment,
     load_scientific_completeness_taxonomy,
 )
+from raes_schemas import schema_bundle
 from tools.check_scientific_scenario_completeness import (  # noqa: E402
     _validate_contract_evidence,
     _validate_evidence_paths,

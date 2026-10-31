@@ -18,8 +18,8 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
 from .runtime_generated_value import GeneratedArtifactValueSource
 
 

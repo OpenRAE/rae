@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .contracts import ParticipantBehaviorHistoryEventModel, ParticipantObservationDetailsModel
+from raes_contracts.contracts.participant_runtime import (
+    ParticipantBehaviorHistoryEventModel,
+    ParticipantObservationDetailsModel,
+)
+
 from .participant_behavior import (
     ParticipantAdmissionDisposition,
     ParticipantBehaviorHistoryEventType,
@@ -15,7 +19,7 @@ from .participant_behavior import (
 from .participant_binding_events import participant_implementation_actor_provenance
 
 if TYPE_CHECKING:
-    from .participant_binding import ParticipantActionAdmissionRequest
+    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 
 
 def participant_action_binding_events(

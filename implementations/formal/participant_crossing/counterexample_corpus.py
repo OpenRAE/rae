@@ -252,9 +252,7 @@ def _manifest(root, bundle, cases, current, retained):
         "catalog_revision": current["catalog_revision"],
         "catalog_digest": current["catalog_digest"],
         "baseline_manifest_digest": digest(read_bytes(root, export.OUTPUT_PATH + "/manifest.json")),
-        "historical_baseline_source_drift": sorted(
-            path for path, pin in retained["source_digests"].items() if digest(read_bytes(root, path)) != pin
-        ),
+        "historical_baseline_source_drift": export.source_drift(root, retained["source_digests"]),
         "mapping": {
             "path": MAPPING_ROOT,
             "scope": "historical-observations",

@@ -24,7 +24,6 @@ from participant_control_contract_fixtures import (
 )
 from participant_crossing_fixtures import AUDIENCE as LIVE_AUDIENCE
 from participant_crossing_fixtures import PARTICIPANT as LIVE_PARTICIPANT
-from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes_contracts._canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlRequestModel,
@@ -41,6 +40,7 @@ from raes_contracts.contracts.participant_control_results import (
 )
 from raes_contracts.contracts.participant_control_selection import ParticipantControlSelectionModel
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 from raes_runtime.participant_control_binding import (
     ParticipantControlResolution,
     ParticipantControlRuntimeBinding,

@@ -5,8 +5,7 @@ from dataclasses import replace
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.observation_demand import ObservationLifecycleStage, ObservationSelector
-from raes_contracts.planning import ProvisioningPlan
-from raes_contracts.realization_preparation import RealizationPreparationAuthority
+from raes_contracts.planning import ProvisioningPlan, RealizationPreparationAuthority
 from raes_runtime.control_plane_plan_authorization import RuntimePlanAuthorizationMixin
 from raes_runtime.observation_admission import observation_submission_diagnostic
 from test_issue_1212_runtime_boundaries import _demands, _runtime
@@ -61,7 +60,7 @@ def test_advertised_preparation_requires_the_negotiated_callable_shape(has_metho
 
 def test_preparation_bounds_predecessor_before_serialization(monkeypatch):
     import pytest
-    from raes_contracts import realization_preparation
+    from raes_contracts.contracts import realization_preparation
     from raes_contracts.runtime_state import RuntimeSnapshot
 
     calls = []

@@ -5,7 +5,7 @@ from dataclasses import replace
 
 import pytest
 from raes import canonical_instantiated_sdl_digest, parse_sdl
-from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
 from raes_contracts.planning import PlanScope
 from raes_contracts.vocabulary import RealizationSupportMode
 from raes_processor.compiler import compile_runtime_model

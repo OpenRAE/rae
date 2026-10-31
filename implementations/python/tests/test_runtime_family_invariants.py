@@ -29,10 +29,11 @@ from pathlib import Path
 import raes
 from pydantic import Field
 from raes import _runtime_service_families as rsf
-from raes._base import SDLModel, parse_enum_or_var
 from raes.runtime_configuration import RuntimeConfiguration
 from raes.runtime_directory_identity import RuntimeIdentityRelationshipKind
-from raes.runtime_values import parse_runtime_enum_or_var
+from raes_contracts.runtime_values import parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_enum_or_var
 
 
 def _singularize(plural: str) -> str:

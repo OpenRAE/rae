@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import pytest
-from raes.participant_attribution_semantics import (
+from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
+from raes_contracts.participant_action_semantics import ParticipantEffectClass, ParticipantPreconditionClass
+from raes_contracts.participant_attribution_semantics import (
     OUTCOME_ATTRIBUTION_CANDIDATE_KINDS,
     STRONG_ATTRIBUTION_SUPPORT_CLASSES,
     ParticipantAttributionCandidateKind,
     ParticipantAttributionOrderingBasisKind,
     ParticipantAttributionSupportClass,
 )
-from raes.participant_behavior import (
-    ParticipantEffectClass,
-    ParticipantPreconditionClass,
-)
-from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
 from raes_processor.models import (
     ParticipantActionEffectResult,
     ParticipantActionPreconditionResult,

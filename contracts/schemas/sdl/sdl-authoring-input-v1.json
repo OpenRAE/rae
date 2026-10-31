@@ -30355,7 +30355,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes.evidence_requirements.EvidenceRequirement._validate_capture_intent"
+      "validator": "raes_contracts.evidence_requirements.EvidenceRequirement._validate_capture_intent"
     },
     {
       "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",

@@ -5,11 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from .contracts import (
-    ConceptFamilyCatalogModel,
-    SemanticProfileModel,
-    UcoAlignmentCatalogModel,
-)
+from raes_contracts.contracts.catalogs import ConceptFamilyCatalogModel, UcoAlignmentCatalogModel
+from raes_contracts.contracts.semantic_profiles import SemanticProfileModel
+
 from .vocabulary import ConceptProvenanceCategory, ExternalKnowledgeBindingEffect
 
 SemanticProfilePhase = Literal["authoring", "exchange", "processing", "execution"]

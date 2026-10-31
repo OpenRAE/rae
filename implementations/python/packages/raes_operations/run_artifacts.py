@@ -20,15 +20,15 @@ import re
 import stat
 from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from raes_contracts.contracts.materialization_attestation import (
+    MaterializationArchiveRecord,
+    require_materialization_records,
+)
 from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, OperationalError
-
-if TYPE_CHECKING:
-    from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
-    from raes_contracts.materialization import MaterializationSubmission
+from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSubmission
 
 RUN_ID_LABEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 _PUBLICATION_REFUSED = "materialization archive requires valid bounded SDL and safe identities"
@@ -88,12 +88,6 @@ class RunMaterializationArchive:
 
     def read(self, record: MaterializationArchiveRecord) -> MaterializationSubmission:
         """Resolve only protected, bounded bytes named by a validated archive record."""
-        from raes_contracts.materialization import (
-            MATERIALIZATION_MAX_BYTES,
-            MaterializationSubmission,
-            require_materialization_records,
-        )
-
         # The record is retained evidence; its validators refuse an invalid record with ValueError (E3).
         try:
             require_materialization_records((record,))
@@ -133,7 +127,6 @@ class RunMaterializationArchive:
         from raes.formatting import render_sdl_source
         from raes.materialization import MaterializedScenario
         from raes.parser import parse_sdl
-        from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 
         # Bound the incoming text before parsing and the rendered bytes before writing; rendering can expand input.
         _require_document_bytes(content)
@@ -196,8 +189,6 @@ class RunMaterializationArchive:
 
 def _require_document_bytes(content: str | bytes) -> None:
     """Refuse text or bytes beyond the shared materialization document ceiling."""
-    from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES
-
     if not isinstance(content, (str, bytes)):
         raise InvalidInputError(_PUBLICATION_REFUSED)
     # A character count above the ceiling already implies too many UTF-8 bytes, so skip the copy.

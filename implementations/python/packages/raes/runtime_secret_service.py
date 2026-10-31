@@ -3,11 +3,12 @@
 from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.runtime_values import reject_duplicates
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import WholeFieldVariableReference, is_variable_ref
 
-from ._base import SDLModel, WholeFieldVariableReference, is_variable_ref
-from ._identifiers import PortableIdentifier
 from .runtime_identity_resources import NativeIdentity, ResourceReference
-from .runtime_values import reject_duplicates
 
 __all__ = [
     "RuntimeServiceSecret",

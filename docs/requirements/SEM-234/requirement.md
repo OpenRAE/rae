@@ -32,8 +32,7 @@ Executable realization must discharge the admitted edge and time obligations. A 
 
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Coordinate mixed participant runtimes fail-closed)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_runtime.py` (Typed append-only runtime phase and coordination facts)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/mixed_runtime_history.py` (Runtime composition fold and append-only invariants)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_snapshot_updates.py` (Composition state preservation through immutable snapshot updates)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_runtime_history.py` (Runtime composition fold and append-only invariants)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Typed runtime-snapshot composition carriers)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/operation_lifecycle.py` (Runtime-owned composition-phase operation kind)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (Validated live composition state and history)
@@ -60,7 +59,7 @@ Executable realization must discharge the admitted edge and time obligations. A 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py` (Decomposed root-local phase, activity, and transition validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Bounded trusted-context relationship resolution)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/json_ingress.py` (Shared pre-decode nesting bound for safe composition ingress)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py` (Reference schema bundle registration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py` (Reference schema bundle registration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py` (Public contract facade registration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Public contract export manifest)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/versions.py` (Published composition schema-version constant)

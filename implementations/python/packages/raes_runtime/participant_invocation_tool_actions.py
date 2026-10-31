@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING
 
 from raes_backend_protocols.participant_capabilities import ParticipantExecutionBinding, ParticipantRuntimeCapabilities
 from raes_contracts.contracts import ParticipantActionResultModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.operational_logging import get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.participant_tool_actions import (
     INVOCATION_TOOL_ACTIONS_SEMANTICS,
     ParticipantToolActionDecision,

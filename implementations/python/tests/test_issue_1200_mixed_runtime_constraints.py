@@ -5,10 +5,10 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass
 from raes_contracts.apparatus import RealizationObservationCapability
 from raes_contracts.contracts import ProvisioningPlanModel
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry

@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 from jsonschema import Draft202012Validator
 from raes_conformance.conformance.semantics import _semantic_diagnostics
-from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel, schema_bundle
+from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
 from raes_contracts.participant_episode import (
     ParticipantEpisodeControlAction,
     ParticipantEpisodeStatus,
@@ -29,6 +29,7 @@ from raes_contracts.participant_episode_closure import (
 )
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_runtime.control_plane_store_snapshots import _snapshot_payload
+from raes_schemas import schema_bundle
 
 _ADDRESS = "scenario/participant/agent-0"
 _EPISODE = "episode-0"

@@ -307,7 +307,7 @@ ownership:
     - implementations/python/packages/raes_conformance/_authoring_observations.py
     - implementations/python/packages/raes_conformance/conformance/validators.py
     - implementations/python/packages/raes_contracts/authoring_adapters.py
-    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/schema_contributions.py
     - implementations/python/tests/test_authoring_adapters.py
     - implementations/python/tests/test_authoring_adapter_governance.py
     - implementations/python/tests/test_corpus_packaging.py
@@ -334,11 +334,9 @@ ownership:
     - docs/requirements/EXP-715/requirement.md
     - implementations/python/packages/raes_backend_protocols/observation_capture.py
     - implementations/python/packages/raes_backend_protocols/observation_manifest.py
-    - implementations/python/packages/raes_contracts/_evidence_content_validation.py
+    - implementations/python/packages/raes_contracts/contracts/evidence_satisfaction.py
     - implementations/python/packages/raes_contracts/capture_dimensions.py
     - implementations/python/packages/raes_contracts/evidence_output_validation.py
-    - implementations/python/packages/raes_contracts/evidence_proof.py
-    - implementations/python/packages/raes_contracts/evidence_satisfaction.py
     - implementations/python/packages/raes_contracts/contracts/experiment_analysis.py
     - implementations/python/packages/raes_contracts/contracts/experiment_conditions.py
     - implementations/python/packages/raes_contracts/contracts/experiment_run.py
@@ -351,7 +349,7 @@ ownership:
     - implementations/python/tests/test_issue_1237_governance.py
     - implementations/python/tests/test_issue_1237_output_registry.py
   evidence-provenance:
-    - implementations/python/packages/raes_contracts/evidence_satisfaction.py
+    - implementations/python/packages/raes_contracts/contracts/evidence_satisfaction.py
     - implementations/python/tests/test_exp_732_evidence_provenance.py
     - implementations/python/tests/test_requirement_governance.py
     - implementations/python/tests/test_specification_coverage.py
@@ -786,7 +784,6 @@ ownership:
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1069-v40.json
     - docs/research/specification-coverage/execution-snapshot-v40.json
     - docs/research/specification-coverage/index.md
-    - implementations/python/packages/raes_contracts/_snapshot_updates.py
     - implementations/python/packages/raes_contracts/contracts/realization_plans.py
     - implementations/python/packages/raes_contracts/participant_control_evaluation_history.py
     - implementations/python/packages/raes_contracts/runtime_state.py
@@ -912,7 +909,7 @@ ownership:
     - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/analysis.json
     - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/manifest.json
     - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/snapshot.json
-    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/schema_contributions.py
     - implementations/python/packages/raes_contracts/contracts/participant_control_security_resolution.py
     - implementations/python/packages/raes_contracts/contracts/participant_flow_control.py
     - implementations/python/packages/raes_contracts/contracts/participant_flow_control_context.py
@@ -962,7 +959,7 @@ ownership:
     - implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py
     - implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py
     - implementations/python/tests/test_api_424_review_regressions.py
-    - implementations/python/packages/raes_contracts/participant_flow_policy_profiles.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_policy_profiles.py
     - contracts/fixtures/backend-manifest/backend-manifest-v2/valid/stub.json
     - contracts/fixtures/concept-authority/controlled-vocabularies-v1/valid/reference.json
     # API-424 publishes closed contracts, not RUN-320 orchestration (#1072).
@@ -1152,8 +1149,7 @@ ownership:
     - implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py
     - implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py
     - implementations/python/packages/raes_contracts/contracts/mixed_runtime.py
-    - implementations/python/packages/raes_contracts/mixed_runtime_history.py
-    - implementations/python/packages/raes_contracts/_snapshot_updates.py
+    - implementations/python/packages/raes_contracts/contracts/mixed_runtime_history.py
     - implementations/python/packages/raes_contracts/operation_lifecycle.py
     - implementations/python/packages/raes_contracts/runtime_state.py
     - implementations/python/packages/raes_contracts/contracts/realization_plans.py
@@ -1161,7 +1157,7 @@ ownership:
     - implementations/python/packages/raes_contracts/contracts/admitted_trial_plan_components.py
     - implementations/python/packages/raes_contracts/contracts/trial_compilation.py
     - implementations/python/packages/raes_contracts/json_ingress.py
-    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/schema_contributions.py
     - implementations/python/packages/raes_contracts/contracts/__init__.py
     - implementations/python/packages/raes_contracts/contracts/_exports.py
     - implementations/python/packages/raes_contracts/contracts/_mixed_composition_exports.py

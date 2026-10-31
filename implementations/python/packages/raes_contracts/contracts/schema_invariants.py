@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from pydantic.json_schema import JsonSchemaValue
-from raes.observability_plane_semantics import classify_contract_plane
+
+from raes_contracts.observability_planes import classify_contract_plane
 
 from .base import _RAES_SEMANTIC_INVARIANT_PROFILE_URI
 
@@ -18,7 +19,7 @@ from .base import _RAES_SEMANTIC_INVARIANT_PROFILE_URI
 _CARRIER_DISCLOSURES_INSTANCE_PATH = "#/validation_basis_disclosures"
 
 
-def _add_raes_invariant(
+def add_raes_invariant(
     json_schema: JsonSchemaValue,
     invariant_id: str,
     description: str,
@@ -60,7 +61,7 @@ def _schema_contains_raes_invariants(schema_node: object) -> bool:
     return False
 
 
-def _attach_raes_semantic_profile(contract_id: str, json_schema: dict[str, Any]) -> None:
+def attach_raes_semantic_profile(contract_id: str, json_schema: dict[str, Any]) -> None:
     if _schema_contains_raes_invariants(json_schema):
         json_schema["x-raes-semantic-profile"] = {
             "id": "raes-semantic-invariants-v1",
@@ -73,7 +74,7 @@ def _attach_raes_semantic_profile(contract_id: str, json_schema: dict[str, Any])
         }
 
 
-def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
+def attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
     invariant_by_contract = {
         "experiment-task-v1": (
             "task-archival-times-rfc3339-valid",
@@ -119,49 +120,12 @@ def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[s
     if invariant is None:
         return
     invariant_id, description, validator, inputs = invariant
-    _add_raes_invariant(
+    add_raes_invariant(
         json_schema,
         invariant_id,
         description,
         validator=validator,
         inputs=inputs,
-    )
-
-
-def _attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
-    if contract_id not in {
-        "sdl-authoring-input-v1",
-        "materialized-scenario-v1",
-        "instantiated-scenario-v1",
-        "instantiated-scenario-snapshot-v1",
-    }:
-        return
-    input_contract = [{"contract_id": contract_id, "instance_path": "#"}]
-    _add_raes_invariant(
-        json_schema,
-        "stateful-generated-artifact-semantics",
-        "Generated artifact output names and paths, consumers, and dependency entries must be unique, and "
-        "generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable "
-        "outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be "
-        "selected.",
-        validator="raes.stateful_resources.GeneratedArtifact._unique_outputs_and_consumers",
-        inputs=input_contract,
-    )
-    _add_raes_invariant(
-        json_schema,
-        "stateful-persistent-volume-semantics",
-        "Persistent volume consumers and dependency entries must be unique and access cardinality must match "
-        "the declared portable access mode.",
-        validator="raes.stateful_resources.PersistentVolume._unique_consumers",
-        inputs=input_contract,
-    )
-    _add_raes_invariant(
-        json_schema,
-        "stateful-cross-resource-semantics",
-        "Stateful resource consumers and dependencies must resolve unambiguously, use the POSIX v1 path dialect, "
-        "and must not collide on a consumer node mount destination.",
-        validator="raes._stateful_resource_references.stateful_resource_reference_errors",
-        inputs=input_contract,
     )
 
 
@@ -176,7 +140,7 @@ def _add_carrier_validation_basis_disclosure_invariant(
     ``validate_carrier_validation_basis_disclosures`` does.
     """
     carrier_label = subject_kind.removeprefix("experiment_")
-    _add_raes_invariant(
+    add_raes_invariant(
         json_schema,
         f"{carrier_label}-validation-basis-disclosure-identity-matches",
         f"Every validation_basis_disclosures entry must declare subject_kind={subject_kind!r} and a subject_ref "
@@ -186,40 +150,11 @@ def _add_carrier_validation_basis_disclosure_invariant(
     )
 
 
-def _attach_initial_service_state_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
-    if contract_id not in {
-        "sdl-authoring-input-v1",
-        "materialized-scenario-v1",
-        "instantiated-scenario-v1",
-        "instantiated-scenario-snapshot-v1",
-        "scenario-satisfiability-evidence-v1",
-    }:
-        return
-    _add_raes_invariant(
-        json_schema,
-        "initial-service-state-semantics",
-        "Service-target content must resolve to one named service, retain exact tenant/reset ownership and "
-        "content ordering, and bind observed-state postconditions to participant observation boundaries.",
-        validator="raes.validator.SemanticValidator._verify_service_materialization",
-        inputs=[{"contract_id": contract_id, "instance_path": "#"}],
-    )
+def attach_participant_temporal_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
+    """Publish the temporal binding-shape and history invariants of the contracts that carry them."""
 
-
-def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
-    if contract_id in _SDL_IDENTIFIER_CONTRACT_IDS:
-        _add_raes_invariant(
-            json_schema,
-            "participant-shared-time-source-bindings",
-            (
-                "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. "
-                "Dwell conditions require authorized observation boundaries and observable support and evidence. "
-                "Numeric parameters are revalidated after binding."
-            ),
-            validator="raes.semantics.participant_temporal_bindings.participant_temporal_binding_errors",
-            inputs=[{"contract_id": contract_id, "instance_path": "#"}],
-        )
     if "ParticipantTemporalBindingModel" in json_schema.get("$defs", {}):
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-shared-time-binding-shape",
             (
@@ -231,7 +166,7 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
     if contract_id == "runtime-snapshot-v1":
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-shared-time-history-consistency",
             (
@@ -240,7 +175,7 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
                 "observation boundary, "
                 "without duplicates or extra proofs."
             ),
-            validator="raes_contracts.participant_temporal.require_participant_temporal_history",
+            validator="raes_contracts.contracts.participant_temporal_history.require_participant_temporal_history",
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
 
@@ -282,32 +217,10 @@ def _extend_reported_value_status_schema(json_schema: JsonSchemaValue) -> None:
 _DEFS_KEY = "$defs"
 
 
-_INSTANTIATION_INVARIANT_CONTRACT_ID = "instantiated-scenario-v1"
+SCHEMA_MAP_KEYS = ("properties", "patternProperties", _DEFS_KEY)
 
 
-_INSTANTIATED_SNAPSHOT_CONTRACT_ID = "instantiated-scenario-snapshot-v1"
-
-
-_SATISFIABILITY_EVIDENCE_CONTRACT_ID = "scenario-satisfiability-evidence-v1"
-
-
-_SDL_AUTHORING_CONTRACT_ID = "sdl-authoring-input-v1"
-
-
-_SDL_IDENTIFIER_CONTRACT_IDS = frozenset(
-    {
-        _SDL_AUTHORING_CONTRACT_ID,
-        "materialized-scenario-v1",
-        _INSTANTIATION_INVARIANT_CONTRACT_ID,
-        _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
-    }
-)
-
-
-_SCHEMA_MAP_KEYS = ("properties", "patternProperties", _DEFS_KEY)
-
-
-_SCHEMA_SUBSCHEMA_KEYS = (
+SCHEMA_SUBSCHEMA_KEYS = (
     "additionalProperties",
     "items",
     "contains",

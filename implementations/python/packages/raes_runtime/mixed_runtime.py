@@ -9,13 +9,16 @@ from uuid import uuid4
 
 from pydantic import ValidationError
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope, backend_manifest_v2_model
-from raes_contracts.admitted_trial_plan_ingress import AdmittedTrialPlanIngressError, revalidate_admitted_trial_plan
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedMixedCompositionBindingModel,
     AdmittedTrialEntryModel,
     AdmittedTrialPlanModel,
     BackendManifestV2Model,
+)
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    revalidate_admitted_trial_plan,
 )
 from raes_contracts.contracts.mixed_composition import (
     MixedCompositionComponentModel,

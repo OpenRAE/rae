@@ -4,11 +4,16 @@ import re
 from enum import Enum
 
 from pydantic import ConfigDict, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, is_variable_ref, parse_int_or_var
-from .runtime_values import absolute_path_or_var, parse_runtime_enum_or_var
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification as _RuntimeSensitivityClassification,
+)
+from raes_contracts.runtime_values import (
+    absolute_path_or_var,
+    parse_runtime_enum_or_var,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_int_or_var
 
 
 class RuntimeMountPropagation(str, Enum):
@@ -64,17 +69,6 @@ class RuntimeFilesystemStability(str, Enum):
     RUNTIME_CREATED = "runtime_created"
     VOLUME_BACKED = "volume_backed"
     TRANSIENT = "transient"
-    UNKNOWN = "unknown"
-    OTHER = "other"
-
-
-class RuntimeSensitivityClassification(str, Enum):
-    """Sensitivity/redaction class for observed runtime facts."""
-
-    PLAIN = "plain"
-    REDACTED = "redacted"
-    SECRET_FIXTURE = "secret_fixture"  # noqa: S105
-    OPERATOR_SECRET = "operator_secret"  # noqa: S105
     UNKNOWN = "unknown"
     OTHER = "other"
 
@@ -169,7 +163,7 @@ class RuntimeFilesystemEntry(SDLModel):
     source_path: str = ""
     provenance: str = ""
     stability: GovernedVocabulary[RuntimeFilesystemStability] = RuntimeFilesystemStability.UNKNOWN
-    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
+    sensitivity: GovernedVocabulary[_RuntimeSensitivityClassification] = _RuntimeSensitivityClassification.UNKNOWN
     description: str = ""
 
     @field_validator("path")
@@ -222,9 +216,9 @@ class RuntimeFilesystemEntry(SDLModel):
     @classmethod
     def normalize_sensitivity(
         cls,
-        v: RuntimeSensitivityClassification | str,
-    ) -> RuntimeSensitivityClassification | str:
-        return parse_runtime_enum_or_var(v, RuntimeSensitivityClassification, field_name="sensitivity")
+        v: _RuntimeSensitivityClassification | str,
+    ) -> _RuntimeSensitivityClassification | str:
+        return parse_runtime_enum_or_var(v, _RuntimeSensitivityClassification, field_name="sensitivity")
 
     @model_validator(mode="after")
     def validate_digest_pair(self) -> RuntimeFilesystemEntry:

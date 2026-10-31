@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Unpack
+from typing import Unpack
+
+from raes_contracts.contracts.participant_configuration import (
+    validate_participant_configuration_selection,
+)
 
 from .._canonical import canonical_json_digest
 from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
 from .experiment_analysis import validate_experiment_study_against_tasks_and_runs
 from .experiment_apparatus import ExperimentTaskModel
-from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_run import ExperimentRunModel
 from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs
 from .experiment_spec import ExperimentStudyModel
@@ -102,8 +105,6 @@ def _validate_run_selection_provenance(entry: AdmittedTrialEntryModel, run: Expe
 
 
 def _validate_run_binding_provenance(entry: AdmittedTrialEntryModel, run: ExperimentRunModel) -> None:
-    from ..participant_configuration import validate_participant_configuration_selection
-
     _validate_run_selection_provenance(entry, run)
     realized = {binding.descriptor.binding_id: binding for binding in run.realized_bindings}
     configurations = {result.participant_address: result for result in entry.participant_configurations}
@@ -301,7 +302,7 @@ def validate_admitted_trial_study(
         run.run_status == "superseded" for run in runs
     ):
         raise ValueError("replacement study validation requires complete retained replacement history")
-    _validate_admitted_trial_study(
+    validate_reconciled_trial_study(
         plan,
         study,
         tasks,
@@ -312,7 +313,7 @@ def validate_admitted_trial_study(
     )
 
 
-def _validate_admitted_trial_study(
+def validate_reconciled_trial_study(
     plan: AdmittedTrialPlanModel,
     study: ExperimentStudyModel,
     tasks: list[ExperimentTaskModel],
@@ -333,42 +334,6 @@ def _validate_admitted_trial_study(
     _validate_study_identity(plan, study)
     _validate_study_run_membership(study, runs)
     _validate_study_allocation(plan, study)
-
-
-@dataclass(frozen=True)
-class TrialReplacementStudyInputs:
-    """Complete retained replacement history and ordinary study evidence."""
-
-    replacement_plans: list[AdmittedTrialPlanModel]
-    cleanup_receipts: list[TrialCleanupReceiptModel]
-    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None
-    relation_scenarios: Mapping[str, Any] | None = None
-    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None
-    study_definition: ExperimentStudyModel | None = None
-
-
-def validate_replacement_trial_study(
-    plan: AdmittedTrialPlanModel,
-    study: ExperimentStudyModel,
-    tasks: list[ExperimentTaskModel],
-    runs: list[ExperimentRunModel],
-    *,
-    inputs: TrialReplacementStudyInputs,
-) -> None:
-    """Reconcile retained history before validating single-leaf study membership."""
-    from .trial_replacement_analysis import reconcile_replacement_trials
-
-    accounting = reconcile_replacement_trials(plan, inputs.replacement_plans, runs, inputs.cleanup_receipts)
-    _validate_admitted_trial_study(
-        plan,
-        study,
-        tasks,
-        list(accounting.analysis_runs),
-        study_definition=inputs.study_definition,
-        evidence_by_run=inputs.evidence_by_run,
-        relation_scenarios=inputs.relation_scenarios,
-        relation_capture_specs=inputs.relation_capture_specs,
-    )
 
 
 def _validate_trial_accounting(

@@ -23,7 +23,9 @@ from yaml.constructor import ConstructorError
 from yaml.events import AliasEvent
 from yaml.nodes import MappingNode
 
-from .contracts import ExperimentSpecModel, ExperimentTaskModel
+from raes_contracts.contracts.experiment_spec import ExperimentSpecModel
+from raes_contracts.contracts.experiment_task import ExperimentTaskModel
+
 from .errors import InvalidInputError
 from .operational_logging import get_logger
 

@@ -10,16 +10,19 @@ from enum import Enum
 from math import isfinite
 
 from pydantic import Field, field_validator, model_validator
-
-from .._base import SDLModel
-from .._classification_guard import LegacyClassificationGuard
-from .._identifiers import PortableIdentifier
-from ..participant_action_semantics import (
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.participant_action_semantics import (
     ParticipantActionEffect,
     ParticipantActionPrecondition,
     ParticipantBackendFailureMapping,
     ParticipantFailureClass,
 )
+from raes_contracts.participant_action_semantics import (
+    ParticipantInteractionClass as _ParticipantInteractionClass,
+)
+from raes_contracts.sdl_model import SDLModel
+
+from .._classification_guard import LegacyClassificationGuard
 from ..participant_temporal_semantics import (
     ParticipantBackendTimingDisclosure,
     ParticipantTemporalContract,
@@ -281,15 +284,6 @@ class ParticipantActionArgumentDefinition(SDLModel):
             raise ValueError(f"{field_name} must satisfy maximum")
 
 
-class ParticipantInteractionClass(str, Enum):
-    """SEM-209 interaction classes for multi-participant behavior."""
-
-    COORDINATION = "coordination"
-    CONTENTION = "contention"
-    INTERFERENCE = "interference"
-    SHARED_STATE_CHANGE = "shared_state_change"
-
-
 class ExternalMappingLoss(SDLModel):
     """Historical mapping syntax, retained solely for explicit migration."""
 
@@ -309,7 +303,7 @@ class ExternalMappingLoss(SDLModel):
 class ParticipantInteractionDeclaration(SDLModel):
     """Declared interaction semantics for a participant action contract."""
 
-    interaction_class: ParticipantInteractionClass
+    interaction_class: _ParticipantInteractionClass
     target: str
     rationale: str
     related_actions: list[str] = Field(default_factory=list)
@@ -346,8 +340,8 @@ class ParticipantInteractionDeclaration(SDLModel):
         if (
             self.interaction_class
             in {
-                ParticipantInteractionClass.COORDINATION,
-                ParticipantInteractionClass.INTERFERENCE,
+                _ParticipantInteractionClass.COORDINATION,
+                _ParticipantInteractionClass.INTERFERENCE,
             }
             and not self.related_actions
         ):
@@ -355,8 +349,8 @@ class ParticipantInteractionDeclaration(SDLModel):
         if (
             self.interaction_class
             in {
-                ParticipantInteractionClass.CONTENTION,
-                ParticipantInteractionClass.SHARED_STATE_CHANGE,
+                _ParticipantInteractionClass.CONTENTION,
+                _ParticipantInteractionClass.SHARED_STATE_CHANGE,
             }
             and not self.shared_state_refs
         ):

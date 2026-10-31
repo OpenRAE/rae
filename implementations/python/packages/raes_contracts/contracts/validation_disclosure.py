@@ -30,10 +30,11 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from ..timestamps import parse_rfc3339_datetime
+from ..validation_profiles import select_validation_profile
 from ..versions import VALIDATION_BASIS_DISCLOSURE_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
 from .experiment_manifest_references import ExperimentEvidenceRecordReferenceModel
-from .schema_invariants import _CARRIER_DISCLOSURES_INSTANCE_PATH, _add_raes_invariant
+from .schema_invariants import _CARRIER_DISCLOSURES_INSTANCE_PATH, add_raes_invariant
 from .validation_disclosure_gates import (
     _EVIDENCE_REF_REQUIRED_STRENGTHS,
     _STRENGTH_RANK,
@@ -231,7 +232,6 @@ class ValidationBasisDisclosureModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_validation_basis_disclosure(self) -> ValidationBasisDisclosureModel:
-        from ..validation_profiles import select_validation_profile
 
         parse_rfc3339_datetime("recorded_at", self.recorded_at)
         _validate_subject_kind_ref_kind_mapping(self)
@@ -264,7 +264,7 @@ class ValidationBasisDisclosureModel(ContractModel):
             {"contract_id": "experiment-study-v1", "instance_path": _CARRIER_DISCLOSURES_INSTANCE_PATH},
         ]
         for invariant_id, description in _DISCLOSURE_INVARIANTS:
-            _add_raes_invariant(json_schema, invariant_id, description, validator=validator, inputs=inputs)
+            add_raes_invariant(json_schema, invariant_id, description, validator=validator, inputs=inputs)
         return json_schema
 
 

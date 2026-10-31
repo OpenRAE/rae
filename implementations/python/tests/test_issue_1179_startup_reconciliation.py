@@ -19,7 +19,7 @@ from raes_backend_protocols.recovery_observation import (
     RecoveryObservationResult,
 )
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
-from raes_contracts.contracts import BackendManifestV2Model, schema_bundle
+from raes_contracts.contracts import BackendManifestV2Model
 from raes_contracts.diagnostics import Severity
 from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
@@ -46,6 +46,7 @@ from raes_runtime.control_plane_store import ControlPlaneOperationRecord, InMemo
 from raes_runtime.control_plane_store_record_migration import migrate_legacy_operation_payload
 from raes_runtime.control_plane_store_records import _record_payload
 from raes_runtime.registry import RuntimeTarget
+from raes_schemas import schema_bundle
 
 pytestmark = pytest.mark.control_plane_conformance
 

@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 from jsonschema import Draft202012Validator
-from raes_contracts.contracts import schema_bundle
+from raes_schemas import schema_bundle
 from test_issue_1241_materialized_sdl import materialized_payload
 
 

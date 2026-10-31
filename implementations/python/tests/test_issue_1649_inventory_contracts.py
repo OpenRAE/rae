@@ -5,9 +5,9 @@ from dataclasses import replace
 import pytest
 from jsonschema import Draft202012Validator
 from raes_backend_protocols.manifest import backend_manifest_v2_model
-from raes_contracts.contracts import schema_bundle
-from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
 from raes_runtime.control_plane_api_models import _provisioning_plan
+from raes_schemas import schema_bundle
 from runtime_descendant_fixtures import CONTRACT, descendant_runtime
 
 

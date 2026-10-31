@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 
+from raes_contracts.contracts.evidence_satisfaction import ValidatedRunEvidence
+
 from .._canonical import canonical_json_digest
-from ..evidence_proof import ValidatedRunEvidence
-from ..json_serialization import sorted_json_text
-from .base import _canonical_digest
 from .experiment_apparatus import ExperimentApparatusComponentModel
 from .experiment_artifacts import (
-    _format_reference,
-    _identity_matches_reference,
-    _reference_satisfies_requirement,
+    format_reference,
+    identity_matches_reference,
+    reference_satisfies_requirement,
 )
 from .experiment_bindings import RealizedBindingProvenanceModel
 from .experiment_references import ExperimentParameterModel, ExperimentReferenceModel
@@ -26,14 +24,14 @@ def _component_identity_matches_reference(
     component: ExperimentApparatusComponentModel,
     reference: ExperimentReferenceModel,
 ) -> bool:
-    return component.component_kind == reference.ref_kind and _identity_matches_reference(component.identity, reference)
+    return component.component_kind == reference.ref_kind and identity_matches_reference(component.identity, reference)
 
 
 def _participant_selection_matches_reference(
     selection: ParticipantImplementationSelectionModel,
     reference: ExperimentReferenceModel,
 ) -> bool:
-    return reference.ref_kind == "participant-implementation" and _identity_matches_reference(
+    return reference.ref_kind == "participant-implementation" and identity_matches_reference(
         selection.implementation_identity,
         reference,
     )
@@ -43,7 +41,7 @@ def _reference_in_collection(
     references: list[ExperimentReferenceModel],
     requirement: ExperimentReferenceModel,
 ) -> bool:
-    return any(_reference_satisfies_requirement(reference, requirement) for reference in references)
+    return any(reference_satisfies_requirement(reference, requirement) for reference in references)
 
 
 def _condition_reference_matches_processor_or_backend(
@@ -70,14 +68,14 @@ def _condition_reference_matches_participant_implementation(
 
 
 def _condition_reference_matches_task(run: ExperimentRunModel, requirement: ExperimentReferenceModel) -> bool:
-    return _reference_satisfies_requirement(run.task_ref, requirement)
+    return reference_satisfies_requirement(run.task_ref, requirement)
 
 
 def _condition_reference_matches_scenario_snapshot(
     run: ExperimentRunModel,
     requirement: ExperimentReferenceModel,
 ) -> bool:
-    return _reference_satisfies_requirement(run.scenario_snapshot_ref, requirement)
+    return reference_satisfies_requirement(run.scenario_snapshot_ref, requirement)
 
 
 def _condition_reference_matches_apparatus_context(
@@ -90,12 +88,12 @@ def _condition_reference_matches_apparatus_context(
         ref_id=apparatus_context.apparatus_context_id,
         ref_version=apparatus_context.context_version,
     )
-    return _reference_satisfies_requirement(apparatus_context_ref, requirement)
+    return reference_satisfies_requirement(apparatus_context_ref, requirement)
 
 
 def _condition_reference_matches_manifest(run: ExperimentRunModel, requirement: ExperimentReferenceModel) -> bool:
     return any(
-        _reference_satisfies_requirement(selected_manifest, requirement)
+        reference_satisfies_requirement(selected_manifest, requirement)
         for selected_manifest in run.apparatus_context.selected_manifests
     )
 
@@ -179,51 +177,6 @@ def _parameter_satisfies_requirement(
     )
 
 
-def _condition_assignment_run_criteria_signature(
-    assignment: ExperimentConditionAssignmentModel,
-) -> tuple[object, ...]:
-    reference_signature = tuple(
-        sorted(
-            (
-                reference.ref_kind,
-                reference.ref_id,
-                reference.ref_version,
-                _canonical_digest(reference.ref_digest),
-                reference.ref_path,
-            )
-            for reference in assignment.required_refs
-        )
-    )
-    parameter_signature = tuple(
-        sorted(
-            (
-                parameter.name,
-                parameter.value_kind,
-                type(parameter.value).__name__,
-                sorted_json_text(parameter.value),
-            )
-            for parameter in assignment.required_parameters
-        )
-    )
-    return (
-        reference_signature,
-        parameter_signature,
-        assignment.difficulty_condition,
-        assignment.difficulty_policy_id,
-        tuple(
-            sorted(
-                json.dumps(binding.realization_payload(), sort_keys=True) for binding in assignment.required_bindings
-            )
-        ),
-        tuple(
-            sorted(
-                json.dumps(selection.realization_payload(), sort_keys=True)
-                for selection in assignment.required_selections
-            )
-        ),
-    )
-
-
 def _run_satisfies_condition_assignment(
     run: ExperimentRunModel,
     assignment: ExperimentConditionAssignmentModel,
@@ -231,7 +184,7 @@ def _run_satisfies_condition_assignment(
 ) -> list[str]:
     missing: list[str] = []
     missing.extend(
-        _format_reference(reference)
+        format_reference(reference)
         for reference in assignment.required_refs
         if not _run_satisfies_condition_reference(run, reference, validated_evidence)
     )

@@ -1,19 +1,31 @@
-"""Operational realization readback independent of experimental demand."""
+"""Operational realization readback and observation binding, independent of experimental demand."""
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Sequence, Set
 from typing import TYPE_CHECKING
 
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.realization_envelope import ObservationStrength, RealizationConcern
+from raes_contracts.planning import ChangeAction, PlannedRealizationConstraint, PlanOperation, ProvisioningPlan
+from raes_contracts.realization_envelope import (
+    BackendRealizationEnvelopeModel,
+    ConcernDisposition,
+    ObservationStrength,
+    RealizationConcern,
+)
+from raes_contracts.realization_observation import (
+    ObservedOperatingSystemIdentity,
+    RealizationObservation,
+    RealizationObservationDisclosure,
+)
+from raes_contracts.realization_observation_binding import operating_system_observation_binding_valid
 from raes_contracts.realization_observation_demand import compute_substrate_demand_applies
 from raes_contracts.vocabulary import RealizationVerificationScope, observation_requirement_satisfied
 
 if TYPE_CHECKING:
-    from raes_contracts.realization_observation import RealizationObservation
+    from raes_contracts.planning import ResolvedRealizationAuthority
 
 _LOGGER = get_logger(__name__)
 
@@ -22,8 +34,6 @@ def invoke_native_readback(
     producer: Callable[[], object],
 ) -> tuple[list[Diagnostic], tuple[RealizationObservation, ...]]:
     """Contain readback failures without losing already-applied resource state."""
-
-    from raes_contracts.realization_observation import RealizationObservation
 
     try:
         result = producer()
@@ -86,7 +96,6 @@ def _requires_compute_substrate_readback(
     constraint: object,
     envelope: object,
 ) -> bool:
-    from raes_contracts.planning import ChangeAction, PlanOperation
 
     if not isinstance(operation, PlanOperation) or operation.action is ChangeAction.DELETE:
         return False
@@ -120,8 +129,6 @@ def _prior_disclosure_reusable(
     constraint: object,
     envelope: object,
 ) -> bool:
-    from raes_contracts.planning import PlannedRealizationConstraint
-    from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
     if not isinstance(constraint, PlannedRealizationConstraint) or not isinstance(
         envelope, BackendRealizationEnvelopeModel
@@ -146,7 +153,6 @@ def _native_compute_substrate_observation_valid(
     observation: object,
     envelope: object,
 ) -> bool:
-    from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
     if not isinstance(envelope, BackendRealizationEnvelopeModel):
         return False
@@ -184,11 +190,244 @@ def _native_observation_binding_valid(observation: object, envelope: object) -> 
 
 
 def _require_readback_inputs(plan: object, envelope: object) -> None:
-    from raes_contracts.planning import ProvisioningPlan
-    from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
     if not isinstance(plan, ProvisioningPlan) or not isinstance(envelope, BackendRealizationEnvelopeModel):
         raise TypeError("substrate readback selection requires typed plan and envelope")
 
 
-__all__ = ["compute_substrate_readback_addresses", "invoke_native_readback", "missing_compute_substrate_readbacks"]
+def bind_compute_substrate_observations(
+    *,
+    plan: object,
+    observations: Sequence[RealizationObservation],
+    envelope: object,
+    previous: Sequence[RealizationObservationDisclosure] = (),
+    selected_addresses: Set[str],
+) -> tuple[RealizationObservationDisclosure, ...]:
+    """Bind native substrate readback to one plan execution and apparatus.
+
+    The backend provisioner performs this association after its driver returns
+    independently read native state.  A handle or selected configuration alone
+    cannot produce a disclosure.
+    """
+
+    _require_binding_inputs(plan, envelope, "substrate observation binding")
+    non_substrate = tuple(item for item in previous if item.requirement_kind != "compute-substrate")
+    if not selected_addresses:
+        return non_substrate
+    selected_constraints = tuple(
+        constraint for constraint in plan.realization_constraints if constraint.address in selected_addresses
+    )
+    if not selected_constraints:
+        return non_substrate
+    if plan.operation_id is None or plan.realization_envelope != envelope.identity:
+        raise ValueError("substrate observation binding requires matching operation and envelope identity")
+    operations = {operation.address: operation for operation in plan.operations}
+    native_by_address = _native_observations_by_address(observations)
+    previous_by_address = {item.address: item for item in previous if item.requirement_kind == "compute-substrate"}
+    disclosures = tuple(
+        disclosure
+        for constraint in selected_constraints
+        if (
+            disclosure := _bound_compute_substrate_disclosure(
+                constraint=constraint,
+                operation=operations.get(constraint.address),
+                native=native_by_address.get(constraint.address),
+                prior=previous_by_address.get(constraint.address),
+                plan=plan,
+                envelope=envelope,
+            )
+        )
+        is not None
+    )
+    return (*non_substrate, *disclosures)
+
+
+def bind_operating_system_observations(
+    *,
+    plan: object,
+    observations: Sequence[RealizationObservation],
+    envelope: object,
+    previous: Sequence[RealizationObservationDisclosure] = (),
+) -> tuple[RealizationObservationDisclosure, ...]:
+    """Bind one guest OS identity to the plan operation and selected apparatus."""
+
+    _require_binding_inputs(plan, envelope, "operating-system observation binding")
+    if not isinstance(plan, ProvisioningPlan) or not isinstance(envelope, BackendRealizationEnvelopeModel):
+        raise TypeError("operating-system observation binding requires typed plan and envelope")
+    if plan.operation_id is None or plan.realization_envelope != envelope.identity:
+        raise ValueError("operating-system observation binding requires matching operation and envelope identity")
+    authorities_by_address = _operating_system_authorities_by_address(plan.realization_authority)
+    operations = {operation.address: operation for operation in plan.operations}
+    native_by_address = _operating_system_observations_by_address(observations)
+    retained = tuple(item for item in previous if item.requirement_kind != "operating-system")
+    bound: list[RealizationObservationDisclosure] = []
+    for address, authorities in authorities_by_address.items():
+        disclosure = _bound_operating_system_disclosure(
+            address=address,
+            authorities=authorities,
+            operation=operations.get(address),
+            native=native_by_address.get(address),
+            plan=plan,
+            envelope=envelope,
+        )
+        if disclosure is not None:
+            bound.append(disclosure)
+    return (*retained, *bound)
+
+
+def _operating_system_authorities_by_address(authorities: Sequence[object]) -> dict[str, list[object]]:
+    os_kinds = {"os-family", "os-distribution", "os-version"}
+    by_address: dict[str, list[object]] = {}
+    for authority in authorities:
+        if authority.requirement_kind in os_kinds:
+            by_address.setdefault(authority.address, []).append(authority)
+    return by_address
+
+
+def _operating_system_observations_by_address(
+    observations: Sequence[RealizationObservation],
+) -> dict[str, RealizationObservation]:
+    native = tuple(item for item in observations if item.concern is RealizationConcern.OPERATING_SYSTEM)
+    by_address = {item.address: item for item in native}
+    if len(by_address) != len(native):
+        raise ValueError("operating-system observations must identify unique addresses")
+    return by_address
+
+
+def _bound_operating_system_disclosure(
+    *,
+    address: str,
+    authorities: Sequence[ResolvedRealizationAuthority],
+    operation: PlanOperation | None,
+    native: RealizationObservation | None,
+    plan: ProvisioningPlan,
+    envelope: BackendRealizationEnvelopeModel,
+) -> RealizationObservationDisclosure | None:
+
+    eligible = (
+        isinstance(operation, PlanOperation)
+        and operation.action is not ChangeAction.DELETE
+        and native is not None
+        and _native_operating_system_observation_valid(native, plan, envelope)
+    )
+    if not eligible:
+        return None
+    prefix = authorities[0].field_path.rsplit(".", 1)[0]
+    return RealizationObservationDisclosure(
+        address=address,
+        field_path=f"{prefix}.operating-system",
+        domain=authorities[0].domain,
+        requirement_kind="operating-system",
+        verification_scope=RealizationVerificationScope.PRESENCE,
+        observation_strength=native.source,
+        operating_system=native.value,
+        operation_id=plan.operation_id,
+        envelope_digest=envelope.digest,
+        configuration_digest=envelope.configuration.configuration_digest,
+        observer_version=native.observer_version,
+        sequence=native.sequence,
+        binding_verified=True,
+    )
+
+
+def _native_operating_system_observation_valid(
+    observation: RealizationObservation,
+    plan: object,
+    envelope: object,
+) -> bool:
+    concern = next(
+        (claim for claim in envelope.concerns if claim.concern is RealizationConcern.OPERATING_SYSTEM),
+        None,
+    )
+    return (
+        _operating_system_identity_supported(observation.value, envelope.configuration.operating_systems)
+        and _operating_system_concern_is_guest_observed(concern)
+        and operating_system_observation_binding_valid(observation, plan, envelope)
+    )
+
+
+def _operating_system_identity_supported(identity: object, rows: Sequence[object]) -> bool:
+    return isinstance(identity, ObservedOperatingSystemIdentity) and any(
+        row.family == identity.family and row.distribution == identity.distribution and identity.version in row.versions
+        for row in rows
+    )
+
+
+def _operating_system_concern_is_guest_observed(concern: object) -> bool:
+    return bool(
+        concern is not None
+        and concern.disposition is ConcernDisposition.REALIZED
+        and concern.observation_strength is ObservationStrength.GUEST_OBSERVED
+    )
+
+
+def _native_observations_by_address(
+    observations: Sequence[RealizationObservation],
+) -> dict[str, RealizationObservation]:
+    native = tuple(
+        observation for observation in observations if observation.concern is RealizationConcern.COMPUTE_SUBSTRATE
+    )
+    by_address = {observation.address: observation for observation in native}
+    if len(by_address) != len(native):
+        raise ValueError("compute-substrate observations must identify unique addresses")
+    return by_address
+
+
+def _require_binding_inputs(plan: object, envelope: object, boundary: str) -> None:
+
+    if not isinstance(plan, ProvisioningPlan) or not isinstance(envelope, BackendRealizationEnvelopeModel):
+        raise TypeError(f"{boundary} requires typed plan and envelope")
+
+
+def _bound_compute_substrate_disclosure(
+    *,
+    constraint: object,
+    operation: object,
+    native: RealizationObservation | None,
+    prior: RealizationObservationDisclosure | None,
+    plan: object,
+    envelope: object,
+) -> RealizationObservationDisclosure | None:
+
+    typed = all(
+        (
+            isinstance(constraint, PlannedRealizationConstraint),
+            isinstance(operation, PlanOperation),
+            isinstance(plan, ProvisioningPlan),
+            isinstance(envelope, BackendRealizationEnvelopeModel),
+        )
+    )
+    disclosure = None
+    if typed and operation.action is not ChangeAction.DELETE:
+        if (
+            operation.action is ChangeAction.UNCHANGED
+            and prior is not None
+            and _prior_disclosure_reusable(prior, constraint, envelope)
+        ):
+            disclosure = prior
+        elif native is not None and _native_compute_substrate_observation_valid(native, envelope):
+            disclosure = RealizationObservationDisclosure(
+                address=constraint.address,
+                field_path=constraint.field_path,
+                domain="runtime-realization",
+                requirement_kind="compute-substrate",
+                verification_scope=RealizationVerificationScope.PRESENCE,
+                observation_strength=native.source,
+                observed_value=native.value,
+                operation_id=plan.operation_id,
+                envelope_digest=envelope.digest,
+                configuration_digest=envelope.configuration.configuration_digest,
+                observer_version=native.observer_version,
+                sequence=native.sequence,
+                binding_verified=True,
+            )
+    return disclosure
+
+
+__all__ = [
+    "bind_compute_substrate_observations",
+    "bind_operating_system_observations",
+    "compute_substrate_readback_addresses",
+    "invoke_native_readback",
+    "missing_compute_substrate_readbacks",
+]

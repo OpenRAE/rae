@@ -14,7 +14,6 @@ from __future__ import annotations
 import textwrap
 
 from raes import instantiate_scenario, parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.capabilities import (
     BackendManifest,
     OperatingSystemCompatibility,
@@ -25,6 +24,7 @@ from raes_contracts.apparatus import (
     RealizationObservationCapability,
     RealizationSupportDeclaration,
 )
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.vocabulary import (
     ObservationStrength,
     RealizationSupportMode,

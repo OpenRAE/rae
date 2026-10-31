@@ -10,6 +10,8 @@ from functools import cache
 
 from pydantic import BaseModel
 
+from raes_contracts.immutable_history import EventHistory, HistoryMap, charge_immutable_history
+
 from ..diagnostics import Diagnostic
 from ..json_pointer import pointer_from_tokens, pointer_tokens
 from ._models import (
@@ -204,7 +206,6 @@ def _bounded_scalar_failure(
     current_pointer: str,
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
-    from raes_contracts.immutable_history import EventHistory, HistoryMap
 
     failure = None
     if exhausted := budget.spend_scalar(value):
@@ -301,7 +302,6 @@ def validate_bounded_value(
     depth: int,
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
-    from raes_contracts.immutable_history_stats import charge_immutable_history
 
     current_pointer = pointer_from_tokens(path)
     if budget.python_carriers and charge_immutable_history(value, depth, budget):
@@ -320,7 +320,6 @@ def validate_bounded_value(
 
 
 def _is_bounded_container(value: object, *, python_carriers: bool) -> bool:
-    from raes_contracts.immutable_history import EventHistory, HistoryMap
 
     return isinstance(value, (dict, list)) or (python_carriers and isinstance(value, (tuple, EventHistory, HistoryMap)))
 

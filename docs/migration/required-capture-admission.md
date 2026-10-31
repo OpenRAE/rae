@@ -167,7 +167,7 @@ This design adds no URI fetch, credential handling, or serialized proof token.
 
 Issue #1237 adds a proof return value to `validate_experiment_run_evidence()` and
 `validate_experiment_run_against_task()`.
-They return `ValidatedRunEvidence` from `raes_contracts.evidence_proof`.
+They return `ValidatedRunEvidence` from `raes_contracts.contracts.evidence_satisfaction`.
 Task observations, metric artifact relations, study allocation, and evidence
 conditions consume that proof.
 Its bindings retain immutable capture, record, and artifact identities.

@@ -48,7 +48,7 @@ from raes_contracts.participant_episode import ParticipantEpisodeRestartRequest 
 from raes_contracts.participant_episode import ParticipantEpisodeStatus as ParticipantEpisodeStatus
 from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason as ParticipantEpisodeTerminalReason
 from raes_contracts.participant_episode import ParticipantEpisodeTerminateRequest as ParticipantEpisodeTerminateRequest
-from raes_contracts.participant_episode import (
+from raes_contracts.participant_episode_snapshot import (
     iter_participant_episode_snapshot_violations as iter_participant_episode_snapshot_violations,
 )
 from raes_contracts.planning import ChangeAction as ChangeAction

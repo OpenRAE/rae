@@ -8,8 +8,8 @@ from dataclasses import replace
 
 import pytest
 from raes import SDLValidationError, instantiate_scenario, parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_stubs.stubs import create_stub_manifest
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import ChangeAction, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_processor.compiler import compile_runtime_model

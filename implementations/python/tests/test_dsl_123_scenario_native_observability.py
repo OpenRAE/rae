@@ -7,12 +7,12 @@ from raes._errors import SDLValidationError
 from raes._runtime_service_families import RUNTIME_SERVICE_FAMILIES, collect_qualified_runtime_family_refs
 from raes.observability_plane_semantics import (
     SCENARIO_NATIVE_OBSERVABILITY_FAMILIES,
-    ObservabilityEvidencePlane,
     classify_runtime_family,
     collect_scenario_native_observability_refs,
 )
 from raes.scenario import Scenario
 from raes.validator import SemanticValidator
+from raes_contracts.observability_planes import ObservabilityEvidencePlane
 
 OBSERVABILITY_REF = "nodes.siem.runtime.service_listeners.siem-http"
 NON_OBSERVABILITY_REF = "nodes.siem.runtime.applications.admin-ui"
