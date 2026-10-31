@@ -14,19 +14,26 @@ These encode the hard rules previously in `AGENTS.md` prose.
   already contain a UID such as `GOV-918`.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,
   `contracts/`, `docs/`, and `implementations/`.
-- Plans MUST name the module that owns each piece of new code. Plans MUST also
-  name the public interface that other modules use to reach that code
-  (ADR-117).
-- Plans that change a published schema under `contracts/schemas/` (the
-  hand-governed normative authority per ADR-009 §7) MUST record a
-  contract-facing change-ledger entry (`last_change`: summary + content hash)
-  in `contracts/schema-publication-manifest.json`, and a plan that **removes**
-  a published schema MUST record a `removed_schemas` tombstone (schema path +
-  summary) in the same manifest. Plans MUST keep the reference implementation
-  (`schema_bundle()`) generating an identical bundle so
-  `tools/check_generated_schemas.py` passes. The published schema is the
-  authority; a generator/Python edit alone is NOT authorization for a schema
-  change.
+- Plans MUST name the module that owns each piece of new code. For Go code, the
+  owner is a package that `implementations/architecture.json` declares. Plans
+  MUST also name the public interface that other modules or packages use to
+  reach that code (ADR-117, ADR-122).
+- Before implementation starts, plans for Go code MUST declare their design in
+  `implementations/architecture.json`. The design is each new or changed
+  module, layer, package, import, and external entry. Plans MUST name the
+  exported identifiers that each new or changed package adds or changes. The
+  design check `archcheck -design` MUST pass on the changed model before
+  implementation starts (ADR-122).
+- The published schemas under `contracts/schemas/` are the hand-governed
+  normative authority (ADR-009 §7). A plan that changes a published schema MUST
+  record a contract-facing change-ledger entry in
+  `contracts/schema-publication-manifest.json`. The entry is `last_change`, with
+  a summary and a content hash. A plan that **removes** a published schema MUST
+  record a `removed_schemas` tombstone in the same manifest, with the schema
+  path and a summary. Plans MUST keep the reference implementation
+  (`schema_bundle()`) generating an identical bundle, so that
+  `tools/check_generated_schemas.py` passes. A generator or Python edit alone
+  does NOT authorize a schema change.
 - Plans MUST keep concept-authority artifacts in the approved
   concept-authority surfaces.
 - Plans MUST keep IMPLEMENTS and TESTS traceability in Ground Control

@@ -1,0 +1,211 @@
+{
+  "schema": "raes-go-architecture/v1",
+  "modules": [
+    {
+      "dir": "implementations/tooling/go",
+      "path": "github.com/OpenRAE/rae/implementations/tooling/go"
+    }
+  ],
+  "layers": [
+    {
+      "name": "base",
+      "dir": "implementations/go/internal/base",
+      "doc": "Shared primitives: canonical JSON, digests, random streams, input limits, errors, logging, and the clock.",
+      "uses": [],
+      "external": []
+    },
+    {
+      "name": "contract",
+      "dir": "implementations/go/internal/contract",
+      "doc": "Bindings and validation of the published contracts, concept authority, vocabularies, and profiles.",
+      "uses": [
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "sdl",
+      "dir": "implementations/go/internal/sdl",
+      "doc": "The RAES SDL: source loading, the document model, semantic validation, instantiation, and composition.",
+      "uses": [
+        "contract",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "processor",
+      "dir": "implementations/go/internal/processor",
+      "doc": "Compilation, planning, trial compilation, and the analysis services.",
+      "uses": [
+        "sdl",
+        "contract",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "backend",
+      "dir": "implementations/go/internal/backend",
+      "doc": "The interfaces that the runtime needs from a backend, backend manifests, and the backend test doubles.",
+      "uses": [
+        "contract",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "runtime",
+      "dir": "implementations/go/internal/runtime",
+      "doc": "The runtime control plane, its stores, distributed execution, and participant control.",
+      "uses": [
+        "backend",
+        "processor",
+        "sdl",
+        "contract",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "conformance",
+      "dir": "implementations/go/internal/conformance",
+      "doc": "Processor and backend conformance checks.",
+      "uses": [
+        "runtime",
+        "backend",
+        "processor",
+        "sdl",
+        "contract",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "app",
+      "dir": "implementations/go/internal/app",
+      "doc": "Application services that the command line, the MCP server, and the HTTP API share.",
+      "uses": [
+        "conformance",
+        "runtime",
+        "backend",
+        "processor",
+        "sdl",
+        "contract",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "adapter",
+      "dir": "implementations/go/internal/adapter",
+      "doc": "Thin adapters for the raes command, the raes-mcp server, and the control-plane HTTP API.",
+      "uses": [
+        "app",
+        "runtime",
+        "contract",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "command",
+      "dir": "implementations/go/cmd",
+      "doc": "The main packages of the raes and raes-mcp binaries.",
+      "uses": [
+        "adapter",
+        "base"
+      ],
+      "external": []
+    },
+    {
+      "name": "tooling",
+      "dir": "implementations/tooling/go",
+      "doc": "Development tools: the repository analyzers, the architecture check, and CI checks.",
+      "uses": [],
+      "external": [
+        {
+          "path": "github.com/google/go-cmp/cmp",
+          "reason": "Comparison of full structures in tests, as the Google Go style decisions recommend."
+        },
+        {
+          "path": "golang.org/x/mod/modfile",
+          "reason": "The module path of each go.mod for archcheck."
+        },
+        {
+          "path": "golang.org/x/tools/go/analysis",
+          "reason": "The go/analysis framework, its unitchecker, and its analysistest for the repository analyzers (ADR-121)."
+        },
+        {
+          "path": "golang.org/x/tools/go/ast/inspector",
+          "reason": "AST traversal for the repository analyzers."
+        },
+        {
+          "path": "golang.org/x/tools/go/packages",
+          "reason": "The package loader of archcheck."
+        },
+        {
+          "path": "golang.org/x/tools/go/types/typeutil",
+          "reason": "Resolution of the called function for the repository analyzers."
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "dir": "implementations/tooling/go/arch",
+      "layer": "tooling",
+      "public": false,
+      "doc": "The architecture model and its design and code checks.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/tooling/go/cmd/archcheck",
+      "layer": "tooling",
+      "public": false,
+      "doc": "The command that checks the model and the code.",
+      "imports": [
+        "implementations/tooling/go/arch"
+      ]
+    },
+    {
+      "dir": "implementations/tooling/go/cmd/raesvet",
+      "layer": "tooling",
+      "public": false,
+      "doc": "The go vet tool that runs the repository analyzers.",
+      "imports": [
+        "implementations/tooling/go/lint/getprefix",
+        "implementations/tooling/go/lint/gotwant",
+        "implementations/tooling/go/lint/wrapverb"
+      ]
+    },
+    {
+      "dir": "implementations/tooling/go/cmd/regressiontest",
+      "layer": "tooling",
+      "public": false,
+      "doc": "The check that each new regression test fails on the base revision.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/tooling/go/lint/getprefix",
+      "layer": "tooling",
+      "public": false,
+      "doc": "The analyzer for function names with a Get prefix.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/tooling/go/lint/gotwant",
+      "layer": "tooling",
+      "public": false,
+      "doc": "The analyzer for test failure messages that print want before got.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/tooling/go/lint/wrapverb",
+      "layer": "tooling",
+      "public": false,
+      "doc": "The analyzer for %w in the middle of an error format.",
+      "imports": []
+    }
+  ]
+}

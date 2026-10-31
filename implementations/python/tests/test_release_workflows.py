@@ -368,6 +368,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "model-check",
         "coverage-reduce",
         "go",
+        "go-architecture",
         "sonar",
         "gate",
     }
@@ -445,6 +446,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "model-check",
         "coverage-reduce",
         "go",
+        "go-architecture",
     }
 
 
@@ -1655,3 +1657,18 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     mutation = next(step for step in go["steps"] if "gremlins unleash" in step.get("run", ""))
     assert mutation["env"]["GIT_CONFIG_KEY_0"] == "diff.relative"
     assert mutation["env"]["GIT_CONFIG_VALUE_0"] == "true"
+
+
+def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
+    """The ADR-122 check runs in the canonical graph, and the gate requires it."""
+
+    workflow = _load(CANONICAL_PATH)
+    job = workflow["jobs"]["go-architecture"]
+    assert job["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert "strategy" not in job
+    check = _named_step(job, "Check the Go code against the architecture model")
+    assert "working-directory" not in check
+    assert '"${RUNNER_TEMP}/go-tools/archcheck"' in check["run"]
+    install = _named_step(job, "Install the locked Go toolchain")
+    assert install["run"] == _named_step(workflow["jobs"]["go"], "Install the locked Go toolchain")["run"]
+    assert "go-architecture" in workflow["jobs"]["gate"]["needs"]

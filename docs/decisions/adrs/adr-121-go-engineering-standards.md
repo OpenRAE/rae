@@ -31,10 +31,16 @@ Google publishes its Go style guide as three documents. The
 normative. [Best Practices](https://google.github.io/styleguide/go/best-practices)
 is advisory.
 
-These current standards are specific to Python: ruff, the ADR-015 cap on file
-length, the ADR-117 ratchets, Coverage.py under ADR-103, the ADR-116 exception
-classes, and the nox graph of ADR-014. ADR-106 admits the Go toolchain and the
-Go tool module (issue #1773 amendment).
+These current standards are specific to Python:
+
+- ruff;
+- the ADR-015 cap on file length;
+- the ADR-117 ratchets;
+- Coverage.py under ADR-103;
+- the ADR-116 exception classes;
+- the nox graph of ADR-014.
+
+ADR-106 admits the Go toolchain and the Go tool module (issue #1773 amendment).
 
 ## Decision
 
@@ -125,10 +131,10 @@ The Go code uses these idiomatic forms of contract-based development:
 
 ### 8. Dependencies
 
-Code uses the standard library first. The golangci-lint `depguard` rule allows
-only the standard library, this repository, and the modules that it lists. Each
-listed module has a reason in the configuration. ADR-106 governs how the module
-digests are admitted.
+Code uses the standard library first. The ADR-122 architecture model lists the
+external import paths that each layer may import, each with a reason. The
+golangci-lint `depguard` rule denies the standard library packages that section
+6 replaces. ADR-106 governs how the module digests are admitted.
 
 ### 9. Standards that change and standards that stay
 
@@ -141,12 +147,17 @@ digests are admitted.
 | ADR-116 exception classes | Section 6 |
 | ADR-014 nox lanes | The `go` job of the canonical graph until issue #1801 |
 
-These standards stay and apply to the Go code: the documentation style guide,
-Vale, and ASD-STE100 prose; ADRs and their pins; requirement traceability;
-contract governance under ADR-009 and ADR-061; pull request title and body
-guards; secret, vulnerability, and code scanning; artifact admission under
-ADR-106 and ADR-107; the SonarCloud quality gate; and the assurance levels of
-ADR-007 and ADR-018.
+These standards stay and apply to the Go code:
+
+- the documentation style guide, Vale, and ASD-STE100 prose;
+- ADRs and their pins;
+- requirement traceability;
+- contract governance under ADR-009 and ADR-061;
+- pull request title and body guards;
+- secret, vulnerability, and code scanning;
+- artifact admission under ADR-106 and ADR-107;
+- the SonarCloud quality gate;
+- the assurance levels of ADR-007 and ADR-018.
 
 ## Alternatives Considered
 
@@ -231,7 +242,7 @@ judgment about meaning or context.
 | Logging | `sloglint`, `depguard` denies `log`; otherwise review |
 | Contexts | revive `context-as-argument`, `containedctx`, `contextcheck`, `noctx` |
 | crypto/rand | gosec G404, `depguard` denies `math/rand` |
-| Assertion libraries | `depguard` |
+| Assertion libraries | `archcheck` ARCH-008 (ADR-122) |
 | Identify the function | Review |
 | Identify the input | Review |
 | Got before want | `gotwant` |
@@ -284,3 +295,9 @@ judgment about meaning or context.
 | Constant strings | Review |
 | Global state | `gochecknoglobals`; otherwise review |
 | Interfaces: avoid unnecessary interfaces, ownership, design | `iface`, `interfacebloat`, `ireturn`; otherwise review |
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-10-31 | #1775 | Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials. Two lists use list format for ASD-STE100. |

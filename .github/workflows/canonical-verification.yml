@@ -575,6 +575,41 @@ jobs:
           path: ${{ matrix.path }}/cover.out
           if-no-files-found: error
 
+  # The architecture check of the Go code (ADR-122). It runs once from the
+  # repository root and checks the model, the ADR-122 rule table, and the code
+  # of every Go module.
+  go-architecture:
+    runs-on: ubuntu-24.04
+    env:
+      GOTOOLCHAIN: local
+      GOFLAGS: -mod=readonly
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Install the locked Go toolchain
+        run: |
+          kit="${RUNNER_TEMP}/go-kit"
+          mkdir "${kit}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile fetch-inputs public-ubuntu-24.04-x86_64 "${kit}" --artifact-id go
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
+          echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Check the Go code against the architecture model
+        run: |
+          go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck
+          "${RUNNER_TEMP}/go-tools/archcheck"
+
   # SonarCloud quality gate. It runs inside this graph, depending only on the
   # exact source and the combined coverage, so it starts as soon as coverage is
   # ready. Its `if:` reduces the trust context to same-repository PRs and
@@ -620,7 +655,7 @@ jobs:
   # is distinguished from success, so a missing shard or a skipped reducer fails
   # the gate rather than silently passing.
   gate:
-    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go]
+    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go, go-architecture]
     if: always()
     runs-on: ubuntu-24.04
     outputs:
@@ -636,6 +671,7 @@ jobs:
           MODEL_CHECK_RESULT: ${{ needs.model-check.result }}
           REDUCE_RESULT: ${{ needs.coverage-reduce.result }}
           GO_RESULT: ${{ needs.go.result }}
+          GO_ARCHITECTURE_RESULT: ${{ needs.go-architecture.result }}
         run: |
           set -euo pipefail
           failed=""
@@ -646,7 +682,8 @@ jobs:
             "proof:${PROOF_RESULT}" \
             "model-check:${MODEL_CHECK_RESULT}" \
             "coverage-reduce:${REDUCE_RESULT}" \
-            "go:${GO_RESULT}"; do
+            "go:${GO_RESULT}" \
+            "go-architecture:${GO_ARCHITECTURE_RESULT}"; do
             name="${pair%%:*}"
             result="${pair#*:}"
             if [ "${result}" != "success" ]; then

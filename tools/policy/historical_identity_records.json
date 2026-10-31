@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "1bf847a6cfc4e2b2f2b62b97909475ba2abd8d57de99147bf676c1e8f8294efb"
+      "content_sha256": "37b9147a2a67e262c154fe9a88f36cf58be381225fc47623d7a784a3c6c4606b"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, and their pins.",
       "occurrences": 4,
-      "content_sha256": "8f72be7394fa7ada312b601e189087d564fde2f43c2ec4c5ceade24325c3555d"
+      "content_sha256": "e94b08c48a9228853cf9deed96f018589c55e241d8450dcf57a1a99d9c22efca"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
