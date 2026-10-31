@@ -77,7 +77,9 @@ UNSUPPORTED_PORTABLE_COMMANDS = ("parse", "normalize", "resolve", "compile")
 MANIFEST = Path("manifest.json")
 PUBLICATION_ENTRIES = Path("contracts/schema-publication/entries")
 # JSON texts at the edges of the canonical forms: number notation, the exact
-# integer range of RFC 8785, string escapes, and the two key orders.
+# integer range of RFC 8785, string escapes, and the two key orders. Each input
+# file ends with a newline, which JSON reads as whitespace, so that the corpus
+# meets the repository text hygiene.
 CANONICAL_EDGE_TEXTS = (
     "1.0",
     "1e16",
@@ -104,7 +106,7 @@ CANONICAL_EDGE_TEXTS = (
     r'{"": 1, "😀": 2, "a": 3}',
     '{"b": [1, 2.5, {"d": null, "c": true}], "a": ""}',
     '{"a": 1, "a": 2}',
-    '  { "a" : [ ] }  ',
+    '  { "a" : [ ] }',
     "true",
     "null",
     "[1, 2] 3",
@@ -242,7 +244,7 @@ def canonical_cases(repo: Path) -> Iterator[Case]:
             command="encode",
             name=f"edge/{index:02d}",
             args=(),
-            files={"value.json": text.encode()},
+            files={"value.json": (text + "\n").encode()},
         )
 
 
