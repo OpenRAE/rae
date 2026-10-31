@@ -20,9 +20,9 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     operation_terminal_diagnostics,
 )
+from raes_contracts.timestamps import isoformat_z
 
 from .backend_calls import _call_backend_diagnostics
-from .control_plane_execution import _utc_now
 from .control_plane_local_execution import invoke_plan_phase, run_local_executor
 from .control_plane_store import ControlPlaneOperationRecord, NewClaimRejected, TerminalCommitMode
 from .control_plane_store_snapshots import _snapshot_payload
@@ -91,7 +91,7 @@ def claim_accepted(
     native: bool = True,
     responses: tuple[BackendOperationResponseModel, ...] = (),
 ) -> tuple[ControlPlaneOperationRecord | None, OperationReceipt]:
-    submitted_at = _utc_now() if backend_request is None else backend_request.budget.started_at
+    submitted_at = isoformat_z(plane.wall_clock()) if backend_request is None else backend_request.budget.started_at
     operation_id = str(uuid4()) if backend_request is None else backend_request.binding.operation_id
     receipt = OperationReceipt(
         operation_id=operation_id,
@@ -224,7 +224,7 @@ def commit_settlement(
         status=replace(
             current.status,
             state=state,
-            updated_at=_utc_now(),
+            updated_at=isoformat_z(plane.wall_clock()),
             diagnostics=operation_terminal_diagnostics(state, [*current.status.diagnostics, *diagnostics]),
             changed_addresses=[] if result is None else list(result.changed_addresses),
         ),
@@ -381,7 +381,7 @@ def _dispatch_native_invocation(
         ControlPlaneOperationRecord,
         replace(
             current,
-            status=replace(current.status, state=OperationState.RUNNING, updated_at=_utc_now()),
+            status=replace(current.status, state=OperationState.RUNNING, updated_at=isoformat_z(plane.wall_clock())),
             invocation=current.invocation.model_copy(update={"consumed": True}),
         ),
     )

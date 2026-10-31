@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import re
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
@@ -11,6 +10,7 @@ from threading import Lock
 from typing import TYPE_CHECKING
 
 from pydantic import SecretStr
+from raes_contracts.digests import sha256_bytes
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 
 from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from .control_plane_store import AuditEvent, TerminalCommitMode
 
 _IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,62}\Z")
-_OWNER_LOCK = int.from_bytes(hashlib.sha256(b"raes.single-owner.ledger/v1").digest()[:8], "big") & ((1 << 63) - 1)
+_OWNER_LOCK = int.from_bytes(sha256_bytes(b"raes.single-owner.ledger/v1")[:8], "big") & ((1 << 63) - 1)
 
 
 @dataclass(frozen=True, kw_only=True)

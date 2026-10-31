@@ -10,7 +10,6 @@ from .contracts.artifact_transformations import (
     ArtifactTransformationPreservationModel,
     ArtifactTransformationReportModel,
 )
-from .contracts.base import _parse_rfc3339_datetime
 from .contracts.experiment_references import ExperimentReferenceModel
 from .contracts.realization_descriptions import DescriptionFactModel, TypedRealizationDescriptionModel
 from .description_projection import (
@@ -29,6 +28,7 @@ from .realization_structure import (
     semantic_address_contains,
     validate_realization_value,
 )
+from .timestamps import parse_rfc3339_datetime
 
 
 @dataclass(frozen=True)
@@ -144,7 +144,7 @@ def _validate_decision(decision: DescriptionPromotionDecision, fact_ids: tuple[s
     identities = (decision.actor, decision.decision_id, decision.target_id, decision.target_version)
     if any(not isinstance(value, str) or not value.strip() for value in identities):
         raise ValueError("promotion requires explicit actor, decision and target identities")
-    _parse_rfc3339_datetime("decided_at", decision.decided_at)
+    parse_rfc3339_datetime("decided_at", decision.decided_at)
 
 
 def _promotion_selection(

@@ -65,7 +65,7 @@ def test_cancelling_a_pending_proposal_records_a_durable_prevention_witness():
 def admitted_attempt(plane, *, native=True):
     from uuid import uuid4
 
-    from raes_runtime.control_plane_execution import _utc_now
+    from raes_contracts.timestamps import isoformat_z
     from raes_runtime.control_plane_supervised_execution import invocation_request
 
     operation_id = str(uuid4())
@@ -88,7 +88,7 @@ def admitted_attempt(plane, *, native=True):
         idempotency_key="action-1",
         request_fingerprint=context.request_commitment,
     )
-    backend = invocation_request(plane, request, operation_id, _utc_now())
+    backend = invocation_request(plane, request, operation_id, isoformat_z(plane.wall_clock()))
     record, _ = claim_accepted(plane, request, backend_request=backend, native=native)
     return record
 

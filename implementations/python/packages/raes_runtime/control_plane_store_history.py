@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-
 from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import RuntimeSnapshot
 
-from .participant_crossing_state_cut import history_record_identity
+from .participant_crossing_state_cut import canonical_crossing_digest, history_record_identity
 
 
 def require_expected_control_head(
@@ -48,8 +45,7 @@ def participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str
     identity = history_record_identity(events[-1])
     if identity is not None:
         return identity
-    encoded = json.dumps(events[-1], sort_keys=True, separators=(",", ":"), default=str).encode()
-    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+    return canonical_crossing_digest(events[-1])
 
 
 def require_expected_history_heads(

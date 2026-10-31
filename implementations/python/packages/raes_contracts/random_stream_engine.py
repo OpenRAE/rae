@@ -35,6 +35,7 @@ from dataclasses import dataclass
 import blake3
 import rfc8785
 
+from .canonical import canonical_json_bytes
 from .contracts.experiment_allocation import AllocationStreamAddressModel
 from .contracts.random_stream import ParticipantStreamAddressModel, PublicSeedModel, StreamAddressModel
 from .diagnostics import Diagnostic, Severity
@@ -102,7 +103,7 @@ def canonical_stream_address_bytes(
 
     payload = address.model_dump(mode="json", by_alias=True, exclude_none=True)
     try:
-        return rfc8785.dumps(payload)
+        return canonical_json_bytes(payload)
     except rfc8785.CanonicalizationError as exc:
         # The library message can carry address values; the cause stays chained (E7).
         raise ValueError("stream address canonicalization failed") from exc

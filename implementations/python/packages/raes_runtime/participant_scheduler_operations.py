@@ -153,7 +153,7 @@ def _admit_due_action(
     backend can return any value, including ``None``; the caller validates it.
     """
 
-    result = temporal_pre_dispatch_result(request, predecessor)
+    result = temporal_pre_dispatch_result(request, predecessor, wall_clock=run.wall_clock)
     if result is not None:
         return result, False
     opened, session = open_serial_invocation_tool_session(context, request, episode_id=episode_id, run=run)
@@ -258,7 +258,7 @@ def _admit_activity_action(
     episode_id: str,
 ) -> tuple[object, bool, RuntimeSnapshot] | None:
     predecessor = run.working
-    result = temporal_pre_dispatch_result(request, predecessor)
+    result = temporal_pre_dispatch_result(request, predecessor, wall_clock=run.wall_clock)
     if result is not None:
         return result, False, predecessor
     opened, session = open_serial_invocation_tool_session(context, request, episode_id=episode_id, run=run)

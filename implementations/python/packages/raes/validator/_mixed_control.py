@@ -1,6 +1,7 @@
 """Semantic validation for ACT-617 mixed-control participant operation."""
 
-from .._declaration_sources import model_pointer
+from raes_contracts.json_pointer import pointer_from_tokens
+
 from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import (
     MixedControlControllerState,
@@ -17,7 +18,7 @@ from ..participant_mixed_control_vocabulary import MixedControlAuthorityStatus
 def transition_pointer(spec_name: str, collection: str, transition_id: str) -> str:
     """Return the JSON pointer of one authored mixed-control transition in *collection*."""
 
-    return model_pointer(("behavior_specifications", spec_name, "mixed_control", collection, transition_id))
+    return pointer_from_tokens(("behavior_specifications", spec_name, "mixed_control", collection, transition_id))
 
 
 class _MixedControlMixin:

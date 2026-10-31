@@ -9,8 +9,8 @@ from uuid import uuid4
 from raes_contracts.contracts import BackendOperationControlModel, backend_operation_request_digest
 from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError
 from raes_contracts.runtime_state import OperationState
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
@@ -72,7 +72,7 @@ def persist_invocation_update(
 ) -> ControlPlaneOperationRecord:
     record = cast(ControlPlaneOperationRecord, replace(expected, invocation=invocation))
     event = AuditEvent(
-        timestamp=_utc_now(),
+        timestamp=isoformat_z(plane.wall_clock()),
         action="operation_supervision",
         identity=actor or expected.status.context.actor_id,
         allowed=True,
@@ -103,7 +103,7 @@ class RuntimeSupervisionMixin:
             self._assert_runtime_owner()
             self._store.stop_effect_admission(
                 AuditEvent(
-                    timestamp=_utc_now(),
+                    timestamp=isoformat_z(self.wall_clock()),
                     action="stop_effect_admission",
                     identity=actor,
                     allowed=True,
@@ -157,7 +157,7 @@ class RuntimeSupervisionMixin:
                 action=action,
                 budget={
                     "origin_id": f"control:{uuid4()}",
-                    "started_at": _utc_now(),
+                    "started_at": isoformat_z(self.wall_clock()),
                     "limit_ms": self._supervision.observation_ms,
                     "remaining_ms": self._supervision.observation_ms,
                 },

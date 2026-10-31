@@ -23,11 +23,12 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Protocol
 from urllib.request import Request, urlopen
 
+from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import OperationalError
 
 # The submodule imports below retain the package's documented domain re-exports
-# plus the private ``_sha256_digest`` / ``_signable_payload`` /
-# ``_verify_signatures`` seams used by existing tests. Incidental implementation
+# plus the private ``_signable_payload`` / ``_verify_signatures`` seams used by
+# existing tests. Incidental implementation
 # imports are not an API; F401 is ignored for this facade because these deliberate
 # domain re-exports otherwise look unused inside this file.
 from .._errors import SDLParseError
@@ -67,7 +68,6 @@ from ._constants import (
     TRUST_POLICY_NAME,
     TRUST_POLICY_SCHEMA_VERSION,
 )
-from ._digests import _sha256_digest
 from ._extraction import (
     _HTTP_TIMEOUT_SECONDS,
     _extract_tar_to_stage,
@@ -255,7 +255,7 @@ def _validated_root_file(root_file: str) -> PurePosixPath:
 
 
 def _validated_content_digest(bundle_bytes: bytes, expected: str | None) -> str:
-    actual = f"sha256:{_sha256_digest(bundle_bytes)}"
+    actual = sha256_digest(bundle_bytes)
     expected_digest = expected or actual
     if expected_digest != actual:
         raise SDLParseError("OCI module bundle does not match its expected content digest")

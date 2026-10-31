@@ -8,9 +8,9 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.immutable_history import EventHistory, HistoryMap
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
+from raes_contracts.timestamps import parse_timestamp_assuming_utc
 from raes_contracts.workflow import WorkflowExecutionState, WorkflowHistoryEvent
 
-from ..diagnostics import _parse_timestamp
 from ..workflow_result_contract_context import compiled_workflow_contracts
 from ._models import (
     _ORCHESTRATION_HISTORY_ADDRESS,
@@ -169,7 +169,7 @@ def _timestamp_diagnostics(
     previous_timestamp: datetime | None = None
     for event in normalized_history:
         try:
-            current_timestamp = _parse_timestamp(event.timestamp)
+            current_timestamp = parse_timestamp_assuming_utc(event.timestamp)
         except ValueError:
             diagnostics.append(_contract_diagnostic(workflow_address, "Workflow history event timestamp is invalid."))
             continue

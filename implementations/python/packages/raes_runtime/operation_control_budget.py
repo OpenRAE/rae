@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from math import ceil
 from time import monotonic
 from typing import TYPE_CHECKING, Literal
@@ -42,7 +42,7 @@ def admit_control_budget(plane: RuntimeControlPlane, control: BackendOperationCo
     except ValueError as exc:
         # The control contract also admits a lowercase "z" and a leap second, which this clock does not read.
         raise InvalidInputError("control budget start time is unsupported") from exc
-    elapsed = (datetime.now(UTC) - started).total_seconds()
+    elapsed = (plane.wall_clock() - started).total_seconds()
     if elapsed < 0:
         raise ConflictError("control clock continuity is unavailable")
     remaining = min(control.budget.remaining_ms, control.budget.limit_ms - ceil(elapsed * 1000))

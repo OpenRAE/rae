@@ -16,8 +16,9 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     operation_terminal_diagnostics,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now, apply_authorized_participant_action
+from .control_plane_execution import apply_authorized_participant_action
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord, terminal_operation_audit
@@ -42,7 +43,7 @@ def _new_lifecycle_operation(
         identity=identity,
     )
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     prepared = prepare_mixed_lifecycle_dispatch(control_plane, request, method_name, operation_id, identity)
     receipt = OperationReceipt(
         operation_id=operation_id,
@@ -75,7 +76,7 @@ def _authorize_lifecycle(
     prepared: PreparedMixedLifecycleDispatch,
     action: str,
 ) -> ControlPlaneOperationRecord:
-    authorized_at = _utc_now()
+    authorized_at = isoformat_z(control_plane.wall_clock())
     running = cast(
         ControlPlaneOperationRecord,
         replace(
@@ -136,7 +137,7 @@ def _terminal_lifecycle_record(
             status=replace(
                 running.status,
                 state=final_state,
-                updated_at=_utc_now(),
+                updated_at=isoformat_z(control_plane.wall_clock()),
                 diagnostics=operation_terminal_diagnostics(final_state, result.diagnostics),
                 changed_addresses=list(result.changed_addresses),
             ),

@@ -9,7 +9,7 @@ from typing import cast
 from .bounded_domains import scalar_in_domain
 from .canonical import JsonValue, canonical_json_digest
 from .diagnostics import Diagnostic
-from .json_pointer import array_index
+from .json_pointer import array_index, pointer_tokens
 from .planning import (
     ChangeAction,
     ProvisioningPlan,
@@ -28,8 +28,7 @@ _CLOSED_NEUTRAL_VALUES_BY_REQUIREMENT_KIND = {
 
 def _planned_pointer_value(value: object, pointer: str) -> object:
     current = value
-    for raw_token in pointer.split("/")[1:]:
-        token = raw_token.replace("~1", "/").replace("~0", "~")
+    for token in pointer_tokens(pointer):
         if isinstance(current, Mapping) and token in current:
             current = current[token]
         elif isinstance(current, list) and (index := array_index(token, len(current))) is not None:

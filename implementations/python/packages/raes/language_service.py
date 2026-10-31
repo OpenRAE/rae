@@ -14,6 +14,7 @@ from typing import Any
 
 import yaml
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import pointer_tokens
 
 from ._base import is_variable_ref
 from ._composition_budget import CompositionTraversal
@@ -476,11 +477,7 @@ def _split_pointer(pointer: str) -> list[str]:
         return []
     if not pointer.startswith("/"):
         raise InvalidInputError("pointer must be empty or start with '/'")
-    return [_unescape_pointer_token(token) for token in pointer.split("/")[1:]]
-
-
-def _unescape_pointer_token(token: str) -> str:
-    return token.replace("~1", "/").replace("~0", "~")
+    return list(pointer_tokens(pointer))
 
 
 def _local_traversal(path: Path | None) -> CompositionTraversal | None:

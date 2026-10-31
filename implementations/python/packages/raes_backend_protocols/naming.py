@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import hashlib
 import re
 
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.digests import sha256_hex
 
 _UNSAFE_PROVIDER_NAME = re.compile(r"[^a-z0-9_.-]+", re.ASCII)
 _DIGEST_LENGTH = 12
@@ -35,7 +35,7 @@ def provider_resource_name(
     # NUL cannot appear in either component, so the join is unambiguous and one
     # namespace/address pair can never be spelled as another.
     committed = address if not namespace else f"{namespace}\0{address}"
-    digest = hashlib.sha256(committed.encode("utf-8")).hexdigest()[:_DIGEST_LENGTH]
+    digest = sha256_hex(committed.encode("utf-8"))[:_DIGEST_LENGTH]
     readable = _UNSAFE_PROVIDER_NAME.sub("-", address.lower()).strip("-._") or "resource"
     safe_prefix = _UNSAFE_PROVIDER_NAME.sub("-", prefix.lower()).strip("-._")
     if safe_prefix:

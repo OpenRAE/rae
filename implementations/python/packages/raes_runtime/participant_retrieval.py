@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import UTC, datetime
 
 from pydantic import ValidationError
 from raes_contracts.contracts import (
@@ -18,6 +17,7 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
+from raes_contracts.timestamps import isoformat_z
 
 from .control_plane_lifecycle import runtime_owned, store_authoritative_state
 from .control_plane_mutation import external_control_plane_call
@@ -110,7 +110,7 @@ class ParticipantRetrievalMixin:
             "view_id": _view_id("status", participant_address, episode_id),
             "participant_address": participant_address,
             "episode_id": episode_id,
-            "generated_at": _utc_now(),
+            "generated_at": isoformat_z(self.wall_clock()),
             "source_snapshot_ref": snapshot_ref,
             "episode_state": _project_scope(episode_state) if episode_state is not None else None,
             "open_operation_refs": _open_participant_operation_refs(self._operations, participant_address),
@@ -177,7 +177,7 @@ class ParticipantRetrievalMixin:
             "view_id": _view_id("history", participant_address, episode_id),
             "participant_address": participant_address,
             "episode_id": episode_id,
-            "generated_at": _utc_now(),
+            "generated_at": isoformat_z(self.wall_clock()),
             "source_snapshot_ref": snapshot_ref,
             "episode_history": episode_history,
             "behavior_history": behavior_history,
@@ -239,7 +239,7 @@ class ParticipantRetrievalMixin:
             "view_id": _view_id("context", participant_address, options.episode_id or view_ref),
             "participant_address": participant_address,
             "episode_id": options.episode_id,
-            "generated_at": _utc_now(),
+            "generated_at": isoformat_z(self.wall_clock()),
             "source_snapshot_ref": snapshot_ref,
             "view_ref": view_ref,
             "meaning_ref": view_ref,
@@ -403,10 +403,6 @@ def _required_episode_id(value: str | None) -> str:
     if value is None:
         raise ConflictError("participant projection requires an exact episode identity")
     return value
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def _participant_exists(snapshot: RuntimeSnapshot, participant_address: str) -> bool:
