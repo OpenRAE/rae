@@ -43,7 +43,8 @@ SEM-218 requires that RAES rejects an unsupported exact requirement and does not
 
 ### 1. One host table
 
-`raes_contracts.descriptor_profiles.DESCRIPTOR_PROFILE_HOSTS` names the five host fields.
+`raes.descriptor_profiles.DESCRIPTOR_PROFILE_HOSTS` names the five host fields.
+The SDL package owns it because each entry names an SDL field.
 Each entry has the field path, the concept family and the binding context:
 
 | Host field | Concept family | Context |
@@ -54,7 +55,7 @@ Each entry has the field path, the concept family and the binding context:
 | federation `mapping_intent` | `relationships` | `identity-federation-mapping-intent` |
 | interactive-access `channel` | `relationships` | `participant-interactive-access-channel` |
 
-Composition, semantic validation and compilation read this table.
+Composition, semantic validation, compilation and planning read this table.
 
 ### 2. The SDL field owns the binding
 

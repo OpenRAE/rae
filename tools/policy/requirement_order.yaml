@@ -509,6 +509,8 @@ ownership:
     - implementations/python/packages/raes_runtime/manager.py
     # Issue #298 rechecks typed descriptor profile admission at runtime plan admission (ADR-120).
     - implementations/python/packages/raes_runtime/manager_plan_admission.py
+    # Issue #298 repins the ADR index identity digests for ADR-120.
+    - tools/policy/historical_identity_records.json
     - implementations/python/tests
     - specs/formal/participant-semantics
     - specs/formal/sdl-phases

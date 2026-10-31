@@ -364,7 +364,7 @@ def test_imported_unit_with_a_foreign_owner_fails_in_the_importer(tmp_path: Path
     ],
 )
 def test_admission_refuses_a_binding_that_no_descriptor_field_owns(address):
-    from raes_contracts.descriptor_profiles import descriptor_profiles_admitted
+    from raes.descriptor_profiles import descriptor_profiles_admitted
 
     context = _target_context("facade")
     digest = profile_context_digest(context)
@@ -373,7 +373,7 @@ def test_admission_refuses_a_binding_that_no_descriptor_field_owns(address):
 
 
 def test_admission_refuses_unbounded_input_and_needs_nothing_for_no_bindings():
-    from raes_contracts.descriptor_profiles import (
+    from raes.descriptor_profiles import (
         DESCRIPTOR_PROFILE_HOSTS,
         descriptor_owner_violation,
         descriptor_profiles_admitted,

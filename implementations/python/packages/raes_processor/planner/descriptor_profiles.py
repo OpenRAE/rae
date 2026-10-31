@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from raes.descriptor_profiles import descriptor_profiles_admitted
 from raes_backend_protocols.capabilities import BackendManifest
-from raes_contracts.descriptor_profiles import descriptor_profiles_admitted
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 

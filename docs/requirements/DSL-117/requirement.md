@@ -78,14 +78,14 @@ Primary-source refresh shows that tool-using participants require an explicit au
   `/agents/<name>/interactive_access/<id>/channel` pointer. A typed channel
   must be owned by its own field
   ([ADR-120](../../decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md)).
-  Validator: `raes/descriptor_profiles.py` rejects any other owner, and
-  composition renames the owner with the participant. Compiler: the channel
-  stays on the compiled access and enters
+  Validator: `raes/descriptor_profiles.py` holds the host table and rejects
+  any other owner, and composition renames the owner with the participant.
+  Compiler: the channel stays on the compiled access and enters
   `RuntimeModel.descriptor_profile_bindings`. Planner:
   `raes_processor/planner/descriptor_profiles.py` refuses the plan unless the
-  target's committed profile context admits the exact profile semantics
-  (`raes_contracts/descriptor_profiles.py`). Runtime plan admission in
-  `raes_runtime/manager_plan_admission.py` repeats the check. Endpoint
+  target's committed profile context admits the exact profile semantics.
+  Runtime plan admission in `raes_runtime/manager_plan_admission.py` repeats
+  the check. Endpoint
   uniqueness compares a typed channel by its profile coordinate.
 - Scope and availability constraints: an affordance is available only to the
   participants that its behavior specification selects by `participant_refs` or
@@ -198,8 +198,7 @@ Adjacent defects outside DSL-117 are tracked separately:
 - TESTS → TEST `implementations/python/tests/test_sem_208_participant_behavior.py` (Single-file tool affordance parsing, validation, visibility and compilation)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane.py` (Runtime admission rejects an action outside the compiled participant behavior)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_tool_affordance.py` (Imported tool_ref and affordance-relation rewrite)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/descriptor_profiles.py` (Typed channel owner rule and target admission)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/descriptor_profiles.py` (Typed channel field walk and owner validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/descriptor_profiles.py` (Typed channel host table, owner validation and target admission)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/descriptor_profiles.py` (Planning refusal of an unadmitted typed channel)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Runtime refusal of an unadmitted typed channel)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md` (Owned and admitted typed descriptor profiles)
