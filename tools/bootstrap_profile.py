@@ -588,47 +588,74 @@ def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep ac
     return results
 
 
-def install_python_payload(  # NOSONAR -- archive validation is intentionally explicit and auditable.
-    host_profile_id: str, kit_root: Path, python_artifact_id: str
-) -> dict[str, str]:
-    """Verify and extract one locked relocatable CPython payload."""
+def _locked_raw_archive(
+    host_profile_id: str, kit_root: Path, artifact_id: str, label: str
+) -> tuple[dict[str, object], Path]:
+    """Return the host-selected artifact and its imported archive after an exact lock check."""
 
     _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
-    artifact = artifacts.get(python_artifact_id)
+    artifact = artifacts.get(artifact_id)
     if artifact is None:
-        raise InvalidInputError("bootstrap Python payload is not selected by the host profile")
+        raise InvalidInputError(f"bootstrap {label} payload is not selected by the host profile")
     raw_manifest = artifact["platform"]["raw_manifest"]
     if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-        raise InvalidInputError("bootstrap Python payload must have exactly one raw archive")
+        raise InvalidInputError(f"bootstrap {label} payload must have exactly one raw archive")
     raw = raw_manifest[0]
-    archive = kit_root / "archives" / python_artifact_id / raw["path"]
-    if not _archive_matches(archive, raw, "Python"):
-        raise InvalidInputError("bootstrap Python archive differs from the validated lock")
-    destination = kit_root / "python" / f"cpython-{artifact['version']}"
+    archive = kit_root / "archives" / artifact_id / raw["path"]
+    if not _archive_matches(archive, raw, label):
+        raise InvalidInputError(f"bootstrap {label} archive differs from the validated lock")
+    return artifact, archive
+
+
+def _install_rooted_archive(  # NOSONAR -- archive validation is intentionally explicit and auditable.
+    archive: Path, kit_root: Path, root: str, destination: Path, label: str
+) -> None:
+    """Extract an archive whose members all sit under one root directory into a new destination."""
+
     if destination.exists() or destination.is_symlink():
-        raise InvalidInputError("bootstrap Python destination must be new")
+        raise InvalidInputError(f"bootstrap {label} destination must be new")
     try:
         destination.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        raise OperationalError("bootstrap Python destination could not be created") from exc
-    with _private_stage(".python-extract-", kit_root, "kit extraction") as temporary_root:
+        raise OperationalError(f"bootstrap {label} destination could not be created") from exc
+    with _private_stage(f".{root}-extract-", kit_root, "kit extraction") as temporary_root:
         try:
             with tarfile.open(archive, mode="r:gz") as bundle:
                 members = bundle.getmembers()
-                if not members or any(PurePosixPath(member.name).parts[:1] != ("python",) for member in members):
-                    raise InvalidInputError("bootstrap Python archive has an unexpected root")
+                if not members or any(PurePosixPath(member.name).parts[:1] != (root,) for member in members):
+                    raise InvalidInputError(f"bootstrap {label} archive has an unexpected root")
                 bundle.extractall(temporary_root, filter="data")
         except (OSError, tarfile.TarError) as exc:
-            raise InvalidInputError("bootstrap Python archive could not be extracted safely") from exc
-        extracted = temporary_root / "python"
+            raise InvalidInputError(f"bootstrap {label} archive could not be extracted safely") from exc
+        extracted = temporary_root / root
         if not extracted.is_dir() or extracted.is_symlink():
-            raise InvalidInputError("bootstrap Python archive omits its payload root")
+            raise InvalidInputError(f"bootstrap {label} archive omits its payload root")
         try:
             extracted.rename(destination)
         except OSError as exc:
-            raise OperationalError("bootstrap Python payload could not be moved into the kit root") from exc
+            raise OperationalError(f"bootstrap {label} payload could not be moved into the kit root") from exc
+
+
+def install_python_payload(host_profile_id: str, kit_root: Path, python_artifact_id: str) -> dict[str, str]:
+    """Verify and extract one locked relocatable CPython payload."""
+
+    artifact, archive = _locked_raw_archive(host_profile_id, kit_root, python_artifact_id, "Python")
+    destination = kit_root / "python" / f"cpython-{artifact['version']}"
+    _install_rooted_archive(archive, kit_root, "python", destination, "Python")
     return {
         "artifact_id": python_artifact_id,
+        "path": destination.relative_to(kit_root).as_posix(),
+    }
+
+
+def install_go_payload(host_profile_id: str, kit_root: Path, go_artifact_id: str) -> dict[str, str]:
+    """Verify and extract the locked Go toolchain; the result path is its GOROOT."""
+
+    artifact, archive = _locked_raw_archive(host_profile_id, kit_root, go_artifact_id, "Go")
+    destination = kit_root / "go" / f"go{artifact['version']}"
+    _install_rooted_archive(archive, kit_root, "go", destination, "Go")
+    return {
+        "artifact_id": go_artifact_id,
         "path": destination.relative_to(kit_root).as_posix(),
     }
 
@@ -643,17 +670,7 @@ def install_uv_payload(  # NOSONAR -- archive validation is intentionally explic
     later runs the frozen validator.
     """
 
-    _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
-    artifact = artifacts.get(uv_artifact_id)
-    if artifact is None:
-        raise InvalidInputError("bootstrap uv payload is not selected by the host profile")
-    raw_manifest = artifact["platform"]["raw_manifest"]
-    if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-        raise InvalidInputError("bootstrap uv payload must have exactly one raw archive")
-    raw = raw_manifest[0]
-    archive = kit_root / "archives" / uv_artifact_id / raw["path"]
-    if not _archive_matches(archive, raw, "uv"):
-        raise InvalidInputError("bootstrap uv archive differs from the validated lock")
+    _artifact, archive = _locked_raw_archive(host_profile_id, kit_root, uv_artifact_id, "uv")
     destination = kit_root / "bin"
     try:
         destination.mkdir(parents=True, exist_ok=True)
@@ -834,6 +851,10 @@ def _parse_args() -> argparse.Namespace:
     kit_python.add_argument("host_profile_id")
     kit_python.add_argument("kit_root", type=Path)
     kit_python.add_argument("--python-artifact-id", required=True)
+    kit_go = subparsers.add_parser("install-go", help="verify and extract the locked Go toolchain")
+    kit_go.add_argument("host_profile_id")
+    kit_go.add_argument("kit_root", type=Path)
+    kit_go.add_argument("--go-artifact-id", required=True)
     kit_uv = subparsers.add_parser("install-uv", help="verify and extract the locked uv client")
     kit_uv.add_argument("host_profile_id")
     kit_uv.add_argument("kit_root", type=Path)
@@ -886,6 +907,13 @@ def _run_operation(args: argparse.Namespace) -> int:  # NOSONAR -- CLI dispatch 
         print(
             json.dumps(
                 install_python_payload(args.host_profile_id, args.kit_root, args.python_artifact_id),
+                sort_keys=True,
+            )
+        )
+    elif args.operation == "install-go":
+        print(
+            json.dumps(
+                install_go_payload(args.host_profile_id, args.kit_root, args.go_artifact_id),
                 sort_keys=True,
             )
         )

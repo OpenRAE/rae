@@ -3,7 +3,7 @@
 
 The dev-container lifecycle runs this once the checkout is mounted, so a
 contributor opens the repository and starts work. It composes the reviewed
-routes and adds no acquisition of its own: the locked uv and CPython payloads
+routes and adds no acquisition of its own: the locked uv, CPython, and Go payloads
 come from `tools.bootstrap_profile`, the project environments from the frozen
 `uv.lock` files, and the generic CLI tools from their verified installers.
 
@@ -35,7 +35,7 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
 from raes_contracts.operational_logging import run_application  # noqa: E402
 
-PYTHON_LINK_NAME = "current"
+CURRENT_LINK_NAME = "current"
 _TOOLING_PROJECT = "implementations/tooling/python"
 _PROJECTS = (
     ("implementations/python", ("--all-extras", "--frozen")),
@@ -84,20 +84,22 @@ def container_host_profile_id(repo_root: Path, platform_id: str) -> str:
     return matches[0]
 
 
-def _payload_ids(artifacts: Sequence[Mapping[str, Any]]) -> tuple[str, str]:
-    """Identify the locked CPython and uv payloads by their installed identity, not by name."""
+_PAYLOAD_IMPLEMENTATIONS = ("CPython", "uv", "go")
 
-    by_implementation: dict[str, str] = {}
+
+def _payload_ids(artifacts: Sequence[Mapping[str, Any]]) -> tuple[str, str, str]:
+    """Identify the locked CPython, uv, and Go payloads by their installed identity, not by name."""
+
+    by_implementation: dict[str, list[str]] = {name: [] for name in _PAYLOAD_IMPLEMENTATIONS}
     for artifact in artifacts:
         identity = artifact.get("platform", {}).get("installed_identity", {})
-        if isinstance(identity, Mapping) and identity.get("implementation") in {
-            "CPython",
-            "uv",
-        }:
-            by_implementation[str(identity["implementation"])] = str(artifact["artifact_id"])
-    if set(by_implementation) != {"CPython", "uv"}:
-        raise DevcontainerSetupError("the container host profile must select exactly one CPython and one uv payload")
-    return by_implementation["CPython"], by_implementation["uv"]
+        if isinstance(identity, Mapping) and identity.get("implementation") in by_implementation:
+            by_implementation[str(identity["implementation"])].append(str(artifact["artifact_id"]))
+    if any(len(ids) != 1 for ids in by_implementation.values()):
+        raise DevcontainerSetupError(
+            "the container host profile must select exactly one CPython, one uv, and one Go payload"
+        )
+    return by_implementation["CPython"][0], by_implementation["uv"][0], by_implementation["go"][0]
 
 
 def _verified_archive(path: Path, raw: Mapping[str, Any]) -> bool:
@@ -115,7 +117,7 @@ def _verified_archive(path: Path, raw: Mapping[str, Any]) -> bool:
 
 
 def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
-    """Rebuild the verified uv and CPython clients, reusing only archives that still verify."""
+    """Rebuild the verified uv, CPython, and Go clients, reusing only archives that still verify."""
 
     from tools import bootstrap_profile
     from tools.tooling_policy_gate import (
@@ -124,7 +126,7 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
 
     selection = load_tooling_host_profile_selection_with_current_interpreter(host_profile_id)
     artifacts = {str(item["artifact_id"]): item for item in selection["artifacts"]}
-    python_id, uv_id = _payload_ids(list(artifacts.values()))
+    python_id, uv_id, go_id = _payload_ids(list(artifacts.values()))
     try:
         kit_root.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
@@ -135,7 +137,7 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
         raise DevcontainerSetupError("the bootstrap kit staging directory could not be created") from exc
     try:
         missing: list[str] = []
-        for artifact_id in (python_id, uv_id):
+        for artifact_id in (python_id, uv_id, go_id):
             raw = artifacts[artifact_id]["platform"]["raw_manifest"][0]
             relative = Path("archives") / artifact_id / raw["path"]
             if _verified_archive(kit_root / relative, raw):
@@ -150,10 +152,12 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
             bootstrap_profile.fetch_bootstrap_payloads(host_profile_id, staging, missing)
         bootstrap_profile.install_uv_payload(host_profile_id, staging, uv_id)
         python = bootstrap_profile.install_python_payload(host_profile_id, staging, python_id)
+        go = bootstrap_profile.install_go_payload(host_profile_id, staging, go_id)
         try:
-            (staging / "python" / PYTHON_LINK_NAME).symlink_to(Path(python["path"]).name, target_is_directory=True)
+            (staging / "python" / CURRENT_LINK_NAME).symlink_to(Path(python["path"]).name, target_is_directory=True)
+            (staging / "go" / CURRENT_LINK_NAME).symlink_to(Path(go["path"]).name, target_is_directory=True)
         except OSError as exc:
-            raise DevcontainerSetupError("the bootstrap kit interpreter link could not be created") from exc
+            raise DevcontainerSetupError("the bootstrap kit toolchain links could not be created") from exc
         previous = kit_root.with_name(f".{kit_root.name}-previous")
         shutil.rmtree(previous, ignore_errors=True)
         try:
@@ -170,6 +174,7 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
         "host_profile_id": host_profile_id,
         "python": python_id,
         "uv": uv_id,
+        "go": go_id,
         "fetched": ",".join(missing),
     }
 
@@ -221,7 +226,7 @@ def sync_projects(repo_root: Path, kit_root: Path) -> None:
     uv = kit_root / "bin" / "uv"
     environment = {
         **os.environ,
-        "UV_PYTHON": str(kit_root / "python" / PYTHON_LINK_NAME / "bin" / "python3"),
+        "UV_PYTHON": str(kit_root / "python" / CURRENT_LINK_NAME / "bin" / "python3"),
         "UV_PYTHON_DOWNLOADS": "never",
     }
     for project, options in _PROJECTS:
@@ -304,7 +309,7 @@ def setup(repo_root: Path = REPO_ROOT, *, kit_root: Path | None = None) -> None:
         lambda: container_host_profile_id(repo_root, platform_id),
     )
     _step(
-        "Verifying locked uv and CPython",
+        "Verifying locked uv, CPython, and Go",
         lambda: prepare_kit(host_profile_id, kit_root),
     )
     _step(

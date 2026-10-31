@@ -284,3 +284,5 @@ adr-116-shared-exceptions-and-operational-logging
 | [118](adr-118-shared-primitives-and-injected-wall-clock.md) | Shared Primitives and an Injected Wall Clock | accepted | 2026-10-31 |
 | [119](adr-119-consumer-parse-of-supplied-sdl-sources.md) | Consumer Parse of Supplied SDL Sources | accepted | 2026-10-31 |
 | [120](adr-120-owned-and-admitted-typed-descriptor-profiles.md) | Owned and Admitted Typed Descriptor Profiles | accepted | 2026-10-31 |
+| [121](adr-121-go-engineering-standards.md) | Go Engineering Standards | accepted | 2026-10-31 |
+| [122](adr-122-go-architecture-model.md) | Go Architecture Model | accepted | 2026-10-31 |

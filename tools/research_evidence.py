@@ -275,6 +275,22 @@ def current_release_path(records: Sequence[tuple[str, Mapping[str, object]]], re
     return max(zip(keys, records, strict=True), key=lambda item: item[0])[1][0]
 
 
+def latest_recorded_release_path(records: _EvidenceRecords, repo_root: Path) -> str:
+    """Select a recorded observation for replay, without claiming its source is current."""
+    _inventory_maps(records)
+    if not records:
+        raise InvalidInputError("no research evidence releases")
+    dated = []
+    legacy = [(path, record) for path, record in records if not is_capture(record.get("revision"))]
+    selectable = [(path, record) for path, record in records if is_capture(record.get("revision"))]
+    if legacy:
+        selectable.append(max(legacy, key=lambda item: revision_key(item[1].get("revision"))))
+    for path, record in selectable:
+        snapshot = load_bounded_json_object(repo_root, str(record.get("snapshot_path")), max_bytes=2 * 1024 * 1024)
+        dated.append((_capture_date(snapshot.get("captured_at")), path, record))
+    return _select_recent_capture(dated)
+
+
 def implementation_digest(repo_root: Path) -> str:
     """Bind fixed source/configuration paths, never environment-selected files."""
     packages = repo_root / "implementations/python/packages"

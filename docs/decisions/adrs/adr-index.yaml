@@ -576,7 +576,7 @@ adrs:
     pin: 61a5ea9d72a0afa1033d46131913f45b140286b6ddddcb59e0e1f6914b721cb9
   - id: ADR-100
     path: docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md
-    pin: 8a406230189370e90c5fcab4e29459f3bcb7dc71321a7b4da007e7011bf6f4fb
+    pin: 4003729e08f84ab3a2db51c546482880f103ee27152d74d5e02372020d811524
     amendments:
       - date: 2026-09-27
         ref: "#971"
@@ -584,6 +584,9 @@ adrs:
       - date: 2026-10-13
         ref: "#1395"
         summary: "Add the separate two-operation construction profile and projection, history-sensitive retries and bounded completed-result response loss; preserve single-operation evidence and separate equivalence and realization."
+      - date: 2026-10-31
+        ref: "#976"
+        summary: "Record completion of the ordered #971-#976 work and the SEM-232 ACTIVE transition; retained records bind subject-source digests and execution records bind the source revision."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     pin: 52e6089fddc86a2f3361d678687db4823f5c06cdad74a97d99cd7c97a9b94acc
@@ -647,7 +650,7 @@ adrs:
         summary: "Proposed acceptance with bounded compiler/runtime adoption, opt-in joint preparation, prepared portable membership, and the authenticated plan-level profile host. Ratification takes effect on merge."
   - id: ADR-106
     path: docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md
-    pin: 4c4dc68ef5e28a3740e22050b831e8cdc087f3c31e3215c4d4f33bdac055e5df
+    pin: 349740a47f2e08e342223c6d9a507cc1fb4156f272c7a4c2aebd1c9b17323265
     amendments:
       - date: 2026-09-06
         ref: "#1229"
@@ -655,6 +658,9 @@ adrs:
       - date: 2026-09-17
         ref: "#1313"
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
+      - date: 2026-10-31
+        ref: "#1773"
+        summary: "Admitted the Go toolchain through the development-artifact lock and Go modules through their reviewed go.sum, with Go tools in implementations/tooling/go."
   - id: ADR-107
     path: docs/decisions/adrs/adr-107-artifact-promotion-and-release-admission.md
     pin: a3cdbf6fd69bcc9f96ffd1ca7e7e95340d0a597ee42c4a5c21a96f79d3063d96
@@ -725,3 +731,13 @@ adrs:
   - id: ADR-120
     path: docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md
     pin: 31c03fcaa4a342db746f1e62c41777aa718b191a81fdc2e62b13e24320f8647d
+  - id: ADR-121
+    path: docs/decisions/adrs/adr-121-go-engineering-standards.md
+    pin: 58c7ec30cb3f4ee26a09486be60423492d41b472c63d23b4325d84e967caba9d
+    amendments:
+      - date: 2026-10-31
+        ref: "#1775"
+        summary: "Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials."
+  - id: ADR-122
+    path: docs/decisions/adrs/adr-122-go-architecture-model.md
+    pin: 2f88f11071929a0eed0b4ab10962a27dc6669046d53d7591c67ac27293e2d779
