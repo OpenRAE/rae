@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-evaluation-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "c59b7ea645abe2718ff8e5c6e42532743aee03f2562ad2c453736f6eec0899f2"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/downgrade",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-evaluation-v1",
+      "diagnostics": [
+        {
+          "address": "participant-control-evaluation-v1",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

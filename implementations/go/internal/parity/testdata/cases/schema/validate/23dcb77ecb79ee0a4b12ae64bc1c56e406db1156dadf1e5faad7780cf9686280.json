@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "e94db361d04bffae0548fefda18dc2b3645beb9ceab465e41140f3ee2729556c"
+  },
+  "name": "contracts/fixtures/control-plane/backend-operation-response-v1/valid/mixed-edge-02",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "processor-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a1bc8b776c4d1bb21b17dd1886cf33f02871ba76c53d1a3d9a586d0b14c58126"
+  },
+  "name": "contracts/fixtures/processor-manifest/processor-manifest-v2/invalid/unknown-sdl-version",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

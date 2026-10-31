@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realization-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "e2a1b408e481c54b035b1d5b0faa40f3d317352ad8427dfacb8c5abfd8a1ed38"
+  },
+  "name": "contracts/fixtures/realization-envelope/realization-envelope-v1/invalid/missing-digest",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

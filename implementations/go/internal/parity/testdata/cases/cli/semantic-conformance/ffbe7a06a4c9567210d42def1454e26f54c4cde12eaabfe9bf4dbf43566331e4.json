@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "authoring-adapter-comparison-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "c0e714c8a4ce4e2e1c60af181e5c8f247c574ce7ab0b9548736d174253919fe4"
+  },
+  "name": "contracts/fixtures/authoring-adapters/authoring-adapter-comparison-v1/invalid/unknown-field",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "authoring-adapter-comparison-v1",
+      "diagnostics": [
+        {
+          "address": "authoring-adapter-comparison-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

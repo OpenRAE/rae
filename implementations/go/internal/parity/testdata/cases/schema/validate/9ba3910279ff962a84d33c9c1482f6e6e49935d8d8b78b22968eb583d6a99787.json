@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-context-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "43d91c1bc1dfcbf48772d19ad82df06db99cbd2eb1232f5d6e6b625f055d29c7"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-context-record-v1/invalid/withheld-discloses-item",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

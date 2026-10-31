@@ -1,0 +1,14 @@
+{
+  "args": [
+    "associated-artifact-manifest-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "08d6ec554680e2da922f28b79082aedd4eb6dbcfd60fde0291cc7fe4b335e5a5"
+  },
+  "name": "contracts/fixtures/associated-artifacts/associated-artifact-manifest-v1/invalid/secret-bearing-uri",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

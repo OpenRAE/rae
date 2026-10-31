@@ -1,0 +1,14 @@
+{
+  "args": [
+    "processor-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "dd76c95e2564b3135d4fd86c5a456c399e195e00c98172b881b8c6f6aa27a922"
+  },
+  "name": "contracts/fixtures/processor-manifest/processor-manifest-v2/invalid/hollow-realization-support",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

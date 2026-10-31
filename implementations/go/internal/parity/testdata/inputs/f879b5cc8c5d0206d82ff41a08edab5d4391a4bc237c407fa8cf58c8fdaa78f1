@@ -1,0 +1,15 @@
+{
+  "schema_version": "batch-execution-receipt/v1",
+  "receipt_id": "receipt-serial",
+  "plan_id": "plan-a",
+  "plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "plan_entry_id": "entry-a",
+  "run_id": "run-a",
+  "execution_attempt_id": "attempt-1",
+  "dispatch_ordinal": 0,
+  "scheduling_policy_id": "trial-coordinate-canonical-v1",
+  "effective_parallelism": 1,
+  "trial_outcome": "succeeded",
+  "operation_refs": ["op:provisioning-a", "op:orchestration-a", "op:evaluation-a"],
+  "cleanup_receipt_ref": "cleanup-receipt-a"
+}

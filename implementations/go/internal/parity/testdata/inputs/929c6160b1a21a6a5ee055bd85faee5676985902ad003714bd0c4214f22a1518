@@ -1,0 +1,28 @@
+{
+  "schema_version": "associated-artifact-manifest/v1",
+  "manifest_id": "scenario-attachments",
+  "manifest_version": "1.0.0",
+  "canonicalization_profile": "associated-artifact-set/v1",
+  "scope": "experiment",
+  "parent_ref": {
+    "ref_kind": "scenario",
+    "ref_id": "training-range"
+  },
+  "artifacts": {
+    "operator-guide": {
+      "artifact_id": "operator-guide",
+      "role": "operator-guide",
+      "media_type": "text/markdown",
+      "uri": "urn:sha256:ddc7a69ede7530aa87098a487dbae1d82e751dce5cd5bbe8477355ecd12f4287",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ddc7a69ede7530aa87098a487dbae1d82e751dce5cd5bbe8477355ecd12f4287"
+      },
+      "size_bytes": 15,
+      "created_at": "2026-07-12T00:00:00Z",
+      "source": "scenario-author",
+      "sensitivity": "internal"
+    }
+  },
+  "set_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+}

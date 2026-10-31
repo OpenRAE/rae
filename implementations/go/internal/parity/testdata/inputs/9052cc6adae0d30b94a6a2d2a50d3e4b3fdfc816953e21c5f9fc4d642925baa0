@@ -1,0 +1,27 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "invalid-enumerate",
+  "spec_version": "1.0.0",
+  "title": "Invalid enumeration",
+  "description": "An enumeration must have a positive finite output bound.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop."
+    },
+    "target_run_count": 1,
+    "selection_policies": {
+      "enumerate-host": {
+        "kind": "enumerate",
+        "policy_id": "enumerate-host",
+        "purpose": "nuisance-variation",
+        "point_ref": "payload-host",
+        "output_bound": 0
+      }
+    }
+  }
+}

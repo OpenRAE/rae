@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scheduler-isolation-proof-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "baf1c4441cf4ee2d53c3b60cd08ae4f1d163c42b283669e38abe198f1d93ca62"
+  },
+  "name": "contracts/fixtures/control-plane/scheduler-isolation-proof-v1/valid/bounded-parallel",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

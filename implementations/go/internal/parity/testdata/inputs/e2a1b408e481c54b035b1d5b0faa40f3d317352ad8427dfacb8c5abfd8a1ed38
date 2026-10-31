@@ -1,0 +1,134 @@
+{
+  "schema_version": "realization-envelope/v1",
+  "contract_id": "realization-envelope-v1",
+  "id": "libvirt-qemu.generic.v1",
+  "expression": {
+    "schema_version": "realization-envelope/v1",
+    "id": "libvirt-qemu.generic.expression.v1",
+    "scope": "scenario",
+    "domains": {},
+    "bindings": [],
+    "closure": []
+  },
+  "configuration": {
+    "mode": "generic",
+    "configuration_digest": "sha256:2af0fbd4a95b95a3a51d1488f641985c93e4c470baeb188f3e981f8b36327450",
+    "architecture": "x86_64",
+    "image_policy": "local-qcow2",
+    "network_policy": "libvirt-managed",
+    "supported_node_types": [
+      "switch",
+      "compute"
+    ],
+    "supported_os_families": [
+      "linux"
+    ],
+    "supported_content_types": [
+      "file"
+    ],
+    "supported_account_features": [
+      "auth_method",
+      "disabled",
+      "groups",
+      "home",
+      "shell"
+    ],
+    "supports_acls": true,
+    "memory_mib": {
+      "minimum": 128,
+      "maximum": null
+    },
+    "vcpus": {
+      "minimum": 1,
+      "maximum": null
+    }
+  },
+  "concerns": [
+    {
+      "concern": "compute-substrate",
+      "disposition": "realized",
+      "observation_strength": "daemon-observed",
+      "mechanism": "virtual-machine",
+      "transformations": []
+    },
+    {
+      "concern": "topology",
+      "disposition": "realized",
+      "observation_strength": "driver-reported",
+      "mechanism": "libvirt-domain-network",
+      "transformations": []
+    },
+    {
+      "concern": "architecture",
+      "disposition": "realized",
+      "observation_strength": "driver-reported",
+      "mechanism": "qemu-x86_64-domain",
+      "transformations": []
+    },
+    {
+      "concern": "image",
+      "disposition": "realized",
+      "observation_strength": "driver-reported",
+      "mechanism": "qcow2-disk-attachment",
+      "transformations": []
+    },
+    {
+      "concern": "resource-allocation",
+      "disposition": "transformed",
+      "observation_strength": "driver-reported",
+      "mechanism": "libvirt-domain-xml",
+      "transformations": [
+        "bounded-normalization",
+        "default-substitution"
+      ]
+    },
+    {
+      "concern": "network",
+      "disposition": "transformed",
+      "observation_strength": "driver-reported",
+      "mechanism": "libvirt-network-xml",
+      "transformations": [
+        "default-substitution"
+      ]
+    },
+    {
+      "concern": "content-placement",
+      "disposition": "realized",
+      "observation_strength": "driver-reported",
+      "mechanism": "cloud-init-seed",
+      "transformations": []
+    },
+    {
+      "concern": "account-placement",
+      "disposition": "transformed",
+      "observation_strength": "driver-reported",
+      "mechanism": "cloud-init-seed",
+      "transformations": [
+        "default-substitution"
+      ]
+    },
+    {
+      "concern": "feature-binding",
+      "disposition": "transformed",
+      "observation_strength": "driver-reported",
+      "mechanism": "cloud-init-seed",
+      "transformations": [
+        "descriptor-substitution"
+      ]
+    },
+    {
+      "concern": "service",
+      "disposition": "unsupported",
+      "observation_strength": "none",
+      "mechanism": null,
+      "transformations": []
+    },
+    {
+      "concern": "acl",
+      "disposition": "realized",
+      "observation_strength": "driver-reported",
+      "mechanism": "libvirt-nwfilter",
+      "transformations": []
+    }
+  ]
+}

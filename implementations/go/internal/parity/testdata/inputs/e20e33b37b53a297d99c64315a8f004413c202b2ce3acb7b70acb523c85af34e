@@ -1,0 +1,26 @@
+name: techvault-bounded-native
+version: 1.0.0
+description: >-
+  Bounded TechVault libvirt substrate used to certify exact VM/network
+  realization without guest image, placement, service, ACL, or SOC claims.
+
+nodes:
+  lab:
+    type: switch
+  demo:
+    type: compute
+    os: linux
+    resources:
+      ram: 128 MiB
+      cpu: 1
+    services: []
+
+infrastructure:
+  lab:
+    properties:
+      cidr: 192.0.2.0/24
+      gateway: 192.0.2.1
+      internal: true
+  demo:
+    links:
+      - lab

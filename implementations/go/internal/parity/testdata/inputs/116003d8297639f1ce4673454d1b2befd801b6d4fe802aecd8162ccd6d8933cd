@@ -1,0 +1,131 @@
+name: techvault-defensive-min
+description: >
+  Curated TechVault defensive-minimum slice. Declares the Wazuh manager,
+  indexer, and dashboard plus the OTEL core observability stack, without the
+  wider SOC, enterprise, target, or attacker surfaces.
+
+nodes:
+  security-net:
+    type: switch
+    description: SOC and security tooling network.
+
+  wazuh-manager:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: wazuh-api, port: 55000, protocol: tcp}
+      - {name: agent-events, port: 1514, protocol: tcp}
+      - {name: syslog, port: 514, protocol: udp}
+    conditions: {wazuh-manager-health: ""}
+  wazuh-indexer:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: indexer-api, port: 9200, protocol: tcp}
+  wazuh-dashboard:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: dashboard, port: 5601, protocol: tcp}
+    runtime:
+      # Consume a runtime-generated secret as a process-environment value
+      # (issue #1074): the token is minted during realization from the
+      # generated rendered-config artifact, not authored here.
+      environment:
+        - name: DASHBOARD_API_TOKEN
+          value_from: {generated_artifact: wazuh-dashboard-api-token, output: api-token}
+          value_classification: redacted
+          provenance: runtime
+          description: Dashboard API token sourced from a generated artifact output.
+
+  aptl-otel-collector:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: otlp-grpc, port: 4317, protocol: tcp}
+      - {name: otlp-http, port: 4318, protocol: tcp}
+  aptl-tempo:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: tempo-http, port: 3200, protocol: tcp}
+  aptl-grafana-otel:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: grafana, port: 3000, protocol: tcp}
+
+infrastructure:
+  security-net:
+    properties: {cidr: 172.20.0.0/24, gateway: 172.20.0.1, internal: false}
+
+  wazuh-manager:
+    links: [security-net]
+    dependencies: [wazuh-indexer]
+  wazuh-indexer:
+    links: [security-net]
+  wazuh-dashboard:
+    links: [security-net]
+    dependencies: [wazuh-indexer, wazuh-manager]
+
+  aptl-otel-collector:
+    links: [security-net]
+  aptl-tempo:
+    links: [security-net]
+  aptl-grafana-otel:
+    links: [security-net]
+    dependencies: [aptl-tempo]
+
+generated_artifacts:
+  wazuh-indexer-certs:
+    generator: certificate_bundle
+    lifecycle: reuse_valid
+    provenance: config/certs.yml
+    outputs:
+      - {name: root-ca, path: root-ca.pem, sensitivity: public}
+      - {name: indexer-key, path: wazuh.indexer-key.pem, sensitivity: secret}
+      - {name: indexer-cert, path: wazuh.indexer.pem, sensitivity: public}
+    consumers:
+      - node: wazuh-indexer
+        mount_destination: /usr/share/wazuh-indexer/certs
+        access_mode: read_only
+
+  wazuh-dashboard-api-token:
+    generator: rendered_config
+    lifecycle: reuse_valid
+    provenance: config/dashboard-api-token.yml
+    outputs:
+      - {name: api-token, path: dashboard-api-token.env, sensitivity: secret}
+    # Consumed only as the wazuh-dashboard DASHBOARD_API_TOKEN environment value
+    # (env delivery mode), so there is no file-mount `consumers` block; the
+    # compiler derives the consumer projection from the node runtime binding.
+
+persistent_volumes:
+  wazuh-indexer-data:
+    lifecycle: retain
+    access_mode: read_write_once
+    consumers:
+      - node: wazuh-indexer
+        mount_destination: /var/lib/wazuh-indexer
+        access_mode: read_write
+    ordering_dependencies: [generated_artifacts.wazuh-indexer-certs]
+
+features:
+  techvault-defensive-stack:
+    type: service
+    source:
+      name: aptl-soc-stack
+      version: local
+    description: Wazuh manager, indexer, and dashboard monitoring core.
+
+conditions:
+  wazuh-manager-health:
+    command: /usr/local/bin/check-wazuh-manager
+    interval: 30
+    description: Declarative healthcheck required before public startup is ready.

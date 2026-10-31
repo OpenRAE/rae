@@ -1,0 +1,34 @@
+{
+  "schema_version": "random-stream-profile/v1",
+  "profile_id": "blake3-xof-participant-v1",
+  "title": "BLAKE3 Participant Occurrence Random Stream Profile",
+  "description": "Immutable counter-addressable profile for bounded within-run participant timing and weighted action policy draws. It uses a closed participant occurrence address and the unbiased bounded-integer transform. Cryptographic secrecy is not a claim.",
+  "generator": {
+    "family": "blake3",
+    "version": "1",
+    "mode": "keyed-hash-derive-key-seekable-xof"
+  },
+  "root_entropy": {
+    "encoding": "hex-fixed-width",
+    "byte_length": 32
+  },
+  "address_encoding": {
+    "canonicalization": "rfc8785-jcs"
+  },
+  "derivation": {
+    "key_derivation_function": "blake3.derive_key",
+    "context_template": "raes-random-stream-v1|profile={profile_id}"
+  },
+  "block_encoding": {
+    "block_bytes": 32,
+    "byte_order": "big-endian"
+  },
+  "transforms": {
+    "bounded-integer": {
+      "transform_id": "bounded-integer",
+      "version": "1",
+      "kind": "bounded-integer",
+      "max_rejection_attempts": 32
+    }
+  }
+}

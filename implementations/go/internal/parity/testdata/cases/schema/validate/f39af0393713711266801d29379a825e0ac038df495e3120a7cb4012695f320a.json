@@ -1,0 +1,14 @@
+{
+  "args": [
+    "operation-status-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "8c7aec3a72835c37f3d5bc9f81a33342b1ba14206d9191d6a4ad4b2778741f89"
+  },
+  "name": "contracts/fixtures/control-plane/operation-status-v1/invalid/missing-terminal-diagnostic",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

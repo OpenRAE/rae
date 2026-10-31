@@ -1,0 +1,17 @@
+{
+  "schema_version": "proposition-truth-result/v1",
+  "result_id": "truth-run-42-unfounded",
+  "proposition_address": "evaluation.proposition.service-available",
+  "assertion_address": "evaluation.assertion.service-ready",
+  "assertion_polarity": "positive",
+  "proposition_outcome": "true",
+  "assertion_outcome": "true",
+  "evaluation_basis": "observed_state",
+  "indeterminacy_reason": null,
+  "probe_binding": null,
+  "evidence_refs": [],
+  "declared_artifact_digest": null,
+  "temporal_context": null,
+  "loss_disclosures": [],
+  "unsupported_capability_refs": []
+}

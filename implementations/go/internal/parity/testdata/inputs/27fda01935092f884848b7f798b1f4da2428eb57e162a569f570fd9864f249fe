@@ -1,0 +1,34 @@
+{
+  "schema_version": "random-stream-profile/v1",
+  "profile_id": "Blake3_XOF",
+  "title": "BLAKE3 Keyed-Hash Seekable XOF Random Stream Profile",
+  "description": "profile_id does not match the closed profile-id grammar.",
+  "generator": {
+    "family": "blake3",
+    "version": "1",
+    "mode": "keyed-hash-derive-key-seekable-xof"
+  },
+  "root_entropy": {
+    "encoding": "hex-fixed-width",
+    "byte_length": 32
+  },
+  "address_encoding": {
+    "canonicalization": "rfc8785-jcs"
+  },
+  "derivation": {
+    "key_derivation_function": "blake3.derive_key",
+    "context_template": "raes-random-stream-v1|profile={profile_id}"
+  },
+  "block_encoding": {
+    "block_bytes": 32,
+    "byte_order": "big-endian"
+  },
+  "transforms": {
+    "bounded-integer": {
+      "transform_id": "bounded-integer",
+      "version": "1",
+      "kind": "bounded-integer",
+      "max_rejection_attempts": 32
+    }
+  }
+}

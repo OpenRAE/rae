@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-lifecycle-event-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a81cb192bfaedb49375cf73a0c97db79fd56c195dfe8e514a2d5f1dbcb644f89"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-lifecycle-event-v1/valid/opaque-llm-execution-attempt",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

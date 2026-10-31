@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "mixed-participant-composition-profile-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "7f79fab8edf64cea629ed0de2a730f5693438c6bbd04d93a88df9e61343fcc81"
+  },
+  "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/simultaneous-mixed",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "diagnostics": [
+        {
+          "address": "mixed-participant-composition-profile-v1",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 19,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

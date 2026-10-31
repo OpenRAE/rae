@@ -1,0 +1,96 @@
+{
+  "schema_version": "runtime-fact-binding-plane/v1",
+  "declarations": [
+    {
+      "fact_id": "fact.observed-host",
+      "value_type": "string",
+      "source_kind": "observation",
+      "sensitivity": "internal",
+      "visibility": {
+        "participant_addresses": ["participant.behavior.red-agent"],
+        "workflow_addresses": ["workflow.main"],
+        "operator_visible": true
+      },
+      "authority_refs": ["policy.runtime-facts"]
+    }
+  ],
+  "sinks": [
+    {
+      "sink_id": "sink.scan-target",
+      "action_contract_address": "participant.action-contract.scan",
+      "target_field": "input.target.host",
+      "value_type": "string",
+      "allowed_source_kinds": ["observation"],
+      "allowed_scope_kinds": ["episode"],
+      "allowed_sensitivities": ["internal"],
+      "max_age_seconds": 300,
+      "authority_refs": ["policy.runtime-facts"],
+      "audience": "participant",
+      "absence_disposition": "fail"
+    }
+  ],
+  "versions": [
+    {
+      "fact_id": "fact.observed-host",
+      "version_id": "fact-version.host.1",
+      "sequence": 1,
+      "value_type": "string",
+      "source_kind": "observation",
+      "sensitivity": "internal",
+      "scope": {
+        "kind": "episode",
+        "run_id": "run-791",
+        "participant_address": "participant.behavior.red-agent",
+        "episode_id": "episode-1"
+      },
+      "observed_at": "2026-07-20T03:00:00Z",
+      "value": "10.0.0.23",
+      "confidence": 1.0,
+      "evidence_refs": ["evidence.network-scan.1"],
+      "provenance_refs": ["observation.network-scan.1"]
+    }
+  ],
+  "events": [
+    {
+      "event_id": "fact-binding.scan-0001.1",
+      "run_id": "run-791",
+      "participant_address": "participant.behavior.red-agent",
+      "episode_id": "episode-1",
+      "workflow_address": "workflow.main",
+      "action_instance_id": "scan-0001",
+      "action_contract_address": "participant.action-contract.scan",
+      "sink_id": "sink.scan-target",
+      "target_field": "input.target.host",
+      "fact_id": "fact.observed-host",
+      "fact_version_id": "fact-version.host.1",
+      "disposition": "bound",
+      "sensitivity": "internal",
+      "evidence_refs": ["evidence.network-scan.1"],
+      "provenance_refs": ["observation.network-scan.1"],
+      "authorization_refs": ["policy.runtime-facts"],
+      "redacted": false
+    }
+  ],
+  "projections": [
+    {
+      "fact_id": "fact.observed-host",
+      "fact_version_id": "fact-version.host.1",
+      "value_type": "string",
+      "source_kind": "observation",
+      "sensitivity": "internal",
+      "scope": {
+        "kind": "episode",
+        "run_id": "run-791",
+        "participant_address": "participant.behavior.red-agent",
+        "episode_id": "episode-1"
+      },
+      "observed_at": "2026-07-20T03:00:00Z",
+      "value": "10.0.0.23",
+      "redacted": false,
+      "secret_reference_present": false,
+      "confidence": 1.0,
+      "evidence_refs": ["evidence.network-scan.1"],
+      "provenance_refs": ["observation.network-scan.1"]
+    }
+  ]
+}

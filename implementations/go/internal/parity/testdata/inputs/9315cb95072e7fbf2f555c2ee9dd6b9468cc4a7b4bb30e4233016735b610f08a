@@ -1,0 +1,38 @@
+{
+  "schema_version": "experiment-evidence-record/v1",
+  "evidence_record_id": "evidence-runtime-health-001",
+  "record_version": "1.0.0",
+  "capture_spec_ref": {
+    "ref_kind": "capture-spec",
+    "ref_id": "capture-runtime-inventory-v1",
+    "ref_version": "1.0.0"
+  },
+  "capture_requirement_ref": "container-health-observation",
+  "output_contract": "participant-behavior-history-event-stream-v1",
+  "run_ref": {
+    "ref_kind": "run",
+    "ref_id": "run-runtime-inventory-001",
+    "ref_version": "1.0.0"
+  },
+  "source_refs": [
+    {
+      "ref_kind": "measurement-channel",
+      "ref_id": "container-runtime-inspect",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "evidence_kind": "observation",
+  "captured_at": "2026-07-13T00:00:00Z",
+  "capture_window_ref": "inventory-window",
+  "raw_content": {
+    "content_uri": "runs/run-runtime-inventory-001/container-health.json",
+    "content_checksum": {
+      "algorithm": "sha256",
+      "value": "1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "payload_summary": "Container health status, failing streak, timestamps, exit codes, and bounded check-output metadata captured separately from the authored healthcheck condition."
+  },
+  "sensitivity": "internal",
+  "redaction_state": "none",
+  "provenance_refs": []
+}

@@ -1,0 +1,111 @@
+{
+  "binding_set_id": "autonomous-behavior-scheme-examples",
+  "binding_set_version": "1.0.0",
+  "bindings": {
+    "activitystreams-service-publication": {
+      "approximation": {
+        "loss_details": [
+          "ActivityStreams Create does not specify RAES action, authority, realization, observation, outcome, or evidence semantics."
+        ],
+        "posture": "approximate"
+      },
+      "assertion": {
+        "motivation": "Annotate a complete autonomous service behavior specification with a reviewed publication-oriented activity type.",
+        "motivation_basis_refs": [
+          {
+            "ref_id": "act-611-source-review",
+            "ref_kind": "other",
+            "ref_version": "v1"
+          }
+        ],
+        "relationship_kind": "related-to",
+        "semantic_effect": "annotates",
+        "semantic_effect_basis_refs": [
+          {
+            "ref_id": "sem-217",
+            "ref_kind": "profile",
+            "ref_version": "v1"
+          }
+        ]
+      },
+      "binding_id": "activitystreams-service-publication",
+      "confidence": {
+        "basis": "The activity type is review-relevant, but the external vocabulary is broader than RAES behavior semantics.",
+        "posture": "medium"
+      },
+      "limitations": [
+        "The assertion does not prove that an ActivityStreams actor exists or that a Create activity occurred.",
+        "Participant eligibility does not authorize disclosure or prove delivery."
+      ],
+      "perspective": {
+        "asserting_party_kind": "reviewer",
+        "asserting_party_ref": "reviewers.act-611",
+        "authority_basis_refs": [
+          {
+            "ref_id": "act-611-review-charter",
+            "ref_kind": "other",
+            "ref_version": "v1"
+          }
+        ],
+        "participant_availability": {
+          "basis_refs": [
+            {
+              "ref_id": "scenario-participant-eligibility",
+              "ref_kind": "other",
+              "ref_version": "v1"
+            }
+          ],
+          "kind": "eligibility-only",
+          "participant_refs": [
+            "agents.autonomous-service"
+          ]
+        },
+        "perspective": "autonomous-service-review"
+      },
+      "provenance": {
+        "asserted_at": "2026-07-30T21:30:00Z",
+        "source_refs": [
+          {
+            "ref_digest": "sha256:1418443392160f4bb23dffb5727f5216d1f56d3430377dc67d364016521401db",
+            "ref_id": "w3c-activitystreams-vocabulary",
+            "ref_kind": "other",
+            "ref_version": "REC-activitystreams-vocabulary-20170523"
+          }
+        ]
+      },
+      "review": {
+        "review_refs": [
+          {
+            "ref_id": "act-611-activitystreams-review",
+            "ref_kind": "other",
+            "ref_version": "v1"
+          }
+        ],
+        "status": "accepted"
+      },
+      "scheme": {
+        "authority": "World Wide Web Consortium",
+        "concept_id": "https://www.w3.org/ns/activitystreams#Create",
+        "revision": "REC-activitystreams-vocabulary-20170523",
+        "scheme_id": "w3c-activitystreams-activity-types",
+        "source_digest": "sha256:1418443392160f4bb23dffb5727f5216d1f56d3430377dc67d364016521401db",
+        "source_locator": "https://www.w3.org/TR/2017/REC-activitystreams-vocabulary-20170523/"
+      },
+      "subject": {
+        "artifact_digest": "sha256:78a5982f347b4772bb58fa4fa7802594092fbbad1503d97dcf8d840a1ba61def",
+        "canonical_ref": "behavior_specifications.service-publication",
+        "lifecycle_phase": "normalized-authoring",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "subject_kind": "behavior_specifications"
+      },
+      "supporting_evidence_refs": [
+        {
+          "ref_id": "act-611-activitystreams-review",
+          "ref_kind": "evidence-record",
+          "ref_version": "v1"
+        }
+      ]
+    }
+  },
+  "schema_version": "external-concept-bindings/v1"
+}

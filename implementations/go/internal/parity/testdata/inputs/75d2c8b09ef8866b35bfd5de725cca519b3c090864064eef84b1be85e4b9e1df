@@ -1,0 +1,22 @@
+{
+  "schema_version": "participant-resource-budget-event/v1",
+  "event_id": "action-1:participant.autonomous-execution.green.resource-budget-state.tokens:commit",
+  "operation_id": "action-1",
+  "budget_state_ref": "participant.autonomous-execution.green.resource-budget-state.tokens",
+  "budget_id": "tokens",
+  "policy_address": "participant.autonomous-execution.green",
+  "owner_ref": "provision.node.inference.service.http",
+  "pool_ref": "inference-pool",
+  "execution_generation": 3,
+  "transition": "commit",
+  "disposition": "committed",
+  "requested": 500,
+  "measured": 450,
+  "resource_kind": "inference_tokens",
+  "unit": "tokens",
+  "meter_profile_ref": "tokenizer.example/v1",
+  "predecessor_event_ref": "action-1:participant.autonomous-execution.green.resource-budget-state.tokens:reserve",
+  "evidence_refs": [
+    "evidence.resource-meter.action-1"
+  ]
+}

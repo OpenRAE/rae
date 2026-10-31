@@ -1,0 +1,12 @@
+{
+  "schema_version": "realized-time-model/v1",
+  "run_id": "run-001",
+  "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+  "declared_model": {},
+  "realized_model": {},
+  "apparatus_bindings": {},
+  "synchronization_assumptions": ["single runtime authority"],
+  "timing_limits": [],
+  "deviations": [],
+  "evidence_refs": ["evidence:time-readback"]
+}

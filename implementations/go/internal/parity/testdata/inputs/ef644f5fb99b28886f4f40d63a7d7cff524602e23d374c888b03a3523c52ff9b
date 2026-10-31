@@ -1,0 +1,122 @@
+{
+  "schema_version": "behavioral-relation-profile/v1",
+  "profile_id": "participant-opacity-runtime-reference-v1",
+  "profile_revision": "sem-231/runtime-rev1",
+  "taxonomy_id": "raes-behavioral-relations",
+  "taxonomy_revision": "rev10",
+  "relation_id": "participant-predicate-opacity",
+  "left_carrier_ref": "possible-point-carrier:runtime-reference-v1",
+  "observation_projection_ref": "participant-opacity-observation:runtime-reference-v1",
+  "observation_projection_revision": "rev1",
+  "finite_analysis_scope": "declared-complete-finite-carrier",
+  "parameters": {
+    "kind": "participant-predicate-opacity/v1",
+    "observer": {
+      "kind": "individual",
+      "participant_ref": "participant.behavior.red-agent",
+      "audience_ref": "audience:red-operator"
+    },
+    "secret": {
+      "predicate_ref": "secret-predicate:runtime-reference-protected-state",
+      "predicate_revision": "rev1",
+      "truth_polarity": "one-sided-true"
+    },
+    "carrier": {
+      "kind": "finite-possible-points",
+      "reachability_ref": "reachability:runtime-reference-carrier-v1",
+      "reachability_revision": "rev1"
+    },
+    "initial_information": {
+      "projection_ref": "participant-opacity-initial-information:runtime-reference-v1",
+      "projection_revision": "rev1"
+    },
+    "observation": {
+      "projection_ref": "participant-opacity-observation:runtime-reference-v1",
+      "projection_revision": "rev1",
+      "observable_channels": [
+        "action-availability",
+        "decision",
+        "delivery",
+        "latency",
+        "order",
+        "participant-state",
+        "payload",
+        "policy-release",
+        "retry"
+      ],
+      "supervisor_decisions": "online-learned"
+    },
+    "horizon": {
+      "scope": "current",
+      "cut_ref": "state-cut:runtime-crossing-heads-v1",
+      "cut_revision": "rev1",
+      "steps": null
+    },
+    "memory": {
+      "retention": "cross-episode",
+      "memory_ref": "participant-memory:runtime-retained-history-v1",
+      "memory_revision": "rev1",
+      "reset_rule_ref": null,
+      "reset_rule_revision": null
+    },
+    "strategy": {
+      "kind": "active",
+      "strategy_refs": [
+        "participant-strategy:runtime-mediated-probes-v1"
+      ]
+    },
+    "release": {
+      "schedule_ref": "release-schedule:runtime-exact-cut-v1",
+      "schedule_revision": "rev1",
+      "exact_cut": true,
+      "concealment_erases_retained_knowledge": false
+    },
+    "scheduler_refs": [
+      "scheduler:runtime-logical-single-writer"
+    ],
+    "environment_refs": [
+      "environment:runtime-reference-in-process"
+    ],
+    "nondeterminism": "possibilistic-support",
+    "order": {
+      "treatment": "total-order",
+      "order_refs": [
+        "order:runtime-logical-crossing"
+      ]
+    },
+    "time": {
+      "model": "untimed",
+      "progress": "progress-insensitive",
+      "absence_observable": true,
+      "opportunity_basis_ref": "participant-opacity-opportunity:crossing-v1",
+      "opportunity_basis_revision": "rev1"
+    },
+    "probability": "outside-baseline",
+    "bounds": {
+      "max_points": 4096,
+      "max_runs": 1024,
+      "max_cuts": 1024,
+      "max_strategies": 64,
+      "max_scheduler_environment_pairs": 64,
+      "max_order_variants": 64
+    }
+  },
+  "source_refs": [
+    {
+      "source_ref": "docs/decisions/issue-964-participant-opacity-runtime-enforcement-preflight.md",
+      "source_digest": "sha256:dee2c4c0160bc1330c87d095b5aa1e0375356be655d6d044860a3198bc189e70"
+    }
+  ],
+  "limitations": [
+    "The only enforced observation normal form is uniform denial: protected actions do not execute and participant payload or state is not released; the governed omission opportunity is recorded as withheld.",
+    "Support is limited to the exact finite in-process reference-runtime carrier and complete declared observation inventory.",
+    "Latency denotes a governed logical timing bucket only; wall-clock, timed, progress-sensitive, probabilistic, coalition, partial-order, and backend surfaces are unsupported.",
+    "Administrative and native-backend surfaces are outside the named participant observer boundary and do not become participant-visible by authorization alone."
+  ],
+  "explicit_non_claims": [
+    "The profile does not provide a useful allowed-action or delivered-view mode; adding one requires a separately evidenced secret-independent projection strategy.",
+    "No general, unbounded, timed, probabilistic, quantitative, coalition, partial-order, or whole-deployment opacity is established.",
+    "No model checking or proof of a live execution, supervisor synthesis, backend declaration, backend realization, or backend conformance is established.",
+    "A runtime crossing decision establishes only bounded reference-runtime containment of the exact admitted profile and inventory."
+  ]
+}

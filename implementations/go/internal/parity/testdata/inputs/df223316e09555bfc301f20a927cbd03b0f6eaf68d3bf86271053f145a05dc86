@@ -1,0 +1,51 @@
+{
+  "schema_version": "semantic-profile/v1",
+  "profile_id": "reference-stack-v1",
+  "title": "Reference Stack Interoperability Profile",
+  "description": "Invalid semantic profile fixture for unknown contracts.",
+  "concept_catalog_version": "concept-families/v1",
+  "authoring": {
+    "required_contracts": ["not-a-contract"],
+    "required_concept_families": ["scenarios"],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "authoring-surface",
+        "statement": "Authoring is SDL-native."
+      }
+    ]
+  },
+  "exchange": {
+    "required_contracts": ["backend-manifest-v2"],
+    "required_concept_families": ["apparatus-declarations"],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "exchange-surface",
+        "statement": "Exchange uses shared manifests."
+      }
+    ]
+  },
+  "processing": {
+    "required_contracts": ["processor-manifest-v2"],
+    "required_concept_families": ["scenarios"],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "processing-surface",
+        "statement": "Processing uses shared contracts."
+      }
+    ]
+  },
+  "execution": {
+    "required_contracts": ["backend-manifest-v2"],
+    "required_concept_families": ["assets"],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "execution-surface",
+        "statement": "Execution uses shared contracts."
+      }
+    ]
+  }
+}

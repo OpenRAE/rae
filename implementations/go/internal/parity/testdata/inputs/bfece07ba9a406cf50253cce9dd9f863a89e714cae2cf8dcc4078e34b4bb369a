@@ -1,0 +1,19 @@
+{
+  "schema_version": "runtime-operation/v1",
+  "operation_id": "resolution-op-1179",
+  "domain": "provisioning",
+  "state": "succeeded",
+  "submitted_at": "2026-09-17T00:00:05Z",
+  "updated_at": "2026-09-17T00:00:06Z",
+  "context": {
+    "actor_id": "operator-1179",
+    "authorization_scope": ["role:operator"],
+    "target_scope": "target:stub",
+    "run_scope": "run:issue-1179",
+    "operation_kind": "indeterminate-resolution",
+    "request_commitment": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "parent_operation_id": "interrupted-op-1179"
+  },
+  "diagnostics": [],
+  "changed_addresses": []
+}

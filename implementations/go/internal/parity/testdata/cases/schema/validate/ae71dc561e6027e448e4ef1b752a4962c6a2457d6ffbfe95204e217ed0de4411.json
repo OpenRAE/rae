@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-decision-surface-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "285dd74412ccf4e114a58e40d3b136e435c3b47b7bc141470be131da75f9ab7c"
+  },
+  "name": "contracts/fixtures/control-plane/participant-decision-surface-v1/valid/human-candidate",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

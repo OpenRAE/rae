@@ -1,0 +1,184 @@
+{
+  "schema_version": "uco-alignment/v1",
+  "uco_version": "1.4.0",
+  "uco_reference": "https://github.com/ucoProject/UCO/releases/tag/1.4.0",
+  "review_scope": "Primary-source review of the Unified Cyber Ontology (UCO) at git tag 1.4.0. Reviewed ontology source: ontology/uco/core/core.ttl, ontology/uco/observable/observable.ttl, ontology/uco/identity/identity.ttl, ontology/uco/action/action.ttl, ontology/uco/tool/tool.ttl, and ontology/uco/role/role.ttl. Every uco_class cited below was confirmed declared as an owl:Class in the reviewed file at that tag. Alignment is recorded at UCO object-type granularity; UCO property-level mapping is out of scope for uco-alignment/v1. Coverage is exactly the adopted/adapted cyber-domain families in concept-families-v1.json whose declared authority is UCO. This is a concept-authority (semantic) alignment per ADR-012, not an authoring-syntax or schema-structure mapping.",
+  "alignments": {
+    "assets": {
+      "concept_family": "assets",
+      "provenance": "adopted",
+      "uco_types": [
+        {
+          "uco_class": "observable:ObservableObject",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/ObservableObject",
+          "note": "Base observable cyber object; RAES asset-bearing scenario nodes and deployable resources are represented as observable objects."
+        },
+        {
+          "uco_class": "observable:Computer",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/Workstation",
+          "note": "Host and compute nodes."
+        },
+        {
+          "uco_class": "observable:Device",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/Device",
+          "note": "Device-class deployable equipment serving a special purpose."
+        },
+        {
+          "uco_class": "observable:AutonomousSystem",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/AutonomousSystem",
+          "note": "Network and routing infrastructure."
+        },
+        {
+          "uco_class": "observable:IPAddress",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/IPAddress",
+          "note": "Network addressing for nodes and infrastructure."
+        },
+        {
+          "uco_class": "observable:Hostname",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/Hostname",
+          "note": "Node identification within a network."
+        }
+      ],
+      "divergences": []
+    },
+    "identities": {
+      "concept_family": "identities",
+      "provenance": "adopted",
+      "uco_types": [
+        {
+          "uco_class": "identity:Identity",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/identity/Identity",
+          "note": "Identity-bearing participants and entities."
+        },
+        {
+          "uco_class": "identity:Person",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/identity/Person",
+          "note": "Individual human identities."
+        },
+        {
+          "uco_class": "identity:Organization",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/identity/Organization",
+          "note": "Organizational identities."
+        },
+        {
+          "uco_class": "observable:Account",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/Account",
+          "note": "Account arrangements enabling provision of a capability or service."
+        },
+        {
+          "uco_class": "observable:DigitalAccount",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/DigitalAccount",
+          "note": "Accounts within the digital domain."
+        },
+        {
+          "uco_class": "role:Role",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/role/Role",
+          "note": "Roles attributed to identity-bearing participants."
+        }
+      ],
+      "divergences": []
+    },
+    "relationships": {
+      "concept_family": "relationships",
+      "provenance": "adapted",
+      "uco_types": [
+        {
+          "uco_class": "core:Relationship",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/core/Relationship",
+          "note": "UCO directed/typed assertion that objects relate to one another; the closest UCO anchor for RAES typed scenario relationships."
+        }
+      ],
+      "divergences": [
+        "RAES relationship `type` values derive from STIX 2.1 Relationship SRO vocabulary and OCR dependency patterns, not from the UCO core:kindOfRelationship controlled vocabulary.",
+        "RAES relationships carry an open `properties` map instead of UCO facet-based characterization; relationship attributes are not modeled as UCO Facets.",
+        "RAES relationship source and target reference SDL scenario elements (nodes, accounts, content, conditions, events), not exclusively UCO observable objects."
+      ]
+    },
+    "observables": {
+      "concept_family": "observables",
+      "provenance": "adopted",
+      "uco_types": [
+        {
+          "uco_class": "observable:ObservableObject",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/ObservableObject",
+          "note": "Base observable cyber object for conditions, metrics, and telemetry-bearing objects."
+        },
+        {
+          "uco_class": "observable:EventRecord",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/EventRecord",
+          "note": "Observed digital-context event and telemetry records."
+        },
+        {
+          "uco_class": "observable:ContentData",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/ContentData",
+          "note": "Observed blocks of digital data carrying telemetry payloads."
+        }
+      ],
+      "divergences": []
+    },
+    "actions-and-events": {
+      "concept_family": "actions-and-events",
+      "provenance": "adopted",
+      "uco_types": [
+        {
+          "uco_class": "action:Action",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/action/Action",
+          "note": "Executable actions and injects (something that may be done or performed)."
+        },
+        {
+          "uco_class": "action:ActionLifecycle",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/action/ActionLifecycle",
+          "note": "Ordered sets of actions for workflow steps and sequenced injects."
+        },
+        {
+          "uco_class": "action:ActionPattern",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/action/ActionPattern",
+          "note": "Characteristic arrangements of actions."
+        },
+        {
+          "uco_class": "core:Event",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/core/Event",
+          "note": "A noteworthy occurrence that happens or might happen."
+        },
+        {
+          "uco_class": "observable:EventRecord",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/EventRecord",
+          "note": "Recorded occurrence of an event in a digital context."
+        }
+      ],
+      "divergences": []
+    },
+    "tools-and-artifacts": {
+      "concept_family": "tools-and-artifacts",
+      "provenance": "adopted",
+      "uco_types": [
+        {
+          "uco_class": "tool:Tool",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/tool/Tool",
+          "note": "An element of hardware and/or software utilized to carry out a particular function."
+        },
+        {
+          "uco_class": "observable:File",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/File",
+          "note": "File artifacts recorded on a storage device."
+        },
+        {
+          "uco_class": "observable:Application",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/Application",
+          "note": "Software programs and applications designed for end users."
+        },
+        {
+          "uco_class": "observable:ContentData",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/observable/ContentData",
+          "note": "Content and data artifacts (blocks of digital data)."
+        },
+        {
+          "uco_class": "core:Item",
+          "iri": "https://ontology.unifiedcyberontology.org/uco/core/Item",
+          "note": "A distinct article or unit; deployable artifacts as discrete items."
+        }
+      ],
+      "divergences": []
+    }
+  }
+}

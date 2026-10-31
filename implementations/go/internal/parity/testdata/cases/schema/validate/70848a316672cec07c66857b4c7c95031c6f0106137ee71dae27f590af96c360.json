@@ -1,0 +1,14 @@
+{
+  "args": [
+    "processor-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "de90e32f526053a0ec66835264e0aa0ce2a7caec3796047acc92befedabfff33"
+  },
+  "name": "contracts/fixtures/processor-manifest/processor-manifest-v2/invalid/non-backend-compatibility-surface",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

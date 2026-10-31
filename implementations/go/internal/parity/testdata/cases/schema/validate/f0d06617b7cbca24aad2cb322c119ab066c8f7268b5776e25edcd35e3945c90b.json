@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-decision-surface-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "ec798cb88c38d15765e993a025d4c631712980b51ea9bcb3d2a77b549f52dc1e"
+  },
+  "name": "contracts/fixtures/control-plane/participant-decision-surface-v1/valid/rl-candidate",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

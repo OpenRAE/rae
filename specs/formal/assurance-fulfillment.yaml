@@ -355,8 +355,25 @@ entries:
     # issues #1370 and #1363 deliver the owner-qualified IFC profile and the
     # API-409 v2 reusable mixed-control occurrence contracts, while typed
     # contract coverage remains incomplete for the observation capture
-    # apparatus (waiver below). ASR-535 makes no model-check or proof claim.
+    # apparatus (waiver below). The ASR-535 enforcement and conformance lanes
+    # make no model-check or proof claim. SEM-232 adds one reproduced finite
+    # model check of the complete participant-crossing-dpbb-finite-v1@rev2
+    # carrier (issues #974-#976); it adds no proof.
     delivered_artifacts:
+      - kind: invariant_list
+        path: specs/formal/participant-semantics/participant-crossing-bisimulation.md
+      - kind: abstract_state_machine_model
+        path: specs/formal/participant-semantics/participant-crossing-models.md
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_974_machine_check.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_975_reproduction_record.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_976_evidence_identity.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_976_crossing_publication.py
+      - kind: property_based_or_differential_tests
+        path: implementations/python/tests/test_issue_975_reproduction.py
       - kind: unit_tests
         path: implementations/python/tests/test_issue_1008_evaluation_backed_claims.py
       - kind: invariant_list

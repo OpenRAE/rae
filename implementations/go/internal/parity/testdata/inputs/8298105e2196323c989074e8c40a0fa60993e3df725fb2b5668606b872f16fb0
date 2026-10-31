@@ -1,0 +1,102 @@
+{
+  "event_id": "state-web01-http-rev8",
+  "schema_name": "raes.participant_runtime.shared_state",
+  "schema_version": "1.0.0",
+  "event_type": "state_update_commit",
+  "extension_policy": "reject_unknown_required",
+  "event_classification": null,
+  "source_status": {
+    "status_id": 1,
+    "status": "success",
+    "status_code": "state_committed",
+    "status_detail": "runtime committed the serialized shared-state write",
+    "source_status_label": "state_committed",
+    "source_status_mapping": "raes.shared_state.commit"
+  },
+  "participant_address": "participants.red.llm",
+  "episode_id": "ep-red-004",
+  "sequence_number": 18,
+  "occurred_at": "2026-05-26T10:50:00Z",
+  "recorded_at": "2026-05-26T10:50:01Z",
+  "ingested_at": "2026-05-26T10:50:01Z",
+  "clock_authority": "sim.tick",
+  "temporal_context": "tick-88",
+  "ordering_basis": "simulation_tick",
+  "logical_order_ref": "sim.tick.88",
+  "predecessor_event_refs": [
+    "joint-13"
+  ],
+  "actor_ref": "participants.red.llm",
+  "producer_ref": "backend.cyborg-adapter.v1",
+  "source_system_ref": "cyborg.sim",
+  "source_record_ref": "sim.tick.88.state",
+  "source_raw_ref": "evidence.raw.sim.tick88",
+  "source_pipeline": {
+    "product_ref": "products.cyborg.sim",
+    "product_version": "1.0.0",
+    "log_provider": "cyborg",
+    "log_source": "cyborg.sim",
+    "log_name": "shared-state",
+    "original_event_uid": "sim.tick.88.state",
+    "original_time": "2026-05-26T10:50:00Z",
+    "processed_time": "2026-05-26T10:50:01Z",
+    "logged_time": "2026-05-26T10:50:01Z",
+    "transmit_time": "2026-05-26T10:50:01Z",
+    "correlation_uid": "sim.tick.88",
+    "sequence": 88
+  },
+  "raw_data_integrity": {
+    "raw_data_hash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+    "raw_data_hash_algorithm": "sha256",
+    "raw_data_size": 3072,
+    "raw_data_is_truncated": false,
+    "raw_data_untruncated_size": 3072
+  },
+  "confidence": 1.0,
+  "provenance_refs": [
+    "provenance.backend_realized"
+  ],
+  "evidence_refs": [
+    "evidence.sim.tick88.state"
+  ],
+  "marking_definition_refs": [
+    "markings.internal.v1"
+  ],
+  "object_marking_refs": [
+    "markings.internal.v1"
+  ],
+  "markings": [
+    "internal"
+  ],
+  "granular_markings": {},
+  "redaction_policy_ref": "redaction.shared-state.v1",
+  "authorization_scope": "runtime_review",
+  "state_address": "hosts.web01.service.http",
+  "state_scope": "scenario_shared",
+  "state_kind": "service_configuration",
+  "revision": "rev8",
+  "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "predecessor_revision_refs": [
+    "hosts.web01.service.http@rev7"
+  ],
+  "conflict_policy": "serialize",
+  "visibility_projection_basis": "projections.shared-state.default.v1",
+  "provenance": "provenance.backend_realized",
+  "value_ref": "evidence.state.web01-http-rev8",
+  "accesses": [
+    {
+      "state_address": "hosts.web01.service.http",
+      "access_kind": "execute",
+      "read_revision": "rev7",
+      "write_revision": "rev8",
+      "read_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "write_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "snapshot_ref": "snapshots.sim.tick88",
+      "access_purpose": "action_effect_commit",
+      "atomic_group_ref": "joint-13",
+      "evidence_refs": [
+        "evidence.sim.tick88.joint"
+      ]
+    }
+  ]
+}

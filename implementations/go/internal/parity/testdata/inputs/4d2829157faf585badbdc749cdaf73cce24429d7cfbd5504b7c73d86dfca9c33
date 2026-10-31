@@ -1,0 +1,76 @@
+{
+  "schema_version": "realized-time-model/v1",
+  "run_id": "run-001",
+  "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+  "declared_model": {
+    "schema_version": "time-model/v1",
+    "domains": {
+      "time.domain.logical": {
+        "address": "time.domain.logical",
+        "kind": "logical",
+        "tick_period_seconds": {"numerator": 1, "denominator": 1},
+        "epoch": "unanchored",
+        "visibility": "runtime_only",
+        "description": "logical ticks"
+      }
+    },
+    "clocks": {
+      "time.clock.logical": {
+        "address": "time.clock.logical",
+        "time_domain_address": "time.domain.logical",
+        "authority_kind": "runtime",
+        "authority_ref": "runtime.clock",
+        "monotonicity": "non_decreasing",
+        "supports_pause": false,
+        "supports_reset": false,
+        "supports_jump": false,
+        "description": "logical clock"
+      }
+    },
+    "mappings": {},
+    "progression_policies": {},
+    "temporal_constraints": {}
+  },
+  "realized_model": {
+    "schema_version": "time-model/v1",
+    "domains": {
+      "time.domain.logical": {
+        "address": "time.domain.logical",
+        "kind": "logical",
+        "tick_period_seconds": {"numerator": 1, "denominator": 1},
+        "epoch": "unanchored",
+        "visibility": "runtime_only",
+        "description": "logical ticks"
+      }
+    },
+    "clocks": {
+      "time.clock.logical": {
+        "address": "time.clock.logical",
+        "time_domain_address": "time.domain.logical",
+        "authority_kind": "runtime",
+        "authority_ref": "runtime.clock",
+        "monotonicity": "non_decreasing",
+        "supports_pause": false,
+        "supports_reset": false,
+        "supports_jump": false,
+        "description": "logical clock"
+      }
+    },
+    "mappings": {},
+    "progression_policies": {},
+    "temporal_constraints": {}
+  },
+  "apparatus_bindings": {
+    "time.clock.logical": {
+      "address": "time.clock.logical",
+      "component_ref": "apparatus.time-runtime",
+      "realization_kind": "runtime_managed",
+      "evidence_refs": ["evidence:time-readback"],
+      "limitations": []
+    }
+  },
+  "synchronization_assumptions": ["single runtime authority"],
+  "timing_limits": [],
+  "deviations": [],
+  "evidence_refs": ["evidence:time-readback"]
+}

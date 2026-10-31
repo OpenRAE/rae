@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "0ebf75f85845bec933b3ac3fff61b2def6c17ebde39dcbf5d0d5650ee461485c"
+  },
+  "name": "contracts/fixtures/plans/admitted-trial-plan-v1/invalid/unsupported-profile",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

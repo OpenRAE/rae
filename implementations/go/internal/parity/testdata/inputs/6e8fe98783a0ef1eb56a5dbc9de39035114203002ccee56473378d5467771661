@@ -1,0 +1,15 @@
+{
+  "schema_version": "processor-manifest/v2",
+  "identity": {"name": "bad", "version": "0.0.1"},
+  "supported_contract_versions": ["semantic-profile-v1"],
+  "compatibility": {"backends": ["stub"]},
+  "concept_bindings": [
+    {"scope": "capabilities.supported_sdl_versions", "family": "scenarios"},
+    {"scope": "capabilities.supported_features", "family": "apparatus-declarations"}
+  ],
+  "constraints": {},
+  "capabilities": {
+    "supported_sdl_versions": ["sdl-authoring-input-v1"],
+    "supported_features": ["compilation"]
+  }
+}

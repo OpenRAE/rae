@@ -1,0 +1,83 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "9e541184d9dcd003db1c42ee8384aaef2dcd8810d908ead7b5d3ccd983fe26f5"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 4,
+        "declarations": [
+          {
+            "address": "nodes.monitor",
+            "kind": "node",
+            "model_path": "nodes.monitor",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.monitor.runtime.service_listeners.telemetry",
+            "kind": "runtime-service_listeners",
+            "model_path": "nodes.monitor.runtime.service_listeners.0.service_listener_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.monitor.services.http",
+            "kind": "service",
+            "model_path": "nodes.monitor.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.observability-plane-conformance",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "observability-plane-conformance",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}
