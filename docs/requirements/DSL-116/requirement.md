@@ -109,7 +109,7 @@ verify its current head before merge.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_behaviors.py` (Compiled behavior specification records)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (Behavior specification authoring reference)
 - DOCUMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (ACT-606 behavior specification aggregate)
-- DOCUMENTS → GITHUB_ISSUE `297` (Verify reusable and scenario-local behavior authoring)
+- IMPLEMENTS → GITHUB_ISSUE `297` (Verify reusable and scenario-local behavior authoring)
 - TESTS → TEST `implementations/python/tests/test_issue_297_behavior_authoring.py` (Standalone, twice-imported and scenario-local declarations through composition and compilation, with fail-closed diagnostics, authored-private rejection and explicit global role/reference semantics)
 - TESTS → TEST `implementations/python/tests/fixtures/behavior-authoring/scan-behavior.sdl.yaml` (Reusable behavior unit that is also a valid standalone scenario)
 - TESTS → TEST `implementations/python/tests/fixtures/behavior-authoring/twice-imported.sdl.yaml` (Scenario-local declaration over two namespaced imports of one unit)
