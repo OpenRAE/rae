@@ -2,9 +2,9 @@
   "contract_id": "inject-occurrence-v1",
   "schema_path": "contracts/schemas/control-plane/inject-occurrence-v1.json",
   "stability": "draft",
-  "content_hash": "05e6f50a966523de1b13844a780f7cc77d3f33836aa1d1959c1ac21f9addeb00",
+  "content_hash": "9bbf0023fa9201cba2c0c5274eb509fabf87da68d03cfd84694d1b54ce86b22c",
   "last_change": {
-    "summary": "Require an explicit placement kind in the ADR-112 inject contract (#1423, #1366).",
-    "content_hash": "05e6f50a966523de1b13844a780f7cc77d3f33836aa1d1959c1ac21f9addeb00"
+    "content_hash": "9bbf0023fa9201cba2c0c5274eb509fabf87da68d03cfd84694d1b54ce86b22c",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

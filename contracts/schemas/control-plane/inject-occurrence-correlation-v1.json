@@ -69,8 +69,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.InjectOccurrenceCorrelationModel.model_validate"
+      "level": "error"
     },
     {
       "description": "A received correlation equals the join recomputed from its occurrence, invocation and validated outcome; only a successful applied world effect with a produced result yields one.",
@@ -93,8 +92,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_inject_occurrence_correlation"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

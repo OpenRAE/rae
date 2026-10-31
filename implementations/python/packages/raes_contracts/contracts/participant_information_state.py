@@ -257,7 +257,6 @@ class ParticipantInformationStateRecordModel(ParticipantRuntimeBaseEnvelopeModel
             "participant-information-state-context-resolution",
             "Strong information-state claims resolve one profile, occurrence history, typed source set, proof "
             "digest, and exact participant/episode/cut/projection/memory coordinate.",
-            validator=("raes_contracts.contracts.validate_participant_information_state_context"),
             inputs=[{"contract_id": "participant-information-state-record-v1", "instance_path": "#"}],
         )
         return json_schema

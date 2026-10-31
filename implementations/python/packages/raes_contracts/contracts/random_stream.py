@@ -151,7 +151,6 @@ class StreamAddressModel(ContractModel):
             json_schema,
             "random-stream-address-draw-purpose-governed",
             "draw_purpose must be a term from the random_streams.draw_purpose controlled vocabulary.",
-            validator="raes_contracts.contracts.random_stream.StreamAddressModel._validate_draw_purpose",
             inputs=[{"contract_id": "controlled-vocabularies-v1", "instance_path": "#"}],
         )
         return json_schema
@@ -192,7 +191,6 @@ class ParticipantStreamAddressModel(ContractModel):
                 "draw_purpose must be governed and policy_address/participant_address must be compiled "
                 "autonomous participant addresses."
             ),
-            validator=("raes_contracts.contracts.random_stream.ParticipantStreamAddressModel._validate_address"),
             inputs=[{"contract_id": "controlled-vocabularies-v1", "instance_path": "#"}],
         )
         return json_schema
@@ -294,7 +292,6 @@ class RandomStreamProfileModel(ContractModel):
             json_schema,
             "random-stream-profile-transform-keys-match",
             "transforms dict keys must match each entry's embedded transform_id.",
-            validator="raes_contracts.contracts.random_stream.RandomStreamProfileModel._validate_transform_keys",
             inputs=[{"contract_id": "random-stream-profile-v1", "instance_path": "#/transforms"}],
         )
         return json_schema
@@ -343,20 +340,12 @@ class RandomStreamDrawRecordModel(ContractModel):
             json_schema,
             "random-stream-draw-record-local-coordinate-matches-address",
             "local_coordinate must match address.local_coordinate.",
-            validator=(
-                "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel."
-                "_validate_local_coordinate_matches_address"
-            ),
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/stochastic_draws"}],
         )
         _add_raes_invariant(
             json_schema,
             "random-stream-draw-record-outcome-matches-exhaustion",
             "outcome must be present exactly when rejection_exhausted is false, and absent when true.",
-            validator=(
-                "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel."
-                "_validate_outcome_matches_exhaustion"
-            ),
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/stochastic_draws"}],
         )
         return json_schema

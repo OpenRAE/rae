@@ -352,6 +352,9 @@ adrs:
       - date: 2026-07-08
         ref: "#675"
         summary: "ADR-074 realizes the explicit draft/authoring surface anticipated in the Risks section as experiment-authoring-input-v1; the archival contracts are unchanged."
+      - date: 2026-10-31
+        ref: "#1776"
+        summary: "The x-raes-invariants entries no longer name Python validators. The contract id and the entry id identify each invariant, and the contract models still enforce it."
   - id: ADR-056
     path: docs/decisions/adrs/adr-056-runtime-observed-values-and-credential-posture.md
     pin: fd042c405c3bf9994d998b827e817c86f0ff35245b5a071f9fe86754d281221b
@@ -571,6 +574,10 @@ adrs:
   - id: ADR-098
     path: docs/decisions/adrs/adr-098-portable-artifact-requirement-satisfaction.md
     pin: cabc306d07b60b7d1c62cf85750a57025651e69f55946261e315d772644309e3
+    amendments:
+      - date: 2026-10-31
+        ref: "#1776"
+        summary: "The x-raes-invariants profile no longer publishes importable validator paths."
   - id: ADR-099
     path: docs/decisions/adrs/adr-099-participant-relative-predicate-opacity.md
     pin: 61a5ea9d72a0afa1033d46131913f45b140286b6ddddcb59e0e1f6914b721cb9

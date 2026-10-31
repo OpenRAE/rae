@@ -345,9 +345,6 @@ class MixedParticipantCompositionProfileModel(ContractModel):
             "mixed-composition-root-local-graph-valid",
             "The sealed root has exact keyed identities, closed references, one provider per target and phase, "
             "complete finite phase membership, mode-specific realization rules, and a matching canonical digest.",
-            validator=(
-                "raes_contracts.contracts.mixed_composition.MixedParticipantCompositionProfileModel._validate_profile"
-            ),
             inputs=[{"contract_id": MIXED_COMPOSITION_CONTRACT_ID, "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -355,7 +352,6 @@ class MixedParticipantCompositionProfileModel(ContractModel):
             "mixed-composition-trusted-context-required",
             "Schema validity does not resolve scenario targets, manifests, envelopes, participant features, "
             "crossing policies, clocks, evidence, or nested profiles; trusted contextual validation is required.",
-            validator="raes_contracts.contracts.mixed_composition_resolution.validate_mixed_composition_context",
             inputs=[{"contract_id": MIXED_COMPOSITION_CONTRACT_ID, "instance_path": "#"}],
         )
         return schema

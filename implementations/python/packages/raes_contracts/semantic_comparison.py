@@ -320,7 +320,6 @@ class SemanticComparisonRequestModel(ContractModel):
             schema,
             "semantic-comparison-governed-scope",
             "Operands use one owner-specific family and are members of a digest-bound two-sided impact scope.",
-            validator="raes_contracts.semantic_comparison.SemanticComparisonRequestModel.model_validate",
             inputs=[{"contract_id": "semantic-comparison-request-v1", "instance_path": "#"}],
         )
         return schema

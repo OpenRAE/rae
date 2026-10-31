@@ -1,9 +1,9 @@
 {
-  "content_hash": "66bf7997e61ba90605e38d6da2b07cd167c41e401e209d9dc0ff5de790034d3d",
+  "content_hash": "9942cec8b6229aac1d957050838be9f49e5c042c05f29c85987a56d288f8db1a",
   "contract_id": "materialization-archive-record-v1",
   "last_change": {
-    "content_hash": "66bf7997e61ba90605e38d6da2b07cd167c41e401e209d9dc0ff5de790034d3d",
-    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
+    "content_hash": "9942cec8b6229aac1d957050838be9f49e5c042c05f29c85987a56d288f8db1a",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/experiment-core/materialization-archive-record-v1.json",
   "stability": "draft"

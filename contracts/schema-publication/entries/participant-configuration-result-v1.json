@@ -1,9 +1,9 @@
 {
-  "content_hash": "f9e31bf9c1dafea7bc1f33bb3ecc583ef5236ccfd16bca14c268ccff632280bc",
+  "content_hash": "e9511370fe81dfa93700436a99f112b183c87579410e65cbb84a50bb6fb51f3b",
   "contract_id": "participant-configuration-result-v1",
   "last_change": {
-    "content_hash": "f9e31bf9c1dafea7bc1f33bb3ecc583ef5236ccfd16bca14c268ccff632280bc",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
+    "content_hash": "e9511370fe81dfa93700436a99f112b183c87579410e65cbb84a50bb6fb51f3b",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/participant-implementation-configuration/participant-configuration-result-v1.json",
   "stability": "draft"

@@ -287,7 +287,6 @@ class ParticipantControlOccurrenceModel(ParticipantRuntimeBaseEnvelopeModel):
             "participant-control-occurrence-context-agreement",
             "Every occurrence must resolve one matching compiled ACT-617 declaration and preserve participant, "
             "episode, controller, authority, policy revision, order, proposal, target, and semantic identity joins.",
-            validator="raes_contracts.contracts.validate_participant_control_occurrence_context",
             inputs=[{"contract_id": "participant-control-occurrence-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -295,7 +294,6 @@ class ParticipantControlOccurrenceModel(ParticipantRuntimeBaseEnvelopeModel):
             "participant-control-occurrence-not-lifecycle-evidence",
             "Proposal, approval, denial, direction, intervention, handoff, override, and cancellation remain "
             "distinct from action admission, execution, delivery, observation, and audit evidence.",
-            validator="raes_contracts.contracts.ParticipantControlOccurrenceModel",
             inputs=[{"contract_id": "participant-control-occurrence-v1", "instance_path": "#"}],
         )
         return json_schema

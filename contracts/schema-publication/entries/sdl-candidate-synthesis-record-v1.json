@@ -1,9 +1,9 @@
 {
-  "content_hash": "cd2073ed1d9466b95e6c74dc06b47e0ca7ad740a95d31ff2e5f526f1daa5ca3a",
+  "content_hash": "03490cce7b9893dd67539fa3785da5c57bdc21074362d8198618d92aa15ddcc0",
   "contract_id": "sdl-candidate-synthesis-record-v1",
   "last_change": {
-    "content_hash": "cd2073ed1d9466b95e6c74dc06b47e0ca7ad740a95d31ff2e5f526f1daa5ca3a",
-    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+    "content_hash": "03490cce7b9893dd67539fa3785da5c57bdc21074362d8198618d92aa15ddcc0",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-record-v1.json",
   "stability": "draft"

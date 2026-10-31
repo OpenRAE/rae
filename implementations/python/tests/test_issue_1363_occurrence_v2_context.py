@@ -579,8 +579,8 @@ def test_v1_only_batches_never_reach_the_v2_reader(monkeypatch: pytest.MonkeyPat
     validate_participant_control_occurrence_context([v1_record(1)], declarations=[v1_declaration()])
     v1 = schema_bundle()["participant-control-occurrence-v1"]["x-raes-invariants"]
     v2 = schema_bundle()["participant-control-occurrence-v2"]["x-raes-invariants"]
-    owner = "raes_contracts.contracts.validate_participant_control_occurrence_context"
-    assert {item["validator"] for item in v1} & {item["validator"] for item in v2} >= {owner}
+    assert "participant-control-occurrence-context-agreement" in {item["id"] for item in v1}
+    assert "participant-control-occurrence-v2-context-agreement" in {item["id"] for item in v2}
 
 
 def test_trusted_targets_are_frozen_non_wire_values() -> None:

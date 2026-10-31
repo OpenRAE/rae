@@ -1,9 +1,9 @@
 {
-  "content_hash": "466ae9b7d96ab9badab376422d9b645fe5bcda3ee8ad80722265d13022644894",
+  "content_hash": "75135c0021daf1ecccae480189890e497263fdc1da35a58810477141f4217a26",
   "contract_id": "experiment-study-v1",
   "last_change": {
-    "content_hash": "466ae9b7d96ab9badab376422d9b645fe5bcda3ee8ad80722265d13022644894",
-    "summary": "Retain complete and partial run accounting and preserve authored study identity across immutable record snapshots (#1630)."
+    "content_hash": "75135c0021daf1ecccae480189890e497263fdc1da35a58810477141f4217a26",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-study-v1.json",
   "stability": "draft"

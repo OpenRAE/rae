@@ -300,7 +300,6 @@ class ParticipantFlowControlRelationModel(ContractModel):
             "Every label, derivation, release, sink decision, and carrier binding must resolve an exact SEM-233 "
             "profile and exact incumbent runtime-fact, API-409, API-423, action-admission, capability, authority, "
             "and history decision state before it can be trusted.",
-            validator="raes_contracts.contracts.validate_participant_flow_control_resolved_context",
             inputs=[
                 {"contract_id": "participant-flow-control-relation-v1", "instance_path": "#"},
                 {"contract_id": "runtime-fact-binding-plane-v1", "instance_path": "#"},

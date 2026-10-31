@@ -919,8 +919,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Every external scheme coordinate must declare a source locator, a content digest, or both.",
@@ -931,8 +930,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Participant eligibility references must be unique within one availability assertion.",
@@ -943,8 +941,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Numeric confidence scores and calibration profile references must be supplied together.",
@@ -955,8 +952,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Exact assertions must declare no loss; approximate and lossy assertions must describe loss.",
@@ -967,8 +963,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Completed review statuses require review references, while unreviewed assertions forbid them.",
@@ -979,8 +974,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Binding map keys must equal binding ids and semantic assertion identities must be unique.",
@@ -991,8 +985,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

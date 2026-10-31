@@ -23,7 +23,6 @@ def _add_raes_invariant(
     invariant_id: str,
     description: str,
     *,
-    validator: str,
     inputs: list[dict[str, str]],
 ) -> None:
     invariants = json_schema.setdefault("x-raes-invariants", [])
@@ -33,7 +32,6 @@ def _add_raes_invariant(
                 "id": invariant_id,
                 "description": description,
                 "level": "error",
-                "validator": validator,
                 "inputs": inputs,
             }
         )
@@ -79,14 +77,12 @@ def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[s
             "task-archival-times-rfc3339-valid",
             "Task artifact_refs created_at values must be valid RFC 3339 date-times, including only known "
             "valid UTC leap-second instants.",
-            "raes_contracts.contracts.validate_experiment_task_archival_datetimes",
             [{"contract_id": "experiment-task-v1", "instance_path": "#/artifact_refs"}],
         ),
         "experiment-apparatus-context-v1": (
             "apparatus-archival-times-rfc3339-valid",
             "Apparatus declared_at and observed_setup_evidence created_at values must be valid RFC 3339 "
             "date-times, including only known valid UTC leap-second instants.",
-            "raes_contracts.contracts.validate_experiment_apparatus_context_archival_datetimes",
             [
                 {"contract_id": "experiment-apparatus-context-v1", "instance_path": "#/declared_at"},
                 {"contract_id": "experiment-apparatus-context-v1", "instance_path": "#/observed_setup_evidence"},
@@ -96,7 +92,6 @@ def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[s
             "run-archival-times-rfc3339-valid",
             "Run started_at, ended_at, invalidation invalidated_at, and evidence_artifacts created_at values "
             "must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
-            "raes_contracts.contracts.validate_experiment_run_archival_datetimes",
             [
                 {"contract_id": "experiment-run-v1", "instance_path": "#/started_at"},
                 {"contract_id": "experiment-run-v1", "instance_path": "#/ended_at"},
@@ -108,7 +103,6 @@ def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[s
             "study-archival-times-rfc3339-valid",
             "Study report_artifacts and export_artifacts created_at values must be valid RFC 3339 date-times, "
             "including only known valid UTC leap-second instants.",
-            "raes_contracts.contracts.validate_experiment_study_archival_datetimes",
             [
                 {"contract_id": "experiment-study-v1", "instance_path": "#/report_artifacts"},
                 {"contract_id": "experiment-study-v1", "instance_path": "#/export_artifacts"},
@@ -118,12 +112,11 @@ def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[s
     invariant = invariant_by_contract.get(contract_id)
     if invariant is None:
         return
-    invariant_id, description, validator, inputs = invariant
+    invariant_id, description, inputs = invariant
     _add_raes_invariant(
         json_schema,
         invariant_id,
         description,
-        validator=validator,
         inputs=inputs,
     )
 
@@ -144,7 +137,6 @@ def _attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str
         "generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable "
         "outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be "
         "selected.",
-        validator="raes.stateful_resources.GeneratedArtifact._unique_outputs_and_consumers",
         inputs=input_contract,
     )
     _add_raes_invariant(
@@ -152,7 +144,6 @@ def _attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str
         "stateful-persistent-volume-semantics",
         "Persistent volume consumers and dependency entries must be unique and access cardinality must match "
         "the declared portable access mode.",
-        validator="raes.stateful_resources.PersistentVolume._unique_consumers",
         inputs=input_contract,
     )
     _add_raes_invariant(
@@ -160,7 +151,6 @@ def _attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str
         "stateful-cross-resource-semantics",
         "Stateful resource consumers and dependencies must resolve unambiguously, use the POSIX v1 path dialect, "
         "and must not collide on a consumer node mount destination.",
-        validator="raes._stateful_resource_references.stateful_resource_reference_errors",
         inputs=input_contract,
     )
 
@@ -171,7 +161,7 @@ def _add_carrier_validation_basis_disclosure_invariant(
     """Attach the shared ASR-515 carrier-embedded disclosure identity invariant.
 
     Reused by ``ExperimentTaskModel``/``ExperimentRunModel``/``ExperimentStudyModel``
-    so the wording and validator pointer live in one place; ``subject_kind``
+    so the wording lives in one place; ``subject_kind``
     derives the carrier label the same way
     ``validate_carrier_validation_basis_disclosures`` does.
     """
@@ -181,7 +171,6 @@ def _add_carrier_validation_basis_disclosure_invariant(
         f"{carrier_label}-validation-basis-disclosure-identity-matches",
         f"Every validation_basis_disclosures entry must declare subject_kind={subject_kind!r} and a subject_ref "
         f"matching this {carrier_label}'s {carrier_label}_id/{carrier_label}_version.",
-        validator="raes_contracts.contracts.validation_disclosure.validate_carrier_validation_basis_disclosures",
         inputs=[{"contract_id": contract_id, "instance_path": _CARRIER_DISCLOSURES_INSTANCE_PATH}],
     )
 
@@ -200,7 +189,6 @@ def _attach_initial_service_state_invariants(contract_id: str, json_schema: dict
         "initial-service-state-semantics",
         "Service-target content must resolve to one named service, retain exact tenant/reset ownership and "
         "content ordering, and bind observed-state postconditions to participant observation boundaries.",
-        validator="raes.validator.SemanticValidator._verify_service_materialization",
         inputs=[{"contract_id": contract_id, "instance_path": "#"}],
     )
 
@@ -215,7 +203,6 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
                 "Dwell conditions require authorized observation boundaries and observable support and evidence. "
                 "Numeric parameters are revalidated after binding."
             ),
-            validator="raes.semantics.participant_temporal_bindings.participant_temporal_binding_errors",
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
     if "ParticipantTemporalBindingModel" in json_schema.get("$defs", {}):
@@ -227,7 +214,6 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
                 "a condition and an observation boundary. Bounds are segment-relative and the selected event is "
                 "declared."
             ),
-            validator="raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel",
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
     if contract_id == "runtime-snapshot-v1":
@@ -240,7 +226,6 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
                 "observation boundary, "
                 "without duplicates or extra proofs."
             ),
-            validator="raes_contracts.participant_temporal.require_participant_temporal_history",
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
 

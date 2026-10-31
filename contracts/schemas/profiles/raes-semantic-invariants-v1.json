@@ -2,7 +2,7 @@
   "$defs": {
     "RaesSemanticInvariantEntryModel": {
       "additionalProperties": false,
-      "description": "Machine-readable semantic invariant annotation entry.",
+      "description": "Machine-readable semantic invariant annotation entry.\n\nThe contract id of the host schema and the entry id identify the invariant.",
       "properties": {
         "description": {
           "minLength": 1,
@@ -26,18 +26,12 @@
           "const": "error",
           "title": "Level",
           "type": "string"
-        },
-        "validator": {
-          "minLength": 1,
-          "title": "Validator",
-          "type": "string"
         }
       },
       "required": [
         "id",
         "description",
         "level",
-        "validator",
         "inputs"
       ],
       "title": "RaesSemanticInvariantEntryModel",

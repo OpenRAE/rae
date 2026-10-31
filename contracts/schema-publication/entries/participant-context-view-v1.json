@@ -1,9 +1,9 @@
 {
-  "content_hash": "47cbe2c1ba0ae38acaa4e4da80d9ab4e0fb38b4b7269292cd8320e862a9739ee",
+  "content_hash": "914b093b9e13543e8f55c1577b42b35d49f50ae8e9da94bc316e05bf66e58fc3",
   "contract_id": "participant-context-view-v1",
   "last_change": {
-    "content_hash": "47cbe2c1ba0ae38acaa4e4da80d9ab4e0fb38b4b7269292cd8320e862a9739ee",
-    "summary": "Add the explicit participant control-context asset source layer; preserve existing source meanings (ACT-620, #302)."
+    "content_hash": "914b093b9e13543e8f55c1577b42b35d49f50ae8e9da94bc316e05bf66e58fc3",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/control-plane/participant-context-view-v1.json",
   "stability": "draft"

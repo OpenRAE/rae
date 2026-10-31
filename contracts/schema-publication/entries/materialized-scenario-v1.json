@@ -1,9 +1,9 @@
 {
-  "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
+  "content_hash": "f083e4ae6348cd4d5cb2d3a069979b38a56c4b90f3e0326c5d63a245027c5462",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "0c5459657f9905de4aa566accd90a237ae0356a2e1d39419f8cf85ee95ab2f40",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
+    "content_hash": "f083e4ae6348cd4d5cb2d3a069979b38a56c4b90f3e0326c5d63a245027c5462",
+    "summary": "Remove the Python validator paths from the semantic invariants and the Python names from two descriptions (#1776)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

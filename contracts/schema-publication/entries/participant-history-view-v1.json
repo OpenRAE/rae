@@ -2,9 +2,9 @@
   "contract_id": "participant-history-view-v1",
   "schema_path": "contracts/schemas/control-plane/participant-history-view-v1.json",
   "stability": "draft",
-  "content_hash": "4223340724a762c31bb66de98ed2fb853d2b75e4169ec7e48faaa47ab95deed7",
+  "content_hash": "67c730cc31a489274d272efa6d37e756204457f7bc33fd9251a1cf37bb48a21a",
   "last_change": {
-    "summary": "Project the optional invocation_tool_context of hosted tool actions into participant history views; issue #1740.",
-    "content_hash": "4223340724a762c31bb66de98ed2fb853d2b75e4169ec7e48faaa47ab95deed7"
+    "content_hash": "67c730cc31a489274d272efa6d37e756204457f7bc33fd9251a1cf37bb48a21a",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

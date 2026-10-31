@@ -2,9 +2,9 @@
   "contract_id": "validation-basis-disclosure-v1",
   "schema_path": "contracts/schemas/profiles/validation-basis-disclosure-v1.json",
   "stability": "draft",
-  "content_hash": "9e0770a9444b5312d60d599bee916906e04de8c24fed612d59ea437297d5a4f5",
+  "content_hash": "2a56021125c99ca562198e6d23cc807e1653605cac8f7b0eadf5c4961efba81b",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "9e0770a9444b5312d60d599bee916906e04de8c24fed612d59ea437297d5a4f5"
+    "content_hash": "2a56021125c99ca562198e6d23cc807e1653605cac8f7b0eadf5c4961efba81b",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

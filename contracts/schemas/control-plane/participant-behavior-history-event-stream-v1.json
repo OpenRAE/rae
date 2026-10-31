@@ -1273,8 +1273,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.ParticipantStreamAddressModel._validate_address"
+          "level": "error"
         }
       ]
     },
@@ -2158,8 +2157,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

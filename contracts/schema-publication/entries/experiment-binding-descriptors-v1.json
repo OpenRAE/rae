@@ -2,9 +2,9 @@
   "contract_id": "experiment-binding-descriptors-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-binding-descriptors-v1.json",
   "stability": "draft",
-  "content_hash": "788ba843a35efcb88019c79717c1fe0e6b05fe096194bcbd833cc06cd39da189",
+  "content_hash": "87fda24ad7b43f775b2316134a771d1e934390b76da4cdc78828364231114dd4",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "788ba843a35efcb88019c79717c1fe0e6b05fe096194bcbd833cc06cd39da189"
+    "content_hash": "87fda24ad7b43f775b2316134a771d1e934390b76da4cdc78828364231114dd4",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

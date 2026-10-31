@@ -353,7 +353,6 @@ class BackendRealizationEnvelopeModel(ContractModel):
                     "and all cross-field realization disclosure semantics must validate together."
                 ),
                 "level": "error",
-                "validator": "raes_contracts.realization_envelope.validate_backend_realization_envelope",
                 "inputs": [{"contract_id": "realization-envelope-v1", "instance_path": "#"}],
             }
         ]

@@ -2,9 +2,9 @@
   "contract_id": "participant-control-selection-v2",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-selection-v2.json",
   "stability": "draft",
-  "content_hash": "106e33e3fa55cb77393d24121d926b894ac85cd2ce5a59bca361b8b663863103",
+  "content_hash": "3bd04daea14c39d82c87fe542ae733bf6383a39b274d44a27e5ff7722a46d606",
   "last_change": {
-    "summary": "Publish finite owner-qualified IFC profiles, exact release correspondence and admitted API-424 v2 support promises for issue #1370.",
-    "content_hash": "106e33e3fa55cb77393d24121d926b894ac85cd2ce5a59bca361b8b663863103"
+    "content_hash": "3bd04daea14c39d82c87fe542ae733bf6383a39b274d44a27e5ff7722a46d606",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

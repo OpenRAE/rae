@@ -69,8 +69,7 @@
               "instance_path": "#/execution_policy"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.execution_policy.ExecutionPolicyCapabilities.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -168,8 +167,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.BackendOperationCapabilitiesModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Before invocation require installed support, matching declaration and current exact-context willingness.",
@@ -188,8 +186,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.require_backend_operation_admission"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

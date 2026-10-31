@@ -426,8 +426,7 @@
               "instance_path": "#/entries"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.admitted_trial_plan.AdmittedTrialEntryModel._validate_entry"
+          "level": "error"
         }
       ]
     },
@@ -1547,8 +1546,7 @@
               "instance_path": "#/$defs/ExperimentManifestReferenceModel"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+          "level": "error"
         }
       ]
     },
@@ -1774,8 +1772,7 @@
               "instance_path": "#/realized_selections"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+          "level": "error"
         }
       ]
     },
@@ -2215,8 +2212,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"
+          "level": "error"
         }
       ]
     },
@@ -2510,8 +2506,7 @@
               "instance_path": "#/stochastic_draws"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel._validate_local_coordinate_matches_address"
+          "level": "error"
         },
         {
           "description": "outcome must be present exactly when rejection_exhausted is false, and absent when true.",
@@ -2522,8 +2517,7 @@
               "instance_path": "#/stochastic_draws"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel._validate_outcome_matches_exhaustion"
+          "level": "error"
         }
       ]
     },
@@ -2947,8 +2941,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.SchedulerIsolationProofModel._validate_isolation"
+          "level": "error"
         }
       ]
     },
@@ -3059,8 +3052,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.StreamAddressModel._validate_draw_purpose"
+          "level": "error"
         }
       ]
     },
@@ -3139,8 +3131,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.TrialCleanupPlanModel._validate_plan"
+          "level": "error"
         }
       ]
     },
@@ -3364,8 +3355,7 @@
               "instance_path": "#/replacement_policy"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
+          "level": "error"
         }
       ]
     }
@@ -3499,8 +3489,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.admitted_trial_plan.AdmittedTrialPlanModel._validate_plan"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

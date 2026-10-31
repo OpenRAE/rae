@@ -697,8 +697,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.CandidateSynthesisInputModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Assertions, assumptions, decisions, references, values, and target identities use stable unique ordering.",
@@ -709,8 +708,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.CandidateSynthesisInputModel.model_validate"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

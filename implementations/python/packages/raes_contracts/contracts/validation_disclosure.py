@@ -253,10 +253,6 @@ class ValidationBasisDisclosureModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        validator = (
-            "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel."
-            "_validate_validation_basis_disclosure"
-        )
         inputs = [
             {"contract_id": "validation-basis-disclosure-v1", "instance_path": "#"},
             {"contract_id": "experiment-task-v1", "instance_path": _CARRIER_DISCLOSURES_INSTANCE_PATH},
@@ -264,7 +260,7 @@ class ValidationBasisDisclosureModel(ContractModel):
             {"contract_id": "experiment-study-v1", "instance_path": _CARRIER_DISCLOSURES_INSTANCE_PATH},
         ]
         for invariant_id, description in _DISCLOSURE_INVARIANTS:
-            _add_raes_invariant(json_schema, invariant_id, description, validator=validator, inputs=inputs)
+            _add_raes_invariant(json_schema, invariant_id, description, inputs=inputs)
         return json_schema
 
 

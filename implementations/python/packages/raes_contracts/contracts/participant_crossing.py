@@ -425,7 +425,6 @@ class ParticipantCrossingOccurrenceModel(ParticipantRuntimeBaseEnvelopeModel):
             "participant-crossing-context-agreement",
             "Every crossing fact must resolve typed subjects, exact policy revisions, predecessor stages, "
             "evidence, markings, and order coordinates without retroactive authorization or identity reuse.",
-            validator="raes_contracts.contracts.validate_participant_crossing_occurrence_context",
             inputs=[{"contract_id": "participant-crossing-occurrence-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -433,7 +432,6 @@ class ParticipantCrossingOccurrenceModel(ParticipantRuntimeBaseEnvelopeModel):
             "participant-crossing-stage-separation",
             "Requested, decided, transformed, disclosed, attempted, delivered, observed, and audited facts "
             "remain independently addressable and do not imply one another.",
-            validator="raes_contracts.contracts.ParticipantCrossingOccurrenceModel",
             inputs=[{"contract_id": "participant-crossing-occurrence-v1", "instance_path": "#"}],
         )
         return json_schema

@@ -2,9 +2,9 @@
   "contract_id": "random-stream-profile-v1",
   "schema_path": "contracts/schemas/profiles/random-stream-profile-v1.json",
   "stability": "draft",
-  "content_hash": "7eddad732d06e27ae7b6d874002cf544a3ac7206affbacf5c7ce30e8861e02de",
+  "content_hash": "e7fd99abb56d384aa1cf49c57112a621733213ac3b65c119bb8b19c50e29756a",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "7eddad732d06e27ae7b6d874002cf544a3ac7206affbacf5c7ce30e8861e02de"
+    "content_hash": "e7fd99abb56d384aa1cf49c57112a621733213ac3b65c119bb8b19c50e29756a",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

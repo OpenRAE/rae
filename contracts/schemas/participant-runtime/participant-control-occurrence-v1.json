@@ -2190,8 +2190,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_participant_control_occurrence_context"
+      "level": "error"
     },
     {
       "description": "Proposal, approval, denial, direction, intervention, handoff, override, and cancellation remain distinct from action admission, execution, delivery, observation, and audit evidence.",
@@ -2202,8 +2201,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantControlOccurrenceModel"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

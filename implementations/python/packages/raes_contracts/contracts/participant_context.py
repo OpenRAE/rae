@@ -280,7 +280,6 @@ class ParticipantContextViewModel(ContractModel):
             "context-view-sem216-archival-source-mediated",
             "Participant-visible context views drawing on an archival evidence_record or derived_measure "
             "source layer must mediate that source through transformation.input_source_ids.",
-            validator="raes_contracts.contracts.ParticipantContextViewModel._validate_sem216_audience_boundary",
             inputs=[{"contract_id": "participant-context-view-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -288,7 +287,6 @@ class ParticipantContextViewModel(ContractModel):
             "context-view-sem216-payload-not-raw-archival",
             "Participant-visible context views must not set payload_ref to a raw archival evidence_record or "
             "derived_measure source ref; payload_ref must identify the transformed, redacted view output.",
-            validator="raes_contracts.contracts.ParticipantContextViewModel._validate_sem216_audience_boundary",
             inputs=[{"contract_id": "participant-context-view-v1", "instance_path": "#/payload_ref"}],
         )
         return json_schema

@@ -158,7 +158,6 @@ class BatchExecutionReceiptModel(ContractModel):
             "the canonical dispatch ordinal under the closed canonical order policy, cites an isolation proof plus "
             "live lease evidence only for bounded parallelism (serial default cites neither), and references the "
             "cleanup receipt that proves its terminal cleanup.",
-            validator="raes_contracts.contracts.batch_execution.BatchExecutionReceiptModel._validate_receipt",
             inputs=[{"contract_id": "batch-execution-receipt-v1", "instance_path": "#"}],
         )
         return json_schema

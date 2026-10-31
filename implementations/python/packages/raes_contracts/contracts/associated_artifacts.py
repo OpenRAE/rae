@@ -128,7 +128,6 @@ class AssociatedArtifactManifestModel(ContractModel):
             "associated-artifact-parent-set-and-byte-binding",
             "Full conformance requires matching the concrete parent, recomputing the canonical set digest, "
             "and binding every checksum and size to an explicitly supplied bounded byte stream.",
-            validator="raes_contracts.associated_artifacts.validate_associated_artifact_manifest",
             inputs=[{"contract_id": "associated-artifact-manifest-v1", "instance_path": "#"}],
         )
         return json_schema

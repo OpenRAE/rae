@@ -26,8 +26,6 @@ from .experiment_manifest_references import (
 from .experiment_references import ExperimentReferenceModel
 from .schema_invariants import _add_raes_invariant
 
-_DOCUMENT_VALIDATOR = "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
-
 
 def _string_branch(schema: JsonSchemaValue) -> JsonSchemaValue:
     """Return the string branch of an optional-string schema."""
@@ -439,7 +437,6 @@ class ExternalConceptBindingDocumentModel(ContractModel):
                 json_schema,
                 invariant_id,
                 description,
-                validator=_DOCUMENT_VALIDATOR,
                 inputs=[{"contract_id": "external-concept-bindings-v1", "instance_path": "#"}],
             )
         return json_schema

@@ -951,8 +951,7 @@
               "instance_path": "#/apparatus_constraints"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentApparatusConstraintModel._validate_allowed_identity_manifest_refs"
+          "level": "error"
         }
       ]
     },
@@ -1225,8 +1224,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentBindingDescriptorSetModel._validate_unique_bindings_and_targets"
+          "level": "error"
         }
       ]
     },
@@ -2014,8 +2012,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_evidence_requirement_relations"
+          "level": "error"
         }
       ]
     },
@@ -2660,8 +2657,7 @@
               "instance_path": "#/$defs/ExperimentManifestReferenceModel"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+          "level": "error"
         }
       ]
     },
@@ -3072,8 +3068,7 @@
               "instance_path": "#/run_allocation"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentRunAllocationPlanModel._validate_condition_assignments"
+          "level": "error"
         }
       ]
     },
@@ -3282,8 +3277,7 @@
               "instance_path": "#/run_plan"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentRunPlanModel._validate_run_plan"
+          "level": "error"
         },
         {
           "description": "Difficulty variants resolve fixed admitted selection policies; condition policy ids resolve the bounded registry and match explicit fixed, adaptive, or scaffolded allocation conditions.",
@@ -3294,8 +3288,7 @@
               "instance_path": "#/run_plan/difficulty_policy_registry"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentRunPlanModel._validate_difficulty_policy_registry"
+          "level": "error"
         }
       ]
     },
@@ -3583,8 +3576,7 @@
               "instance_path": "#/realized_selections"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+          "level": "error"
         }
       ]
     },
@@ -5100,8 +5092,7 @@
               "instance_path": "#/replacement_policy"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
+          "level": "error"
         }
       ]
     }
@@ -5362,8 +5353,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+      "level": "error"
     },
     {
       "description": "In every binding posture, each condition assignment must reference a factor and level declared by the containing experiment spec. Authors define these local declarations; no domain catalog is required.",
@@ -5374,8 +5364,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+      "level": "error"
     },
     {
       "description": "Explicit bindings must cover every compared condition and resolve exact declared factor levels.",
@@ -5386,8 +5375,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_binding_descriptors"
+      "level": "error"
     },
     {
       "description": "Selection policy ids, bounds, references, stochastic controls, and supported exact profiles must form one finite, acyclic, fail-closed authoring registry.",
@@ -5398,8 +5386,7 @@
           "instance_path": "#/run_plan/selection_policies"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunPlanModel._validate_selection_policies"
+      "level": "error"
     },
     {
       "description": "Selection strata and binding references must resolve declared factors, levels, conditions, variation points, and allocation counts.",
@@ -5410,8 +5397,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_selection_factor_joins"
+      "level": "error"
     },
     {
       "description": "Factorial intent resolves exact declared levels, bounded Cartesian output, collision-free bindings, and matching supplied materializations before authoring admission.",
@@ -5422,8 +5408,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentSpecModel._expand_factorial"
+      "level": "error"
     },
     {
       "description": "Prospective run-scoped evidence requirement relations must identify this exact authoring input and its intended scenario snapshot.",
@@ -5434,8 +5419,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {
