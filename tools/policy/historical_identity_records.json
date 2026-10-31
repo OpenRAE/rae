@@ -24,7 +24,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "b24f6e298fc3c37f9a74d09adf0a413115d2701c9992707fc594856fc42f628a"
+      "content_sha256": "25cc9e55934fb5dfbde7b247f46c95e1320dc3aa698296dbd6f98b571cb7e54f"
     }
   ],
   "records": [
@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "6d3e75e7f589c9b713eaa0e4373a708a8c3ba8e3292dad5934f48c1da90d8719"
+      "content_sha256": "1bf847a6cfc4e2b2f2b62b97909475ba2abd8d57de99147bf676c1e8f8294efb"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry and their pins.",
       "occurrences": 4,
-      "content_sha256": "ce291f01ed5b785695deb059fcc2d4da40626f8844fb1eb6eb99fd748d9f968f"
+      "content_sha256": "8f72be7394fa7ada312b601e189087d564fde2f43c2ec4c5ceade24325c3555d"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

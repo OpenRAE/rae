@@ -367,6 +367,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "proof",
         "model-check",
         "coverage-reduce",
+        "go",
         "sonar",
         "gate",
     }
@@ -436,7 +437,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The full gate is an explicit fail-closed aggregate that distinguishes skips.
     gate = workflow["jobs"]["gate"]
     assert gate["if"] == "always()"
-    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "model-check", "coverage-reduce"}
+    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "model-check", "coverage-reduce", "go"}
 
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
@@ -474,7 +475,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "inputs.sonar-enabled" in reusable_sonar["if"]
     assert "github.event.pull_request.head.repo.full_name == github.repository" in reusable_sonar["if"]
     assert "github.actor != 'dependabot[bot]'" in reusable_sonar["if"]
-    assert reusable_sonar["needs"] == "coverage-reduce"
+    assert reusable_sonar["needs"] == ["coverage-reduce", "go"]
 
     # CPython 3.14 is the only supported interpreter. The canonical graph runs the
     # full suite on it, so this job only checks the runtime and the clean
@@ -1622,3 +1623,24 @@ def test_github_attachment_refuses_preexisting_conflicting_evidence(tmp_path: Pa
     assert "with different bytes" in result.stderr
     assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
     assert "patch" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
+
+
+def test_go_lanes_enforce_each_go_engineering_standard() -> None:
+    """The ADR-121 gates stay in the canonical graph for each Go module."""
+
+    go = _load(CANONICAL_PATH)["jobs"]["go"]
+    assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == ["implementations/tooling/go"]
+    scripts = "\n".join(step.get("run", "") for step in go["steps"])
+    for command in (
+        "install-go public-ubuntu-24.04-x86_64",
+        "go mod tidy -diff",
+        "go mod verify",
+        "golangci-lint run ./...",
+        'go vet -vettool="$(command -v raesvet)" ./...',
+        "go test -race -covermode=atomic -coverprofile=cover.out ./...",
+        "exit !(total >= 90)",
+        'gremlins unleash --diff "${MERGE_BASE}" --threshold-efficacy 90 --threshold-mcover 90',
+        'regressiontest -base "${MERGE_BASE}"',
+    ):
+        assert command in scripts, command
