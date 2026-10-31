@@ -1,0 +1,14 @@
+{
+  "args": [
+    "external-concept-bindings-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "94e040b65bffec66d453e3ace2a0eb6ee5b377885ceb5e9d2d945493505aa3ce"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/invalid/missing-provenance",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

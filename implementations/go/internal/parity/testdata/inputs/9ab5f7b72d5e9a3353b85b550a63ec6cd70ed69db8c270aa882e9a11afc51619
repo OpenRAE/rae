@@ -1,0 +1,156 @@
+{
+  "schema_version": "participant-resource-budget-policy/v1",
+  "policy_id": "green-shared-capacity",
+  "policy_address": "participant.autonomous-execution.green",
+  "policy_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "owners": [
+    {
+      "owner_id": "participant",
+      "kind": "participant",
+      "owner_ref": "participant.behavior.green"
+    },
+    {
+      "owner_id": "range",
+      "kind": "deployment_tenant",
+      "owner_ref": "deployment.tenant.range-a"
+    },
+    {
+      "owner_id": "inference",
+      "kind": "shared_service",
+      "owner_ref": "provision.node.inference.service.http"
+    },
+    {
+      "owner_id": "fleet",
+      "kind": "fleet",
+      "owner_ref": "fleet.primary"
+    }
+  ],
+  "demands": [
+    {
+      "budget_id": "actions",
+      "owner": {
+        "owner_id": "participant",
+        "kind": "participant",
+        "owner_ref": "participant.behavior.green"
+      },
+      "pool_ref": "participant-pool",
+      "quantity": {
+        "resource_kind": "action_rate",
+        "unit": "actions",
+        "accounting_mode": "windowed_counter",
+        "meter_profile_ref": "raes.action-attempt/v1",
+        "amount": 1
+      },
+      "limit": 24,
+      "reservation": 1,
+      "reset": "time_segment",
+      "window_ticks": 100
+    },
+    {
+      "budget_id": "concurrency",
+      "owner": {
+        "owner_id": "participant",
+        "kind": "participant",
+        "owner_ref": "participant.behavior.green"
+      },
+      "pool_ref": "participant-pool",
+      "quantity": {
+        "resource_kind": "concurrent_actions",
+        "unit": "actions",
+        "accounting_mode": "reservable_gauge",
+        "meter_profile_ref": "raes.concurrent-action/v1",
+        "amount": 1
+      },
+      "limit": 2,
+      "reservation": 1,
+      "reset": "reconciled"
+    },
+    {
+      "budget_id": "storage",
+      "owner": {
+        "owner_id": "range",
+        "kind": "deployment_tenant",
+        "owner_ref": "deployment.tenant.range-a"
+      },
+      "pool_ref": "range-pool",
+      "quantity": {
+        "resource_kind": "storage_growth",
+        "unit": "bytes",
+        "accounting_mode": "growth_counter",
+        "meter_profile_ref": "raes.logical-byte/v1",
+        "amount": 4096
+      },
+      "limit": 1048576,
+      "reservation": 4096,
+      "reset": "reconciled"
+    },
+    {
+      "budget_id": "tokens",
+      "owner": {
+        "owner_id": "inference",
+        "kind": "shared_service",
+        "owner_ref": "provision.node.inference.service.http"
+      },
+      "pool_ref": "inference-pool",
+      "quantity": {
+        "resource_kind": "inference_tokens",
+        "unit": "tokens",
+        "accounting_mode": "windowed_counter",
+        "meter_profile_ref": "tokenizer.example/v1",
+        "amount": 500
+      },
+      "limit": 20000,
+      "reservation": 500,
+      "reset": "time_segment",
+      "window_ticks": 100
+    },
+    {
+      "budget_id": "images",
+      "owner": {
+        "owner_id": "inference",
+        "kind": "shared_service",
+        "owner_ref": "provision.node.inference.service.http"
+      },
+      "pool_ref": "inference-pool",
+      "quantity": {
+        "resource_kind": "image_generations",
+        "unit": "images",
+        "accounting_mode": "cumulative_counter",
+        "meter_profile_ref": "raes.image-generation/v1",
+        "amount": 1
+      },
+      "limit": 20,
+      "reservation": 1,
+      "reset": "run"
+    },
+    {
+      "budget_id": "accelerator",
+      "owner": {
+        "owner_id": "fleet",
+        "kind": "fleet",
+        "owner_ref": "fleet.primary"
+      },
+      "pool_ref": "accelerator-pool",
+      "quantity": {
+        "resource_kind": "accelerator",
+        "unit": "accelerator_milliseconds",
+        "accounting_mode": "lease",
+        "meter_profile_ref": "raes.accelerator-class.generic/v1",
+        "amount": 1000
+      },
+      "limit": 60000,
+      "reservation": 1000,
+      "reset": "reconciled"
+    }
+  ],
+  "fairness": {
+    "policy": "weighted_fair",
+    "priority_class": "background",
+    "weight": 1,
+    "protected": false,
+    "borrowing": "lendable_only",
+    "reclaim": "yield",
+    "max_queue_ticks": 20,
+    "starvation_bound_ticks": 100
+  }
+}

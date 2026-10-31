@@ -1,0 +1,33 @@
+{
+  "schema_version": "experiment-derived-measure/v1",
+  "derived_measure_id": "measure-vulnerability-severity-summary-001",
+  "measure_version": "1.0.0",
+  "measure_kind": "summary",
+  "metric_ref": {
+    "ref_kind": "metric-definition",
+    "ref_id": "vulnerability-severity-summary",
+    "ref_version": "1.0.0"
+  },
+  "method": {
+    "method_id": "scanner-finding-severity-counter",
+    "method_version": "1.0.0",
+    "name": "Scanner finding severity counter",
+    "description": "Derives a time-scoped severity count from raw scanner evidence.",
+    "parameters": []
+  },
+  "source_evidence_refs": [
+    {
+      "ref_kind": "evidence-record",
+      "ref_id": "evidence-vulnerability-scan-001",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "generated_at": "2026-07-13T00:01:05Z",
+  "value_status": "reported",
+  "value": "critical=0,high=1,medium=2,low=0,unknown=0",
+  "uncertainty": "Counts are valid only for the scanner database and immutable image digest named by the source evidence.",
+  "limitations": [
+    "Scanner findings are time-sensitive analysis and do not become authored SDL vulnerabilities."
+  ],
+  "provenance_refs": []
+}

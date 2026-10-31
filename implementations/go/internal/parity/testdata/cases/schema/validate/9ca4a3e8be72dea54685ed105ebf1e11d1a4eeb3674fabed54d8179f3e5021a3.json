@@ -1,0 +1,14 @@
+{
+  "args": [
+    "batch-execution-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "37f724b613f164ce456ab7b66bafc25673f5de456d05d3379117bfa4e36ab09a"
+  },
+  "name": "contracts/fixtures/control-plane/batch-execution-receipt-v1/invalid/missing-cleanup-receipt-ref",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

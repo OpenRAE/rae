@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27"
+  },
+  "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl/transform-canonical",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"description\":\"Synthetic ownership, identity and secret-state description. Evidence references are illustrative. This example makes no cloud deployment or access proof claim.\",\"name\":\"cloud-secret-cross-project\",\"nodes\":{\"iam\":{\"runtime\":{\"identity_authorities\":[{\"access_observations\":[{\"action\":\"secretmanager.secrets.get\",\"evidence_refs\":[\"urn:example:metadata-attempt\"],\"observation_id\":\"metadata-read\",\"outcome\":\"allowed\",\"principal_ref\":\"nodes.iam.runtime.identity_authorities.cloud.subjects.worker\",\"resource_ref\":\"nodes.secrets.runtime.platform_applications.manager.secrets.database\"},{\"action\":\"secretmanager.versions.access\",\"evidence_refs\":[\"urn:example:denied-attempt\"],\"observation_id\":\"denied-version\",\"outcome\":\"denied\",\"principal_ref\":\"nodes.iam.runtime.identity_authorities.cloud.subjects.worker\",\"resource_ref\":\"nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v2\"}],\"identity_authority_id\":\"cloud\",\"identity_uses\":[{\"mode\":\"impersonated\",\"principal_ref\":\"nodes.iam.runtime.identity_authorities.cloud.subjects.worker\",\"source_principal_ref\":\"nodes.iam.runtime.identity_authorities.cloud.subjects.requester\",\"use_id\":\"worker-use\",\"workload_ref\":\"nodes.worker\"}],\"kind\":\"cloud_iam\",\"policies\":[{\"policy_id\":\"reader\",\"policy_kind\":\"access\",\"resource_access\":{\"attachment_ref\":\"nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-b\",\"bindings\":[{\"actions\":[\"secretmanager.secrets.get\"],\"binding_id\":\"metadata\",\"effect\":\"allow\",\"principal_refs\":[\"nodes.iam.runtime.identity_authorities.cloud.subjects.worker\"],\"resource_refs\":[\"nodes.secrets.runtime.platform_applications.manager.secrets.database\"]},{\"actions\":[\"secretmanager.versions.access\"],\"binding_id\":\"read\",\"effect\":\"allow\",\"principal_refs\":[\"nodes.iam.runtime.identity_authorities.cloud.subjects.worker\"],\"resource_refs\":[\"nodes.secrets.runtime.platform_applications.manager.secrets.database\"]}]}},{\"policy_id\":\"identity-use\",\"policy_kind\":\"access\",\"resource_access\":{\"attachment_ref\":\"nodes.iam.runtime.identity_authorities.cloud.subjects.worker\",\"bindings\":[{\"actions\":[\"iam.serviceAccounts.getAccessToken\"],\"binding_id\":\"impersonate\",\"effect\":\"allow\",\"principal_refs\":[\"nodes.iam.runtime.identity_authorities.cloud.subjects.requester\"],\"resource_refs\":[\"nodes.iam.runtime.identity_authorities.cloud.subjects.worker\"]}]}},{\"policy_id\":\"inherited-secret\",\"policy_kind\":\"access\",\"resource_access\":{\"attachment_ref\":\"nodes.secrets.runtime.platform_applications.manager.secrets.database\",\"inherited_from_ref\":\"nodes.iam.runtime.identity_authorities.cloud.policies.reader\"}}],\"resource_scopes\":[{\"native_id\":\"project-a\",\"provider\":\"gcp\",\"scope_id\":\"project-a\",\"scope_kind\":\"project\"},{\"native_id\":\"project-b\",\"provider\":\"gcp\",\"scope_id\":\"project-b\",\"scope_kind\":\"project\"}],\"subjects\":[{\"kind\":\"service_account\",\"name\":\"worker\",\"resource_scope_ref\":\"nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-a\",\"subject_id\":\"worker\"},{\"kind\":\"user\",\"name\":\"requester\",\"resource_scope_ref\":\"nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-a\",\"subject_id\":\"requester\"}]}]},\"type\":\"compute\"},\"secrets\":{\"runtime\":{\"platform_applications\":[{\"platform_application_id\":\"manager\",\"product\":\"GCP Secret Manager\",\"secrets\":[{\"consumers\":[{\"consumer_ref\":\"nodes.worker\",\"selection_id\":\"exact-version\",\"version_ref\":\"nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v2\"},{\"consumer_ref\":\"nodes.worker\",\"resolution_basis\":\"observed\",\"resolution_evidence_refs\":[\"urn:example:alias-resolution\"],\"resolved_version_ref\":\"nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v1\",\"selection_id\":\"alias-report\",\"selector\":{\"kind\":\"alias\",\"value\":\"latest\"}}],\"native_id\":\"database\",\"resource_scope_ref\":\"nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-b\",\"secret_id\":\"database\",\"versions\":[{\"native_id\":\"1\",\"state\":\"enabled\",\"version_id\":\"v1\"},{\"native_id\":\"2\",\"state\":\"disabled\",\"version_id\":\"v2\"},{\"native_id\":\"3\",\"state\":\"destroyed\",\"version_id\":\"v3\"}]}],\"service\":\"api\"}]},\"services\":[{\"name\":\"api\",\"port\":443,\"protocol\":\"tcp\"}],\"type\":\"compute\"},\"worker\":{\"type\":\"compute\"}}}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:cfc9970b889d56af1d3e6e6e5316b73d6a6337bd858478926de3982496b9d299"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

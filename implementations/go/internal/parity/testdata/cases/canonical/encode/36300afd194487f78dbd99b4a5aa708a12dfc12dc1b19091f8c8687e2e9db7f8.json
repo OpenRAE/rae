@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "2a28dd1605597990a26126e6b2ddd8345a5b3bb1d71581795a98e02d040e104c"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-boundary-single-value",
+  "result": {
+    "jcs": "sha256:ea0c8be655acf820ed07b5b9219769acb2fefb9e1fdf26fa7cf0ee4e4c2790b7",
+    "sorted_ascii": "sha256:ea0c8be655acf820ed07b5b9219769acb2fefb9e1fdf26fa7cf0ee4e4c2790b7",
+    "sorted_unicode": "sha256:ea0c8be655acf820ed07b5b9219769acb2fefb9e1fdf26fa7cf0ee4e4c2790b7"
+  },
+  "surface": "canonical"
+}

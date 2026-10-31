@@ -1,0 +1,38 @@
+{
+  "schema_version": "experiment-evidence-record/v1",
+  "evidence_record_id": "evidence-docker-network-endpoint-001",
+  "record_version": "1.0.0",
+  "capture_spec_ref": {
+    "ref_kind": "capture-spec",
+    "ref_id": "capture-runtime-inventory-v1",
+    "ref_version": "1.0.0"
+  },
+  "capture_requirement_ref": "docker-network-endpoint-observation",
+  "output_contract": "participant-behavior-history-event-stream-v1",
+  "run_ref": {
+    "ref_kind": "run",
+    "ref_id": "run-runtime-inventory-001",
+    "ref_version": "1.0.0"
+  },
+  "source_refs": [
+    {
+      "ref_kind": "measurement-channel",
+      "ref_id": "docker-network-inspect",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "evidence_kind": "artifact",
+  "captured_at": "2026-07-13T00:00:05Z",
+  "capture_window_ref": "inventory-window",
+  "raw_content": {
+    "content_uri": "runs/run-runtime-inventory-001/docker-network-inspect.json",
+    "content_checksum": {
+      "algorithm": "sha256",
+      "value": "2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "payload_summary": "Docker network inspection preserving generated network and endpoint IDs, generated DNS identity, MAC address, driver, and IPAM output without promoting them to SDL declaration identity."
+  },
+  "sensitivity": "internal",
+  "redaction_state": "none",
+  "provenance_refs": []
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "4f6cc548797bf3bc42138020802a061d97c44feb66c96c68e8c97bd847a24d0b"
+  },
+  "name": "contracts/fixtures/control-plane/participant-context-view-v1/invalid/missing-bounded-staleness-basis",
+  "result": {
+    "jcs": "sha256:932629d3ec0ad9287e2ec390d3928303cd4194b939f43dc067c22833037b99ec",
+    "sorted_ascii": "sha256:932629d3ec0ad9287e2ec390d3928303cd4194b939f43dc067c22833037b99ec",
+    "sorted_unicode": "sha256:932629d3ec0ad9287e2ec390d3928303cd4194b939f43dc067c22833037b99ec"
+  },
+  "surface": "canonical"
+}

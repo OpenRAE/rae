@@ -1,0 +1,106 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "stratified-selection",
+  "spec_version": "1.0.0",
+  "title": "Balanced stratified selection",
+  "description": "Bind two structural outcomes to balanced factor conditions.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example",
+    "ref_version": "1.0.0"
+  },
+  "intended_scenario_ref": {
+    "ref_kind": "scenario",
+    "ref_id": "family-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop after one bounded episode."
+    },
+    "allocation": {
+      "allocation_unit": "run",
+      "allocation_method": "balanced",
+      "compared_conditions": [
+        "host-primary",
+        "host-secondary"
+      ],
+      "condition_assignments": {
+        "host-primary": {
+          "condition_id": "host-primary",
+          "factor_levels": {
+            "payload-host": "primary"
+          },
+          "required_refs": [
+            {
+              "ref_kind": "scenario-snapshot",
+              "ref_id": "primary"
+            }
+          ]
+        },
+        "host-secondary": {
+          "condition_id": "host-secondary",
+          "factor_levels": {
+            "payload-host": "secondary"
+          },
+          "required_refs": [
+            {
+              "ref_kind": "scenario-snapshot",
+              "ref_id": "secondary"
+            }
+          ]
+        }
+      },
+      "target_runs_per_condition": 2,
+      "replication_policy": "Two runs per declared condition."
+    },
+    "selection_policies": {
+      "balanced-host": {
+        "kind": "stratified",
+        "policy_id": "balanced-host",
+        "purpose": "controlled-factor",
+        "point_ref": "payload-host",
+        "balance": "equal",
+        "outcomes": {
+          "primary": {
+            "kind": "member",
+            "member_id": "primary-host"
+          },
+          "secondary": {
+            "kind": "member",
+            "member_id": "secondary-host"
+          }
+        },
+        "strata": {
+          "host-primary": {
+            "stratum_id": "host-primary",
+            "outcome_ref": "primary",
+            "factor_id": "payload-host",
+            "factor_level_id": "primary",
+            "condition_id": "host-primary",
+            "output_count": 2
+          },
+          "host-secondary": {
+            "stratum_id": "host-secondary",
+            "outcome_ref": "secondary",
+            "factor_id": "payload-host",
+            "factor_level_id": "secondary",
+            "condition_id": "host-secondary",
+            "output_count": 2
+          }
+        },
+        "output_bound": 4
+      }
+    }
+  },
+  "factors": {
+    "payload-host": {
+      "name": "Payload host",
+      "factor_kind": "treatment",
+      "levels": [
+        "primary",
+        "secondary"
+      ]
+    }
+  }
+}

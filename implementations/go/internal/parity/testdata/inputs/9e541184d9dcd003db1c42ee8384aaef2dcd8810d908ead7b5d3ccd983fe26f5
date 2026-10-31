@@ -1,0 +1,22 @@
+name: observability-plane-conformance
+nodes:
+  monitor:
+    type: compute
+    os: linux
+    os_distribution: ubuntu
+    os_version: "24.04"
+    source: exact-monitor-image
+    resources: {ram: 1 gib, cpu: 1}
+    services:
+      - name: http
+        port: 80
+        protocol: tcp
+    runtime:
+      service_listeners:
+        - service_listener_id: telemetry
+          service: http
+          address: 0.0.0.0
+          port: 80
+          protocol: tcp
+          address_family: ipv4
+          scope: wildcard

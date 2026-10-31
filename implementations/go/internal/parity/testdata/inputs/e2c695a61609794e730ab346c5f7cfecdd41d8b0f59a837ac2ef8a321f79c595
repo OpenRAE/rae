@@ -1,0 +1,22 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "zero-heavy-seed-and-address",
+  "description": "All-zero root entropy, minimal single-character identifiers, empty trial_coordinate, and local_coordinate=0. Catches lost-leading-zero and endian mistakes. Independently computed via the blake3 library directly (not the reference engine).",
+  "profile_id": "blake3-xof-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "stream_key_hex": "39a7b17cae76d0fc6cb1570061a75120f2b674895df48587c4d82853906866fd",
+  "address": {
+    "namespace": "n",
+    "trial_coordinate": {},
+    "selection_policy_id": "p",
+    "variation_point_id": "v",
+    "draw_purpose": "other",
+    "local_coordinate": 0
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226f74686572222c226c6f63616c5f636f6f7264696e617465223a302c226e616d657370616365223a226e222c2273656c656374696f6e5f706f6c6963795f6964223a2270222c22747269616c5f636f6f7264696e617465223a7b7d2c22766172696174696f6e5f706f696e745f6964223a2276227d",
+  "raw_block_hex": "603c8a2cc1ba9d29bd28d13e4fe8e0cf315b326ea231d26537c6348e22e23d94"
+}

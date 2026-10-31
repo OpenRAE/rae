@@ -1,0 +1,295 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "7971dfbc7cb0dd9dea753f880b56ef5bf34e340d52af7ec2f705c584b9cbb910"
+  },
+  "name": "examples/scenarios/techvault-attacker-target.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 34,
+        "declarations": [
+          {
+            "address": "conditions.wazuh-manager-health",
+            "kind": "conditions",
+            "model_path": "conditions.wazuh-manager-health",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-grafana-otel",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-otel-collector",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-tempo",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.internal-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.internal-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.kali",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.kali",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.kali-capture",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.kali-capture",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.redteam-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.redteam-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.security-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.victim",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.victim",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-indexer",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-indexer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-manager",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-manager",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel",
+            "kind": "node",
+            "model_path": "nodes.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel.services.grafana",
+            "kind": "service",
+            "model_path": "nodes.aptl-grafana-otel.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector",
+            "kind": "node",
+            "model_path": "nodes.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-grpc",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo",
+            "kind": "node",
+            "model_path": "nodes.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo.services.tempo-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-tempo.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.internal-net",
+            "kind": "node",
+            "model_path": "nodes.internal-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.kali",
+            "kind": "node",
+            "model_path": "nodes.kali",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.kali-capture",
+            "kind": "node",
+            "model_path": "nodes.kali-capture",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.kali.services.ssh",
+            "kind": "service",
+            "model_path": "nodes.kali.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.redteam-net",
+            "kind": "node",
+            "model_path": "nodes.redteam-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.security-net",
+            "kind": "node",
+            "model_path": "nodes.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.victim",
+            "kind": "node",
+            "model_path": "nodes.victim",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.victim.services.ssh",
+            "kind": "service",
+            "model_path": "nodes.victim.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-indexer",
+            "kind": "node",
+            "model_path": "nodes.wazuh-indexer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-indexer.services.indexer-api",
+            "kind": "service",
+            "model_path": "nodes.wazuh-indexer.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager",
+            "kind": "node",
+            "model_path": "nodes.wazuh-manager",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.agent-events",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.syslog",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.2.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.wazuh-api",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.techvault-attacker-target",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "techvault-attacker-target",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "conditions",
+              "infrastructure",
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

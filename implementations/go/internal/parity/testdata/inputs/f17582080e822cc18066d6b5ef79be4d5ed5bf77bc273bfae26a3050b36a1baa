@@ -1,0 +1,36 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "participant-occurrence-bounded-draw",
+  "description": "Participant occurrence address and bounded-integer draw over [0, 9], independently computed with direct rfc8785 and blake3 library calls.",
+  "profile_id": "blake3-xof-participant-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "4242424242424242424242424242424242424242424242424242424242424242"
+  },
+  "stream_key_hex": "17709bd05ad38d19024bff35f2bc54fb6f17d2230eb41b1daf9831a80b5a3f6b",
+  "address": {
+    "namespace": "green-activity",
+    "policy_address": "participant.autonomous-execution.participant-behavior",
+    "participant_address": "participant.behavior.participant-agent",
+    "time_segment": 2,
+    "occurrence_ordinal": 7,
+    "draw_purpose": "agent-policy",
+    "local_coordinate": 1
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226167656e742d706f6c696379222c226c6f63616c5f636f6f7264696e617465223a312c226e616d657370616365223a22677265656e2d6163746976697479222c226f6363757272656e63655f6f7264696e616c223a372c227061727469636970616e745f61646472657373223a227061727469636970616e742e6265686176696f722e7061727469636970616e742d6167656e74222c22706f6c6963795f61646472657373223a227061727469636970616e742e6175746f6e6f6d6f75732d657865637574696f6e2e7061727469636970616e742d6265686176696f72222c2274696d655f7365676d656e74223a327d",
+  "raw_block_hex": "eec91a540b243aa8ba0d1c1dc57f0526d4ad5b41fc76d3d59fc8a9c09194c21b",
+  "transform": {
+    "transform_id": "bounded-integer",
+    "transform_version": "1",
+    "minimum": 0,
+    "maximum": 9,
+    "max_rejection_attempts": 32,
+    "expected_rejection_attempts": 0,
+    "expected_rejection_exhausted": false,
+    "outcome": {
+      "kind": "public-value",
+      "value": "8"
+    }
+  }
+}

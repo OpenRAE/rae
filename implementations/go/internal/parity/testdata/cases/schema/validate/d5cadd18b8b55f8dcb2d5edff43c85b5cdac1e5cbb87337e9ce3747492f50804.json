@@ -1,0 +1,14 @@
+{
+  "args": [
+    "behavioral-relation-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "c8c3150dfbcf9b732c44235090528677caaad5f1ad865793db49b59f5ba39c5e"
+  },
+  "name": "contracts/fixtures/profiles/behavioral-relation-profile-v1/invalid/observable-absence-without-opportunity",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

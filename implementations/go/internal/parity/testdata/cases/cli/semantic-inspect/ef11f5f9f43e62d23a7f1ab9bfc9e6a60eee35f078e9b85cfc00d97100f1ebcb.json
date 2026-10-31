@@ -1,0 +1,91 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "11a4d8a3d4d39c5d93eae692d69e59355279dfdcf33864180067737acdddfdff"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 5,
+        "declarations": [
+          {
+            "address": "infrastructure.lab",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.lab",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.workload",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.workload",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.lab",
+            "kind": "node",
+            "model_path": "nodes.lab",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.workload",
+            "kind": "node",
+            "model_path": "nodes.workload",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.cross-backend-minimal",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "cross-backend-minimal",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "infrastructure",
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

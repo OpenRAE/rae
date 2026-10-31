@@ -253,7 +253,7 @@ def test_observed_concerns_and_artifact_evidence_coexist_with_credentials():
 @pytest.mark.parametrize("omit_parent", [False, True])
 @pytest.mark.parametrize("extra_sibling", ["absent", "fixture", "null"])
 def test_nested_open_observation_restores_only_authorized_ancestor_scaffolding(omit_parent, extra_sibling):
-    network = {"hostname": "observed-host", "domainname": "example.test"}
+    network = {"hostname": "observed-host", "domainname": "example.test", "endpoints": [], "published_ports": []}
     if extra_sibling != "absent":
         network["copied"] = FIXTURE_SENTINEL if extra_sibling == "fixture" else None
     result, baseline = _apply_observed(

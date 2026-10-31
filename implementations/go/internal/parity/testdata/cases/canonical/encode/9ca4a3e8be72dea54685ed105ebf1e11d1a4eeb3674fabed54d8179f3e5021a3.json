@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "37f724b613f164ce456ab7b66bafc25673f5de456d05d3379117bfa4e36ab09a"
+  },
+  "name": "contracts/fixtures/control-plane/batch-execution-receipt-v1/invalid/missing-cleanup-receipt-ref",
+  "result": {
+    "jcs": "sha256:fc5460e558c5b1620f490bea10d8c7d70770127678080a197d11de8cd203f0d1",
+    "sorted_ascii": "sha256:fc5460e558c5b1620f490bea10d8c7d70770127678080a197d11de8cd203f0d1",
+    "sorted_unicode": "sha256:fc5460e558c5b1620f490bea10d8c7d70770127678080a197d11de8cd203f0d1"
+  },
+  "surface": "canonical"
+}

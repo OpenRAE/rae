@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "3ab6e5d2581decc9b539e24898fb68d9db6b3366b8a06e2194a5b768f0573bc6"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-correlation-v1/context-invalid/request-as-occurrence",
+  "result": {
+    "jcs": "sha256:a1acbd8e848a2f808f2908f5b55003a0f70bf479379bdbf529289369e511dc3a",
+    "sorted_ascii": "sha256:a1acbd8e848a2f808f2908f5b55003a0f70bf479379bdbf529289369e511dc3a",
+    "sorted_unicode": "sha256:a1acbd8e848a2f808f2908f5b55003a0f70bf479379bdbf529289369e511dc3a"
+  },
+  "surface": "canonical"
+}

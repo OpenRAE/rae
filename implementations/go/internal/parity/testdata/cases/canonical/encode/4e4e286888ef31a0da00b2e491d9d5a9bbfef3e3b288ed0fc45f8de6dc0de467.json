@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "7277c49cd5c414f97498fab9b36bb35b17f3ffec9635cb1b651ed52728d0b478"
+  },
+  "name": "contracts/fixtures/control-plane/participant-inject-delivery-receipt-v1/context-invalid/coordinate-mismatch",
+  "result": {
+    "jcs": "sha256:20a8cc9b977749dd208eac2b6a75d8af33b8b33ef11a351ac2eb07c044df0f30",
+    "sorted_ascii": "sha256:20a8cc9b977749dd208eac2b6a75d8af33b8b33ef11a351ac2eb07c044df0f30",
+    "sorted_unicode": "sha256:20a8cc9b977749dd208eac2b6a75d8af33b8b33ef11a351ac2eb07c044df0f30"
+  },
+  "surface": "canonical"
+}

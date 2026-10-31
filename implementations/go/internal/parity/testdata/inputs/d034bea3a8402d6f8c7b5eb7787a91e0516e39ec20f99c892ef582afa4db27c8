@@ -1,0 +1,77 @@
+{
+  "binding_set_id": "invalid-stale-scheme",
+  "binding_set_version": "1.0.0",
+  "bindings": {
+    "stale-attack": {
+      "approximation": {
+        "loss_details": [],
+        "posture": "exact"
+      },
+      "assertion": {
+        "motivation": "Stale revision fixture.",
+        "motivation_basis_refs": [
+          {
+            "ref_id": "basis",
+            "ref_kind": "other"
+          }
+        ],
+        "relationship_kind": "related-to",
+        "semantic_effect": "annotates",
+        "semantic_effect_basis_refs": [
+          {
+            "ref_id": "sem-217",
+            "ref_kind": "profile"
+          }
+        ]
+      },
+      "binding_id": "stale-attack",
+      "confidence": {
+        "basis": "Stale fixture.",
+        "posture": "unknown"
+      },
+      "limitations": [
+        "Stale fixture."
+      ],
+      "perspective": {
+        "asserting_party_kind": "author",
+        "asserting_party_ref": "authors.fixture",
+        "authority_basis_refs": [
+          {
+            "ref_id": "charter",
+            "ref_kind": "other"
+          }
+        ],
+        "perspective": "scenario-author"
+      },
+      "provenance": {
+        "asserted_at": "2026-07-30T12:00:00Z",
+        "source_refs": [
+          {
+            "ref_id": "source",
+            "ref_kind": "other"
+          }
+        ]
+      },
+      "review": {
+        "review_refs": [],
+        "status": "unreviewed"
+      },
+      "scheme": {
+        "authority": "MITRE ATT&CK",
+        "concept_id": "TA0002",
+        "revision": "v18.0",
+        "scheme_id": "mitre-attack-enterprise-tactics",
+        "source_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "subject": {
+        "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+        "canonical_ref": "nodes.web",
+        "lifecycle_phase": "normalized-authoring",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "subject_kind": "node"
+      },
+      "supporting_evidence_refs": []
+    }
+  },
+  "schema_version": "external-concept-bindings/v1"
+}

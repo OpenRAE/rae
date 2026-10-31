@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "31cacc2f2a3518184e809cbda72672b32cf6e3956e07e76f7aee715814f3de23"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-rejection-then-accept",
+  "result": {
+    "jcs": "sha256:60c5b0bb986665d64288e56d044f8f2a71fcd6f19d528d8ee2e51701c8c85a91",
+    "sorted_ascii": "sha256:60c5b0bb986665d64288e56d044f8f2a71fcd6f19d528d8ee2e51701c8c85a91",
+    "sorted_unicode": "sha256:60c5b0bb986665d64288e56d044f8f2a71fcd6f19d528d8ee2e51701c8c85a91"
+  },
+  "surface": "canonical"
+}

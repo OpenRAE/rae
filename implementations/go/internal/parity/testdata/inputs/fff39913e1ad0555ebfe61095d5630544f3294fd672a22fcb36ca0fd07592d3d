@@ -1,0 +1,61 @@
+{
+  "actor_ref": "controller.human.red",
+  "authorization_scope": "scope:red-team",
+  "clock_authority": "clock.logical",
+  "episode_id": "episode-1",
+  "event_id": "control-occurrence.approval.1",
+  "event_type": "participant-control-occurrence",
+  "evidence_refs": [
+    "evidence:approval-1"
+  ],
+  "extension_policy": "closed",
+  "ingested_at": "2026-07-24T08:00:02Z",
+  "logical_order_ref": "order:11",
+  "object_marking_refs": [
+    "marking:participant-control"
+  ],
+  "occurred_at": "2026-07-24T08:00:00Z",
+  "occurrence": {
+    "authority_basis_refs": [
+      "authority:red-team"
+    ],
+    "behavior_specification_ref": "behavior-spec:red",
+    "controlled_scope_refs": [
+      "scope:red-team"
+    ],
+    "controller_ref": "controller.human.red",
+    "controller_state_ref": "controller-state.human",
+    "decision_ref": "decision.approval.1",
+    "decision_revision": 1,
+    "declaration_ref": "control-transition.approval",
+    "details": {
+      "raw_rejected_input": "must-not-be-portable"
+    },
+    "disposition": "recorded",
+    "effective_order": 11,
+    "expected_state_revision": 4,
+    "kind": "approval",
+    "limitation_refs": [
+      "limitation:not-admitted"
+    ],
+    "mixed_control_policy_ref": "mixed-control:red",
+    "occurrence_revision": 1,
+    "policy_revision": "policy-v3",
+    "proposal_ref": "proposal.1",
+    "proposal_revision": 1,
+    "valid_from_order": 8,
+    "valid_until_order": 12
+  },
+  "ordering_basis": "logical_clock",
+  "participant_address": "participants.red.operator",
+  "predecessor_event_refs": [
+    "control-occurrence.proposal.1"
+  ],
+  "producer_ref": "participant-runtime.red",
+  "provenance_refs": [
+    "provenance:approval-1"
+  ],
+  "recorded_at": "2026-07-24T08:00:01Z",
+  "schema_name": "participant-control-occurrence",
+  "schema_version": "1.0.0"
+}

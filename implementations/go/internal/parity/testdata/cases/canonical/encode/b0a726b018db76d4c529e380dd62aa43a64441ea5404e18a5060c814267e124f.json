@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "3ba3ac0cab18caf3d83889b2e66eacd78c9d080cf4ed73baee70b76c9d0478d3"
+  },
+  "name": "contracts/fixtures/experiment-core/materialization-archive-record-v1/invalid/wrong-phase",
+  "result": {
+    "jcs": "sha256:61ef13b536ed4fbd25ab2f8f57a938017fb5b218d09fc8f12bdec3c0c05a7601",
+    "sorted_ascii": "sha256:61ef13b536ed4fbd25ab2f8f57a938017fb5b218d09fc8f12bdec3c0c05a7601",
+    "sorted_unicode": "sha256:61ef13b536ed4fbd25ab2f8f57a938017fb5b218d09fc8f12bdec3c0c05a7601"
+  },
+  "surface": "canonical"
+}

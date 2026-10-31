@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "cf2485c923ecedc32219107ad35b612b464dcef46caa6a58955cef3c5a0b85a6"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/docker-network-endpoint-observation",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

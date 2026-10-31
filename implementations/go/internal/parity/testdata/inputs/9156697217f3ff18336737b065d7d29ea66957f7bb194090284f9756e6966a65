@@ -1,0 +1,30 @@
+{
+  "schema_version": "associated-artifact-manifest/v1",
+  "manifest_id": "scenario-snapshot-attachments",
+  "manifest_version": "1.0.0",
+  "canonicalization_profile": "associated-artifact-set/v1",
+  "scope": "scenario",
+  "parent_ref": {
+    "ref_kind": "scenario-snapshot",
+    "ref_id": "training-range",
+    "ref_version": "1.0.0",
+    "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "artifacts": {
+    "operator-guide": {
+      "artifact_id": "operator-guide",
+      "role": "operator-guide",
+      "media_type": "text/markdown",
+      "uri": "urn:sha256:ddc7a69ede7530aa87098a487dbae1d82e751dce5cd5bbe8477355ecd12f4287",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ddc7a69ede7530aa87098a487dbae1d82e751dce5cd5bbe8477355ecd12f4287"
+      },
+      "size_bytes": 15,
+      "created_at": "2026-07-12T00:00:00Z",
+      "source": "scenario-author",
+      "sensitivity": "internal"
+    }
+  },
+  "set_digest": "sha256:cd34c3d08b2ed0fae387f1a8ea4d392df73b7878ecde6731a7f0ece63af56f02"
+}

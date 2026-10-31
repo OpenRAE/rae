@@ -17,6 +17,7 @@ from .contracts import (
     NonEmptyString,
 )
 from .corpus import PROFILES, corpus_family_root
+from .errors import NotFoundError, OperationalError
 from .versions import (
     SCIENTIFIC_COMPLETENESS_ASSESSMENT_SCHEMA_VERSION,
     SCIENTIFIC_COMPLETENESS_TAXONOMY_SCHEMA_VERSION,
@@ -287,13 +288,28 @@ def load_scientific_completeness_taxonomy() -> ScientificCompletenessTaxonomyMod
     return ScientificCompletenessTaxonomyModel.model_validate_json(path.read_text(encoding="utf-8"))
 
 
+# The reviewed current delivery assessment. A delivery change publishes a new
+# assessment and moves this selection; retained assessments never change.
+CURRENT_ASSESSMENT_REVISION = "2026-10-31"
+RETAINED_ASSESSMENT_REVISIONS = frozenset({"2026-07-12", CURRENT_ASSESSMENT_REVISION})
+
+
 @cache
-def load_scientific_completeness_assessment() -> ScientificCompletenessAssessmentModel:
-    path = scientific_completeness_root() / "delivery-assessment-2026-07-12.json"
-    return ScientificCompletenessAssessmentModel.model_validate_json(path.read_text(encoding="utf-8"))
+def load_scientific_completeness_assessment(
+    assessment_revision: str = CURRENT_ASSESSMENT_REVISION,
+) -> ScientificCompletenessAssessmentModel:
+    if assessment_revision not in RETAINED_ASSESSMENT_REVISIONS:
+        raise NotFoundError("unknown scientific-completeness assessment revision")
+    path = scientific_completeness_root() / f"delivery-assessment-{assessment_revision}.json"
+    assessment = ScientificCompletenessAssessmentModel.model_validate_json(path.read_text(encoding="utf-8"))
+    if assessment.assessment_revision != assessment_revision:
+        # A packaged assessment fails here only when the artifact or installation is damaged.
+        raise OperationalError("scientific-completeness assessment revision does not match its file")
+    return assessment
 
 
 __all__ = [
+    "CURRENT_ASSESSMENT_REVISION",
     "DeliveryStatus",
     "ProfileCompletenessResult",
     "ProfileDisposition",

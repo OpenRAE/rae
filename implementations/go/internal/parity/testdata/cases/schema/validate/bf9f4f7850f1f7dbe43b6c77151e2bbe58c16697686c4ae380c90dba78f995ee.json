@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-opacity-analysis-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "129503f018ac6212908d35477c8b4b278aaf969897d7d62f8cd4460617fc0470"
+  },
+  "name": "contracts/fixtures/formal-analysis/participant-opacity-analysis-evidence-v1/invalid/universal-bounded-claim",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

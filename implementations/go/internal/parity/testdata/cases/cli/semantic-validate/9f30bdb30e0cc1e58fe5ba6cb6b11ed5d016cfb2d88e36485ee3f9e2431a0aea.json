@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-binding-descriptors-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "a370ad162315615a1281789d81b39a84a9e3020f10688d8ffbed123ff73f9a0c"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-binding-descriptors-v1/invalid/duplicate-canonical-target",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-binding-descriptors-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-binding-descriptors-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 2,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

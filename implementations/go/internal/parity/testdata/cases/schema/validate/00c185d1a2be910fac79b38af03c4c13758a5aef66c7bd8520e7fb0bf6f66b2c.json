@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "cf79196fb76c31460bf1fba8763ddce16b60c4355497619125a73f75c7641a9b"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/typed-factorial",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

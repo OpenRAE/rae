@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "de90e32f526053a0ec66835264e0aa0ce2a7caec3796047acc92befedabfff33"
+  },
+  "name": "contracts/fixtures/processor-manifest/processor-manifest-v2/invalid/non-backend-compatibility-surface",
+  "result": {
+    "jcs": "sha256:039eb6ac8916548ec9eb5807c09f8f98002d23adfa02c6cef38c512bd0132910",
+    "sorted_ascii": "sha256:039eb6ac8916548ec9eb5807c09f8f98002d23adfa02c6cef38c512bd0132910",
+    "sorted_unicode": "sha256:039eb6ac8916548ec9eb5807c09f8f98002d23adfa02c6cef38c512bd0132910"
+  },
+  "surface": "canonical"
+}

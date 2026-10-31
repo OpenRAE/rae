@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reusable-asset-trust-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2efc1dd691966097068d665e1cb5941fb3e5f49b728c366ca73257d9eb56cc9f"
+  },
+  "name": "contracts/fixtures/asset-trust/reusable-asset-trust-policy-v1/invalid/missing-integrity",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

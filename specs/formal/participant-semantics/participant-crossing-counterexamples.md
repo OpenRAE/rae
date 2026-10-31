@@ -149,6 +149,13 @@ Their host boundary remains explicit.
 The finite witness checker does not constitute an independent general bisimulation engine.
 Independent mutation review remains necessary after automated checks pass.
 
+The corpus manifest binds subject sources only.
+These are the model sources, the mutation and witness modules, and the corpus module.
+Each run checks the tool-admission code, locks, and other apparatus for stability.
+Native replay must reproduce every artifact byte.
+The retained model construction record keeps its own historical source digests.
+The [evidence identity design](../../../docs/decisions/issue-976-crossing-evidence-identity-design.md) records this split.
+
 ## Existing authorities
 
 [ADR-100](../../../docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md) continues to select the relation, tool, and claim boundary.

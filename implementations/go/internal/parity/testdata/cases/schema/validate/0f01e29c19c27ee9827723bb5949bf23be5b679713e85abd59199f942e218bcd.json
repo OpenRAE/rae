@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-stage-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "90e69c28bebc7b7c5da494dafea14b121f70880464cfc0158e7215ac837b325a"
+  },
+  "name": "contracts/fixtures/control-plane/mixed-backend-stage-report-v1/invalid/failed-without-cessation",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

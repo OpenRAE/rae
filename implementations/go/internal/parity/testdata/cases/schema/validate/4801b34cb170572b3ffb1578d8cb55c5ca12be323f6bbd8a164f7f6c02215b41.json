@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "725c821c5bba89135e705266d1181a70fabf0b0c8b18d36a9b4846cee0bb484b"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/stratified-selection",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

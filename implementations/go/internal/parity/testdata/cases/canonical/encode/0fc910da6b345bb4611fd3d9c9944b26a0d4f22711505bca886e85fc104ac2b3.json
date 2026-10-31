@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "8d7ea638f6d2c2a008deb81839fc9a452aacc43b28a00275cba92a3d8aff17c4"
+  },
+  "name": "contracts/fixtures/profiles/random-stream-profile-v1/invalid/empty-transforms",
+  "result": {
+    "jcs": "sha256:25da487865740fb8d1fb18bd0bf0601ad3328a0a671c0afa5812314d74e8e854",
+    "sorted_ascii": "sha256:25da487865740fb8d1fb18bd0bf0601ad3328a0a671c0afa5812314d74e8e854",
+    "sorted_unicode": "sha256:25da487865740fb8d1fb18bd0bf0601ad3328a0a671c0afa5812314d74e8e854"
+  },
+  "surface": "canonical"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-inject-application-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "c852dbb507e5e7417ea6fcc4b697dcd634fd4354da01acd4632d35a6edac200a"
+  },
+  "name": "contracts/fixtures/control-plane/participant-inject-application-v1/valid/basic",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

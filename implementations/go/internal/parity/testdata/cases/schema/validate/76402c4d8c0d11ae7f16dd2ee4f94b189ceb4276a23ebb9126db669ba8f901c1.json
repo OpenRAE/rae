@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-implementation-manifest-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a32ac2e39ccb1415932090a43a8609ede99312271844e6a88eecfcbb54d3987f"
+  },
+  "name": "contracts/fixtures/participant-implementation-manifest/participant-implementation-manifest-v1/invalid/unknown-contract",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "0329ffffc5a600cb3b22cecf3a48d672c142a60fdd1945baa96dd88ef4cc1d58"
+  },
+  "name": "contracts/fixtures/profiles/random-stream-profile-v1/invalid/transform-key-mismatch",
+  "result": {
+    "jcs": "sha256:964c24cb0cb1d8b3b8c564b16471a749ca8b9ab2b91a1aa76a8f60b2168da491",
+    "sorted_ascii": "sha256:964c24cb0cb1d8b3b8c564b16471a749ca8b9ab2b91a1aa76a8f60b2168da491",
+    "sorted_unicode": "sha256:964c24cb0cb1d8b3b8c564b16471a749ca8b9ab2b91a1aa76a8f60b2168da491"
+  },
+  "surface": "canonical"
+}

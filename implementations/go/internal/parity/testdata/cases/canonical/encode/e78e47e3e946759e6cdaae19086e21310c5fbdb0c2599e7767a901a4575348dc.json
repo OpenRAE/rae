@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "ed60d867bc688ab30a876e2c50cc6d89a179b39ab7ffb4c4469abc43cbd43975"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/basic-address-and-block",
+  "result": {
+    "jcs": "sha256:56e48411bab67d87163241e196e1b4d1d18afec298a52c430c2ae75c39a4b849",
+    "sorted_ascii": "sha256:56e48411bab67d87163241e196e1b4d1d18afec298a52c430c2ae75c39a4b849",
+    "sorted_unicode": "sha256:56e48411bab67d87163241e196e1b4d1d18afec298a52c430c2ae75c39a4b849"
+  },
+  "surface": "canonical"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "b82c4bf465b51c81ba1fcda5b5958e6c57c4ebca35742b70630dcceca044e1a3"
+  },
+  "name": "contracts/fixtures/control-plane/participant-history-view-v1/valid/truncated-history",
+  "result": {
+    "jcs": "sha256:a5eb16e05d6f03ff947a926303667511ec75e4cb17adff12a496d33791523f79",
+    "sorted_ascii": "sha256:a5eb16e05d6f03ff947a926303667511ec75e4cb17adff12a496d33791523f79",
+    "sorted_unicode": "sha256:a5eb16e05d6f03ff947a926303667511ec75e4cb17adff12a496d33791523f79"
+  },
+  "surface": "canonical"
+}

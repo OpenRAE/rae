@@ -1,0 +1,80 @@
+{
+  "schema_version": "runtime-snapshot/v1",
+  "entries": {
+    "participant.action-contract.submit-finding": {
+      "address": "participant.action-contract.submit-finding",
+      "domain": "participant",
+      "resource_type": "participant-action-contract",
+      "payload": {},
+      "ordering_dependencies": [],
+      "refresh_dependencies": [],
+      "status": "ready"
+    },
+    "participant.observation-boundary.challenge-log": {
+      "address": "participant.observation-boundary.challenge-log",
+      "domain": "participant",
+      "resource_type": "participant-observation-boundary",
+      "payload": {},
+      "ordering_dependencies": [],
+      "refresh_dependencies": [],
+      "status": "ready"
+    },
+    "participant.behavior.alice": {
+      "address": "participant.behavior.alice",
+      "domain": "participant",
+      "resource_type": "participant-behavior",
+      "payload": {
+        "action_contract_addresses": [
+          "participant.action-contract.submit-finding"
+        ],
+        "observation_boundary_addresses": [
+          "participant.observation-boundary.challenge-log"
+        ]
+      },
+      "ordering_dependencies": [],
+      "refresh_dependencies": [],
+      "status": "ready"
+    }
+  },
+  "participant_behavior_history": {
+    "participant.behavior.alice": [
+      {
+        "event_type": "action_attempted",
+        "timestamp": "2026-04-11T10:00:00Z",
+        "participant_address": "participant.behavior.alice",
+        "episode_id": "ep-0001",
+        "action_instance_id": "act-0001",
+        "action_contract_address": "participant.action-contract.submit-finding",
+        "actor_provenance": "participant.behavior.alice",
+        "details": {}
+      },
+      {
+        "event_type": "state_transition_recorded",
+        "timestamp": "2026-04-11T10:00:01Z",
+        "participant_address": "participant.behavior.alice",
+        "episode_id": "ep-0001",
+        "action_instance_id": "act-0001",
+        "action_contract_address": "participant.action-contract.submit-finding",
+        "state_transition_kind": "finding-submitted",
+        "post_state_digest": "sha256:0123456789abcdef",
+        "details": {}
+      },
+      {
+        "event_type": "observation_emitted",
+        "timestamp": "2026-04-11T10:00:02Z",
+        "participant_address": "participant.behavior.alice",
+        "episode_id": "ep-0001",
+        "action_instance_id": "act-0001",
+        "action_contract_address": "participant.action-contract.submit-finding",
+        "observation_boundary_address": "participant.observation-boundary.challenge-log",
+        "observation_status": "terminal",
+        "actor_provenance": null,
+        "state_transition_kind": null,
+        "post_state_digest": "sha256:0123456789abcdef",
+        "details": {}
+      }
+    ]
+  },
+  "participant_crossing_history": {},
+  "metadata": {}
+}

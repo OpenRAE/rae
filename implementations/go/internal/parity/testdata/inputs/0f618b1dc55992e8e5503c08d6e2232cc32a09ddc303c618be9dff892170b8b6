@@ -1,0 +1,163 @@
+{
+  "schema_version": "concept-families/v1",
+  "families": {
+    "assets": {
+      "title": "Assets",
+      "description": "Nodes, infrastructure, networks, and deployable resources.",
+      "provenance": "adopted",
+      "authority": "UCO",
+      "authority_reference": "https://github.com/ucoProject/UCO"
+    },
+    "identities": {
+      "title": "Identities",
+      "description": "Accounts, entities, roles, and identity-bearing participants.",
+      "provenance": "adopted",
+      "authority": "UCO",
+      "authority_reference": "https://github.com/ucoProject/UCO"
+    },
+    "relationships": {
+      "title": "Relationships",
+      "description": "Typed associations between scenario elements.",
+      "provenance": "adapted",
+      "authority": "UCO",
+      "authority_reference": "https://github.com/ucoProject/UCO"
+    },
+    "observables": {
+      "title": "Observables",
+      "description": "Conditions, metrics, telemetry, and observable properties.",
+      "provenance": "adopted",
+      "authority": "UCO",
+      "authority_reference": "https://github.com/ucoProject/UCO"
+    },
+    "actions-and-events": {
+      "title": "Actions and Events",
+      "description": "Events, injects, workflow steps, and executable actions.",
+      "provenance": "adopted",
+      "authority": "UCO",
+      "authority_reference": "https://github.com/ucoProject/UCO"
+    },
+    "tools-and-artifacts": {
+      "title": "Tools and Artifacts",
+      "description": "Features, content, software, and deployable artifacts.",
+      "provenance": "adopted",
+      "authority": "UCO",
+      "authority_reference": "https://github.com/ucoProject/UCO"
+    },
+    "scenarios": {
+      "title": "Scenarios",
+      "description": "SDL scenarios, compositions, modules, and authoring constructs.",
+      "provenance": "native",
+      "extension_scope": "SDL-native scenario authoring constructs, compositions, modules, and scenario-bound declarations that are not UCO cyber object definitions.",
+      "relation_rules": [
+        "May bind to adopted cyber-domain families only when the scenario construct denotes a cyber object, observable, action, relationship, identity, or artifact.",
+        "Must remain the container and authoring-intent layer rather than redefining adopted cyber-domain families."
+      ],
+      "non_ambiguity_constraints": [
+        "Must not be used as a synonym for assets, identities, relationships, observables, actions-and-events, or tools-and-artifacts.",
+        "Artifact bindings must choose the narrower adopted or adapted family when a field denotes that cyber-domain meaning directly."
+      ]
+    },
+    "tasks-runs-studies": {
+      "title": "Tasks, Runs, and Studies",
+      "description": "Execution lifecycle, run records, and study organization.",
+      "provenance": "native",
+      "extension_scope": "RAES experiment workflow concepts for task framing, run lifecycle, study grouping, and analysis organization.",
+      "relation_rules": [
+        "May reference scenarios as the authoring input under evaluation and provenance-and-evidence concepts as recorded outputs.",
+        "Must describe experiment organization and lifecycle rather than the cyber-domain assets or actions inside a scenario."
+      ],
+      "non_ambiguity_constraints": [
+        "Must not duplicate scenario authoring semantics, runtime execution state, or external cyber-domain object meaning.",
+        "Run or study concepts must not be used to classify nodes, accounts, observables, tools, or events."
+      ]
+    },
+    "episodes": {
+      "title": "Episodes",
+      "description": "Participant runtime episode identity, lifecycle state, and history boundaries.",
+      "provenance": "native",
+      "extension_scope": "RAES participant runtime episode identity, lifecycle state, state/history contracts, reset/restart/terminate semantics, and participant-scoped behavior sequencing.",
+      "relation_rules": [
+        "May relate to tasks-runs-studies as the participant-level runtime segment that occurs within a task, run, or study without becoming that task, run, or study.",
+        "May relate to scenarios as the runtime execution instance of a participant admitted from scenario context, while scenario authoring remains governed by scenarios.",
+        "May relate to actions-and-events and observables through behavior or history records emitted inside an episode without classifying those records as the episode itself."
+      ],
+      "non_ambiguity_constraints": [
+        "Must not be used as a synonym for tasks, runs, studies, scenarios, workflow steps, operation receipts, or backend process restarts.",
+        "Must not classify participant actions, events, observables, tools, artifacts, or evidence records; those meanings must bind to their narrower families.",
+        "Episode identity and lifecycle state must remain separate from participant behavior sequence events and participant-local action outcomes."
+      ]
+    },
+    "runtime-inventory": {
+      "title": "Runtime Inventory",
+      "description": "Observed and declared runtime configuration state attached to scenario nodes.",
+      "provenance": "native",
+      "extension_scope": "RAES observed and declared runtime inventory of scenario node state under nodes.*.runtime: services, platforms, packages and software components, controls and security posture, filesystem and mounts, processes and scheduled jobs, and other node-scoped apparatus-state facts.",
+      "relation_rules": [
+        "May relate to assets as the observed runtime configuration state of an asset-bearing scenario node without becoming the node or its asset identity.",
+        "May relate to observables when an inventory fact is surfaced as a condition, metric, or telemetry signal, while the structured inventory record itself remains runtime-inventory.",
+        "May relate to identities, tools-and-artifacts, relationships, and actions-and-events through individual inventory fields that denote those narrower cyber-domain objects, which bind to the narrower family rather than to the inventory record as a whole."
+      ],
+      "non_ambiguity_constraints": [
+        "Must record observed or declared node runtime state and must not be used as a synonym for the actions or events that produce, change, or react to that state.",
+        "Must not redefine asset or node identity, scenario authoring intent, apparatus capability declarations, or participant episode lifecycle as runtime inventory.",
+        "When an inventory field denotes a narrower cyber-domain object such as an asset, identity, observable, tool, artifact, or relationship, that field must bind to the narrower family rather than being absorbed into runtime-inventory."
+      ]
+    },
+    "apparatus-declarations": {
+      "title": "Apparatus Declarations",
+      "description": "Processor, backend, and participant-implementation manifests.",
+      "provenance": "native",
+      "extension_scope": "RAES apparatus identity, capability, compatibility, and declaration surfaces for processors, backends, and participant implementations.",
+      "relation_rules": [
+        "May bind declared capability vocabularies to adopted or adapted cyber-domain families through concept_bindings.",
+        "Must keep apparatus identity and compatibility separate from the cyber-domain objects that an apparatus can process or realize."
+      ],
+      "non_ambiguity_constraints": [
+        "Must not redefine assets, identities, observables, actions, relationships, or tools as apparatus concepts.",
+        "Capability bindings must use the canonical cyber-domain family when the declaration names supported cyber-domain vocabulary."
+      ]
+    },
+    "realization-and-disclosure": {
+      "title": "Realization and Disclosure",
+      "description": "Instantiation, planning, compilation, and realization artifacts.",
+      "provenance": "native",
+      "extension_scope": "RAES realization semantics for turning underspecified authoring inputs into executable, planned, or disclosed artifacts.",
+      "relation_rules": [
+        "May relate scenarios to apparatus-declarations by describing what an apparatus can realize or disclose.",
+        "Must distinguish realization support from the cyber-domain objects being realized."
+      ],
+      "non_ambiguity_constraints": [
+        "Must not be used as a label for realized assets, identities, tools, observables, relationships, or actions themselves.",
+        "When a declaration names the kind of cyber object realized, it must bind to the corresponding cyber-domain family rather than this native family."
+      ]
+    },
+    "provenance-and-evidence": {
+      "title": "Provenance and Evidence",
+      "description": "Run provenance records, evidence expectations, and audit artifacts.",
+      "provenance": "native",
+      "extension_scope": "RAES provenance, evidence expectation, evidence collection, and audit-record semantics for experiments and execution.",
+      "relation_rules": [
+        "May record observations about scenarios, tasks, runs, studies, apparatus, and cyber-domain objects without redefining those objects.",
+        "Must separate evidence/provenance records from the observed asset, identity, observable, action, relationship, or artifact."
+      ],
+      "non_ambiguity_constraints": [
+        "Must not classify the subject of evidence as evidence itself.",
+        "Evidence bindings must choose the observed cyber-domain family when the field denotes the observed object rather than the evidence record."
+      ]
+    },
+    "time-and-apparatus": {
+      "title": "Time and Apparatus",
+      "description": "Clocks, timing constraints, and apparatus-level concerns.",
+      "provenance": "native",
+      "extension_scope": "RAES timing, clock, scheduling, synchronization, and apparatus-time semantics that govern execution rather than cyber-domain object identity.",
+      "relation_rules": [
+        "May constrain scenarios, tasks, runs, realization, and apparatus behavior through time or clock declarations.",
+        "Must keep timing and clock semantics separate from the cyber-domain event or action whose occurrence is being timed."
+      ],
+      "non_ambiguity_constraints": [
+        "Must not be used as a synonym for actions-and-events or observables.",
+        "Temporal fields that describe an event meaning must bind to actions-and-events or observables; fields that describe RAES clock policy may bind here."
+      ]
+    }
+  }
+}

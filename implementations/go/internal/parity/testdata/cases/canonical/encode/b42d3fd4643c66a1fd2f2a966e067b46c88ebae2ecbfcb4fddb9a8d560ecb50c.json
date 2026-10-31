@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "fa9c4dc98a3a9d5019b308ed117eefad105bdc52fde8eae11d67dd471ec461be"
+  },
+  "name": "contracts/fixtures/profiles/random-stream-profile-v1/valid/blake3-xof-participant-v1",
+  "result": {
+    "jcs": "sha256:9ae3fc5d1591a3768c056870f26430e47e35fcf2add1ad6f0659702887de9a36",
+    "sorted_ascii": "sha256:9ae3fc5d1591a3768c056870f26430e47e35fcf2add1ad6f0659702887de9a36",
+    "sorted_unicode": "sha256:9ae3fc5d1591a3768c056870f26430e47e35fcf2add1ad6f0659702887de9a36"
+  },
+  "surface": "canonical"
+}

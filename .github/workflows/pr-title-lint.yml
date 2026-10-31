@@ -18,7 +18,7 @@ name: PR Title Lint
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
-    branches: [dev]
+    branches: [dev, go-cutover]
     paths-ignore:
       - CHANGELOG.md
       - .release-please-manifest.json

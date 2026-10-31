@@ -367,6 +367,9 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "proof",
         "model-check",
         "coverage-reduce",
+        "go",
+        "go-architecture",
+        "parity-corpus",
         "sonar",
         "gate",
     }
@@ -436,14 +439,24 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The full gate is an explicit fail-closed aggregate that distinguishes skips.
     gate = workflow["jobs"]["gate"]
     assert gate["if"] == "always()"
-    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "model-check", "coverage-reduce"}
+    assert set(gate["needs"]) == {
+        "test-shard",
+        "integration",
+        "checks",
+        "proof",
+        "model-check",
+        "coverage-reduce",
+        "go",
+        "go-architecture",
+        "parity-corpus",
+    }
 
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     workflow = _load(CI_PATH)
     assert workflow["permissions"] == {"contents": "read"}
-    assert workflow["on"]["push"]["branches"] == ["main", "dev"]
-    assert workflow["on"]["pull_request"]["branches"] == ["main", "dev"]
+    assert workflow["on"]["push"]["branches"] == ["main", "dev", "go-cutover"]
+    assert workflow["on"]["pull_request"]["branches"] == ["main", "dev", "go-cutover"]
     assert "continue-on-error" not in workflow["jobs"]["supply-chain"]
     canonical = workflow["jobs"]["canonical"]
     assert canonical["uses"] == LOCAL_CANONICAL_WORKFLOW
@@ -474,7 +487,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "inputs.sonar-enabled" in reusable_sonar["if"]
     assert "github.event.pull_request.head.repo.full_name == github.repository" in reusable_sonar["if"]
     assert "github.actor != 'dependabot[bot]'" in reusable_sonar["if"]
-    assert reusable_sonar["needs"] == "coverage-reduce"
+    assert reusable_sonar["needs"] == ["coverage-reduce", "go"]
 
     # CPython 3.14 is the only supported interpreter. The canonical graph runs the
     # full suite on it, so this job only checks the runtime and the clean
@@ -1622,3 +1635,60 @@ def test_github_attachment_refuses_preexisting_conflicting_evidence(tmp_path: Pa
     assert "with different bytes" in result.stderr
     assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
     assert "patch" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
+
+
+def test_go_lanes_enforce_each_go_engineering_standard() -> None:
+    """The ADR-121 gates stay in the canonical graph for each Go module."""
+
+    go = _load(CANONICAL_PATH)["jobs"]["go"]
+    assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == [
+        "implementations/go",
+        "implementations/tooling/go",
+    ]
+    scripts = "\n".join(step.get("run", "") for step in go["steps"])
+    for command in (
+        "install-go public-ubuntu-24.04-x86_64",
+        "go mod tidy -diff",
+        "go mod verify",
+        "golangci-lint run ./...",
+        'go vet -vettool="$(command -v raesvet)" ./...',
+        "go test -race -covermode=atomic -coverprofile=cover.out ./...",
+        "exit !(total >= 90)",
+        "go test -list '^Fuzz' ./...",
+        '-fuzztime 20s "${package}" || exit 1',
+        'gremlins unleash --diff "${MERGE_BASE}" --threshold-efficacy 90 --threshold-mcover 90',
+        'regressiontest -base "${MERGE_BASE}"',
+    ):
+        assert command in scripts, command
+    mutation = next(step for step in go["steps"] if "gremlins unleash" in step.get("run", ""))
+    assert mutation["env"]["GIT_CONFIG_KEY_0"] == "diff.relative"
+    assert mutation["env"]["GIT_CONFIG_VALUE_0"] == "true"
+
+
+def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
+    """The ADR-122 check runs in the canonical graph, and the gate requires it."""
+
+    workflow = _load(CANONICAL_PATH)
+    job = workflow["jobs"]["go-architecture"]
+    assert job["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert "strategy" not in job
+    check = _named_step(job, "Check the Go code against the architecture model")
+    assert "working-directory" not in check
+    assert '"${RUNNER_TEMP}/go-tools/archcheck"' in check["run"]
+    install = _named_step(job, "Install the locked Go toolchain")
+    assert install["run"] == _named_step(workflow["jobs"]["go"], "Install the locked Go toolchain")["run"]
+    assert "go-architecture" in workflow["jobs"]["gate"]["needs"]
+
+
+def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> None:
+    """The Python implementation must reproduce the golden parity corpus (issue #1778)."""
+
+    workflow = _load(CANONICAL_PATH)
+    job = workflow["jobs"]["parity-corpus"]
+    assert job["steps"][0]["with"]["fetch-depth"] == 0
+    check = _named_step(job, "Check that the Python implementation reproduces the corpus")
+    assert "python -m tools.parity_corpus check" in check["run"]
+    upload = _named_step(job, "Upload the recorded corpus")
+    assert upload["if"] == "failure()"
+    assert "parity-corpus" in workflow["jobs"]["gate"]["needs"]

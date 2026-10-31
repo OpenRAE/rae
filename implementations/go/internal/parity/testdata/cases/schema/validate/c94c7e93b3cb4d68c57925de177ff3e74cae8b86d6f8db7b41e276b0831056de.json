@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-context-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "472af45d1bd7ebe72001d8ef8d93a43299d2fe9fd885a9526b9d5d3f53a7d74b"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-context-record-v1/invalid/delivered-without-occurrence",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

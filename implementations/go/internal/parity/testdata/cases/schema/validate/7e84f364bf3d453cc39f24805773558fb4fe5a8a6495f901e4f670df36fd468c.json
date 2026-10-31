@@ -1,0 +1,14 @@
+{
+  "args": [
+    "concept-families-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "4190ff5f560507fca372d5686229c785812bc8a01374f3e70564f2672fdd2663"
+  },
+  "name": "contracts/fixtures/concept-authority/concept-families-v1/invalid/native-with-authority",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

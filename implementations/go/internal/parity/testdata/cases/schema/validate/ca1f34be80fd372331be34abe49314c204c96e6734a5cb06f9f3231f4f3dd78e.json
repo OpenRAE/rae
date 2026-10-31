@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-cleanup-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "c18f0f90e3e05ea02d23124e2835097511c2f76126b6e87aa36f408f8f03497a"
+  },
+  "name": "contracts/fixtures/control-plane/trial-cleanup-receipt-v1/invalid/unverified-clean-claim",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

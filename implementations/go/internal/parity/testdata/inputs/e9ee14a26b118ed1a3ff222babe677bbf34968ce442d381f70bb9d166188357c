@@ -1,0 +1,36 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "fixed-selection",
+  "spec_version": "1.0.0",
+  "title": "Fixed selection",
+  "description": "Fix one scenario-family configuration outcome.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example",
+    "ref_version": "1.0.0"
+  },
+  "intended_scenario_ref": {
+    "ref_kind": "scenario",
+    "ref_id": "family-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop after one bounded episode."
+    },
+    "target_run_count": 1,
+    "selection_policies": {
+      "fixed-path": {
+        "kind": "fixed",
+        "policy_id": "fixed-path",
+        "purpose": "fixed-configuration",
+        "point_ref": "payload-path",
+        "outcome": {
+          "kind": "literal",
+          "value": "/opt/a"
+        },
+        "output_bound": 1
+      }
+    }
+  }
+}

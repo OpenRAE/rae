@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "f7f45519ece3b7d98d102ae22770ce211526ba653186de1b83365fb6e997f85b"
+  },
+  "name": "contracts/fixtures/sdl/scenario-instantiation-request-v1/invalid/non-canonical-parameter-name",
+  "result": {
+    "jcs": "sha256:8d15c672b9a7809f1b25dc0d50be6e9a22f236f8efb6c5af7e7e4df747263127",
+    "sorted_ascii": "sha256:8d15c672b9a7809f1b25dc0d50be6e9a22f236f8efb6c5af7e7e4df747263127",
+    "sorted_unicode": "sha256:8d15c672b9a7809f1b25dc0d50be6e9a22f236f8efb6c5af7e7e4df747263127"
+  },
+  "surface": "canonical"
+}

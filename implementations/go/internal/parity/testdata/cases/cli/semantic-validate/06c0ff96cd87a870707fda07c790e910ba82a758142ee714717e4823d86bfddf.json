@@ -1,0 +1,44 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "evaluation-history-event-stream-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "3930db1c2284e8fb8061eb307f46d1efab51316c9c765349e21576bfdefa6b7a"
+  },
+  "name": "contracts/fixtures/control-plane/evaluation-history-event-stream-v1/invalid/not-a-list",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "evaluation-history-event-stream-v1",
+      "diagnostics": [
+        {
+          "address": "",
+          "code": "json.invalid-root",
+          "domain": "json-ingress",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

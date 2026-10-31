@@ -1,0 +1,57 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-evaluation-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "63f1ea17245dfca8c98056a03835af9efef795bf480cf3e7f07f21eccbddaec0"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/teaching-inject",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-evaluation-v1",
+      "diagnostics": [
+        {
+          "address": "participant-control-evaluation-v1",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 7,
+        "members": [
+          "composition",
+          "evaluation_id",
+          "realizations",
+          "request",
+          "results",
+          "schema_version",
+          "support"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

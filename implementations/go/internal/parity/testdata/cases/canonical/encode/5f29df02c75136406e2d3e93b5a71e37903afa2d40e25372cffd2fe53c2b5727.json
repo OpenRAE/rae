@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "3965be8ac01bccce9f0056116724f06dce2d52d0cc32faa810da21fd6def96dd"
+  },
+  "name": "contracts/fixtures/control-plane/participant-context-view-v1/invalid/audience-neutral-scope",
+  "result": {
+    "jcs": "sha256:12acaf38e7cbca2c4b0dd3bd920f084787775bbbef0093e5d856d300f25c6def",
+    "sorted_ascii": "sha256:12acaf38e7cbca2c4b0dd3bd920f084787775bbbef0093e5d856d300f25c6def",
+    "sorted_unicode": "sha256:12acaf38e7cbca2c4b0dd3bd920f084787775bbbef0093e5d856d300f25c6def"
+  },
+  "surface": "canonical"
+}

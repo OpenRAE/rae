@@ -1,0 +1,37 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "bounded-integer-boundary-single-value",
+  "description": "bounded-integer transform with a degenerate single-value range (minimum == maximum == 7). Width is 1, so every raw byte is accepted immediately (0 rejection attempts) regardless of its value, and the outcome is always the fixed value. Independently computed via the blake3 library directly (not the reference engine).",
+  "profile_id": "blake3-xof-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "stream_key_hex": "5bf3c27418c0416cc41520c0b3b7f126092cf1b429c909b86abd8a4d44f243fc",
+  "address": {
+    "namespace": "study-namespace",
+    "trial_coordinate": {
+      "condition_id": "condition-c"
+    },
+    "selection_policy_id": "policy-c",
+    "variation_point_id": "point-c",
+    "draw_purpose": "scheduler-tiebreak",
+    "local_coordinate": 1
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a227363686564756c65722d746965627265616b222c226c6f63616c5f636f6f7264696e617465223a312c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d63222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d63227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d63227d",
+  "raw_block_hex": "f559feefd03d50c4db1d136833644e712cc4165d639f22fcae18761c22b1c904",
+  "transform": {
+    "transform_id": "bounded-integer",
+    "transform_version": "1",
+    "minimum": 7,
+    "maximum": 7,
+    "max_rejection_attempts": 32,
+    "expected_rejection_attempts": 0,
+    "expected_rejection_exhausted": false,
+    "outcome": {
+      "kind": "public-value",
+      "value": "7"
+    }
+  }
+}

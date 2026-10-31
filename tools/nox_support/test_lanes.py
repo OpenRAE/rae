@@ -15,10 +15,7 @@ from tools.nox_support.config import (
     DEFAULT_SUITE_EXPRESSION,
     DOCS_BUILD_ROOT,
     INSTALLATION_QUALIFICATION_HARNESSES,
-    OSV_LOCKFILE_PATH,
-    OSV_REPORT_PATH,
-    OSV_TOOLING_LOCKFILE_PATH,
-    OSV_TOOLING_REPORT_PATH,
+    OSV_SCAN_TARGETS,
     PROJECT_ROOT,
     PUBLIC_DOCS_ENTRYPOINTS,
     PUBLIC_DOCS_EXAMPLE_TESTS,
@@ -250,10 +247,7 @@ def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
                 f"osv-scanner failed with scanner/setup error exit code {exit_code}; report at {report_rel}"
             )
 
-    for label, lockfile, report in (
-        ("uv.lock", OSV_LOCKFILE_PATH, OSV_REPORT_PATH),
-        ("tooling uv.lock", OSV_TOOLING_LOCKFILE_PATH, OSV_TOOLING_REPORT_PATH),
-    ):
+    for label, lockfile, report in OSV_SCAN_TARGETS:
         reporter.run(
             f"osv-scan / {label}",
             lambda lockfile=lockfile, report=report: _scan(lockfile, report),

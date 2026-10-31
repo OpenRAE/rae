@@ -1,0 +1,14 @@
+{
+  "args": [
+    "behavioral-relation-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2d53aafc05060342defcccf7e8dd1bd2c8746fa84840de2a40425754cb5ed583"
+  },
+  "name": "contracts/fixtures/profiles/behavioral-relation-profile-v1/valid/multi-operation-crossing",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

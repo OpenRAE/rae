@@ -1,0 +1,29 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "invalid-product",
+  "spec_version": "1.0.0",
+  "title": "Invalid product",
+  "description": "A Cartesian product needs at least two named dimensions.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop."
+    },
+    "target_run_count": 1,
+    "selection_policies": {
+      "product": {
+        "kind": "product",
+        "policy_id": "product",
+        "purpose": "nuisance-variation",
+        "policy_refs": [
+          "one"
+        ],
+        "output_bound": 1
+      }
+    }
+  }
+}

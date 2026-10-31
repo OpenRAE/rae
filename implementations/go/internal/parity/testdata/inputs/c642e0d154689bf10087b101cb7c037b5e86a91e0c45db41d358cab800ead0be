@@ -1,0 +1,50 @@
+{
+  "event_id": "information-state-blue-43",
+  "schema_name": "raes.participant_runtime.information_state",
+  "schema_version": "1.0.0",
+  "event_type": "participant_information_state",
+  "extension_policy": "reject_unknown_required",
+  "participant_address": "participants.blue.rl",
+  "episode_id": "ep-blue-002",
+  "occurred_at": "2026-05-26T10:20:10Z",
+  "recorded_at": "2026-05-26T10:20:10Z",
+  "ingested_at": "2026-05-26T10:20:11Z",
+  "clock_authority": "sim.tick",
+  "ordering_basis": "simulation_tick",
+  "actor_ref": "participants.blue.rl",
+  "producer_ref": "adapters.cyborg-blue.v1",
+  "authorization_scope": "participant:participants.blue.rl",
+  "information_state_ref": "information-state.blue.ep002.cut43",
+  "information_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "payload_ref": "payloads.information-state.blue.ep002.cut43",
+  "state_cut": {
+    "cut_kind": "sequence_prefix",
+    "cut_ref": "cut.blue.ep002.43",
+    "history_domain": "participant_behavior_history",
+    "order_model": "backend_serialized_order",
+    "anchor_event_ref": "evt-blue-43",
+    "anchor_order": 43,
+    "history_prefix_length": 44,
+    "predecessor_event_refs": []
+  },
+  "participant_memory_scope": "episode_local_reset",
+  "memory_reset_authority_ref": "episode-reset.blue.ep002",
+  "audience_scope_ref": "audiences.participant.blue",
+  "visibility_projection_ref": "projections.blue.local.telemetry.v1",
+  "projection_version": "projection.blue.v1",
+  "projection_policy_revision": "projection.blue.v1",
+  "redaction_policy_revision": "redaction.blue.v1",
+  "information_guarantee": "history_consistent",
+  "source_refs": [
+    {
+      "contract_id": "participant-observation-envelope-v1",
+      "ref": "observations.blue.local.telemetry.43",
+      "relation": "observed"
+    }
+  ],
+  "occurrence_history_ref": "history.blue.ep002.prefix43",
+  "reconstruction_algorithm_id": "raes.occurrence-prefix-evidence",
+  "reconstruction_algorithm_version": "1.0.0",
+  "reconstruction_proof_ref": "proofs.information-state.blue.ep002.cut43",
+  "reconstructed_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

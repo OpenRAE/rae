@@ -1,0 +1,125 @@
+{
+  "bindings": [
+    {
+      "binding_id": "repository-binding",
+      "children": [],
+      "coordinate": {
+        "authority": "urn:example:profiles",
+        "definition_digest": "sha256:3dcbeac3315948d7b6047b19dc1da9f480fe65442050f5fd82b8b3313c29c062",
+        "namespace": "com.example.private",
+        "profile_id": "resource-label",
+        "revision": "1.0.0"
+      },
+      "owner": {
+        "canonical_address": "#/resources/provision.node.host",
+        "concept_family": "resource-realization",
+        "context": "artifact-acquisition",
+        "lifecycle_phase": "planning",
+        "owning_contract_id": "plan-realization-profiles-v1",
+        "use": "constraint"
+      },
+      "provenance": {
+        "basis": "author-supplied",
+        "evidence_refs": [],
+        "source_ref": "urn:example:binding-source"
+      },
+      "schema_version": "domain-profile-binding/v1",
+      "value": {
+        "name": "blue"
+      }
+    }
+  ],
+  "constraints": [
+    {
+      "binding_path": [
+        "repository-binding"
+      ],
+      "document": {
+        "contract_id": "recursive-realization-constraint-v1",
+        "default_closure": {
+          "posture": "closed",
+          "profile": "test/v1",
+          "universe": "profile-value"
+        },
+        "definitions": {},
+        "root": {
+          "closure": {
+            "posture": "undefined",
+            "profile": null,
+            "universe": null
+          },
+          "fields": {
+            "name": {
+              "domain": {
+                "kind": "enum",
+                "values": [
+                  "blue",
+                  "green"
+                ]
+              },
+              "kind": "domain",
+              "origin": "author",
+              "presence": "required"
+            }
+          },
+          "kind": "recursive-record",
+          "origin": "author",
+          "presence": "required"
+        },
+        "scopes": [],
+        "semantic_profile": "sha256:3dcbeac3315948d7b6047b19dc1da9f480fe65442050f5fd82b8b3313c29c062"
+      },
+      "source_binding": "sha256:c680c63091abe9ac58ed280439f6d0b5bf955a0bf26c1f07a52316b460410bcc"
+    }
+  ],
+  "contract_id": "plan-realization-profiles-v1",
+  "definitions": [
+    {
+      "definition": {
+        "allowed_contexts": [
+          "artifact-acquisition"
+        ],
+        "coordinate": {
+          "authority": "urn:example:profiles",
+          "definition_digest": "sha256:3dcbeac3315948d7b6047b19dc1da9f480fe65442050f5fd82b8b3313c29c062",
+          "namespace": "com.example.private",
+          "profile_id": "resource-label",
+          "revision": "1.0.0"
+        },
+        "profile_schema": {
+          "dialect": "https://json-schema.org/draft/2020-12/schema",
+          "required_vocabularies": [],
+          "revision": "1.0.0",
+          "schema_digest": "sha256:eb1dbf89f9c93bd46c2b00fdfb44e712337d05b14d07183af7bc2c6841d845fa",
+          "schema_document": {
+            "$id": "urn:example:schema:resource-label",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "schema_id": "urn:example:schema:resource-label"
+        },
+        "schema_version": "domain-profile-definition/v1",
+        "semantic_contract": {
+          "authority": "urn:example:profiles",
+          "contract_id": "resource-label-semantics",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "revision": "1.0.0"
+        }
+      },
+      "provenance": {
+        "source_digest": "sha256:3dcbeac3315948d7b6047b19dc1da9f480fe65442050f5fd82b8b3313c29c062",
+        "source_locator": "urn:example:admitted-profile",
+        "trust_decision_id": "trust-private-profile-1"
+      }
+    }
+  ]
+}

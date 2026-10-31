@@ -1,0 +1,22 @@
+{
+  "schema_version": "participant-information-reconstruction-profile/v1",
+  "profile_id": "occurrence-prefix-evidence-v1",
+  "title": "Executable dispatch must be rejected",
+  "description": "An invalid profile that attempts to select runtime code.",
+  "algorithm_id": "raes.occurrence-prefix-evidence",
+  "algorithm_version": "1.0.0",
+  "information_state_schema_version": "1.0.0",
+  "projection_version": "projection.blue.v1",
+  "determinism_basis": "exact_occurrence_prefix_and_proof_digest",
+  "accepted_input_contracts": [
+    "participant-observation-envelope-v1"
+  ],
+  "accepted_order_semantics": [
+    "sequence_prefix"
+  ],
+  "fixture_format": "participant-information-reconstruction-fixture/v1",
+  "proof_artifact_format": "participant-information-reconstruction-proof/v1",
+  "normative_artifact_ref": "specs/formal/participant-runtime/README.md",
+  "normative_artifact_digest": "sha256:3927ad6c2814be339e9b021fc4f6fa6656cc3dc66d2e66bef24de63fe9830c4a",
+  "python_import_path": "untrusted.module:run"
+}

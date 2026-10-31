@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-evaluation-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "42c6616594cba5c212534194940cfb098f3e74f4c5205376c0ed1aba49c2223c"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/invalid/unknown-field",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

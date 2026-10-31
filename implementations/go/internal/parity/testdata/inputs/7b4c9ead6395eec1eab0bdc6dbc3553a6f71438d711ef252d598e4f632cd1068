@@ -1,0 +1,170 @@
+{
+  "schema_version": "experiment-study/v1",
+  "study_id": "study-techvault-baseline",
+  "study_version": "1.0.0",
+  "study_kind": "study",
+  "title": "TechVault baseline study",
+  "owner": "raes-experiment-core",
+  "description": "Archival baseline study for TechVault red-team runs.",
+  "purpose": "Estimate baseline participant policy outcomes for the fixed task protocol.",
+  "research_questions": [
+    "How often does the baseline participant policy achieve initial foothold under the fixed task protocol?"
+  ],
+  "behavioral_claims": [
+    {
+      "taxonomy_id": "raes-behavioral-relations",
+      "taxonomy_revision": "rev8",
+      "relation_id": "empirical-adequacy",
+      "subject": "TechVault baseline study",
+      "left_carrier_ref": "study-techvault-baseline@1.0.0",
+      "observation_projection_ref": "analysis-plan:baseline-proportion",
+      "observation_projection_revision": "experiment-study/v1",
+      "quantifier_scope": "sampled-population",
+      "evidence_scope": "statistical",
+      "evidence_boundary": "The one predeclared baseline condition and included evaluation runs.",
+      "assurance_status": "deliberately-unproved",
+      "evidence_refs": ["analysis-plan:baseline-proportion"],
+      "limitations": ["The fixture has one run and cannot establish population adequacy."],
+      "explicit_non_claims": ["No behavioral equivalence or generalizability claim."]
+    }
+  ],
+  "membership": {
+    "task": {
+      "target_ref": {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0"
+      },
+      "role": "primary-task",
+      "inclusion_rationale": "Reference task for the study."
+    },
+    "run-001": {
+      "target_ref": {
+        "ref_kind": "run",
+        "ref_id": "run-techvault-001"
+      },
+      "role": "evaluation-run",
+      "grouping": "baseline"
+    }
+  },
+  "inclusion_criteria": [
+    "Runs must use the declared task version and reference apparatus context.",
+    "Runs with unresolved setup deviations are excluded from study estimates."
+  ],
+  "factors": {
+    "participant-policy": {
+      "name": "Participant policy",
+      "factor_kind": "treatment",
+      "levels": [
+        "baseline"
+      ]
+    },
+    "task-version": {
+      "name": "Task version",
+      "factor_kind": "blocking",
+      "levels": [
+        "1.0.0"
+      ]
+    },
+    "scenario-snapshot": {
+      "name": "Scenario snapshot",
+      "factor_kind": "blocking",
+      "levels": [
+        "2026-05-26"
+      ]
+    },
+    "apparatus-profile": {
+      "name": "Apparatus profile",
+      "factor_kind": "blocking",
+      "levels": [
+        "reference-stack-v1"
+      ]
+    }
+  },
+  "run_allocation": {
+    "allocation_unit": "run",
+    "allocation_method": "single-condition baseline allocation",
+    "compared_conditions": [
+      "baseline"
+    ],
+    "condition_assignments": {
+      "baseline": {
+        "condition_id": "baseline",
+        "factor_levels": {
+          "participant-policy": "baseline"
+        },
+        "required_refs": [
+          {
+            "ref_kind": "participant-implementation",
+            "ref_id": "reference-red-agent",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "description": "Baseline participant policy condition for the TechVault task."
+      }
+    },
+    "target_runs_per_condition": 1,
+    "randomization_unit": "participant-policy run order",
+    "blocking_factors": [
+      "task-version",
+      "scenario-snapshot",
+      "apparatus-profile"
+    ],
+    "replication_policy": "Include each baseline run under the declared task and apparatus context before estimating outcomes.",
+    "stopping_rule": "Stop after the predeclared target run count unless an apparatus invalidation requires replacement runs."
+  },
+  "analysis_plan": {
+    "analysis_id": "baseline-proportion",
+    "description": "Estimate baseline success proportion with uncertainty.",
+    "metrics": [
+      "foothold-achieved"
+    ],
+    "primary_metric": "foothold-achieved",
+    "statistical_method": {
+      "method": "binomial proportion estimate",
+      "estimand": "Baseline policy probability of foothold achievement under the fixed task protocol.",
+      "unit_of_analysis": "run",
+      "comparison_family": "single baseline condition for the foothold-achieved primary metric",
+      "assumptions": [
+        "Runs are treated as independent conditional on the declared task, apparatus context, and participant policy."
+      ]
+    },
+    "uncertainty_method": {
+      "method": "Wilson score interval",
+      "interval_level": 0.95,
+      "procedure": "Report a Wilson interval for the baseline foothold-achieved proportion."
+    },
+    "multiple_comparison_policy": {
+      "family": "single primary metric",
+      "correction": "not applicable",
+      "rationale": "No multiplicity adjustment is applied because this fixture declares one primary metric."
+    },
+    "missing_data_policy": {
+      "missingness_assumption": "Run value_status records distinguish missing, withheld, and not-applicable outcomes.",
+      "handling": "Runs without reported foothold-achieved values are retained with their declared value_status.",
+      "sensitivity_analysis": "Report the count of non-reported runs before drawing study claims."
+    }
+  },
+  "validity_notes": [
+    {
+      "category": "conclusion",
+      "note": "Additional repeated runs are required before drawing participant-policy comparison claims."
+    }
+  ],
+  "report_artifacts": [
+    {
+      "artifact_id": "study-report",
+      "role": "report",
+      "media_type": "text/markdown",
+      "uri": "studies/techvault-baseline/report.md",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "size_bytes": 12288,
+      "created_at": "2026-05-26T01:00:00Z",
+      "source": "study analysis report",
+      "sensitivity": "internal"
+    }
+  ]
+}

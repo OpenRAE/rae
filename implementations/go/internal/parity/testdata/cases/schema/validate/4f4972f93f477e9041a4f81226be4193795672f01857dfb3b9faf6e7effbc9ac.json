@@ -1,0 +1,14 @@
+{
+  "args": [
+    "domain-profile-resolution-context-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a93c7469be8ad794a1716caaa5b8696ba9f06efbc8f8434b91d8151f68cbd5f2"
+  },
+  "name": "contracts/fixtures/profiles/domain-profile-resolution-context-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

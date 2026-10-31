@@ -1,0 +1,31 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "invalid-coverage",
+  "spec_version": "1.0.0",
+  "title": "Unsupported coverage policy",
+  "description": "T-way coverage fails closed until an exact profile exists.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop."
+    },
+    "target_run_count": 1,
+    "selection_policies": {
+      "coverage": {
+        "kind": "coverage",
+        "policy_id": "coverage",
+        "purpose": "nuisance-variation",
+        "point_refs": [
+          "payload-path",
+          "payload-host"
+        ],
+        "strength": 2,
+        "output_bound": 1
+      }
+    }
+  }
+}

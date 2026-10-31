@@ -1,0 +1,263 @@
+{
+  "schema_version": "experiment-run/v1",
+  "run_id": "run-observability-invalid-001",
+  "run_version": "1.0.0",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-observability-v1",
+    "ref_version": "1.0.0"
+  },
+  "scenario_snapshot_ref": {
+    "ref_kind": "scenario-snapshot",
+    "ref_id": "scenario-observability",
+    "ref_version": "2026-06-28"
+  },
+  "apparatus_context": {
+    "schema_version": "experiment-apparatus-context/v1",
+    "apparatus_context_id": "apparatus-observability-invalid",
+    "context_version": "1.0.0",
+    "declared_at": "2026-06-28T00:00:00Z",
+    "components": {
+      "processor": {
+        "component_kind": "processor",
+        "identity": {
+          "name": "raes-reference-processor",
+          "version": "0.1.0"
+        },
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "processor-manifest/v2",
+          "subject_ref": {
+            "ref_kind": "processor",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "0.1.0"
+          }
+        },
+        "observed": true
+      },
+      "backend": {
+        "component_kind": "backend",
+        "identity": {
+          "name": "stub-backend",
+          "version": "0.1.0"
+        },
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "stub-backend",
+          "ref_version": "backend-manifest/v2",
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "stub-backend",
+            "ref_version": "0.1.0"
+          }
+        },
+        "observed": true
+      }
+    },
+    "selected_manifests": [
+      {
+        "ref_kind": "manifest",
+        "ref_id": "raes-reference-processor",
+        "ref_version": "processor-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "processor",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "0.1.0"
+        }
+      },
+      {
+        "ref_kind": "manifest",
+        "ref_id": "stub-backend",
+        "ref_version": "backend-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "backend",
+          "ref_id": "stub-backend",
+          "ref_version": "0.1.0"
+        }
+      }
+    ],
+    "compatibility_declarations": [
+      {
+        "ref_kind": "profile",
+        "ref_id": "reference-stack-v1",
+        "ref_version": "semantic-profile/v1"
+      }
+    ],
+    "configuration_parameters": [
+      {
+        "name": "worker-count",
+        "value": 1,
+        "value_kind": "apparatus"
+      }
+    ],
+    "stochastic_controls": [
+      {
+        "control_id": "task-seed",
+        "role": "seed",
+        "value": 128
+      }
+    ],
+    "clocks": [
+      {
+        "clock_id": "range-wall-clock",
+        "authority": "backend wall clock",
+        "time_domain": "wall-clock"
+      }
+    ],
+    "measurement_channels": [
+      {
+        "ref_kind": "measurement-channel",
+        "ref_id": "evaluation-history-channel",
+        "ref_version": "1.0.0"
+      }
+    ],
+    "observed_setup_evidence": [
+      {
+        "artifact_id": "setup-attestation",
+        "role": "apparatus-evidence",
+        "media_type": "application/json",
+        "uri": "runs/run-observability-invalid-001/setup.json",
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "size_bytes": 1024,
+        "created_at": "2026-06-28T00:01:00Z",
+        "source": "stub-backend setup attestation",
+        "sensitivity": "internal"
+      }
+    ],
+    "known_limitations": [
+      {
+        "category": "apparatus",
+        "note": "Fixture intentionally omits augmentation affected_refs while preserving schema validity."
+      }
+    ]
+  },
+  "parameter_set": [
+    {
+      "name": "difficulty",
+      "value": "standard",
+      "value_kind": "protocol"
+    }
+  ],
+  "stochastic_controls": [
+    {
+      "control_id": "task-seed",
+      "role": "seed",
+      "value": 128
+    }
+  ],
+  "started_at": "2026-06-28T00:10:00Z",
+  "ended_at": "2026-06-28T00:20:00Z",
+  "clock_context": {
+    "clock_id": "range-wall-clock",
+    "authority": "backend wall clock",
+    "time_domain": "wall-clock"
+  },
+  "run_status": "completed",
+  "outcome_status": "succeeded",
+  "traceability": {
+    "capture_spec_refs": [
+      {
+        "ref_kind": "capture-spec",
+        "ref_id": "capture-observability-v1",
+        "ref_version": "1.0.0"
+      }
+    ],
+    "evidence_record_refs": [
+      {
+        "ref_kind": "evidence-record",
+        "ref_id": "evidence-observability-001",
+        "ref_version": "1.0.0"
+      }
+    ],
+    "notes": [
+      "The augmentation disclosure is traced but does not name affected_refs."
+    ]
+  },
+  "augmentation_disclosures": [
+    {
+      "augmentation_id": "packet-capture-sidecar",
+      "purpose": "evidence",
+      "realization_layer": "backend",
+      "classifications": [
+        "apparatus_only"
+      ],
+      "augmented_by_ref": {
+        "ref_kind": "backend",
+        "ref_id": "stub-backend",
+        "ref_version": "0.1.0"
+      },
+      "carrier_refs": [
+        {
+          "ref_kind": "measurement-channel",
+          "ref_id": "evaluation-history-channel",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "affected_refs": [],
+      "evidence_refs": [
+        {
+          "ref_kind": "evidence-record",
+          "ref_id": "evidence-observability-001",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "disclosure_policy": "Internal run-provenance disclosure; no raw packet content is embedded.",
+      "markings": [
+        "internal"
+      ],
+      "observer_effect": "The sidecar observes run traffic without modifying scenario services."
+    }
+  ],
+  "evidence_artifacts": [
+    {
+      "artifact_id": "auth-log-evidence",
+      "role": "observation",
+      "media_type": "application/json",
+      "uri": "runs/run-observability-invalid-001/evaluation-history.json",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "size_bytes": 2048,
+      "created_at": "2026-06-28T00:20:00Z",
+      "source": "stub-backend evaluator history export",
+      "satisfies_refs": [
+        {
+          "ref_kind": "evidence",
+          "ref_id": "auth-log-evidence"
+        }
+      ],
+      "sensitivity": "internal"
+    }
+  ],
+  "result_summaries": {
+    "observation-result": {
+      "metric_id": "observation-complete",
+      "value": true,
+      "value_status": "reported",
+      "evidence_refs": [
+        {
+          "ref_kind": "evidence",
+          "ref_id": "auth-log-evidence"
+        }
+      ]
+    }
+  },
+  "used_refs": [
+    {
+      "ref_kind": "task",
+      "ref_id": "task-observability-v1",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "generated_refs": [
+    {
+      "ref_kind": "result",
+      "ref_id": "observation-result"
+    }
+  ]
+}

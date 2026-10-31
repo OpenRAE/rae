@@ -1,0 +1,211 @@
+{
+  "schema_version": "backend-manifest/v2",
+  "identity": {
+    "name": "stub",
+    "version": "0.2.0"
+  },
+  "supported_contract_versions": [
+    "backend-manifest-v2",
+    "provisioning-plan-v1",
+    "orchestration-plan-v1",
+    "evaluation-plan-v1",
+    "operation-receipt-v1",
+    "operation-status-v1",
+    "runtime-snapshot-v1",
+    "workflow-result-envelope-v1",
+    "workflow-history-event-stream-v1",
+    "evaluation-result-envelope-v1",
+    "evaluation-history-event-stream-v1",
+    "participant-episode-state-envelope-v1",
+    "participant-episode-history-event-stream-v1",
+    "participant-behavior-history-event-stream-v1",
+    "participant-lifecycle-event-v1",
+    "participant-observation-envelope-v1",
+    "participant-shared-state-record-v1",
+    "participant-joint-action-record-v1",
+    "participant-time-management-context-v1",
+    "participant-outcome-report-v1"
+  ],
+  "compatibility": {
+    "processors": [
+      "raes-reference-processor"
+    ]
+  },
+  "realization_support": [
+    {
+      "domain": "runtime-realization",
+      "support_mode": "constrained",
+      "supported_constraint_kinds": [
+        "account-feature",
+        "content-type",
+        "node-type",
+        "os-family",
+        "workflow-feature",
+        "workflow-state-predicate"
+      ],
+      "supported_exact_requirement_kinds": [
+        "declared-capability-match"
+      ],
+      "disclosure_kinds": [
+        "backend-manifest-v2",
+        "operation-status-v1",
+        "runtime-snapshot-v1"
+      ],
+      "constraints": {}
+    }
+  ],
+  "concept_bindings": [
+    {
+      "scope": "capabilities.provisioner.supported_node_types",
+      "family": "assets"
+    },
+    {
+      "scope": "capabilities.provisioner.supported_os_families",
+      "family": "assets"
+    },
+    {
+      "scope": "capabilities.provisioner.supported_content_types",
+      "family": "tools-and-artifacts"
+    },
+    {
+      "scope": "capabilities.provisioner.supported_account_features",
+      "family": "identities"
+    },
+    {
+      "scope": "capabilities.orchestrator.supported_sections",
+      "family": "actions-and-events"
+    },
+    {
+      "scope": "capabilities.evaluator.supported_sections",
+      "family": "observables"
+    },
+    {
+      "scope": "capabilities.participant_runtime.supported_participant_roles",
+      "family": "identities"
+    },
+    {
+      "scope": "capabilities.participant_runtime.supported_behavior_features",
+      "family": "actions-and-events"
+    },
+    {
+      "scope": "capabilities.participant_runtime.supported_interaction_features",
+      "family": "relationships"
+    }
+  ],
+  "constraints": {},
+  "capabilities": {
+    "provisioner": {
+      "name": "stub-provisioner",
+      "supported_node_types": [
+        "switch",
+        "compute"
+      ],
+      "supported_os_families": [
+        "freebsd",
+        "linux",
+        "macos",
+        "other",
+        "windows"
+      ],
+      "supported_content_types": [
+        "dataset",
+        "directory",
+        "file"
+      ],
+      "supported_account_features": [
+        "auth_method",
+        "disabled",
+        "groups",
+        "home",
+        "mail",
+        "shell",
+        "spn"
+      ],
+      "max_total_nodes": null,
+      "supports_acls": true,
+      "supports_accounts": true,
+      "constraints": {}
+    },
+    "orchestrator": {
+      "name": "stub-orchestrator",
+      "supported_sections": [
+        "events",
+        "injects",
+        "scripts",
+        "stories",
+        "workflows"
+      ],
+      "supports_workflows": true,
+      "supports_assertion_refs": true,
+      "supports_inject_bindings": true,
+      "supported_workflow_features": [
+        "call",
+        "cancellation",
+        "compensation",
+        "decision",
+        "failure-transitions",
+        "parallel-barrier",
+        "retry",
+        "switch",
+        "timeouts"
+      ],
+      "supported_workflow_state_predicates": [
+        "attempt-counts",
+        "outcome-matching"
+      ],
+      "constraints": {}
+    },
+    "evaluator": {
+      "name": "stub-evaluator",
+      "supported_sections": [
+        "conditions",
+        "evaluations",
+        "goals",
+        "metrics",
+        "objectives",
+        "tlos"
+      ],
+      "supports_scoring": true,
+      "supports_objectives": true,
+      "constraints": {}
+    },
+    "participant_runtime": {
+      "name": "stub-participant-runtime",
+      "supported_participant_roles": [
+        "blue",
+        "green",
+        "red",
+        "white"
+      ],
+      "supported_behavior_features": [
+        "action_contracts",
+        "attribution_support",
+        "behavior_history",
+        "effects",
+        "failure_classes",
+        "observation_boundaries",
+        "outcome_interpretation",
+        "preconditions",
+        "state_transitions",
+        "temporal_contracts"
+      ],
+      "supported_interaction_features": [
+        "contention",
+        "coordination",
+        "interference",
+        "shared_state_change"
+      ],
+      "feature_support": [
+        {
+          "feature": "behavior_history",
+          "support_level": "unsupported",
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosures.behavior-history.unsupported.v1"
+          ]
+        }
+      ],
+      "constraints": {}
+    }
+  }
+}

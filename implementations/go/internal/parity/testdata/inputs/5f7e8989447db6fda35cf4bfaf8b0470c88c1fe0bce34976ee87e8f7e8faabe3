@@ -1,0 +1,67 @@
+{
+  "schema_version": "trial-compiler-conformance-v1",
+  "profile_id": "trial-compiler-v1",
+  "coordinates": [
+    {
+      "replicate_ordinal": 1,
+      "expected_projection": {
+        "replicate_id": "replicate-000001"
+      }
+    },
+    {
+      "condition_id": "alpha",
+      "replicate_ordinal": 12,
+      "expected_projection": {
+        "condition_id": "alpha",
+        "replicate_id": "replicate-000012"
+      }
+    }
+  ],
+  "identities": [
+    {
+      "kind": "trial-plan",
+      "projection": {
+        "fixture": "minimal",
+        "coordinates": [
+          {
+            "replicate_id": "replicate-000001"
+          }
+        ]
+      },
+      "expected": "trial-plan-53bdbe8fb92b0c86fffacf530c136df887da9af495b6f006fc6e71f9b6a3dedb"
+    },
+    {
+      "kind": "trial-entry",
+      "projection": {
+        "plan_id": "trial-plan-fixture",
+        "coordinate": {
+          "condition_id": "alpha",
+          "replicate_id": "replicate-000012"
+        }
+      },
+      "expected": "trial-entry-a6797dec30ab28f00df6e52d1ab113338b4af7cddaf4a658dd6572b947df0300"
+    },
+    {
+      "kind": "archival-run",
+      "projection": {
+        "plan_id": "trial-plan-fixture",
+        "coordinate": {
+          "condition_id": "alpha",
+          "replicate_id": "replicate-000012"
+        }
+      },
+      "expected": "archival-run-5c86e516ab42546b20d68a0c3577d8f25b4125e1fdf3e9e55089edb45811c50a"
+    },
+    {
+      "kind": "trial-cleanup",
+      "projection": {
+        "plan_entry_id": "trial-entry-fixture",
+        "run_id": "archival-run-fixture",
+        "template": {
+          "profile": "trial-cleanup-v1"
+        }
+      },
+      "expected": "trial-cleanup-459464ccf4ae16a4493e19bcbe971f89074228568924d0e3d7890ae345519775"
+    }
+  ]
+}
