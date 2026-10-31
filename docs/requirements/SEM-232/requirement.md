@@ -93,3 +93,5 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_workflow.py` (Exact comparison, isolated execution and refusal of self-approved measurement)
 - DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction_checks.py` (Fixed independent comparison driver within the complete rootless worker boundary)
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_checks.py` (Complete comparison inventory, exact original bytes and always-accept rejection)
+- TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_record.py` (Retained qualified evidence, exact artifact joins and attributable agent acceptance)
+- DOCUMENTS → DOCUMENTATION `specs/formal/participant-semantics/reproduction/pin.json` (Immutable qualified reproduction and separate acceptance record)

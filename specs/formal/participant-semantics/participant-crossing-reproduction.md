@@ -26,7 +26,7 @@ No second model or relation checker is needed.
 
 The controller checks the expected bundle.
 A separately selected digest fixes that subject.
-It starts the reviewed producer in a fresh Python process.
+It starts the reproduction driver in a fresh Python process.
 The worker constructs actual bytes without reading the machine-check result directory.
 Its own driver repeats the fixed comparisons through the admitted native executable.
 The original model, corpus, witness, result, and admission interfaces remain unchanged.
@@ -46,6 +46,16 @@ The repository review authority owns that acceptance record.
 A caller-supplied name, second CI job, or producer approval cannot replace it.
 Missing acceptance leaves independent reproduction incomplete.
 Unsigned evidence cannot satisfy a policy that requires authenticity.
+
+The retained record is selected by `reproduction/pin.json`.
+Its manifest binds exact measurement, execution, and review bytes.
+The capture directory names the manifest digest.
+The measurement retains its separate acceptance requirement.
+The review names the current implementation-agent run and its acceptance comment.
+It also binds the qualified run, source revision, parents, and artifact digest.
+The earlier implementation-agent run remains the original producer.
+No human review is claimed.
+This immutable capture survives the hosted artifact retention period.
 
 ## Execution boundary and data flows
 

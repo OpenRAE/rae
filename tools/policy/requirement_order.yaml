@@ -258,7 +258,9 @@ ownership:
     - implementations/python/tests/test_issue_975_reproduction.py
     - implementations/python/tests/test_issue_975_reproduction_sandbox.py
     - implementations/python/tests/test_issue_975_reproduction_workflow.py
+    - implementations/python/tests/test_issue_975_reproduction_record.py
     - specs/formal/participant-semantics/participant-crossing-reproduction.md
+    - specs/formal/participant-semantics/reproduction
     - tools/check_participant_opacity_proof.py
     - specs/formal/participant-semantics/participant-opacity-proof-evidence.json
   authoring-adapter-conformance:
