@@ -49,8 +49,9 @@ func rules() map[string]string {
 }
 
 // CheckRules checks that the rule table of the ADR in name states each rule
-// that a check enforces, and that it maps each rule to that check. A table row
-// starts with the rule ID and ends with the check in backquotes.
+// that a check enforces, and that it maps each rule to that check. A row of
+// the table has three cells: the rule ID, the statement, and the check in
+// backquotes.
 func CheckRules(fsys fs.FS, name string) ([]Finding, error) {
 	content, err := fs.ReadFile(fsys, name)
 	if err != nil {
@@ -60,27 +61,28 @@ func CheckRules(fsys fs.FS, name string) ([]Finding, error) {
 	var findings []Finding
 	for line := range strings.Lines(string(content)) {
 		cells := strings.Split(strings.TrimSpace(line), "|")
-		if len(cells) < 4 || !strings.HasPrefix(strings.TrimSpace(cells[1]), "ARCH-") {
+		if len(cells) != 5 || !strings.HasPrefix(strings.TrimSpace(cells[1]), "ARCH-") {
 			continue
 		}
 		id := strings.TrimSpace(cells[1])
-		check := strings.Trim(strings.TrimSpace(cells[len(cells)-2]), "`")
+		check := strings.Trim(strings.TrimSpace(cells[3]), "`")
 		enforced, ok := want[id]
-		switch {
-		case !ok:
+		delete(want, id)
+		if !ok {
 			findings = append(findings, Finding{
 				Rule: ruleTable, Location: name,
 				Problem: fmt.Sprintf("the table states rule %s, which no check enforces, or states it again.", id),
 				Fix:     "add a check for the rule, or remove the row.",
 			})
-		case check != enforced:
+			continue
+		}
+		if check != enforced {
 			findings = append(findings, Finding{
 				Rule: ruleTable, Location: name,
 				Problem: fmt.Sprintf("the table maps rule %s to %q, but %q enforces it.", id, check, enforced),
 				Fix:     fmt.Sprintf("set the check of rule %s to %q.", id, enforced),
 			})
 		}
-		delete(want, id)
 	}
 	for _, id := range slices.Sorted(maps.Keys(want)) {
 		findings = append(findings, Finding{

@@ -214,36 +214,35 @@ func (m *Model) checkPackages() []Finding {
 	var findings []Finding
 	dirs := map[string]bool{}
 	for _, pkg := range m.Packages {
-		layer := m.layer(pkg.Layer)
-		switch {
-		case !isRepoDir(pkg.Dir) || dirs[pkg.Dir] || pkg.Doc == "":
-			findings = append(findings, Finding{
-				Rule: rulePackages, Location: pkg.Dir,
-				Problem: "the package needs a unique clean relative directory and a description.",
-				Fix:     "correct the package entry in the model.",
-			})
-		case layer.Name == "":
-			findings = append(findings, Finding{
-				Rule: rulePackages, Location: pkg.Dir,
-				Problem: fmt.Sprintf("the package names layer %q, which the model does not declare.", pkg.Layer),
-				Fix:     "assign the package to a declared layer.",
-			})
-		case !within(pkg.Dir, layer.Dir):
-			findings = append(findings, Finding{
-				Rule: rulePackages, Location: pkg.Dir,
-				Problem: fmt.Sprintf("the package is outside %s, the directory of its layer %s.", layer.Dir, layer.Name),
-				Fix:     fmt.Sprintf("move the package under %s, or assign it to the layer that owns its directory.", layer.Dir),
-			})
-		case !slices.ContainsFunc(m.Modules, func(module Module) bool { return within(pkg.Dir, module.Dir) }):
-			findings = append(findings, Finding{
-				Rule: rulePackages, Location: pkg.Dir,
-				Problem: "the package is outside every declared module.",
-				Fix:     "declare the module that holds the package, or move the package into a declared module.",
-			})
+		if problem, fix := m.packageProblem(pkg, dirs[pkg.Dir]); problem != "" {
+			findings = append(findings, Finding{Rule: rulePackages, Location: pkg.Dir, Problem: problem, Fix: fix})
 		}
 		dirs[pkg.Dir] = true
 	}
 	return findings
+}
+
+// packageProblem describes why the entry of pkg breaks ARCH-003, with its fix.
+// A duplicate entry repeats the directory of an earlier entry.
+func (m *Model) packageProblem(pkg Package, duplicate bool) (problem, fix string) {
+	if !isRepoDir(pkg.Dir) || duplicate || pkg.Doc == "" {
+		return "the package needs a unique clean relative directory and a description.",
+			"correct the package entry in the model."
+	}
+	layer := m.layer(pkg.Layer)
+	if layer.Name == "" {
+		return fmt.Sprintf("the package names layer %q, which the model does not declare.", pkg.Layer),
+			"assign the package to a declared layer."
+	}
+	if !within(pkg.Dir, layer.Dir) {
+		return fmt.Sprintf("the package is outside %s, the directory of its layer %s.", layer.Dir, layer.Name),
+			fmt.Sprintf("move the package under %s, or assign it to the layer that owns its directory.", layer.Dir)
+	}
+	if !slices.ContainsFunc(m.Modules, func(module Module) bool { return within(pkg.Dir, module.Dir) }) {
+		return "the package is outside every declared module.",
+			"declare the module that holds the package, or move the package into a declared module."
+	}
+	return "", ""
 }
 
 func (m *Model) checkImports() []Finding {
@@ -261,23 +260,25 @@ func (m *Model) checkImports() []Finding {
 // importProblem describes why from may not import the package in dir, with its fix.
 func (m *Model) importProblem(from Package, dir string) (problem, fix string) {
 	target, ok := m.pkg(dir)
-	switch {
-	case !ok:
+	if !ok {
 		return fmt.Sprintf("the package imports %s, which the model does not declare.", dir),
 			"declare the imported package in the model first."
-	case target.Dir == from.Dir:
+	}
+	if target.Dir == from.Dir {
 		return "the package imports itself.", "remove the import."
-	case target.Layer == from.Layer:
-		return "", ""
-	case !slices.Contains(m.layer(from.Layer).Uses, target.Layer):
-		return fmt.Sprintf("layer %s may not use layer %s, which owns %s.", from.Layer, target.Layer, dir),
-			"move the needed code to a layer that this layer uses, or change the layer model through the design step."
-	case !target.Public:
-		return dir + " is not public to other layers.",
-			"use a public package of that layer, or mark the package public through the design step."
-	default:
+	}
+	if target.Layer == from.Layer {
 		return "", ""
 	}
+	if !slices.Contains(m.layer(from.Layer).Uses, target.Layer) {
+		return fmt.Sprintf("layer %s may not use layer %s, which owns %s.", from.Layer, target.Layer, dir),
+			"move the needed code to a layer that this layer uses, or change the layer model through the design step."
+	}
+	if !target.Public {
+		return dir + " is not public to other layers.",
+			"use a public package of that layer, or mark the package public through the design step."
+	}
+	return "", ""
 }
 
 func (m *Model) layer(name string) Layer {

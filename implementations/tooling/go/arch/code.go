@@ -78,18 +78,23 @@ func LoadCode(ctx context.Context, root string, model *Model) (Code, error) {
 func findModules(repo fs.FS) (map[string]string, error) {
 	modules := map[string]string{}
 	err := fs.WalkDir(repo, ".", func(name string, entry fs.DirEntry, err error) error {
-		switch {
-		case err != nil:
+		if err != nil {
 			return err
-		case entry.IsDir() && name != "." && (entry.Name() == "testdata" || strings.ContainsAny(entry.Name()[:1], "._")):
-			return fs.SkipDir
-		case !entry.IsDir() && entry.Name() == "go.mod":
-			content, err := fs.ReadFile(repo, name)
-			if err != nil {
-				return err
-			}
-			modules[path.Dir(name)] = modfile.ModulePath(content)
 		}
+		if entry.IsDir() {
+			if name != "." && (entry.Name() == "testdata" || strings.ContainsAny(entry.Name()[:1], "._")) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if entry.Name() != "go.mod" {
+			return nil
+		}
+		content, err := fs.ReadFile(repo, name)
+		if err != nil {
+			return err
+		}
+		modules[path.Dir(name)] = modfile.ModulePath(content)
 		return nil
 	})
 	return modules, err
@@ -111,14 +116,19 @@ func (m *Model) addPackage(found map[string]Imports, module Module, pkg *package
 	imports := found[dir]
 	for importPath := range pkg.Imports {
 		target, firstParty := m.dirOf(importPath)
-		switch {
-		case firstParty && target == dir: // An external test imports the package under test.
-		case firstParty && isTest:
+		if !firstParty {
+			if !isStandard(importPath) {
+				imports.External = append(imports.External, importPath)
+			}
+			continue
+		}
+		if target == dir {
+			continue // An external test imports the package under test.
+		}
+		if isTest {
 			imports.Test = append(imports.Test, target)
-		case firstParty:
+		} else {
 			imports.Code = append(imports.Code, target)
-		case !isStandard(importPath):
-			imports.External = append(imports.External, importPath)
 		}
 	}
 	found[dir] = imports
@@ -149,14 +159,15 @@ func (m *Model) checkModuleFiles(code Code) []Finding {
 	var findings []Finding
 	for _, dir := range slices.Sorted(maps.Keys(code.Modules)) {
 		i := slices.IndexFunc(m.Modules, func(module Module) bool { return module.Dir == dir })
-		switch {
-		case i < 0:
+		if i < 0 {
 			findings = append(findings, Finding{
 				Rule: ruleModules, Location: dir + "/go.mod",
 				Problem: "the model does not declare this Go module.",
 				Fix:     "declare the module and its packages in the model through the design step.",
 			})
-		case m.Modules[i].Path != code.Modules[dir]:
+			continue
+		}
+		if m.Modules[i].Path != code.Modules[dir] {
 			findings = append(findings, Finding{
 				Rule: ruleModules, Location: dir + "/go.mod",
 				Problem: fmt.Sprintf("the go.mod states module path %q, but the model declares %q.", code.Modules[dir], m.Modules[i].Path),
