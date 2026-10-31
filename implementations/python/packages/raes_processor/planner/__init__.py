@@ -5,6 +5,7 @@ from ..semantics.realization import realization_disclosure, sanitize_realization
 from ..semantics.realization_snapshot_sanitization import realization_payload_projections
 from .account_credentials import account_credential_spec_is_valid
 from .core import plan
+from .descriptor_profiles import descriptor_profile_diagnostics
 from .materialization_admission import admit_materialization_submission, validate_materialization_archive_record
 from .ordering import snapshot_delete_order
 from .prepared_node_admission import prepared_node_capability_violation
@@ -23,6 +24,7 @@ from .stateful_admission import generated_artifact_payload_diagnostic
 
 __all__ = [
     "participant_tool_support_diagnostics",
+    "descriptor_profile_diagnostics",
     "admit_materialization_submission",
     "validate_materialization_archive_record",
     "account_credential_spec_is_valid",

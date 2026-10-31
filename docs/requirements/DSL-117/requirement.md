@@ -5,7 +5,7 @@ status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-04-05T01:24:06.514527Z
-updated_at: 2026-10-15T04:57:10.841468+00:00
+updated_at: 2026-10-31T00:00:00Z
 ---
 
 # DSL-117 — Participant Tool And Affordance Modeling
@@ -28,9 +28,11 @@ Primary-source refresh shows that tool-using participants require an explicit au
   `contracts/schemas/sdl/sdl-authoring-input-v1.json` is closed. Validator:
   `raes/validator/_participant_tool_affordances.py` resolves `tool_ref` through
   the declaration index and requires exactly one content declaration.
-  Composition: `raes/composition/_behavior.py` rewrites a bare unit content
-  name through the import's content symbols and any other spelling, such as
-  `content.<name>`, through its named symbols. Before that rewrite,
+  Composition: `raes/composition/_tool_affordance.py` rewrites a bare unit
+  content name through the import's content symbols and any other spelling,
+  such as `content.<name>`, through its named symbols.
+  `raes/composition/_behavior.py` applies it to each affordance. Before that
+  rewrite,
   `raes/composition/_expand.py` rejects a unit `tool_ref` that the unit's own
   declaration index finds ambiguous, with the standalone diagnostic. Authored
   private tool references and relations fail before expansion or parameter
@@ -45,8 +47,9 @@ Primary-source refresh shows that tool-using participants require an explicit au
   `raes/semantics/participant_behavior/_tool_affordance.py` rejects relations
   that widen the specification, fall outside a selected participant's actions
   or boundaries, duplicate another relation, or lack a view classification.
-  Composition: `raes/composition/_behavior.py` rewrites the relations into the
-  import's namespace and maps each affordance ref to its namespaced form.
+  Composition: `raes/composition/_tool_affordance.py` rewrites the relations
+  into the import's namespace, and `raes/composition/_behavior.py` maps each
+  affordance ref to its namespaced form.
   `raes/composition/_sections.py` applies that map to the boundary's refs,
   view rules and view transitions, so the classification follows the
   affordance. Compiler: one
@@ -69,10 +72,21 @@ Primary-source refresh shows that tool-using participants require an explicit au
   `raes/composition/_behavior.py` namespaces targets and accounts. Compiler:
   `raes_processor/compiler/participant_behaviors.py` carries each entry on the
   compiled participant behavior.
-- Interaction channels: `channel` is the closed vocabulary `ssh` or `rdp`. Any
-  other value, in a root document or an imported unit, raises `SDLParseError`
-  with the file and the `/agents/<name>/interactive_access/<id>/channel`
-  pointer.
+- Interaction channels: `channel` is `ssh`, `rdp` or a typed domain-profile
+  binding. Any other string, in a root document or an imported unit, raises
+  `SDLParseError` with the file and the
+  `/agents/<name>/interactive_access/<id>/channel` pointer. A typed channel
+  must be owned by its own field
+  ([ADR-120](../../decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md)).
+  Validator: `raes/descriptor_profiles.py` rejects any other owner, and
+  composition renames the owner with the participant. Compiler: the channel
+  stays on the compiled access and enters
+  `RuntimeModel.descriptor_profile_bindings`. Planner:
+  `raes_processor/planner/descriptor_profiles.py` refuses the plan unless the
+  target's committed profile context admits the exact profile semantics
+  (`raes_contracts/descriptor_profiles.py`). Runtime plan admission in
+  `raes_runtime/manager_plan_admission.py` repeats the check. Endpoint
+  uniqueness compares a typed channel by its profile coordinate.
 - Scope and availability constraints: an affordance is available only to the
   participants that its behavior specification selects by `participant_refs` or
   `participant_role_refs`, within its `authority_scope_refs`, and each of them
@@ -120,6 +134,11 @@ the semantics and the migration.
   and a relationship, or content and a content item, failed in the unit alone
   but composed silently to the content. Composition now fails with the
   standalone ambiguity diagnostic, anchored at the unit file.
+- Since #1278, a typed channel was accepted with any owner, context and value,
+  and no component admitted it. It now needs the owner of its own field.
+  Planning and runtime plan admission refuse it unless the target admits its
+  exact profile semantics (ADR-120; SEM-218 owns the same gate for the other
+  descriptor fields).
 
 Settled boundaries, not gaps:
 
@@ -169,7 +188,7 @@ Adjacent defects outside DSL-117 are tracked separately:
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Runtime admission that a tool declaration does not bypass)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (Tool affordance and interactive-access authoring reference)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/README.md` (SEM-219 predicates and the DSL-117 interactive-access specialization)
-- DOCUMENTS → GITHUB_ISSUE `298` (Verify participant tool authoring across composition and compilation)
+- IMPLEMENTS → GITHUB_ISSUE `298` (Verify participant tool authoring across composition and compilation)
 - TESTS → TEST `implementations/python/tests/test_issue_298_tool_authoring.py` (Standalone, twice-imported and local tool bindings through composition, declaration rename, compilation and runtime admission)
 - VERIFIES → SPEC `examples/scenarios/participant-tools/tool-kit.sdl.yaml` (Reusable tool unit that is also a valid standalone scenario)
 - VERIFIES → SPEC `examples/scenarios/participant-tools/twice-imported.sdl.yaml` (Two namespaced imports of one tool unit and a local tool affordance)
@@ -178,3 +197,11 @@ Adjacent defects outside DSL-117 are tracked separately:
 - TESTS → TEST `implementations/python/tests/test_issue_297_behavior_authoring.py` (Role-wide selection of a reusable tool binding and explicit participant refs)
 - TESTS → TEST `implementations/python/tests/test_sem_208_participant_behavior.py` (Single-file tool affordance parsing, validation, visibility and compilation)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane.py` (Runtime admission rejects an action outside the compiled participant behavior)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_tool_affordance.py` (Imported tool_ref and affordance-relation rewrite)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/descriptor_profiles.py` (Typed channel owner rule and target admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/descriptor_profiles.py` (Typed channel field walk and owner validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/descriptor_profiles.py` (Planning refusal of an unadmitted typed channel)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Runtime refusal of an unadmitted typed channel)
+- DOCUMENTS → ADR `docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md` (Owned and admitted typed descriptor profiles)
+- TESTS → TEST `implementations/python/tests/test_issue_298_descriptor_profiles.py` (Typed channel owner, composition, planning and runtime admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py` (Typed channel keeps typing and grants no account authority)

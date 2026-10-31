@@ -39,6 +39,7 @@ from ..semantics.realization import (
     realization_support_diagnostics,
     resolve_apparatus_realization_defaults,
 )
+from .descriptor_profiles import descriptor_profile_diagnostics
 from .execution_policy import attach_execution_policies
 from .interaction_context import fresh_evaluation_actions, retained_planning_context
 from .manifest_validation import _validate_manifest
@@ -383,6 +384,7 @@ def plan(
         *profile_diagnostics,
         *regeneration_diagnostics,
         *participant_tool_support_diagnostics(effective_model, manifest, processor_manifest),
+        *descriptor_profile_diagnostics(effective_model, manifest, profile_context),
         *_admission_diagnostics(
             effective_model,
             manifest,

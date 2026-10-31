@@ -3,9 +3,22 @@
   "issue_number": 298,
   "primary_requirement_uid": "DSL-117",
   "requirement_uids": [
-    "DSL-117"
+    "DSL-117",
+    "SEM-218"
   ],
   "bindings": {
+    "docs/decisions/adrs/README.md": [
+      "DSL-117",
+      "SEM-218"
+    ],
+    "docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md": [
+      "DSL-117",
+      "SEM-218"
+    ],
+    "docs/decisions/adrs/adr-index.yaml": [
+      "DSL-117",
+      "SEM-218"
+    ],
     "docs/decisions/issue-298-tool-authoring.md": [
       "DSL-117"
     ],
@@ -18,10 +31,16 @@
     "docs/requirements/DSL-117/requirement.md": [
       "DSL-117"
     ],
+    "docs/requirements/SEM-218/requirement.md": [
+      "SEM-218"
+    ],
     "docs/research/formal-semantic-validation/capture-records/capture-00aed687cc9fd63ba802257d065f4adcf243bbf8a7cc93a5cba089e52e7c268b.json": [
       "DSL-117"
     ],
     "docs/research/formal-semantic-validation/capture-records/capture-1decb5d4b1d16b1e5bad2b1efc3338add71b682514f0b3d4d2ef3117d7fe3d75.json": [
+      "DSL-117"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-3af21d062614a39b9c9b1814c521c17a1ca89ef41dac52b36d1ea8886f423f80.json": [
       "DSL-117"
     ],
     "docs/research/formal-semantic-validation/capture-records/capture-56df0fc6cbae00d89f88032fceddcf3c4384059b21f4836b9601620ebe1bbfa5.json": [
@@ -45,6 +64,15 @@
     "docs/research/formal-semantic-validation/captures/capture-1decb5d4b1d16b1e5bad2b1efc3338add71b682514f0b3d4d2ef3117d7fe3d75/snapshot.json": [
       "DSL-117"
     ],
+    "docs/research/formal-semantic-validation/captures/capture-3af21d062614a39b9c9b1814c521c17a1ca89ef41dac52b36d1ea8886f423f80/analysis.json": [
+      "DSL-117"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-3af21d062614a39b9c9b1814c521c17a1ca89ef41dac52b36d1ea8886f423f80/manifest.json": [
+      "DSL-117"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-3af21d062614a39b9c9b1814c521c17a1ca89ef41dac52b36d1ea8886f423f80/snapshot.json": [
+      "DSL-117"
+    ],
     "docs/research/formal-semantic-validation/captures/capture-56df0fc6cbae00d89f88032fceddcf3c4384059b21f4836b9601620ebe1bbfa5/analysis.json": [
       "DSL-117"
     ],
@@ -54,6 +82,9 @@
     "docs/research/formal-semantic-validation/captures/capture-56df0fc6cbae00d89f88032fceddcf3c4384059b21f4836b9601620ebe1bbfa5/snapshot.json": [
       "DSL-117"
     ],
+    "docs/research/specification-coverage/capture-records/capture-03cfb9b48ad63eee760d2f8221713625309d6c01a8a99852a97749ae0111732c.json": [
+      "DSL-117"
+    ],
     "docs/research/specification-coverage/capture-records/capture-2d4ef1191988a5f760a0c2d418b15fe314563ce1212e0a2dbce5a4736da505c4.json": [
       "DSL-117"
     ],
@@ -61,6 +92,15 @@
       "DSL-117"
     ],
     "docs/research/specification-coverage/capture-records/capture-e33b51ac05c58a30a1ea046a5256620cffe2a6464d6caf8973c50fe7d6b0b32f.json": [
+      "DSL-117"
+    ],
+    "docs/research/specification-coverage/captures/capture-03cfb9b48ad63eee760d2f8221713625309d6c01a8a99852a97749ae0111732c/analysis.json": [
+      "DSL-117"
+    ],
+    "docs/research/specification-coverage/captures/capture-03cfb9b48ad63eee760d2f8221713625309d6c01a8a99852a97749ae0111732c/manifest.json": [
+      "DSL-117"
+    ],
+    "docs/research/specification-coverage/captures/capture-03cfb9b48ad63eee760d2f8221713625309d6c01a8a99852a97749ae0111732c/snapshot.json": [
       "DSL-117"
     ],
     "docs/research/specification-coverage/captures/capture-2d4ef1191988a5f760a0c2d418b15fe314563ce1212e0a2dbce5a4736da505c4/analysis.json": [
@@ -111,11 +151,69 @@
     "implementations/python/packages/raes/composition/_expand.py": [
       "DSL-117"
     ],
+    "implementations/python/packages/raes/composition/_profiles.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes/descriptor_profiles.py": [
+      "DSL-117",
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes/validator/_core.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes/validator/_sections.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/descriptor_profiles.py": [
+      "DSL-117",
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/compiler/pipeline.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/models/runtime_model.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/__init__.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/core.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/planner/descriptor_profiles.py": [
+      "DSL-117",
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_runtime/manager_plan_admission.py": [
+      "DSL-117",
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1208_profile_boundaries.py": [
+      "DSL-117",
+      "SEM-218"
+    ],
     "implementations/python/tests/test_issue_297_behavior_authoring.py": [
       "DSL-117"
     ],
+    "implementations/python/tests/test_issue_298_descriptor_profiles.py": [
+      "DSL-117",
+      "SEM-218"
+    ],
     "implementations/python/tests/test_issue_298_tool_authoring.py": [
       "DSL-117"
+    ],
+    "specs/formal/participant-semantics/README.md": [
+      "DSL-117"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-d7b370d0c8d07dc350630152fa968f92e7b464b68214417e1ead707713b1dd58/cases.json": [
+      "DSL-117"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-d7b370d0c8d07dc350630152fa968f92e7b464b68214417e1ead707713b1dd58/manifest.json": [
+      "DSL-117"
+    ],
+    "specs/sdl/profile-selections.md": [
+      "DSL-117",
+      "SEM-218"
     ],
     "tools/policy/requirement_order.yaml": [
       "DSL-117"
