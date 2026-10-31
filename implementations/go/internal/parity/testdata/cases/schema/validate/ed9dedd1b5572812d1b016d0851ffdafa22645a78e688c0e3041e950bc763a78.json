@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-requirement-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "aa5e2242274e10c616f21dd7e0d9e0f5d2dbd75e3ba99789c9fe43fade79c0e8"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/invalid/exact-selector-mismatch",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

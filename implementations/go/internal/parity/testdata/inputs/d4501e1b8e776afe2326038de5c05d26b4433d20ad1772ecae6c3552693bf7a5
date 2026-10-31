@@ -1,0 +1,28 @@
+{
+  "schema_version": "backend-manifest/v2",
+  "identity": {
+    "name": "stub",
+    "version": "0.2.0"
+  },
+  "supported_contract_versions": ["backend-manifest-v2"],
+  "compatibility": {
+    "processors": ["raes-reference-processor"]
+  },
+  "realization_support": [
+    {
+      "domain": "runtime-realization",
+      "support_mode": "constrained",
+      "disclosure_kinds": []
+    }
+  ],
+  "concept_bindings": [
+    {"scope": "capabilities.provisioner.supported_node_types", "family": "assets"}
+  ],
+  "capabilities": {
+    "provisioner": {
+      "name": "stub-provisioner",
+      "supported_node_types": ["compute"],
+      "supported_os_families": ["linux"]
+    }
+  }
+}

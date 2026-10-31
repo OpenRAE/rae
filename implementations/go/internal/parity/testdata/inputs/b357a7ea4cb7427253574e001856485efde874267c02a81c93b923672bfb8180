@@ -1,0 +1,13 @@
+{
+  "state_schema_version": "participant-episode-state/v1",
+  "participant_address": "participant.alice",
+  "episode_id": "ep-0001",
+  "sequence_number": 0,
+  "status": "initializing",
+  "terminal_reason": null,
+  "initialized_at": "2026-04-11T10:00:00Z",
+  "updated_at": "2026-04-11T10:00:00Z",
+  "terminated_at": null,
+  "last_control_action": "initialize",
+  "previous_episode_id": null
+}

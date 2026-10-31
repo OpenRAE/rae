@@ -1,0 +1,37 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.yaml": "15a8cfc9db142f48085c7631226730741d2793659f7b3aecb2c1f452c777900e"
+  },
+  "name": "examples/scenarios/enterprise-identity-tenancy.sdl",
+  "result": {
+    "exit_code": 3,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "conformance",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "unsupported",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

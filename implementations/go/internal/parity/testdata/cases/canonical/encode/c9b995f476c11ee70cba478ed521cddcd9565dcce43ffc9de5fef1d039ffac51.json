@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "c3efdc35521db605f492d2bcff99a974ad1fb9729ee3b8acc48765d88c684fcf"
+  },
+  "name": "contracts/fixtures/candidate-synthesis/sdl-candidate-synthesis-input-v1/invalid/ambiguous-ordering",
+  "result": {
+    "jcs": "sha256:def672133b63665d1272d632474afae8bdaaa0bff3f7bd938610c829e02fdf56",
+    "sorted_ascii": "sha256:def672133b63665d1272d632474afae8bdaaa0bff3f7bd938610c829e02fdf56",
+    "sorted_unicode": "sha256:def672133b63665d1272d632474afae8bdaaa0bff3f7bd938610c829e02fdf56"
+  },
+  "surface": "canonical"
+}

@@ -2905,7 +2905,7 @@ def _installers2_container_kit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, 
             "platform": {"raw_manifest": [raw], "installed_identity": {"implementation": implementation}},
         }
 
-    selection = {"artifacts": [artifact("cpython", "CPython"), artifact("uv", "uv")]}
+    selection = {"artifacts": [artifact("cpython", "CPython"), artifact("uv", "uv"), artifact("go", "go")]}
     monkeypatch.setattr(
         tooling_policy_gate, "load_tooling_host_profile_selection_with_current_interpreter", lambda _host: selection
     )
@@ -2925,7 +2925,13 @@ def _installers2_container_kit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, 
 
     monkeypatch.setattr(bootstrap_profile, "fetch_bootstrap_payloads", fetch)
     monkeypatch.setattr(bootstrap_profile, "install_uv_payload", lambda *_args: {"path": "bin/uv"})
+
+    def install_go(_host: str, staging: Path, _artifact_id: str) -> dict[str, str]:
+        (staging / "go" / "go1.0").mkdir(parents=True)
+        return {"artifact_id": "go", "path": "go/go1.0"}
+
     monkeypatch.setattr(bootstrap_profile, "install_python_payload", install_python)
+    monkeypatch.setattr(bootstrap_profile, "install_go_payload", install_go)
     return tmp_path / "cache" / "raes-bootstrap"
 
 
@@ -2981,7 +2987,7 @@ def test_devcontainer_kit_refuses_an_interpreter_link_the_host_cannot_create(
     from tools.devcontainer_setup import DevcontainerSetupError, prepare_kit
 
     kit_root = _installers2_container_kit(tmp_path, monkeypatch, link_exists=True)
-    with pytest.raises(DevcontainerSetupError, match="^the bootstrap kit interpreter link could not be created$"):
+    with pytest.raises(DevcontainerSetupError, match="^the bootstrap kit toolchain links could not be created$"):
         prepare_kit("host", kit_root)
     _installers2_assert_no_staging(kit_root)
 
@@ -3007,9 +3013,11 @@ def test_devcontainer_kit_keeps_its_result(tmp_path: Path, monkeypatch: pytest.M
         "host_profile_id": "host",
         "python": "cpython",
         "uv": "uv",
-        "fetched": "cpython,uv",
+        "go": "go",
+        "fetched": "cpython,uv,go",
     }
     assert (kit_root / "python" / "current").is_symlink()
+    assert (kit_root / "go" / "current").is_symlink()
     _installers2_assert_no_staging(kit_root)
 
 

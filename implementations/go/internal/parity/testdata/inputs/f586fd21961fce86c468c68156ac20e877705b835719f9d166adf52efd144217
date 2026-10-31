@@ -1,0 +1,6 @@
+name: migration-merge
+nodes:
+  shared: &shared
+    type: switch
+  reuse:
+    <<: *shared

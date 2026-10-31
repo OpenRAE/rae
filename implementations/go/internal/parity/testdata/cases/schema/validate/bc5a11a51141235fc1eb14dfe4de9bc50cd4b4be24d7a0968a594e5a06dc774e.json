@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-resource-budget-event-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "75d2c8b09ef8866b35bfd5de725cca519b3c090864064eef84b1be85e4b9e1df"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-resource-budget-event-v1/valid/token-commit-event",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

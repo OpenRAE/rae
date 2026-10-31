@@ -102,7 +102,9 @@ def test_sonar_project_binding_matches_scanner_configuration() -> None:
     assert ground_control["sonarcloud"]["project_key"] == sonar_properties["sonar.projectKey"]
     assert ground_control["sonarcloud"]["organization"] == sonar_properties["sonar.organization"]
     assert set(sonar_properties["sonar.sources"].split(",")) == {
+        "implementations/go",
         "implementations/python/packages",
+        "implementations/tooling/go",
         "noxfile.py",
         "tools",
     }
@@ -3387,24 +3389,24 @@ def _run_nox_osv_scan(
         def log(self, _message: str) -> None:
             pass
 
-    lockfile = tmp_path / "implementations" / "python" / "uv.lock"
-    lockfile.parent.mkdir(parents=True)
-    lockfile.write_text("", encoding="utf-8")
-    report = lockfile.with_name("osv-scanner-report.json")
-    tooling_lockfile = tmp_path / "implementations" / "tooling" / "python" / "uv.lock"
-    tooling_lockfile.parent.mkdir(parents=True)
-    tooling_lockfile.write_text("", encoding="utf-8")
-    tooling_report = lockfile.with_name("osv-scanner-tooling-report.json")
+    targets = []
+    for label, relative in (
+        ("uv.lock", "implementations/python/uv.lock"),
+        ("tooling uv.lock", "implementations/tooling/python/uv.lock"),
+        ("Go tooling go.mod", "implementations/tooling/go/go.mod"),
+        ("Go go.mod", "implementations/go/go.mod"),
+    ):
+        lockfile = tmp_path / relative
+        lockfile.parent.mkdir(parents=True)
+        lockfile.write_text("", encoding="utf-8")
+        targets.append((label, lockfile, tmp_path / "out" / f"{label}.json"))
     scanner_binary = tmp_path / "osv-scanner"
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
-    monkeypatch.setattr(nox_test_lanes, "OSV_LOCKFILE_PATH", lockfile)
-    monkeypatch.setattr(nox_test_lanes, "OSV_REPORT_PATH", report)
-    monkeypatch.setattr(nox_test_lanes, "OSV_TOOLING_LOCKFILE_PATH", tooling_lockfile)
-    monkeypatch.setattr(nox_test_lanes, "OSV_TOOLING_REPORT_PATH", tooling_report)
+    monkeypatch.setattr(nox_test_lanes, "OSV_SCAN_TARGETS", tuple(targets))
     monkeypatch.setattr(nox_test_lanes, "ensure_osv_scanner", lambda _repo_root: scanner_binary)
 
     def fake_run_osv_scanner(actual_lockfile: Path, actual_report: Path, *, binary: Path) -> int:
-        assert (actual_lockfile, actual_report) in {(lockfile, report), (tooling_lockfile, tooling_report)}
+        assert (actual_lockfile, actual_report) in {(lockfile, report) for _label, lockfile, report in targets}
         assert binary == scanner_binary
         return exit_code
 
@@ -3421,7 +3423,24 @@ def test_nox_osv_scan_accepts_only_a_clean_result(
 ) -> None:
     reporter = _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=0)
 
-    assert [result.name for result in reporter.results] == ["osv-scan / uv.lock", "osv-scan / tooling uv.lock"]
+    assert [result.name for result in reporter.results] == [
+        "osv-scan / uv.lock",
+        "osv-scan / tooling uv.lock",
+        "osv-scan / Go tooling go.mod",
+        "osv-scan / Go go.mod",
+    ]
+
+
+def test_osv_scan_targets_cover_each_tracked_dependency_closure() -> None:
+    from tools.nox_support.config import OSV_SCAN_TARGETS
+
+    assert [lockfile.relative_to(REPO_ROOT).as_posix() for _label, lockfile, _report in OSV_SCAN_TARGETS] == [
+        "implementations/python/uv.lock",
+        "implementations/tooling/python/uv.lock",
+        "implementations/tooling/go/go.mod",
+        "implementations/go/go.mod",
+    ]
+    assert all(lockfile.is_file() for _label, lockfile, _report in OSV_SCAN_TARGETS)
 
 
 def test_nox_osv_scan_gates_vulnerability_findings(

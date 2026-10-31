@@ -1,0 +1,32 @@
+{
+  "name": "materialized-example",
+  "materialization_provenance": {
+    "profile": "raes-materialization-attestation/v1",
+    "attestation_id": "materialization-1",
+    "authored_digest": {
+      "profile": "raes-sdl-semantic/v2",
+      "algorithm": "sha256",
+      "value": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "instantiated_digest": {
+      "profile": "raes-sdl-instantiated-snapshot/v2",
+      "algorithm": "sha256",
+      "value": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "plan_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "predecessor_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "operation_id": "operation-1",
+    "run_id": "run-1",
+    "recorded_at": "2026-09-14T12:00:00Z",
+    "boundary": "post-materialization",
+    "producer": {
+      "name": "test-backend",
+      "version": "1.0.0",
+      "configuration_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "manifest_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "coverage_profile": "raes-materialization-effects/v1",
+    "origins": [],
+    "resource_bindings": []
+  }
+}

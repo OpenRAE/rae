@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reusable-asset-trust-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6d82afe53c68acf54cd51ca378951de8971cb114fb688f3ffb56d89e1d7167b9"
+  },
+  "name": "contracts/fixtures/asset-trust/reusable-asset-trust-policy-v1/invalid/duplicate-evidence-class",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

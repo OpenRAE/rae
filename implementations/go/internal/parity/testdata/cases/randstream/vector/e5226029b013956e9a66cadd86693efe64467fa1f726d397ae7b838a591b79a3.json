@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "vector",
+  "files": {
+    "vector.json": "8feb590d6695f14f534acb8324fbdb6e0ce470e8d998a7fc85f1ca652e343282"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-basic-draw",
+  "result": {
+    "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a2273616d706c696e672d73656c656374696f6e222c226c6f63616c5f636f6f7264696e617465223a352c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d62222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d62227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d62227d",
+    "draw": {
+      "rejection_attempts": 0,
+      "rejection_exhausted": false,
+      "value": "9"
+    },
+    "raw_block_hex": "e5a8a68e2efe0edfc587c1e4c43a795672e9c22961ec698f50cc1250a6b4b565",
+    "stream_key_hex": "0bd8f475de652a6f23763d7cb9bcf92110cdc36f6039b9708fff8e641a902503"
+  },
+  "surface": "randstream"
+}

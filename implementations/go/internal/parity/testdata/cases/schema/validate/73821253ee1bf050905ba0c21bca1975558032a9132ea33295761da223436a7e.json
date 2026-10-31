@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-resource-budget-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9ab5f7b72d5e9a3353b85b550a63ec6cd70ed69db8c270aa882e9a11afc51619"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-resource-budget-policy-v1/valid/complete-resource-vector",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

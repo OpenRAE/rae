@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "0b61cbd6b57493e43a756cac53eb4b568b0e450f3f938dcee3181a72aaf8000b"
+  },
+  "name": "contracts/fixtures/authoring-adapters-v1/cases/duplicate-key",
+  "result": {
+    "jcs": "sha256:9ee631ed67d7468db7cac899a1188e639300770416dc0e9374e28f01ed91723e",
+    "sorted_ascii": "sha256:9ee631ed67d7468db7cac899a1188e639300770416dc0e9374e28f01ed91723e",
+    "sorted_unicode": "sha256:9ee631ed67d7468db7cac899a1188e639300770416dc0e9374e28f01ed91723e"
+  },
+  "surface": "canonical"
+}

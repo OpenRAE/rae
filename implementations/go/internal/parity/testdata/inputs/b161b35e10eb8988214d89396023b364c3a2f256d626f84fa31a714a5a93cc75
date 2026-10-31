@@ -1,0 +1,82 @@
+{
+  "schema_version": "experiment-capture-spec/v1",
+  "capture_spec_id": "capture-techvault-evidence-v1",
+  "spec_version": "1.0.0",
+  "title": "TechVault evidence capture specification",
+  "description": "Declarative capture requirements for the TechVault red-team evaluation task.",
+  "scope_refs": [
+    {
+      "ref_kind": "task",
+      "ref_id": "task-techvault-red-team-v1",
+      "ref_version": "1.0.0"
+    },
+    {
+      "ref_kind": "run",
+      "ref_id": "run-techvault-001",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "capture_windows": [
+    {
+      "window_id": "run-window",
+      "window_kind": "run",
+      "starts_at": "2026-05-26T00:10:00Z",
+      "ends_at": "2026-05-26T00:40:00Z",
+      "description": "Capture evidence for the active run interval."
+    }
+  ],
+  "capture_requirements": {
+    "network-trace": {
+      "requirement_id": "network-trace",
+      "title": "Network trace evidence",
+      "capture_kind": "trace",
+      "capture_scope": "network",
+      "channel_ref": {
+        "ref_kind": "measurement-channel",
+        "ref_id": "evaluation-history-channel",
+        "ref_version": "1.0.0"
+      },
+      "window_refs": [
+        "run-window"
+      ],
+      "expected_media_types": [
+        "application/json"
+      ],
+      "required_artifact_roles": [
+        "observation"
+      ],
+      "output_contract": "participant-behavior-history-event-stream-v1",
+      "field_selectors": [
+        "/0/action_contract_address"
+      ],
+      "sensitivity": "internal",
+      "integrity_requirements": [
+        "sha256-digest"
+      ],
+      "retention_policy": "Retain raw evidence for the experiment review window.",
+      "loss_disclosure_required": true
+    }
+  },
+  "validity_notes": [
+    {
+      "category": "apparatus",
+      "note": "The capture specification defines evidence intent only; it does not imply runtime collection."
+    }
+  ],
+  "artifact_refs": [
+    {
+      "artifact_id": "capture-spec-review",
+      "role": "protocol",
+      "media_type": "text/markdown",
+      "uri": "docs/protocols/techvault-capture-spec.md",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "size_bytes": 2048,
+      "created_at": "2026-05-26T00:00:00Z",
+      "source": "experiment evidence design review",
+      "sensitivity": "internal"
+    }
+  ]
+}

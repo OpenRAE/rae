@@ -1,0 +1,14 @@
+{
+  "schema_version": "concept-families/v1",
+  "families": {
+    "scenarios": {
+      "title": "Scenarios",
+      "description": "SDL scenarios, compositions, modules, and authoring constructs.",
+      "provenance": "native",
+      "extension_scope": "SDL-native scenario authoring constructs.",
+      "non_ambiguity_constraints": [
+        "Must not redefine adopted cyber-domain families."
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scheduler-isolation-proof-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "43042198cc983f50bea2761861df023d20c64c75f96a0c940e02491a5c348d7c"
+  },
+  "name": "contracts/fixtures/control-plane/scheduler-isolation-proof-v1/valid/serial",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

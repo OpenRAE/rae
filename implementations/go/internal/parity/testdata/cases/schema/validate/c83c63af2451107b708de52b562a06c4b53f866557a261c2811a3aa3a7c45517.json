@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-execution-service-state-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "13ab7d0c8b667ad5932b49872dd67d94332fdcca1db83a7a946a7d00077c7fcb"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-execution-service-state-v1/valid/quiescent-after-drain",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

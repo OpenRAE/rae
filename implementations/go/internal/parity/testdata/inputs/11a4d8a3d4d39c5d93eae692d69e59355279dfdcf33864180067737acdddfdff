@@ -1,0 +1,29 @@
+name: cross-backend-minimal
+version: 1.0.0
+description: >-
+  Smallest scenario that resolves inside more than one provisioning backend's
+  realization envelope, for use as the shared input to cross-backend parity
+  checks. Compute intent is authored without a virtualization mechanism or an
+  operating system, so each backend selects a compatible substrate instead of
+  contradicting an authored value.
+
+nodes:
+  lab:
+    type: switch
+  workload:
+    type: compute
+    resources:
+      ram: 1 GiB
+      cpu: 1
+
+infrastructure:
+  lab:
+    count: 1
+    properties:
+      cidr: 10.10.0.0/24
+      gateway: 10.10.0.1
+      internal: true
+  workload:
+    count: 1
+    links:
+      - lab

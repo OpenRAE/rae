@@ -1,0 +1,32 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "different-image",
+    "version": "24.04.1",
+    "artifact_requirement": {
+      "requirement_id": "web-image",
+      "explicitness": "exact",
+      "exact_artifact": {
+        "artifact_id": "ubuntu-server",
+        "version": "24.04.1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "media_type": "application/vnd.oci.image.manifest.v1+json"
+      },
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "exact-artifact",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "pull",
+          "timing": "realization"
+        }
+      ],
+      "trust_policy_refs": [
+        "reusable-asset-trust-policy-v1#reusable_scenario"
+      ]
+    }
+  }
+}

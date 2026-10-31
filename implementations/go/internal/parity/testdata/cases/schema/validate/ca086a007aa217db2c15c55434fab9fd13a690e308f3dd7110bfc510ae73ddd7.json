@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realized-time-model-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2b7867d6d8bce864971ba1837a73dc850b83df206595d736031fdda92d3db552"
+  },
+  "name": "contracts/fixtures/time/realized-time-model-v1/invalid/missing-apparatus-binding",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

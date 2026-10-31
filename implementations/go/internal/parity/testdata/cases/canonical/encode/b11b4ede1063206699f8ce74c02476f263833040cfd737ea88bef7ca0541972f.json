@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "ff24b7dc8e8916fd2447006b826c47f5ca273534224f32f79f39b989f1d2133a"
+  },
+  "name": "contracts/fixtures/control-plane/participant-history-view-v1/invalid/truncated-without-basis",
+  "result": {
+    "jcs": "sha256:70b74c640b3b5e29ae7a3b0f2895744faeec18cfd124870718da6e3883caef1b",
+    "sorted_ascii": "sha256:70b74c640b3b5e29ae7a3b0f2895744faeec18cfd124870718da6e3883caef1b",
+    "sorted_unicode": "sha256:70b74c640b3b5e29ae7a3b0f2895744faeec18cfd124870718da6e3883caef1b"
+  },
+  "surface": "canonical"
+}

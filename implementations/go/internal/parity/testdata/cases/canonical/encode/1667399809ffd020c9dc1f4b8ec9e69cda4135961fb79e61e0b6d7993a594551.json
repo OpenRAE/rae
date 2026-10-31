@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "06c5f6468d03c83de4abec40cba37886cedbae43f1e2ae5f758dba8f6d9b7dd9"
+  },
+  "name": "contracts/fixtures/control-plane/mixed-backend-stage-report-v1/invalid/untagged-stage",
+  "result": {
+    "jcs": "sha256:6361d6ef5ec007596966c4a4dd63c682e2252fa536d340adaec73f3b7ddd78fc",
+    "sorted_ascii": "sha256:6361d6ef5ec007596966c4a4dd63c682e2252fa536d340adaec73f3b7ddd78fc",
+    "sorted_unicode": "sha256:6361d6ef5ec007596966c4a4dd63c682e2252fa536d340adaec73f3b7ddd78fc"
+  },
+  "surface": "canonical"
+}

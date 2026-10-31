@@ -1,0 +1,34 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "backend-selected",
+    "version": "*",
+    "artifact_requirement": {
+      "requirement_id": "open-candidate",
+      "explicitness": "open",
+      "candidates": [
+        {
+          "candidate_id": "candidate-a",
+          "artifact": {
+            "artifact_id": "ubuntu-server",
+            "version": "24.04.1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "media_type": "application/vnd.oci.image.manifest.v1+json"
+          }
+        }
+      ],
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "dynamic-composition",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "none",
+          "timing": "realization"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "f17582080e822cc18066d6b5ef79be4d5ed5bf77bc273bfae26a3050b36a1baa"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-participant-v1/participant-occurrence-bounded-draw",
+  "result": {
+    "jcs": "sha256:5f39974facaebb6f812be2a0744ca0dc6e05f5d06a53c1f976468080b79db2ab",
+    "sorted_ascii": "sha256:5f39974facaebb6f812be2a0744ca0dc6e05f5d06a53c1f976468080b79db2ab",
+    "sorted_unicode": "sha256:5f39974facaebb6f812be2a0744ca0dc6e05f5d06a53c1f976468080b79db2ab"
+  },
+  "surface": "canonical"
+}

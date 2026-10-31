@@ -1,0 +1,70 @@
+{
+  "schema_version": "semantic-comparison-request/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "before": {
+    "canonical_identity": "capture-spec:capture-techvault-evidence-v1",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:7f9cf199d5a0f8ebc9069e8feae116ca61db811a5b7e94b8b0c27f69c5e7b795",
+    "exact_representation": null,
+    "artifact_kind": "evidence-specification",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-capture-spec/v1",
+    "capture_spec_id": "capture-techvault-evidence-v1",
+    "spec_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "capture-spec:capture-techvault-evidence-v1",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:7f9cf199d5a0f8ebc9069e8feae116ca61db811a5b7e94b8b0c27f69c5e7b795",
+    "exact_representation": null,
+    "artifact_kind": "evidence-specification",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-capture-spec/v1",
+    "capture_spec_id": "capture-techvault-evidence-v1",
+    "spec_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "capture-spec:capture-techvault-evidence-v1"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "capture-spec:capture-techvault-evidence-v1",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:7f9cf199d5a0f8ebc9069e8feae116ca61db811a5b7e94b8b0c27f69c5e7b795",
+        "exact_representation": null,
+        "artifact_kind": "evidence-specification",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-capture-spec/v1",
+        "capture_spec_id": "capture-techvault-evidence-v1",
+        "spec_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "capture-spec:capture-techvault-evidence-v1",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:7f9cf199d5a0f8ebc9069e8feae116ca61db811a5b7e94b8b0c27f69c5e7b795",
+        "exact_representation": null,
+        "artifact_kind": "evidence-specification",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-capture-spec/v1",
+        "capture_spec_id": "capture-techvault-evidence-v1",
+        "spec_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:ccc5764c00c175f514796e8bb858dac03bda223a15c4bd70ed5f17211b0eb9c7"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

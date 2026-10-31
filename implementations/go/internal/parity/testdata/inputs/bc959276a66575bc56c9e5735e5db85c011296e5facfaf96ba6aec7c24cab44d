@@ -1,0 +1,76 @@
+{
+  "view_id": "views.context.participants.blue.rl.adjudication-leak.0001",
+  "participant_address": "participants.blue.rl",
+  "episode_id": "ep-blue-002",
+  "generated_at": "2026-05-26T10:24:00Z",
+  "source_snapshot_ref": "snapshots.run-778.tick42",
+  "view_ref": "views.context.evaluation-output.v1",
+  "meaning_ref": "semantics.context.evaluation-output.v1",
+  "participant_scope": "participant_local",
+  "audience_scope": "participant_visible",
+  "observation_point": "episode-step:tick42",
+  "derived_from_refs": [
+    "snapshots.run-778.tick42",
+    "measures.adjudication.hidden.0001"
+  ],
+  "source_layers": [
+    {
+      "source_id": "snapshot-tick42",
+      "source_layer": "source_snapshot",
+      "ref": "snapshots.run-778.tick42",
+      "temporal_relation": "same_observation_point",
+      "observation_point": "episode-step:tick42",
+      "evidence_refs": [
+        "obs-blue-43"
+      ],
+      "provenance_refs": [
+        "snapshots.run-778.tick42"
+      ]
+    },
+    {
+      "source_id": "adjudication-measure-0001",
+      "source_layer": "derived_measure",
+      "ref": "measures.adjudication.hidden.0001",
+      "temporal_relation": "historical_replay",
+      "observation_point": "episode-step:tick42",
+      "evidence_refs": [
+        "evidence.adjudication.hidden.0001"
+      ],
+      "provenance_refs": [
+        "runs.run-778.evaluation-manifest"
+      ]
+    }
+  ],
+  "transformation": {
+    "transformation_rule_ref": "rules.context.evaluation-output.v1",
+    "description": "Surface a hidden adjudication derived measure into participant-visible evaluation output without a redaction policy",
+    "input_source_ids": [
+      "snapshot-tick42",
+      "adjudication-measure-0001"
+    ],
+    "output_semantics_ref": "semantics.context.evaluation-output.v1"
+  },
+  "comparability": {
+    "comparability_class": "portable_equivalent",
+    "comparison_basis_ref": "comparability.evaluation-output.same-rule-and-projection.v1",
+    "backend_disclosure_refs": [],
+    "limitations": [
+      "Comparable only for the same view rule, visibility projection, and redaction policy"
+    ]
+  },
+  "evidence_refs": [
+    "evidence.adjudication.hidden.0001"
+  ],
+  "provenance_refs": [
+    "runs.run-778.evaluation-manifest"
+  ],
+  "semantic_limitations": [
+    "The payload reference surfaces a hidden adjudication measure to the participant"
+  ],
+  "derivation_basis_ref": "rules.context.evaluation-output.v1",
+  "payload_ref": "measures.adjudication.hidden.0001",
+  "visibility_projection_ref": "projections.blue.context.v1",
+  "marking_definition_refs": [
+    "markings.participant_visible.v1"
+  ]
+}

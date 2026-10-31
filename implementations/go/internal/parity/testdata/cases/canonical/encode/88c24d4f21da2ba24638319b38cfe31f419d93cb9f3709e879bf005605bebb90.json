@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "523e91d91c4ab6ba07c40c0396a989ff5e1ac3736ccd5dd7bd4d82aa9550c883"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/cases/rename-nested-references",
+  "result": {
+    "jcs": "sha256:afaf9331d266dd80fe1e6bbeeb57196c492941ba5f172fe163f23892953e79c9",
+    "sorted_ascii": "sha256:afaf9331d266dd80fe1e6bbeeb57196c492941ba5f172fe163f23892953e79c9",
+    "sorted_unicode": "sha256:afaf9331d266dd80fe1e6bbeeb57196c492941ba5f172fe163f23892953e79c9"
+  },
+  "surface": "canonical"
+}

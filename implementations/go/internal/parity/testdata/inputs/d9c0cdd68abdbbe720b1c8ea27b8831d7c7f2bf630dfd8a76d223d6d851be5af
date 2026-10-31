@@ -1,0 +1,53 @@
+{
+  "schema_version": "experiment-capture-spec/v1",
+  "capture_spec_id": "capture-techvault-evidence-v1",
+  "spec_version": "1.0.0",
+  "title": "TechVault evidence capture specification",
+  "description": "Invalid capture spec whose capture window declares no start, end, or trigger.",
+  "scope_refs": [
+    {
+      "ref_kind": "task",
+      "ref_id": "task-techvault-red-team-v1",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "capture_windows": [
+    {
+      "window_id": "run-window",
+      "window_kind": "run",
+      "description": "Window with no start, end, or trigger declared."
+    }
+  ],
+  "capture_requirements": {
+    "network-trace": {
+      "requirement_id": "network-trace",
+      "title": "Network trace evidence",
+      "capture_kind": "trace",
+      "capture_scope": "network",
+      "channel_ref": {
+        "ref_kind": "measurement-channel",
+        "ref_id": "evaluation-history-channel",
+        "ref_version": "1.0.0"
+      },
+      "window_refs": [
+        "run-window"
+      ],
+      "expected_media_types": [
+        "application/json"
+      ],
+      "required_artifact_roles": [
+        "observation"
+      ],
+      "output_contract": "participant-behavior-history-event-stream-v1",
+      "field_selectors": [
+        "/0/action_contract_address"
+      ],
+      "sensitivity": "internal",
+      "integrity_requirements": [
+        "sha256-digest"
+      ],
+      "retention_policy": "Retain raw evidence for the experiment review window.",
+      "loss_disclosure_required": true
+    }
+  }
+}

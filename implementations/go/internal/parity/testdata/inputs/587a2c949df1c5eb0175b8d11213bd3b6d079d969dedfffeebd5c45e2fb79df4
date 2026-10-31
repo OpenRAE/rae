@@ -1,0 +1,19 @@
+{
+  "schema_version": "validation-basis-disclosure/v1",
+  "disclosure": {
+    "profile_id": "raes-missing-validation",
+    "profile_version": "v1",
+    "subject_kind": "scenario",
+    "subject_ref": {
+      "ref_kind": "scenario",
+      "ref_id": "scenario-1"
+    },
+    "achieved_strength": "structural",
+    "gate_results": [
+      {"gate_kind": "syntax_validation", "outcome": "passed"},
+      {"gate_kind": "schema_validation", "outcome": "passed"},
+      {"gate_kind": "vocabulary_validation", "outcome": "passed"}
+    ],
+    "recorded_at": "2026-07-24T00:00:00Z"
+  }
+}

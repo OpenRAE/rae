@@ -1,0 +1,32 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "enumerate-selection",
+  "spec_version": "1.0.0",
+  "title": "Exhaustive selection",
+  "description": "Enumerate one finite scenario-family point.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example",
+    "ref_version": "1.0.0"
+  },
+  "intended_scenario_ref": {
+    "ref_kind": "scenario",
+    "ref_id": "family-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop after one bounded episode."
+    },
+    "target_run_count": 2,
+    "selection_policies": {
+      "enumerate-host": {
+        "kind": "enumerate",
+        "policy_id": "enumerate-host",
+        "purpose": "nuisance-variation",
+        "point_ref": "payload-host",
+        "output_bound": 2
+      }
+    }
+  }
+}

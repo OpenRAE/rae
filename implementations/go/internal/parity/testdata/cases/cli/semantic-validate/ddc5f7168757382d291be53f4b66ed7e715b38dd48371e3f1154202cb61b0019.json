@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "orchestration-plan-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "7453cbbd187471b47deddace3f558cbba69c2d7e6263c622efc1e2b3f3d18f2a"
+  },
+  "name": "contracts/fixtures/plans/orchestration-plan-v1/invalid/unknown-extra",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "orchestration-plan-v1",
+      "diagnostics": [
+        {
+          "address": "orchestration-plan-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 4,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

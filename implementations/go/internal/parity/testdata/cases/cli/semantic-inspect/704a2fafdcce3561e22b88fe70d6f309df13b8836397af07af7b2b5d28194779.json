@@ -1,0 +1,58 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-capture-spec-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "b378c89f4e91f8a24027bb75620588e25756ded8b4d612b64e16d0e38abb530d"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-capture-spec-v1/invalid/missing-capture-requirements",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-capture-spec-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-capture-spec-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 8,
+        "members": [
+          "capture_requirements",
+          "capture_spec_id",
+          "capture_windows",
+          "description",
+          "schema_version",
+          "scope_refs",
+          "spec_version",
+          "title"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

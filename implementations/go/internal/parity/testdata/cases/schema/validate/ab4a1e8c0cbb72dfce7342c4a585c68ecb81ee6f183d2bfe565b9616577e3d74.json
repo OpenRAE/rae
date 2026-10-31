@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "99b36f862841b775ff3ce1ed58da75c496f2d38b971c2214ff7beb92e18a8fad"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/invalid/typed-factorial-scalarized-member",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "participant-implementation-provenance/v1",
+  "run_id": "run-2026-05-29-001",
+  "participant_implementations": [
+    {
+      "participant_address": "participants.red",
+      "implementation_identity": {
+        "name": "reference-red-agent",
+        "version": "1.0.0"
+      },
+      "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+      "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "configuration_ref": "configs/red-agent.json",
+      "configuration_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "selected_decision_surface_mode": "policy-directed",
+      "participant_contract_versions": [
+        "participant-episode-state-envelope-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+      ],
+      "exposure_policy": {
+        "policy_id": "red-agent-policy",
+        "policy_version": "1.0.0",
+        "policy_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "exposure_policy_kinds": [
+          "task-statement",
+          "tool-affordance"
+        ],
+        "disclosed_refs": [
+          "scenario.tasks.red"
+        ],
+        "withheld_refs": [
+          "scenario.hidden.answer-key"
+        ],
+        "tool_affordance_refs": [
+          "tool.shell",
+          "tool.http-api"
+        ],
+        "visibility_scope_refs": [
+          "participants.red.visible"
+        ],
+        "constraints": {
+          "hidden_truth": "withheld"
+        }
+      }
+    }
+  ],
+  "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+  "backend_manifest_ref": "backend-manifest-v2:stub",
+  "metadata": {
+    "apparatus_record": "participant-implementation-selection"
+  }
+}

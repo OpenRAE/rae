@@ -1,0 +1,29 @@
+{
+  "schema_version": "time-model/v1",
+  "domains": {
+    "time.domain.logical": {
+      "address": "time.domain.logical",
+      "kind": "logical",
+      "tick_period_seconds": {"numerator": 1, "denominator": 1},
+      "epoch": "unanchored",
+      "visibility": "runtime_only",
+      "description": "logical ticks"
+    }
+  },
+  "clocks": {
+    "time.clock.logical": {
+      "address": "time.clock.logical",
+      "time_domain_address": "time.domain.missing",
+      "authority_kind": "runtime",
+      "authority_ref": "runtime.clock",
+      "monotonicity": "non_decreasing",
+      "supports_pause": false,
+      "supports_reset": false,
+      "supports_jump": false,
+      "description": "logical clock"
+    }
+  },
+  "mappings": {},
+  "progression_policies": {},
+  "temporal_constraints": {}
+}

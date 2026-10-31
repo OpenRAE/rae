@@ -1,0 +1,37 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "bounded-integer-rejection-then-accept",
+  "description": "bounded-integer transform, range [0, 199] (width 200, one-byte limit = 200), first attempt's raw byte falls in the rejected [200,255] band and is discarded (never used for the value), the second attempt's raw byte is accepted. Independently computed via the blake3 library directly (not the reference engine), by searching local_coordinate values for one whose first draw byte rejects and second accepts.",
+  "profile_id": "blake3-xof-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "7777777777777777777777777777777777777777777777777777777777777777"
+  },
+  "stream_key_hex": "dbe8eecef305c44dffc6889a4b4195963a668aed131944440a0922d0e4c4b051",
+  "address": {
+    "namespace": "study-namespace",
+    "trial_coordinate": {
+      "condition_id": "condition-d"
+    },
+    "selection_policy_id": "policy-d",
+    "variation_point_id": "point-d",
+    "draw_purpose": "agent-policy",
+    "local_coordinate": 4
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226167656e742d706f6c696379222c226c6f63616c5f636f6f7264696e617465223a342c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d64222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d64227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d64227d",
+  "raw_block_hex": "ec14167e458c1a8fd85bb2a352dcc12007636b8388ccf185c2e8851aff3088c2",
+  "transform": {
+    "transform_id": "bounded-integer",
+    "transform_version": "1",
+    "minimum": 0,
+    "maximum": 199,
+    "max_rejection_attempts": 32,
+    "expected_rejection_attempts": 1,
+    "expected_rejection_exhausted": false,
+    "outcome": {
+      "kind": "public-value",
+      "value": "20"
+    }
+  }
+}

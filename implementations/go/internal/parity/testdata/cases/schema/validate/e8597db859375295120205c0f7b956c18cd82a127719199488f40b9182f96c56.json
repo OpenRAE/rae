@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-context-view-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "822700451646863548b74100d4d4d56d170084b636a1322611fe5d3a78fb27d1"
+  },
+  "name": "contracts/fixtures/control-plane/participant-context-view-v1/invalid/sem216-backend-observability-as-observation",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

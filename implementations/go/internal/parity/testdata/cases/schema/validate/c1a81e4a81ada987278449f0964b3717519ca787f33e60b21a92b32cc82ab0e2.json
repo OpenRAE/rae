@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "191a3f45e8d7ab8280f3d958f52ccd571d8455dc8dd5a1caa8a71f75d0139b58"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/invalid/sample-selection-weighted",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

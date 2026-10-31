@@ -1,0 +1,43 @@
+{
+  "args": [
+    "semantic",
+    "parse",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic parse",
+  "files": {
+    "input.yaml": "144f39d33776b16b6057eb66038778d3446c8c6ae512b07774051abcb37e1e20"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "parse",
+      "payload": {
+        "field_count": 22,
+        "phase": "parsed-authoring",
+        "root_type": "object",
+        "scenario_name": "hospital-ransomware-surgery-day",
+        "semantic_validated": false
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

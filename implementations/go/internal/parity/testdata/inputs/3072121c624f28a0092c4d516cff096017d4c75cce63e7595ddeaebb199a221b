@@ -1,0 +1,51 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "portable-cloud-image",
+    "version": "*",
+    "artifact_requirement": {
+      "requirement_id": "materialized-image",
+      "explicitness": "constrained",
+      "locked_inputs": [
+        {
+          "input_id": "rootfs",
+          "artifact": {
+            "artifact_id": "linux-rootfs",
+            "version": "1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "media_type": "application/vnd.oci.image.layer.v1.tar+gzip"
+          },
+          "associated_artifact_manifest_ref": "associated-artifact-manifest-v1:rootfs",
+          "trust_policy_ref": "reusable-asset-trust-policy-v1#associated_artifact_set"
+        }
+      ],
+      "materialization_specifications": [
+        {
+          "specification_id": "cloud-image",
+          "profile": {
+            "mechanism": "materialization-specification",
+            "profile": "raes-cloud-image",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "locked_input_ids": [
+            "rootfs"
+          ]
+        }
+      ],
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "materialization-specification",
+            "profile": "raes-cloud-image",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "none",
+          "timing": "backend-preparation"
+        }
+      ]
+    }
+  }
+}

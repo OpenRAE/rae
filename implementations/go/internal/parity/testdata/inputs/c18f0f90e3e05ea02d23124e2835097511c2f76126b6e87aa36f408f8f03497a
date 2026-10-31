@@ -1,0 +1,12 @@
+{
+  "schema_version": "trial-cleanup-receipt/v1",
+  "receipt_id": "receipt-unverified",
+  "cleanup_plan_ref": "cleanup-plan-a",
+  "plan_entry_id": "trial-entry-a",
+  "run_id": "run-a",
+  "execution_attempt_id": "attempt-unverified",
+  "trial_outcome": "succeeded",
+  "cleanup_status": "unverified",
+  "obligation_results": {},
+  "clean_state_claim": {"disposition": "verified-clean", "boundary_refs": ["range-a"], "evidence_refs": ["evidence:weak"]}
+}

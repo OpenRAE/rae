@@ -1,0 +1,95 @@
+{
+  "schema_version": "runtime-fact-binding-plane/v1",
+  "declarations": [
+    {
+      "fact_id": "fact.credential-handle",
+      "value_type": "string",
+      "source_kind": "secret_reference",
+      "sensitivity": "secret",
+      "visibility": {
+        "participant_addresses": ["participant.behavior.red-agent"],
+        "workflow_addresses": ["workflow.main"],
+        "operator_visible": true
+      },
+      "authority_refs": ["policy.runtime-secrets"]
+    }
+  ],
+  "sinks": [
+    {
+      "sink_id": "sink.scan-credential",
+      "action_contract_address": "participant.action-contract.scan",
+      "target_field": "input.credential",
+      "value_type": "string",
+      "allowed_source_kinds": ["secret_reference"],
+      "allowed_scope_kinds": ["episode"],
+      "allowed_sensitivities": ["secret"],
+      "max_age_seconds": 300,
+      "authority_refs": ["policy.runtime-secrets"],
+      "audience": "protected_sink",
+      "absence_disposition": "fail"
+    }
+  ],
+  "versions": [
+    {
+      "fact_id": "fact.credential-handle",
+      "version_id": "fact-version.credential.1",
+      "sequence": 1,
+      "value_type": "string",
+      "source_kind": "secret_reference",
+      "sensitivity": "secret",
+      "scope": {
+        "kind": "episode",
+        "run_id": "run-791",
+        "participant_address": "participant.behavior.red-agent",
+        "episode_id": "episode-1"
+      },
+      "observed_at": "2026-07-20T03:00:00Z",
+      "secret_ref": "secret://runtime/credential/scan",
+      "confidence": 1.0,
+      "evidence_refs": ["evidence.credential-discovery.1"],
+      "provenance_refs": ["observation.credential-discovery.1"]
+    }
+  ],
+  "events": [
+    {
+      "event_id": "fact-binding.scan-secret.1",
+      "run_id": "run-791",
+      "participant_address": "participant.behavior.red-agent",
+      "episode_id": "episode-1",
+      "workflow_address": "workflow.main",
+      "action_instance_id": "scan-secret",
+      "action_contract_address": "participant.action-contract.scan",
+      "sink_id": "sink.scan-credential",
+      "target_field": "input.credential",
+      "fact_id": "fact.credential-handle",
+      "fact_version_id": "fact-version.credential.1",
+      "disposition": "bound",
+      "sensitivity": "secret",
+      "evidence_refs": ["evidence.credential-discovery.1"],
+      "provenance_refs": ["observation.credential-discovery.1"],
+      "authorization_refs": ["policy.runtime-secrets"],
+      "redacted": true
+    }
+  ],
+  "projections": [
+    {
+      "fact_id": "fact.credential-handle",
+      "fact_version_id": "fact-version.credential.1",
+      "value_type": "string",
+      "source_kind": "secret_reference",
+      "sensitivity": "secret",
+      "scope": {
+        "kind": "episode",
+        "run_id": "run-791",
+        "participant_address": "participant.behavior.red-agent",
+        "episode_id": "episode-1"
+      },
+      "observed_at": "2026-07-20T03:00:00Z",
+      "redacted": true,
+      "secret_reference_present": true,
+      "confidence": 1.0,
+      "evidence_refs": ["evidence.credential-discovery.1"],
+      "provenance_refs": ["observation.credential-discovery.1"]
+    }
+  ]
+}

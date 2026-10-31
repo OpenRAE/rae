@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-context-change-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "bd6bbaccb05528989180fee76e0f302f1d53bc30c437c43df8b4a384525b3b60"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-context-change-v1/valid/withdraw",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-context-change-v1",
+      "diagnostics": [
+        {
+          "address": "participant-control-context-change-v1",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 12,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "validation-profile-catalog-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2d443b588e6a2de4c5cf69389d5c14db04bccacc172d74a8e0e82fa5d1faf236"
+  },
+  "name": "contracts/fixtures/profiles/validation-profile-catalog-v1/invalid/dangling-reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

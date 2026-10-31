@@ -1,0 +1,155 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "389a343f50f19b4114de2803a012882b8f71d43f3726c5b00fec15f3abfaa0cf"
+  },
+  "name": "examples/scenarios/techvault.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 14,
+        "declarations": [
+          {
+            "address": "infrastructure.aptl-dmz",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-dmz",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-internal",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-internal",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.techvault-webapp",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.techvault-webapp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-dmz",
+            "kind": "node",
+            "model_path": "nodes.aptl-dmz",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-internal",
+            "kind": "node",
+            "model_path": "nodes.aptl-internal",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.techvault-webapp",
+            "kind": "node",
+            "model_path": "nodes.techvault-webapp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.techvault-webapp.runtime.applications.techvault-webapp",
+            "kind": "runtime-applications",
+            "model_path": "nodes.techvault-webapp.runtime.applications.0.application_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.techvault-webapp.services.techvault-http",
+            "kind": "service",
+            "model_path": "nodes.techvault-webapp.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.techvault-runtime-parity",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "variables.app_py_sha256",
+            "kind": "variable",
+            "model_path": "variables.app_py_sha256",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variables.requirements_sha256",
+            "kind": "variable",
+            "model_path": "variables.requirements_sha256",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variables.style_css_sha256",
+            "kind": "variable",
+            "model_path": "variables.style_css_sha256",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variables.wazuh_conf_sha256",
+            "kind": "variable",
+            "model_path": "variables.wazuh_conf_sha256",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variables.webapp_conf_sha256",
+            "kind": "variable",
+            "model_path": "variables.webapp_conf_sha256",
+            "referenceable": true,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "techvault-runtime-parity",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "infrastructure",
+              "nodes",
+              "variables"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

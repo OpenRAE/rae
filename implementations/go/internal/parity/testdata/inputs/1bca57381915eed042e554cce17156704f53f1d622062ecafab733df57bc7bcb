@@ -1,0 +1,42 @@
+name: techvault-observability-core
+description: >
+  Curated TechVault observability-core slice. Declares only the OTEL core
+  observability stack to prove the backend realizes the smallest bounded startup
+  surface from declared SDL content.
+
+nodes:
+  security-net:
+    type: switch
+    description: SOC and security tooling network.
+
+  aptl-otel-collector:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: otlp-grpc, port: 4317, protocol: tcp}
+      - {name: otlp-http, port: 4318, protocol: tcp}
+  aptl-tempo:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: tempo-http, port: 3200, protocol: tcp}
+  aptl-grafana-otel:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: grafana, port: 3000, protocol: tcp}
+
+infrastructure:
+  security-net:
+    properties: {cidr: 172.20.0.0/24, gateway: 172.20.0.1, internal: false}
+
+  aptl-otel-collector:
+    links: [security-net]
+  aptl-tempo:
+    links: [security-net]
+  aptl-grafana-otel:
+    links: [security-net]
+    dependencies: [aptl-tempo]

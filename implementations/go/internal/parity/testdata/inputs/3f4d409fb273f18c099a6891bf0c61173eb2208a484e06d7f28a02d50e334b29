@@ -1,0 +1,41 @@
+{
+  "schema_version": "trial-cleanup-plan/v1",
+  "plan_id": "cleanup-plan-retry",
+  "plan_entry_id": "trial-entry-retry",
+  "run_id": "run-retry",
+  "clean_state": {
+    "mode": "verified-reset",
+    "boundary_refs": ["range-a"],
+    "verification_probe_refs": ["probe:range-reset"],
+    "reusable_state_claim_ref": null
+  },
+  "resource_boundaries": {
+    "range-a": {
+      "boundary_id": "range-a",
+      "resource_kind": "range-instance",
+      "owner_ref": "apparatus:range-a",
+      "resource_refs": ["node.vm-a"]
+    }
+  },
+  "cleanup_obligations": {
+    "reset-range": {
+      "obligation_id": "reset-range",
+      "boundary_refs": ["range-a"],
+      "action_kind": "reset",
+      "action_profile_ref": null,
+      "triggers": ["retry", "failure"],
+      "requirement": "required",
+      "depends_on": [],
+      "idempotency": "requires-reset",
+      "compensation_refs": [],
+      "verification_probe_refs": ["probe:range-reset"],
+      "timeout_seconds": 60
+    }
+  },
+  "retry_policy": {
+    "max_attempts": 2,
+    "after_effect_policy": "reset",
+    "reset_obligation_refs": ["reset-range"],
+    "compensation_refs": []
+  }
+}

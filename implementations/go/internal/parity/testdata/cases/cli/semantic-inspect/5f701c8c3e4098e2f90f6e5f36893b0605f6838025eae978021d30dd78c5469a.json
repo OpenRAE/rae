@@ -1,0 +1,54 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-apparatus-context-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "4141656c33483dee6d40236ec93fb5e508fe16b10b0fe99c2b8902c52fdc0151"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/invalid/empty-components",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-apparatus-context-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-apparatus-context-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 4,
+        "members": [
+          "apparatus_context_id",
+          "components",
+          "context_version",
+          "schema_version"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

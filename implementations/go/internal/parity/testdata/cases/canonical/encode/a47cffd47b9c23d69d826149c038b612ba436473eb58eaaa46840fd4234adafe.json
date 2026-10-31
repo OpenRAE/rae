@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "72fcadd0811df299c38111132321c027cd221bf60a03c2fffbc7eb3b27ad1499"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-shared-state-record-v1/valid/serialized-service-state-commit",
+  "result": {
+    "jcs": "sha256:c49bd4ef63a444e2942e74171568cf978da411ad63aea53dbf3a8fa27dc3e1ef",
+    "sorted_ascii": "sha256:8460e239983cd8e4ddd159454dfce4e0ce4199fd63aaf9c7a6a945b2744df876",
+    "sorted_unicode": "sha256:8460e239983cd8e4ddd159454dfce4e0ce4199fd63aaf9c7a6a945b2744df876"
+  },
+  "surface": "canonical"
+}

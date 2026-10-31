@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-lifecycle-event-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "57184ec6e0922afab539baa5c7f64802504ae4a03cb6a2300c611e8460374a96"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-lifecycle-event-v1/invalid/unknown-phase",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

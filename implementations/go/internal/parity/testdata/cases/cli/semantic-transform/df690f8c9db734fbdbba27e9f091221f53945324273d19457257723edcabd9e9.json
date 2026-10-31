@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239"
+  },
+  "name": "examples/scenarios/temporal-profiles/automation-dwell.sdl/transform-canonical",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"action_contracts\":{\"probe-customer-portal-login\":{\"backend_timing_disclosures\":[{\"affected_temporal_ids\":[\"finish\"],\"description\":\"Admission requires exact bound-event evidence from the selected backend.\",\"disclosure_id\":\"timing\",\"disclosure_kind\":\"synchronization\",\"support_mode\":\"exact\"}],\"behavioral_granularity\":\"atomic\",\"effects\":[{\"description\":\"The participant obtains a bounded reachability observation.\",\"effect_class\":\"intended_effect\",\"effect_id\":\"portal-reachability-observed\",\"target_refs\":[\"nodes.customer-portal.services.http\"]},{\"description\":\"Runtime emits a terminal participant observation envelope.\",\"effect_class\":\"observation_effect\",\"effect_id\":\"terminal-observation-emitted\",\"evidence_refs\":[\"content.participant-observation\"]}],\"evidence_expectations\":[\"action outcome and bound timing evidence\"],\"failure_classes\":[\"precondition_unsatisfied\",\"target_unavailable\",\"unsupported_action\",\"authority_denied\",\"unsafe_withheld\",\"partial_success\",\"backend_error\",\"unknown\"],\"fidelity_claim\":\"Declares an HTTP probe, not a native implementation or fidelity claim.\",\"lifecycle_state\":\"active\",\"observation_expectations\":[\"terminal customer portal observation\"],\"preconditions\":[{\"description\":\"The participant is authorized to probe the customer portal login endpoint.\",\"precondition_class\":\"authority\",\"precondition_id\":\"participant-authorized\",\"support_refs\":[\"agents.participant-agent\",\"nodes.customer-portal.services.http\"]},{\"description\":\"The DMZ customer portal exists inside the enterprise slice.\",\"precondition_class\":\"target\",\"precondition_id\":\"portal-present\",\"support_refs\":[\"nodes.customer-portal.services.http\"]},{\"description\":\"A downstream participant implementation/runtime binding can perform the declared probe without changing SDL semantics.\\n\",\"precondition_class\":\"realization\",\"precondition_id\":\"runtime-binding-available\",\"support_refs\":[\"participant-implementation-manifest:participant-agent\"]}],\"procedure_basis\":\"bounded HTTP login probe through participant runtime\",\"realization_profile\":\"backend-declared\",\"semantic_version\":\"1.0.0\",\"state_transition_effects\":[\"participant customer-portal knowledge expands\"],\"temporal_contracts\":[{\"backend_disclosure_refs\":[\"timing\"],\"clock_authority\":\"scenario-clock\",\"description\":\"Bounded action deadline.\",\"duration_ref\":\"hold-window\",\"event_points\":[\"start\",\"end\"],\"ordering_basis\":\"shared-superdense-time\",\"replay_boundary\":\"fresh-evidence\",\"reset_boundary\":\"fresh-segment\",\"shared_time_binding\":{\"clock_ref\":\"scenario-clock\",\"condition_precondition_id\":\"portal-present\",\"constraint_ref\":\"hold-window\",\"event_point\":\"start\",\"evidence_mode\":\"continuous\",\"observation_boundary_ref\":\"participant-view\",\"profile\":\"participant-shared-time/v1\"},\"temporal_id\":\"finish\",\"temporal_kind\":\"dwell\",\"time_domain\":\"simulation_time\",\"window_ref\":\"hold-window\"}]}},\"agents\":{\"participant-agent\":{\"actions\":[\"probe-customer-portal-login\"],\"affiliations\":[\"enterprise-participant\"],\"observation_boundaries\":[\"participant-view\"]}},\"behavior_specifications\":{\"participant-behavior\":{\"action_contract_refs\":[\"probe-customer-portal-login\"],\"authority_scope_refs\":[],\"autonomous_execution\":{\"action_order\":[\"probe-customer-portal-login\"],\"clock_ref\":\"scenario-clock\",\"evaluation_authority\":{\"mode\":\"none\"},\"failure_policy\":\"stop\",\"max_action_attempts\":\"${attempts}\",\"max_in_flight\":1,\"observation_boundary_ref\":\"participant-view\",\"participant_implementation_ref\":\"participant-implementation-manifests.green-worker.v1\",\"progression_policy_ref\":\"scenario-progression\",\"selection_strategy\":\"ordered_cycle\",\"temporal_constraint_refs\":[\"green-cadence\"]},\"backend_feature_support_refs\":[\"action_contracts\",\"autonomous_execution\",\"behavior_history\",\"observation_boundaries\",\"temporal_contracts\"],\"behavior_mode\":\"autonomous\",\"evidence_contract_refs\":[\"participant-behavior-history-event-stream-v1\"],\"extension_policy\":\"governed-extension\",\"lifecycle_state\":\"active\",\"observation_boundary_refs\":[\"participant-view\"],\"outcome_interpretation_rule_refs\":[],\"participant_refs\":[\"participant-agent\"],\"participant_role_refs\":[\"green\"],\"realization_profile_ref\":\"participant-implementation-manifest:participant-agent\",\"semantic_version\":\"1.0.0\"}},\"clocks\":{\"scenario-clock\":{\"authority_kind\":\"runtime\",\"authority_ref\":\"runtime.time-coordinator\",\"description\":\"Authoritative shared scenario clock.\",\"monotonicity\":\"non_decreasing\",\"supports_pause\":true,\"supports_reset\":true,\"time_domain_ref\":\"scenario\"}},\"content\":{\"participant-observation\":{\"description\":\"Action and timing evidence.\",\"items\":[{\"description\":\"Bounded action observation.\",\"name\":\"response\"}],\"target\":\"customer-portal\",\"type\":\"dataset\"}},\"description\":\"Portable bounded temporal profile; native realization requires matching manifest claims and evidence.\",\"entities\":{\"enterprise-participant\":{\"role\":\"green\"}},\"infrastructure\":{\"customer-portal\":{\"count\":1}},\"name\":\"automation-dwell\",\"nodes\":{\"customer-portal\":{\"resources\":{\"cpu\":1,\"ram\":1073741824},\"services\":[{\"name\":\"http\",\"port\":8080,\"protocol\":\"tcp\"}],\"source\":{\"name\":\"customer-portal-app\",\"version\":\"reference\"},\"type\":\"compute\"}},\"observation_boundaries\":{\"participant-view\":{\"evidence_refs\":[\"content.participant-observation\"],\"latency_profile\":\"terminal action observation\",\"observable_refs\":[\"nodes.customer-portal.services.http\"],\"observer_effects\":[\"HTTP request may create service logs\"],\"projection_basis\":\"Declared HTTP target and bounded response.\",\"realized_view_disclosure\":\"Only the declared response and evidence references.\",\"redaction_policy\":\"No backend-private data.\"}},\"temporal_constraints\":{\"green-cadence\":{\"cadence_ticks\":10,\"clock_ref\":\"scenario-clock\",\"constraint_kind\":\"cadence\",\"description\":\"One benign participant action every ten ticks.\",\"start\":{\"tick\":10},\"subject_refs\":[\"nodes.customer-portal\"]},\"hold-window\":{\"clock_ref\":\"scenario-clock\",\"constraint_kind\":\"window\",\"description\":\"The condition must hold throughout [0, 10) before dispatch.\",\"end\":{\"tick\":10},\"start\":{\"tick\":0},\"subject_refs\":[\"action_contracts.probe-customer-portal-login\"]}},\"time_domains\":{\"scenario\":{\"description\":\"Exact shared scenario time for benign participant actions.\",\"epoch\":\"scenario_start\",\"kind\":\"simulated\",\"tick_period_seconds\":{\"denominator\":1,\"numerator\":1},\"visibility\":\"participant_visible\"}},\"time_progression_policies\":{\"scenario-progression\":{\"advancement_mode\":\"stepped\",\"clock_ref\":\"scenario-clock\",\"description\":\"Deterministic stepped progression.\",\"replay_behavior\":\"restore_recorded_advances\",\"reset_behavior\":\"new_segment_zero\",\"step_ticks\":10,\"synchronization_mode\":\"barrier\"}},\"variables\":{\"attempts\":{\"default\":1,\"type\":\"integer\"}}}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:5465c7f78913b624d4d7a396680991ac1445238a68e6effeb149f533dd564fd4"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "4914be377efccffb6db744c796233e9dc4a576304d9aaa51aac77b9aaea0f44c"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-execution-binding-v1/invalid/duplicate-target-address",
+  "result": {
+    "jcs": "sha256:efb9bb10f4d31574f07c98eef451a98df3c8f4120aeb6d79bd0b07d9b4d30829",
+    "sorted_ascii": "sha256:efb9bb10f4d31574f07c98eef451a98df3c8f4120aeb6d79bd0b07d9b4d30829",
+    "sorted_unicode": "sha256:efb9bb10f4d31574f07c98eef451a98df3c8f4120aeb6d79bd0b07d9b4d30829"
+  },
+  "surface": "canonical"
+}

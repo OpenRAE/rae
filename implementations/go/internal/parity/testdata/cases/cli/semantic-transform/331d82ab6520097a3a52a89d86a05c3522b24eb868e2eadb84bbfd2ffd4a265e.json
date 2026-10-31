@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "0ca8aaab2a483a9a678816540b975dcc74fbfe446923d0c642bd17c801597480"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-opt-in-after/transform-canonical",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"description\":\"Legacy scenario whose absence of participant crossing policy remains unknown and does not imply enforcement.\\n\",\"name\":\"participant-control-legacy\",\"version\":\"1.0\"}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:f59c75ac62ad13f2b5d128000c8b0e7d0448744de07d7df7a50cce44bc9bff36"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

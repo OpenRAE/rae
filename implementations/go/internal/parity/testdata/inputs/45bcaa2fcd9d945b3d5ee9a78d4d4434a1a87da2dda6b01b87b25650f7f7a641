@@ -1,0 +1,23 @@
+{
+  "schema_version": "scientific-completeness-taxonomy/v1",
+  "profile_family": "scientific-scenario-completeness",
+  "revision": "rev1",
+  "concerns": [
+    {
+      "concern_id": "source-profile-validity",
+      "title": "Source profile validity",
+      "definition": "The source obeys a governed profile.",
+      "semantic_owner": "SDL parser"
+    }
+  ],
+  "profiles": [
+    {
+      "profile_id": "valid-sdl-fragment",
+      "title": "Valid SDL fragment",
+      "intended_claim": "The source is admitted as SDL.",
+      "explicit_non_claims": ["No deployability claim."],
+      "dispositions": {},
+      "example_refs": []
+    }
+  ]
+}

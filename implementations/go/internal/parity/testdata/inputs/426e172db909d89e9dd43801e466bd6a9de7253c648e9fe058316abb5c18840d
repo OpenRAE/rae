@@ -1,0 +1,45 @@
+{
+  "contract_id": "recursive-realization-constraint-v1",
+  "semantic_profile": "raes-recursive-realization/v1",
+  "default_closure": {
+    "posture": "closed",
+    "universe": "scenario-fields/v1",
+    "profile": "raes-recursive-realization/v1"
+  },
+  "scopes": [
+    {
+      "field_pointer": "/nodes/host/runtime",
+      "closure": {
+        "posture": "open",
+        "universe": "node-runtime/v1",
+        "profile": "raes-recursive-realization/v1"
+      },
+      "origin": "author"
+    }
+  ],
+  "root": {
+    "kind": "recursive-record",
+    "fields": {
+      "nodes": {
+        "kind": "recursive-record",
+        "fields": {
+          "host": {
+            "kind": "recursive-record",
+            "fields": {
+              "runtime": {
+                "kind": "recursive-record",
+                "fields": {
+                  "kernel": {
+                    "kind": "literal",
+                    "value": "6.12"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {}
+}

@@ -1,0 +1,1350 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f"
+  },
+  "name": "examples/scenarios/port-authority-surge-response.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 182,
+        "declarations": [
+          {
+            "address": "accounts.crane-operator",
+            "kind": "accounts",
+            "model_path": "accounts.crane-operator",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.customs-officer",
+            "kind": "accounts",
+            "model_path": "accounts.customs-officer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.harbor-master",
+            "kind": "accounts",
+            "model_path": "accounts.harbor-master",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.historian-svc",
+            "kind": "accounts",
+            "model_path": "accounts.historian-svc",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.soc-analyst",
+            "kind": "accounts",
+            "model_path": "accounts.soc-analyst",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.tos-service",
+            "kind": "accounts",
+            "model_path": "accounts.tos-service",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.vendor-tech",
+            "kind": "accounts",
+            "model_path": "accounts.vendor-tech",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.coordinate",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.coordinate",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.disable",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.disable",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.inspect",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.inspect",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.isolate",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.isolate",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.monitor",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.monitor",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.phish",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.phish",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.pivot",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.pivot",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.recover",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.recover",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.restore",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.restore",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.tamper",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.tamper",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.triage",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.triage",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.validate",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.validate",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.blue-soc-agent",
+            "kind": "agents",
+            "model_path": "agents.blue-soc-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.blue-yard-agent",
+            "kind": "agents",
+            "model_path": "agents.blue-yard-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.red-yard-agent",
+            "kind": "agents",
+            "model_path": "agents.red-yard-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.crane-safe-mode",
+            "kind": "assertions",
+            "model_path": "assertions.crane-safe-mode",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.customs-link-healthy",
+            "kind": "assertions",
+            "model_path": "assertions.customs-link-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.historian-replication-ok",
+            "kind": "assertions",
+            "model_path": "assertions.historian-replication-ok",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.manifest-integrity-ok",
+            "kind": "assertions",
+            "model_path": "assertions.manifest-integrity-ok",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.pre-tampered-manifest-observed",
+            "kind": "assertions",
+            "model_path": "assertions.pre-tampered-manifest-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.tampered-manifest-observed",
+            "kind": "assertions",
+            "model_path": "assertions.tampered-manifest-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.yard-telemetry-flowing",
+            "kind": "assertions",
+            "model_path": "assertions.yard-telemetry-flowing",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.blackstart-runbook-ready",
+            "kind": "conditions",
+            "model_path": "conditions.blackstart-runbook-ready",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.camera-analytics-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.camera-analytics-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.crane-plc-online",
+            "kind": "conditions",
+            "model_path": "conditions.crane-plc-online",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.crane-safe-mode",
+            "kind": "conditions",
+            "model_path": "conditions.crane-safe-mode",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.customs-link-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.customs-link-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.gate-processing-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.gate-processing-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.historian-replication-ok",
+            "kind": "conditions",
+            "model_path": "conditions.historian-replication-ok",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.manifest-integrity-ok",
+            "kind": "conditions",
+            "model_path": "conditions.manifest-integrity-ok",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.operator-visibility-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.operator-visibility-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.port-sso-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.port-sso-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.portal-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.portal-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.soc-feed-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.soc-feed-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.surge-incident-ticketed",
+            "kind": "conditions",
+            "model_path": "conditions.surge-incident-ticketed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.tampered-manifest-observed",
+            "kind": "conditions",
+            "model_path": "conditions.tampered-manifest-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.terminal-throughput-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.terminal-throughput-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.vendor-jump-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.vendor-jump-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.yard-telemetry-flowing",
+            "kind": "conditions",
+            "model_path": "conditions.yard-telemetry-flowing",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.blackstart-runbook",
+            "kind": "content",
+            "model_path": "content.blackstart-runbook",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.cargo-manifests",
+            "kind": "content",
+            "model_path": "content.cargo-manifests",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.customs-holds",
+            "kind": "content",
+            "model_path": "content.customs-holds",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.customs-holds.items.hold-hz-204",
+            "kind": "content-item",
+            "model_path": "content.customs-holds.items.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.customs-holds.items.hold-hz-991",
+            "kind": "content-item",
+            "model_path": "content.customs-holds.items.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.hazmat-list",
+            "kind": "content",
+            "model_path": "content.hazmat-list",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.yard-camera-clips",
+            "kind": "content",
+            "model_path": "content.yard-camera-clips",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.customs-agency",
+            "kind": "entity",
+            "model_path": "entities.customs-agency",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.port-blue",
+            "kind": "entity",
+            "model_path": "entities.port-blue",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.port-blue.incident-command",
+            "kind": "entity",
+            "model_path": "entities.port-blue.entities.incident-command",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.port-blue.it",
+            "kind": "entity",
+            "model_path": "entities.port-blue.entities.it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.port-blue.yard-ops",
+            "kind": "entity",
+            "model_path": "entities.port-blue.entities.yard-ops",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.red-cartel",
+            "kind": "entity",
+            "model_path": "entities.red-cartel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.vendor-maintenance",
+            "kind": "entity",
+            "model_path": "entities.vendor-maintenance",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.white-cell",
+            "kind": "entity",
+            "model_path": "entities.white-cell",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.customs-surge-event",
+            "kind": "events",
+            "model_path": "events.customs-surge-event",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.vessel-arrival",
+            "kind": "events",
+            "model_path": "events.vessel-arrival",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.yard-standdown",
+            "kind": "events",
+            "model_path": "events.yard-standdown",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.objective-truth-evidence",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "features.camera-ai",
+            "kind": "features",
+            "model_path": "features.camera-ai",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.crane-control",
+            "kind": "features",
+            "model_path": "features.crane-control",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.customs-api",
+            "kind": "features",
+            "model_path": "features.customs-api",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.historian-service",
+            "kind": "features",
+            "model_path": "features.historian-service",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.manifest-store",
+            "kind": "features",
+            "model_path": "features.manifest-store",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.port-siem",
+            "kind": "features",
+            "model_path": "features.port-siem",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.port-sso",
+            "kind": "features",
+            "model_path": "features.port-sso",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.shipping-portal-app",
+            "kind": "features",
+            "model_path": "features.shipping-portal-app",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.terminal-service",
+            "kind": "features",
+            "model_path": "features.terminal-service",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.yard-backup",
+            "kind": "features",
+            "model_path": "features.yard-backup",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.yard-edr",
+            "kind": "features",
+            "model_path": "features.yard-edr",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.yard-hmi-app",
+            "kind": "features",
+            "model_path": "features.yard-hmi-app",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.backup-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.backup-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.backup-vault",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.backup-vault",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.camera-analytics",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.camera-analytics",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.crane-plc",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.crane-plc",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.customs-gateway",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.customs-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.customs-link",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.customs-link",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.gate-kiosk",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.gate-kiosk",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.historian01",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.historian01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.manifest-db",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.manifest-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.port-idp",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.port-idp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.public-edge",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.public-edge",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.safety-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.safety-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.security-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.shipping-portal",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.shipping-portal",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.soc01",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.soc01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.terminal-it",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.terminal-it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.terminal-ops",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.terminal-ops",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.vendor-jump",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.vendor-jump",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.vendor-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.vendor-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.yard-hmi",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.yard-hmi",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.yard-ot",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.yard-ot",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.yard-ot.acls.allow-yard-control",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.yard-ot.acls.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.yard-ot.acls.deny-public-yard",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.yard-ot.acls.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "injects.customs-priority-ticket",
+            "kind": "injects",
+            "model_path": "injects.customs-priority-ticket",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "injects.safety-standdown",
+            "kind": "injects",
+            "model_path": "injects.safety-standdown",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "injects.surge-brief",
+            "kind": "injects",
+            "model_path": "injects.surge-brief",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.backup-net",
+            "kind": "node",
+            "model_path": "nodes.backup-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.backup-vault",
+            "kind": "node",
+            "model_path": "nodes.backup-vault",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.backup-vault.roles.backup-admin",
+            "kind": "node-role",
+            "model_path": "nodes.backup-vault.roles.backup-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.backup-vault.services.yard-backup-ui",
+            "kind": "service",
+            "model_path": "nodes.backup-vault.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.camera-analytics",
+            "kind": "node",
+            "model_path": "nodes.camera-analytics",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.camera-analytics.roles.camera-admin",
+            "kind": "node-role",
+            "model_path": "nodes.camera-analytics.roles.camera-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.camera-analytics.services.camera-analytics-ui",
+            "kind": "service",
+            "model_path": "nodes.camera-analytics.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.crane-plc",
+            "kind": "node",
+            "model_path": "nodes.crane-plc",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.crane-plc.roles.plc-admin",
+            "kind": "node-role",
+            "model_path": "nodes.crane-plc.roles.plc-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.crane-plc.services.crane-opcua",
+            "kind": "service",
+            "model_path": "nodes.crane-plc.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.customs-gateway",
+            "kind": "node",
+            "model_path": "nodes.customs-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.customs-gateway.roles.customs-admin",
+            "kind": "node-role",
+            "model_path": "nodes.customs-gateway.roles.customs-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.customs-gateway.services.customs-api-https",
+            "kind": "service",
+            "model_path": "nodes.customs-gateway.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.customs-link",
+            "kind": "node",
+            "model_path": "nodes.customs-link",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.gate-kiosk",
+            "kind": "node",
+            "model_path": "nodes.gate-kiosk",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.gate-kiosk.roles.kiosk-admin",
+            "kind": "node-role",
+            "model_path": "nodes.gate-kiosk.roles.kiosk-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.gate-kiosk.services.gate-kiosk-https",
+            "kind": "service",
+            "model_path": "nodes.gate-kiosk.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.historian01",
+            "kind": "node",
+            "model_path": "nodes.historian01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.historian01.roles.historian-admin",
+            "kind": "node-role",
+            "model_path": "nodes.historian01.roles.historian-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.historian01.services.historian-ui",
+            "kind": "service",
+            "model_path": "nodes.historian01.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.manifest-db",
+            "kind": "node",
+            "model_path": "nodes.manifest-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.manifest-db.roles.dba",
+            "kind": "node-role",
+            "model_path": "nodes.manifest-db.roles.dba",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.manifest-db.services.manifest-postgres",
+            "kind": "service",
+            "model_path": "nodes.manifest-db.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.port-idp",
+            "kind": "node",
+            "model_path": "nodes.port-idp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.port-idp.roles.idp-admin",
+            "kind": "node-role",
+            "model_path": "nodes.port-idp.roles.idp-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.port-idp.services.port-sso-https",
+            "kind": "service",
+            "model_path": "nodes.port-idp.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.public-edge",
+            "kind": "node",
+            "model_path": "nodes.public-edge",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.safety-net",
+            "kind": "node",
+            "model_path": "nodes.safety-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.security-net",
+            "kind": "node",
+            "model_path": "nodes.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shipping-portal",
+            "kind": "node",
+            "model_path": "nodes.shipping-portal",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.shipping-portal.roles.portal-admin",
+            "kind": "node-role",
+            "model_path": "nodes.shipping-portal.roles.portal-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.shipping-portal.services.shipping-portal-https",
+            "kind": "service",
+            "model_path": "nodes.shipping-portal.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.soc01",
+            "kind": "node",
+            "model_path": "nodes.soc01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.soc01.roles.soc-admin",
+            "kind": "node-role",
+            "model_path": "nodes.soc01.roles.soc-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.soc01.services.port-soc-ui",
+            "kind": "service",
+            "model_path": "nodes.soc01.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.terminal-it",
+            "kind": "node",
+            "model_path": "nodes.terminal-it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.terminal-ops",
+            "kind": "node",
+            "model_path": "nodes.terminal-ops",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.terminal-ops.roles.tos-admin",
+            "kind": "node-role",
+            "model_path": "nodes.terminal-ops.roles.tos-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.terminal-ops.services.tos-https",
+            "kind": "service",
+            "model_path": "nodes.terminal-ops.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vendor-jump",
+            "kind": "node",
+            "model_path": "nodes.vendor-jump",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vendor-jump.roles.vendor-admin",
+            "kind": "node-role",
+            "model_path": "nodes.vendor-jump.roles.vendor-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.vendor-jump.services.vendor-jump-ssh",
+            "kind": "service",
+            "model_path": "nodes.vendor-jump.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vendor-net",
+            "kind": "node",
+            "model_path": "nodes.vendor-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.yard-hmi",
+            "kind": "node",
+            "model_path": "nodes.yard-hmi",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.yard-hmi.roles.hmi-admin",
+            "kind": "node-role",
+            "model_path": "nodes.yard-hmi.roles.hmi-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.yard-hmi.services.yard-hmi-rdp",
+            "kind": "service",
+            "model_path": "nodes.yard-hmi.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.yard-hmi.services.yard-hmi-web",
+            "kind": "service",
+            "model_path": "nodes.yard-hmi.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.yard-ot",
+            "kind": "node",
+            "model_path": "nodes.yard-ot",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "objectives.blue-blackstart-yard",
+            "kind": "objectives",
+            "model_path": "objectives.blue-blackstart-yard",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.blue-maintain-customs-integrity",
+            "kind": "objectives",
+            "model_path": "objectives.blue-maintain-customs-integrity",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.blue-validate-yard-telemetry",
+            "kind": "objectives",
+            "model_path": "objectives.blue-validate-yard-telemetry",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.red-corrupt-manifests",
+            "kind": "objectives",
+            "model_path": "objectives.red-corrupt-manifests",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.red-degrade-yard-ops",
+            "kind": "objectives",
+            "model_path": "objectives.red-degrade-yard-ops",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "propositions.crane-safe-mode",
+            "kind": "propositions",
+            "model_path": "propositions.crane-safe-mode",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.customs-link-healthy",
+            "kind": "propositions",
+            "model_path": "propositions.customs-link-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.historian-replication-ok",
+            "kind": "propositions",
+            "model_path": "propositions.historian-replication-ok",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.manifest-integrity-ok",
+            "kind": "propositions",
+            "model_path": "propositions.manifest-integrity-ok",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.tampered-manifest-observed",
+            "kind": "propositions",
+            "model_path": "propositions.tampered-manifest-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.yard-telemetry-flowing",
+            "kind": "propositions",
+            "model_path": "propositions.yard-telemetry-flowing",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.customs-federates-port",
+            "kind": "relationships",
+            "model_path": "relationships.customs-federates-port",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.historian-replicates-backup",
+            "kind": "relationships",
+            "model_path": "relationships.historian-replicates-backup",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.hmi-manages-crane",
+            "kind": "relationships",
+            "model_path": "relationships.hmi-manages-crane",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.portal-to-manifest",
+            "kind": "relationships",
+            "model_path": "relationships.portal-to-manifest",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.terminal-auth-portidp",
+            "kind": "relationships",
+            "model_path": "relationships.terminal-auth-portidp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.terminal-depends-customs",
+            "kind": "relationships",
+            "model_path": "relationships.terminal-depends-customs",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.vendor-support-path",
+            "kind": "relationships",
+            "model_path": "relationships.vendor-support-path",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.port-authority-surge-response",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "scripts.arrival-phase",
+            "kind": "scripts",
+            "model_path": "scripts.arrival-phase",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scripts.customs-surge-phase",
+            "kind": "scripts",
+            "model_path": "scripts.customs-surge-phase",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scripts.yard-disruption-phase",
+            "kind": "scripts",
+            "model_path": "scripts.yard-disruption-phase",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "stories.surge-day",
+            "kind": "stories",
+            "model_path": "stories.surge-day",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "workflows.yard-recovery",
+            "kind": "workflow",
+            "model_path": "workflows.yard-recovery",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "workflows.yard-recovery.steps.assess-yard",
+            "kind": "workflow-step",
+            "model_path": "workflows.yard-recovery.steps.assess-yard",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "workflows.yard-recovery.steps.blackstart-joined",
+            "kind": "workflow-step",
+            "model_path": "workflows.yard-recovery.steps.blackstart-joined",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "workflows.yard-recovery.steps.fanout-blackstart",
+            "kind": "workflow-step",
+            "model_path": "workflows.yard-recovery.steps.fanout-blackstart",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "workflows.yard-recovery.steps.finish",
+            "kind": "workflow-step",
+            "model_path": "workflows.yard-recovery.steps.finish",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "workflows.yard-recovery.steps.maintain-integrity",
+            "kind": "workflow-step",
+            "model_path": "workflows.yard-recovery.steps.maintain-integrity",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "workflows.yard-recovery.steps.restore-yard",
+            "kind": "workflow-step",
+            "model_path": "workflows.yard-recovery.steps.restore-yard",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "workflows.yard-recovery.steps.validate-telemetry",
+            "kind": "workflow-step",
+            "model_path": "workflows.yard-recovery.steps.validate-telemetry",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "port-authority-surge-response",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "accounts",
+              "action_contracts",
+              "agents",
+              "assertions",
+              "conditions",
+              "content",
+              "entities",
+              "events",
+              "features",
+              "infrastructure",
+              "injects",
+              "nodes",
+              "objectives",
+              "propositions",
+              "relationships",
+              "scripts",
+              "stories",
+              "workflows"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {
+            "objective-truth-evidence": {
+              "source": "legacy-evidence-requirement"
+            }
+          }
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}
