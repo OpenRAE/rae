@@ -17,7 +17,7 @@ Lookup charges each visited edge against the same budget.
 Exhaustion returns `limit-exceeded` through the existing diagnostic helpers.
 Default limits and public contracts stay unchanged.
 Legacy projection and compatibility helpers retain their existing lookup implementation.
-No published schema, policy rule, deployment configuration, or ADR needs a change.
+The runtime lookup fix changes no published schema or deployment configuration.
 This implementation follows ADR-070 and the issue preflight guidance.
 
 ## Security and data flow
@@ -62,3 +62,28 @@ Remaining risk is legitimate input exceeding a finite budget; failure remains cl
 
 Review kept sentences short and technical names consistent.
 This document describes system behavior; implementation tasks remain in the issue plan.
+
+## Routine verification and retained research
+
+Routine CI checks behavior with the current implementation.
+A saved research snapshot records an earlier observation.
+Its package hashes describe that observation; they do not prove current behavior.
+Research selection uses capture dates, not equality with the whole live source tree.
+Live replay still checks expected outcomes and artifact integrity.
+Package source hashes remain recorded provenance, with bounded shape validation.
+They no longer require a new publication after each source edit.
+
+The finite model CI job runs current graphs and the fixed negative controls.
+It requires the expected positive baseline decision.
+Routine CI does not publish or independently reproduce a saved historical capture.
+Explicit research publication and reproduction commands retain their selected-subject checks.
+Historical inventories and file pins remain intact.
+Tests of retained records check archive integrity separately from current behavior.
+No old record is relabeled as a new observation.
+
+The assets are accurate claims, source history, and useful release checks.
+The threat is stale evidence being presented as current verification.
+The control is separation of stored provenance from current executable checks.
+A changed behavioral result still fails CI.
+A source-only edit does not require a new research record.
+No network, credential, storage, or execution privilege changes are needed.

@@ -168,6 +168,17 @@ def load_retained(root: Path) -> tuple[dict[str, bytes], str]:
     return {name: read_bytes(root, path + "/" + name) for name in names}, expected
 
 
+def admit_retained_bundle(bundle: dict[str, bytes], expected_manifest_digest: str) -> None:
+    """Check a pinned archive without treating its source as current execution."""
+    validate_inventory(bundle)
+    if digest(bundle["manifest.json"]) != expected_manifest_digest:
+        raise EvidenceIntegrityError("retained machine-check manifest drift")
+    manifest = corpus.decoded(bundle["manifest.json"])
+    artifacts = {name: digest(payload) for name, payload in bundle.items() if name != "manifest.json"}
+    if manifest.get("artifact_digests") != artifacts:
+        raise EvidenceIntegrityError("retained machine-check artifact drift")
+
+
 def publish(root: Path) -> str:
     bundle = build_bundle(root)
     path = output_path(bundle)
@@ -175,11 +186,22 @@ def publish(root: Path) -> str:
     return path
 
 
+def verify(root: Path) -> None:
+    """Run current finite decisions and negative controls without publishing a capture."""
+    bundle = build_bundle(root)
+    if corpus.decoded(bundle["result.json"]).get("equivalent") is not True:
+        raise EvidenceIntegrityError("current finite model does not satisfy the selected relation")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("record", "check", "replay"))
+    parser.add_argument("action", choices=("record", "check", "replay", "verify"))
     args = parser.parse_args()
     try:
+        if args.action == "verify":
+            verify(ROOT)
+            print("Current finite model and negative controls passed.")
+            return 0
         if args.action == "record":
             path = publish(ROOT)
         else:

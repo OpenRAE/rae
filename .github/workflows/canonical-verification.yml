@@ -131,46 +131,13 @@ jobs:
           --local-input .canonical-tool-inputs/archives/mcrl2/mcrl2-202607.0_x86_64.deb
       - name: Prepare the locked Python verification environment
         run: uv sync --project implementations/python --frozen --all-extras
-      - name: Replay and admit the complete finite decision and negative corpus
+      - name: Check the current finite model and negative controls
         env:
           PYTHONPATH: implementations/python/packages:.
           RAES_REQUIREMENT_UID: SEM-232
-          RAES_MACHINE_CHECK_SOURCE_SHA: ${{ inputs.ref }}
         run: >-
           uv run --offline --no-sync --project implementations/tooling/python --frozen --no-default-groups
-          nox -f noxfile.py -s participant-crossing-machine-check -- --publish
-      - name: Measure a fresh isolated reproduction of the reviewed finite claim
-        env:
-          PYTHONPATH: implementations/python/packages:.
-          RAES_REQUIREMENT_UID: SEM-232
-          RAES_MACHINE_CHECK_SOURCE_SHA: ${{ inputs.ref }}
-        run: >-
-          uv run --offline --no-sync --project implementations/python --frozen
-          python -m implementations.formal.participant_crossing.reproduction
-          --expected-manifest sha256:76422aebb1413e345677eeaa4bea67005e74aa3d9289d185f63f4c69dc838339
-          --qualified
-      - name: Publish admitted finite model-check evidence
-        if: ${{ success() }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: participant-crossing-machine-check-${{ inputs.ref }}
-          path: |
-            .cache/raes-sdl/machine-check-publication/abstract.aut
-            .cache/raes-sdl/machine-check-publication/concrete.aut
-            .cache/raes-sdl/machine-check-publication/abstract.json
-            .cache/raes-sdl/machine-check-publication/concrete.json
-            .cache/raes-sdl/machine-check-publication/model-manifest.json
-            .cache/raes-sdl/machine-check-publication/corpus-manifest.json
-            .cache/raes-sdl/machine-check-publication/mutation-results.json
-            .cache/raes-sdl/machine-check-publication/result.json
-            .cache/raes-sdl/machine-check-publication/manifest.json
-            .cache/raes-sdl/machine-check-publication/execution.json
-            .cache/raes-sdl/machine-check-publication/baseline.mcf
-            .cache/raes-sdl/crossing-reproduction-publication/measurement.json
-            .cache/raes-sdl/crossing-reproduction-publication/execution.json
-          if-no-files-found: error
-          include-hidden-files: true
-          retention-days: 14
+          nox -f noxfile.py -s participant-crossing-machine-check
 
   # Deterministic concurrent shards of the default-marker suite. Each shard owns a
   # SHA-256 partition of the collected node ids, runs xdist within its shard, and

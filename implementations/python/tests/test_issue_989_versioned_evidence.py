@@ -17,6 +17,7 @@ def test_historical_evidence_rejects_malformed_shapes_even_with_rebound_digest(c
     import json
 
     from raes_contracts.canonical import canonical_json_digest
+
     from tools.formal_semantic_validation._production import _historical_production_replay
 
     payload = json.loads((ROOT / f"docs/research/formal-semantic-validation/evidence/{case_name}-v3.json").read_text())
@@ -98,6 +99,7 @@ def test_historical_computed_joins_reject_rebound_evidence(family, field):
     import json
 
     from raes_contracts.canonical import canonical_json_digest
+
     from tools.formal_semantic_validation._production import _historical_production_replay
 
     payload = json.loads((ROOT / f"docs/research/formal-semantic-validation/evidence/{family}-v3.json").read_text())
@@ -123,6 +125,7 @@ def test_historical_integrity_checks_reject_shape_valid_substitutions(version, m
     import json
 
     from raes_contracts.canonical import canonical_json_digest
+
     from tools.formal_semantic_validation._production import _historical_production_replay
 
     satisfiability = mutation in {"source", "authored"}
@@ -160,6 +163,7 @@ def test_current_compile_replay_hashes_complete_capture_dimension():
 
     from raes import instantiate_scenario, parse_sdl_file
     from raes_processor.compiler import compile_runtime_model
+
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._replay import _compiled_case_digest, _migration_policy_for_case
     from tools.formal_semantic_validation._shape import _digest
@@ -209,6 +213,7 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
     from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
     from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
+
     from tools.formal_semantic_validation import _production, _releases, _retest
     from tools.formal_semantic_validation._loading import load_release_bundles
 
@@ -243,7 +248,7 @@ def test_current_formal_capture_requires_the_retest_protocol(monkeypatch, protoc
 
     current = _stub_release("77.0.0", protocol_revision=protocol_revision)
     monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [current])
-    monkeypatch.setattr(_loading, "current_release_path", lambda *_args: current.manifest_path)
+    monkeypatch.setattr(_loading, "latest_recorded_release_path", lambda *_args: current.manifest_path)
     with pytest.raises(InvalidInputError, match="must bind retest protocol 2.0.0"):
         _loading.load_retest_bundle(ROOT)
 
@@ -253,7 +258,7 @@ def test_current_formal_release_selection_follows_manifest_selection(monkeypatch
 
     current = _stub_release("capture-" + "a" * 64)
     monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [_stub_release("76.0.0"), current])
-    monkeypatch.setattr(_loading, "current_release_path", lambda *_args: current.manifest_path)
+    monkeypatch.setattr(_loading, "latest_recorded_release_path", lambda *_args: current.manifest_path)
     assert _loading.load_retest_bundle(ROOT)[0] is current
 
 
@@ -278,22 +283,28 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     assert "formal-validation-replay-drift" in {f.rule_id for f in failures}
 
 
-@pytest.mark.integration
-def test_current_release_requires_truthful_implementation_provenance():
+def test_recorded_release_provenance_does_not_require_current_source():
     from tools.formal_semantic_validation._loading import load_retest_bundle
-    from tools.formal_semantic_validation._releases import validate_retest_bundle
+    from tools.formal_semantic_validation._releases import _current_retest_source_failures
 
-    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    snapshot = deepcopy(snapshot)
-    assert "source_state" in snapshot
+    release, _, _, snapshot, _ = copy_bundle(load_retest_bundle, ROOT)
     snapshot["source_state"]["implementation_digest"] = "0" * 64
-    failures = validate_retest_bundle(ROOT, release, protocol, corpus, snapshot, analysis)
+    failures = []
+    _current_retest_source_failures(
+        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"], replay_current=True
+    )
+    assert failures == []
+    snapshot["source_state"]["implementation_digest"] = "malformed"
+    _current_retest_source_failures(
+        ROOT, snapshot, failures, "capture.json", release_revision=release.manifest["revision"], replay_current=True
+    )
     assert "research-evidence-source-state" in {f.rule_id for f in failures}
 
 
 @pytest.mark.integration
 def test_current_production_evidence_replay_failure_is_not_hidden(monkeypatch):
     from raes_processor import satisfiability
+
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
@@ -406,6 +417,7 @@ def test_source_state_malformed_values_fail_closed(state):
 
 def test_historical_supplement_never_runs_current_analyzer(monkeypatch):
     from raes_processor import satisfiability
+
     from tools.formal_semantic_validation._loading import load_release_bundles
     from tools.formal_semantic_validation._releases import validate_release_bundle
 
@@ -564,6 +576,7 @@ def test_classification_retirement_has_a_recorded_adr_001_amendment():
     import hashlib
 
     import yaml
+
     from tools.check_adr_immutability import amendment_refs, canonical_content
 
     path = ROOT / "docs/decisions/adrs/adr-001-scenario-description-language.md"
@@ -655,10 +668,12 @@ def test_release_managed_version_source_is_the_file_release_please_rewrites():
 
 def test_current_capture_requires_the_release_stable_source_profile():
     from tools.formal_semantic_validation._loading import load_retest_bundle
-    from tools.research_evidence import SOURCE_PROFILE, source_state_failures
+    from tools.research_evidence import SOURCE_PROFILE, implementation_digest, source_state_failures
 
     _, _, _, snapshot, _ = load_retest_bundle(ROOT)
     state = deepcopy(snapshot["source_state"])
+    # Explicit source-bound publication remains strict; routine replay uses recorded provenance.
+    state["implementation_digest"] = implementation_digest(ROOT)
     assert state["profile"] == SOURCE_PROFILE == "python-reference-source/v2"
     assert source_state_failures(ROOT, state, "capture.json", current=True) == []
 

@@ -69,7 +69,7 @@ def test_retained_admission_does_not_accept_replacement_or_claim_current_sources
         record["reproducer_sources"] = reproduction.source_pins(ROOT)
         payload = reproduction.encoded(record)
     if fault == "fresh":
-        with pytest.raises(EvidenceIntegrityError, match="invalid reproduction measurement"):
+        with pytest.raises(EvidenceIntegrityError):
             reproduction.admit_measurement(ROOT, payload, subject)
     else:
         with pytest.raises(EvidenceIntegrityError, match="retained reproduction measurement drift"):

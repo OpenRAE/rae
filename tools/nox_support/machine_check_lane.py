@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 def run_machine_check(session: nox.Session, reporter: SessionReporter, *, publish: bool = False) -> None:
     module = "implementations.formal.participant_crossing.machine_check"
-    entrypoint = [module + "_publication"] if publish else [module, "replay"]
+    entrypoint = [module + "_publication"] if publish else [module, "verify"]
     reporter.run(
         "machine check / complete finite replay",
         lambda: session.run(

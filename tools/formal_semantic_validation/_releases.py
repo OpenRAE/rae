@@ -48,9 +48,9 @@ from tools.formal_semantic_validation._types import (
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
 from tools.research_evidence import (
     capture_identity,
-    current_release_path,
     evidence_key,
     is_capture,
+    latest_recorded_release_path,
     source_state_failures,
 )
 
@@ -58,12 +58,8 @@ _SELECTED_RELEASE: ContextVar[tuple[Path, str] | None] = ContextVar("selected_ev
 
 
 def validate_release_bundles(repo_root: Path, releases: list[EvidenceRelease]) -> list[PolicyFailure]:
-    """Validate one inventory with a single source-bound selection.
-
-    Scope selection to this evaluation so subsequent evaluations read source
-    again. Historical integrity checks and the selected live replay still run.
-    """
-    selected = current_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
+    """Validate archive integrity and replay the latest recorded cases on current code."""
+    selected = latest_recorded_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
     token = _SELECTED_RELEASE.set((repo_root, selected))
     try:
         return [failure for release in releases for failure in validate_release_bundle(repo_root, release)]
@@ -279,7 +275,7 @@ def _is_current(repo_root: Path, release: EvidenceRelease) -> bool:
         directory_key="bundles_directory",
         max_bytes=_MAX_FILE_BYTES,
     )
-    return current_release_path(records, repo_root) == release.manifest_path
+    return latest_recorded_release_path(records, repo_root) == release.manifest_path
 
 
 def validate_retest_bundle(
@@ -375,7 +371,7 @@ def _current_retest_source_failures(
     release_revision: str,
     replay_current: bool,
 ) -> None:
-    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=replay_current))
+    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=False))
     state = snapshot.get("source_state")
     if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
         failures.append(

@@ -21,16 +21,14 @@ OUTPUT_ROOT = "specs/formal/participant-semantics/reproduction"
 SOURCE_PATHS = (
     *sandbox.EXTRA_SOURCE_PATHS,
     *tuple(
-        "implementations/formal/participant_crossing/" + name
-        for name in ("reproduction.py", "reproduction_sandbox.py")
+        "implementations/formal/participant_crossing/" + name for name in ("reproduction.py", "reproduction_sandbox.py")
     ),
 )
 
 
 def source_pins(root: Path) -> dict[str, str]:
     return {
-        name: digest(read_bytes(root, name))
-        for name in sorted({*SOURCE_PATHS, *sandbox.package_source_paths(root)})
+        name: digest(read_bytes(root, name)) for name in sorted({*SOURCE_PATHS, *sandbox.package_source_paths(root)})
     }
 
 
@@ -46,9 +44,7 @@ def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
     return _measurement_record(bundle, source_pins(root))
 
 
-def _measurement_record(
-    bundle: dict[str, bytes], reproducer_sources: dict[str, str]
-) -> dict:
+def _measurement_record(bundle: dict[str, bytes], reproducer_sources: dict[str, str]) -> dict:
     manifest = decoded(bundle["manifest.json"])
     result = decoded(bundle["result.json"])
     return {
@@ -59,9 +55,7 @@ def _measurement_record(
         "expected_manifest_digest": digest(bundle["manifest.json"]),
         "actual_manifest_digest": digest(bundle["manifest.json"]),
         "claim_digest": canonical_json_digest(result["claim"]),
-        "artifact_digests": {
-            name: digest(value) for name, value in sorted(bundle.items())
-        },
+        "artifact_digests": {name: digest(value) for name, value in sorted(bundle.items())},
         "producer_source_identity": manifest["source_identity"],
         "reproducer_sources": reproducer_sources,
         "corpus_manifest_digest": manifest["corpus_manifest_digest"],
@@ -76,18 +70,14 @@ def _measurement_record(
     }
 
 
-def admit_measurement(
-    root: Path, payload: bytes, expected_manifest_digest: str
-) -> None:
+def admit_measurement(root: Path, payload: bytes, expected_manifest_digest: str) -> None:
     """Check measurement integrity; this does not execute or authenticate a review."""
     expected = selected_bundle(root, expected_manifest_digest)
     if payload != encoded(measurement_record(root, expected)):
         raise EvidenceIntegrityError("invalid reproduction measurement")
 
 
-def admit_retained_measurement(
-    root: Path, payload: bytes, expected_manifest_digest: str
-) -> None:
+def admit_retained_measurement(root: Path, payload: bytes, expected_manifest_digest: str) -> None:
     """Check pinned archival integrity without claiming current-source replay."""
     pin = decoded(read_bytes(root, OUTPUT_ROOT + "/pin.json"))
     capture_digest = pin.get("manifest_digest")
@@ -106,8 +96,7 @@ def admit_retained_measurement(
         raise EvidenceIntegrityError("retained reproduction capture drift")
     manifest = decoded(capture)
     if (
-        set(manifest)
-        != {"schema", "target_manifest_digest", "artifact_digests", "authenticity"}
+        set(manifest) != {"schema", "target_manifest_digest", "artifact_digests", "authenticity"}
         or manifest["schema"] != "participant-crossing-reproduction-capture/v1"
         or manifest["target_manifest_digest"] != expected_manifest_digest
         or not isinstance(manifest["artifact_digests"], dict)
@@ -128,9 +117,11 @@ def admit_retained_measurement(
         )
     ):
         raise EvidenceIntegrityError("invalid retained reproducer source pins")
-    expected = _measurement_record(
-        selected_bundle(root, expected_manifest_digest), retained_sources
-    )
+    subject, subject_pin = machine.load_retained(root)
+    if subject_pin != expected_manifest_digest:
+        raise EvidenceIntegrityError("retained reproduction subject mismatch")
+    machine.admit_retained_bundle(subject, expected_manifest_digest)
+    expected = _measurement_record(subject, retained_sources)
     if payload != encoded(expected):
         raise EvidenceIntegrityError("invalid retained reproduction measurement")
 
@@ -159,9 +150,7 @@ def publish_qualified(root: Path, expected_manifest_digest: str) -> str:
         "review_acceptance": "required",
     }
     path = ".cache/raes-sdl/crossing-reproduction-publication"
-    publish_bundle(
-        root, {"measurement.json": payload, "execution.json": encoded(execution)}, path
-    )
+    publish_bundle(root, {"measurement.json": payload, "execution.json": encoded(execution)}, path)
     return path
 
 

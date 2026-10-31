@@ -31,8 +31,8 @@ The separate reproduction and publication work must finish first.
 ## Components and interfaces
 
 `implementations.formal.participant_crossing.machine_check` owns result production and admission.
-Its public interfaces are `build_bundle`, `admit_bundle`, `publish`, and `load_retained`.
-The command-line interface supplies `record`, `check`, and `replay` operations.
+Its public interfaces are `build_bundle`, `admit_bundle`, `admit_retained_bundle`, `verify`, `publish`, and `load_retained`.
+The command-line interface supplies `verify`, `record`, `check`, and `replay` operations.
 The module uses existing tools.
 These include the exporter, corpus, claim validator, and checker adapter.
 `machine_check_evidence` owns closed metadata construction within the same formal package.
@@ -90,7 +90,7 @@ flowchart LR
   W -->|Validated baseline and mutation outcomes| C[Claim and bundle admission]
   A -->|Exact input provenance and complete counts| C
   C -->|Closed canonical inventory| B[(Immutable result capture)]
-  B -->|Admitted artifacts and external source revision| CI[Canonical CI artifact publisher]
+  B -->|Admitted artifacts and external source revision| CI[Explicit research artifact publisher]
 ```
 
 The native sandbox forms a trust boundary.
@@ -136,9 +136,10 @@ The check needs no new public schema.
 It needs no service, store, registry, route, or signing system.
 Existing executable validators express the architecture constraints.
 The issue scope assigns exact files to existing requirements.
-The existing canonical model-check job owns native replay and bounded artifact publication.
+The existing canonical model-check job owns native replay.
+Research publication is an explicit operation.
 Publication uses the repository's existing CI artifact destination and pinned actions.
-The CI source revision accompanies the artifact digest outside reproducible result bytes.
+During explicit publication, the CI source revision accompanies the artifact digest outside reproducible result bytes.
 The execution record names the observed runner image and host profile.
 It records native package versions and Python closure identity.
 Existing bootstrap host probes qualify the hosted image.
@@ -163,3 +164,13 @@ This check cannot silently extend the single-operation carrier.
 The document review applies STE sections 1, 4, 5, and 6.
 It checks consistent technical names, one fact per sentence, sentence limits, and document purpose.
 Architecture descriptions remain separate from implementation tasks and delivery records.
+
+## Routine verification and research publication
+
+Routine CI verifies current finite behavior and the fixed negative controls.
+It requires a positive baseline relation result.
+It does not require byte-identical source provenance from an earlier publication.
+Saved captures retain their source identity and artifact pins as historical records.
+A source edit alone does not require a fresh research publication.
+Explicit publication and reproduction commands retain their selected-subject checks.
+These records do not establish whole-runtime correctness or independent review.
