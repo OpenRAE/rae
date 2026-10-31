@@ -6,23 +6,30 @@ Requirements: SEM-232, ASR-535. Classification: FM3.
 
 The subject is the separately pinned finite machine-check capture.
 Its profile is `participant-crossing-dpbb-finite-v1@rev2`.
-The relation is divergence-preserving branching bisimulation.
+The selected relation is `divergence-preserving-branching-bisimulation`.
+The evidence boundary covers only the complete reachable carrier of this pinned finite profile.
 Both models remain at rev2, with projection rev1 and taxonomy rev8.
 The original result and its claim remain unchanged.
 
 The formal package owns the reproduction controller and its measurement record.
 The public interface is `reproduction.measure`.
-It uses the existing producer and admission interfaces.
-These are `machine_check.load_retained`, `admit_bundle`, and `build_bundle`.
+`reproduction_checks` owns the fixed comparison inventory and native invocation inside the worker.
+It uses `machine_check.load_retained` and `admit_bundle` for the expected subject.
+The existing result formatter binds fresh decisions to the original claim.
+The new driver does not call the producer replay inside another sandbox.
 The existing exporter supplies complete model construction and counts.
 The existing corpus supplies every mutation, calibration, control, and checked witness.
-The existing native adapter supplies the fixed comparison command.
+The existing native adapter owns tool admission, modes, and strict decision parsing.
+The reproduction driver uses the same relation flags and ordered AUT bytes.
+Its own command record names the declared comparison paths.
 No second model or relation checker is needed.
 
 The controller checks the expected bundle.
 A separately selected digest fixes that subject.
 It starts the reviewed producer in a fresh Python process.
 The worker constructs actual bytes without reading the machine-check result directory.
+Its own driver repeats the fixed comparisons through the admitted native executable.
+The original model, corpus, witness, result, and admission interfaces remain unchanged.
 Each output file must match exactly.
 It records the expected and actual manifest, result, claim, and artifact digests.
 It keeps every count and mutation outcome.
@@ -46,8 +53,11 @@ Unsigned evidence cannot satisfy a policy that requires authenticity.
 flowchart LR
   P[(Reviewed producer and corpus pins)] -->|Expected identities| A[Existing bundle admission]
   S[(Pinned sources and installed Python closure)] -->|Read-only code and dependencies| W[Fresh offline Python worker]
+  S -->|Pinned model and mutation sources| I[Existing input constructors]
+  I -->|Complete synthetic input pairs| D[(Read-only declared comparisons)]
+  D -->|Mounted bytes checked against worker reconstruction| W
   T[(Admitted native tool)] -->|Verified archive and tree identity| W
-  W -->|Synthetic model inputs| N[Existing native sandbox]
+  W -->|Synthetic model inputs| N[Admitted native checker within worker boundary]
   N -->|Bounded decisions and witnesses| W
   W -->|Fresh complete bundle| C[Exact byte comparison]
   A -->|Expected complete bundle| C
@@ -61,8 +71,15 @@ Only declared source, dependency, and tool mounts are available.
 The worker receives no home directory, Git credentials, result cache, or ambient import path.
 Its temporary state and output directory are private and fresh.
 The machine-check result directory is absent from the worker.
-The existing native sandbox remains inside this boundary.
-Source and tool mounts are read-only.
+Python and the admitted native checker share this one sandbox boundary.
+The checker also sees the copied public source and declared synthetic inputs.
+It receives no original checkout, home data, credentials, or runtime authority.
+This avoids nested namespaces, which the supported AppArmor policy can deny.
+No host control is disabled, and no process gains privilege.
+Source, tool, and prepared comparison inputs are read-only.
+The worker rebuilds each comparison input before use.
+Its bytes must match the mounted input pair.
+The checker keeps its existing per-process limits and private bounded outputs.
 Source stability is checked before and after execution.
 An exclusive trusted writer remains necessary during setup.
 

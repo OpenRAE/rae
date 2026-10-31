@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -46,6 +47,12 @@ except OSError:
     pass
 else:
     raise AssertionError('source was writable')
+try:
+    pathlib.Path('/checks/baseline/left.aut').write_bytes(b'changed')
+except OSError:
+    pass
+else:
+    raise AssertionError('comparison input was writable')
 print('isolated')
 """
     completed = subprocess.run([*command[:-2], "-c", probe], capture_output=True, timeout=20, check=False)
@@ -98,3 +105,22 @@ def test_package_selection_ignores_ambient_git_redirection(monkeypatch):
     monkeypatch.setenv("GIT_DIR", "/unavailable-synthetic-git-directory")
     monkeypatch.setenv("GIT_WORK_TREE", "/unavailable-synthetic-worktree")
     assert sandbox.package_source_paths(ROOT) == expected
+
+
+def test_distinct_python_runtime_prefixes_do_not_expose_their_parent_directories(tmp_path):
+    from implementations.formal.participant_crossing import reproduction_sandbox as sandbox
+
+    runtime = tmp_path / "separate-python"
+    runtime.mkdir()
+    for name in ("bin", "lib"):
+        (runtime / name).symlink_to(Path(sys.base_prefix) / name, target_is_directory=True)
+    for project in ("implementations/python", "implementations/tooling/python"):
+        executable = tmp_path / project / ".venv/bin/python"
+        executable.parent.mkdir(parents=True)
+        executable.symlink_to(runtime / "bin/python3.14")
+    command = sandbox.command(tmp_path, tmp_path / "output", tmp_path / "tool")
+    mounts = {command[i + 1] for i, value in enumerate(command) if value == "--ro-bind"}
+    assert str(runtime / "bin") in mounts
+    assert str(runtime / "lib") in mounts
+    assert str(runtime) not in mounts
+    assert str(tmp_path) not in mounts

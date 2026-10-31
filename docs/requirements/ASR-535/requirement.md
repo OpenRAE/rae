@@ -84,3 +84,5 @@ ADR-081 governs relation discipline and current tests provide bounded evidence, 
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_sandbox.py` (Exact comparison, isolated execution and refusal of self-approved measurement)
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_workflow.py` (Exact comparison, isolated execution and refusal of self-approved measurement)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#975` (Fresh bounded measurement and separate review authority)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction_checks.py` (Fixed independent comparison driver within the complete rootless worker boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_checks.py` (Complete comparison inventory, exact original bytes and always-accept rejection)

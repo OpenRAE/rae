@@ -251,6 +251,8 @@ ownership:
     - implementations/python/tests/test_issue_974_machine_check.py
     - implementations/python/tests/test_issue_974_machine_check_publication.py
     # Issue #975 isolated measurements; reviewer acceptance remains separate.
+    - implementations/formal/participant_crossing/reproduction_checks.py
+    - implementations/python/tests/test_issue_975_reproduction_checks.py
     - implementations/formal/participant_crossing/reproduction.py
     - implementations/formal/participant_crossing/reproduction_sandbox.py
     - implementations/python/tests/test_issue_975_reproduction.py

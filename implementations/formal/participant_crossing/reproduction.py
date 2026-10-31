@@ -9,6 +9,7 @@ from raes_contracts.operational_logging import run_application
 
 from . import machine_check as machine
 from . import machine_check_publication as publication
+from . import reproduction_checks as checks
 from . import reproduction_sandbox as sandbox
 from .counterexample_corpus import decoded, encoded
 from .export import digest, publish_bundle
@@ -60,9 +61,10 @@ def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
         "mutation_review_subject_digest": manifest["mutation_review_subject_digest"],
         "tool": manifest["tool"],
         "verification": manifest["verification"],
+        "replay_verification": checks.VERIFICATION,
         "result": result,
         "mutations": decoded(bundle["mutation-results.json"]),
-        "execution_boundary": "fresh-offline-python-and-native-sandboxes/v1",
+        "execution_boundary": "fresh-offline-single-worker-sandbox/v2",
         "review_acceptance": "required",
     }
 

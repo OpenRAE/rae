@@ -20,6 +20,7 @@ from tools.verified_tool_installation import default_installation_root
 from . import counterexample_corpus as corpus
 from . import export
 from . import machine_check as machine
+from . import reproduction_checks as checks
 from .ingress import read_bytes, safe_path
 
 WORKER_ROOT = "/reproduction"
@@ -34,6 +35,7 @@ EXTRA_SOURCE_PATHS = (
     "implementations/python/packages/raes/identifiers.py",
     "implementations/python/packages/raes/_identifiers.py",
     "implementations/formal/participant_crossing/reproduction_sandbox.py",
+    "implementations/formal/participant_crossing/reproduction_checks.py",
 )
 
 
@@ -118,9 +120,12 @@ def stage_sources(root: Path, destination: Path) -> None:
         destination / ".cache/raes-sdl/tooling",
     ):
         directory.chmod(0o700)
+    checks.prepare_inputs(root, destination.parent / "inputs")
 
 
-def command(root: Path, output: Path, tool: Path) -> list[str]:
+def command(
+    root: Path, output: Path, tool: Path, *, native_tree: Path | None = None
+) -> list[str]:
     """Use a fixed source mount and installed closures; never expose the host root."""
     argv = [
         "/usr/bin/bwrap",
@@ -139,25 +144,27 @@ def command(root: Path, output: Path, tool: Path) -> list[str]:
         "/lib",
         "/lib64",
         "/etc/ld.so.cache",
-        str(Path(sys.base_prefix).resolve()),
     }
+    prefixes = {Path(sys.base_prefix).resolve()}
     for project in ("implementations/python", "implementations/tooling/python"):
         executable = root / project / ".venv/bin/python"
         if executable.is_symlink():
             target = executable.readlink()
             if target.is_absolute():
                 prefix = target.parent.parent
-                if (
-                    target.parent.name != "bin"
-                    or prefix == Path("/")
-                    or prefix.resolve() != Path(sys.base_prefix).resolve()
-                ):
+                if target.parent.name != "bin" or prefix == Path("/"):
                     raise OperationalError("reproduction Python closure mismatch")
-                runtime_paths.add(str(prefix))
+                prefixes.update((prefix, executable.resolve().parent.parent))
+    for prefix in prefixes:
+        for name in ("bin", "lib", "lib64"):
+            runtime_paths.add(str(prefix / name))
     for name in sorted(runtime_paths):
         if Path(name).exists():
             argv.extend(("--ro-bind", name, name))
     argv.extend(("--ro-bind", str(output.parent / "sources"), WORKER_ROOT))
+    argv.extend(("--ro-bind", str(output.parent / "inputs"), "/checks"))
+    if native_tree is not None:
+        argv.extend(("--ro-bind", str(native_tree), "/opt/mcrl2"))
     for project in ("implementations/python", "implementations/tooling/python"):
         argv.extend(
             (
@@ -271,7 +278,7 @@ def run_worker(argv: list[str], stdout, stderr) -> None:
 
 
 def replay(root: Path) -> dict[str, bytes]:
-    require_mcrl2(root)
+    native_tree = require_mcrl2(root)
     cache = safe_path(root, ".cache")
     cache.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(
@@ -283,7 +290,12 @@ def replay(root: Path) -> dict[str, bytes]:
         output.mkdir(mode=0o700)
         with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
             run_worker(
-                command(root, output, default_installation_root(root) / "mcrl2"),
+                command(
+                    root,
+                    output,
+                    default_installation_root(root) / "mcrl2",
+                    native_tree=native_tree,
+                ),
                 stdout,
                 stderr,
             )
@@ -298,7 +310,7 @@ def replay(root: Path) -> dict[str, bytes]:
 
 def main() -> int:
     try:
-        bundle = machine.build_bundle(Path(__file__).resolve().parents[3])
+        bundle = checks.rebuild_bundle(Path(__file__).resolve().parents[3])
         payload = corpus.encoded(
             {
                 name: base64.b64encode(value).decode("ascii")

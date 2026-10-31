@@ -37,7 +37,12 @@ Unsigned records still cannot satisfy a policy that requires authenticity.
 
 The formal crossing package owns the new record and its admission.
 Reuse its public interfaces.
-Do not copy the model, corpus, claim, or native checker logic.
+Do not copy model, mutation, witness, claim, or checker algorithms.
+The existing corpus producer assumes a separate native sandbox per comparison.
+The new driver may repeat its fixed invocation inventory inside one complete worker boundary.
+This is needed where AppArmor denies nested namespaces.
+Keep the original producer sources and claim unchanged.
+Record the new driver sources and command layout separately.
 ADR-117 applies to imports and module ownership.
 
 | Boundary | Existing owner and required use |
@@ -50,7 +55,7 @@ ADR-117 applies to imports and module ownership.
 | Tool selection | `tooling_policy_gate`, the lock, admission policy, selectors, profiles, and their schemas. Preserve artifact, version, platform, profile, locator, and validator-source joins. Configuration stays closed data. |
 | Tool bytes | `mcrl2_tool`, verified tree admission, and the existing Debian reader. Check archive, executable, and complete-tree identities. Keep the license. Never run package scripts or accept a PATH fallback. |
 | Host and Python | `bootstrap_profile`, `python_closure_profiles`, and `machine_check_publication.execution_record`. Use qualified host and closure selections. Observe allowed fields; do not copy the producer's host values. |
-| Native process | `mcrl2_tool.compare` and `bounded_tool_process.run_bounded`. Keep fixed non-shell arguments, read-only inputs and tool mounts, no network, bounded output, resource limits, and child cleanup. |
+| Native process | `mcrl2_tool.compare` and `bounded_tool_process.run_bounded`. Keep fixed non-shell arguments, read-only inputs and tool mounts, no network, bounded output, resource limits, and child cleanup. Python and the admitted native checker may share the complete worker sandbox. No original checkout, home, credentials, or host processes enter it. |
 | Errors and logs | ADR-116 shared exceptions, `operational_logging`, and `SessionReporter`. Keep safe messages and bounded failure codes. Raw diagnostics, rejected values, secrets, and host paths stay private. |
 | Local storage | `publish_bundle`. Check the whole bounded inventory before atomic publication. Keep existing captures and their bytes. No self-digest, cyclic reference, partial success, or mutable success flag. |
 | Hosted checks | The existing nox lane and canonical CI graph. Keep exact source revisions, pinned actions, required-job joins, read-only permissions, and disabled stored checkout credentials. Upload only admitted files to the existing approved artifact destination. |
