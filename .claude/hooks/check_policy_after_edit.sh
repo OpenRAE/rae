@@ -17,8 +17,9 @@ fi
 # relative to the root of the checkout that holds the file. That checkout can be
 # a Claude Code worktree under .claude/worktrees/ or another checkout nested in
 # the project, and the path can reach it through a symlink of its root. Take the
-# nearest directory on the path with a .git entry as the checkout, and check the
-# file at its canonical location relative to that checkout's canonical root, so
+# nearest directory on the path with a .git entry as the checkout, while keeping
+# an enclosing symlink's owning checkout as the boundary. Check the file at its
+# canonical location relative to that checkout's canonical root, so
 # a symlink inside the checkout is checked where it resolves to. A worktree has
 # no virtual environment, so every checker runs with one from this checkout: the
 # tooling one if present, since a new checkout's first check installs Conftest,
@@ -47,6 +48,7 @@ if [[ "/$ABSOLUTE_PATH/" != */../* ]]; then
     if [[ -z "$CHECKOUT" && -e "$DIR/.git" ]]; then
       CHECKOUT=$(cd "$DIR" && pwd -P)
     fi
+    # Keep walking: an ancestor symlink can expose another checkout's .git.
   done
 fi
 case "$CHECKOUT" in

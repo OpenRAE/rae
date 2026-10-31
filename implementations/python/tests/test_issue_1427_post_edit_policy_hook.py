@@ -154,6 +154,8 @@ def project(tmp_path_factory: pytest.TempPathFactory) -> Path:
     (root / "worktree-directory-link").symlink_to(worktree_tools, target_is_directory=True)
     for name, checkout in {**CHECKOUTS, "without-checker": "vendor/other"}.items():
         (root / f"{name}-root-link").symlink_to(root / checkout, target_is_directory=True)
+    for checkout in ("claude-worktree", "nested-checkout"):
+        (root / CHECKOUTS[checkout] / "main-root-link").symlink_to(root, target_is_directory=True)
     (root / "outside-directory-link").symlink_to(tmp_path_factory.mktemp("outside"), target_is_directory=True)
     return root
 
@@ -253,6 +255,27 @@ def test_a_link_to_another_checkout_root_is_refused(project: Path, checkout: str
 def test_a_link_to_the_same_checkout_root_is_checked(project: Path) -> None:
     canonical = _run_hook(str(project / "tools/target.py"), project)
     assert _outcome(_run_hook(str(project / "main-checkout-root-link/tools/target.py"), project)) == _outcome(canonical)
+
+
+@path_forms
+@pytest.mark.parametrize("checkout", ["claude-worktree", "nested-checkout"])
+def test_a_link_from_a_nested_checkout_to_the_main_root_is_refused(
+    project: Path, checkout: str, absolute: bool
+) -> None:
+    path = f"{CHECKOUTS[checkout]}/main-root-link/tools/target.py"
+    result = _run_hook(str(project / path) if absolute else path, project)
+    assert result.returncode == 1
+    assert json.loads(result.stderr)["arguments"][-1] == str(project / path)
+
+
+@pytest.mark.parametrize("checkout", ["claude-worktree", "nested-checkout"])
+def test_a_root_alias_does_not_hide_a_cross_checkout_link(project: Path, tmp_path: Path, checkout: str) -> None:
+    alias = tmp_path / "root"
+    alias.symlink_to(project / CHECKOUTS[checkout], target_is_directory=True)
+    path = str(alias / "main-root-link/tools/target.py")
+    result = _run_hook(path, project)
+    assert result.returncode == 1
+    assert json.loads(result.stderr)["arguments"][-1] == path
 
 
 PROBE = "implementations/python/packages/raes/_probe_policy_hook.py"
