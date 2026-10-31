@@ -25,6 +25,13 @@ SOURCE_PATHS = (
     ),
 )
 
+# Independently reconstructed from all 1,269 declared source files at this Git
+# revision. Keep this binding frozen; another revision needs its own review.
+_ARCHIVED_SOURCE_REVISION = "5925b6c49711e0f5fe7c3a1b1318c0715278ec40"
+_ARCHIVED_SOURCE_DIGEST = (
+    "sha256:ee5796389cfd4ff3e58699d6be4e442b88994a8e613d57848163c815676491be"
+)
+
 
 def source_pins(root: Path) -> dict[str, str]:
     return {
@@ -42,6 +49,11 @@ def selected_bundle(root: Path, expected_manifest_digest: str) -> dict[str, byte
 
 
 def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
+    return {**measurement_subject(bundle), "reproducer_sources": source_pins(root)}
+
+
+def measurement_subject(bundle: dict[str, bytes]) -> dict:
+    """Describe the admitted finite result without choosing a reproducer revision."""
     manifest = decoded(bundle["manifest.json"])
     result = decoded(bundle["result.json"])
     return {
@@ -56,7 +68,6 @@ def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
             name: digest(value) for name, value in sorted(bundle.items())
         },
         "producer_source_identity": manifest["source_identity"],
-        "reproducer_sources": source_pins(root),
         "corpus_manifest_digest": manifest["corpus_manifest_digest"],
         "mutation_review_subject_digest": manifest["mutation_review_subject_digest"],
         "tool": manifest["tool"],
@@ -76,6 +87,28 @@ def admit_measurement(
     expected = selected_bundle(root, expected_manifest_digest)
     if payload != encoded(measurement_record(root, expected)):
         raise EvidenceIntegrityError("invalid reproduction measurement")
+
+
+def admit_historical_measurement(
+    root: Path, payload: bytes, expected_manifest_digest: str, source_revision: str
+) -> None:
+    """Check archive integrity against the reviewed revision, never current replay.
+
+    The caller must also verify the execution and review records that bind the
+    supplied revision to this measurement.
+    """
+    record = decoded(payload)
+    sources = record.get("reproducer_sources")
+    if (
+        source_revision != _ARCHIVED_SOURCE_REVISION
+        or not isinstance(sources, dict)
+        or canonical_json_digest(sources) != _ARCHIVED_SOURCE_DIGEST
+    ):
+        raise EvidenceIntegrityError("invalid historical reproduction source identity")
+    bundle = selected_bundle(root, expected_manifest_digest)
+    expected = {**measurement_subject(bundle), "reproducer_sources": sources}
+    if payload != encoded(expected):
+        raise EvidenceIntegrityError("invalid historical reproduction measurement")
 
 
 def measure(root: Path, expected_manifest_digest: str) -> bytes:

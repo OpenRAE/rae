@@ -57,6 +57,17 @@ The earlier implementation-agent run remains the original producer.
 No human review is claimed.
 This immutable capture survives the hosted artifact retention period.
 
+Historical admission uses `reproduction.admit_historical_measurement`.
+It binds the retained source inventory to its recorded Git revision.
+The inventory digest was independently reconstructed from all 1,269 declared source files at that revision.
+This fixed binding permits offline validation in shallow checkouts.
+Unknown revisions, missing sources, added sources, and changed source pins fail admission.
+The caller must also check the execution, manifest, and review joins.
+Historical admission establishes archive integrity only.
+It does not establish a result for current sources.
+`reproduction.admit_measurement` still requires the current source inventory.
+The required hosted lane still performs fresh isolated reproduction on current code.
+
 ## Execution boundary and data flows
 
 ```mermaid
