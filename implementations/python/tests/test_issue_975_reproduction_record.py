@@ -33,7 +33,7 @@ def test_retained_admission_refuses_replacement_subject_and_source_maps(fault):
         subject = "sha256:" + "0" * 64
     else:
         record = reproduction.decoded(bundle["measurement.json"])
-        record["reproducer_sources"] = reproduction.source_pins(ROOT)
+        record["reproducer_sources"] = {"unrelated.py": "sha256:" + "0" * 64}
         bundle["measurement.json"] = reproduction.encoded(record)
     with pytest.raises(EvidenceIntegrityError):
         reproduction_record.admit_capture(ROOT, bundle, subject)

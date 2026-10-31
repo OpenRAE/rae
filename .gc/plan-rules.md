@@ -51,7 +51,9 @@ These encode the hard rules previously in `AGENTS.md` prose.
   release-please actually cuts a release. The PR title MUST still pass the
   `title-guard` gate (`tools/check_pr_title.py`).
 
-- Source-bound formal and specification research evidence MUST use immutable,
+- Routine source edits do not require new research captures. Live behavioral
+  checks remain required. When a task deliberately records source-bound formal
+  or specification research evidence, it MUST use immutable,
   content-addressed branch captures via `python -m tools.research_capture record`.
   Feature branches MUST NOT allocate the next numbered research release, extend
   hard-coded revision lists, rewrite published history, or append a capture to
