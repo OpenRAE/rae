@@ -92,6 +92,10 @@
       "authority_field": "version",
       "consumers": [
         {
+          "path": "implementations/go/go.mod",
+          "template": "go {selector}"
+        },
+        {
           "path": "implementations/tooling/go/go.mod",
           "template": "go {selector}"
         }

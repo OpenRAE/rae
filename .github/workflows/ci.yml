@@ -189,6 +189,7 @@ jobs:
             implementations/python/osv-scanner-report.json
             implementations/python/osv-scanner-tooling-report.json
             implementations/python/osv-scanner-go-tooling-report.json
+            implementations/python/osv-scanner-go-report.json
           if-no-files-found: warn
 
   # The quality gate now runs inside the reusable graph (decoupled from the full

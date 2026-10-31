@@ -2,6 +2,10 @@
   "schema": "raes-go-architecture/v1",
   "modules": [
     {
+      "dir": "implementations/go",
+      "path": "github.com/OpenRAE/rae/implementations/go"
+    },
+    {
       "dir": "implementations/tooling/go",
       "path": "github.com/OpenRAE/rae/implementations/tooling/go"
     }
@@ -119,6 +123,18 @@
       "external": []
     },
     {
+      "name": "parity",
+      "dir": "implementations/go/internal/parity",
+      "doc": "The checker of the Go implementation against the golden corpus that the Python implementation recorded (issue #1778).",
+      "uses": [],
+      "external": [
+        {
+          "path": "github.com/google/go-cmp/cmp",
+          "reason": "Comparison of recorded and actual results in tests, as the Google Go style decisions recommend."
+        }
+      ]
+    },
+    {
       "name": "tooling",
       "dir": "implementations/tooling/go",
       "doc": "Development tools: the repository analyzers, the architecture check, and CI checks.",
@@ -152,6 +168,13 @@
     }
   ],
   "packages": [
+    {
+      "dir": "implementations/go/internal/parity",
+      "layer": "parity",
+      "public": false,
+      "doc": "The golden corpus loader, the runner registry, and the corpus test.",
+      "imports": []
+    },
     {
       "dir": "implementations/tooling/go/arch",
       "layer": "tooling",

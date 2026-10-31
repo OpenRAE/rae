@@ -493,6 +493,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - {name: product, path: implementations/go}
           - {name: tooling, path: implementations/tooling/go}
     env:
       GOTOOLCHAIN: local
@@ -575,6 +576,38 @@ jobs:
           path: ${{ matrix.path }}/cover.out
           if-no-files-found: error
 
+  # The golden parity corpus of the Go port (issue #1778). The Python
+  # implementation must reproduce the committed corpus. When it does not, the
+  # job uploads the corpus that it recorded.
+  parity-corpus:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # The manifest names the last commit that changed the Python implementation.
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Check that the Python implementation reproduces the corpus
+        run: >-
+          uv run --project implementations/python --frozen
+          python -m tools.parity_corpus check --output-dir "${RUNNER_TEMP}/parity-corpus"
+      - name: Upload the recorded corpus
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: parity-corpus-${{ inputs.ref }}
+          path: ${{ runner.temp }}/parity-corpus
+          if-no-files-found: ignore
+
   # The architecture check of the Go code (ADR-122). It runs once from the
   # repository root and checks the model, the ADR-122 rule table, and the code
   # of every Go module.
@@ -639,6 +672,10 @@ jobs:
           path: implementations/python/
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
+          name: go-coverage-product-${{ inputs.ref }}
+          path: implementations/go/
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
           name: go-coverage-tooling-${{ inputs.ref }}
           path: implementations/tooling/go/
       - name: SonarCloud Scan
@@ -655,7 +692,7 @@ jobs:
   # is distinguished from success, so a missing shard or a skipped reducer fails
   # the gate rather than silently passing.
   gate:
-    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go, go-architecture]
+    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go, go-architecture, parity-corpus]
     if: always()
     runs-on: ubuntu-24.04
     outputs:
@@ -672,6 +709,7 @@ jobs:
           REDUCE_RESULT: ${{ needs.coverage-reduce.result }}
           GO_RESULT: ${{ needs.go.result }}
           GO_ARCHITECTURE_RESULT: ${{ needs.go-architecture.result }}
+          PARITY_CORPUS_RESULT: ${{ needs.parity-corpus.result }}
         run: |
           set -euo pipefail
           failed=""
@@ -683,7 +721,8 @@ jobs:
             "model-check:${MODEL_CHECK_RESULT}" \
             "coverage-reduce:${REDUCE_RESULT}" \
             "go:${GO_RESULT}" \
-            "go-architecture:${GO_ARCHITECTURE_RESULT}"; do
+            "go-architecture:${GO_ARCHITECTURE_RESULT}" \
+            "parity-corpus:${PARITY_CORPUS_RESULT}"; do
             name="${pair%%:*}"
             result="${pair#*:}"
             if [ "${result}" != "success" ]; then

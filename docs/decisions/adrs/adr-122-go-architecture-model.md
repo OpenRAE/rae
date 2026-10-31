@@ -70,11 +70,12 @@ They do not copy the Python package structure.
 | `app` | `implementations/go/internal/app` | `conformance`, `runtime`, `backend`, `processor`, `sdl`, `contract`, `base` | Services that the command line, the MCP server, and the HTTP API share |
 | `adapter` | `implementations/go/internal/adapter` | `app`, `runtime`, `contract`, `base` | Thin adapters for the `raes` command, the `raes-mcp` server, and the control-plane HTTP API |
 | `command` | `implementations/go/cmd` | `adapter`, `base` | The main packages of the `raes` and `raes-mcp` binaries |
+| `parity` | `implementations/go/internal/parity` | none | The checker of the Go implementation against the golden corpus of the Python implementation (issue #1778) |
 | `tooling` | `implementations/tooling/go` | none | Development tools: the repository analyzers, the architecture check, and CI checks |
 
 The product layers are below `implementations/go/internal`. Thus the compiler
 permits imports of them only from `implementations/go`. No layer uses
-`tooling`.
+`parity` or `tooling`.
 
 ### 3. Rules and their checks
 
@@ -168,3 +169,9 @@ The Go code starts with no findings. No check has a baseline or an allowlist.
   holds an allow list.
 - `archcheck` is a small program on the standard Go package loader. The
   repository maintains it and its tests.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-10-31 | #1778 | Section 2: the `parity` layer holds the checker of the Go implementation against the golden corpus. |

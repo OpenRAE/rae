@@ -102,6 +102,7 @@ def test_sonar_project_binding_matches_scanner_configuration() -> None:
     assert ground_control["sonarcloud"]["project_key"] == sonar_properties["sonar.projectKey"]
     assert ground_control["sonarcloud"]["organization"] == sonar_properties["sonar.organization"]
     assert set(sonar_properties["sonar.sources"].split(",")) == {
+        "implementations/go",
         "implementations/python/packages",
         "implementations/tooling/go",
         "noxfile.py",
@@ -3393,6 +3394,7 @@ def _run_nox_osv_scan(
         ("uv.lock", "implementations/python/uv.lock"),
         ("tooling uv.lock", "implementations/tooling/python/uv.lock"),
         ("Go tooling go.mod", "implementations/tooling/go/go.mod"),
+        ("Go go.mod", "implementations/go/go.mod"),
     ):
         lockfile = tmp_path / relative
         lockfile.parent.mkdir(parents=True)
@@ -3425,6 +3427,7 @@ def test_nox_osv_scan_accepts_only_a_clean_result(
         "osv-scan / uv.lock",
         "osv-scan / tooling uv.lock",
         "osv-scan / Go tooling go.mod",
+        "osv-scan / Go go.mod",
     ]
 
 
@@ -3435,6 +3438,7 @@ def test_osv_scan_targets_cover_each_tracked_dependency_closure() -> None:
         "implementations/python/uv.lock",
         "implementations/tooling/python/uv.lock",
         "implementations/tooling/go/go.mod",
+        "implementations/go/go.mod",
     ]
     assert all(lockfile.is_file() for _label, lockfile, _report in OSV_SCAN_TARGETS)
 

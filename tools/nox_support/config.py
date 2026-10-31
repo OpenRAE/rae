@@ -40,6 +40,11 @@ OSV_SCAN_TARGETS = (
         REPO_ROOT / "implementations" / "tooling" / "go" / "go.mod",
         PROJECT_ROOT / "osv-scanner-go-tooling-report.json",
     ),
+    (
+        "Go go.mod",
+        REPO_ROOT / "implementations" / "go" / "go.mod",
+        PROJECT_ROOT / "osv-scanner-go-report.json",
+    ),
 )
 COVERAGE_XML_PATH = PROJECT_ROOT / "coverage.xml"
 COVERAGE_JSON_PATH = PROJECT_ROOT / "coverage.json"
