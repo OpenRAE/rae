@@ -60,6 +60,7 @@ Cross-cutting layering and size invariants prevent the architectural drift that 
 - IMPLEMENTS → POLICY `tools/policy/private_members.py` (ADR-117 private-member check)
 - IMPLEMENTS → POLICY `tools/policy/function_imports.py` (ADR-117 check of imports inside functions)
 - IMPLEMENTS → POLICY `tools/policy/hidden_imports.py` (ADR-117 hidden-import check)
+- IMPLEMENTS → POLICY `tools/policy/import_boundaries.py` (Module-boundary decision for static and dynamic imports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_schemas/bundle.py` (Schema composition root above the package layers)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/published_schemas.py` (Published schemas read as data below the SDL layer)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1711-strict-layers-design.md` (Issue 1711 strict package layers design)
