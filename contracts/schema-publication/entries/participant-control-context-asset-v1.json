@@ -1,9 +1,9 @@
 {
-  "content_hash": "99610218e75d7dc112cf5809b6afff98e87ec68975c75be5ebb31e15f6c43ba2",
+  "content_hash": "54fbaa4b5d928f85d297c14a521c10391e2cd59ad815881147a669afb842d86d",
   "contract_id": "participant-control-context-asset-v1",
   "last_change": {
-    "content_hash": "99610218e75d7dc112cf5809b6afff98e87ec68975c75be5ebb31e15f6c43ba2",
-    "summary": "Publish versioned participant control-context asset and trusted agreement obligations (ACT-620, #302)."
+    "content_hash": "54fbaa4b5d928f85d297c14a521c10391e2cd59ad815881147a669afb842d86d",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/participant-runtime/participant-control-context-asset-v1.json",
   "stability": "draft"

@@ -1,9 +1,9 @@
 {
-  "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
+  "content_hash": "dab4f20af44c29e6aa7f82f66132315d3ba41a0b1bc59f216ceebf3d5d26f9e5",
   "contract_id": "orchestration-plan-v1",
   "last_change": {
-    "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
-    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
+    "content_hash": "dab4f20af44c29e6aa7f82f66132315d3ba41a0b1bc59f216ceebf3d5d26f9e5",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
   "stability": "draft"

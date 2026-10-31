@@ -117,7 +117,6 @@ class AuthoringAdapterVectorModel(ContractModel):
             schema,
             "authoring-vector-bound-inputs",
             "Exact UTF-8 source and closed operation digests must match; outcomes must bind artifacts.",
-            validator="raes_contracts.authoring_adapters.AuthoringAdapterVectorModel.model_validate",
             inputs=[{"contract_id": "authoring-adapter-vector-v1", "instance_path": "#"}],
         )
         return schema
@@ -191,7 +190,6 @@ class AuthoringAdapterComparisonModel(ContractModel):
             schema,
             "authoring-comparison-evidence-shape",
             "Axes must remain applicable to their evidence; success requires semantic companion evidence.",
-            validator="raes_contracts.authoring_adapters.AuthoringAdapterComparisonModel.model_validate",
             inputs=[{"contract_id": "authoring-adapter-comparison-v1", "instance_path": "#"}],
         )
         return schema

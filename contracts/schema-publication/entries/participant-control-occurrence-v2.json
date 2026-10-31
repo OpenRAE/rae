@@ -2,9 +2,9 @@
   "contract_id": "participant-control-occurrence-v2",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-occurrence-v2.json",
   "stability": "draft",
-  "content_hash": "c39d156fc28889670de8dbdc341dc9a469cb19a6cb9d222113c4aced6aaceb54",
+  "content_hash": "9716c94bd3291f12614201914ab29c2fce61d40d27cf35a46ef251d7bc100c59",
   "last_change": {
-    "summary": "Publish API-409 participant-control-occurrence-v2 for mixed-control-policy-occurrence/rev1 occurrences; issue #1363.",
-    "content_hash": "c39d156fc28889670de8dbdc341dc9a469cb19a6cb9d222113c4aced6aaceb54"
+    "content_hash": "9716c94bd3291f12614201914ab29c2fce61d40d27cf35a46ef251d7bc100c59",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

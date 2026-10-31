@@ -2,9 +2,9 @@
   "contract_id": "trial-cleanup-plan-v1",
   "schema_path": "contracts/schemas/plans/trial-cleanup-plan-v1.json",
   "stability": "draft",
-  "content_hash": "4425b10f5acf68c364bc35d94d06739ad7ad168419ec0c19d97f603bd5870ab6",
+  "content_hash": "351693d5c73da295db64be3f9a6e1b1f3154c58e1ddfa5692949e95e472350c6",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "4425b10f5acf68c364bc35d94d06739ad7ad168419ec0c19d97f603bd5870ab6"
+    "content_hash": "351693d5c73da295db64be3f9a6e1b1f3154c58e1ddfa5692949e95e472350c6",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

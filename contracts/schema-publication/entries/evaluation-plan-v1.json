@@ -1,9 +1,9 @@
 {
-  "content_hash": "8261e48fa8361a14f11bf4b119d5865fcd037b4731d027d0fb83023a06b27baa",
+  "content_hash": "832ed283e8eb66750be9327830e9b26ff41ec902e87aa7d4ff6931b7687f0297",
   "contract_id": "evaluation-plan-v1",
   "last_change": {
-    "content_hash": "8261e48fa8361a14f11bf4b119d5865fcd037b4731d027d0fb83023a06b27baa",
-    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
+    "content_hash": "832ed283e8eb66750be9327830e9b26ff41ec902e87aa7d4ff6931b7687f0297",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft"

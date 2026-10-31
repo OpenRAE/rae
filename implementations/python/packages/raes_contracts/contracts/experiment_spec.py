@@ -52,7 +52,6 @@ from .schema_invariants import _add_raes_invariant
 from .trial_replacement import TrialReplacementPolicyModel
 
 ExperimentStudyModel = _experiment_study_contract.ExperimentStudyModel
-_EXPERIMENT_SPEC_VALIDATOR = "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
 
 
 class ExperimentRunPlanModel(ContractModel):
@@ -139,7 +138,6 @@ class ExperimentRunPlanModel(ContractModel):
             "run-plan-exactly-one-run-count-source",
             "A run plan must declare exactly one of allocation or target_run_count, and every red-variant "
             "selection map key must equal its embedded variant_id.",
-            validator="raes_contracts.contracts.ExperimentRunPlanModel._validate_run_plan",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#/run_plan"}],
         )
         add_difficulty_registry_invariant(json_schema)
@@ -294,7 +292,6 @@ class ExperimentSpecModel(ContractModel):
             "experiment-spec-blocking-factors-declared",
             "When a run plan declares an allocation with blocking factors, every blocking factor must be a "
             "declared experiment-spec factor.",
-            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -303,14 +300,12 @@ class ExperimentSpecModel(ContractModel):
             "In every binding posture, each condition assignment must reference a factor and level declared "
             "by the containing experiment spec. Authors define these local declarations; "
             "no domain catalog is required.",
-            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "experiment-binding-source-joins-valid",
             "Explicit bindings must cover every compared condition and resolve exact declared factor levels.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._validate_binding_descriptors",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -318,7 +313,6 @@ class ExperimentSpecModel(ContractModel):
             "experiment-selection-policies-valid",
             "Selection policy ids, bounds, references, stochastic controls, and supported exact profiles must "
             "form one finite, acyclic, fail-closed authoring registry.",
-            validator="raes_contracts.contracts.ExperimentRunPlanModel._validate_selection_policies",
             inputs=[
                 {
                     "contract_id": "experiment-authoring-input-v1",
@@ -331,7 +325,6 @@ class ExperimentSpecModel(ContractModel):
             "experiment-selection-factor-joins-valid",
             "Selection strata and binding references must resolve declared factors, levels, conditions, "
             "variation points, and allocation counts.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._validate_selection_factor_joins",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -339,7 +332,6 @@ class ExperimentSpecModel(ContractModel):
             "experiment-factorial-generation-valid",
             "Factorial intent resolves exact declared levels, bounded Cartesian output, collision-free bindings, "
             "and matching supplied materializations before authoring admission.",
-            validator="raes_contracts.contracts.ExperimentSpecModel._expand_factorial",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -347,7 +339,6 @@ class ExperimentSpecModel(ContractModel):
             "run-plan-evidence-requirement-relation-owner-valid",
             "Prospective run-scoped evidence requirement relations must identify this exact authoring input and "
             "its intended scenario snapshot.",
-            validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
         return json_schema

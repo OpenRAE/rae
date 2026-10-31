@@ -5340,8 +5340,7 @@
               "instance_path": "#/execution_policy"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.execution_policy.ExecutionPolicy.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -5382,8 +5381,7 @@
               "instance_path": "#/execution_policy"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.execution_policy.ExecutionPolicyDocument.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -8617,7 +8615,7 @@
       "type": "string"
     },
     "NamedAlphabet": {
-      "description": "Closed set of portable alphabets a random value may draw from.\n\nConcrete charsets live in :data:`raes_contracts.random_value_generation.NAMED_ALPHABET_CHARSETS`,\nthe single source of truth shared with backend generation.",
+      "description": "Closed set of portable alphabets a random value may draw from.",
       "enum": [
         "hex_lower",
         "hex_upper",
@@ -12045,8 +12043,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.participant_control_context.validate_control_context_asset"
+          "level": "error"
         }
       ]
     },
@@ -26318,7 +26315,7 @@
     },
     "RuntimeOrchestrationAuthority": {
       "additionalProperties": false,
-      "description": "Node-scoped runtime inventory for a container-spawn control authority.\n\n``control_interface_ref`` is the ``control_interface_id`` of a same-node\n``RuntimeControlInterface`` (the docker.sock shell), resolved by\n``validator.py`` \u2014 referenced, never duplicated. The privilege classification\nis descriptive and does not select or authorize a privileged operation.",
+      "description": "Node-scoped runtime inventory for a container-spawn control authority.\n\n``control_interface_ref`` is the ``control_interface_id`` of a same-node\n``RuntimeControlInterface`` (the docker.sock shell), resolved by semantic\nvalidation \u2014 referenced, never duplicated. The privilege classification\nis descriptive and does not select or authorize a privileged operation.",
       "properties": {
         "control_interface_ref": {
           "default": "",
@@ -34600,8 +34597,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes.validator.SemanticValidator._verify_service_materialization"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

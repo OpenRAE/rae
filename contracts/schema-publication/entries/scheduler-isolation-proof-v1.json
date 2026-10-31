@@ -2,9 +2,9 @@
   "contract_id": "scheduler-isolation-proof-v1",
   "schema_path": "contracts/schemas/control-plane/scheduler-isolation-proof-v1.json",
   "stability": "draft",
-  "content_hash": "0534bb270b55f618d3a8272d0356fa79a6e25adfd68eab7107cafb865f406f1b",
+  "content_hash": "e4f1fd6873b180825d03442e119335fa99bb5bf8a717e5a93957df81b4ec2cb2",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "0534bb270b55f618d3a8272d0356fa79a6e25adfd68eab7107cafb865f406f1b"
+    "content_hash": "e4f1fd6873b180825d03442e119335fa99bb5bf8a717e5a93957df81b4ec2cb2",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

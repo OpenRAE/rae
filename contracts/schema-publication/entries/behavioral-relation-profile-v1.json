@@ -2,9 +2,9 @@
   "contract_id": "behavioral-relation-profile-v1",
   "schema_path": "contracts/schemas/profiles/behavioral-relation-profile-v1.json",
   "stability": "draft",
-  "content_hash": "9fcb8068ee35e4e445b7109f04e71994a7727d2a5b54cfb1f28cf6676f2ce099",
+  "content_hash": "7304f3cb98b55797fc5c9c6807c76e35e7e7e9db4caac270161e94ecba4929a5",
   "last_change": {
-    "summary": "Add the separately pinned two-operation DPBB profile, exact retry/history and bounded response-loss domains; preserve the single-operation and opacity variants (issue #1395).",
-    "content_hash": "9fcb8068ee35e4e445b7109f04e71994a7727d2a5b54cfb1f28cf6676f2ce099"
+    "content_hash": "7304f3cb98b55797fc5c9c6807c76e35e7e7e9db4caac270161e94ecba4929a5",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

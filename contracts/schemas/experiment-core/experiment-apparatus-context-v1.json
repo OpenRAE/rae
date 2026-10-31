@@ -642,8 +642,7 @@
               "instance_path": "#/$defs/ExperimentManifestReferenceModel"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+          "level": "error"
         }
       ]
     },
@@ -1303,8 +1302,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentApparatusContextModel._validate_instrument_context"
+      "level": "error"
     },
     {
       "description": "Canonical processor and backend manifest_ref values must resolve to manifest payloads with matching identities and mutual compatibility declarations.",
@@ -1323,8 +1321,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_apparatus_context_against_manifests"
+      "level": "error"
     },
     {
       "description": "Apparatus declared_at and observed_setup_evidence created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
@@ -1339,8 +1336,7 @@
           "instance_path": "#/observed_setup_evidence"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_apparatus_context_archival_datetimes"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

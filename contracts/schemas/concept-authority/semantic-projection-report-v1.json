@@ -1142,8 +1142,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.SemanticProjectionReportModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Only witness rows carry digest-stable native results whose subject, producer, and profile join the embedded frame; contextual evidence admission is validated with referenced authority artifacts.",
@@ -1154,8 +1153,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.SemanticProjectionReportModel.model_validate"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

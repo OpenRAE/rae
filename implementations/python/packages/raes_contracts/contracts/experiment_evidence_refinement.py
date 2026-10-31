@@ -136,7 +136,6 @@ class ExperimentEvidenceRequirementRelationModel(ContractModel):
             "Evidence requirement relations must resolve an exact immutable SDL declaration and a separately "
             "identified capture requirement. Refinements preserve every declared base dimension and strengthen "
             "at least one governed dimension; extensions remain independent obligations.",
-            validator="raes_contracts.contracts.validate_evidence_requirement_relations",
             inputs=[
                 {"contract_id": "sdl-authoring-input-v1", "instance_path": "#/evidence_requirements"},
                 {"contract_id": "experiment-capture-spec-v1", "instance_path": "#"},

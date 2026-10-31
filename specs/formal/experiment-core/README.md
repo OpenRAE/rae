@@ -856,9 +856,10 @@ sealed record, replay rules, and dispatch/receipt joins are specified in
 4. Valid fixtures MUST validate against their published schemas. Invalid
    fixtures for schema-expressible invariants MUST fail both the published JSON
    Schema and the Python contract model.
-5. Consumers that use only generic JSON Schema can validate portable structure
-   but MUST NOT claim full RAES experiment-core conformance until the RAES
-   semantic validators named by `x-raes-invariants` have been applied.
+5. A consumer that uses only generic JSON Schema can validate the portable
+   structure. It MUST NOT claim full RAES experiment-core conformance until it
+   applies the RAES semantic validation of each invariant in
+   `x-raes-invariants`.
 
 ### Security And Redaction
 

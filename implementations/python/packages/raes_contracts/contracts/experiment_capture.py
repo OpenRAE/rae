@@ -89,7 +89,6 @@ class ExperimentCaptureWindowModel(ContractModel):
             json_schema,
             "capture-window-interval-valid",
             "Capture window ends_at must not precede starts_at when both timestamps are present.",
-            validator="raes_contracts.contracts.ExperimentCaptureWindowModel._validate_capture_window",
             inputs=[{"contract_id": "experiment-capture-spec-v1", "instance_path": "#/capture_windows"}],
         )
         return json_schema
@@ -204,7 +203,6 @@ class ExperimentCaptureSpecModel(ContractModel):
             "capture-requirement-key-matches-requirement-id",
             "Every capture_requirements object key must match the embedded requirement_id value, capture window ids "
             "must be unique, and window_refs must resolve to declared capture_windows.",
-            validator="raes_contracts.contracts.ExperimentCaptureSpecModel._validate_capture_spec",
             inputs=[{"contract_id": "experiment-capture-spec-v1", "instance_path": "#"}],
         )
         _add_raes_plane(json_schema, "experiment-capture-spec-v1")

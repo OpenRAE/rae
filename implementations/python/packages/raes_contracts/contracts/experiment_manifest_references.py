@@ -139,7 +139,6 @@ class ExperimentManifestReferenceModel(ExperimentReferenceModel):
             "manifest-reference-digest-scope-valid",
             "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked "
             "against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
-            validator="raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope",
             inputs=[
                 {"contract_id": "experiment-task-v1", "instance_path": _MANIFEST_REFERENCE_DEFS_POINTER},
                 {

@@ -96,7 +96,6 @@ class ExperimentEvidenceRecordModel(ContractModel):
             "carries no known values. "
             "Profile owners bind to the fact scope and capture carrier; nested profile basis and evidence "
             "join fact provenance.",
-            validator="raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate",
             inputs=[{"contract_id": "experiment-evidence-record-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -104,14 +103,12 @@ class ExperimentEvidenceRecordModel(ContractModel):
             "evidence-record-raw-content-present",
             "Evidence records must carry raw content as an artifact reference, content URI with checksum, or bounded "
             "payload summary; redacted/withheld records must disclose loss.",
-            validator="raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record",
             inputs=[{"contract_id": "experiment-evidence-record-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "evidence-record-captured-at-valid",
             "captured_at must be a valid RFC 3339 date-time.",
-            validator="raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record",
             inputs=[{"contract_id": "experiment-evidence-record-v1", "instance_path": "#/captured_at"}],
         )
         # SEM-216 B4: redacted or withheld evidence records must disclose redaction/loss at the
@@ -207,14 +204,12 @@ class ExperimentDerivedMeasureModel(ContractModel):
             json_schema,
             "derived-measure-reported-value-present",
             "Reported derived measures must include a value; missing/withheld/not-applicable measures must not.",
-            validator="raes_contracts.contracts.ExperimentDerivedMeasureModel._validate_derived_measure",
             inputs=[{"contract_id": "experiment-derived-measure-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "derived-measure-generated-at-valid",
             "generated_at must be a valid RFC 3339 date-time.",
-            validator="raes_contracts.contracts.ExperimentDerivedMeasureModel._validate_derived_measure",
             inputs=[{"contract_id": "experiment-derived-measure-v1", "instance_path": "#/generated_at"}],
         )
         _add_raes_plane(json_schema, "experiment-derived-measure-v1")
@@ -253,7 +248,6 @@ class ExperimentRunTraceabilityModel(ContractModel):
             "run-traceability-refs-unique",
             "Run provenance traceability references must be duplicate-free, and claim refs must be grounded by "
             "at least one derived measure ref.",
-            validator="raes_contracts.contracts.ExperimentRunTraceabilityModel._validate_run_traceability",
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/traceability"}],
         )
         return json_schema
@@ -344,9 +338,6 @@ class ExperimentRealizedFormDisclosureModel(ContractModel):
             "realized-form-disclosure-substantive",
             "Every realized-form disclosure must name a realized reference or value summary and use the right "
             "processor/backend realization authority for processor-realized and backend-realized concerns.",
-            validator=(
-                "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel._validate_realized_form_disclosure"
-            ),
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_form_disclosures"}],
         )
         _add_raes_invariant(
@@ -356,7 +347,6 @@ class ExperimentRealizedFormDisclosureModel(ContractModel):
             "author authority, with versioned sources and exact extension coordinates. Profile owners "
             "bind to the fact scope "
             "and realization-description carrier; nested profile basis and evidence join fact provenance.",
-            validator="raes_contracts.contracts.ExperimentRealizedFormDisclosureModel.model_validate",
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_form_disclosures"}],
         )
         return json_schema

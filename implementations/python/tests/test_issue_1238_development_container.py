@@ -394,12 +394,13 @@ def _image_environment() -> dict[str, str]:
 
 
 def test_every_new_terminal_finds_the_locked_clients_the_setup_installs() -> None:
-    from tools.devcontainer_setup import PYTHON_LINK_NAME
+    from tools.devcontainer_setup import CURRENT_LINK_NAME
 
     environment = _image_environment()
     kit = Path(environment["XDG_CACHE_HOME"]) / "raes-bootstrap"
-    assert environment["PATH"].split(":")[0] == str(kit / "bin")
-    assert environment["UV_PYTHON"] == str(kit / "python" / PYTHON_LINK_NAME / "bin" / "python3")
+    assert environment["PATH"].split(":")[:2] == [str(kit / "bin"), str(kit / "go" / CURRENT_LINK_NAME / "bin")]
+    assert environment["GOTOOLCHAIN"] == "local"
+    assert environment["UV_PYTHON"] == str(kit / "python" / CURRENT_LINK_NAME / "bin" / "python3")
     assert environment["UV_PYTHON_DOWNLOADS"] == "never"
     assert environment["UV_LINK_MODE"] == "copy"
     remote_path = _config()["remoteEnv"]["PATH"]
@@ -450,7 +451,7 @@ class _FakeBootstrap:
 
     def selection(self, _host_profile_id: str) -> dict:
         artifacts = []
-        for artifact_id, implementation in (("cpython-3.14", "CPython"), ("uv", "uv")):
+        for artifact_id, implementation in (("cpython-3.14", "CPython"), ("uv", "uv"), ("go", "go")):
             content = self.payloads[artifact_id]
             raw = {"path": f"{artifact_id}.tar.gz", "sha256": hashlib.sha256(content).hexdigest(), "size": len(content)}
             identity = {"implementation": implementation, "version": "1", "abi": "native", "target": "t"}
@@ -478,34 +479,40 @@ class _FakeBootstrap:
         (kit / "python" / "cpython-3.14.7" / "bin").mkdir(parents=True)
         return {"path": "python/cpython-3.14.7"}
 
+    def install_go(self, _host: str, kit: Path, _artifact_id: str) -> dict:
+        (kit / "go" / "go1.27.3" / "bin").mkdir(parents=True)
+        return {"path": "go/go1.27.3"}
+
 
 @pytest.fixture
 def fake_bootstrap(monkeypatch: pytest.MonkeyPatch) -> _FakeBootstrap:
     from tools import bootstrap_profile, tooling_policy_gate
 
-    fake = _FakeBootstrap({"cpython-3.14": b"python-archive", "uv": b"uv-archive"})
+    fake = _FakeBootstrap({"cpython-3.14": b"python-archive", "uv": b"uv-archive", "go": b"go-archive"})
     monkeypatch.setattr(
         tooling_policy_gate, "load_tooling_host_profile_selection_with_current_interpreter", fake.selection
     )
     monkeypatch.setattr(bootstrap_profile, "fetch_bootstrap_payloads", fake.fetch)
     monkeypatch.setattr(bootstrap_profile, "install_uv_payload", fake.install_uv)
     monkeypatch.setattr(bootstrap_profile, "install_python_payload", fake.install_python)
+    monkeypatch.setattr(bootstrap_profile, "install_go_payload", fake.install_go)
     return fake
 
 
 def test_setup_fetches_once_then_reuses_only_archives_that_still_verify(
     tmp_path: Path, fake_bootstrap: _FakeBootstrap
 ) -> None:
-    from tools.devcontainer_setup import PYTHON_LINK_NAME, prepare_kit
+    from tools.devcontainer_setup import CURRENT_LINK_NAME, prepare_kit
 
     kit = tmp_path / "cache" / "raes-bootstrap"
     prepare_kit(CONTAINER_HOST_PROFILE_ID, kit)
-    assert fake_bootstrap.fetched == [["cpython-3.14", "uv"]]
-    assert (kit / "python" / PYTHON_LINK_NAME / "bin").is_dir()
+    assert fake_bootstrap.fetched == [["cpython-3.14", "go", "uv"]]
+    assert (kit / "python" / CURRENT_LINK_NAME / "bin").is_dir()
+    assert (kit / "go" / CURRENT_LINK_NAME / "bin").is_dir()
     assert (kit / "bin" / "uv").is_file()
 
     prepare_kit(CONTAINER_HOST_PROFILE_ID, kit)
-    assert fake_bootstrap.fetched == [["cpython-3.14", "uv"]]
+    assert fake_bootstrap.fetched == [["cpython-3.14", "go", "uv"]]
 
     (kit / "archives" / "uv" / "uv.tar.gz").write_bytes(b"tampered")
     prepare_kit(CONTAINER_HOST_PROFILE_ID, kit)

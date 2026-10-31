@@ -274,8 +274,7 @@
               "instance_path": "#/$defs/ExperimentManifestReferenceModel"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+          "level": "error"
         }
       ]
     },
@@ -1317,8 +1316,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.mixed_composition.MixedParticipantCompositionProfileModel._validate_profile"
+      "level": "error"
     },
     {
       "description": "Schema validity does not resolve scenario targets, manifests, envelopes, participant features, crossing policies, clocks, evidence, or nested profiles; trusted contextual validation is required.",
@@ -1329,8 +1327,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.mixed_composition_resolution.validate_mixed_composition_context"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

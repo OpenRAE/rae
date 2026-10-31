@@ -33,8 +33,6 @@ from .participant_manifests import DigestString
 from .participant_runtime import ParticipantRuntimeDeliveryBasis
 from .schema_invariants import _add_raes_invariant
 
-_SURFACE_V2_VALIDATOR = "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
-
 
 class _ParticipantDecisionSurfaceAnchorV2Base(ContractModel):
     participant_address: NonEmptyString
@@ -269,7 +267,6 @@ class ParticipantDecisionSurfaceV2Model(ContractModel):
             "decision-surface-v2-plane-separation",
             "The participant view contains only participant-available choice material; derivation, policy, evidence, "
             "provenance, and delivery remain in separate assurance and delivery planes.",
-            validator=_SURFACE_V2_VALIDATOR,
             inputs=[{"contract_id": "participant-decision-surface-v2", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -277,14 +274,12 @@ class ParticipantDecisionSurfaceV2Model(ContractModel):
             "decision-surface-v2-exact-cut-policy",
             "Each exposed item is bound to the derivation state cut and exact policy decision, independently of the "
             "participant decision epoch.",
-            validator=_SURFACE_V2_VALIDATOR,
             inputs=[{"contract_id": "participant-decision-surface-v2", "instance_path": "#/assurance"}],
         )
         _add_raes_invariant(
             json_schema,
             "decision-surface-v2-delivery-before-selection",
             "A surface is actionable only in delivered state, with delivery bound to the canonical participant view.",
-            validator=_SURFACE_V2_VALIDATOR,
             inputs=[{"contract_id": "participant-decision-surface-v2", "instance_path": "#/delivery"}],
         )
         _add_raes_invariant(
@@ -292,7 +287,6 @@ class ParticipantDecisionSurfaceV2Model(ContractModel):
             "decision-surface-v2-explicit-memory-scope",
             "Assurance declares whether participant-visible memory persists across episodes; an episode-local claim "
             "requires an authoritative reset of every participant-visible memory channel.",
-            validator=("raes_contracts.contracts.ParticipantDecisionSurfaceAssuranceV2Model._validate_assurance"),
             inputs=[{"contract_id": "participant-decision-surface-v2", "instance_path": "#/assurance"}],
         )
         json_schema.setdefault("allOf", []).extend(

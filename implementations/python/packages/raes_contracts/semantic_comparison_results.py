@@ -176,7 +176,6 @@ class SemanticComparisonResultModel(ContractModel):
             schema,
             "semantic-comparison-independent-change-axes",
             "Identity, exact representation, structure, and semantic relations remain independent.",
-            validator="raes_contracts.semantic_comparison.SemanticComparisonResultModel.model_validate",
             inputs=[{"contract_id": "semantic-comparison-result-v1", "instance_path": "#"}],
         )
         return schema

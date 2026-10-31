@@ -110,7 +110,6 @@ def add_trial_run_provenance_invariant(json_schema: dict[str, Any]) -> None:
         "experiment-run-admitted-trial-provenance",
         "When present, trial provenance binds the archival run id to one admitted plan entry, the canonical "
         "instantiated snapshot, all three published processor-plan projections, and distinct execution attempts.",
-        validator="raes_contracts.contracts.validate_admitted_trial_run",
         inputs=[
             {"contract_id": "admitted-trial-plan-v1", "instance_path": "#"},
             {"contract_id": "experiment-run-v1", "instance_path": "#/trial_provenance"},

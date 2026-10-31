@@ -274,14 +274,12 @@ class CandidateSynthesisInputModel(ContractModel):
             schema,
             "candidate-synthesis-pinned-source-join",
             "Every assertion and reference resolves inside one digest-pinned source envelope and assertion set.",
-            validator="raes_contracts.contracts.CandidateSynthesisInputModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-input-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             schema,
             "candidate-synthesis-stable-input-order",
             "Assertions, assumptions, decisions, references, values, and target identities use stable unique ordering.",
-            validator="raes_contracts.contracts.CandidateSynthesisInputModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-input-v1", "instance_path": "#"}],
         )
         return schema
@@ -449,7 +447,6 @@ class CandidateSynthesisRecordModel(ContractModel):
                 "Success carries one complete digest-bound candidate and traces; "
                 "refusal carries no candidate and typed choices."
             ),
-            validator="raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-record-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -459,7 +456,6 @@ class CandidateSynthesisRecordModel(ContractModel):
                 "Source assertions, assumptions, decisions, construct contributions, "
                 "unresolved choices, and transformation evidence remain distinct."
             ),
-            validator="raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-record-v1", "instance_path": "#"}],
         )
         return schema

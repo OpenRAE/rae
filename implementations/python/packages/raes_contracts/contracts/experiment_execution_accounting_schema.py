@@ -13,7 +13,6 @@ def add_record_shape_schema(schema: dict[str, Any]) -> None:
         "exact start and bounded end times, and status consistent with the observed lifecycle. "
         "Archival accounting agrees with admitted trial provenance identities, attempts, "
         "operation references and cleanup membership.",
-        validator="raes_contracts.contracts.ExperimentRunModel._validate_archival_run",
         inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
     )
     schema.setdefault("allOf", []).append(

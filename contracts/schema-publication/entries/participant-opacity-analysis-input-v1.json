@@ -2,9 +2,9 @@
   "contract_id": "participant-opacity-analysis-input-v1",
   "schema_path": "contracts/schemas/formal-analysis/participant-opacity-analysis-input-v1.json",
   "stability": "draft",
-  "content_hash": "c14950ba335a7afa0cb6087b1c10589936b7665269e7ace8664e76f5ef775d76",
+  "content_hash": "05d16db43c830c953cb60c548598979801fc4a9a197d7bd4b660e5bfb477c6fd",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "c14950ba335a7afa0cb6087b1c10589936b7665269e7ace8664e76f5ef775d76"
+    "content_hash": "05d16db43c830c953cb60c548598979801fc4a9a197d7bd4b660e5bfb477c6fd",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

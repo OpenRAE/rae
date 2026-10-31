@@ -1430,8 +1430,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
+      "level": "error"
     },
     {
       "description": "Each exposed item is bound to the derivation state cut and exact policy decision, independently of the participant decision epoch.",
@@ -1442,8 +1441,7 @@
           "instance_path": "#/assurance"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
+      "level": "error"
     },
     {
       "description": "A surface is actionable only in delivered state, with delivery bound to the canonical participant view.",
@@ -1454,8 +1452,7 @@
           "instance_path": "#/delivery"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
+      "level": "error"
     },
     {
       "description": "Assurance declares whether participant-visible memory persists across episodes; an episode-local claim requires an authoritative reset of every participant-visible memory channel.",
@@ -1466,8 +1463,7 @@
           "instance_path": "#/assurance"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantDecisionSurfaceAssuranceV2Model._validate_assurance"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

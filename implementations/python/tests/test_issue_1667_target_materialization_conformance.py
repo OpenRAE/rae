@@ -25,7 +25,11 @@ from test_issue_1241_materialization_runtime import ReportingProvisioner
 from test_realization_honesty_conformance import _ScriptedHarness
 from test_realization_honesty_conformance import _target as _honesty_target
 
-SCENARIO = "name: dynamic\nrealization: {default: open}\nnodes:\n  host: {type: compute}"
+SCENARIO = (
+    "name: dynamic\nrealization:\n  default: open\n  scopes:\n"
+    "    - {field_pointer: /nodes/host/runtime, posture: closed}\n"
+    "nodes:\n  host: {type: compute}"
+)
 ATTESTATION = "backend-materialization-attestation-v1"
 
 

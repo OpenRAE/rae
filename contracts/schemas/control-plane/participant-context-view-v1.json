@@ -488,8 +488,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantContextViewModel._validate_sem216_audience_boundary"
+      "level": "error"
     },
     {
       "description": "Participant-visible context views must not set payload_ref to a raw archival evidence_record or derived_measure source ref; payload_ref must identify the transformed, redacted view output.",
@@ -500,8 +499,7 @@
           "instance_path": "#/payload_ref"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantContextViewModel._validate_sem216_audience_boundary"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

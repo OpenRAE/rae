@@ -44,7 +44,6 @@ class TrialReplacementPolicyModel(ContractModel):
             "trial-replacement-policy-explicit-and-bounded",
             "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, "
             "and zero requires none. Omission supplies no allocation permission.",
-            validator="raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy",
             inputs=[
                 {"contract_id": "experiment-authoring-input-v1", "instance_path": "#/run_plan/replacement_policy"},
                 {"contract_id": "admitted-trial-plan-v1", "instance_path": "#/replacement_policy"},

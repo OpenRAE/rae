@@ -2,9 +2,9 @@
   "contract_id": "participant-control-evaluation-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-evaluation-v1.json",
   "stability": "draft",
-  "content_hash": "015504cd8b2499bafe1a6b16571848cdd7234ca204b8a5ec334589e163f14a11",
+  "content_hash": "6c672a5ecfad4dd941e4d518a415f50e9f6e40e59218515b62637a263391707b",
   "last_change": {
-    "summary": "Pin the complete typed world request for governed inject execution, preserving absent-field legacy serialization (#1369).",
-    "content_hash": "015504cd8b2499bafe1a6b16571848cdd7234ca204b8a5ec334589e163f14a11"
+    "content_hash": "6c672a5ecfad4dd941e4d518a415f50e9f6e40e59218515b62637a263391707b",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

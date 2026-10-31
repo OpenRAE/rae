@@ -169,7 +169,6 @@ class ExperimentApparatusContextModel(ContractModel):
             "canonical-apparatus-manifest-selected",
             "The canonical processor and backend component manifest_ref values must be present in selected_manifests; "
             "digest-qualified selected manifests must be canonical component manifests.",
-            validator="raes_contracts.contracts.ExperimentApparatusContextModel._validate_instrument_context",
             inputs=[{"contract_id": "experiment-apparatus-context-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -177,7 +176,6 @@ class ExperimentApparatusContextModel(ContractModel):
             "apparatus-manifest-payload-identity-valid",
             "Canonical processor and backend manifest_ref values must resolve to manifest payloads with matching "
             "identities and mutual compatibility declarations.",
-            validator="raes_contracts.contracts.validate_experiment_apparatus_context_against_manifests",
             inputs=[
                 {"contract_id": "experiment-apparatus-context-v1", "instance_path": "#"},
                 {"contract_id": "processor-manifest-v2", "instance_path": "#"},

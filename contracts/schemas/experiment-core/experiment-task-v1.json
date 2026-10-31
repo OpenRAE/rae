@@ -106,8 +106,7 @@
               "instance_path": "#/apparatus_constraints"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentApparatusConstraintModel._validate_allowed_identity_manifest_refs"
+          "level": "error"
         }
       ]
     },
@@ -493,8 +492,7 @@
               "instance_path": "#/evaluation_protocol"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentEvaluationProtocolModel._validate_metric_definition_keys"
+          "level": "error"
         }
       ]
     },
@@ -744,8 +742,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_evidence_requirement_relations"
+          "level": "error"
         }
       ]
     },
@@ -1001,8 +998,7 @@
               "instance_path": "#/$defs/ExperimentManifestReferenceModel"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+          "level": "error"
         }
       ]
     },
@@ -2312,8 +2308,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         },
         {
           "description": "gate_results gate_kind values must be unique, drawn from the resolved profile's required/optional union, and every required gate_kind must be present.",
@@ -2336,8 +2331,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         },
         {
           "description": "achieved_strength must be supported by ADR-072-ordered passed gate rows for its own rank (structural never implies semantic; semantic never implies behavioral); evidence_backed/falsification_backed additionally require at least one evidence_ref.",
@@ -2360,8 +2354,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         },
         {
           "description": "A required gate not passed, a not_applicable gate outcome, a below-minimum achieved_strength, and a public/audience-restricted audience each require an explicit, profile-declared limitation (the audience-restricted case specifically requires the audience_restricted category).",
@@ -2384,8 +2377,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         }
       ]
     },
@@ -2820,8 +2812,7 @@
           "instance_path": "#/validation_basis_disclosures"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validation_disclosure.validate_carrier_validation_basis_disclosures"
+      "level": "error"
     },
     {
       "description": "Task-scoped evidence requirement relations must identify this exact task and scenario snapshot.",
@@ -2832,8 +2823,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentTaskModel._validate_task_validation_basis_disclosures"
+      "level": "error"
     },
     {
       "description": "Task artifact_refs created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
@@ -2844,8 +2834,7 @@
           "instance_path": "#/artifact_refs"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_task_archival_datetimes"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

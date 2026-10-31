@@ -439,8 +439,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentDerivedMeasureModel._validate_derived_measure"
+      "level": "error"
     },
     {
       "description": "generated_at must be a valid RFC 3339 date-time.",
@@ -451,8 +450,7 @@
           "instance_path": "#/generated_at"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentDerivedMeasureModel._validate_derived_measure"
+      "level": "error"
     }
   ],
   "x-raes-plane": "derived_analysis",

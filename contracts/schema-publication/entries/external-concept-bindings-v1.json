@@ -1,9 +1,9 @@
 {
-  "content_hash": "38c41edabb9c99c963bd83e4f7869f4f80392913f6ca1ac7742cea2a5ab67687",
+  "content_hash": "ae919e7cc0d1354224d0ead2d7a6f8354f75bcd25f0853fe0fc70b4810764e49",
   "contract_id": "external-concept-bindings-v1",
   "last_change": {
-    "content_hash": "38c41edabb9c99c963bd83e4f7869f4f80392913f6ca1ac7742cea2a5ab67687",
-    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+    "content_hash": "ae919e7cc0d1354224d0ead2d7a6f8354f75bcd25f0853fe0fc70b4810764e49",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/concept-authority/external-concept-bindings-v1.json",
   "stability": "draft"

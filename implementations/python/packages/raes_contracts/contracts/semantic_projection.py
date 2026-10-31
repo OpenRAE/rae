@@ -26,7 +26,6 @@ from .semantic_projection_profile_registry import (
     binding_posture,
 )
 
-_REPORT_VALIDATOR = "raes_contracts.contracts.SemanticProjectionReportModel.model_validate"
 _WITNESS_FRAME_JOIN_ERROR = "projection witness must join the exact frame subject, producer, and profile"
 _PREDICATE_IDS = Literal["declared", "admitted", "observed", "verified"]
 
@@ -412,7 +411,6 @@ class SemanticProjectionReportModel(ContractModel):
             "semantic-projection-exact-frame-partition",
             "The complete digest-bound frame selects one native predicate and every explicitly included "
             "concept appears in exactly one structural report partition.",
-            validator=_REPORT_VALIDATOR,
             inputs=[{"contract_id": "semantic-projection-report-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -420,7 +418,6 @@ class SemanticProjectionReportModel(ContractModel):
             "semantic-projection-evidence-bounded-witnesses",
             "Only witness rows carry digest-stable native results whose subject, producer, and profile join "
             "the embedded frame; contextual evidence admission is validated with referenced authority artifacts.",
-            validator=_REPORT_VALIDATOR,
             inputs=[{"contract_id": "semantic-projection-report-v1", "instance_path": "#"}],
         )
         return schema

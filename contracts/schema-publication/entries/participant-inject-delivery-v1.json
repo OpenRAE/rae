@@ -2,9 +2,9 @@
   "contract_id": "participant-inject-delivery-v1",
   "schema_path": "contracts/schemas/control-plane/participant-inject-delivery-v1.json",
   "stability": "draft",
-  "content_hash": "91b4ae280fac1c0a1ea17ef2584434e1038e1c7af1a9ca62bfcf85f8332b7618",
+  "content_hash": "f8a659283e4f518d5cefeea72568e7044f2602a03bece270a1d8a8faab7e569f",
   "last_change": {
-    "summary": "Publish the exact directed inject application and governed delivery join, preserving independent world, capture, control and observation outcomes (#1368).",
-    "content_hash": "91b4ae280fac1c0a1ea17ef2584434e1038e1c7af1a9ca62bfcf85f8332b7618"
+    "content_hash": "f8a659283e4f518d5cefeea72568e7044f2602a03bece270a1d8a8faab7e569f",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

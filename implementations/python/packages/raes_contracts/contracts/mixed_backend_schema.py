@@ -32,7 +32,6 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
             schema,
             "mixed-backend-local-consistency",
             _LOCAL_CONSISTENCY[contract_id],
-            validator=f"raes_contracts.contracts.{model.__name__}.model_validate",
             inputs=_inputs(contract_id),
         )
         schemas[contract_id] = schema
@@ -42,7 +41,6 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
         "Require exactly one matching binding per active edge and one-to-one component-changing transition of the "
         "admitted sealed profile, with governed order, preserved compiled subjects, declared loss and the edge's "
         "admitted temporal coupling.",
-        validator="raes_contracts.contracts.validate_mixed_backend_bindings",
         inputs=_inputs("mixed-participant-composition-profile-v1", _BINDING),
     )
     _add_raes_invariant(
@@ -50,7 +48,6 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
         "mixed-backend-contextual-admission",
         "Before invocation require the shared request to commit to this binding, its operation kind and its "
         "installed bridge or transfer service, then installed support and current exact-context willingness.",
-        validator="raes_contracts.contracts.require_mixed_backend_admission",
         inputs=_inputs(
             _BINDING,
             "backend-operation-request-v1",
@@ -70,7 +67,6 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
         "state's head and phase revision, an ordered grant and accepted start before invocation stages, success "
         "or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence "
         "that cites only supplied stage reports.",
-        validator="raes_contracts.contracts.validate_mixed_backend_stage_reports",
         inputs=[
             *_inputs(
                 _BINDING,

@@ -73,8 +73,6 @@ from .trial_provenance import (
 from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
 from .validators import _validate_unique_string_values
 
-_ARCHIVAL_RUN_VALIDATOR = "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
-
 
 class ExperimentResultSummaryModel(ContractModel):
     """Reported metric value summary and evidence links for an experiment run."""
@@ -240,28 +238,24 @@ class ExperimentRunModel(ContractModel):
             json_schema,
             "ended-at-not-before-started-at",
             "ended_at must be greater than or equal to started_at.",
-            validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "result-evidence-ref-resolves",
             "Every result_summaries evidence_refs ref_id must match an evidence_artifacts artifact_id.",
-            validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "participant-implementation-provenance-resolves",
             "Participant implementation apparatus components must resolve to run-level participant provenance.",
-            validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "realized-form-evidence-refs-traced",
             "Every realized-form disclosure evidence ref must also appear in the run traceability evidence refs.",
-            validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -269,7 +263,6 @@ class ExperimentRunModel(ContractModel):
             "augmentation-disclosure-evidence-refs-traced",
             "Every augmentation disclosure evidence ref must also appear in the run traceability evidence refs, "
             "and augmentation_id values must be unique within the run.",
-            validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
         _add_carrier_validation_basis_disclosure_invariant(
@@ -281,14 +274,12 @@ class ExperimentRunModel(ContractModel):
             "Every stochastic_draws control_id must resolve to a stochastic_controls control_id with an "
             "executable_binding on the same run, and each draw's address.namespace and transform_id/"
             "transform_version must match that binding's namespace and admitted profile transforms.",
-            validator="raes_contracts.contracts.validate_experiment_run_structure_against_task",
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/stochastic_draws"}],
         )
         _add_raes_invariant(
             json_schema,
             "realized-time-model-bound-to-run",
             "When present, realized-time provenance must match the run id and its declared model digest.",
-            validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_time_model"}],
         )
         _add_raes_invariant(
@@ -296,7 +287,6 @@ class ExperimentRunModel(ContractModel):
             "task-run-protocol-binding-valid",
             "Run apparatus and result metric ids must satisfy the referenced task protocol. "
             "Content-backed evidence is additionally required by authoritative task/run validation.",
-            validator="raes_contracts.contracts.validate_experiment_run_structure_against_task",
             inputs=[
                 {"contract_id": "experiment-task-v1", "instance_path": "#"},
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
@@ -306,7 +296,6 @@ class ExperimentRunModel(ContractModel):
             json_schema,
             "run-evidence-requirement-relation-owner-valid",
             "Archived run-scoped evidence requirement relations must identify this exact run and scenario snapshot.",
-            validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
         return json_schema

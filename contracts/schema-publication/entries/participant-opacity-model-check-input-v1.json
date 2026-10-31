@@ -2,9 +2,9 @@
   "contract_id": "participant-opacity-model-check-input-v1",
   "schema_path": "contracts/schemas/formal-analysis/participant-opacity-model-check-input-v1.json",
   "stability": "draft",
-  "content_hash": "9cbcccfa27fb5f7dc51ff1f0b0929670a9a5cc883a505529796617562bdc2326",
+  "content_hash": "abe56e8edae85a974982438bc25ac046c37bacdbb9da710832416f0d6ed4c6b4",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "9cbcccfa27fb5f7dc51ff1f0b0929670a9a5cc883a505529796617562bdc2326"
+    "content_hash": "abe56e8edae85a974982438bc25ac046c37bacdbb9da710832416f0d6ed4c6b4",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }
