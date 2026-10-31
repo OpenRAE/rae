@@ -259,7 +259,7 @@ def test_inventory_selection_is_scoped_and_still_replays_only_current(monkeypatc
         replayed.append((release.manifest_path, _releases._is_current(root, release)))
         return []
 
-    monkeypatch.setattr(_releases, "current_release_path", select)
+    monkeypatch.setattr(_releases, "latest_recorded_release_path", select)
     monkeypatch.setattr(_releases, "validate_release_bundle", validate)
     assert _releases.validate_release_bundles(tmp_path, releases) == []
     assert selections == [tmp_path]
