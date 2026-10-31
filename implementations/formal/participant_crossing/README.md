@@ -26,8 +26,9 @@ That operation requires fresh native replay.
 It also checks the evidence and hosted execution record.
 The job uploads only its fixed admitted inventory.
 Source revisions and host identities stay in a separate record.
-Public and scientific claims require the separate reproduction work.
-They also require the planned publication work.
+The manifest binds only subject sources.
+Each run checks the apparatus sources for stability.
+Public and scientific claims cite only the admitted reproduction record.
 
 ## Fresh reproduction measurement
 
@@ -39,10 +40,11 @@ Every output byte must match the separately selected reviewed capture.
 After the existing tool acquisition and Python setup, run:
 
 ```sh
-PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest sha256:76422aebb1413e345677eeaa4bea67005e74aa3d9289d185f63f4c69dc838339
+PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest "$(jq -r .manifest_digest specs/formal/participant-semantics/machine-check/pin.json)"
 ```
 
-The expected result is an immutable `reproduction/capture-.../measurement.json` file.
+A local run writes its measurement under `.cache/raes-sdl/`.
+It is not a qualified record.
 A different digest, missing input, or unavailable sandbox fails the command.
 The command never downloads tools or dependencies.
 The `--qualified` option requires the existing hosted execution profile.
@@ -51,7 +53,15 @@ It stages measurement and allowlisted execution provenance for the canonical CI 
 A measurement does not authenticate a reviewer or establish independent acceptance.
 The reviewer must select and review its exact digest and corpus review subject.
 They must supply an attributable review record and state their separation from production.
-Missing review leaves issue 975 incomplete.
+Place the qualified `measurement.json`, `execution.json`, and the `review.json` in one repository-relative staging directory.
+Then retain the admitted capture:
+
+```sh
+PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction_record --expected-manifest "$(jq -r .manifest_digest specs/formal/participant-semantics/machine-check/pin.json)" --staging .cache/raes-sdl/reproduction-staging
+```
+
+The command refuses a self-approved, detached, or stale record.
+A reviewed change then moves `reproduction/pin.json`.
 The [reproduction design](../../../specs/formal/participant-semantics/participant-crossing-reproduction.md)
 defines the execution, review, and claim boundaries.
 
