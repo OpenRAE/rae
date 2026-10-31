@@ -438,12 +438,18 @@ corroboration is a `runtime.backend-contract-invalid` failure before snapshot
 persistence.
 
 An open concern that the author leaves empty has no authored structure or
-constraint document. Its verification floor applies to each value that the
-backend reports for that concern. Planning therefore MUST NOT require the
-observation capability for that concern. The runtime gate MUST reject a
-reported value that has no corroborated disclosure. A backend without the
-capability MUST leave the concern empty. The typed process-resource-limit
-admission rule below still applies to open process limits.
+constraint document. Planning MUST NOT require observation capability for
+that concern. Planning admission does not establish successful execution.
+When the concern has a verification floor, a successful runtime result MUST
+include an explicit report and sufficient corroboration. An explicit empty
+collection is a report and remains subject to its concern contract.
+Missing data MUST NOT establish an empty concern, even when observation
+metadata is present. The runtime gate MUST reject missing, malformed, or
+uncorroborated reports before accepting the snapshot. A backend unable to
+establish the report MUST refuse the success claim. Failed apply inventory
+remains subject to authority and sanitization checks without claiming
+successful readback. The typed process-resource-limit admission rule below
+still applies to open process limits.
 
 Evidence-source provenance, in-world versus out-of-world visibility, and the
 effect of collection on the realized world are independent coordinates. A
@@ -531,8 +537,9 @@ constraint-kinds, and (iv) the disclosure kinds the apparatus will emit.
 When a registered concern requires corroboration, the same declaration MUST
 also carry a concern-keyed observation capability containing its closed
 verification scope and non-`none` observation strength. For an open concern
-that the author leaves empty, this applies only to a backend that reports a
-value for the concern (I2).
+that the author leaves empty, planning admission does not require this
+capability. Successful runtime acceptance requires the explicit report and
+corroboration specified by I2.
 Processor manifests MUST NOT carry `realization_support`: in RAES the
 processor layer does not realize underspecified author concerns — its
 manifest discloses processing features (compilation, planning,

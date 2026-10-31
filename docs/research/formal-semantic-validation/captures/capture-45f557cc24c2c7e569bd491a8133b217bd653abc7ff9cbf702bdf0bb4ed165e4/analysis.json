@@ -1,0 +1,142 @@
+{
+  "analysis_id": "issue-1805-formal-semantic-validation-analysis-47f29a15c548",
+  "claim": {
+    "allowed_evidence": [
+      "production parser and semantic-validator results",
+      "canonical compiled digests",
+      "participant contract regression tests",
+      "pinned protocol, corpus, and execution snapshot"
+    ],
+    "claim_id": "asr-530-formal-semantic-validation-retest",
+    "disallowed_evidence": [
+      "schema success as semantic proof",
+      "workflow reachability as network or exploit reachability",
+      "FM labels as gate outcomes",
+      "attribution as counterfactual proof",
+      "formal prose or maintainer confidence alone"
+    ],
+    "evidence_artifacts": [
+      "docs/research/formal-semantic-validation/protocol-v2.json",
+      "docs/research/formal-semantic-validation/corpus/manifest-v4.json",
+      "@snapshot",
+      "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v4.json",
+      "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v4.json",
+      "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v4.json",
+      "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v4.json"
+    ],
+    "falsification_protocol": "Replay every retained and new case through its production entrypoint, require complete digest and evidence joins, execute participant fixtures, and derive status from the recorded outcomes.",
+    "objective_fail_criteria": "A supported negative passes, a positive fails, an observation drifts, a required participant case is missing, or weaker evidence is promoted to solver, exploit-path, runtime-stability, or counterfactual assurance.",
+    "objective_pass_criteria": "Every claim class has positive and negative cases, all supported cases reproduce the frozen outcome, every participant obligation has passing positive and negative fixtures, and unsupported classes remain untested.",
+    "statement": "At the recorded source-state digest, the retained RAES controls have the bounded statuses recorded here; historical releases are integrity evidence, not current replay evidence.",
+    "threats_to_validity": [
+      "The issue-specific corpus is intentionally small and does not enumerate every validator invariant.",
+      "The participant fixtures exercise reference production contracts and tests, not every independent backend realization.",
+      "The replay gate runs on one Python reference configuration and one pinned RAES revision.",
+      "Unsupported solver-level classes have protocol cases but no executable observations."
+    ]
+  },
+  "claim_results": [
+    {
+      "case_count": 2,
+      "claim_class_id": "schema-validity",
+      "evidence_status": "demonstrated",
+      "limitations": [
+        "Bounded to the named source/model structural controls."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 4,
+      "claim_class_id": "semantic-consistency",
+      "evidence_status": "partial",
+      "limitations": [
+        "Partial coverage of named static semantics and participant obligations, not universal consistency."
+      ],
+      "matching_case_count": 4,
+      "participant_obligation_count": 7,
+      "replayable_case_count": 4,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 2,
+      "claim_class_id": "graph-reachability",
+      "evidence_status": "partial",
+      "limitations": [
+        "Partial workflow control-flow reachability only; not network, service, or exploit reachability."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 4,
+      "claim_class_id": "constraint-satisfiability",
+      "evidence_status": "demonstrated",
+      "limitations": [
+        "Demonstrated only for raes-finite-domain-satisfiability-v1 and its pinned solver configuration."
+      ],
+      "matching_case_count": 4,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 2
+    },
+    {
+      "case_count": 4,
+      "claim_class_id": "exploit-path-validity",
+      "evidence_status": "demonstrated",
+      "limitations": [
+        "Demonstrated only for the admitted snapshot, typed graph, query, semantics, and bounded search profile."
+      ],
+      "matching_case_count": 4,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 2
+    },
+    {
+      "case_count": 2,
+      "claim_class_id": "determinism-stability",
+      "evidence_status": "partial",
+      "limitations": [
+        "Partial parse-to-compile repeatability only; runtime and backend determinism are untested."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 2,
+      "claim_class_id": "counterfactual-necessity",
+      "evidence_status": "untested",
+      "limitations": [
+        "Untested because no governed intervention or ablation entrypoint ran."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 0,
+      "unsupported_case_count": 2
+    }
+  ],
+  "corpus_revision": "4.0.0",
+  "evidence_status": "partial",
+  "execution_id": "issue-1805-open-concern-disclosure-formal-47f29a15c548",
+  "generated_at": "2026-10-31T20:09:12.404086+00:00",
+  "limitations": [
+    "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
+    "EXP-719 factorial generation, randomized allocation and participant configuration behavior are covered by their dedicated regressions; this retained corpus adds no treatment or live execution claim.",
+    "Issue 1549 external-backend compatibility and trial realization are verified by dedicated regressions; this retained corpus adds no independent-backend execution claim.",
+    "Issue 1520 condition membership is verified by dedicated experiment-authoring regressions. This retained offline corpus adds no ontology, domain completeness, or execution claim.",
+    "The retained research corpus does not certify native descendant creator attribution, ownership, physical effects or independent observation.",
+    "API-414 support declarations do not establish native participant tool execution; the retained formal cases keep their existing bounded claims.",
+    "This retained offline corpus adds no modular control runtime or independent backend conformance claim. Issue 1071 has separate bounded runtime probes.",
+    "Issue 1629 shared runtime sequencing, Temporal recovery and authored retry behavior have separate targeted tests; this offline corpus adds no live backend or durable workflow assurance.",
+    "Issue 1543 combines MCP argument sanitization with the issue 1678 exception boundary. Dedicated MCP regressions cover both protections; this offline corpus adds no live backend assurance.",
+    "The earlier issue-1805 branch capture inherited a 10.1.0 package-version label. That execution used 10.2.0; this fresh capture records the actual package version."
+  ],
+  "plain_language_outcome": "The retained twenty formal cases and fourteen named participant controls were freshly executed against this source. Open-concern evidence acceptance is covered by its dedicated runtime regressions; this corpus makes no new backend-honesty or physical-execution claim.",
+  "protocol_revision": "2.0.0"
+}
