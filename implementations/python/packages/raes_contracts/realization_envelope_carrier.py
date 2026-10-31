@@ -128,7 +128,8 @@ class RealizerConfigurationModel(ContractModel):
         try:
             validate_controlled_vocabulary_value(_NODE_ARCHITECTURE_VOCABULARY, self.architecture)
         except ValueError as exc:
-            raise ValueError(f"architecture must be a governed node CPU architecture term: {exc}") from exc
+            # The vocabulary error text repeats the rejected term; keep it out of the message (E7).
+            raise ValueError("architecture must be a governed node CPU architecture term") from exc
         return self
 
     @classmethod
@@ -186,7 +187,8 @@ class RealizationConcernDisclosureModel(ContractModel):
             try:
                 validate_controlled_vocabulary_value(_COMPUTE_SUBSTRATE_VOCABULARY, self.mechanism)
             except ValueError as exc:
-                raise ValueError(f"compute-substrate mechanism must be a governed term: {exc}") from exc
+                # The vocabulary error text repeats the rejected term; keep it out of the message (E7).
+                raise ValueError("compute-substrate mechanism must be a governed term") from exc
         return self
 
     @classmethod

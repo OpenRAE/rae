@@ -11,6 +11,7 @@ from dataclasses import replace
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import AdmittedTrialPlanModel, ExperimentReferenceModel
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.experiment_bindings import ApparatusManifestKey
 from raes_contracts.experiment_spec import parse_experiment_spec
 from raes_processor.trial_compiler import (
@@ -44,7 +45,8 @@ def compile_example(request: TrialCompilationRequest) -> AdmittedTrialPlanModel:
     result = compile_admitted_trial_plan(request)
     if result.plan is None:
         # The public diagnostic codes contain no configuration values.
-        raise ValueError(tuple(diagnostic.code for diagnostic in result.diagnostics))
+        codes = ", ".join(diagnostic.code for diagnostic in result.diagnostics)
+        raise InvalidInputError(f"typed treatment compilation failed: {codes}")
     # Acquire these original inputs and expected pins independently of any
     # candidate plan before using this check for an externally supplied plan.
     return readmit_admitted_trial_plan(result.plan, request=request)

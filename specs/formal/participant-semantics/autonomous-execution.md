@@ -1,10 +1,10 @@
-# Autonomous Participant Execution
+# Autonomous participant execution
 
 This specification defines DSL-437 execution as a composition of existing
 participant semantics and the shared time model. It introduces no background
 actor, inject, or private clock.
 
-## ACT-605 Baseline Behavior Profile Coverage
+## ACT-605 baseline behavior profile coverage
 
 ACT-605's declarative baseline and background behavior profiles are the
 versioned autonomous participant policies defined below. Ordinary user,
@@ -13,7 +13,7 @@ observation, shared-time, native-execution, and evidence invariants. ACT-605
 adds no separate profile root or actor kind and changes none of the v1, v2, or
 v3 policy semantics.
 
-## V1 Authored Policy
+## V1 authored policy
 
 For behavior specification \(B\), autonomous policy \(P\) contains:
 
@@ -40,7 +40,7 @@ system, and external clock authorities are never advanced by the participant
 driver. Stepped and event-driven clocks advance only through shared-time
 control.
 
-## V2 Activity Policy
+## V2 activity policy
 
 `participant-autonomous-execution/v2` preserves the same participant, action,
 observation, implementation, clock, progression, authority, and native
@@ -70,7 +70,7 @@ the authored disposition exactly: `skip` terminates that scheduling path;
 `next_opening` performs a finite forward search over declared work windows. It
 never clamps, redraws, sleeps on wall time, or consults host calendar state.
 
-## V3 Scoped Resource Policy
+## V3 scoped resource policy
 
 `participant-autonomous-execution/v3` preserves all v2 activity semantics and
 adds one required `resource_budget`. A policy declares a finite owner table,
@@ -101,7 +101,7 @@ V1 and v2 limits compile into the same canonical demand representation with
 `legacy_maximum` provenance. They do not acquire v3 capacity, fairness,
 isolation, or runtime-accounting requirements.
 
-## Bounded Action Guarantees (ACT-614)
+## Bounded action guarantees (ACT-614)
 
 An action temporal contract opts into `participant-shared-time/v1` through
 `shared_time_binding`. Legacy temporal descriptions retain their meaning;
@@ -160,7 +160,7 @@ The reference execution path supports these bindings through autonomous
 v1/v2/v3 policies. It rejects unbound manual execution at runtime admission;
 this is not an SDL restriction or a required backend architecture.
 
-## Non-Evaluated Authority Invariant
+## Non-evaluated authority invariant
 
 When `evaluation_authority.mode = none`:
 
@@ -172,7 +172,7 @@ and \(B\) has no outcome-interpretation or authority-scope refs, no objective
 names \(a\) as its actor, and the authority record has no objective, proof,
 score, or receipt refs. This is a semantic rejection condition, not guidance.
 
-## Deterministic Selection
+## Deterministic selection
 
 For the v1 `ordered_cycle` strategy, scheduler state for participant \(a\) is:
 
@@ -218,7 +218,7 @@ backend availability are not stream coordinates. Activity draws are within-run
 policy execution and are separate from scenario-family variation and trial
 compilation.
 
-## Execution And Evidence
+## Execution and evidence
 
 Compilation derives an exact relation
 
@@ -245,9 +245,9 @@ An action may commit only in this order:
 V3 inserts an atomic reservation of the complete resource vector before step
 4. Physical capacity is owned by one canonical pool ledger shared across
 policies. An exactly-once commit occurs only after the native result supplies
-the complete matching operation/generation/resource/unit/meter measurement
-vector with evidence; protocol failure or an absent/untrusted vector releases
-or rolls back the reservation.
+the complete matching operation, generation, resource, unit and meter
+measurement vector with evidence. Protocol failure or an absent or untrusted
+vector releases or rolls back the reservation.
 If any dimension or ancestor pool cannot reserve, no dimension reserves and
 the native action is not invoked. Stable action identity makes reservation and
 settlement idempotent. Every throttle, reservation, commit, release, or reset
@@ -255,11 +255,12 @@ reconciliation is a typed, generation-fenced event; metadata and log text are
 not authoritative accounting.
 
 The scheduler applies these checks to every participant-runtime implementation,
-not only implementations derived from the reference base class. If the result
-has the wrong result type, is absent, non-terminal, bound to another episode,
-reports an observation point outside the bound temporal contexts, or lacks the
-matching terminal history event, the native snapshot and portable behavior
-history are not committed. The failed attempt is recorded only in scheduler
+not only implementations derived from the reference base class. A result is
+invalid when it has the wrong type, is absent or non-terminal, or is bound to
+another episode. It is also invalid when it reports an observation point outside
+the bound temporal contexts or lacks the matching terminal history event. The
+scheduler commits neither the native snapshot nor the portable behavior history
+of an invalid result. The failed attempt is recorded only in scheduler
 accounting so the same action instance cannot be replayed. If native execution
 reports a valid terminal failure, no successful behavior history is fabricated.
 The current action must append exactly the ordered attempted, transition, and
@@ -293,10 +294,101 @@ occurrences at one due tick; each remains a distinct occurrence and action
 attempt.
 
 Every committed v2 behavior-history event carries safe occurrence provenance:
-policy/profile, occurrence and attempt identity, predecessor and dependency
-ids, candidate, timing tick/disposition, burst position, terminal outcome, and
-the safe control/profile/address identity. It never carries root entropy,
+
+- policy and profile;
+- occurrence and attempt identity;
+- predecessor and dependency ids;
+- candidate, timing tick and disposition, and burst position;
+- terminal outcome; and
+- the safe control, profile and address identity.
+
+It never carries root entropy,
 derived keys, raw blocks, or backend-private objects.
+
+## Invocation tool actions
+
+`participant-invocation-tool-actions/v1` composes participant tool actions
+with one active autonomous invocation \(o\). The invocation keeps the ordered
+three-event rule above. A tool action \(c\) is a distinct action of the same
+participant with its own identity, admission and typed outcome.
+
+Compilation derives, for policy \(P\) with behavior specification \(B\):
+
+\[
+T_P = \{(f, q, V_f, A_f \cap A_P, targets(q), bound(q))\}
+\]
+
+for each authored affordance \(f\) of \(B\) and each action \(q\) of \(f\).
+\(V_f\) is the affordance observation-boundary set. \(targets(q)\) uses the
+same effect and precondition derivation as \(R_P\). \(bound(q)\) is true when
+\(q\) has a shared-time binding. The policy digest covers non-empty \(T_P\).
+
+A request \(r\) for \(c\) inside \(o\) is admitted only if:
+
+- the port of \(o\) is open;
+- participant, live episode, implementation reference, outer action instance,
+  execution scope and generation of \(r\) equal those of \(o\);
+- exactly one member of \(T_P\) has the affordance and action of \(r\) and
+  includes its participant, with \(bound(q)\) false;
+- the observation boundary of \(r\) is in \(V_f\), and its targets form a
+  non-empty subset of \(targets(q)\);
+- exactly one manifest execution-binding offer has \(q\) and the selected
+  implementation and covers every target of \(r\);
+- \(P\) is not a v3 policy, and no participant-crossing policy is installed;
+- the enclosing operation is live, the engine and run admit effects, and the
+  run holds no unresolved indeterminate operation;
+- the selected store retains the accepted child record; and
+- the admitted and dispatched counts of \(o\) are below the declared limits.
+
+A refusal has a fixed code, causes no native call and adds no history. A tool
+call identity is stable within \(o\). The runtime-issued action identity is a
+digest of the outer action, episode, execution generation and tool call
+identity. An identical replay returns the retained
+decision. A different request under the same identity is refused.
+
+The port is inactive while the backend attaches it and refuses every operation.
+The scheduler activates it only as the outer dispatch begins. Each admitted
+action follows:
+
+```text
+admitted --dispatch--> dispatched --complete--> completed
+admitted --cancel|close--> withheld
+dispatched --report_unknown|close--> indeterminate
+```
+
+Dispatch is a one-use grant, and effects start only after it. A completion
+carries a terminal typed outcome bound to the participant, episode, action
+instance and action contract. It must also pass the canonical binding
+validation for the exposure policy, compiled boundary evidence and observation
+point. After dispatch, a cancel request is refused, because it does not prove
+that effects stopped. The first unknown effect fences the port: later
+admissions and grants refuse, and accepted work can still settle. The scheduler
+then dispatches no further outer invocation in the pass. A grant also rechecks
+the live-authority condition above. A grant whose authored interaction
+footprint conflicts with an active hosted action or another invocation's outer
+action is refused under the scheduler's conflict rule. The unknown-effect fence
+is set before its settlement write and applies to every port in the pass. Closure happens before the scheduler
+validates the outer result. Closure and admission are serialized.
+
+The scheduler commits every settled tool action on every outer terminal path.
+This includes valid, protocol-invalid, raised and cancelled outer results. Each
+tool action appends one ordered triple. Every event carries
+`invocation_tool_context` with the version, outer action instance and contract,
+affordance, tool call identity, admission ordinal, settlement, scope and
+generation. Triples follow admission order, immediately before the outer
+triple, or at the end of the participant history when the outer triple did
+not commit. Predecessor and peer histories stay unchanged. A withheld action
+records status `withheld`. An indeterminate action records status `unknown` and
+observation status `orphaned_action`. It also marks the participant scheduler
+`failed`. A changed generation or episode commits no tool history. Unknown
+effects are never replayed.
+
+Each tool action is also a child operation record of the enclosing due
+operation. The store retains the accepted claim before the decision, the
+running state before the grant, and the terminal state before the settlement
+answer. A failed write refuses the operation. After a restart, an accepted
+record becomes cancelled and a running record becomes indeterminate. Tool
+history commits atomically with the enclosing due operation.
 
 ## Lifecycle
 
@@ -367,7 +459,7 @@ rule applies. Execution-service resource refs name the authoritative budget
 states; its concurrency capacity, reservation, and in-flight projection must
 equal the referenced concurrent-action state.
 
-## Backend Admission
+## Backend admission
 
 Let backend capability \(K\) declare supported strategies and finite maxima.
 Admission requires:
@@ -455,15 +547,21 @@ fidelity, throughput, causal attribution, evaluator correctness, or
 golden-range equivalence. Those claims require their existing RAES evidence and
 conformance surfaces.
 
-## Delivery Status
+## Delivery status
 
-The reference implementation covers authored validation, canonical
-compilation, exact fail-closed capability admission, RuntimeManager-driven
-shared-clock execution, native binding and typed action outcomes, policy
-identity and lifecycle, automatic real-time/dilated cadence driving,
-transactional backend clock/participant reset admission and invocation,
-durable/API/conformance cross-surface scheduler state, and focused race and
-negative cases. The wall driver re-reads clock state after waits, remains
+The reference implementation covers:
+
+- authored validation and canonical compilation;
+- exact fail-closed capability admission;
+- RuntimeManager-driven shared-clock execution;
+- native binding and typed action outcomes;
+- policy identity and lifecycle;
+- automatic real-time and dilated cadence driving;
+- transactional backend clock and participant reset admission and invocation;
+- durable, API and conformance cross-surface scheduler state; and
+- focused race and negative cases.
+
+The wall driver re-reads clock state after waits, remains
 owned until its thread exits, and records unexpected termination. Externally paced autonomous
 execution remains rejected because no portable transition-notification
 contract is yet governed. This establishes the portable protocol behavior only. A
@@ -472,4 +570,7 @@ implementation, native adapter, targets, evidence, and readback faithfully
 materialize a scenario. V3 additionally covers canonical legacy projection,
 atomic multi-resource admission and reservation, typed runtime state/events,
 generation-fenced settlement and reset reconciliation, durable/control-plane
-projection, and cross-range isolation rejection.
+projection, and cross-range isolation rejection. Invocation tool actions cover
+the compiled relation, the capability claim and registration, port admission
+and refusal, one-use dispatch, closure, serial and concurrent settlement, and
+history-view projection. No conformance probe family exercises them yet.

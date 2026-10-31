@@ -17,7 +17,13 @@ from pathlib import Path
 from typing import BinaryIO, Protocol
 
 from tools import verified_tree_archive as archive
-from tools.verified_tree_archive import MAX_TREE_EXPANDED_BYTES, MAX_TREE_MEMBERS, TREE_FORMAT, InstalledTree, TreeEntry
+from tools.verified_tree_archive import (
+    MAX_TREE_EXPANDED_BYTES,
+    MAX_TREE_MEMBERS,
+    TREE_FORMATS,
+    InstalledTree,
+    TreeEntry,
+)
 from tools.verified_tree_manifest import parse_manifest
 
 TREE_CONTENT_NAME = "tree"
@@ -51,7 +57,12 @@ def _is_sha256(value: object) -> bool:
 
 
 def _descriptor_is_bounded(descriptor: InstalledTree | None) -> bool:
-    if descriptor is None or descriptor.format != TREE_FORMAT or not _is_sha256(descriptor.manifest_sha256):
+    if (
+        descriptor is None
+        or not isinstance(descriptor.format, str)
+        or descriptor.format not in TREE_FORMATS
+        or not _is_sha256(descriptor.manifest_sha256)
+    ):
         return False
     counts = (
         (descriptor.file_count, 1),

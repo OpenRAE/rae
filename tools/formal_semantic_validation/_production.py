@@ -8,6 +8,9 @@ import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 
+from pydantic import ValidationError
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
+
 from tools.formal_semantic_validation._shape import (
     _failure,
     _sha256_file,
@@ -112,9 +115,10 @@ def _validate_production_evidence_observation(
         )
     except (
         OSError,
-        ValueError,
-        RuntimeError,
         subprocess.SubprocessError,
+        InvalidInputError,
+        OperationalError,
+        EvidenceIntegrityError,
     ) as exc:
         failures.append(
             _failure(
@@ -158,12 +162,16 @@ def _replay_production_evidence(
         from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
         from raes_processor.satisfiability import analyze_scenario_file, replay_satisfiability_evidence
 
-        stored = ScenarioSatisfiabilityEvidenceModel.model_validate(stored_payload)
+        evidence_model = ScenarioSatisfiabilityEvidenceModel
     else:
         from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
         from raes_processor.exploit_path import analyze_exploit_path_file, replay_exploit_path_evidence
 
-        stored = ExploitPathAnalysisEvidenceModel.model_validate(stored_payload)
+        evidence_model = ExploitPathAnalysisEvidenceModel
+    try:
+        stored = evidence_model.model_validate(stored_payload)
+    except ValidationError as exc:
+        raise EvidenceIntegrityError("stored production evidence does not satisfy its contract") from exc
     from raes_contracts.canonical import canonical_json_digest
     from raes_contracts.satisfiability import canonical_contract_digest
 
@@ -179,7 +187,10 @@ def _replay_production_evidence(
     direct_digest = canonical_contract_digest(direct)
     stored_digest = canonical_contract_digest(stored)
     cli_payload = _run_production_evidence_cli(repo_root, expected_argv)
-    cli = type(stored).model_validate(cli_payload)
+    try:
+        cli = evidence_model.model_validate(cli_payload)
+    except ValidationError as exc:
+        raise OperationalError("production evidence command emitted an envelope outside its contract") from exc
     cli_digest = canonical_contract_digest(cli)
     evidence_digest_matches = (
         stored_artifact_matches
@@ -225,7 +236,7 @@ def _historical_production_replay(
     fields["configuration_digest"] = payload.get(configuration_key)
     fields["source_digest"] = source.get("byte_digest") if isinstance(source, Mapping) else None
     if any(not isinstance(value, str) or not value for value in fields.values()):
-        raise ValueError("historical production evidence has malformed identity joins")
+        raise EvidenceIntegrityError("historical production evidence has malformed identity joins")
     digest = canonical_json_digest(payload)
     return _ProductionEvidenceReplay(
         evidence_digest_matches=digest == observation.get("evidence_digest"),
@@ -283,24 +294,40 @@ def _validate_production_evidence_command(
 
 def _run_production_evidence_cli(repo_root: Path, argv: list[object]) -> dict[str, object]:
     if not all(isinstance(value, str) for value in argv):
-        raise ValueError("production evidence argv must contain only strings")
+        raise InvalidInputError("production evidence argv must contain only strings")
     executable = safe_repo_path(repo_root, str(argv[0]))
     if executable is None or not executable.is_file():
-        raise ValueError("production evidence executable is missing")
-    completed = subprocess.run(
-        [str(executable), *(str(value) for value in argv[1:])],
-        cwd=repo_root,
-        capture_output=True,
-        text=True,
-        timeout=120,
-        check=False,
-        env={},
-    )
+        raise OperationalError("production evidence executable is missing")
+    try:
+        completed = subprocess.run(
+            [str(executable), *(str(value) for value in argv[1:])],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+            env={},
+        )
+    except UnicodeDecodeError as exc:
+        # Text mode decodes the command output, which is tool output and not repository code.
+        raise OperationalError("production evidence command emitted output that is not text") from exc
     if len(completed.stdout.encode("utf-8")) > _MAX_FILE_BYTES or len(completed.stderr.encode("utf-8")) > 16 * 1024:
-        raise ValueError("production evidence command exceeded its output bound")
+        raise OperationalError("production evidence command exceeded its output bound")
     if completed.returncode != 0 or completed.stderr:
-        raise ValueError(f"production evidence command exited with status {completed.returncode}")
-    payload = json.loads(completed.stdout)
+        raise OperationalError(f"production evidence command exited with status {completed.returncode}")
+    try:
+        payload = json.loads(completed.stdout, parse_int=_cli_integer)
+    except (json.JSONDecodeError, RecursionError) as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise OperationalError("production evidence command did not emit JSON") from exc
     if not isinstance(payload, dict):
-        raise ValueError("production evidence command did not emit an object")
+        raise OperationalError("production evidence command did not emit an object")
     return payload
+
+
+def _cli_integer(literal: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(literal)
+    except ValueError as exc:
+        raise OperationalError("production evidence command emitted an integer beyond the digit limit") from exc

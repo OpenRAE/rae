@@ -19,6 +19,10 @@ from ._errors import (
     SDLSourcePosition,
     SDLSourceRange,
 )
+from ._identifiers import IDENTIFIER_INVALID_CODE
+
+# Validators set these error types at the raise site; each type is also the diagnostic code.
+_TYPED_DIAGNOSTIC_CODES = frozenset({CLASSIFICATION_MIGRATION_CODE, IDENTIFIER_INVALID_CODE})
 
 
 def _dedupe_source_diagnostics(
@@ -86,12 +90,9 @@ def _model_parse_error(
     diagnostics: list[SDLParseDiagnostic] = []
     for item in error.errors():
         pointer = _pointer_from_location(tuple(item.get("loc", ())))
-        raw_message = str(item.get("msg", ""))
-        is_identifier = "portable SDL identifier" in raw_message or "qualified SDL identifier" in raw_message
-        message = _bounded_model_message(raw_message)
-        code = "sdl.identifier.invalid" if is_identifier else "sdl.model.invalid"
-        if item.get("type") == CLASSIFICATION_MIGRATION_CODE:
-            code = CLASSIFICATION_MIGRATION_CODE
+        message = _bounded_model_message(str(item.get("msg", "")))
+        error_type = item.get("type")
+        code = error_type if error_type in _TYPED_DIAGNOSTIC_CODES else "sdl.model.invalid"
         diagnostics.append(
             SDLParseDiagnostic(
                 code=code,

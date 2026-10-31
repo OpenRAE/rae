@@ -6,8 +6,13 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, ValidationError, model_validator
 
+from .behavioral_authority_errors import (
+    BehavioralAuthorityArtifactError,
+    BehavioralAuthorityUnsupportedError,
+    unsupported_authority_as_value_error,
+)
 from .contracts import (
     BehavioralClaimBindingModel,
     BehavioralRelationId,
@@ -16,10 +21,13 @@ from .contracts import (
     NonEmptyString,
 )
 from .corpus import CONCEPT_AUTHORITY, corpus_family_root
+from .operational_logging import get_logger
 from .versions import BEHAVIORAL_RELATIONS_SCHEMA_VERSION
 
 if TYPE_CHECKING:
     from .behavioral_relation_profiles import BehavioralRelationProfileModel
+
+_LOGGER = get_logger(__name__)
 
 
 class ImmutablePublicationLocatorModel(ContractModel):
@@ -320,11 +328,18 @@ _HISTORICAL_CATALOG_PATHS = {
 }
 
 
+def _load_packaged_catalog(path: Path, label: str) -> BehavioralRelationCatalogModel:
+    try:
+        return BehavioralRelationCatalogModel.model_validate_json(path.read_text(encoding="utf-8"))
+    except OSError, UnicodeDecodeError, ValidationError:
+        # A packaged catalog fails here only when the artifact or installation is damaged.
+        _LOGGER.exception("behavioral relation catalog %s failed to load", label)
+        raise BehavioralAuthorityArtifactError("behavioral relation catalog is invalid") from None
+
+
 @cache
 def load_behavioral_relation_catalog() -> BehavioralRelationCatalogModel:
-    return BehavioralRelationCatalogModel.model_validate_json(
-        behavioral_relation_catalog_path().read_text(encoding="utf-8")
-    )
+    return _load_packaged_catalog(behavioral_relation_catalog_path(), "current")
 
 
 @cache
@@ -335,17 +350,16 @@ def load_behavioral_relation_catalog_revision(
 
     path = _HISTORICAL_CATALOG_PATHS.get(taxonomy_revision)
     if path is not None:
-        try:
-            catalog = BehavioralRelationCatalogModel.model_validate_json(path.read_text(encoding="utf-8"))
-        except OSError, ValueError:
-            raise ValueError("historical behavioral relation catalog is invalid") from None
+        catalog = _load_packaged_catalog(path, taxonomy_revision)
         if catalog.taxonomy_revision != taxonomy_revision:
-            raise ValueError("historical behavioral relation catalog revision does not match its registry entry")
+            raise BehavioralAuthorityArtifactError(
+                "historical behavioral relation catalog revision does not match its registry entry"
+            )
         return catalog
     current = load_behavioral_relation_catalog()
     if current.taxonomy_revision == taxonomy_revision:
         return current
-    raise ValueError("requested behavioral relation catalog revision is unsupported")
+    raise BehavioralAuthorityUnsupportedError("requested behavioral relation catalog revision is unsupported")
 
 
 def _resolve_binding_relation(
@@ -405,28 +419,12 @@ def _validate_binding_profile(
             raise ValueError("behavioral claim binding right carrier does not match the resolved profile")
 
     expected = (
-        (
-            profile.profile_id,
-            binding.relation_parameter_profile_ref,
-            "profile identity",
-        ),
-        (
-            profile.profile_revision,
-            binding.relation_parameter_profile_revision,
-            "profile revision",
-        ),
+        (profile.profile_id, binding.relation_parameter_profile_ref, "profile identity"),
+        (profile.profile_revision, binding.relation_parameter_profile_revision, "profile revision"),
         (profile.taxonomy_id, binding.taxonomy_id, "profile taxonomy id"),
-        (
-            profile.taxonomy_revision,
-            binding.taxonomy_revision,
-            "profile taxonomy revision",
-        ),
+        (profile.taxonomy_revision, binding.taxonomy_revision, "profile taxonomy revision"),
         (profile.taxonomy_id, catalog.taxonomy_id, "profile catalog taxonomy id"),
-        (
-            profile.taxonomy_revision,
-            catalog.taxonomy_revision,
-            "profile catalog taxonomy revision",
-        ),
+        (profile.taxonomy_revision, catalog.taxonomy_revision, "profile catalog taxonomy revision"),
         (profile.relation_id, binding.relation_id, "profile relation"),
         (profile.left_carrier_ref, binding.left_carrier_ref, "profile carrier"),
         (
@@ -450,23 +448,29 @@ def validate_behavioral_claim_binding(
     catalog: BehavioralRelationCatalogModel | None = None,
     profile: BehavioralRelationProfileModel | None = None,
 ) -> BehavioralClaimBindingModel:
-    """Resolve a consumer binding against its exact catalog and profile revisions."""
+    """Resolve a consumer binding against its exact catalog and profile revisions.
 
-    catalog = load_behavioral_relation_catalog_revision(binding.taxonomy_revision) if catalog is None else catalog
+    A binding that names an unpackaged revision fails its field check with
+    ``ValueError`` (E3). A damaged packaged authority raises
+    ``BehavioralAuthorityArtifactError``.
+    """
+
+    if catalog is None:
+        with unsupported_authority_as_value_error("behavioral claim binding names an unsupported catalog revision"):
+            catalog = load_behavioral_relation_catalog_revision(binding.taxonomy_revision)
     relation = _resolve_binding_relation(binding, catalog)
     _validate_binding_requirements(binding, relation)
     if relation.relation_parameter_profile_required:
         if profile is None:
-            from .behavioral_relation_profiles import (
-                load_behavioral_relation_profile_revision,
-            )
+            from .behavioral_relation_profiles import load_behavioral_relation_profile_revision
 
             assert binding.relation_parameter_profile_ref is not None
             assert binding.relation_parameter_profile_revision is not None
-            profile = load_behavioral_relation_profile_revision(
-                binding.relation_parameter_profile_ref,
-                binding.relation_parameter_profile_revision,
-            )
+            with unsupported_authority_as_value_error("behavioral claim binding names an unsupported profile revision"):
+                profile = load_behavioral_relation_profile_revision(
+                    binding.relation_parameter_profile_ref,
+                    binding.relation_parameter_profile_revision,
+                )
         _validate_binding_profile(binding, catalog, profile)
     elif profile is not None:
         raise ValueError("behavioral claim binding supplied a profile for a relation that does not require one")

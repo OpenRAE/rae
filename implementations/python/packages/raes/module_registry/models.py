@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import yaml
 from pydantic import Field, ValidationError
+from raes_contracts.operational_logging import get_logger
 
 from .._base import SDLModel
 from .._errors import SDLParseDiagnostic, SDLParseError, SDLSourcePosition, SDLSourceRange
@@ -25,6 +26,8 @@ from ._constants import (
 if TYPE_CHECKING:
     from ..parser import SDLSourceDocument
     from ._verified_sources import _VerifiedSourceBundle
+
+_LOGGER = get_logger(__name__)
 
 
 class RegistryTrustPolicy(SDLModel):
@@ -126,7 +129,11 @@ def _read_workspace_config(path: Path) -> str | None:
         return raw.decode("utf-8")
     except FileNotFoundError:
         return None
-    except (OSError, UnicodeDecodeError) as exc:
+    except UnicodeDecodeError as exc:
+        raise _workspace_config_error(path, exc) from None
+    except OSError as exc:
+        # ``from None`` keeps OS error text out of the parse error, so record the cause first (rule L3).
+        _LOGGER.warning("workspace configuration %s could not be read", path.name, exc_info=True)
         raise _workspace_config_error(path, exc) from None
 
 

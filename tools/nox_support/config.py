@@ -28,6 +28,10 @@ PUBLIC_DOCS_EXAMPLE_TESTS = (
 RUFF_CONFIG = PROJECT_ROOT / "pyproject.toml"
 OSV_LOCKFILE_PATH = PROJECT_ROOT / "uv.lock"
 OSV_REPORT_PATH = PROJECT_ROOT / "osv-scanner-report.json"
+# The locked tooling closure also runs in CI (for example the ADR-117 analyzers), so the
+# vulnerability gate scans it too.
+OSV_TOOLING_LOCKFILE_PATH = REPO_ROOT / "implementations" / "tooling" / "python" / "uv.lock"
+OSV_TOOLING_REPORT_PATH = PROJECT_ROOT / "osv-scanner-tooling-report.json"
 COVERAGE_XML_PATH = PROJECT_ROOT / "coverage.xml"
 COVERAGE_JSON_PATH = PROJECT_ROOT / "coverage.json"
 MINIMUM_LINE_COVERAGE_PERCENT = 90.0
@@ -46,6 +50,11 @@ TARGETED_POLICY_TESTS = [
     "implementations/python/tests/test_public_project_readiness.py",
     "implementations/python/tests/test_vale_tool.py",
     "implementations/python/tests/test_verification_plan.py",
+    "implementations/python/tests/test_issue_1734_private_imports.py",
+    "implementations/python/tests/test_issue_1734_class_ancestry.py",
+    "implementations/python/tests/test_issue_1734_import_cycles.py",
+    "implementations/python/tests/test_issue_1734_structural_ratchet.py",
+    "implementations/python/tests/test_issue_1734_import_graph.py",
 ]
 CONTRACT_TRIGGER_PREFIXES = (
     "contracts/",

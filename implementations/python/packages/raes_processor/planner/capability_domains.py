@@ -46,8 +46,8 @@ def _os_allowed_value(
 ) -> tuple[str | None, Diagnostic | None]:
     try:
         return parse_runtime_enum_identity(raw_value, OSFamily, field_name="os"), None
-    except ValueError as exc:
-        message = f"Variable '{variable_name}' has an invalid nodes.os domain: {exc}."
+    except ValueError:
+        message = f"Variable '{variable_name}' has an invalid nodes.os domain."
         return None, _error_diagnostic(_OS_FAMILY_DOMAIN_INVALID, address, message)
 
 
@@ -167,10 +167,9 @@ def _architecture_allowed_value(
 ) -> tuple[str | None, Diagnostic | None]:
     try:
         parsed = normalize_architecture(raw_value)
-    except ValueError as exc:
+    except ValueError:
         message = (
-            f"Variable '{variable_name}' allowed_values contain value {raw_value!r} "
-            f"invalid for nodes.architecture: {exc}."
+            f"Variable '{variable_name}' allowed_values contain value {raw_value!r} invalid for nodes.architecture."
         )
     else:
         if extract_variable_name(parsed) is not None:
@@ -288,10 +287,9 @@ def _count_allowed_value(
             minimum=MINIMUM_NODE_COUNT,
             field_name="count",
         )
-    except ValueError as exc:
+    except ValueError:
         message = (
-            f"Variable '{variable_name}' allowed_values contain value {raw_value!r} "
-            f"invalid for infrastructure.count: {exc}."
+            f"Variable '{variable_name}' allowed_values contain value {raw_value!r} invalid for infrastructure.count."
         )
     else:
         if extract_variable_name(parsed) is not None:

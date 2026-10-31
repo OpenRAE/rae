@@ -13,7 +13,9 @@ from raes_contracts.contracts.mixed_runtime import (
     MixedCompositionRuntimeStateModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationReceipt,
@@ -33,6 +35,7 @@ from .mixed_runtime_state import append_runtime_events, runtime_state
 from .operation_reconciliation_ledger import valid_reconciliation_child
 
 _OUTSTANDING_STATES = {OperationState.ACCEPTED, OperationState.RUNNING, OperationState.INDETERMINATE}
+_LOGGER = get_logger(__name__)
 
 if TYPE_CHECKING:
     from .mixed_backend_invocation import MixedInvocation
@@ -82,7 +85,9 @@ def _evaluate(
         else:
             with external_control_plane_call(control_plane):
                 evaluation = evaluator(deepcopy(transition), deepcopy(state), deepcopy(control_plane._snapshot))
-    except Exception:
+    # Isolation: the admitted transition evaluator is an installed extension.
+    except Exception as exc:
+        _LOGGER.exception("mixed phase transition evaluator failed", exc_info=foreign_failure_record(exc))
         evaluation = _failed_evaluation("order:evaluator-failed")
     if isinstance(evaluation, MixedPhaseTransitionEvaluation):
         required = {item.evidence_ref for item in transition.evidence_bindings}
@@ -114,15 +119,15 @@ def _phase_binding(
     identity: object,
 ) -> tuple[MixedRuntimeBinding, MixedCompositionTransitionModel]:
     if not isinstance(identity, ControlPlaneIdentity):
-        raise PermissionError("mixed phase transition requires an authenticated identity")
+        raise AuthorizationError("mixed phase transition requires an authenticated identity")
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
-        raise PermissionError("mixed phase transition identity is not authorized for this target")
+        raise AuthorizationError("mixed phase transition identity is not authorized for this target")
     binding = control_plane._mixed_runtime
     if binding is None:
-        raise ValueError("mixed runtime is not configured")
+        raise ConflictError("mixed runtime is not configured")
     transition = binding.profile.transitions.get(transition_id)
     if transition is None:
-        raise ValueError("mixed phase transition is not admitted")
+        raise ConflictError("mixed phase transition is not admitted")
     return binding, transition
 
 

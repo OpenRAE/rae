@@ -10,6 +10,8 @@ from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.backend_preparation import preparation_response_model
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import ChangeAction, PlannedResource, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.realization_preparation import (
@@ -36,6 +38,7 @@ from .diagnostics import _failure_diagnostic
 _PREPARATION_ADDRESS = "runtime.preparation"
 _PREPARATION_INVALID_CODE = "runtime.backend-preparation-invalid"
 _MAX_PREPARATION_OPERATIONS = 16384
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -69,10 +72,10 @@ def _require_preparation_operations(response: RealizationPreparation) -> None:
     """Refuse a preparation inventory that is not an exact bounded operation tuple."""
 
     if type(response.operations) is not tuple or len(response.operations) > _MAX_PREPARATION_OPERATIONS:
-        raise ValueError("invalid preparation operation inventory")
+        raise InvalidInputError("invalid preparation operation inventory")
     for operation in response.operations:
         if not _is_admitted_operation(operation):
-            raise ValueError("invalid preparation operation")
+            raise InvalidInputError("invalid preparation operation")
 
 
 def _selected_plan(plan: ProvisioningPlan, response: RealizationPreparation) -> ProvisioningPlan:
@@ -173,12 +176,12 @@ def _require_preparation_contract(plan: ProvisioningPlan, manifest: BackendManif
     """Require the selected backend to carry preparation authority for this plan."""
 
     if manifest is None or BACKEND_PREPARATION_CONTRACT not in manifest.supported_contract_versions:
-        raise ValueError("Selected backend does not support the preparation contract.")
+        raise InvalidInputError("Selected backend does not support the preparation contract.")
     manifest_digest = canonical_json_digest(backend_manifest_v2_model(manifest).model_dump(mode="json"))
     if plan.preparation is None or plan.preparation.manifest_digest != manifest_digest:
-        raise ValueError("Preparation authority does not match the selected backend manifest.")
+        raise InvalidInputError("Preparation authority does not match the selected backend manifest.")
     if prepared_node_collection_binding_violation(plan):
-        raise ValueError("Preparation collection authority does not match the submitted membership.")
+        raise InvalidInputError("Preparation collection authority does not match the submitted membership.")
 
 
 def _prepared_response(component: object, plan: ProvisioningPlan, previous: RuntimeSnapshot) -> RealizationPreparation:
@@ -186,14 +189,14 @@ def _prepared_response(component: object, plan: ProvisioningPlan, previous: Runt
 
     prepare = getattr(component, "prepare", None)
     if not callable(prepare):
-        raise ValueError("Selected backend does not implement read-only preparation.")
+        raise InvalidInputError("Selected backend does not implement read-only preparation.")
     response = prepare(deepcopy(plan), deepcopy(previous))
     if type(response) is not RealizationPreparation or type(response.success) is not bool:
-        raise ValueError("Backend returned an invalid preparation shape.")
+        raise InvalidInputError("Backend returned an invalid preparation shape.")
     if response.request_digest != runtime_plan_digest(
         plan
     ) or response.predecessor_digest != preparation_snapshot_digest(previous):
-        raise ValueError("Backend preparation does not match the submitted request and predecessor.")
+        raise InvalidInputError("Backend preparation does not match the submitted request and predecessor.")
     return response
 
 
@@ -209,7 +212,7 @@ def _admitted_profile_diagnostics(
         _PREPARATION_ADDRESS,
     )
     if invalid or any(diagnostic.is_error for diagnostic in diagnostics):
-        raise ValueError("Installed profile semantics refused the selected completion.")
+        raise InvalidInputError("Installed profile semantics refused the selected completion.")
     return diagnostics
 
 
@@ -218,10 +221,10 @@ def _admitted_validation_diagnostics(component: object, selected: ProvisioningPl
 
     validate = getattr(component, "validate", None)
     if not callable(validate):
-        raise ValueError("Selected backend has no prepared-plan validation boundary.")
+        raise InvalidInputError("Selected backend has no prepared-plan validation boundary.")
     diagnostics, invalid = _materialize_diagnostics(validate(deepcopy(selected)), _PREPARATION_ADDRESS)
     if invalid or any(diagnostic.is_error for diagnostic in diagnostics):
-        raise ValueError("Backend cannot apply the admitted completion.")
+        raise InvalidInputError("Backend cannot apply the admitted completion.")
     return diagnostics
 
 
@@ -237,7 +240,7 @@ def _admit_backend_completion(
     response = _prepared_response(component, plan, previous)
     diagnostics, invalid = _materialize_diagnostics(response.diagnostics, _PREPARATION_ADDRESS)
     if invalid or not response.success or any(diagnostic.is_error for diagnostic in diagnostics):
-        raise ValueError("Backend did not return a supported completion.")
+        raise InvalidInputError("Backend did not return a supported completion.")
     selected = _selected_plan(plan, cast("RealizationPreparation", replace(response, diagnostics=tuple(diagnostics))))
     violation = (
         prepared_profile_violation(plan, selected, profile_context)
@@ -246,7 +249,7 @@ def _admit_backend_completion(
         or prepared_realization_violation(plan, selected, manifest)
     )
     if violation:
-        raise ValueError(violation)
+        raise InvalidInputError(violation)
     return _AdmittedCompletion(
         selected=selected,
         diagnostics=[
@@ -264,7 +267,10 @@ def prepare_backend_apply(
 
     try:
         admitted = _admit_backend_completion(method, plan, previous, context)
-    except Exception:
+    except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the backend preparation callbacks: a refusal category needs no record.
+            _LOGGER.exception("backend preparation failed", exc_info=foreign_failure_record(exc))
         return None, [_preparation_failure("Backend preparation did not establish a valid bound supported completion.")]
     combined = admitted.diagnostics
     if plan_has_account_credentials(plan):

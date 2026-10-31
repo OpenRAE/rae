@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, Request
+from raes_contracts.errors import AuthorizationError, NotFoundError, OperationalError, RaesError
 
 from ..runtime_sequence_reference import RuntimeSequenceReference
 from ._auth import _AdministrativeMutationIdentity
@@ -30,9 +31,10 @@ def register_runtime_routes(app: FastAPI, plane: RuntimeControlPlane) -> None:
     ) -> str:
         try:
             return await _control_plane_calls(request).mutate(plane.advance_workflow, reference, identity=identity)
-        except KeyError, PermissionError:
+        except NotFoundError, AuthorizationError:
+            # A worker without authority for the execution cannot learn that the execution exists.
             raise HTTPException(status_code=404, detail="runtime execution not found") from None
-        except TypeError, ValueError:
-            raise HTTPException(status_code=409, detail="runtime execution conflict") from None
-        except RuntimeError, TimeoutError:
+        except OperationalError:
             raise HTTPException(status_code=503, detail="runtime execution unavailable") from None
+        except RaesError:
+            raise HTTPException(status_code=409, detail="runtime execution conflict") from None

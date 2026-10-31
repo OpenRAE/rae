@@ -52,8 +52,14 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.adr import parse_adr_file
 from tools.policy.common import (
@@ -140,7 +146,8 @@ def canonical_content(text: str) -> str:
 
 
 def content_hash(text: str) -> str:
-    return hashlib.sha256(canonical_content(text).encode("utf-8")).hexdigest()
+    # surrogateescape gives text that was read with it its exact bytes back; other text encodes unchanged.
+    return hashlib.sha256(canonical_content(text).encode("utf-8", "surrogateescape")).hexdigest()
 
 
 def amendment_refs(text: str) -> list[str]:
@@ -246,7 +253,7 @@ def _accepted_adrs(repo_root: Path) -> dict[str, Path]:
             continue
         try:
             number, _title, status, _date = parse_adr_file(adr_file)
-        except ValueError:
+        except InvalidInputError:
             continue
         if status == "accepted":
             accepted[f"ADR-{number}"] = adr_file
@@ -255,13 +262,20 @@ def _accepted_adrs(repo_root: Path) -> dict[str, Path]:
 
 def _git_show(repo_root: Path, gitref: str) -> str | None:
     """Content of a path at a git ref (``<rev>:<path>`` or ``:<path>`` for the
-    index). Returns None when the path does not exist at that ref."""
-    proc = subprocess.run(
-        ["git", "show", gitref],
-        cwd=repo_root,
-        capture_output=True,
-        text=True,
-    )
+    index). Returns None when the path does not exist at that ref.
+
+    Content that is not UTF-8 is read again with surrogate escapes. They keep
+    every byte distinct, so content_hash and the amendment check compare the
+    exact revision."""
+    # Only a revision that starts with a letter, digit or underscore, an optional repository path, or an
+    # index path can reach git; git would read a value that starts with "-" as an option.
+    if not re.match(r"^(?:\w[\w./@^~{}-]*(?::[\w./-]+)?|:[\w./-]+)\Z", gitref, re.ASCII):
+        raise InvalidInputError("a git revision must not start with '-' or contain other characters")
+    command = ["git", "show", "--end-of-options", gitref]
+    try:
+        proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True)
+    except UnicodeDecodeError:
+        proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True, errors="surrogateescape")
     if proc.returncode != 0:
         return None
     return proc.stdout
@@ -374,7 +388,9 @@ def evaluate_adr_immutability(
         return [PolicyFailure(RULE_MALFORMED, "ADR pin manifest is missing", manifest_rel)]
     try:
         raw = load_yaml(manifest_file)
-    except Exception:  # noqa: BLE001 — surface a parse error as a clean failure, not a traceback
+    except OSError, UnicodeDecodeError, yaml.YAMLError, RecursionError, InvalidInputError:
+        # An unreadable or malformed manifest, including a scalar that the safe
+        # constructor cannot build, is a clean failure, not a traceback.
         return [PolicyFailure(RULE_MALFORMED, "ADR pin manifest is not valid YAML", manifest_rel)]
 
     entries, failures = _coerce_manifest(raw, manifest_rel)
@@ -461,10 +477,17 @@ def evaluate_adr_immutability(
     return failures
 
 
+def _git_revision(value: str) -> str:
+    """Accept a revision argument that git cannot read as an option."""
+    if not re.match(r"^\w[\w./@^~{}-]*\Z", value, re.ASCII):
+        raise argparse.ArgumentTypeError("a git revision must not be empty, start with '-' or contain other characters")
+    return value
+
+
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Enforce ADR-059 acceptance-content pins for accepted ADRs.")
     parser.add_argument("--staged", action="store_true", help="Compare staged content against HEAD.")
-    parser.add_argument("--base-rev", help="Compare against a specific git revision.")
+    parser.add_argument("--base-rev", type=_git_revision, help="Compare against a specific git revision.")
     parser.add_argument("--json", action="store_true", help="Emit JSON failures.")
     # Accepted for CLI parity with the other policy entry points. The pin gate
     # always evaluates the whole accepted-ADR corpus — a partial path list could
@@ -476,7 +499,11 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     failures = evaluate_adr_immutability(REPO_ROOT, base_rev=args.base_rev, staged=args.staged)
-    failures = apply_exceptions(failures, load_exceptions(REPO_ROOT))
+    try:
+        failures = apply_exceptions(failures, load_exceptions(REPO_ROOT))
+    except InvalidInputError as exc:
+        print(f"adr-immutability: {exc}", file=sys.stderr)
+        return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -488,4 +515,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

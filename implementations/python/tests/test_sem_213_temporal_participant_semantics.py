@@ -561,3 +561,18 @@ def test_contract_schema_publishes_temporal_context_payload() -> None:
     assert "temporal_contexts" in schema["properties"]
     temporal_ref = schema["properties"]["temporal_contexts"]["items"]["$ref"]
     assert temporal_ref.endswith("/ParticipantTemporalRuntimeContextModel")
+
+
+def test_temporal_transition_violation_omits_the_parser_exception_text(monkeypatch) -> None:
+    marker = "temporal-value-marker-1678"
+
+    def refuse(cls, payload):
+        raise ValueError(marker)
+
+    monkeypatch.setattr(ParticipantTemporalStateTransition, "from_payload", classmethod(refuse))
+    violations = list(iter_participant_temporal_state_machine_violations([{"transition_id": "t1"}]))
+
+    assert violations == [
+        ("participant temporal state transition[0]", "participant temporal state transition is invalid")
+    ]
+    assert all(marker not in message for _, message in violations)

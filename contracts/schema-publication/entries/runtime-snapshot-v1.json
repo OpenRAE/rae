@@ -1,9 +1,9 @@
 {
-  "content_hash": "00a4a9ba99f593c3c95be9b0882a302a87cd605f6038529e4487c5cef40a4c64",
+  "content_hash": "bf6e02fd00fd52090f62145a735e72a9474da9e7843d84ecd2397ea0a2734e0e",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "00a4a9ba99f593c3c95be9b0882a302a87cd605f6038529e4487c5cef40a4c64",
-    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
+    "content_hash": "bf6e02fd00fd52090f62145a735e72a9474da9e7843d84ecd2397ea0a2734e0e",
+    "summary": "Carry the optional invocation_tool_context on participant behavior history events for hosted tool actions; issue #1740."
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

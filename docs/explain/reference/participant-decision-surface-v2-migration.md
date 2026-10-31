@@ -10,8 +10,15 @@ specification.
 `observation_order` selects an occurrence in a supplied time-indexed behavior
 history. Do not reinterpret it as a participant decision ordinal.
 
-`participant-decision-surface-v2` is the actionable runtime path. Migration is
-reprojection, not field renaming. A historical v1 record remains valid
+`participant-decision-surface-v2` is the actionable runtime path. The
+retained historical entry
+`ParticipantControlMixin.admit_participant_decision_surface_selection` still
+admits v1 selections under their historical behavior-index meaning (ADR-095
+section 3; PR #914 Migration rule 1). A v1 selection binds no decision epoch,
+state cut, participant-view digest, or delivery ref, requires no surface-level
+delivery occurrence, and is not ADR-095's delivery-bound admission path.
+
+Migration is reprojection, not field renaming. A historical v1 record remains valid
 historical evidence under its published schema, but copying
 `observation_order` into `decision_epoch` does not create a valid v2 surface.
 

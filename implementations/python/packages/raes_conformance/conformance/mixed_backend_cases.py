@@ -183,7 +183,7 @@ def select_cases(case_ids: Iterable[str] | None) -> tuple[MixedBackendCase, ...]
     requested = tuple(case_ids)
     unknown = sorted(set(requested) - set(_CASES))
     if unknown:
-        raise ValueError(f"unknown mixed-backend case ids: {unknown}")
+        raise ValueError("a mixed-backend case selection names an unknown case id")
     if not requested:
         raise ValueError("a mixed-backend conformance run requires at least one case")
     return tuple(case for case in MIXED_BACKEND_CASES if case.case_id in set(requested))

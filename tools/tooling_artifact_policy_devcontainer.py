@@ -11,12 +11,21 @@ mounts, and container capabilities are refused rather than reviewed ad hoc.
 from __future__ import annotations
 
 import re
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from tools.policy.common import PolicyFailure, load_bounded_json_object
-from tools.tooling_artifact_policy_common import (
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+
+from tools.policy.common import PolicyFailure, load_bounded_json_object  # noqa: E402
+from tools.tooling_artifact_policy_common import (  # noqa: E402
     as_list,
     as_mapping,
     failure,
@@ -82,7 +91,7 @@ def load_devcontainer_config(
         )
     try:
         return load_bounded_json_object(repo_root, DEVCONTAINER_CONFIG_PATH, max_bytes=MAX_CONFIG_BYTES), None
-    except (OSError, ValueError, RecursionError):
+    except (OSError, InvalidInputError, RecursionError):
         return None, failure(
             RULE_SHAPE,
             "dev-container configuration could not be parsed safely",

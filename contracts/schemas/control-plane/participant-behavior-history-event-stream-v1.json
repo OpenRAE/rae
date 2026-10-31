@@ -745,6 +745,76 @@
       "title": "ParticipantInteractionClass",
       "type": "string"
     },
+    "ParticipantInvocationToolContextModel": {
+      "additionalProperties": false,
+      "description": "Issue #1740 correlation of one tool action with its enclosing autonomous invocation.",
+      "properties": {
+        "admission_ordinal": {
+          "minimum": 0,
+          "title": "Admission Ordinal",
+          "type": "integer"
+        },
+        "execution_generation": {
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "execution_scope_ref": {
+          "minLength": 1,
+          "title": "Execution Scope Ref",
+          "type": "string"
+        },
+        "invocation_action_contract_address": {
+          "minLength": 1,
+          "title": "Invocation Action Contract Address",
+          "type": "string"
+        },
+        "invocation_action_instance_id": {
+          "minLength": 1,
+          "title": "Invocation Action Instance Id",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "participant-invocation-tool-actions/v1",
+          "title": "Semantics",
+          "type": "string"
+        },
+        "settlement": {
+          "enum": [
+            "completed",
+            "withheld",
+            "indeterminate"
+          ],
+          "title": "Settlement",
+          "type": "string"
+        },
+        "tool_affordance_address": {
+          "minLength": 1,
+          "title": "Tool Affordance Address",
+          "type": "string"
+        },
+        "tool_call_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Tool Call Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "invocation_action_instance_id",
+        "invocation_action_contract_address",
+        "tool_affordance_address",
+        "tool_call_id",
+        "admission_ordinal",
+        "settlement",
+        "execution_scope_ref",
+        "execution_generation"
+      ],
+      "title": "ParticipantInvocationToolContextModel",
+      "type": "object"
+    },
     "ParticipantLifecycleOperationState": {
       "description": "RUN-306 operation states for execution-attempt records.",
       "enum": [
@@ -1892,6 +1962,17 @@
         ],
         "default": null,
         "title": "Interaction Ref"
+      },
+      "invocation_tool_context": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ParticipantInvocationToolContextModel"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
       },
       "joint_action_set_id": {
         "anyOf": [

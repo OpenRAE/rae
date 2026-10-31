@@ -269,6 +269,8 @@ PUBLIC_EXPORTS = [
     "ParticipantActivityOccurrenceProvenanceModel",
     "ParticipantAutonomousExecutionStateModel",
     "ParticipantBehaviorHistoryEventModel",
+    "ParticipantInvocationToolActionCapabilitiesModel",
+    "ParticipantInvocationToolContextModel",
     "ParticipantContextViewModel",
     "ParticipantBoundaryFlowPolicyProfileModel",
     "ParticipantOwnerFlowPolicyProfileModel",

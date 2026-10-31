@@ -9,6 +9,7 @@ from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.operation_supervision import BackendOperationProvider
 from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, Provisioner, TimeRuntime
 from raes_backend_protocols.recovery_observation import RecoveryObserver
+from raes_contracts.errors import NotFoundError
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
@@ -42,6 +43,7 @@ class _ParticipantRuntimeMethodRequirements:
     coordinated_reset: bool
     execution_control: bool
     bounded_concurrency: bool
+    invocation_tool_actions: bool = False
 
 
 @dataclass(frozen=True)
@@ -65,6 +67,7 @@ def _participant_runtime_method_requirements(manifest: BackendManifest) -> _Part
         coordinated_reset=bool(manifest.time and manifest.time.supports_coordinated_participant_reset),
         execution_control=bool(capability and capability.supports_execution_control),
         bounded_concurrency=bool(capability and capability.supports_bounded_concurrency),
+        invocation_tool_actions=bool(capability and capability.invocation_tool_actions is not None),
     )
 
 
@@ -343,6 +346,20 @@ def _validate_participant_runtime_methods(
                 sample_snapshot,
             ),
         )
+    _validate_participant_execution_capability_methods(
+        participant_runtime, sample_admission_request, sample_snapshot, requirements=requirements
+    )
+
+
+def _validate_participant_execution_capability_methods(
+    participant_runtime: ParticipantRuntime | None,
+    sample_admission_request: object,
+    sample_snapshot: object,
+    *,
+    requirements: _ParticipantRuntimeMethodRequirements,
+) -> None:
+    """Require the executable methods behind the claimed overlap and tool-action capabilities."""
+
     if requirements.bounded_concurrency:
         _require_invokable_method(
             participant_runtime,
@@ -353,6 +370,13 @@ def _validate_participant_runtime_methods(
                 sample_snapshot,
                 2,
             ),
+        )
+    if requirements.invocation_tool_actions:
+        _require_invokable_method(
+            participant_runtime,
+            label="participant_runtime",
+            method_name="attach_invocation_tool_actions",
+            invocation_args=(object(),),
         )
 
 
@@ -450,7 +474,7 @@ class BackendRegistry:
     def describe(self, name: str) -> RuntimeTargetDescriptor:
         if name not in self._descriptors:
             registered = sorted(self._descriptors)
-            raise KeyError(f"Unknown backend '{name}'. Registered backends: {registered}")
+            raise NotFoundError(f"Unknown backend '{name}'. Registered backends: {registered}")
         return self._descriptors[name]
 
     def manifest(self, name: str, **config: Any) -> BackendManifest:

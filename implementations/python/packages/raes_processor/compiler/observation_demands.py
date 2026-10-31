@@ -8,6 +8,7 @@ from raes.observation_scope import (
     resolve_observation_scope,
 )
 from raes.scenario import InstantiatedScenario
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.observation_demand import (
     EffectiveObservationDemand,
     ObservationDemandDocument,
@@ -46,7 +47,7 @@ def _runtime_component_references(
             *addressable.get(declaration_address, ()),
         }
         if len(candidates) > 1 or require_addressable and not candidates:
-            raise ValueError(f"observation component reference '{reference}' is not runtime-addressable")
+            raise InvalidInputError(f"observation component reference '{reference}' is not runtime-addressable")
         if candidates:
             resolved.append(next(iter(candidates)))
     return tuple(dict.fromkeys(resolved))
@@ -59,10 +60,10 @@ def _canonical_rule(
     profiles: tuple[RealizationCollectionProfile, ...],
 ) -> ObservationDemandRule:
     if rule.authority_ref != "author":
-        raise ValueError("SDL observation demand cannot assert a non-author policy authority")
+        raise InvalidInputError("SDL observation demand cannot assert a non-author policy authority")
     found, canonical_scope = resolve_observation_scope(scenario, rule.scope, collection_profiles=profiles)
     if not found or canonical_scope is None:
-        raise ValueError(f"observation scope does not resolve: {rule.scope}")
+        raise InvalidInputError(f"observation scope does not resolve: {rule.scope}")
     if rule.selector is None:
         return rule.model_copy(update={"scope": canonical_scope})
     found, canonical_selector_scope = resolve_observation_scope(
@@ -71,12 +72,12 @@ def _canonical_rule(
         collection_profiles=profiles,
     )
     if not found or canonical_selector_scope is None:
-        raise ValueError(f"observation scope does not resolve: {rule.selector.semantic_scope}")
+        raise InvalidInputError(f"observation scope does not resolve: {rule.selector.semantic_scope}")
     exclusions = []
     for excluded in rule.selector.excluded_scopes:
         found, canonical_exclusion = resolve_observation_scope(scenario, excluded, collection_profiles=profiles)
         if not found or canonical_exclusion is None:
-            raise ValueError(f"observation exclusion does not resolve: {excluded}")
+            raise InvalidInputError(f"observation exclusion does not resolve: {excluded}")
         exclusions.append(canonical_exclusion)
     selector = ObservationSelector.model_validate(
         {
@@ -198,7 +199,7 @@ def compile_observation_demands(
     resolution = normalize_observation_demands(document, target_scopes=target_scopes)
     if not resolution.is_valid:
         codes = ", ".join(sorted({diagnostic.code for diagnostic in resolution.diagnostics}))
-        raise ValueError(f"observation demand normalization failed: {codes}")
+        raise InvalidInputError(f"observation demand normalization failed: {codes}")
     return resolution.effective
 
 

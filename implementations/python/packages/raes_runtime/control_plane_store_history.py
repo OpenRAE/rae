@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .participant_crossing_state_cut import history_record_identity
@@ -21,7 +22,7 @@ def require_expected_control_head(
     event_id = events[-1].get("event_id") if events else None
     current_head = event_id if isinstance(event_id, str) and event_id else None
     if current_head != expected_head:
-        raise ValueError("expected control history head does not match durable state")
+        raise ConflictError("expected control history head does not match durable state")
 
 
 def participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str | None:
@@ -59,7 +60,7 @@ def require_expected_history_heads(
 
     for history_key, expected_head in expected_history_heads.items():
         if participant_history_head(snapshot, history_key) != expected_head:
-            raise ValueError("expected participant history head does not match durable state")
+            raise ConflictError("expected participant history head does not match durable state")
 
 
 __all__ = (

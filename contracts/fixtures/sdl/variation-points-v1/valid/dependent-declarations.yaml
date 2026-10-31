@@ -1,0 +1,56 @@
+name: dependent-declarations-family
+nodes:
+  sync:
+    type: compute
+    os: linux
+    resources: {ram: 1 gib, cpu: 1}
+  sensor:
+    type: compute
+    os: linux
+    resources: {ram: 1 gib, cpu: 1}
+infrastructure:
+  sync: {count: 1}
+  sensor: {count: 1}
+accounts:
+  sync-api: {username: sync, node: sync}
+persistent_volumes:
+  rules:
+    lifecycle: ephemeral
+    access_mode: read_write_many
+    consumers:
+      - {node: sensor, mount_destination: /var/lib/rules, access_mode: read_only}
+      - {node: sync, mount_destination: /var/lib/rules, access_mode: read_write}
+variation_points:
+  sync-host:
+    kind: alternative
+    target: {kind: structural, owner: sync, slot: nodes.presence}
+    alternatives:
+      absent:
+        kind: node-presence
+        present: false
+        requires:
+          - {point: sync-account, members: [absent]}
+          - {point: shared-mounts, members: [without-sync]}
+      present: {kind: node-presence, present: true}
+  sync-account:
+    kind: alternative
+    target: {kind: structural, owner: sync-api, slot: accounts.presence}
+    alternatives:
+      absent: {kind: declaration-presence, present: false}
+      present:
+        kind: declaration-presence
+        present: true
+        requires: [{point: sync-host, members: [present]}]
+  shared-mounts:
+    kind: alternative
+    target: {kind: structural, owner: rules, slot: persistent_volumes.consumers}
+    alternatives:
+      without-sync:
+        kind: resource-consumers
+        consumers: [{node: sensor, mount_destination: /var/lib/rules}]
+      all:
+        kind: resource-consumers
+        consumers:
+          - {node: sensor, mount_destination: /var/lib/rules}
+          - {node: sync, mount_destination: /var/lib/rules}
+        requires: [{point: sync-host, members: [present]}]

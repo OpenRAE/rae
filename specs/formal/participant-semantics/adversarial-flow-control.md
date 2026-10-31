@@ -7,7 +7,8 @@ implementation boundary. It adds no registered owner-aware profile or runtime
 support; its migration contract governs future adoption.
 
 Status: SEM-233 definition and portable-contract authority are published;
-runtime, backend, and ASR-536 evaluation obligations remain DRAFT.
+runtime and evaluation claims require their own exact execution evidence.
+Issue #1008 clarifies that RAE harness evaluation has no concrete backend prerequisite.
 
 Requirements: `SEM-233`, `ASR-536`.
 
@@ -431,8 +432,10 @@ noninterference result, or intentional-subversion evaluation.
 | API-407 | declared/effective backend support, realization, downgrade, and conformance |
 | ASR-535 | bounded flow falsification and evidence/claim discipline |
 
-SEM-233 and ASR-536 remain DRAFT until their remaining downstream positive
-obligations are satisfied. Issue #812 supplies design authority and the
+The canonical requirement files record current SEM-233 and ASR-536 status.
+RAE evaluation uses a RAE-owned harness over public contracts and runtime seams.
+Each result binds its exact fixture composition and source content.
+Concrete backend realization is a separate claim with separate evidence. Issue #812 supplies design authority and the
 implementation program; #1001 publishes the SEM-233 revision-1 algebra, and
 #1002 publishes its profile and relation contracts. Neither delivery claims
 runtime enforcement, backend realization, or ASR-536 evaluation evidence.

@@ -9,6 +9,7 @@ from typing import Any
 
 from pydantic_core import to_jsonable_python
 from raes_contracts.canonical import jsonable_fallback
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp
 from raes_contracts.realization_structure import (
     RealizationClosure,
@@ -27,10 +28,13 @@ _PROFILE = "raes/prepared-portable-node/v1"
 
 
 def prepared_node_payload_projection(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Use incumbent concern sanitizers; no backend-selected secret becomes authority."""
+    """Use incumbent concern sanitizers; no backend-selected secret becomes authority.
+
+    Raise ``InvalidInputError`` when the payload exceeds its bounds or a concern value is malformed.
+    """
 
     if not validate_realization_value(payload, python_carriers=True).conformant:
-        raise ValueError("prepared node exceeds its recursive projection bounds")
+        raise InvalidInputError("prepared node exceeds its recursive projection bounds")
     projected = deepcopy(payload)
     for descriptor in realization_concern_descriptors():
         current = projected
@@ -38,7 +42,11 @@ def prepared_node_payload_projection(payload: Mapping[str, Any]) -> dict[str, An
             current = current.get(token) if isinstance(current, dict) else None
         leaf = descriptor.payload_path[-1]
         if isinstance(current, dict) and leaf in current and current[leaf] is not None:
-            current[leaf] = descriptor.sanitize_observation(current[leaf], recursive=True)
+            try:
+                current[leaf] = descriptor.sanitize_observation(current[leaf], recursive=True)
+            except ValueError as exc:
+                # Concern validators and projectors refuse a malformed value with ValueError (E3).
+                raise InvalidInputError("prepared node concern value violates its observation contract") from exc
     return to_jsonable_python(projected, fallback=jsonable_fallback)
 
 
@@ -69,7 +77,7 @@ def prepared_node_document(payload: Mapping[str, Any]) -> object:
         ),
     )
     if built.status is not RealizationRelationStatus.CONFORMANT:
-        raise ValueError("prepared node cannot be represented by a bounded recursive completion")
+        raise InvalidInputError("prepared node cannot be represented by a bounded recursive completion")
     return built.document
 
 

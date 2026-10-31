@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from tools.tooling_artifact_policy_artifacts import artifact_failures
-from tools.tooling_artifact_policy_common import (
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+
+from tools.tooling_artifact_policy_artifacts import artifact_failures  # noqa: E402
+from tools.tooling_artifact_policy_common import (  # noqa: E402
     ADMISSION_POLICY_PATH,
     ARTIFACT_LOCK_PATH,
     PROFILES_PATH,
@@ -24,7 +33,7 @@ def _selected_artifact(
 ) -> dict[str, Any]:
     matches = [item for item in lock["artifacts"] if item["artifact_id"] == artifact_id]
     if len(matches) != 1:
-        raise ValueError("selected artifact or dependency must resolve to exactly one lock entry")
+        raise InvalidInputError("selected artifact or dependency must resolve to exactly one lock entry")
     artifact = matches[0]
     platforms = [
         item
@@ -33,7 +42,7 @@ def _selected_artifact(
         and (host_profile_id is None or not item.get("host_profile_ids") or host_profile_id in item["host_profile_ids"])
     ]
     if len(platforms) != 1:
-        raise ValueError("selected artifact platform must resolve to exactly one lock entry")
+        raise InvalidInputError("selected artifact platform must resolve to exactly one lock entry")
     return {**artifact, "platforms": platforms}
 
 
@@ -54,7 +63,7 @@ def _selected_profiles(
             if isinstance(item, Mapping) and item.get("profile_id") == profile_id
         ]
         if len(matches) != 1:
-            raise ValueError("selected artifact profile must resolve to exactly one entry")
+            raise InvalidInputError("selected artifact profile must resolve to exactly one entry")
         profile = matches[0]
         validate_tooling_record(repo_root, profile, PROFILES_PATH, definition="artifactProfile")
         selected_profiles.append(
@@ -100,7 +109,7 @@ def selected_artifact_documents(
     }
     failures = artifact_failures(repo_root, documents)
     if failures:
-        raise ValueError(
+        raise InvalidInputError(
             "selected artifact integrity policy is invalid: " + ", ".join(sorted({f.rule_id for f in failures}))
         )
     return documents

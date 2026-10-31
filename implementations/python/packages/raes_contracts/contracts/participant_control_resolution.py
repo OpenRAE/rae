@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 
 from raes.participant_inject_delivery import ParticipantInjectDelivery
 
+from .._host_isolation import isolated_host_call
 from .base import ContractModel
 from .participant_control import (
     ParticipantControlDeclarationModel,
@@ -59,6 +60,7 @@ from .participant_flow_control_context import ParticipantFlowControlValidationCo
 from .participant_inject_application import ParticipantInjectContentModel
 
 _COMMITTED_EFFECT_MISMATCH = "realized effect differs from its committed full intent, cut, or prerequisites"
+_TRUSTED_CONTEXT_REFUSAL = "participant control trusted-context validation failed"
 
 
 @dataclass(frozen=True)
@@ -180,10 +182,8 @@ def _validate_support_claims(
             raise ValueError("participant control installed binding differs")
         if context.effective_support.get(binding.instance_id) != support:
             raise ValueError("participant control effective support is unsubstantiated")
-        try:
+        with isolated_host_call("participant control declaration resolution failed", keep_cause=False):
             declared = context.support_resolver(binding, support)
-        except Exception:
-            raise ValueError("participant control declaration resolution failed") from None
         if declared is None or declared != support.declared_level:
             raise ValueError("participant control declaration strength is missing or inconsistent")
 
@@ -211,13 +211,11 @@ def validate_participant_control_resolved_context(
     record: ParticipantControlEvaluationModel, resolver: ParticipantControlContextResolver | None
 ) -> None:
     """Sanitized boundary for resolver exceptions and malformed trusted indexes."""
-    try:
+    with isolated_host_call(_TRUSTED_CONTEXT_REFUSAL, keep_cause=False):
         context = resolver(record) if resolver is not None else None
         if not isinstance(context, ParticipantControlValidationContext):
             raise ValueError("missing context")
         validate_participant_control_context(record, context)
-    except Exception:
-        raise ValueError("participant control trusted-context validation failed") from None
 
 
 @dataclass(frozen=True)
@@ -272,14 +270,12 @@ def validate_participant_control_resolved_context_v2(
 ) -> None:
     """Check v2 wire claims against independent exact-cut owner resolutions."""
 
-    try:
+    with isolated_host_call(_TRUSTED_CONTEXT_REFUSAL, keep_cause=False):
         record = ParticipantControlEvaluationV2Model.model_validate(record.model_dump(mode="python"))
         context = resolver(record) if resolver is not None else None
         if not isinstance(context, ParticipantControlValidationContextV2):
             raise ValueError("missing trusted context")
         _validate_v2_trusted_context(record, context)
-    except Exception:
-        raise ValueError("participant control trusted-context validation failed") from None
 
 
 def _validate_v2_trusted_context(

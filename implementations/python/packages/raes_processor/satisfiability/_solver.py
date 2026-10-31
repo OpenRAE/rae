@@ -8,6 +8,7 @@ from math import ceil
 from typing import Literal
 
 import z3
+from raes_contracts.errors import OperationalError
 from raes_contracts.satisfiability import NormalizedConstraintModel, SatisfiabilityOutcome
 
 SOLVER_TIMEOUT_MS: Literal[5000] = 5000
@@ -19,7 +20,7 @@ def _monotonic_ns() -> int:
     return time.monotonic_ns()
 
 
-class SolverOperationalError(RuntimeError):
+class SolverOperationalError(OperationalError):
     """The pinned adapter could not produce a completed governed outcome."""
 
     def __init__(

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from ..errors import OperationalError
 from ._common import RelationBudget, closure_for, json_equal, pointer
 from ._legacy import realization_member_identity
 from ._models import (
@@ -20,7 +21,7 @@ from ._models import (
 
 
 @dataclass(frozen=True)
-class CompatibilityLimit(Exception):
+class CompatibilityLimit(OperationalError):
     address: str
     message: str
 

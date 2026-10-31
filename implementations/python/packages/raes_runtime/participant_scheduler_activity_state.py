@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
 from .participant_activity import (
@@ -164,7 +165,7 @@ def next_activity_occurrence_state(
 ) -> ParticipantAutonomousExecutionStateModel:
     control = context.activity_control
     if control is None:
-        raise ValueError("participant activity execution requires a random control")
+        raise ConflictError("participant activity execution requires a random control")
     attempted = state.attempted_actions + 1
     failed = state.failed_actions + (0 if action_succeeded else 1)
     if _activity_attempt_is_retryable(

@@ -331,7 +331,8 @@ def _process_limit_projection_maps(
     try:
         declared = _process_limit_projection_map(declared_projection)
         realized = _process_limit_projection_map(realized_projection)
-    except TypeError, ValueError:
+    except ValueError:
+        # The limit identity owner refuses a malformed record with ValidationError (E3).
         return invalid_observation_diagnostic(requirement), {}, {}
     diagnostic = None
     if declared.keys() != realized.keys():
@@ -410,7 +411,8 @@ def _process_limit_projection_admitted(
             any(process_resource_limit_capability_admits(capability, item) for capability in capabilities)
             for item in realized_projection
         )
-    except TypeError, ValueError:
+    except ValueError:
+        # The limit owner refuses a malformed record with ValidationError (E3).
         admitted = False
     return admitted
 

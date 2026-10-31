@@ -8,7 +8,7 @@ from copy import deepcopy
 import pytest
 from paths import REPO_ROOT
 from pydantic import ValidationError
-from raes import admit_scenario_family, parse_sdl, validate_experiment_selection_against_family
+from raes import SDLSelectionError, admit_scenario_family, parse_sdl, validate_experiment_selection_against_family
 from raes.scenario import ExpandedScenario, Scenario
 from raes.validator import SemanticValidator
 from raes_contracts.contracts import ExperimentSpecModel, schema_bundle
@@ -563,7 +563,7 @@ def test_contextual_admission_rejects_unknown_points_and_out_of_domain_values() 
     }
     spec = ExperimentSpecModel.model_validate(payload)
     family = _expanded_family()
-    with pytest.raises(ValueError, match="domain"):
+    with pytest.raises(SDLSelectionError, match="domain"):
         validate_experiment_selection_against_family(
             spec,
             family=family,
@@ -577,7 +577,7 @@ def test_contextual_admission_rejects_unknown_points_and_out_of_domain_values() 
         )
     }
     spec = ExperimentSpecModel.model_validate(payload)
-    with pytest.raises(ValueError, match="variation point"):
+    with pytest.raises(SDLSelectionError, match="variation point"):
         validate_experiment_selection_against_family(
             spec,
             family=family,
@@ -636,7 +636,7 @@ def test_reference_and_member_outcomes_reject_out_of_domain_ids(
     spec = ExperimentSpecModel.model_validate(payload)
     family = _all_kinds_expanded_family()
 
-    with pytest.raises(ValueError, match="domain"):
+    with pytest.raises(SDLSelectionError, match="domain"):
         validate_experiment_selection_against_family(
             spec,
             family=family,
@@ -654,7 +654,7 @@ def test_contextual_admission_rejects_invalid_subset_order_and_continuous_enumer
     }
     payload["run_plan"]["selection_policies"] = {"fixed-path": invalid_order}
     spec = ExperimentSpecModel.model_validate(payload)
-    with pytest.raises(ValueError, match="precedence"):
+    with pytest.raises(SDLSelectionError, match="precedence"):
         validate_experiment_selection_against_family(
             spec,
             family=family,
@@ -664,7 +664,7 @@ def test_contextual_admission_rejects_invalid_subset_order_and_continuous_enumer
     invalid_subset["outcome"] = {"kind": "subset", "member_ids": []}
     payload["run_plan"]["selection_policies"] = {"fixed-path": invalid_subset}
     spec = ExperimentSpecModel.model_validate(payload)
-    with pytest.raises(ValueError, match="cardinality"):
+    with pytest.raises(SDLSelectionError, match="cardinality"):
         validate_experiment_selection_against_family(
             spec,
             family=family,
@@ -678,7 +678,7 @@ def test_contextual_admission_rejects_invalid_subset_order_and_continuous_enumer
         )
     }
     spec = ExperimentSpecModel.model_validate(payload)
-    with pytest.raises(ValueError, match="continuous"):
+    with pytest.raises(SDLSelectionError, match="continuous"):
         validate_experiment_selection_against_family(
             spec,
             family=family,
@@ -765,7 +765,7 @@ def test_contextual_admission_requires_trusted_expanded_family_identity() -> Non
     spec = ExperimentSpecModel.model_validate(payload)
     scenario = parse_sdl(_FAMILY_FIXTURE.read_text(encoding="utf-8"))
 
-    with pytest.raises(ValueError, match="ExpandedScenario"):
+    with pytest.raises(SDLSelectionError, match="ExpandedScenario"):
         validate_experiment_selection_against_family(
             spec,
             family=scenario,  # type: ignore[arg-type]
@@ -774,7 +774,7 @@ def test_contextual_admission_requires_trusted_expanded_family_identity() -> Non
     mismatched = deepcopy(spec)
     mismatched.intended_scenario_ref.ref_id = "other-family"
     family = _expanded_family()
-    with pytest.raises(ValueError, match="family identity"):
+    with pytest.raises(SDLSelectionError, match="family identity"):
         validate_experiment_selection_against_family(
             mismatched,
             family=family,
@@ -793,7 +793,7 @@ def test_contextual_admission_joins_binding_descriptors_to_family_identity() -> 
 
     mismatched = _spec_with_binding_family("other-family")
     family = _expanded_family()
-    with pytest.raises(ValueError, match="binding target family identity"):
+    with pytest.raises(SDLSelectionError, match="binding target family identity"):
         validate_experiment_selection_against_family(
             mismatched,
             family=family,

@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import nox
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.nox_support.config import (
     JSON_SCHEMA_WORKERS_ENV,
@@ -43,7 +44,7 @@ def _changed_base_rev(posargs: list[str]) -> str:
     if "--base-rev" in posargs:
         index = posargs.index("--base-rev")
         if index + 1 >= len(posargs):
-            raise ValueError("--base-rev requires a revision")
+            raise InvalidInputError("--base-rev requires a revision")
         return posargs[index + 1]
     return resolve_upstream(REPO_ROOT)
 
@@ -148,7 +149,7 @@ def _execute_verification_lanes(
             print(result.output, end="" if result.output.endswith("\n") else "\n")
     if failures:
         failed = ", ".join(f"{result.name} (exit {result.returncode})" for result in failures)
-        raise RuntimeError(f"parallel verification lanes failed: {failed}")
+        raise OperationalError(f"parallel verification lanes failed: {failed}")
 
 
 def _run_parallel_verification(
@@ -212,7 +213,7 @@ def _run_fast_feedback(
     try:
         base_rev: str | None = _changed_base_rev(posargs)
         changes = collect_git_changes(REPO_ROOT, base_rev)
-    except (RuntimeError, ValueError) as exc:
+    except (InvalidInputError, OperationalError) as exc:
         base_rev = None
         changes = []
         session.log(f"fast-feedback change classification unavailable: {exc}")

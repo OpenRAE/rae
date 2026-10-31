@@ -10,6 +10,7 @@ from raes.semantics.domain_topology import (
     analyze_domain_topology,
 )
 from raes.value_parsing import is_variable_ref
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.realization_structure import validate_realization_value
 
@@ -29,6 +30,7 @@ from .orchestration import (
     _compile_scripts,
     _compile_stories,
 )
+from .participant_autonomous_execution import with_invocation_tool_bindings
 from .participant_behaviors import (
     _compile_behavior_specifications,
     _compile_participant_behaviors,
@@ -82,7 +84,7 @@ def _admitted_profile_authority(profile_authority: PlanProfileAuthority | None) 
     if profile_authority is None:
         return None
     if not validate_realization_value(profile_authority, python_carriers=True).conformant:
-        raise ValueError("Plan profile carrier exceeds bounded public input limits")
+        raise InvalidInputError("Plan profile carrier exceeds bounded public input limits")
     return PlanProfileAuthority.model_validate(profile_authority.model_dump(mode="json"))
 
 
@@ -142,14 +144,20 @@ def _compiled_behavior_parts(
     realization_requirements, realization_authority = (
         ((), ()) if descriptive else _compile_realization(scenario, domain_analysis)
     )
+    action_contracts = _compile_action_contracts(scenario)
+    observation_boundaries = _compile_observation_boundaries(scenario)
+    outcome_interpretation_rules = _compile_outcome_interpretation_rules(scenario)
+    participant_behaviors = _compile_participant_behaviors(scenario, diagnostics)
+    behavior_specifications = _compile_behavior_specifications(scenario, diagnostics)
+    tool_affordances = _compile_tool_affordances(scenario, diagnostics)
     return {
         "assertions": assertions,
-        "action_contracts": _compile_action_contracts(scenario),
-        "observation_boundaries": _compile_observation_boundaries(scenario),
-        "outcome_interpretation_rules": _compile_outcome_interpretation_rules(scenario),
-        "participant_behaviors": _compile_participant_behaviors(scenario, diagnostics),
-        "behavior_specifications": _compile_behavior_specifications(scenario, diagnostics),
-        "tool_affordances": _compile_tool_affordances(scenario, diagnostics),
+        "action_contracts": action_contracts,
+        "observation_boundaries": observation_boundaries,
+        "outcome_interpretation_rules": outcome_interpretation_rules,
+        "participant_behaviors": participant_behaviors,
+        "behavior_specifications": with_invocation_tool_bindings(scenario, behavior_specifications, tool_affordances),
+        "tool_affordances": tool_affordances,
         "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario, diagnostics),
         "events": _compile_events(
             scenario, assertions, structure["injects"], structure["inject_bindings"], diagnostics

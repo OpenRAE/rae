@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from raes import (
     SDL_CANONICAL_PROFILE,
+    SDLError,
     SDLMigrationPolicy,
     SDLParseError,
     canonical_sdl_bytes,
@@ -215,3 +216,48 @@ imports:
     assert scenario.module_node_variable_refs["imported.host"]["os"] == variable_name
     assert b'"module_variable_specs":{"imported.__private.image_os"' in payload
     assert b'"module_node_variable_refs":{"imported.host"' in payload
+
+
+def test_canonicalization_failure_does_not_disclose_authored_values() -> None:
+    sentinel = 9007199254740993
+    scenario = parse_sdl(
+        f"""\
+name: unsafe-integer
+variables:
+  secret_pin:
+    type: integer
+    default: {sentinel}
+"""
+    )
+
+    with pytest.raises(SDLParseError) as exc_info:
+        canonical_sdl_bytes(scenario)
+
+    assert exc_info.value.details == "SDL canonicalization failed"
+    assert str(sentinel) not in str(exc_info.value)
+
+
+def test_legacy_snapshot_join_reports_sdl_refusal_as_validation_error() -> None:
+    from copy import deepcopy
+
+    from pydantic import ValidationError
+    from raes.canonical import InstantiatedScenarioSnapshot, migrate_legacy_instantiated_snapshot_join
+    from raes_contracts.canonical import canonical_json_digest
+    from raes_contracts.satisfiability import SatisfiableWitnessModel
+
+    scenario = instantiate_scenario(parse_sdl("name: legacy-refusal\nnodes: {}\n"))
+    payload = InstantiatedScenarioSnapshot(profile="raes-sdl-instantiated-snapshot/v2", scenario=scenario).model_dump(
+        mode="json"
+    )
+    payload = deepcopy(payload)
+    payload["scenario"]["vulnerabilities"] = {}
+    payload["scenario"]["infrastructure"] = {"ghost": {"count": 1}}
+    digest = canonical_json_digest(payload)
+
+    with pytest.raises(ValueError, match="failed instantiated SDL admission") as exc_info:
+        migrate_legacy_instantiated_snapshot_join(payload, digest)
+    assert isinstance(exc_info.value.__cause__, SDLError)
+    with pytest.raises(ValidationError):
+        SatisfiableWitnessModel.model_validate(
+            {"profile": "raes-satisfiability-witness/v1", "snapshot": payload, "snapshot_digest": digest}
+        )

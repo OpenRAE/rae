@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .participant_control_intents import ParticipantControlIntent
 
 
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.runtime_state import OperationKind
 
 from .control_plane_lifecycle import runtime_owned
@@ -34,7 +35,7 @@ class ParticipantControlBatchMixin:
         """Apply one bounded, single-episode group in distinct admitted order."""
 
         if not applications or len(applications) > 256:
-            raise ValueError("control group must contain between 1 and 256 applications")
+            raise InvalidInputError("control group must contain between 1 and 256 applications")
         detached = [(type(intent).model_validate(intent.model_dump(mode="json")), key) for intent, key in applications]
         _require_group_coordinates(detached)
         with control_plane_mutation(self, OperationKind.PARTICIPANT_CONTROL):
@@ -46,7 +47,7 @@ class ParticipantControlBatchMixin:
 
 def _require_group_coordinates(detached: Sequence[tuple[ParticipantControlIntent, str]]) -> None:
     if any(intent.application is None or not key for intent, key in detached):
-        raise ValueError("control group requires explicit applications and retry keys")
+        raise InvalidInputError("control group requires explicit applications and retry keys")
     coordinates = [intent.application.effective_order for intent, _ in detached]
     if len(set(coordinates)) != len(coordinates) or len({intent.episode_id for intent, _ in detached}) != 1:
-        raise ValueError("control group has ambiguous order or episode scope")
+        raise InvalidInputError("control group has ambiguous order or episode scope")

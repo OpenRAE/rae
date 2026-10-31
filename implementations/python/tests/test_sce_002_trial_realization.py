@@ -29,6 +29,7 @@ from raes_contracts.contracts import (
     validate_admitted_trial_run,
     validate_admitted_trial_study,
 )
+from raes_contracts.errors import InvalidInputError, NotFoundError
 from raes_processor.trial_compiler import TrialCompilationRequest, compile_admitted_trial_plan
 from raes_processor.trial_realization import (
     TrialRealizationInputs,
@@ -144,7 +145,7 @@ def test_admitted_entry_rejects_family_substitution_before_selection() -> None:
     _, plan, entry = _plan_and_entry()
     substituted_family = _product_family()
 
-    with pytest.raises(ValueError, match="family identity"):
+    with pytest.raises(InvalidInputError, match="family identity"):
         instantiate_admitted_trial_entry(
             plan=plan,
             plan_entry_id=entry.plan_entry_id,
@@ -156,7 +157,7 @@ def test_admitted_entry_reconstructs_plan_before_entry_lookup() -> None:
     request, plan, entry = _plan_and_entry()
     plan.__dict__["plan_digest"] = "sha256:" + "0" * 64
 
-    with pytest.raises(ValueError, match="plan failed closed reconstruction"):
+    with pytest.raises(InvalidInputError, match="plan failed closed reconstruction"):
         instantiate_admitted_trial_entry(
             plan=plan,
             plan_entry_id=entry.plan_entry_id,
@@ -169,7 +170,7 @@ def test_admitted_entry_rejects_selected_value_substitution() -> None:
     tampered = plan.model_copy(deep=True)
     tampered.entries[entry.plan_entry_id].selections[0].outcome.__dict__["value"] = "/opt/substituted"
 
-    with pytest.raises(ValueError, match="plan failed closed reconstruction"):
+    with pytest.raises(InvalidInputError, match="plan failed closed reconstruction"):
         instantiate_admitted_trial_entry(
             plan=tampered,
             plan_entry_id=entry.plan_entry_id,
@@ -180,7 +181,7 @@ def test_admitted_entry_rejects_selected_value_substitution() -> None:
 def test_admitted_entry_rejects_unknown_entry_without_fallback() -> None:
     request, plan, _ = _plan_and_entry()
 
-    with pytest.raises(ValueError, match="plan_entry_id"):
+    with pytest.raises(NotFoundError, match="plan_entry_id"):
         instantiate_admitted_trial_entry(
             plan=plan,
             plan_entry_id="missing-entry",
@@ -222,7 +223,7 @@ def test_trial_realization_rejects_task_or_manifest_substitution() -> None:
     wrong_task = task.model_copy(update={"task_id": "other-task"})
     wrong_task_inputs = _realization_inputs(request, plan, wrong_task)
 
-    with pytest.raises(ValueError, match="task identity"):
+    with pytest.raises(InvalidInputError, match="task identity"):
         realize_admitted_trial_entry(
             inputs=wrong_task_inputs,
             plan_entry_id=entry.plan_entry_id,
@@ -230,7 +231,7 @@ def test_trial_realization_rejects_task_or_manifest_substitution() -> None:
 
     substituted_task = task.model_copy(update={"title": "Substituted task content"})
     substituted_task_inputs = _realization_inputs(request, plan, substituted_task)
-    with pytest.raises(ValueError, match="task identity"):
+    with pytest.raises(InvalidInputError, match="task identity"):
         realize_admitted_trial_entry(
             inputs=substituted_task_inputs,
             plan_entry_id=entry.plan_entry_id,
@@ -241,7 +242,7 @@ def test_trial_realization_rejects_task_or_manifest_substitution() -> None:
         ("backend", "backend-a", "1", "backend-manifest/v2")
     ].model_copy(update={"constraints": {"substituted": "true"}})
     substituted_manifest_inputs = _realization_inputs(request, plan, task, apparatus_manifests=manifests)
-    with pytest.raises(ValueError, match="manifest"):
+    with pytest.raises(InvalidInputError, match="manifest"):
         realize_admitted_trial_entry(
             inputs=substituted_manifest_inputs,
             plan_entry_id=entry.plan_entry_id,
@@ -252,7 +253,7 @@ def test_trial_realization_rejects_capture_spec_identity_mismatch() -> None:
     request, plan, _ = _plan_and_entry()
     task = ExperimentTaskModel.model_validate_json(_TASK_FIXTURE.read_text(encoding="utf-8"))
 
-    with pytest.raises(ValueError, match="capture specification identities"):
+    with pytest.raises(InvalidInputError, match="capture specification identities"):
         trial_realization_module._validate_capture_specs(plan, request.experiment, task, {})
 
 
@@ -262,7 +263,7 @@ def test_trial_realization_rejects_capture_spec_digest_mismatch() -> None:
     capture_spec = next(iter(request.capture_specs.values()))
     changed_spec = capture_spec.model_copy(update={"title": "Substituted capture specification"})
 
-    with pytest.raises(ValueError, match="capture specification digests"):
+    with pytest.raises(InvalidInputError, match="capture specification digests"):
         trial_realization_module._validate_capture_specs(
             plan,
             request.experiment,
@@ -286,7 +287,7 @@ def test_trial_realization_rejects_unresolved_task_evidence_requirement() -> Non
         update={"input_refs": plan.input_refs.model_copy(update={"capture_spec_refs": [changed_ref]})}
     )
 
-    with pytest.raises(ValueError, match="task evidence requirements"):
+    with pytest.raises(InvalidInputError, match="task evidence requirements"):
         trial_realization_module._validate_capture_specs(
             changed_plan,
             request.experiment,

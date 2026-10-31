@@ -200,3 +200,6 @@ construction; after any change, startup fails and every request gets a redacted
 `raes_runtime.control_plane_api._auth`. A public probe is GET-only and must
 return no runtime value. Then apply the operation's own subject policy in the
 core. A stream, callback, or export must authorize every item it releases.
+
+
+For complete run history and measured result counts, see [experiment records](experiment-records.md).

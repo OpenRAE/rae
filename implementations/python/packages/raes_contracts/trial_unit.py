@@ -8,7 +8,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, StrictStr, TypeAdapter, ValidationError
 
-from .admitted_trial_plan_ingress import revalidate_admitted_trial_plan
+from .admitted_trial_plan_ingress import AdmittedTrialPlanIngressError, revalidate_admitted_trial_plan
 from .contracts import (
     AdmittedExecutionControlModel,
     AdmittedTrialPlanModel,
@@ -71,7 +71,11 @@ class TrialUnitRequest:
             _DIGEST.validate_python(self.instantiated_sdl_digest)
         except ValidationError:
             raise ValueError("trial unit identity or SDL digest is invalid") from None
-        admitted = revalidate_admitted_trial_plan(self.plan)
+        try:
+            admitted = revalidate_admitted_trial_plan(self.plan)
+        except AdmittedTrialPlanIngressError as exc:
+            # Value-object checks raise ValueError (E3); the caller translates at its boundary.
+            raise ValueError("Admitted trial plan contract validation failed") from exc
         entry = admitted.entries.get(self.plan_entry_id)
         if entry is None:
             raise ValueError("trial unit entry does not resolve in admitted plan")

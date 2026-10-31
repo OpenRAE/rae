@@ -7,6 +7,14 @@ import json
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
 _EXACT_SCHEMA_DIRECTORIES = (
     {
         "participant-owner-flow-policy-v1": "profiles",
@@ -199,4 +207,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_application(main))

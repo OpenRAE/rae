@@ -7,12 +7,14 @@ from typing import cast
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
+from raes_contracts.errors import InvalidInputError, RaesError
 from raes_contracts.materialization import (
     MATERIALIZATION_ATTESTATION_CONTRACT,
     MaterializationArchive,
     MaterializationSource,
 )
 from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.planner import admit_materialization_submission, validate_materialization_archive_record
@@ -20,6 +22,8 @@ from raes_processor.planner.augmentation_admission import validate_actual_augmen
 
 from .backend_realization_authority import _RealizationApplyContext
 from .diagnostics import _failure_diagnostic
+
+_LOGGER = get_logger(__name__)
 
 
 def materialization_precondition(
@@ -30,11 +34,12 @@ def materialization_precondition(
         return None
     try:
         source, required = _bound_scope_requirement(request)
-        error = _inventory_refresh_error(request, source, manifest)
-        if error is None:
-            error = _materialization_support_error(source, required, manifest, archive)
-    except AttributeError, TypeError, ValueError:
-        error = "Materialization reporting requires valid bound source context."
+    except ValueError:
+        # The source model refuses an invalid bound source with ValueError (E3); other built-ins are defects.
+        return "Materialization reporting requires valid bound source context."
+    error = _inventory_refresh_error(request, source, manifest)
+    if error is None:
+        error = _materialization_support_error(source, required, manifest, archive)
     return error
 
 
@@ -135,7 +140,7 @@ def _finalize_legacy_materialization(
     source = getattr(request, "materialization_source", None)
     try:
         if source is None or raw.materialization_attestation is None or archive is None or context.manifest is None:
-            raise ValueError("missing negotiated materialization result")
+            raise InvalidInputError("missing negotiated materialization result")
         admitted = admit_materialization_submission(
             raw.materialization_attestation, request, context.manifest, previous, raw.snapshot
         )
@@ -146,7 +151,12 @@ def _finalize_legacy_materialization(
             dict(accepted.snapshot.entries),
             materialization_attestations=(*previous.materialization_attestations, record),
         )
-    except Exception:
+    except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of untrusted attestation content and archive delivery: a refusal category needs no record.
+            _LOGGER.exception(
+                "materialization attestation or archive delivery failed", exc_info=foreign_failure_record(exc)
+            )
         accepted = cast(
             ApplyResult,
             replace(

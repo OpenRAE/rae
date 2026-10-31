@@ -13,6 +13,7 @@ from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureM
 from raes_contracts.contracts import RealizationEnvelopeIdentityModel
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.immutable_history import HISTORY_FIELDS, HistoryMap
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.planning import RuntimeDomain
@@ -26,6 +27,7 @@ from raes_contracts.runtime_state import (
 )
 
 from .control_plane_store_observations import realization_observation_from_payload
+from .control_plane_store_revision import SnapshotState
 
 
 def _require_complete_runtime_snapshot_fields(values: dict[str, Any]) -> None:
@@ -165,6 +167,73 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
     return mutable_history_value(payload)
 
 
+_SNAPSHOT_OBJECT_MAPS = (
+    "orchestration_results",
+    "evaluation_results",
+    "proposition_truth_results",
+    "participant_episode_results",
+    "mixed_composition_states",
+    "participant_autonomous_execution_states",
+    "participant_execution_services",
+    "participant_resource_budget_states",
+    "participant_resource_pool_states",
+    "participant_resource_budget_events",
+    "shared_state_records",
+    "joint_action_records",
+    "time_management_contexts",
+)
+_SNAPSHOT_ARRAYS = ("materialization_attestations", "realization_provenance", "realization_observations")
+
+
+def _is_array(value: object, *, items: type | None = None) -> bool:
+    return isinstance(value, (list, tuple)) and (items is None or all(isinstance(item, items) for item in value))
+
+
+def _require_snapshot_payload_shape(payload: dict[str, Any]) -> None:
+    """Refuse a snapshot payload whose containers do not have the snapshot shape (ValueError, E3).
+
+    The codec below then sees only the container types that it reads, so a malformed
+    stored snapshot fails with ValueError and never with TypeError, AttributeError or KeyError.
+    Every entry and every carrier element must be an object, so the codec drops no stored evidence.
+    """
+
+    if not isinstance(payload, dict):
+        raise ValueError("runtime snapshot must be an object")
+    for name in _SNAPSHOT_OBJECT_MAPS:
+        value = payload.get(name, {})
+        if not isinstance(value, dict) or not all(isinstance(item, dict) for item in value.values()):
+            raise ValueError(f"runtime snapshot {name} must map names to objects")
+    if not isinstance(payload.get("metadata", {}), dict):
+        raise ValueError("runtime snapshot metadata must be an object")
+    if not all(_is_array(payload.get(name, []), items=dict) for name in _SNAPSHOT_ARRAYS):
+        raise ValueError("runtime snapshot carriers must be arrays of objects")
+    _require_snapshot_histories(payload)
+    _require_snapshot_entries(payload)
+
+
+def _require_snapshot_histories(payload: dict[str, Any]) -> None:
+    for name in HISTORY_FIELDS:
+        history = payload.get(name, {})
+        if isinstance(history, HistoryMap):
+            continue
+        if not isinstance(history, dict) or not all(_is_array(events, items=dict) for events in history.values()):
+            raise ValueError(f"runtime snapshot {name} must map names to arrays of objects")
+
+
+def _require_snapshot_entries(payload: dict[str, Any]) -> None:
+    entries = payload.get("entries", {})
+    if not isinstance(entries, dict):
+        raise ValueError("runtime snapshot entries must be an object")
+    for entry in entries.values():
+        if not isinstance(entry, dict) or not (
+            isinstance(entry.get("payload", {}), dict)
+            and _is_array(entry.get("ordering_dependencies", ()))
+            and _is_array(entry.get("refresh_dependencies", ()))
+            and _is_array(entry.get("profile_bindings", ()))
+        ):
+            raise ValueError("runtime snapshot entry has an invalid shape")
+
+
 def _snapshot_entries_from_payload(payload: dict[str, Any]) -> dict[str, SnapshotEntry]:
     entries_payload = payload.get("entries", {})
     return {
@@ -181,7 +250,6 @@ def _snapshot_entries_from_payload(payload: dict[str, Any]) -> dict[str, Snapsho
             ),
         )
         for address, entry in entries_payload.items()
-        if isinstance(entry, dict)
     }
 
 
@@ -204,13 +272,13 @@ def _realization_provenance_from_payload(payload: dict[str, Any]) -> tuple[Reali
             ),
         )
         for item in payload.get("realization_provenance", [])
-        if isinstance(item, dict)
     )
 
 
 def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
     from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 
+    _require_snapshot_payload_shape(payload)
     snapshot_fields: dict[str, Any] = {
         "materialization_attestations": tuple(
             MaterializationArchiveRecord.model_validate(record)
@@ -249,9 +317,7 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
         ),
         "realization_provenance": _realization_provenance_from_payload(payload),
         "realization_observations": tuple(
-            realization_observation_from_payload(item)
-            for item in payload.get("realization_observations", [])
-            if isinstance(item, dict)
+            realization_observation_from_payload(item) for item in payload.get("realization_observations", [])
         ),
         "realization_envelope": (
             RealizationEnvelopeIdentityModel.model_validate(payload["realization_envelope"])
@@ -266,7 +332,17 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
     return snapshot
 
 
-__all__ = ("_snapshot_from_payload", "_snapshot_payload")
+def durable_snapshot_state(payload: dict[str, Any], revision: int) -> SnapshotState:
+    """Rebuild one stored snapshot state; a stored value that fails its contract is damaged state."""
+
+    try:
+        # The snapshot value objects refuse an invalid value with ValueError (E3).
+        return SnapshotState(snapshot=_snapshot_from_payload(payload), revision=revision)
+    except ValueError as exc:
+        raise EvidenceIntegrityError("runtime snapshot failed its durable contract check") from exc
+
+
+__all__ = ("_snapshot_from_payload", "_snapshot_payload", "durable_snapshot_state")
 
 
 def _snapshot_history(payload: dict[str, Any], field: str) -> HistoryMap | dict[str, list[dict[str, object]]]:

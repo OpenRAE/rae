@@ -8,10 +8,15 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
+from pydantic import ValidationError  # noqa: E402
 from raes_conformance.conformance import validate_contract_payload  # noqa: E402
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 from raes_contracts.scientific_completeness import (  # noqa: E402
     DeliveryStatus,
     ProfileCompletenessResult,
@@ -111,6 +116,18 @@ def _validate_evidence_paths(
                     )
                 )
                 continue
+            except ValueError, RecursionError:
+                # The witness is not UTF-8, has an integer beyond the interpreter digit limit
+                # or nests beyond the decoder.
+                failures.append(
+                    PolicyFailure(
+                        "scientific-completeness-witness-invalid",
+                        f"concern {item.concern_id!r} witness for {contract_id!r} is not UTF-8 JSON within the "
+                        "decoder limits",
+                        witness_ref,
+                    )
+                )
+                continue
             diagnostics = validate_contract_payload(contract_id, payload)
             if diagnostics:
                 failures.append(
@@ -126,9 +143,12 @@ def _validate_evidence_paths(
 
 def _published_schema_paths(repo_root: Path) -> dict[str, str]:
     manifest = load_schema_publication_catalog(repo_root)
+    schemas = manifest.get("schemas", [])
+    if not isinstance(schemas, list):
+        raise InvalidInputError("schema publication catalog schemas must be a list")
     return {
         entry["contract_id"]: entry["schema_path"]
-        for entry in manifest.get("schemas", [])
+        for entry in schemas
         if isinstance(entry, dict) and isinstance(entry.get("contract_id"), str)
     }
 
@@ -254,8 +274,12 @@ def evaluate(repo_root: Path) -> list[PolicyFailure]:
     try:
         taxonomy = load_scientific_completeness_taxonomy()
         assessment = load_scientific_completeness_assessment()
+    except (OSError, UnicodeDecodeError, ValidationError, InvalidInputError) as exc:
+        return [PolicyFailure("scientific-completeness-invalid", str(exc))]
+    try:
         outcomes = evaluate_profile_completeness(taxonomy, assessment)
-    except (OSError, ValueError) as exc:
+    except ValueError as exc:
+        # The model cross-check reports a mismatch with ValueError (E3).
         return [PolicyFailure("scientific-completeness-invalid", str(exc))]
 
     failures: list[PolicyFailure] = []
@@ -263,7 +287,7 @@ def evaluate(repo_root: Path) -> list[PolicyFailure]:
     failures.extend(_validate_evidence_paths(repo_root, assessment))
     try:
         failures.extend(_validate_contract_evidence(repo_root, assessment))
-    except (OSError, ValueError, TypeError) as exc:
+    except (OSError, UnicodeDecodeError, InvalidInputError) as exc:
         failures.append(
             PolicyFailure(
                 "scientific-completeness-manifest-invalid",
@@ -285,4 +309,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))
