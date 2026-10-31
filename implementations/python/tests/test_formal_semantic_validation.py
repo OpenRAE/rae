@@ -577,7 +577,7 @@ def test_gate_replays_participant_tests_instead_of_trusting_pass_labels(monkeypa
             protocol={"participant_obligations": [{"positive_test_ref": "positive", "negative_test_ref": "negative"}]},
         )
     ]
-    monkeypatch.setattr(formal_validation, "current_release_path", lambda *_: "selected-manifest.json")
+    monkeypatch.setattr(formal_validation, "latest_recorded_release_path", lambda *_: "selected-manifest.json")
     failures = formal_validation._participant_replay_failures(REPO_ROOT, releases, failed_replay)
     assert [(failure.rule_id, failure.message, failure.path) for failure in failures] == [
         ("formal-validation-participant-replay", "seeded participant fixture failure", "snapshot.json")

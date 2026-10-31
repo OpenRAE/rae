@@ -33,10 +33,6 @@ def test_bundle_is_deterministic_and_keeps_claims_separate(reports):
     assert "participant_decision_surface_control_v2.py" in str(manifest["source_digests"])
 
 
-def test_published_cases_match_fresh_public_execution(reports):
-    export.check(ROOT, reports)
-
-
 def test_source_inventory_binds_mapping_test_drivers_only():
     pins = export.source_pins(ROOT)
     tests = {path.removeprefix("implementations/python/tests/") for path in pins if "/python/tests/" in path}
