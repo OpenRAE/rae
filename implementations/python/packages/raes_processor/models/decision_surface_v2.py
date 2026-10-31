@@ -15,6 +15,7 @@ from raes_contracts.contracts import (
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.satisfiability import canonical_contract_digest
 
+from .authored_participant_exposure_v2 import AuthoredParticipantExposureV2, validate_authored_participant_exposure_v2
 from .behavior_anchor_checks import participant_observation_effective_relation
 from .behavior_anchor_index import _participant_behavior_history_anchor_indexes
 from .behavior_ref_checks import _participant_behavior_initial_view_relation
@@ -291,6 +292,7 @@ def project_participant_decision_surface_v2(
     history_events: Sequence[ParticipantBehaviorHistoryEvent],
     projection: ParticipantDecisionSurfaceProjectionInputV2,
     exposure_resolvers: ParticipantExposureResolversV2,
+    authored_exposure: AuthoredParticipantExposureV2 | None = None,
 ) -> ParticipantDecisionSurfaceV2Model:
     """Derive a projected v2 surface from an exact trusted state cut."""
 
@@ -372,7 +374,7 @@ def project_participant_decision_surface_v2(
         "evidence_refs": list(projection.evidence_refs),
         "provenance_refs": list(projection.provenance_refs),
     }
-    return ParticipantDecisionSurfaceV2Model.model_validate(
+    surface = ParticipantDecisionSurfaceV2Model.model_validate(
         {
             "schema_version": "participant-decision-surface/v2",
             "surface_state": "projected",
@@ -380,3 +382,6 @@ def project_participant_decision_surface_v2(
             "assurance": assurance_payload,
         }
     )
+
+    validate_authored_participant_exposure_v2(runtime_model, surface, relation=relation, authored=authored_exposure)
+    return surface

@@ -3,8 +3,10 @@
 import re
 from pathlib import Path
 
+import pytest
 from implementations.formal.participant_crossing import reproduction
 from implementations.formal.participant_crossing.ingress import read_bytes
+from raes_contracts.errors import EvidenceIntegrityError
 
 ROOT = Path(__file__).resolve().parents[3]
 PREFIX = "specs/formal/participant-semantics/reproduction"
@@ -26,7 +28,7 @@ def test_retained_qualified_reproduction_has_exact_artifacts_and_agent_acceptanc
     assert {p.name for p in (ROOT / directory).iterdir()} == {"manifest.json", *manifest["artifact_digests"]}
     bundle = {name: read_bytes(ROOT, directory + "/" + name) for name in manifest["artifact_digests"]}
     assert {name: reproduction.digest(payload) for name, payload in bundle.items()} == manifest["artifact_digests"]
-    reproduction.admit_measurement(ROOT, bundle["measurement.json"], manifest["target_manifest_digest"])
+    reproduction.admit_retained_measurement(ROOT, bundle["measurement.json"], manifest["target_manifest_digest"])
     measurement = reproduction.decoded(bundle["measurement.json"])
     execution = reproduction.decoded(bundle["execution.json"])
     review = reproduction.decoded(bundle["review.json"])
@@ -49,3 +51,37 @@ def test_retained_qualified_reproduction_has_exact_artifacts_and_agent_acceptanc
     assert review["qualified_run"]["feature_sha"] in review["qualified_run"]["source_parents"]
     assert re.fullmatch(r"sha256:[0-9a-f]{64}", review["qualified_run"]["artifact_digest"])
     assert review["acceptance_record_ref"].startswith("https://github.com/OpenRAE/rae/issues/975#issuecomment-")
+
+
+@pytest.mark.parametrize("fault", ["payload", "subject", "sources", "fresh"])
+def test_retained_admission_does_not_accept_replacement_or_claim_current_sources(fault):
+    pin = reproduction.decoded(read_bytes(ROOT, PREFIX + "/pin.json"))
+    directory = PREFIX + "/capture-" + pin["manifest_digest"].split(":", 1)[1]
+    manifest = reproduction.decoded(read_bytes(ROOT, directory + "/manifest.json"))
+    payload = read_bytes(ROOT, directory + "/measurement.json")
+    subject = manifest["target_manifest_digest"]
+    if fault == "payload":
+        payload += b" "
+    elif fault == "subject":
+        subject = "sha256:" + "0" * 64
+    elif fault == "sources":
+        record = reproduction.decoded(payload)
+        record["reproducer_sources"] = reproduction.source_pins(ROOT)
+        payload = reproduction.encoded(record)
+    if fault == "fresh":
+        with pytest.raises(EvidenceIntegrityError, match="invalid reproduction measurement"):
+            reproduction.admit_measurement(ROOT, payload, subject)
+    else:
+        with pytest.raises(EvidenceIntegrityError, match="retained reproduction measurement drift"):
+            reproduction.admit_retained_measurement(ROOT, payload, subject)
+
+
+def test_retained_admission_does_not_read_current_reproducer_sources(monkeypatch):
+    pin = reproduction.decoded(read_bytes(ROOT, PREFIX + "/pin.json"))
+    directory = PREFIX + "/capture-" + pin["manifest_digest"].split(":", 1)[1]
+    manifest = reproduction.decoded(read_bytes(ROOT, directory + "/manifest.json"))
+    payload = read_bytes(ROOT, directory + "/measurement.json")
+    monkeypatch.setattr(
+        reproduction, "source_pins", lambda root: pytest.fail("archival validation read current sources")
+    )
+    reproduction.admit_retained_measurement(ROOT, payload, manifest["target_manifest_digest"])

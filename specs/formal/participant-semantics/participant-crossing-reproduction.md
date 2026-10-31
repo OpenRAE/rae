@@ -146,3 +146,14 @@ Issue 976 owns subsequent public and scientific claims.
 
 The review checks technical names, sentence limits, and one fact per sentence.
 It keeps architecture descriptions separate from implementation tasks.
+
+## Retained and fresh admission
+
+`reproduction.admit_measurement` checks a fresh measurement against current reproducer sources.
+`reproduction.admit_retained_measurement` checks the measurement selected by `reproduction/pin.json`.
+The retained path verifies the capture manifest, target subject, and exact measurement digest.
+It checks all subject and claim fields against the selected finite bundle.
+Only the reproducer source map retains the original execution's pins.
+A replacement payload, changed source map, or different subject fails admission.
+This path establishes archival integrity, without claiming fresh execution or authenticating reviewer acceptance.
+The separate execution and review records retain their existing digest joins and authority requirements.
