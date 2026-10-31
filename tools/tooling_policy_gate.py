@@ -49,6 +49,9 @@ _SELECTION_REJECTED = "development artifact policy failed before acquisition: se
 _VALIDATOR_INCOMPLETE = (
     "development artifact policy failed before acquisition: the frozen project validator could not complete"
 )
+_VALIDATOR_UNAVAILABLE = (
+    "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
+)
 
 
 @dataclass(frozen=True)
@@ -164,24 +167,18 @@ def _frozen_validator_command(policy_root: Path, *, offline: bool = False) -> li
     validator_python = project_root / ".venv" / "bin" / "python"
     validator = policy_root / "tools" / "check_tooling_artifact_policy.py"
     if not validator.is_file():
-        raise ArtifactPolicyError(
-            "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
-        )
+        raise ArtifactPolicyError(_VALIDATOR_UNAVAILABLE)
     if validator_python.is_file():
         return [str(validator_python), str(validator)]
     if offline:
-        raise ArtifactPolicyError(
-            "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
-        )
+        raise ArtifactPolicyError(_VALIDATOR_UNAVAILABLE)
     uv_executable = shutil.which("uv")
     if (
         uv_executable is None
         or not (project_root / "pyproject.toml").is_file()
         or not (project_root / "uv.lock").is_file()
     ):
-        raise ArtifactPolicyError(
-            "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
-        )
+        raise ArtifactPolicyError(_VALIDATOR_UNAVAILABLE)
     return [
         uv_executable,
         "run",

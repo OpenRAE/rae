@@ -43,8 +43,9 @@ def test_result_tampering_cannot_be_accepted_with_a_replaced_manifest(result, fi
     manifest = decoded(result["manifest.json"])
     manifest["artifact_digests"]["result.json"] = machine.digest(result["result.json"])
     result["manifest.json"] = encoded(manifest)
+    manifest_digest = machine.digest(result["manifest.json"])
     with pytest.raises(EvidenceIntegrityError):
-        machine.admit_bundle(ROOT, result, machine.digest(result["manifest.json"]))
+        machine.admit_bundle(ROOT, result, manifest_digest)
 
 
 def test_checker_failure_never_publishes(monkeypatch, constructed):

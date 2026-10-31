@@ -32,7 +32,8 @@ def test_nox_publication_uses_the_same_guarded_offline_entrypoint():
     reporter = SimpleNamespace(run=lambda name, action: action())
     run_machine_check(session, reporter, publish=True)
     assert calls[0][-1] == "implementations.formal.participant_crossing.machine_check_publication"
-    assert "--offline" in calls[0] and "--no-sync" in calls[0]
+    assert "--offline" in calls[0]
+    assert "--no-sync" in calls[0]
 
 
 def test_publication_refuses_missing_source_and_runner_identity(monkeypatch):

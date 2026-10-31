@@ -441,7 +441,7 @@ def _validate_toolchain_limits(toolchain: dict[str, Any]) -> None:
 
 def _validate_tool_sources(toolchain: dict[str, Any], repo_root: Path) -> None:
     tool_sources = _require_list(toolchain["tool_sources"], "proof tool sources")
-    if [item.get("path") for item in tool_sources if isinstance(item, dict)] != list(PROOF_TOOL_SOURCE_PATHS):
+    if tuple(item.get("path") for item in tool_sources if isinstance(item, dict)) != PROOF_TOOL_SOURCE_PATHS:
         raise ProofEvidenceError("proof tool source set or order is invalid")
     for source in tool_sources:
         item = _require_object(source, "proof tool source")
