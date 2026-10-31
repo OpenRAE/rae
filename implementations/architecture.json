@@ -24,6 +24,14 @@
         {
           "path": "github.com/zeebo/blake3",
           "reason": "BLAKE3 key derivation and keyed extendable output with a correct seek, for the published random-stream profiles."
+        },
+        {
+          "path": "golang.org/x/text/cases",
+          "reason": "Unicode case folding with the result of Python's str.casefold, for the secret-bearing query check of urisafety."
+        },
+        {
+          "path": "golang.org/x/text/unicode/norm",
+          "reason": "NFKC normalization for the netloc check that mirrors Python's urlsplit."
         }
       ]
     },
@@ -180,6 +188,13 @@
   ],
   "packages": [
     {
+      "dir": "implementations/go/internal/base/address",
+      "layer": "base",
+      "public": true,
+      "doc": "Compiled runtime addresses.",
+      "imports": []
+    },
+    {
       "dir": "implementations/go/internal/base/canonjson",
       "layer": "base",
       "public": true,
@@ -194,10 +209,31 @@
       "imports": []
     },
     {
+      "dir": "implementations/go/internal/base/ingress",
+      "layer": "base",
+      "public": true,
+      "doc": "Strict, bounded JSON ingress before contract validation.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/base/jsonpointer",
+      "layer": "base",
+      "public": true,
+      "doc": "RFC 6901 JSON Pointer reference tokens.",
+      "imports": []
+    },
+    {
       "dir": "implementations/go/internal/base/randstream",
       "layer": "base",
       "public": true,
       "doc": "The blake3-xof-v1 and blake3-xof-participant-v1 random-stream profiles.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/base/urisafety",
+      "layer": "base",
+      "public": true,
+      "doc": "Checks that absolute URIs are inert and carry no secret.",
       "imports": []
     },
     {
