@@ -207,7 +207,11 @@ def descendant_runtime(tmp_path, source=None, *, augmentation=None):
     target = RuntimeTarget(name="descendants", manifest=manifest, provisioner=backend)
     archive = RunMaterializationArchive(tmp_path / "archive")
     manager = RuntimeManager(target, materialization_archive=archive, run_scope="run:run-1")
-    source = source or "name: dynamic\nrealization: {default: open}\nnodes:\n  host: {type: compute}"
+    source = source or (
+        "name: dynamic\nrealization:\n  default: open\n  scopes:\n"
+        "    - {field_pointer: /nodes/host/runtime, posture: closed}\n"
+        "nodes:\n  host: {type: compute}"
+    )
     if augmentation is not None:
         import yaml
 

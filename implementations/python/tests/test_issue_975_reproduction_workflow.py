@@ -19,7 +19,7 @@ def test_required_lane_demands_a_pinned_qualified_reproduction():
     assert "--offline --no-sync" in replay["run"]
     assert "--qualified" in replay["run"]
     pin = json.loads((ROOT / "specs/formal/participant-semantics/machine-check/pin.json").read_text())
-    assert f"--expected-manifest {pin['manifest_digest']}" in replay["run"]
+    assert f"--expected-manifest {pin['manifest_digest']}" in " ".join(replay["run"].split())
     assert replay["env"]["RAES_MACHINE_CHECK_SOURCE_SHA"] == "${{ inputs.ref }}"
     uploads = [step for step in job["steps"] if "actions/upload-artifact@" in step.get("uses", "")]
     paths = "\n".join(step["with"]["path"] for step in uploads)

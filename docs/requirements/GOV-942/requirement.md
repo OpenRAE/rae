@@ -23,6 +23,7 @@ Academic review and range integration require a reproducible, machine-checkable 
 
 - IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json` (REV1 scientific scenario completeness taxonomy)
 - IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/delivery-assessment-2026-07-12.json` (Scientific completeness delivery assessment)
+- IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json` (Current scientific completeness delivery assessment selected by the package loader)
 - IMPLEMENTS → SPEC `specs/sdl/scientific-scenario-completeness.md` (Scientific scenario completeness specification)
 - IMPLEMENTS → CODE_FILE `tools/check_scientific_scenario_completeness.py` (Scientific completeness policy checker)
 - TESTS → TEST `implementations/python/tests/test_scientific_scenario_completeness.py` (Scientific completeness contract and policy tests)

@@ -1,7 +1,7 @@
 {
   "schema_version": "behavioral-relations/v1",
   "taxonomy_id": "raes-behavioral-relations",
-  "taxonomy_revision": "rev13",
+  "taxonomy_revision": "rev14",
   "bibliography": [
     {
       "source_id": "park-1981",
@@ -1959,10 +1959,12 @@
       },
       "bounded_evidence": [
         "Issue #811 supplies an exact complete-finite theorem profile, witness family, mutation design, and pinned checker contract; it does not run the equivalence decision.",
-        "A finite model-check result is final only when the supplied finite carrier is the complete quantified domain and the evidence binds exact inputs, counts, tool provenance, result, and independent reproduction."
+        "A finite model-check result is final only when the supplied finite carrier is the complete quantified domain and the evidence binds exact inputs, counts, tool provenance, result, and independent reproduction.",
+        "The pinned mCRL2 202607.0 dpbranching-bisim decision relates the declared initial states of sem-230-participant-crossing-abstract@rev2 (88 states) and api-423-run-319-crossing-kernel@rev2 (178 states) over the complete reachable carrier of participant-crossing-dpbb-finite-v1@rev2 under participant-crossing-projection@rev1; every mandatory mutation fails the relation, and a separate reviewer accepted a fresh qualified reproduction of the pinned capture."
       ],
       "explicit_non_claims": [
         "Taxonomy revision rev6 defines this relation and the participant-crossing claim surface but does not establish a model-check or proof result.",
+        "Taxonomy revision rev14 records only the reproduced finite model-check result for participant-crossing-dpbb-finite-v1@rev2; it supplies no proof, proof certificate, checked relation witness, or result for another profile, carrier, order, time, probability, concurrency, controller, policy cut, or backend.",
         "The participant-crossing design does not establish live-runtime realization, backend conformance, whole-runtime equivalence, policy noninterference, or predicate opacity.",
         "Depth limits, sampled traces, probes, matching digests, schema equality, and ordinary weak bisimulation are not this relation."
       ],
@@ -1977,7 +1979,7 @@
         "test_status": "not-tested",
         "proof_status": "deliberately-unproved",
         "checker_status": "not-implemented",
-        "model_check_status": "not-model-checked",
+        "model_check_status": "model-checked",
         "runtime_enforcement_status": "not-enforced",
         "backend_declaration_status": "not-declared",
         "backend_realization_status": "not-realized",
@@ -1985,7 +1987,12 @@
         "evidence_refs": [
           "docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md",
           "specs/formal/participant-semantics/participant-crossing-bisimulation.md",
-          "docs/research/participant-bisimulation/implementation-program.json"
+          "docs/research/participant-bisimulation/implementation-program.json",
+          "specs/formal/participant-semantics/participant-crossing-machine-check.md",
+          "specs/formal/participant-semantics/machine-check/pin.json",
+          "specs/formal/participant-semantics/participant-crossing-reproduction.md",
+          "specs/formal/participant-semantics/reproduction/pin.json",
+          "docs/decisions/issue-976-crossing-evidence-identity-design.md"
         ]
       },
       "source_refs": [
@@ -3049,6 +3056,7 @@
       ],
       "explicit_non_claims": [
         "Issue #811 defines the theorem and proof program but does not establish the formal equivalence result.",
+        "The reproduced finite model-check result covers only the complete reachable carrier of participant-crossing-dpbb-finite-v1@rev2; it is not an unbounded proof and does not cover the multi-operation profile.",
         "A formal model-check does not establish live-runtime realization, backend conformance, whole-runtime equivalence, noninterference, opacity, or a stronger timed, probabilistic, strategic, concurrent, or partial-order relation."
       ]
     },
