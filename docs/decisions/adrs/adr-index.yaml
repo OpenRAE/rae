@@ -647,7 +647,7 @@ adrs:
         summary: "Proposed acceptance with bounded compiler/runtime adoption, opt-in joint preparation, prepared portable membership, and the authenticated plan-level profile host. Ratification takes effect on merge."
   - id: ADR-106
     path: docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md
-    pin: 4c4dc68ef5e28a3740e22050b831e8cdc087f3c31e3215c4d4f33bdac055e5df
+    pin: 349740a47f2e08e342223c6d9a507cc1fb4156f272c7a4c2aebd1c9b17323265
     amendments:
       - date: 2026-09-06
         ref: "#1229"
@@ -655,6 +655,9 @@ adrs:
       - date: 2026-09-17
         ref: "#1313"
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
+      - date: 2026-10-31
+        ref: "#1773"
+        summary: "Admitted the Go toolchain through the development-artifact lock and Go modules through their reviewed go.sum, with Go tools in implementations/tooling/go."
   - id: ADR-107
     path: docs/decisions/adrs/adr-107-artifact-promotion-and-release-admission.md
     pin: a3cdbf6fd69bcc9f96ffd1ca7e7e95340d0a597ee42c4a5c21a96f79d3063d96
