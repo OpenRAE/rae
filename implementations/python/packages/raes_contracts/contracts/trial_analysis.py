@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Unpack
 
 from .._canonical import canonical_json_digest
 from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
@@ -14,6 +14,7 @@ from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_run import ExperimentRunModel
 from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs
 from .experiment_spec import ExperimentStudyModel
+from .experiment_study_definition import StudyRelationInputs
 from .trial_cleanup import TrialCleanupReceiptModel, validate_trial_cleanup_receipt
 from .trial_provenance import TrialRunProvenanceModel
 
@@ -43,8 +44,6 @@ def _validate_trial_terminal_outcome(
     }[terminal_receipt.trial_outcome]
     if run.run_status not in expected_statuses:
         raise ValueError("archival run status does not match the terminal execution attempt")
-    if terminal_receipt.trial_outcome == "succeeded" and run.outcome_status == "failed":
-        raise ValueError("successful terminal attempt cannot produce a failed archival outcome")
 
 
 def _validate_run_plan_linkage(
@@ -78,6 +77,8 @@ def _validate_run_stochastic_provenance(
 ) -> None:
     run_controls = {control.control_id: control for control in run.stochastic_controls}
     required_control_ids = {draw.control_id for draw in entry.stochastic_draws}
+    if plan.allocation is not None:
+        required_control_ids.add(plan.allocation.policy.stochastic_control_ref)
     for control_id in sorted(required_control_ids):
         if run_controls.get(control_id) != plan.stochastic_controls.get(control_id):
             raise ValueError("archival run stochastic control does not match the admitted entry")
@@ -85,6 +86,47 @@ def _validate_run_stochastic_provenance(
     run_draws = {canonical_json_digest(draw.model_dump(mode="json")) for draw in run.stochastic_draws}
     if not admitted_draws.issubset(run_draws):
         raise ValueError("archival run stochastic draws do not preserve the admitted entry")
+
+
+def _validate_run_selection_provenance(entry: AdmittedTrialEntryModel, run: ExperimentRunModel) -> None:
+    admitted_selections = {
+        selection.treatment.selection_id: canonical_json_digest(selection.treatment.model_dump(mode="json"))
+        for selection in entry.selections
+        if selection.treatment is not None
+    }
+    if {
+        selection.selection_id: canonical_json_digest(selection.model_dump(mode="json"))
+        for selection in run.realized_selections
+    } != admitted_selections:
+        raise ValueError("archival run realized selections must preserve the exact admitted treatments")
+
+
+def _validate_run_binding_provenance(entry: AdmittedTrialEntryModel, run: ExperimentRunModel) -> None:
+    from ..participant_configuration import validate_participant_configuration_selection
+
+    _validate_run_selection_provenance(entry, run)
+    realized = {binding.descriptor.binding_id: binding for binding in run.realized_bindings}
+    configurations = {result.participant_address: result for result in entry.participant_configurations}
+    for binding in entry.bindings:
+        actual = realized.get(binding.descriptor.binding_id)
+        if actual is None or actual.descriptor != binding.descriptor or actual.origin != binding.origin:
+            raise ValueError("archival run realized binding must preserve the admitted binding")
+        target = binding.descriptor.target
+        if (
+            target.plane == "participant-implementation"
+            and actual.configuration_digest != configurations[target.participant_address].configuration_digest
+        ):
+            raise ValueError("archival run binding configuration digest differs from admission")
+    provenance = run.participant_implementation_provenance
+    selections = (
+        {}
+        if provenance is None
+        else {selection.participant_address: selection for selection in provenance.participant_implementations}
+    )
+    for address, result in configurations.items():
+        if address not in selections:
+            raise ValueError("archival run participant binding requires its implementation selection")
+        validate_participant_configuration_selection(selections[address], result)
 
 
 def _validate_run_attempt_evidence(
@@ -114,7 +156,13 @@ def validate_admitted_trial_run(
 ) -> None:
     """Join one archival run to its exact admitted entry and attempt evidence."""
 
+    run = ExperimentRunModel.model_validate(run.model_dump(mode="json", warnings=False))
+    if run.record_state == "partial" or run.execution_accounting is not None:
+        _validate_trial_accounting(plan, run, cleanup_receipts)
+        if run.record_state == "partial":
+            return
     entry, linkage = _validate_run_plan_linkage(plan, run)
+    _validate_run_binding_provenance(entry, run)
     _validate_run_stochastic_provenance(plan, entry, run)
     terminal_receipt = _validate_run_attempt_evidence(plan, entry, linkage, cleanup_receipts)
     _validate_trial_terminal_outcome(run, terminal_receipt)
@@ -191,7 +239,11 @@ def _validate_study_identity(
     study_ref = plan.input_refs.study_ref
     if study_ref is not None and (
         study_ref.ref_id != study.study_id
-        or (study_ref.ref_version is not None and study_ref.ref_version != study.study_version)
+        or (
+            study_ref.ref_version is not None
+            and study_ref.ref_version
+            != (study.study_version if study.definition_ref is None else study.definition_ref.ref_version)
+        )
     ):
         raise ValueError("study identity does not match the admitted plan")
 
@@ -239,20 +291,119 @@ def validate_admitted_trial_study(
     tasks: list[ExperimentTaskModel],
     runs: list[ExperimentRunModel],
     *,
+    study_definition: ExperimentStudyModel | None = None,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
-    relation_scenarios: Mapping[str, Any] | None = None,
-    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None,
+    **relations: Unpack[StudyRelationInputs],
 ) -> None:
     """Join admitted coordinates and archival runs to the existing study authority."""
 
+    if (plan.replacement_policy is not None and plan.replacement_policy.max_replacements) or any(
+        run.run_status == "superseded" for run in runs
+    ):
+        raise ValueError("replacement study validation requires complete retained replacement history")
+    _validate_admitted_trial_study(
+        plan,
+        study,
+        tasks,
+        runs,
+        study_definition=study_definition,
+        evidence_by_run=evidence_by_run,
+        **relations,
+    )
+
+
+def _validate_admitted_trial_study(
+    plan: AdmittedTrialPlanModel,
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel],
+    *,
+    study_definition: ExperimentStudyModel | None = None,
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
+    **relations: Unpack[StudyRelationInputs],
+) -> None:
     validate_experiment_study_against_tasks_and_runs(
         study,
         tasks,
         runs,
+        study_definition=study_definition,
         evidence_by_run=evidence_by_run,
-        relation_scenarios=relation_scenarios,
-        relation_capture_specs=relation_capture_specs,
+        **relations,
     )
     _validate_study_identity(plan, study)
     _validate_study_run_membership(study, runs)
     _validate_study_allocation(plan, study)
+
+
+@dataclass(frozen=True)
+class TrialReplacementStudyInputs:
+    """Complete retained replacement history and ordinary study evidence."""
+
+    replacement_plans: list[AdmittedTrialPlanModel]
+    cleanup_receipts: list[TrialCleanupReceiptModel]
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None
+    relation_scenarios: Mapping[str, Any] | None = None
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None
+    study_definition: ExperimentStudyModel | None = None
+
+
+def validate_replacement_trial_study(
+    plan: AdmittedTrialPlanModel,
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel],
+    *,
+    inputs: TrialReplacementStudyInputs,
+) -> None:
+    """Reconcile retained history before validating single-leaf study membership."""
+    from .trial_replacement_analysis import reconcile_replacement_trials
+
+    accounting = reconcile_replacement_trials(plan, inputs.replacement_plans, runs, inputs.cleanup_receipts)
+    _validate_admitted_trial_study(
+        plan,
+        study,
+        tasks,
+        list(accounting.analysis_runs),
+        study_definition=inputs.study_definition,
+        evidence_by_run=inputs.evidence_by_run,
+        relation_scenarios=inputs.relation_scenarios,
+        relation_capture_specs=inputs.relation_capture_specs,
+    )
+
+
+def _validate_trial_accounting(
+    plan: AdmittedTrialPlanModel, run: ExperimentRunModel, cleanup_receipts: list[TrialCleanupReceiptModel]
+) -> None:
+    accounting = run.execution_accounting
+    if accounting is None or (accounting.plan_id, accounting.plan_digest) != (plan.plan_id, plan.plan_digest):
+        raise ValueError("run accounting does not match the admitted plan")
+    entry = plan.entries.get(accounting.plan_entry_id)
+    if entry is None or (entry.entry_digest, entry.run_id) != (accounting.entry_digest, run.run_id):
+        raise ValueError("run accounting does not match the admitted entry")
+    if accounting.participant_configurations != entry.participant_configurations:
+        raise ValueError("run accounting must preserve admitted participant configurations")
+    _validate_run_selection_provenance(entry, run)
+    _validate_run_stochastic_provenance(plan, entry, run)
+    cleanup_plan = plan.cleanup_plans[entry.execution_controls.cleanup_plan_ref]
+    if len(accounting.attempts) > cleanup_plan.retry_policy.max_attempts:
+        raise ValueError("run accounting attempts exceed the admitted retry policy")
+    _validate_accounting_cleanup(plan, entry, run, cleanup_receipts)
+
+
+def _validate_accounting_cleanup(
+    plan: AdmittedTrialPlanModel,
+    entry: AdmittedTrialEntryModel,
+    run: ExperimentRunModel,
+    cleanup_receipts: list[TrialCleanupReceiptModel],
+) -> None:
+    accounting = run.execution_accounting
+    cleanup_plan = plan.cleanup_plans[entry.execution_controls.cleanup_plan_ref]
+    retained = [item.cleanup_receipt for item in accounting.attempts if item.cleanup_receipt is not None]
+    expected = {item.receipt_id: item for item in retained}
+    supplied = {item.receipt_id: item for item in cleanup_receipts}
+    if len(supplied) != len(cleanup_receipts) or expected != supplied:
+        raise ValueError("run cleanup accounting differs from retained receipts")
+    for receipt in retained:
+        if (receipt.plan_entry_id, receipt.run_id) != (entry.plan_entry_id, entry.run_id):
+            raise ValueError("run accounting cleanup receipt belongs to another entry")
+        validate_trial_cleanup_receipt(cleanup_plan, receipt)

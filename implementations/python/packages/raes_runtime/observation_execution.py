@@ -6,6 +6,7 @@ from collections.abc import Callable, Mapping
 from typing import Protocol
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.description_coverage import DescriptionCoverageUnsatisfied
 from raes_contracts.description_reporting import DescriptionProfileAdmission
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.observation_demand import (
@@ -22,6 +23,7 @@ from raes_contracts.observation_demand import (
     realization_description_report,
 )
 from raes_contracts.observation_reporting import RealizationDescriptionItem
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .observation_admission import (
@@ -51,6 +53,7 @@ Redactor = Callable[[tuple[object, ...]], tuple[object, ...]]
 IntegrityProvider = Callable[[str, tuple[object, ...]], str]
 EvidenceVerifier = Callable[[ObservationSelector, AchievedObservationValue, Plan, RuntimeSnapshot], bool]
 _OBSERVATION_ADDRESS = "runtime.observation-demand"
+_LOGGER = get_logger(__name__)
 
 
 class ObservationRuntime(Protocol):
@@ -201,6 +204,7 @@ def execute_plan_observation_demand(
     *,
     durable_lifecycle_available: bool,
     operation_id: str | None,
+    optional_failure_is_loss: bool = False,
 ) -> tuple[PreparedObservationExecution | None, Diagnostic | None]:
     """Execute admitted demand after backend success and before snapshot commit."""
 
@@ -214,7 +218,9 @@ def execute_plan_observation_demand(
     )
     if diagnostic is not None or runtime is None:
         return None, diagnostic
-    return _execute_admitted_plan_observation(plan, snapshot, manifest, runtime, operation_id)
+    return _execute_admitted_plan_observation(
+        plan, snapshot, manifest, runtime, operation_id, optional_failure_is_loss=optional_failure_is_loss
+    )
 
 
 def _execute_admitted_plan_observation(
@@ -223,6 +229,8 @@ def _execute_admitted_plan_observation(
     manifest: BackendManifest | None,
     runtime: ObservationRuntime,
     operation_id: str | None,
+    *,
+    optional_failure_is_loss: bool = False,
 ) -> tuple[PreparedObservationExecution | None, Diagnostic | None]:
     resolution = _admitted_resolution(plan, manifest, runtime)
     selectors = {
@@ -241,6 +249,7 @@ def _execute_admitted_plan_observation(
             },
             supported=supported,
             protector=runtime.protect,
+            optional_failure_is_loss=optional_failure_is_loss,
         )
         description = _describe_admitted_plan(resolution, runtime, plan, snapshot)
         if manifest is None:
@@ -251,14 +260,16 @@ def _execute_admitted_plan_observation(
             manifest,
             operation_id=operation_id,
         )
-    except (KeyError, TypeError, ValueError):
+    except KeyError, TypeError, ValueError, DescriptionCoverageUnsatisfied:
         return None, Diagnostic(
             code="observation.runtime-contract-invalid",
             domain="runtime",
             address=_OBSERVATION_ADDRESS,
             message="Observation runtime did not satisfy the admitted selector contract.",
         )
-    except Exception:
+    except Exception as exc:
+        # Isolation of the observation runtime adapter: record its failure once, without its type, then refuse.
+        _LOGGER.exception("observation runtime adapter failed", exc_info=foreign_failure_record(exc))
         return None, Diagnostic(
             code="observation.runtime-adapter-failed",
             domain="runtime",

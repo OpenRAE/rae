@@ -133,10 +133,16 @@ runtime-only mediation, unexecuted declarations, forged manifest identity,
 authorized weakening that retains stronger claims, missing contracts or
 evidence, and secret-bearing diagnostics.
 
+Corrected by #1374: the #965 probe accepted a fixed transcript from the
+harness. The runner now derives each transcript from runtime execution and
+backend readback. RUN-319 shields backend mechanisms under the runtime
+profile, so the runner derives runtime-mediated evidence only. Catalog `rev13`
+withdraws the backend declaration, realization, and conformance statuses.
+
 ## Program Invariants
 
 - All claims use the exact applicable behavioral-taxonomy revision (current
-  authoring authority `raes-behavioral-relations@rev12`) and one explicit
+  authoring authority `raes-behavioral-relations@rev13`) and one explicit
   assurance axis. The shipped runtime-reference profile retains its exact
   historical `rev11` binding; `rev5` introduced opacity and is not a permanent
   implementation pin.

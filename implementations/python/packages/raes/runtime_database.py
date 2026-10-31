@@ -108,9 +108,10 @@ def _db_listen_address_or_var(value: str, *, field_name: str) -> str:
         return value
     try:
         ipaddress.ip_address(value)
-        return value
     except ValueError:
         pass
+    else:
+        return value
     if all(_HOSTNAME_LABEL.match(label) for label in value.split(".")):
         return value
     raise ValueError(f"{field_name} must be '*', an IP address, a hostname, or a Unix socket path")
@@ -199,7 +200,7 @@ class DatabaseSchema(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseObjectOrigin, field_name="origin")
 
     @model_validator(mode="after")
-    def validate_schema(self) -> "DatabaseSchema":
+    def validate_schema(self) -> DatabaseSchema:
         seen: set[str] = set()
         for table in self.tables:
             if table.table_id in seen:
@@ -233,7 +234,7 @@ class Database(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseObjectOrigin, field_name="origin")
 
     @model_validator(mode="after")
-    def validate_database(self) -> "Database":
+    def validate_database(self) -> Database:
         seen: set[str] = set()
         for schema in self.schemas:
             if schema.schema_id in seen:
@@ -375,7 +376,7 @@ class DatabaseSetting(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseSettingProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "DatabaseSetting":
+    def validate_redacted_value(self) -> DatabaseSetting:
         # Explicit redaction classifications omit raw values; credential-shaped
         # names remain scenario content unless the author marks them withheld.
         enforce_observed_value_redaction(
@@ -424,7 +425,7 @@ class RuntimeDatabaseService(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseProtocol, field_name="protocol")
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeDatabaseService":
+    def validate_service(self) -> RuntimeDatabaseService:
         self._reject_duplicate_top_level_ids()
         self._reject_duplicate_nested_object_ids()
         self._reject_duplicate_setting_names()

@@ -7,8 +7,11 @@ from tools.sdl_catalog_parity._paths import (
     _BEHAVIOR_SEMANTICS,
     _BEHAVIOR_VALIDATOR,
     _DANGLING,
+    _DELIVERY_CONTROL_VALIDATOR,
     _MIXED_CONTROL_IDS,
     _MIXED_CONTROL_MODEL,
+    _MIXED_CONTROL_POLICY_MODEL,
+    _MIXED_CONTROL_POLICY_VALIDATOR,
     _MIXED_CONTROL_VALIDATOR,
     _NON_PRECONDITION_ROLE,
     _OUTCOME_SEMANTICS,
@@ -27,6 +30,15 @@ from tools.sdl_catalog_parity._paths import (
 )
 
 EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
+    **{
+        f"{section}.*.control_context.*.declaration_ref": (
+            "control_context_assets",
+            "semantic validation and instantiation",
+            "fatal missing, ambiguous, incompatible, stale, or competing selection",
+            "[control-context semantics](../../implementations/python/packages/raes/participant_control_context.py)",
+        )
+        for section in ("agents", "behavior_specifications")
+    },
     "agents.*.affiliations[]": (
         "entities",
         _SEMANTIC,
@@ -94,7 +106,7 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _PARTICIPANT_VALIDATOR,
     ),
     "agents.*.authority_anchors[]": (
-        "declared",
+        "eligible:authority_anchor",
         _SEMANTIC,
         _DANGLING,
         _PARTICIPANT_VALIDATOR,
@@ -118,15 +130,21 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _PARTICIPANT_SEMANTICS,
     ),
     "action_contracts.*.interactions.*.target": (
-        "targetable",
+        "eligible:action_target",
         _SEMANTIC,
         _DANGLING,
         _PARTICIPANT_VALIDATOR,
     ),
     "action_contracts.*.interactions.*.shared_state_refs[]": (
-        "targetable",
+        "eligible:shared_state",
         _SEMANTIC,
         _DANGLING,
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "action_contracts.*.effects.*.target_refs[]": (
+        "eligible:action_target",
+        _SEMANTIC,
+        "fatal dangling or ambiguous when it names a declaration; other refs are boundary information",
         _PARTICIPANT_VALIDATOR,
     ),
     "action_contracts.*.temporal_contracts.*.backend_disclosure_refs[]": (
@@ -208,7 +226,7 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _BEHAVIOR_SEMANTICS,
     ),
     "behavior_specifications.*.authority_scope_refs[]": (
-        "targetable",
+        "eligible:authority_scope",
         _SEMANTIC,
         _DANGLING,
         _BEHAVIOR_VALIDATOR,
@@ -229,6 +247,21 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         "observation_boundaries",
         _SEMANTIC,
         "fatal dangling, outside the owner/participant, or without explicit view classification",
+        _BEHAVIOR_SEMANTICS,
+    ),
+    "behavior_specifications.*.tool_affordances.*.participant_refs[]": (
+        "agents",
+        _SEMANTIC,
+        "fatal dangling, outside the owning behavior specification, or an authored `__private` segment",
+        _BEHAVIOR_SEMANTICS,
+    ),
+    "behavior_specifications.*.tool_affordances.*.participant_role_refs[]": (
+        "derived:agent_roles",
+        _SEMANTIC,
+        (
+            "fatal unless at least one participant has the role and every participant "
+            "with the role is inside the owning behavior specification"
+        ),
         _BEHAVIOR_SEMANTICS,
     ),
     "behavior_specifications.*.participant_inject_deliveries.*.participant_ref": (
@@ -304,7 +337,7 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _PARTICIPANT_INJECT_DELIVERY_VALIDATOR,
     ),
     "behavior_specifications.*.participant_inject_deliveries.*.control_authority_scope_refs[]": (
-        "targetable",
+        "eligible:authority_scope",
         _SEMANTIC,
         "fatal dangling, ambiguous, or disagreement with the selected target-state scope",
         _PARTICIPANT_INJECT_DELIVERY_VALIDATOR,
@@ -314,6 +347,30 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _SEMANTIC,
         "fatal dangling, control disagreement, or absent evidence-requirement coverage",
         _PARTICIPANT_INJECT_DELIVERY_VALIDATOR,
+    ),
+    "behavior_specifications.*.participant_inject_deliveries.*.control.permitted_transition_ref": (
+        _MIXED_CONTROL_IDS,
+        _SEMANTIC,
+        "fatal dangling, wrong-kind, or cross-form binding",
+        _DELIVERY_CONTROL_VALIDATOR,
+    ),
+    "behavior_specifications.*.participant_inject_deliveries.*.control.controller_ref": (
+        "derived:source-state-controller",
+        _SEMANTIC,
+        "fatal unless the permitted transition's source-state controller",
+        _DELIVERY_CONTROL_VALIDATOR,
+    ),
+    "behavior_specifications.*.participant_inject_deliveries.*.control.authority_scope_refs[]": (
+        "derived:source-state-scope",
+        _SEMANTIC,
+        "fatal dangling, ambiguous, or widening the source-state scope",
+        _DELIVERY_CONTROL_VALIDATOR,
+    ),
+    "behavior_specifications.*.participant_inject_deliveries.*.control.evidence_refs[]": (
+        "targetable",
+        _SEMANTIC,
+        "fatal outside the transition and source-state evidence, or absent evidence-requirement coverage",
+        _DELIVERY_CONTROL_VALIDATOR,
     ),
     "behavior_specifications.*.behavior_mode": (
         "vocabulary:behavior_mode",
@@ -380,6 +437,42 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _SEMANTIC,
         "fatal dangling, ambiguous, or silent handoff",
         _MIXED_CONTROL_VALIDATOR,
+    ),
+    "behavior_specifications.*.mixed_control.permitted_transitions.*.from_state_ref": (
+        _MIXED_CONTROL_IDS,
+        _STRUCTURAL_SEMANTIC,
+        "fatal dangling local ref, revoked source, or disjoint window",
+        _MIXED_CONTROL_POLICY_MODEL,
+    ),
+    "behavior_specifications.*.mixed_control.permitted_transitions.*.to_state_ref": (
+        _MIXED_CONTROL_IDS,
+        _STRUCTURAL_SEMANTIC,
+        "fatal dangling local ref, revoked destination, disjoint window, or controller change outside a handoff",
+        _MIXED_CONTROL_POLICY_MODEL,
+    ),
+    "behavior_specifications.*.mixed_control.permitted_transitions.*.evidence_refs[]": (
+        "declared",
+        _SEMANTIC,
+        _DANGLING,
+        _MIXED_CONTROL_POLICY_VALIDATOR,
+    ),
+    "behavior_specifications.*.mixed_control.permitted_transitions.*.completion_evidence_refs[]": (
+        "declared",
+        _STRUCTURAL_SEMANTIC,
+        "fatal dangling, ambiguous, or absent on a handoff",
+        _MIXED_CONTROL_POLICY_VALIDATOR,
+    ),
+    "behavior_specifications.*.mixed_control.script_steps[].permitted_transition_ref": (
+        _MIXED_CONTROL_IDS,
+        _STRUCTURAL,
+        "fatal dangling local ref",
+        _MIXED_CONTROL_POLICY_MODEL,
+    ),
+    "behavior_specifications.*.mixed_control.script_steps[].target_step_ref": (
+        _MIXED_CONTROL_IDS,
+        _SEMANTIC,
+        "fatal unless an earlier step produces exactly one eligible target",
+        _MIXED_CONTROL_POLICY_VALIDATOR,
     ),
     "behavior_specifications.*.realization_profile_ref": (
         "opaque:realization_profile",

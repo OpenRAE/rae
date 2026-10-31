@@ -6,13 +6,16 @@ Provides ``parse_sdl()`` as the primary entry point. Handles:
 - Shorthand expansion (``source: "pkg"`` → ``{name: "pkg", version: "*"}``)
 """
 
+from collections.abc import Hashable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Unpack
 
 from pydantic import ValidationError
 
 from ._base import contains_variable_token, is_variable_ref
+from ._composition_budget import ParsePrivateOptions
+from ._declaration_sources import attach_declaration_sources, semantic_source_diagnostics
 from ._errors import (
     SDLParseDiagnostic,
     SDLParseError,
@@ -42,7 +45,7 @@ from ._source_profile import (
     SDLSourceParseOptions,
 )
 from ._source_validation import _raise_source_limit
-from ._yaml_loader import load_sdl_yaml
+from ._yaml_loader import SDLSourceLocations, load_sdl_yaml
 from .materialization import MaterializedScenario
 from .scenario import ExpandedScenario, Scenario
 from .validator import SemanticValidator
@@ -243,6 +246,13 @@ def _expand_roles(roles: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _names_mapping(names: list[Any], *, node: object, field: str, path: Path | None) -> dict[Any, str]:
+    """Expand a node list shorthand: [a, b] → {a: '', b: ''}; a nested list or mapping is not a name."""
+    if not all(isinstance(name, Hashable) for name in names):
+        raise SDLParseError(f"Node '{node}' {field} list must contain only names", path=path)
+    return dict.fromkeys(names, "")
+
+
 # OCR scoring sections removed from the SDL by ADR-073. Detected up front so
 # authors get a migration pointer instead of a raw "extra fields" error.
 _REMOVED_SCORING_SECTIONS = ("metrics", "evaluations", "tlos", "goals")
@@ -265,68 +275,48 @@ def _reject_removed_scoring_sections(data: dict[str, Any], *, path: Path | None)
     )
 
 
-def _expand_shorthands(data: dict[str, Any]) -> dict[str, Any]:
-    """Apply all shorthand expansions to normalized data."""
-    # Scopes where "source" is a plain string reference, NOT a Source package.
-    _SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
+# Scopes where "source" is a plain string reference, NOT a Source package.
+_SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
 
-    def expand_sources_scoped(
-        obj: Any,
-        *,
-        is_hashmap: bool = False,
-        skip: bool = False,
-    ) -> Any:
-        if isinstance(obj, dict):
-            result = {}
-            for k, v in obj.items():
-                if is_hashmap:
-                    result[k] = expand_sources_scoped(
-                        v,
-                        is_hashmap=False,
-                        skip=skip,
-                    )
-                    continue
 
-                child_skip = skip or k in _SOURCE_SKIP_SECTIONS
-                child_is_hashmap = _child_is_hashmap_field(k, v)
-
-                if k == "source" and not skip:
-                    result[k] = _expand_source(v)
-                else:
-                    result[k] = expand_sources_scoped(
-                        v,
-                        is_hashmap=child_is_hashmap,
-                        skip=child_skip,
-                    )
-            return result
-        if isinstance(obj, list):
-            return [
-                expand_sources_scoped(
-                    item,
-                    is_hashmap=is_hashmap,
-                    skip=skip,
-                )
-                for item in obj
-            ]
+def _expand_sources_scoped(obj: object, *, is_hashmap: bool = False, skip: bool = False) -> object:
+    """Expand ``source`` shorthands outside the scopes where ``source`` is a plain reference."""
+    if isinstance(obj, list):
+        return [_expand_sources_scoped(item, is_hashmap=is_hashmap, skip=skip) for item in obj]
+    if not isinstance(obj, dict):
         return obj
+    result = {}
+    for k, v in obj.items():
+        if is_hashmap:
+            result[k] = _expand_sources_scoped(v, skip=skip)
+        elif k == "source" and not skip:
+            result[k] = _expand_source(v)
+        else:
+            child_skip = skip or k in _SOURCE_SKIP_SECTIONS
+            result[k] = _expand_sources_scoped(v, is_hashmap=_child_is_hashmap_field(k, v), skip=child_skip)
+    return result
 
-    data = expand_sources_scoped(data)
 
-    # Expand infrastructure shorthand
-    if "infrastructure" in data and isinstance(data["infrastructure"], dict):
+def _expand_node_shorthands(node_name: object, node_data: dict[str, Any], *, path: Path | None) -> None:
+    """Expand the roles and the feature, condition and inject list shorthands of one node."""
+    if isinstance(node_data.get("roles"), dict):
+        node_data["roles"] = _expand_roles(node_data["roles"])
+    # G6: features/conditions/injects as list -> dict with empty role
+    for field in ("features", "conditions", "injects"):
+        if isinstance(node_data.get(field), list):
+            node_data[field] = _names_mapping(node_data[field], node=node_name, field=field, path=path)
+
+
+def _expand_shorthands(data: dict[str, Any], *, path: Path | None = None) -> dict[str, Any]:
+    """Apply all shorthand expansions to normalized data."""
+    data = _expand_sources_scoped(data)
+    if isinstance(data.get("infrastructure"), dict):
         data["infrastructure"] = _expand_infrastructure(data["infrastructure"])
-
-    # Expand roles and feature/condition/inject list shorthands within nodes
-    if "nodes" in data and isinstance(data["nodes"], dict):
-        for node_data in data["nodes"].values():
+    nodes = data.get("nodes")
+    if isinstance(nodes, dict):
+        for node_name, node_data in nodes.items():
             if isinstance(node_data, dict):
-                if "roles" in node_data:
-                    node_data["roles"] = _expand_roles(node_data["roles"])
-                # G6: features/conditions/injects as list -> dict with empty role
-                for field in ("features", "conditions", "injects"):
-                    if field in node_data and isinstance(node_data[field], list):
-                        node_data[field] = {name: "" for name in node_data[field]}
-
+                _expand_node_shorthands(node_name, node_data, path=path)
     return data
 
 
@@ -338,6 +328,7 @@ def parse_sdl(
     source_format: str = SDL_SOURCE_FORMAT,
     migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
+    **private_options: Unpack[ParsePrivateOptions],
 ) -> Scenario | ExpandedScenario | MaterializedScenario:
     """Parse SDL YAML into a normalized or expanded authoring object.
 
@@ -365,6 +356,8 @@ def parse_sdl(
     """
     source_diagnostics: list[SDLParseDiagnostic] = []
     source_ranges: dict[str, SDLSourceRange] = {}
+    source_key_ranges: dict[str, SDLSourceRange] = {}
+    declaration_sources = {}
     data = _load_normalized_data(
         content,
         path=path,
@@ -373,6 +366,7 @@ def parse_sdl(
         ),
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
+        source_key_ranges=source_key_ranges,
     )
     _reject_removed_scoring_sections(data, path=path)
     if "materialization_provenance" in data:
@@ -399,6 +393,8 @@ def parse_sdl(
             migration_policy=migration_policy,
             limits=limits,
             source_diagnostics=source_diagnostics,
+            _traversal=private_options.get("_traversal"),
+            _declaration_sources=declaration_sources,
         )
         scenario_cls = ExpandedScenario
     else:
@@ -413,6 +409,7 @@ def parse_sdl(
     source_diagnostics = _dedupe_source_diagnostics(source_diagnostics)
 
     scenario._set_source_diagnostics(source_diagnostics)
+    attach_declaration_sources(scenario, content, path, source_ranges, source_key_ranges, declaration_sources)
 
     # Semantic validation
     if not skip_semantic_validation or isinstance(scenario, MaterializedScenario):
@@ -421,6 +418,7 @@ def parse_sdl(
             validator.validate()
         except SDLValidationError as e:
             e.path = path
+            semantic_source_diagnostics(e, scenario)
             raise
         scenario._set_advisories(validator.warnings)
         scenario._set_semantic_validated(True)
@@ -447,13 +445,14 @@ def _load_normalized_data(
     source_options: SDLSourceParseOptions = DEFAULT_SOURCE_PARSE_OPTIONS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
     source_ranges: dict[str, SDLSourceRange] | None = None,
+    source_key_ranges: dict[str, SDLSourceRange] | None = None,
 ) -> dict[str, Any]:
     raw = load_sdl_yaml(
         content,
         path=path,
         source_options=source_options,
         source_diagnostics=source_diagnostics,
-        source_ranges=source_ranges,
+        source_locations=SDLSourceLocations(source_ranges, source_key_ranges),
     )
 
     if not isinstance(raw, dict):
@@ -470,7 +469,7 @@ def _load_normalized_data(
     if any(not isinstance(key, str) for key in data):
         raise SDLParseError("SDL top-level mapping keys must be strings", path=path)
     _reject_variable_mapping_keys(data)
-    data = _expand_shorthands(data)
+    data = _expand_shorthands(data, path=path)
     migrate_legacy_vm_nodes(
         data,
         path=path,

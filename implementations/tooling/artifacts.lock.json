@@ -411,112 +411,6 @@
       ]
     },
     {
-      "artifact_id": "cpython-3.11",
-      "artifact_class": "bootstrap",
-      "version": "3.11.16",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.11.16-31661435402",
-        "asset": "python-3.11.16-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.11.16-31661435402/python-3.11.16-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.11.16-linux-24.04-x64.tar.gz", "sha256": "07b61e35f30861939ff95314297921de8f57cd48f85bb18d777651b3ea45f2ee", "size": 92555692}],
-          "installed_identity": {"implementation": "CPython", "version": "3.11.16", "abi": "cp311", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
-      "artifact_id": "cpython-3.12",
-      "artifact_class": "bootstrap",
-      "version": "3.12.14",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.12.14-31661455385",
-        "asset": "python-3.12.14-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-22.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-22.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.12.14-linux-22.04-x64.tar.gz", "sha256": "e13bd8ab6ca32627711d5611d96737c0e8e84bb37cd3505a76ed9779adefc76e", "size": 95851350}],
-          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["proof-ubuntu-22.04-x86_64"]
-        },
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.12.14-linux-24.04-x64.tar.gz", "sha256": "5a03168292516f6dd6dcf630f4bf5369b108abd7c699a7e1db37f1e622257fff", "size": 95088884}],
-          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
-      "artifact_id": "cpython-3.13",
-      "artifact_class": "bootstrap",
-      "version": "3.13.15",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.13.15-31064747964",
-        "asset": "python-3.13.15-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.13.15-31064747964/python-3.13.15-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.13.15-linux-24.04-x64.tar.gz", "sha256": "4e544242f8a4ef647a6f511b67f9b00eefc9ef366644e3c40a27a6eff709ae2b", "size": 102312718}],
-          "installed_identity": {"implementation": "CPython", "version": "3.13.15", "abi": "cp313", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
       "artifact_id": "cpython-3.14",
       "artifact_class": "bootstrap",
       "version": "3.14.7",
@@ -544,7 +438,7 @@
           "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "live-runner-ubuntu-24.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64", "public-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -609,7 +503,7 @@
     {
       "artifact_id": "uv",
       "artifact_class": "bootstrap",
-      "version": "0.12.4",
+      "version": "0.13.4",
       "support_level": "blocking",
       "owner": "Tooling",
       "consumers": ["bootstrap", "python-environment", "workflow-setup"],
@@ -619,31 +513,31 @@
       "license": {"spdx": "Apache-2.0 OR MIT", "redistribution": "allowed", "review_ref": "ADR-106"},
       "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
       "policy_refs": ["artifact-integrity-v1"],
-      "source": {"repository": "https://github.com/astral-sh/uv", "release": "0.12.4", "asset": "uv-{target}.tar.gz", "locator_refs": ["official-github-release"]},
+      "source": {"repository": "https://github.com/astral-sh/uv", "release": "0.13.4", "asset": "uv-{target}.tar.gz", "locator_refs": ["official-github-release"]},
       "platforms": [
         {
           "platform_id": "linux-x86_64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-x86_64-unknown-linux-gnu.tar.gz"],
-          "raw_manifest": [{"path": "uv-x86_64-unknown-linux-gnu.tar.gz", "sha256": "c8c60f47e6f88d18dbf6f33d7279fb1fbf7ae76631768152cf5578c3d65729b4", "size": 22913818}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.13.4/uv-x86_64-unknown-linux-gnu.tar.gz"],
+          "raw_manifest": [{"path": "uv-x86_64-unknown-linux-gnu.tar.gz", "sha256": "2b428396f12572d4429cf210ca234dd599a33b3af0958a4d5ed569d63e3f344f", "size": 16653835}],
+          "installed_identity": {"implementation": "uv", "version": "0.13.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64", "live-runner-ubuntu-24.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-aarch64-unknown-linux-gnu.tar.gz"],
-          "raw_manifest": [{"path": "uv-aarch64-unknown-linux-gnu.tar.gz", "sha256": "49d881b3403187e1f1789720881e77e4251ad4259d86c4844862657d2a35d13f", "size": 21476892}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "aarch64-unknown-linux-gnu"},
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.13.4/uv-aarch64-unknown-linux-gnu.tar.gz"],
+          "raw_manifest": [{"path": "uv-aarch64-unknown-linux-gnu.tar.gz", "sha256": "1ae72b4718729e2ccc4f1ae2c6d1e531ca8467800e0546e9130b3886023a60ab", "size": 15769557}],
+          "installed_identity": {"implementation": "uv", "version": "0.13.4", "abi": "native", "target": "aarch64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"],
           "host_profile_ids": ["public-linux-arm64"]
         },
         {
           "platform_id": "macos-arm64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-aarch64-apple-darwin.tar.gz"],
-          "raw_manifest": [{"path": "uv-aarch64-apple-darwin.tar.gz", "sha256": "99a913b606194867b43086404412c1afe079547fee72ecfb6af7e7b0dd54b0c6", "size": 18632192}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "aarch64-apple-darwin"},
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.13.4/uv-aarch64-apple-darwin.tar.gz"],
+          "raw_manifest": [{"path": "uv-aarch64-apple-darwin.tar.gz", "sha256": "e0b1d4743ce64c55d9f0f4a444afa6b81125680070ee04e853fcd0f6c1ebf8f1", "size": 14326193}],
+          "installed_identity": {"implementation": "uv", "version": "0.13.4", "abi": "native", "target": "aarch64-apple-darwin"},
           "dependencies": [],
           "profile_ids": ["public-macos-arm64"],
           "host_profile_ids": ["public-macos-arm64"]
@@ -684,7 +578,7 @@
     {
       "artifact_id": "scorecard-action-image",
       "artifact_class": "oci-image",
-      "version": "2.4.4",
+      "version": "2.5.0",
       "support_level": "blocking",
       "owner": "Security",
       "consumers": ["scorecard-workflow"],
@@ -696,16 +590,16 @@
       "policy_refs": ["oci-input-v1"],
       "source": {
         "repository": "https://github.com/ossf/scorecard-action",
-        "release": "sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670",
+        "release": "sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627",
         "asset": "ghcr.io/ossf/scorecard-action",
         "locator_refs": ["github-container-registry"]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
-          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670"],
-          "raw_manifest": [{"path": "scorecard-action-2.4.4-manifest.json", "sha256": "ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670", "size": 4281}],
-          "installed_identity": {"implementation": "OCI image", "version": "2.4.4", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
+          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627"],
+          "raw_manifest": [{"path": "scorecard-action-2.5.0-manifest.json", "sha256": "1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627", "size": 4282}],
+          "installed_identity": {"implementation": "OCI image", "version": "2.5.0", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
@@ -744,93 +638,291 @@
       ]
     },
     {
-      "artifact_id": "release-test-alpine",
+      "artifact_id": "postgresql-runtime-test",
       "artifact_class": "oci-image",
-      "version": "3.20.10",
+      "version": "17.11-bookworm",
       "support_level": "blocking",
-      "owner": "Backend",
-      "consumers": ["reference-backend-test", "release"],
-      "trust_root_refs": ["docker-official-images-index-digest"],
-      "availability_class": "R",
+      "owner": "Tooling",
+      "consumers": [
+        "runtime-execution-integration"
+      ],
+      "trust_root_refs": [
+        "docker-official-images-index-digest"
+      ],
+      "availability_class": "N",
       "retention_class": "supported-input",
-      "license": {"spdx": "NOASSERTION", "redistribution": "not-applicable", "review_ref": "issue-1223"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "issue-1223-oci-mirror-preseed-review"},
-      "policy_refs": ["oci-graph-v1"],
-      "source": {
-        "repository": "https://github.com/alpinelinux/docker-alpine",
-        "release": "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc",
-        "asset": "docker.io/library/alpine",
-        "locator_refs": ["docker-official-images-registry"]
+      "license": {
+        "spdx": "NOASSERTION",
+        "redistribution": "not-applicable",
+        "review_ref": "issue-1362"
       },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "source_urls": ["https://registry-1.docker.io/v2/library/alpine/manifests/sha256:c64c687cbea9300178b30c95835354e34c4e4febc4badfe27102879de0483b5e"],
-          "raw_manifest": [{"path": "alpine-3.20.10-linux-amd64-manifest.json", "sha256": "c64c687cbea9300178b30c95835354e34c4e4febc4badfe27102879de0483b5e", "size": 1023}],
-          "installed_identity": {"implementation": "OCI image", "version": "3.20.10", "abi": "oci-manifest-v1", "target": "linux-x86_64"},
-          "oci_graph": {
-            "index": {"digest": "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc", "size": 9226},
-            "manifest": {"digest": "sha256:c64c687cbea9300178b30c95835354e34c4e4febc4badfe27102879de0483b5e", "size": 1023},
-            "config": {"digest": "sha256:bf8527eb54c3680e728d5b4b383a8ba730d72dae7236fbc8dff97ed6b224a731", "size": 612},
-            "layers": [{"digest": "sha256:25f1d6b1951ac8eb3740558fe94cb83d377bdadf95fd9f98b50d2e1b96130471", "size": 3630321}],
-            "diff_ids": ["sha256:08bc4e534116aa76b16015484b82eac51f9a593416feae9296c8a2d4bb7aa4a2"],
-            "architecture": "amd64",
-            "os": "linux"
-          },
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        },
-        {
-          "platform_id": "linux-arm64",
-          "source_urls": ["https://registry-1.docker.io/v2/library/alpine/manifests/sha256:45e09956dc667c5eff3583c9d94830261fb1ca0be10a0a7db36266edf5de9e1d"],
-          "raw_manifest": [{"path": "alpine-3.20.10-linux-arm64-manifest.json", "sha256": "45e09956dc667c5eff3583c9d94830261fb1ca0be10a0a7db36266edf5de9e1d", "size": 1026}],
-          "installed_identity": {"implementation": "OCI image", "version": "3.20.10", "abi": "oci-manifest-v1", "target": "linux-arm64"},
-          "oci_graph": {
-            "index": {"digest": "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc", "size": 9226},
-            "manifest": {"digest": "sha256:45e09956dc667c5eff3583c9d94830261fb1ca0be10a0a7db36266edf5de9e1d", "size": 1026},
-            "config": {"digest": "sha256:ab3fe4defd29ba6231229a4d41440ac8bde8218e85870e53876277faa24b35c4", "size": 628},
-            "layers": [{"digest": "sha256:3f26bc2dec0b515f1c2818f6e13a8f1da1f88179a008445d4e587233386bff78", "size": 4092319}],
-            "diff_ids": ["sha256:88b4fba61c4c714a2fc173ddf7e9324a257304696830bf41ad28ecc58c11c95f"],
-            "architecture": "arm64",
-            "os": "linux",
-            "variant": "v8"
-          },
-          "dependencies": [],
-          "profile_ids": ["public-linux-arm64"],
-          "host_profile_ids": ["public-linux-arm64"]
-        }
-      ]
-    },
-    {
-      "artifact_id": "cirros-guest-disk",
-      "artifact_class": "vm-base-image",
-      "version": "0.6.2",
-      "owner": "Backend",
-      "consumers": ["libvirt-live-smoke"],
-      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
-      "availability_class": "L",
-      "retention_class": "supported-input",
-      "license": {"spdx": "GPL-2.0-only", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "issue-1362-runtime-test-inputs"
+      },
+      "policy_refs": [
+        "oci-graph-v1"
+      ],
       "source": {
-        "repository": "https://github.com/cirros-dev/cirros",
-        "release": "0.6.2",
-        "asset": "cirros-{version}-x86_64-disk.img",
-        "locator_refs": ["official-cirros-download", "official-cirros-cloud-mirror"]
+        "repository": "https://github.com/docker-library/postgres",
+        "release": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+        "asset": "docker.io/library/postgres",
+        "locator_refs": [
+          "docker-official-images-registry"
+        ]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
           "source_urls": [
-            "https://github.com/cirros-dev/cirros/releases/download/0.6.2/cirros-0.6.2-x86_64-disk.img",
-            "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"
+            "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df"
           ],
-          "raw_manifest": [{"path": "cirros-0.6.2-x86_64-disk.img", "sha256": "07e44a73e54c94d988028515403c1ed762055e01b83a767edf3c2b387f78ce00", "size": 21430272}],
-          "installed_manifest": [{"path": "cirros.img", "sha256": "07e44a73e54c94d988028515403c1ed762055e01b83a767edf3c2b387f78ce00", "size": 21430272}],
+          "raw_manifest": [
+            {
+              "path": "postgres-17.11-bookworm-linux-amd64-manifest.json",
+              "sha256": "66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df",
+              "size": 3641
+            }
+          ],
+          "installed_identity": {
+            "implementation": "OCI image",
+            "version": "17.11-bookworm",
+            "abi": "oci-manifest-v1",
+            "target": "linux-x86_64"
+          },
+          "oci_graph": {
+            "index": {
+              "digest": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+              "size": 6496
+            },
+            "manifest": {
+              "digest": "sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df",
+              "size": 3641
+            },
+            "config": {
+              "digest": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+              "size": 10141
+            },
+            "layers": [
+              {
+                "digest": "sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39",
+                "size": 28249323
+              },
+              {
+                "digest": "sha256:a74c50568115b6e89820bdfbf5901f7ce6193dc073802f26b54647c61a179e59",
+                "size": 1167
+              },
+              {
+                "digest": "sha256:017b31e4ff27a67189c1f7fb9d2f683f7c6d9872574b1691b59b61be936a70fb",
+                "size": 4534265
+              },
+              {
+                "digest": "sha256:146d06bcb57308416713a54503a1c5cb1e39ba66303ea3ef088e6527748d6ed9",
+                "size": 1250070
+              },
+              {
+                "digest": "sha256:e7e8da52359d07630dab93091d323a6f6edc08d467c396e7e2af35d3182a3d3f",
+                "size": 8066434
+              },
+              {
+                "digest": "sha256:d01ea40642915aeeb3a2dc851e5a9e94de9f0e5fd728723270459ecbd5d7ca2b",
+                "size": 1196471
+              },
+              {
+                "digest": "sha256:6d0eb3c6cdb9843d6d94cfdd367d6be85fd83cc3bfeab2c985875953290855d6",
+                "size": 116
+              },
+              {
+                "digest": "sha256:b1cc6947b8a6bf3e8f20ed3a213391cd86f810bd4c9cc38e2861b0230801f77b",
+                "size": 3144
+              },
+              {
+                "digest": "sha256:e96ba86f00e592b341d4f0577161d02aa410d06ac1aeb815b80e307ef444b5dd",
+                "size": 115161333
+              },
+              {
+                "digest": "sha256:a219b7b9b5d4d9b2c4d9b054aff095ab62e8dabff6f08f810f224d60f7b43dce",
+                "size": 10356
+              },
+              {
+                "digest": "sha256:584b3a82e541f31012d6e79ddab3250928ef54a16471875a8f8a7dcd7204fc31",
+                "size": 128
+              },
+              {
+                "digest": "sha256:d254c075f128b3fb40df2f4d55a04bf505ca0ef4cac73767083520fe68e41976",
+                "size": 168
+              },
+              {
+                "digest": "sha256:fb616fac62dea44f7b6882defe0d1d52fa246b7ddb42008a8f93f05426d9155d",
+                "size": 6109
+              },
+              {
+                "digest": "sha256:7f82c3d75427baf7eb5520d02f2e586f959cb568870aaa69a3920d9b1ce93cff",
+                "size": 186
+              }
+            ],
+            "diff_ids": [
+              "sha256:e58989146fcec76699871403b9897b5c014af1ccd85f5a9300a215e7975525d7",
+              "sha256:cc0237a8939675586fcaa9cddab565d6d2394be0ba3d0e627bcf660c1182db9a",
+              "sha256:17d2bdc47ceb25eac99ebcc47a09aa2676e6c7f6416ff38bd700d6aa54a93e7d",
+              "sha256:5942497814fb7d0528685166ad6152e616850cbe99bb5717b5df42965bbc5d82",
+              "sha256:88cbeb54e69a7af2b237ffae0c6180d011e010bef234d37983957a7de88fcb6a",
+              "sha256:0048c25074457238b73f5a4d54cd5f5fa365798d1e743cc4ccff7b0ccee26bb0",
+              "sha256:b86701429362be1890ab3c0f46ead475a134d071bd385739340dce8b82071c8f",
+              "sha256:8ef061dc27ba281c9ffc065180be673cd209daeff724a150770442bd5ee695b4",
+              "sha256:0f7d2902256bfd3f3ede51cbcf67f6504f25354f41865345150b03aafe36205b",
+              "sha256:76980f563b80320bef808c69acef0dd4d2234e40a9e5268658f97c7b49c4e225",
+              "sha256:f6e8749b3f1e1f03e3a35aff3cb51dfe35c6b94aaa1aa0842b338dd2a1b1ad23",
+              "sha256:df69c465eccd5472aa21fcba4001ff9cede03734cf467926f3334b17c95ecd7a",
+              "sha256:619a018da854bd8acf6e502a1260fcb559c969ff2901e74c19623489b108a969",
+              "sha256:ef6a8c44b79f2a934c3180c04b959ba052c53e4dac9c715091faa453c8c354ee"
+            ],
+            "architecture": "amd64",
+            "os": "linux"
+          },
           "dependencies": [],
-          "profile_ids": ["live-runner-linux-x86_64"]
+          "profile_ids": [
+            "public-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "public-ubuntu-24.04-x86_64"
+          ]
+        }
+      ]
+    },
+    {
+      "artifact_id": "temporal-cli-runtime-test",
+      "artifact_class": "generic-cli",
+      "version": "1.9.1",
+      "owner": "Tooling",
+      "consumers": [
+        "runtime-execution-integration"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "MIT",
+        "redistribution": "allowed",
+        "review_ref": "issue-1362"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "issue-1362-runtime-test-inputs"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "source": {
+        "repository": "https://github.com/temporalio/cli",
+        "release": "v1.9.1",
+        "asset": "temporal_cli_{version}_linux_amd64.tar.gz",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/temporalio/cli/releases/download/v1.9.1/temporal_cli_1.9.1_linux_amd64.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "temporal_cli_1.9.1_linux_amd64.tar.gz",
+              "sha256": "09a0326a51db84d02735e53542b9ebd8c4758daf47482a9ab0abce15844e60d5",
+              "size": 45298806
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "temporal",
+              "sha256": "712217694cac9f786a72d4b6c876cd15f3dcf1bf31434d9fed6af25242a327a0",
+              "size": 156328098,
+              "executable": true
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "public-ubuntu-24.04-x86_64"
+          ]
+        }
+      ]
+    },
+    {
+      "artifact_id": "mcrl2",
+      "artifact_class": "native-tool",
+      "version": "202607.0",
+      "owner": "Proof",
+      "consumers": [
+        "participant-crossing-relation"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "BSL-1.0",
+        "redistribution": "allowed",
+        "review_ref": "ADR-100"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "ADR-106"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "source": {
+        "repository": "https://github.com/mCRL2org/mCRL2",
+        "release": "mcrl2-202607.0",
+        "asset": "mcrl2-202607.0_x86_64.deb",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/mCRL2org/mCRL2/releases/download/mcrl2-202607.0/mcrl2-202607.0_x86_64.deb"
+          ],
+          "raw_manifest": [
+            {
+              "path": "mcrl2-202607.0_x86_64.deb",
+              "sha256": "00cb4c347638b3a418fb67c9d67b8d2bf2245e10d4affa4cd993b1c357bde969",
+              "size": 27921814
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "usr/bin/ltscompare",
+              "sha256": "b34a7ba73939222886fe6e35c2a1009fd78056369fa06d0b3c48ebfe87ec4d21",
+              "size": 1702080,
+              "executable": true
+            }
+          ],
+          "installed_tree": {
+            "format": "deb",
+            "manifest_sha256": "c0d7d21471aff63c991d53a8c9bea8a16218ecb5ab583271396e8587c2655590",
+            "file_count": 1793,
+            "directory_count": 269,
+            "symlink_count": 0,
+            "expanded_bytes": 83668114
+          },
+          "dependencies": [],
+          "profile_ids": [
+            "model-check-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "model-check-ubuntu-26.04-x86_64"
+          ]
         }
       ]
     }

@@ -21,6 +21,24 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 
 ## Traceability
 
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping.py` (Issue #972 bounded public-execution mapping; no equivalence or complete runtime-realization result)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping_integrity.py` (Independent operation-record preservation, audit-prefix and authorized-outcome checks)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/runtime_mapping_export.py` (Mapping source, profile, model and observed-case digests with drift rejection)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-runtime-mapping.md` (State/transition mapping, data flows, security boundary and reproduction)
+- DOCUMENTS → DOCUMENTATION `specs/formal/participant-semantics/runtime-mapping/rev1/manifest.json` (Bounded mapping evidence; incompatible and incomplete observations remain explicit)
+- TESTS → TEST `implementations/python/tests/test_issue_972_runtime_mapping.py` (Public ingress, v2 context, effect dispatch, final egress, refusal, retry, corruption and projection checks)
+- TESTS → TEST `implementations/python/tests/test_issue_972_mapping_export.py` (Reproduction, source and artifact drift, retained model integrity and bounded publication)
+- TESTS → TEST `implementations/python/tests/test_issue_972_mapping_ownership.py` (Formal mapping ownership remains separate from runtime implementation ownership)
+- TESTS → TEST `implementations/python/tests/crossing_runtime_cases.py` (Synthetic policy inputs driving real public entry points)
+- TESTS → TEST `implementations/python/tests/crossing_runtime_observer.py` (Read-only phase and transaction witnesses from unmodified runtime orchestration)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_export.py` (Issue #1395 complete two-operation construction and source drift evidence; equivalence and realization remain unestablished)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-multi-operation-models.md` (Separate finite profile, projection and failure boundary)
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/multi-operation-construction.md` (Independent construction and historical-source preservation)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_models.py` (Complete closure, independent history/policy, retry and bounded failure cases)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_export.py` (Deterministic counts, source pins, drift and no partial publication)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_profile.py` (Closed profile, schema and carrier joins)
+
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Model multiple operations and interleaved retries)
 
 - TESTS → TEST `implementations/python/tests/test_issue_971_crossing_profile.py` (Closed carrier and binary profile validation tests)
@@ -46,3 +64,23 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-bisimulation.md` (Participant-Crossing Bisimulation)
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/implementation-program.md` (Participant-Crossing Bisimulation Implementation Program)
 - DOCUMENTS → CONFIG `contracts/concept-authority/behavioral-relations-v1.json` (Behavioral relation catalog revision rev6)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_corpus.py` (Bounded negative evidence; no positive relation or runtime realization)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_mutations.py` (Bounded negative evidence; no positive relation or runtime realization)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_witnesses.py` (Bounded negative evidence; no positive relation or runtime realization)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-counterexamples.md` (Exact carrier, relation and trust boundaries)
+- DOCUMENTS → DOCUMENTATION `specs/formal/participant-semantics/counterexamples/pin.json` (Separately retained corpus and mutation review subject pins)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_corpus.py` (Safe mutation and checked evidence regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_mutations.py` (Safe mutation and checked evidence regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_witnesses.py` (Safe mutation and checked evidence regressions)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_publication.py` (Qualified hosted provenance and admitted artifact inventory)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check_publication.py` (Offline verification and refusal of unadmitted publication)
+- DOCUMENTS → CODE_FILE `tools/tooling_policy_gate.py` (Shared validation-source inventory and offline installed-validator boundary)
+- DOCUMENTS → CODE_FILE `tools/mcrl2_tool.py` (Pinned native checker refuses a missing tooling environment without acquisition fallback)
+- TESTS → TEST `implementations/python/tests/test_issue_973_model_check_workflow.py` (Canonical finite-check publication remains mandatory, offline and isolated)
+- TESTS → TEST `implementations/python/tests/test_repo_policy_tools.py` (Public finite-check nox session inventory and helper dependency graph)

@@ -62,6 +62,15 @@ Other combinations return exit `3`; in particular, the CLI does not describe
 portable contract admission as parse-only behavior or SDL validation as a
 conformance report.
 
+## Logs and unexpected failures
+
+Each `raes` command writes its results to stdout and its error messages to
+stderr. Operational log records also go to stderr. They show exception types
+and code locations, but never exception messages. Use
+`raes --log-level DEBUG <command>` to see more records; the default level is
+`WARNING`. If a command fails unexpectedly, the CLI writes one log record and
+exits with status `70`.
+
 ## Existing compatibility surfaces
 
 Use `raes sdl format --check` to check the source format. The old `raes sdl

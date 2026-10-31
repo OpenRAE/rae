@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import hashlib
 from importlib.metadata import version
 from pathlib import Path
 
 import z3
+from pydantic import ValidationError
 from raes import SDLMigrationPolicy
 from raes.canonical import (
     INSTANTIATED_SNAPSHOT_PROFILE,
@@ -16,6 +16,8 @@ from raes.canonical import (
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, read_sdl_source
 from raes.scenario import ExpandedScenario
+from raes_contracts.digests import sha256_digest
+from raes_contracts.errors import EvidenceIntegrityError, OperationalError
 from raes_contracts.satisfiability import (
     SatisfiabilityOutcome,
     SatisfiableWitnessModel,
@@ -33,11 +35,11 @@ from ._translation import translate_scenario
 ANALYSIS_PROFILE = "raes-finite-domain-satisfiability-v1"
 
 
-class SatisfiabilityEvidenceError(ValueError):
+class SatisfiabilityEvidenceError(EvidenceIntegrityError):
     """Stored evidence does not replay against its governed inputs."""
 
 
-class SatisfiabilityOperationalError(RuntimeError):
+class SatisfiabilityOperationalError(OperationalError):
     """The production analyzer failed outside the typed outcome domain."""
 
     def __init__(
@@ -86,7 +88,7 @@ def analyze_scenario_file(
         path=path,
         migration_policy=SDLMigrationPolicy.ACCEPT,
     )
-    source_digest = "sha256:" + hashlib.sha256(document.raw_bytes).hexdigest()
+    source_digest = sha256_digest(document.raw_bytes)
     translation = translate_scenario(scenario, source_digest=source_digest)
     solver_configuration = _solver_configuration()
     common = {
@@ -162,7 +164,7 @@ def replay_satisfiability_evidence(
     """Recompute and compare every source/model/solver/result evidence join."""
 
     document = read_sdl_source(path)
-    actual_source_digest = "sha256:" + hashlib.sha256(document.raw_bytes).hexdigest()
+    actual_source_digest = sha256_digest(document.raw_bytes)
     if actual_source_digest != evidence.source.byte_digest:
         raise SatisfiabilityEvidenceError("source digest does not match the evidence")
     replayed = analyze_scenario_file(path, profile=evidence.analysis_profile)
@@ -191,5 +193,5 @@ def _solver_configuration() -> SolverConfigurationModel:
             witness_selection="canonical-lexicographic/v1",
             core_reduction="sorted-deletion-subset-minimal/v1",
         )
-    except ValueError as exc:
+    except ValidationError as exc:
         raise SatisfiabilityOperationalError("the installed solver does not match the governed profile") from exc

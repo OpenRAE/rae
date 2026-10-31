@@ -8,6 +8,8 @@ from itertools import islice
 
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.diagnostics import Diagnostic, portable_diagnostic_payload
+from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSubmission
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -16,26 +18,28 @@ from .backend_snapshot_contracts import snapshot_shape_violation
 
 _MAX_DIAGNOSTICS = 1024
 _MAX_DETAILS_BYTES = 65536
+_TOO_MANY_DIAGNOSTICS = "Backend returned too many diagnostics."
+_LOGGER = get_logger(__name__)
 
 
-def _bounded_diagnostics(result: object) -> list[Diagnostic]:
-    """Drain one diagnostics iterable under its bound, refusing an overlong one."""
-
-    diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
-    if len(diagnostics) > _MAX_DIAGNOSTICS:
-        raise ValueError("Backend returned too many diagnostics.")
+def _drained_diagnostics(result: object, address: str) -> list[Diagnostic] | None:
+    try:
+        # Drain one diagnostics iterable under its bound; its iterator is backend code.
+        diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
+    except Exception as exc:
+        # Isolation of the backend iterator: record its failure once, without its type, then refuse the result.
+        _LOGGER.exception("backend diagnostics iterable failed at %s", address, exc_info=foreign_failure_record(exc))
+        return None
     return diagnostics
 
 
 def _materialize_diagnostics(result: object, address: str) -> tuple[list[Diagnostic], str | None]:
     message = _diagnostics_iterable_violation(result, address)
-    if message:
-        return [], message
-    try:
-        diagnostics = _bounded_diagnostics(result)
-    except Exception as exc:
-        overlong = isinstance(exc, ValueError) and str(exc) == "Backend returned too many diagnostics."
-        return [], str(exc) if overlong else "Backend returned a diagnostics iterable that could not be validated."
+    diagnostics = None if message else _drained_diagnostics(result, address)
+    if diagnostics is None:
+        return [], message or "Backend returned a diagnostics iterable that could not be validated."
+    if len(diagnostics) > _MAX_DIAGNOSTICS:
+        return [], _TOO_MANY_DIAGNOSTICS
     return diagnostics, _diagnostics_values_violation(diagnostics, address)
 
 
@@ -54,7 +58,7 @@ def _diagnostics_values_violation(diagnostics: list[object], address: str) -> st
         try:
             for diagnostic in diagnostics:
                 portable_diagnostic_payload(diagnostic)
-        except (AttributeError, TypeError, ValueError):
+        except AttributeError, TypeError, ValueError:
             message = "Backend returned invalid diagnostic fields."
     return message
 
@@ -86,8 +90,30 @@ def _apply_result_shape_violation(result: object, address: str) -> str | None:
     ):
         message = f"Backend method '{address}' returned invalid operational realization observations."
     else:
-        message = snapshot_shape_violation(result.snapshot)
+        message = _materialization_submission_violation(result) or snapshot_shape_violation(result.snapshot)
     return message
+
+
+def _materialization_submission_violation(result: ApplyResult) -> str | None:
+    """Bound and reconstruct the closed string carrier before candidate copying."""
+    submission = result.materialization_attestation
+    if submission is None:
+        return None
+    try:
+        result.materialization_attestation = _bounded_materialization_submission(submission)
+    except AttributeError, TypeError, ValueError:
+        return "Backend returned an invalid or excessive materialization submission."
+    return None
+
+
+def _bounded_materialization_submission(submission: object) -> MaterializationSubmission:
+    if type(submission) is not MaterializationSubmission or type(submission.sdl) is not str:
+        raise ValueError("invalid materialization submission shape")
+    if not 1 <= len(submission.sdl) <= MATERIALIZATION_MAX_BYTES:
+        raise ValueError("materialization submission exceeds the character limit")
+    if len(submission.sdl.encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
+        raise ValueError("materialization submission exceeds the byte limit")
+    return MaterializationSubmission.model_validate({"contract_id": submission.contract_id, "sdl": submission.sdl})
 
 
 def _apply_result_diagnostics_violation(result: ApplyResult, address: str) -> str | None:

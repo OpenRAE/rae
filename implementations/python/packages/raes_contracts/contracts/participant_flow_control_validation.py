@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from .._host_isolation import isolated_host_call
+from ..operational_logging import foreign_failure_record, get_logger
 from ..participant_flow_policy_profiles import (
     load_participant_boundary_flow_policy_profile_revision,
 )
@@ -42,6 +44,8 @@ from .runtime_facts import RuntimeFactBindingPlaneModel
 if TYPE_CHECKING:
     from ..participant_binding import ParticipantActionAdmissionRequest
 
+_LOGGER = get_logger(__name__)
+
 ParticipantFlowControlContextResolver = Callable[
     [ParticipantFlowControlRelationModel, object | None],
     ParticipantFlowControlValidationContext | None,
@@ -57,18 +61,23 @@ def validate_participant_flow_control_resolved_context(
 
     if resolver is None:
         raise ValueError("participant flow-control context resolver is required")
-    try:
+    with isolated_host_call("participant flow-control context resolution failed", keep_cause=False):
         context = resolver(document, scope)
-    except Exception:
-        raise ValueError("participant flow-control context resolution failed") from None
     if not isinstance(context, ParticipantFlowControlValidationContext):
         raise ValueError("participant flow-control context did not resolve")
     try:
         validate_participant_flow_control_context(document, context)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise
-    except Exception:
-        raise ValueError("participant flow-control context validation failed") from None
+    except Exception as exc:
+        # Isolation: the trusted context carries host indexes and callbacks.
+        _LOGGER.exception(
+            "participant flow-control trusted context failed outside validation", exc_info=foreign_failure_record(exc)
+        )
+    else:
+        return
+    # Raised after the handler, so the refusal carries no host exception as its context.
+    raise ValueError("participant flow-control context validation failed")
 
 
 def validate_participant_flow_control_context(
@@ -77,9 +86,14 @@ def validate_participant_flow_control_context(
 ) -> None:
     """Validate exact profile, incumbent carrier, authority, and sink joins."""
 
+    document = ParticipantFlowControlRelationModel.model_validate(document.model_dump(mode="python"))
     profile = _resolve_profile(document, context)
     validate_profile_tokens(document, profile)
     validate_trusted_flow_coordinates(document, context)
+    from .participant_owner_flow import ParticipantOwnerFlowPolicyProfileModel, validate_owner_flow_context
+
+    if isinstance(profile, ParticipantOwnerFlowPolicyProfileModel):
+        validate_owner_flow_context(document, profile, context)
     validate_safe_references(document, context)
     _validate_incumbent_context(context)
     _validate_bindings(document, context)

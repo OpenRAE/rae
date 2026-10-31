@@ -51,7 +51,7 @@ jobs:
   # and cannot turn a failed or skipped reusable job into success. A red quality
   # gate no longer blocks the `verify` context and vice versa (#935).
   verify:
-    needs: canonical
+    needs: [canonical, runtime-supervision]
     if: always()
     runs-on: ubuntu-24.04
     permissions:
@@ -60,11 +60,61 @@ jobs:
       - name: Preserve the required canonical verification status
         env:
           GATE_OUTCOME: ${{ needs.canonical.outputs.gate-outcome }}
+          EXECUTION_OUTCOME: ${{ needs.runtime-supervision.result }}
         run: |
           if [ "${GATE_OUTCOME}" != "success" ]; then
             echo "Canonical verification gate concluded with '${GATE_OUTCOME}'" >&2
             exit 1
           fi
+          if [ "${EXECUTION_OUTCOME}" != "success" ]; then
+            echo "Runtime execution integration did not pass" >&2
+            exit 1
+          fi
+
+  runtime-supervision:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      ledger:
+        # Disposable fixture credentials; no production data or identities.
+        image: docker.io/library/postgres@sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df
+        env:
+          POSTGRES_DB: rae_ledger
+          POSTGRES_USER: rae_ledger
+          POSTGRES_PASSWORD: integration-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U rae_ledger -d rae_ledger"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          version: "0.13.4"
+          enable-cache: false
+      - name: Fetch and verify the locked Temporal test server
+        run: |
+          mkdir -p implementations/tooling/.cache/runtime-integration-inputs
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.bootstrap_profile fetch-inputs \
+            public-ubuntu-24.04-x86_64 implementations/tooling/.cache/runtime-integration-inputs --artifact-id temporal-cli-runtime-test
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m implementations.tooling.runtime_execution_ci \
+            implementations/tooling/.cache/runtime-integration-inputs/archives/temporal-cli-runtime-test/temporal_cli_1.9.1_linux_amd64.tar.gz \
+            implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+      - name: Exercise actual delivery and ledger transactions
+        env:
+          RAES_EXECUTION_INTEGRATION: "1"
+          RAES_TEST_PG_HOST: "127.0.0.1"
+          RAES_TEMPORAL_CLI: implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+        run: >-
+          uv run --project implementations/python --frozen --extra dev --extra distributed pytest -q
+          implementations/python/tests/test_issue_1362_distributed_integration.py
+          implementations/python/tests/test_issue_1629_temporal_integration.py
+          implementations/python/tests/test_issue_1373_postgresql_history.py -m integration --no-cov
 
   fuzz:
     runs-on: ubuntu-24.04
@@ -72,78 +122,43 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Run fuzz session
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s fuzz
 
-  interpreters:
-    name: CPython ${{ matrix.python.feature }} compatibility
+  # CPython 3.14 is the only supported interpreter, and the canonical graph runs
+  # the full suite on it. This job checks the exact runtime, then builds the
+  # wheel and sdist and installs both into clean environments (#1672).
+  distribution:
+    name: CPython 3.14 compatibility
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        python:
-          - {feature: "3.11", payload: "3.11.16", closure: public-linux-x86_64-cp311-all-extras}
-          - {feature: "3.12", payload: "3.12.14", closure: public-linux-x86_64-cp312-all-extras}
-          - {feature: "3.13", payload: "3.13.15", closure: public-linux-x86_64-cp313-all-extras}
-          - {feature: "3.14", payload: "3.14.7", closure: public-linux-x86_64-cp314-all-extras}
+    timeout-minutes: 20
     env:
-      UV_PYTHON: ${{ matrix.python.payload }}
-      RAES_EXPECTED_PYTHON: ${{ matrix.python.feature }}
-      RAES_PYTHON_CLOSURE_PROFILE: ${{ matrix.python.closure }}
+      UV_PYTHON: "3.14.7"
+      RAES_EXPECTED_PYTHON: "3.14"
+      RAES_PYTHON_CLOSURE_PROFILE: public-linux-x86_64-cp314-all-extras
+      RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: ${{ matrix.python.payload }}
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Test exact interpreter and clean distribution
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
-
-  # Opt-in, non-blocking, runtime-gated container integration tests (RUN-314).
-  # Kept out of the hermetic `verify` graph; the `docker` marker tests self-skip
-  # when no runtime is present, and this whole job never fails the build.
-  integration-docker:
-    runs-on: ubuntu-24.04
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12.14"
-      - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
-        with:
-          enable-cache: false
-          version: "0.12.4"
-      - name: Probe for a container runtime
-        id: runtime
-        run: |
-          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "No container runtime available; skipping docker integration session."
-          fi
-      - name: Run docker integration session
-        if: steps.runtime.outputs.available == 'true'
-        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s integration_docker
 
   # Gating OSV-scanner sweep over the Python dependency lockfile (issue #1098).
   # Kept out of the hermetic `verify` graph because the scanner is networked.
@@ -155,14 +170,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Run OSV-scanner (gating)
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s osv_scan
       - name: Upload OSV-scanner report
@@ -170,7 +185,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: osv-scanner-report
-          path: implementations/python/osv-scanner-report.json
+          path: |
+            implementations/python/osv-scanner-report.json
+            implementations/python/osv-scanner-tooling-report.json
           if-no-files-found: warn
 
   # The quality gate now runs inside the reusable graph (decoupled from the full
@@ -220,14 +237,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Fetch locked generic-tool inputs with the qualified client
         run: |
           mkdir .canonical-tool-inputs

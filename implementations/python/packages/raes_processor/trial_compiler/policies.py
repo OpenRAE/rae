@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import product
 
+from raes import SDLSelectionError
 from raes.scenario import ExpandedScenario
+from raes.selected_scenario import ExpandedScenarioBindingTargetResolver
 from raes_contracts.contracts import (
+    AdmittedSelectionRecordModel,
+    ExperimentBindingDescriptorModel,
     ExperimentEnumerateSelectionPolicyModel,
     ExperimentFixedSelectionPolicyModel,
     ExperimentProductSelectionPolicyModel,
@@ -14,6 +19,7 @@ from raes_contracts.contracts import (
     ExperimentSpecModel,
     ExperimentStochasticControlModel,
     ExperimentStratifiedSelectionPolicyModel,
+    LiteralBindingValueModel,
     PublicRandomOutcomeModel,
     PublicSeedModel,
     RandomStreamControlBindingModel,
@@ -22,6 +28,7 @@ from raes_contracts.contracts import (
     TrialCompilationLimitsModel,
     TrialCoordinateModel,
 )
+from raes_contracts.contracts.experiment_treatments import ExperimentScenarioSelectionDescriptorModel
 from raes_contracts.random_stream_engine import (
     BOUNDED_INTEGER_TRANSFORM_ID,
     BOUNDED_INTEGER_TRANSFORM_VERSION,
@@ -37,6 +44,7 @@ from .models import CompilationFailure
 from .profiles import RANDOM_STREAM_PROFILE_ID, RANDOM_STREAM_PROFILE_VERSION
 
 _SELECTION_POLICIES_ADDRESS = "/run_plan/selection_policies"
+_FACTORIAL_DESIGN_ADDRESS = "/factorial_design"
 
 
 @dataclass(frozen=True)
@@ -45,12 +53,26 @@ class ResolvedSelection:
     policy_id: str
     policy_kind: str
     outcome: object
+    treatment: ExperimentScenarioSelectionDescriptorModel | None = None
 
 
 @dataclass(frozen=True)
 class CoordinateSelections:
     selections: tuple[ResolvedSelection, ...]
     draws: tuple[RandomStreamDrawRecordModel, ...] = ()
+
+    def records(self) -> list[AdmittedSelectionRecordModel]:
+        """Project the same exact selection records for compilation and readmission."""
+        return [
+            AdmittedSelectionRecordModel(
+                variation_point_id=selection.point_id,
+                origin_policy_id=selection.policy_id,
+                origin_policy_kind=selection.policy_kind,
+                outcome=selection.outcome,
+                treatment=selection.treatment,
+            )
+            for selection in self.selections
+        ]
 
 
 def _merge_rows(
@@ -278,6 +300,8 @@ def compile_coordinate_selections(
     """Compile the closed policy graph into one complete selection set per coordinate."""
 
     policies = spec.run_plan.selection_policies
+    if spec.factorial_design is not None:
+        return _factorial_coordinate_selections(family, spec, coordinates)
     referenced = {
         child
         for policy in policies.values()
@@ -331,6 +355,98 @@ def compile_coordinate_selections(
             "every family variation point must be selected exactly once",
         )
     return completed
+
+
+def _factorial_coordinate_selections(
+    family: ExpandedScenario,
+    spec: ExperimentSpecModel,
+    coordinates: list[TrialCoordinateModel],
+) -> list[CoordinateSelections]:
+    if spec.factorial_design.profile == "factorial-treatments-v1":
+        return _treatment_coordinate_selections(family, spec, coordinates)
+    if spec.run_plan.selection_policies:
+        raise CompilationFailure(
+            "factorial-selection-conflict",
+            _SELECTION_POLICIES_ADDRESS,
+            "factorial binding selection cannot also declare selection policies",
+        )
+    descriptors_by_condition = {}
+    for descriptor in spec.binding_descriptors.descriptors:
+        descriptors_by_condition.setdefault(descriptor.source_condition_id, []).append(descriptor)
+    return [
+        _factorial_row(family, descriptors_by_condition.get(coordinate.condition_id, ())) for coordinate in coordinates
+    ]
+
+
+def _treatment_coordinate_selections(
+    family: ExpandedScenario,
+    spec: ExperimentSpecModel,
+    coordinates: list[TrialCoordinateModel],
+) -> list[CoordinateSelections]:
+    resolver = ExpandedScenarioBindingTargetResolver(family)
+    rows = {}
+    fixed = tuple(
+        ResolvedSelection(policy.point_ref, policy.policy_id, policy.kind, policy.outcome)
+        for _, policy in sorted(spec.run_plan.selection_policies.items())
+    )
+    for condition_id, assignment in sorted(spec.run_plan.allocation.condition_assignments.items()):
+        scalar = tuple(
+            ResolvedSelection(binding.target.variation_point_id, "factorial-treatments-v1", "stratified", binding.value)
+            for binding in assignment.required_bindings
+            if binding.target.plane == "scenario"
+        )
+        typed = []
+        for treatment in assignment.required_selections:
+            try:
+                resolver.validate_selection(treatment)
+            except SDLSelectionError as exc:
+                raise CompilationFailure(
+                    "selection-treatment-rejected",
+                    _FACTORIAL_DESIGN_ADDRESS,
+                    "a typed selection failed authoritative scenario-family admission",
+                ) from exc
+            typed.append(
+                ResolvedSelection(
+                    treatment.target.variation_point_id,
+                    "factorial-treatments-v1",
+                    "stratified",
+                    treatment.outcome,
+                    treatment,
+                )
+            )
+        combined = _merge_rows(_merge_rows(scalar, tuple(typed)), fixed)
+        if {selection.point_id for selection in combined} != set(family.variation_points):
+            raise CompilationFailure(
+                "variation-points-uncovered",
+                _FACTORIAL_DESIGN_ADDRESS,
+                "factorial effects and fixed policies must cover every family point exactly once",
+            )
+        rows[condition_id] = CoordinateSelections(combined)
+    return [rows[coordinate.condition_id] for coordinate in coordinates]
+
+
+def _factorial_row(
+    family: ExpandedScenario,
+    descriptors: Sequence[ExperimentBindingDescriptorModel],
+) -> CoordinateSelections:
+    selections = tuple(
+        ResolvedSelection(descriptor.target.variation_point_id, "factorial-bindings-v1", "stratified", descriptor.value)
+        for descriptor in descriptors
+        if descriptor.target.plane == "scenario"
+    )
+    if any(not isinstance(selection.outcome, LiteralBindingValueModel) for selection in selections):
+        raise CompilationFailure(
+            "factorial-scenario-value-unsupported",
+            _FACTORIAL_DESIGN_ADDRESS,
+            "factorial scenario bindings require literal scalar outcomes",
+        )
+    if {selection.point_id for selection in selections} != set(family.variation_points):
+        raise CompilationFailure(
+            "variation-points-uncovered",
+            _FACTORIAL_DESIGN_ADDRESS,
+            "factorial bindings must cover every scenario variation point exactly once",
+        )
+    return CoordinateSelections(tuple(sorted(selections, key=lambda selection: selection.point_id)))
 
 
 __all__ = ["CoordinateSelections", "ResolvedSelection", "compile_coordinate_selections"]

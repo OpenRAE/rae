@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import re
+import sys
 from dataclasses import dataclass
 from enum import Enum
 
 import yaml
+from yaml.constructor import ConstructorError
+from yaml.error import Mark
 from yaml.nodes import ScalarNode
 
 SDL_SOURCE_FORMAT = "sdl-yaml/v1"
@@ -93,8 +96,24 @@ def _construct_core_int(loader: yaml.SafeLoader, node: ScalarNode) -> int:
     value = loader.construct_scalar(node).replace("_", "")
     sign = -1 if value.startswith("-") else 1
     unsigned = value[1:] if value[:1] in {"-", "+"} else value
-    if unsigned.startswith("0o"):
-        return sign * int(unsigned[2:], 8)
-    if unsigned.startswith("0x"):
-        return sign * int(unsigned[2:], 16)
-    return sign * int(unsigned, 10)
+    if unsigned.startswith(("0o", "0x")):
+        magnitude = int(unsigned[2:], 8 if unsigned.startswith("0o") else 16)
+        # A power-of-two base has no conversion limit, but str() and the YAML and JCS writers refuse the value.
+        limit = sys.get_int_max_str_digits()
+        if limit and magnitude >= 10**limit:
+            raise _integer_digit_limit_error(node)
+        return sign * magnitude
+    try:
+        magnitude = int(unsigned, 10)
+    except ValueError as exc:
+        # The resolver admits only ASCII digits here, so int() fails only beyond the interpreter digit limit.
+        raise _integer_digit_limit_error(node) from exc
+    return sign * magnitude
+
+
+def _integer_digit_limit_error(node: ScalarNode) -> ConstructorError:
+    # A mark without its buffer renders no source snippet, so the error carries no authored digits.
+    start = node.start_mark
+    mark = Mark(start.name, start.index, start.line, start.column, None, None)
+    limit = sys.get_int_max_str_digits()
+    return ConstructorError(None, None, f"found an integer with more than {limit} decimal digits", mark)

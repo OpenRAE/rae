@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from typing import Literal
 
 from pydantic import Field, StrictInt, model_validator
 
 from ..addressing import CompiledAddress, is_compiler_owned_temporal_subject_address
+from ..json_serialization import sorted_json_digest
 from ..versions import (
     REALIZED_TIME_MODEL_SCHEMA_VERSION,
     TIME_MODEL_SCHEMA_VERSION,
@@ -274,8 +273,7 @@ class TimeModelDeclarationModel(ContractModel):
                 raise ValueError(f"temporal constraint {constraint.address!r} references an unknown subject")
 
     def canonical_digest(self) -> str:
-        payload = json.dumps(self.model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()
-        return "sha256:" + hashlib.sha256(payload).hexdigest()
+        return sorted_json_digest(self.model_dump(mode="json"))
 
 
 class ClockTransitionEventModel(ContractModel):

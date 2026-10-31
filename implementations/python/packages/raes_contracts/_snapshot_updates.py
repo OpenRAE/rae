@@ -244,7 +244,11 @@ def _history_update(
     key: str,
     current: Mapping[str, list[dict[str, Any]]],
 ) -> dict[str, list[dict[str, Any]]]:
+    from .immutable_history import HistoryMap
+
     raw = updates.get(key)
+    if isinstance(raw if raw is not None else current, HistoryMap):
+        return raw if raw is not None else current
     if raw is None:
         return {address: list(events) for address, events in current.items()}
     if not isinstance(raw, Mapping):

@@ -5,17 +5,27 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
+from pydantic import ValidationError
 from raes.identifiers import is_portable_identifier
 
 from .contracts.participant_flow_control import (
     PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST,
     ParticipantBoundaryFlowPolicyProfileModel,
 )
+from .contracts.participant_owner_flow import (
+    OWNER_FLOW_PROFILE_DIGEST,
+    OWNER_FLOW_PROFILE_ID,
+    ParticipantOwnerFlowPolicyProfileModel,
+)
 from .corpus import PROFILES, corpus_family_root
-from .json_ingress import parse_bounded_json_object
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from .operational_logging import get_logger
 
+_LOGGER = get_logger(__name__)
 PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_ID = "participant-boundary-flow-policy-v1"
-SUPPORTED_PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_IDS = frozenset({PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_ID})
+SUPPORTED_PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_IDS = frozenset(
+    {PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_ID, OWNER_FLOW_PROFILE_ID}
+)
 _MAX_PROFILE_BYTES = 256 * 1024
 _PROFILE_REVISION_FILENAMES = {
     (
@@ -23,6 +33,7 @@ _PROFILE_REVISION_FILENAMES = {
         "rev1",
         PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST,
     ): f"{PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_ID}.json",
+    (OWNER_FLOW_PROFILE_ID, "rev1", OWNER_FLOW_PROFILE_DIGEST): f"{OWNER_FLOW_PROFILE_ID}.json",
 }
 
 
@@ -53,8 +64,15 @@ def load_participant_boundary_flow_policy_profile_from_path(
         with path.open("rb") as stream:
             source = stream.read(_MAX_PROFILE_BYTES + 1)
         payload = parse_bounded_json_object(source, max_bytes=_MAX_PROFILE_BYTES)
-        profile = ParticipantBoundaryFlowPolicyProfileModel.model_validate(payload)
-    except (OSError, ValueError):
+        model = (
+            ParticipantOwnerFlowPolicyProfileModel
+            if profile_id == OWNER_FLOW_PROFILE_ID
+            else ParticipantBoundaryFlowPolicyProfileModel
+        )
+        profile = model.model_validate(payload)
+    except OSError, StrictJsonIngressError, ValidationError:
+        # A trusted artifact path fails here only when the artifact or installation is damaged.
+        _LOGGER.exception("participant boundary flow profile %s failed bounded ingress", profile_id)
         raise ValueError("participant boundary flow profile JSON or contract is invalid") from None
     if profile.profile_id != profile_id:
         raise ValueError("participant boundary flow profile artifact identity does not match the request")

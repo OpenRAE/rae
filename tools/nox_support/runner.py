@@ -13,6 +13,7 @@ from pathlib import Path
 from time import perf_counter
 
 import nox
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.gitleaks_tool import ensure_gitleaks
 from tools.nox_support.config import (
@@ -53,16 +54,15 @@ class SessionReporter:
     def run(self, name: str, func: Callable[[], None], *, detail: str = "") -> None:
         self._log("START", name, detail)
         started = perf_counter()
+        status = "FAIL"
         try:
             func()
-        except Exception:
+            status = "PASS"
+        finally:
+            # Record the stage outcome; a failure keeps propagating unchanged to nox.
             duration_s = perf_counter() - started
-            self.results.append(StageResult(name=name, status="FAIL", detail=detail, duration_s=duration_s))
-            self._log("FAIL", name, detail, duration_s)
-            raise
-        duration_s = perf_counter() - started
-        self.results.append(StageResult(name=name, status="PASS", detail=detail, duration_s=duration_s))
-        self._log("PASS", name, detail, duration_s)
+            self.results.append(StageResult(name=name, status=status, detail=detail, duration_s=duration_s))
+            self._log(status, name, detail, duration_s)
 
     def skip(self, name: str, reason: str) -> None:
         self.results.append(StageResult(name=name, status="SKIP", detail=reason))
@@ -99,8 +99,11 @@ def _git_lines(*args: str) -> list[str]:
         cwd=REPO_ROOT,
         text=True,
         capture_output=True,
-        check=True,
+        check=False,
     )
+    if proc.returncode != 0:
+        # Name only the subcommand: git output and the command line stay out of the message.
+        raise OperationalError(f"git {args[0]} failed with exit code {proc.returncode}")
     return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
 
 
@@ -157,7 +160,7 @@ def _run_external_subprocess(*args: str) -> None:
         print(proc.stdout, end="")
     if proc.stderr:
         print(proc.stderr, end="", file=sys.stderr)
-    raise RuntimeError(f"{Path(args[0]).name} failed with exit code {proc.returncode}")
+    raise OperationalError(f"{Path(args[0]).name} failed with exit code {proc.returncode}")
 
 
 def _run_ruff(session: nox.Session, *args: str, project_relative: bool = False) -> None:
@@ -175,17 +178,19 @@ def _run_pytest(
     coverage_file: Path | None = None,
     append_coverage: bool = False,
     finalize_coverage: bool = False,
-    parallel: bool = False,
+    xdist: str | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> None:
+    """Run pytest in the project; `xdist` names the worker distribution, None runs one process."""
+
     _sync_project(session)
     normalized_args = [
         str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
         for arg in args
     ]
     command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
-    if parallel:
-        command.extend(["-n", "auto", "--maxprocesses=8", "--dist=worksteal"])
+    if xdist is not None:
+        command.extend(["-n", "auto", "--maxprocesses=8", f"--dist={xdist}"])
     coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
     if coverage_file is not None:
         coverage_env = {**(coverage_env or {}), "COVERAGE_FILE": str(coverage_file)}
@@ -202,7 +207,7 @@ def _run_pytest(
 def _required_option_value(values: Sequence[str], index: int, option: str) -> str:
     value_index = index + 1
     if value_index >= len(values) or not values[value_index] or values[value_index].startswith("--"):
-        raise ValueError(f"{option} requires a value")
+        raise InvalidInputError(f"{option} requires a value")
     return values[value_index]
 
 
@@ -382,27 +387,32 @@ def _run_gitleaks_dir_scan(_session: nox.Session, paths: list[str]) -> None:
         )
 
 
-def _enforce_line_coverage(report_path: Path) -> float:
+def _is_count(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _line_coverage_totals(report_path: Path) -> tuple[int, int]:
+    """Return the covered line and statement counts of a coverage JSON report."""
     try:
         report = json.loads(report_path.read_text(encoding="utf-8"))
-        totals = report["totals"]
-        covered_lines = totals["covered_lines"]
-        statements = totals["num_statements"]
-    except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as exc:
-        raise RuntimeError(f"could not read line coverage totals from {report_path}") from exc
-    if (
-        not isinstance(covered_lines, int)
-        or isinstance(covered_lines, bool)
-        or not isinstance(statements, int)
-        or isinstance(statements, bool)
-        or covered_lines < 0
-        or statements < 0
-        or covered_lines > statements
-    ):
-        raise RuntimeError(f"invalid line coverage totals in {report_path}")
+    # The try holds only the read and the decoder. ValueError covers text that is not UTF-8, malformed
+    # JSON and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+    except (OSError, ValueError, RecursionError) as exc:
+        raise OperationalError(f"could not read line coverage totals from {report_path}") from exc
+    totals = report.get("totals") if isinstance(report, dict) else None
+    if not isinstance(totals, dict) or "covered_lines" not in totals or "num_statements" not in totals:
+        raise OperationalError(f"could not read line coverage totals from {report_path}")
+    covered_lines, statements = totals["covered_lines"], totals["num_statements"]
+    if not (_is_count(covered_lines) and _is_count(statements)) or covered_lines > statements:
+        raise OperationalError(f"invalid line coverage totals in {report_path}")
+    return covered_lines, statements
+
+
+def _enforce_line_coverage(report_path: Path) -> float:
+    covered_lines, statements = _line_coverage_totals(report_path)
     percent = 100.0 if statements == 0 else 100.0 * covered_lines / statements
     if percent + 1e-12 < MINIMUM_LINE_COVERAGE_PERCENT:
-        raise RuntimeError(f"line coverage {percent:.3f}% is below required {MINIMUM_LINE_COVERAGE_PERCENT:.3f}%")
+        raise InvalidInputError(f"line coverage {percent:.3f}% is below required {MINIMUM_LINE_COVERAGE_PERCENT:.3f}%")
     return percent
 
 

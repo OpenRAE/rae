@@ -17,6 +17,9 @@ from .observation_demand import (
     observation_selector_has_more_specific_policy,
 )
 from .observation_demand_validation import validate_observation_lifecycle_plan
+from .operational_logging import foreign_failure_record, get_logger
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass
@@ -57,6 +60,7 @@ def execute_observation_lifecycle(
     producers: Mapping[str, Callable[[], tuple[object, ...]]],
     supported: frozenset[str],
     protector: Callable[[ObservationLifecycleItem, EffectiveObservationDemand], ObservationLifecycleItem] | None = None,
+    optional_failure_is_loss: bool = False,
 ) -> ObservationLifecycleResult:
     """Apply an admitted finite lifecycle plan, checking all gates first."""
 
@@ -65,11 +69,7 @@ def execute_observation_lifecycle(
     for demand in resolution.effective:
         if not _collects_data(demand):
             continue
-        for selector in demand.selectors:
-            item = _produce_item(resolution, demand, selector, producers, supported)
-            if item is None:
-                continue
-            accumulator.add(demand, item, protector)
+        _collect_demand(resolution, demand, producers, supported, protector, accumulator, optional_failure_is_loss)
     return accumulator.result()
 
 
@@ -126,3 +126,30 @@ def _protected_item(
     if demand.integrity not in {None, "none"} and integrity_missing:
         raise ValueError("observation integrity policy must produce an integrity reference")
     return protected
+
+
+def _collect_demand(
+    resolution: ObservationDemandResolution,
+    demand: EffectiveObservationDemand,
+    producers: Mapping[str, Callable[[], tuple[object, ...]]],
+    supported: frozenset[str],
+    protector: Callable[[ObservationLifecycleItem, EffectiveObservationDemand], ObservationLifecycleItem] | None,
+    accumulator: _LifecycleAccumulator,
+    optional_failure_is_loss: bool,
+) -> None:
+    for selector in demand.selectors:
+        try:
+            item = _produce_item(resolution, demand, selector, producers, supported)
+            if item is not None:
+                accumulator.add(demand, item, protector)
+        except Exception as exc:
+            if demand.required or not optional_failure_is_loss:
+                raise
+            # An optional failed collection/protection contributes no evidence.
+            # Preserve independently achieved mandatory selector results.
+            # Isolation: the producers and the protector are backend-owned observation
+            # runtime code, so the record keeps only the RAES frames (ADR-116 rule H2).
+            _LOGGER.warning(
+                "optional observation selector contributed no evidence after a failure",
+                exc_info=foreign_failure_record(exc),
+            )

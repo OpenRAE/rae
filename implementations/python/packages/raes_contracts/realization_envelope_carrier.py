@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from collections.abc import Mapping
 from enum import Enum
 from typing import Annotated, Any, Literal
@@ -20,6 +18,8 @@ from raes_contracts.contracts.capabilities import (
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
 from raes_contracts.realization_envelope import RealizationEnvelopeModel
 from raes_contracts.vocabulary import ObservationStrength
+
+from .json_serialization import sorted_json_digest
 
 _NODE_ARCHITECTURE_VOCABULARY = "provisioner-node-architectures"
 _COMPUTE_SUBSTRATE_VOCABULARY = "compute-substrates"
@@ -128,7 +128,8 @@ class RealizerConfigurationModel(ContractModel):
         try:
             validate_controlled_vocabulary_value(_NODE_ARCHITECTURE_VOCABULARY, self.architecture)
         except ValueError as exc:
-            raise ValueError(f"architecture must be a governed node CPU architecture term: {exc}") from exc
+            # The vocabulary error text repeats the rejected term; keep it out of the message (E7).
+            raise ValueError("architecture must be a governed node CPU architecture term") from exc
         return self
 
     @classmethod
@@ -186,7 +187,8 @@ class RealizationConcernDisclosureModel(ContractModel):
             try:
                 validate_controlled_vocabulary_value(_COMPUTE_SUBSTRATE_VOCABULARY, self.mechanism)
             except ValueError as exc:
-                raise ValueError(f"compute-substrate mechanism must be a governed term: {exc}") from exc
+                # The vocabulary error text repeats the rejected term; keep it out of the message (E7).
+                raise ValueError("compute-substrate mechanism must be a governed term") from exc
         return self
 
     @classmethod
@@ -243,8 +245,7 @@ def realizer_configuration_digest(payload: Mapping[str, Any] | RealizerConfigura
 
     material = _realizer_configuration_payload(payload)
     material.pop("configuration_digest", None)
-    canonical = json.dumps(material, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-    return "sha256:" + hashlib.sha256(canonical).hexdigest()
+    return sorted_json_digest(material)
 
 
 def realization_envelope_digest(payload: Mapping[str, Any] | ContractModel) -> str:
@@ -268,8 +269,7 @@ def realization_envelope_digest(payload: Mapping[str, Any] | ContractModel) -> s
     else:
         material = payload.model_dump(mode="json") if isinstance(payload, ContractModel) else dict(payload)
     material.pop("digest", None)
-    canonical = json.dumps(material, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-    return "sha256:" + hashlib.sha256(canonical).hexdigest()
+    return sorted_json_digest(material)
 
 
 class BackendRealizationEnvelopeModel(ContractModel):

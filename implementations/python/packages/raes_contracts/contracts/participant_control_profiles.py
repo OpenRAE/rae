@@ -2,14 +2,18 @@
 
 from typing import Literal
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, ValidationError
 
 from .._canonical import canonical_json_digest
 from ..corpus import PROFILES, corpus_family_root
-from ..json_ingress import parse_bounded_json_object
+from ..json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from ..operational_logging import get_logger
 from .base import ContractModel
 from .participant_control_coordinates import ControlArtifactReferenceModel
 from .participant_flow_control import PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST
+from .participant_owner_flow import OWNER_FLOW_PROFILE_DIGEST, OWNER_FLOW_PROFILE_ID
+
+_LOGGER = get_logger(__name__)
 
 
 class ParticipantControlTeachingProfileModel(ContractModel):
@@ -35,9 +39,14 @@ def load_teaching_influence_profile() -> ParticipantControlTeachingProfileModel:
     try:
         with path.open("rb") as stream:
             source = stream.read(16385)
-        return ParticipantControlTeachingProfileModel.model_validate(parse_bounded_json_object(source, max_bytes=16384))
-    except (OSError, ValueError):
+        profile = ParticipantControlTeachingProfileModel.model_validate(
+            parse_bounded_json_object(source, max_bytes=16384)
+        )
+    except OSError, StrictJsonIngressError, ValidationError:
+        # The packaged profile fails here only when the artifact or installation is damaged.
+        _LOGGER.exception("published teaching influence profile failed bounded ingress")
         raise ValueError("published teaching influence profile is invalid") from None
+    return profile
 
 
 def validate_control_profile_reference(profile: ControlArtifactReferenceModel) -> None:
@@ -47,6 +56,8 @@ def validate_control_profile_reference(profile: ControlArtifactReferenceModel) -
         expected = canonical_json_digest(load_teaching_influence_profile().model_dump(mode="json"))
     elif profile.ref == "participant-boundary-flow-policy-v1":
         expected = PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST
+    elif profile.ref == OWNER_FLOW_PROFILE_ID:
+        expected = OWNER_FLOW_PROFILE_DIGEST
     else:
         raise ValueError("participant control profile identity is unsupported")
     if profile.digest != expected:

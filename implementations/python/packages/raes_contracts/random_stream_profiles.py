@@ -69,8 +69,9 @@ def load_random_stream_profile_from_path(profile_id: str, path: Path) -> RandomS
     payload = json.loads(path.read_text(encoding="utf-8"))
     model = RandomStreamProfileModel.model_validate(payload)
     if model.profile_id != profile_id:
+        # Host paths stay out of the message (E7), as in the backend profile loader.
         raise ValueError(
-            f"random stream profile artifact at {path} declares profile_id "
+            "random stream profile artifact declares profile_id "
             f"{model.profile_id!r} but was requested as {profile_id!r}; "
             "the published profile id and request id must match."
         )

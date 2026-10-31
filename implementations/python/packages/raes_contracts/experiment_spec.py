@@ -2,8 +2,9 @@
 
 An experiment specification is the pre-run authoring/input counterpart to the
 archival experiment-core outputs (run/study/apparatus-context). Unlike SDL,
-the authoring input is a single nested contract document with no shorthand,
-key normalization, or cross-file resolution, so loading is a bounded,
+the authoring input is a single nested contract document. Its closed factorial
+intent materializes condition/binding children; there is no key normalization
+or cross-file resolution, so loading is a bounded,
 duplicate-key/alias-rejecting safe YAML parse followed by
 ``ExperimentSpecModel`` validation — mirroring how the JSON fixtures under
 ``contracts/fixtures/experiment-core`` are checked.
@@ -11,7 +12,6 @@ duplicate-key/alias-rejecting safe YAML parse followed by
 
 from __future__ import annotations
 
-import logging
 import math
 from pathlib import Path
 from typing import Any
@@ -23,15 +23,17 @@ from yaml.constructor import ConstructorError
 from yaml.events import AliasEvent
 from yaml.nodes import MappingNode
 
-from .contracts import ExperimentSpecModel
+from .contracts import ExperimentSpecModel, ExperimentTaskModel
+from .errors import InvalidInputError
+from .operational_logging import get_logger
 
-log = logging.getLogger("raes.experiment_spec")
+_LOGGER = get_logger(__name__)
 
 MAX_EXPERIMENT_SPEC_BYTES = 64 * 1024
 _MAX_VALIDATION_DIAGNOSTICS = 32
 
 
-class ExperimentSpecError(Exception):
+class ExperimentSpecError(InvalidInputError):
     """Base exception for experiment-specification loading."""
 
 
@@ -44,6 +46,10 @@ class ExperimentSpecValidationError(ExperimentSpecError):
         self.details = message
         prefix = f"{path.name}: " if path else ""
         super().__init__(f"{prefix}{message}")
+
+
+class _DuplicateMappingKey(ExperimentSpecError):
+    """Typed cause of the loader's ``ConstructorError`` for a repeated mapping key (reported as ``duplicate-key``)."""
 
 
 class _ExperimentSpecLoader(yaml.SafeLoader):
@@ -65,7 +71,10 @@ class _ExperimentSpecLoader(yaml.SafeLoader):
             except TypeError as exc:
                 raise ConstructorError(None, None, "mapping keys must be scalar", key_node.start_mark) from exc
             if duplicate:
-                raise ConstructorError(None, None, "duplicate mapping key", key_node.start_mark)
+                # The typed cause marks the refusal; other readers of this loader still get a YAML error.
+                raise ConstructorError(
+                    None, None, "duplicate mapping key", key_node.start_mark
+                ) from _DuplicateMappingKey()
             keys.add(key)
         return super().construct_mapping(node, deep=deep)
 
@@ -104,8 +113,14 @@ def _load_yaml(raw: str) -> object:
         loader.dispose()
 
 
-def parse_experiment_spec(text: str, *, path: Path | None = None) -> ExperimentSpecModel:
-    """Parse and validate an experiment specification from YAML text."""
+def parse_experiment_spec(
+    text: str, *, path: Path | None = None, task: ExperimentTaskModel | None = None
+) -> ExperimentSpecModel:
+    """Validate YAML and, when supplied, bind task_ref to a validated task.
+
+    The task id must match, as must the version when task_ref declares one.
+    Omitting task preserves context-free validation; no reference is fetched.
+    """
     if len(text.encode("utf-8", errors="replace")) > MAX_EXPERIMENT_SPEC_BYTES:
         raise ExperimentSpecValidationError(
             "input-too-large",
@@ -119,9 +134,12 @@ def parse_experiment_spec(text: str, *, path: Path | None = None) -> ExperimentS
     try:
         payload = _load_yaml(raw)
     except ConstructorError as exc:
-        code = "duplicate-key" if "duplicate mapping key" in str(exc) else "invalid-yaml"
+        code = "duplicate-key" if isinstance(exc.__cause__, _DuplicateMappingKey) else "invalid-yaml"
         raise ExperimentSpecValidationError(code, "Experiment spec YAML is invalid.", path=path) from exc
-    except yaml.YAMLError as exc:
+    except (yaml.YAMLError, ValueError, RecursionError) as exc:
+        # PyYAML's timestamp constructor lets datetime's ValueError escape for
+        # impossible dates such as an unquoted 2026-02-30 (issue #1563). The recursive
+        # YAML composer stops at the interpreter recursion limit for deeply nested input.
         raise ExperimentSpecValidationError("invalid-yaml", "Experiment spec YAML is invalid.", path=path) from exc
 
     if not isinstance(payload, dict):
@@ -136,17 +154,30 @@ def parse_experiment_spec(text: str, *, path: Path | None = None) -> ExperimentS
         raise ExperimentSpecValidationError("invalid-json-value", str(exc), path=path) from exc
 
     try:
-        return ExperimentSpecModel.model_validate(payload)
+        spec = ExperimentSpecModel.model_validate(payload)
     except ValidationError as exc:
         raise ExperimentSpecValidationError(
             "contract-invalid",
             _safe_validation_details(exc),
             path=path,
         ) from exc
+    if task is not None:
+        _validate_task_reference(spec, task, path=path)
+    return spec
 
 
-def load_experiment_spec(path: Path) -> ExperimentSpecModel:
-    """Load and validate an authored experiment specification from a YAML file."""
+def _validate_task_reference(spec: ExperimentSpecModel, task: ExperimentTaskModel, *, path: Path | None) -> None:
+    reference = spec.task_ref
+    if reference.ref_id != task.task_id or (
+        reference.ref_version is not None and reference.ref_version != task.task_version
+    ):
+        raise ExperimentSpecValidationError(
+            "task-reference-mismatch", "Experiment spec task_ref does not match the supplied task.", path=path
+        )
+
+
+def load_experiment_spec(path: Path, *, task: ExperimentTaskModel | None = None) -> ExperimentSpecModel:
+    """Load an experiment specification, optionally checking a supplied validated task."""
     if not path.exists():
         raise FileNotFoundError(f"Experiment spec file not found: {path.name}")
     if path.stat().st_size > MAX_EXPERIMENT_SPEC_BYTES:
@@ -156,17 +187,17 @@ def load_experiment_spec(path: Path) -> ExperimentSpecModel:
             path=path,
         )
 
-    spec = parse_experiment_spec(path.read_text(encoding="utf-8"), path=path)
-    log.info("Loaded experiment spec '%s' from %s", spec.spec_id, path.name)
+    spec = parse_experiment_spec(path.read_text(encoding="utf-8"), path=path, task=task)
+    _LOGGER.info("Loaded experiment spec '%s' from %s", spec.spec_id, path.name)
     return spec
 
 
 def find_experiment_specs(search_dir: Path) -> list[Path]:
     """Find all authored experiment-spec files in a directory (non-recursive)."""
     if not search_dir.is_dir():
-        log.debug("Experiments directory does not exist: %s", search_dir)
+        _LOGGER.debug("Experiments directory does not exist: %s", search_dir.name)
         return []
 
     paths = sorted(search_dir.glob("*.exp.yaml"))
-    log.debug("Found %d experiment spec files in %s", len(paths), search_dir)
+    _LOGGER.debug("Found %d experiment spec files in %s", len(paths), search_dir.name)
     return paths

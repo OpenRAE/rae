@@ -58,7 +58,7 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         _PROPOSITION_VALIDATOR,
     ),
     "propositions.*.subjects[]": (
-        "targetable",
+        "eligible:observation_subject",
         _SEMANTIC,
         _DANGLING,
         _PROPOSITION_VALIDATOR,
@@ -269,13 +269,13 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         _ACCOUNT_VALIDATOR,
     ),
     "relationships.*.source": (
-        "targetable",
+        "eligible:relationship_endpoint",
         _SEMANTIC,
         "fatal dangling or ambiguous; subtype may narrow domain",
         _RELATIONSHIP_VALIDATOR,
     ),
     "relationships.*.target": (
-        "targetable",
+        "eligible:relationship_endpoint",
         _SEMANTIC,
         "fatal dangling or ambiguous; subtype may narrow domain",
         _RELATIONSHIP_VALIDATOR,
@@ -305,13 +305,13 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         _PARTICIPANT_VALIDATOR,
     ),
     "relationships.*.participant.authority_basis_refs[]": (
-        "any",
+        "eligible:authority_anchor",
         _PARTICIPANT_PHASE,
         "fatal dangling, ambiguous, duplicate alias, or wider than source authority",
         _PARTICIPANT_VALIDATOR,
     ),
     "relationships.*.participant.scope_refs[]": (
-        "targetable",
+        "derived:operating_scope",
         _PARTICIPANT_PHASE,
         "fatal duplicate alias or outside spatial/resource scope of either endpoint or selected control policy",
         _PARTICIPANT_VALIDATOR,
@@ -357,6 +357,12 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         _SEMANTIC,
         "fatal dangling or ambiguous across scenario and node scopes",
         _RELATIONSHIP_VALIDATOR,
+    ),
+    "nodes.*.runtime.network_detection_engines[].rule_sources[].generated_by": (
+        "runtime:forwarding_agents",
+        _SEMANTIC,
+        "fatal dangling or ambiguous across scenario and node scopes",
+        _NODE_VALIDATOR,
     ),
     "relationships.*.service_integration.consumer_ref": (
         "runtime:platform_applications",

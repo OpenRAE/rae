@@ -129,7 +129,7 @@ class RuntimeMount(SDLModel):
         return _parse_optional_bool_or_var(v, field_name="backend_generated")
 
     @model_validator(mode="after")
-    def validate_redacted_mount_details(self) -> "RuntimeMount":
+    def validate_redacted_mount_details(self) -> RuntimeMount:
         if (
             self.source_sensitivity
             in {
@@ -227,7 +227,7 @@ class RuntimeControlInterface(SDLModel):
         return _parse_runtime_enum_or_var(v, RuntimeControlInterfaceAccess, field_name="access")
 
     @model_validator(mode="after")
-    def validate_redacted_bind_source_and_named_pipe_kind(self) -> "RuntimeControlInterface":
+    def validate_redacted_bind_source_and_named_pipe_kind(self) -> RuntimeControlInterface:
         if (
             self.bind_source_sensitivity
             in {

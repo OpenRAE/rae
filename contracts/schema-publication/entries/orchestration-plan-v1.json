@@ -1,9 +1,9 @@
 {
-  "content_hash": "ae2040b75554e2eb18dd2ccf5e5c5a0ca3e636263f75455ce4c3bf42281b8bd6",
+  "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
   "contract_id": "orchestration-plan-v1",
   "last_change": {
-    "content_hash": "ae2040b75554e2eb18dd2ccf5e5c5a0ca3e636263f75455ce4c3bf42281b8bd6",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
+    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
   },
   "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
   "stability": "draft"

@@ -2,23 +2,16 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
+from raes_contracts.digests import sha256_hex
+from raes_contracts.json_serialization import sorted_json_text
 
-# Canonical prefix for the SHA-256 digests used throughout module resolution and
-# publishing (manifest / config / bundle / content digests).
-_SHA256_PREFIX = "sha256:"
-
-
-def _sha256_digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
+from .._errors import SDLParseError
 
 
 def _descriptor_digest(exports: dict[str, list[str]]) -> str:
-    return _sha256_digest(json.dumps(exports, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+    return sha256_hex(sorted_json_text(exports).encode("utf-8"))
 
 
 def _normalize_exact_or_range(version: str) -> SpecifierSet | None:
@@ -39,3 +32,28 @@ def _satisfies_version(actual: str, requested: str) -> bool:
     except InvalidVersion:
         return actual == requested
     return version in spec
+
+
+def _parse_versioned_tags(tags: list[str]) -> list[tuple[Version, str]]:
+    parsed: list[tuple[Version, str]] = []
+    for tag in tags:
+        try:
+            parsed.append((Version(tag), tag))
+        except InvalidVersion:
+            continue
+    return parsed
+
+
+def _select_tag(tags: list[str], requested_version: str) -> str:
+    spec = _normalize_exact_or_range(requested_version)
+    parsed = _parse_versioned_tags(tags)
+    if spec is None:
+        if parsed:
+            return max(parsed)[1]
+        if tags:
+            return max(tags)
+        raise SDLParseError("OCI module has no published tags")
+    matching = [(version, tag) for version, tag in parsed if version in spec]
+    if matching:
+        return max(matching)[1]
+    raise SDLParseError(f"No OCI module tag satisfies requested version '{requested_version}'")

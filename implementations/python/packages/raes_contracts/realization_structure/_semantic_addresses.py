@@ -7,7 +7,8 @@ from collections.abc import Mapping, Sequence
 
 from pydantic import BaseModel
 
-from ._common import actual_identity, pointer, pointer_tokens
+from ..json_pointer import array_index, pointer_from_tokens, pointer_tokens
+from ._common import actual_identity
 from ._models import (
     DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     JSON_POINTER_PATTERN,
@@ -37,14 +38,14 @@ def canonical_semantic_address(
     for operations, token in enumerate(tokens, start=1):
         if operations > limits.max_operations:
             raise ValueError("semantic address exceeds max_operations")
-        profile = profile_map.get(pointer(tuple(source_path)))
+        profile = profile_map.get(pointer_from_tokens(tuple(source_path)))
         current, source_token, semantic_token, spent = _resolve_semantic_token(current, token, profile, limits)
         identity_checks += spent
         if identity_checks > limits.max_identity_checks:
             raise ValueError("semantic address exceeds max_identity_checks")
         source_path.append(source_token)
         semantic_path.append(semantic_token)
-    return pointer(tuple(semantic_path))
+    return pointer_from_tokens(tuple(semantic_path))
 
 
 def _validated_address_tokens(address: str, limits: RealizationConstraintLimits) -> tuple[str, ...]:
@@ -115,9 +116,10 @@ def _require_sequence_size(values: Sequence[object], limits: RealizationConstrai
 
 
 def _resolve_positional_token(values: Sequence[object], token: str) -> tuple[int, str, int]:
-    if not token.isdigit() or int(token) >= len(values):
+    index = array_index(token, len(values))
+    if index is None:
         raise ValueError("semantic sequence address does not resolve")
-    return int(token), token, 0
+    return index, token, 0
 
 
 def _keyed_sequence_matches(

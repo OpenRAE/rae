@@ -5,12 +5,14 @@ from dataclasses import replace
 import pytest
 from raes import parse_sdl
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore
 from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import with_compute_substrate_collection_demand
-from test_cross_backend_minimal_scenario import _targets
+from runtime_plan_fixtures import plan_for_target
+from t2_native_readback_double import create_native_readback_target
 
 _SCENARIO = """
 name: native-readback-boundary
@@ -21,11 +23,10 @@ nodes:
 """
 
 
-@pytest.mark.parametrize("backend", ["reference", "libvirt"])
 @pytest.mark.parametrize("failure", ["diagnostic", "exception", "missing", "malformed", "invalid", "duplicate"])
-def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend, failure, monkeypatch):
-    target = dict(_targets())[backend]
-    driver = target.provisioner._driver
+def test_failed_post_creation_readback_remains_in_recoverable_inventory(failure, monkeypatch):
+    target = create_native_readback_target()
+    driver = target.provisioner.driver
     ordinary_observe = driver.observe
     ordinary_realize = driver.realize
     calls = []
@@ -61,7 +62,7 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
 
     monkeypatch.setattr(driver, "observe", fail_observe)
     monkeypatch.setattr(driver, "realize", realize)
-    execution = RuntimeManager(target).plan(parse_sdl(_SCENARIO))
+    execution = plan_for_target(target, parse_sdl(_SCENARIO))
     plan = with_compute_substrate_collection_demand(
         execution.provisioning,
         semantic_scope="/nodes/vm",
@@ -73,16 +74,19 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
     receipt = cp.submit_provisioning(plan)
     assert receipt.accepted
     status = cp.get_operation(receipt.operation_id)
-    assert status.state.value == "failed"
+    assert status.state.value == "indeterminate"
     assert calls == ["observe"]
     assert "private native output" not in repr(status)
     assert "provision.node.vm" in cp.snapshot.entries
     assert "provision.node.vm" in driver.realized_addresses()
-    assert "provision.node.vm" in status.changed_addresses
+    assert status.changed_addresses == ["provision.node.vm"]
     assert cp.snapshot.realization_observations == ()
     assert cp.snapshot.realization_provenance == ()
+    predecessor = cp.snapshot
+    cp.close()
     recovered = RuntimeControlPlane(target, store=store)
-    assert recovered.snapshot.entries == cp.snapshot.entries
+    assert recovered.snapshot.entries == predecessor.entries
+    assert store.load_records()[receipt.operation_id].invocation.reserved
     cleanup_plan = ProvisioningPlan(
         realization_envelope=target.manifest.realization_envelope.identity,
         operations=[
@@ -90,15 +94,15 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
         ],
     )
     recovered.register_planner_produced_plan(replace(execution, provisioning=cleanup_plan))
-    cleanup = recovered.submit_provisioning(cleanup_plan)
-    assert recovered.get_operation(cleanup.operation_id).state.value == "succeeded"
-    assert recovered.snapshot.entries == {}
-    assert not driver.realized_addresses()
+    with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
+        recovered.submit_provisioning(cleanup_plan)
+    assert recovered.snapshot.entries == predecessor.entries
+    assert "provision.node.vm" in driver.realized_addresses()
+    recovered.close()
 
 
-@pytest.mark.parametrize("backend", ["reference", "libvirt"])
-def test_manager_preserves_inventory_when_native_readback_raises(backend, monkeypatch):
-    target = dict(_targets())[backend]
+def test_manager_preserves_inventory_when_native_readback_raises(monkeypatch):
+    target = create_native_readback_target()
     manager = RuntimeManager(target)
     execution = manager.plan(parse_sdl(_SCENARIO))
     demanded = with_compute_substrate_collection_demand(
@@ -110,7 +114,7 @@ def test_manager_preserves_inventory_when_native_readback_raises(backend, monkey
     def fail_observe(**_):
         raise RuntimeError("private native output")
 
-    monkeypatch.setattr(target.provisioner._driver, "observe", fail_observe)
+    monkeypatch.setattr(target.provisioner.driver, "observe", fail_observe)
     result = manager.apply(replace(execution, provisioning=demanded))
     assert not result.success
     assert "provision.node.vm" in result.snapshot.entries
@@ -120,10 +124,9 @@ def test_manager_preserves_inventory_when_native_readback_raises(backend, monkey
     assert result.snapshot.realization_provenance == ()
 
 
-@pytest.mark.parametrize("backend", ["reference", "libvirt"])
-def test_retained_backend_selected_description_never_calls_native_observe(backend, monkeypatch):
-    target = dict(_targets())[backend]
-    monkeypatch.setattr(target.provisioner._driver, "observe", lambda **_: pytest.fail("unexpected native probe"))
+def test_retained_backend_selected_description_never_calls_native_observe(monkeypatch):
+    target = create_native_readback_target()
+    monkeypatch.setattr(target.provisioner.driver, "observe", lambda **_: pytest.fail("unexpected native probe"))
     scenario = parse_sdl(
         _SCENARIO
         + """
@@ -151,23 +154,24 @@ evidence_requirements:
     )
     store = InMemoryControlPlaneStore()
     cp = RuntimeControlPlane(target, store=store)
-    execution = RuntimeManager(target).plan(scenario)
+    execution = plan_for_target(target, scenario)
     cp.register_planner_produced_plan(execution)
     receipt = cp.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     assert cp.get_operation(receipt.operation_id).state.value == "succeeded"
     assert cp.snapshot.realization_observations == ()
-    description = RuntimeControlPlane(target, store=store).observation_execution(receipt.operation_id)
+    cp.close()
+    with RuntimeControlPlane(target, store=store) as reopened:
+        description = reopened.observation_execution(receipt.operation_id)
     assert len(description.realized_form_disclosures) == 1
     assert description.realized_form_disclosures[0].basis == "backend-realized"
     assert description.realized_form_disclosures[0].evidence_refs == []
 
 
-@pytest.mark.parametrize("backend", ["reference", "libvirt"])
-def test_failed_readback_inventory_still_enforces_materialization_authority(backend, monkeypatch):
+def test_failed_readback_inventory_still_enforces_materialization_authority(monkeypatch):
     from copy import deepcopy
 
-    target = dict(_targets())[backend]
+    target = create_native_readback_target()
     original_apply = target.provisioner.apply
 
     def altered_failed_apply(plan, snapshot):
@@ -181,11 +185,11 @@ def test_failed_readback_inventory_still_enforces_materialization_authority(back
 
     monkeypatch.setattr(target.provisioner, "apply", altered_failed_apply)
     cp = RuntimeControlPlane(target)
-    execution = RuntimeManager(target).plan(parse_sdl(_SCENARIO))
+    execution = plan_for_target(target, parse_sdl(_SCENARIO))
     cp.register_planner_produced_plan(execution)
     receipt = cp.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     status = cp.get_operation(receipt.operation_id)
-    assert status.state.value == "failed"
+    assert status.state.value == "indeterminate"
     assert any(diagnostic.code == "runtime.backend-contract-invalid" for diagnostic in status.diagnostics)
     assert cp.snapshot.entries == {}

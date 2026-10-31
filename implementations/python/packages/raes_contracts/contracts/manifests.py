@@ -12,14 +12,12 @@ from ..addressing import require_compiled_address
 from ..manifest_authority import (
     PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES,
     PROCESSOR_SUPPORTED_CONTRACT_IDS,
-    PROCESSOR_SUPPORTED_SDL_VERSION_IDS,
     validate_backend_supported_contract_versions,
     validate_processor_supported_contract_versions,
-    validate_processor_supported_sdl_versions,
 )
 from ..operation_lifecycle import OperationKind
 from ..versions import PROCESSOR_MANIFEST_V2_SCHEMA_VERSION
-from ..vocabulary import ConceptFamilyId, ParticipantFeatureSupportLevel, ProcessorFeature
+from ..vocabulary import ConceptFamilyId, ParticipantFeatureSupportLevel
 from .base import _PROCESSOR_CONCEPT_BINDING_SCOPES, ContractModel, NonEmptyString
 from .capabilities import (
     ApparatusIdentityModel,
@@ -32,9 +30,19 @@ from .experiment_bindings import ConfigurationTargetRegistryModel
 from .feature_support import ParticipantFeatureSupportModel
 from .observation_capture import ObservationCaptureOfferModel
 from .participant_execution import ParticipantExecutionBindingModel
+from .participant_invocation_tools import (
+    ParticipantInvocationToolActionCapabilitiesModel,
+    validate_invocation_tool_action_claim,
+)
 from .participant_resource_budgets import ParticipantResourceBudgetCapabilitiesModel
+from .participant_tool_support import (
+    ParticipantToolProfilesModel,
+    validate_tool_feature_support,
+)
+from .processor_capabilities import ProcessorCapabilitiesV2Model
 from .time_manifest_capabilities import TimeCapabilitiesModel
 from .trial_cleanup import CleanupActionKind
+from .trial_controls import OperationSupervisionCapabilitiesModel
 from .validators import (
     _validate_canonical_concept_bindings,
     _validate_controlled_vocabulary_terms,
@@ -52,36 +60,12 @@ class ConceptBindingEntryModel(ContractModel):
     family: ConceptFamilyId
 
 
-class ProcessorCapabilitiesV2Model(ContractModel):
-    supported_sdl_versions: list[NonEmptyString] = Field(min_length=1)
-    supported_features: list[ProcessorFeature] = Field(min_length=1)
-
-    @model_validator(mode="after")
-    def _validate_declared_authority(self) -> ProcessorCapabilitiesV2Model:
-        validate_processor_supported_sdl_versions(self.supported_sdl_versions)
-        return self
-
-    @classmethod
-    def __get_pydantic_json_schema__(
-        cls,
-        core_schema: CoreSchema,
-        handler: GetJsonSchemaHandler,
-    ) -> JsonSchemaValue:
-        json_schema = handler(core_schema)
-        json_schema = handler.resolve_ref_schema(json_schema)
-        json_schema["properties"]["supported_sdl_versions"]["items"]["enum"] = list(PROCESSOR_SUPPORTED_SDL_VERSION_IDS)
-        return json_schema
-
-
 class ParticipantRuntimeCapabilitiesModel(ContractModel):
     """Participant-episode lifecycle capability block (RUN-311).
 
-    A backend that declares this block advertises that it implements
-    the full participant episode control surface on the
-    ``ParticipantRuntime`` protocol: ``initialize`` / ``reset`` /
-    ``restart`` / ``terminate`` plus ``status`` / ``results`` /
-    ``history``. Consumers of the manifest can infer the
-    ``FULL_REMOTE_CONTROL_PLANE`` conformance profile from this block.
+    This block declares the full ``ParticipantRuntime`` lifecycle surface:
+    initialize, reset, restart, terminate, status, results, and history.
+    It selects the ``FULL_REMOTE_CONTROL_PLANE`` conformance profile.
 
     API-405 support dimensions live here because they are backend apparatus
     claims: which participant roles, behavior features, and interaction
@@ -99,6 +83,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
         json_schema_extra={"uniqueItems": True},
     )
     feature_support: list[ParticipantFeatureSupportModel] = Field(default_factory=list)
+    tool_profiles: ParticipantToolProfilesModel | None = Field(default=None, exclude_if=lambda value: value is None)
     supports_autonomous_execution: bool = False
     supported_autonomous_selection_strategies: list[Literal["ordered_cycle", "weighted"]] = Field(
         default_factory=list,
@@ -154,6 +139,9 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
     max_execution_services: int | None = Field(default=None, ge=1)
     max_concurrent_actions: int | None = Field(default=None, ge=1)
     resource_budgets: ParticipantResourceBudgetCapabilitiesModel | None = None
+    invocation_tool_actions: ParticipantInvocationToolActionCapabilitiesModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     constraints: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -179,9 +167,15 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
     def _validate_api_407_feature_support(self) -> ParticipantRuntimeCapabilitiesModel:
         _validate_unique_string_values("feature_support", [entry.feature for entry in self.feature_support])
         self._validate_supported_feature_levels()
+        validate_tool_feature_support(self.tool_profiles, self.feature_support, self.supported_behavior_features)
         self._validate_autonomous_configuration()
         self._validate_autonomous_addresses()
         self._validate_execution_control()
+        validate_invocation_tool_action_claim(
+            self.invocation_tool_actions,
+            supports_autonomous_execution=self.supports_autonomous_execution,
+            supports_tool_affordances=self.tool_profiles is not None,
+        )
         return self
 
     def _validate_supported_feature_levels(self) -> None:
@@ -328,10 +322,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             values = getattr(self, field_name)
             _validate_unique_string_values(field_name, values)
             for address in values:
-                try:
-                    require_compiled_address(address, field_name=field_name)
-                except (TypeError, ValueError) as exc:
-                    raise ValueError(str(exc)) from exc
+                require_compiled_address(address, field_name=field_name)
 
 
 class ObservationCapabilitiesModel(ContractModel):
@@ -431,6 +422,9 @@ class RecoveryObservationCapabilitiesModel(ContractModel):
 
 
 class BackendCapabilitiesV2Model(ContractModel):
+    operation_supervision: OperationSupervisionCapabilitiesModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     provisioner: ProvisionerCapabilitiesModel
     orchestrator: OrchestratorCapabilitiesModel | None = None
     evaluator: EvaluatorCapabilitiesModel | None = None

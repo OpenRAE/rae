@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 
 from raes.participant_inject_delivery import ParticipantInjectDelivery
 
+from .._host_isolation import isolated_host_call
 from .base import ContractModel
 from .participant_control import (
     ParticipantControlDeclarationModel,
@@ -36,6 +37,7 @@ from .participant_control_evaluation_v2 import (
     ParticipantControlEvaluationV2Model,
     admitted_control_effect_ids_v2,
 )
+from .participant_control_inject_resolution import _validate_inject
 from .participant_control_invocation import ControlMechanismResultV2Model
 from .participant_control_results import (
     ControlEffectiveSupportModel,
@@ -43,6 +45,7 @@ from .participant_control_results import (
     ControlRealizationBindingModel,
     ControlSecurityFactModel,
 )
+from .participant_control_security_resolution import _validate_security_fact
 from .participant_control_selection import ControlMechanismBindingModel
 from .participant_control_support_v2 import ControlSupportAssessmentV2Model
 from .participant_control_validation import validate_participant_control_occurrence_context
@@ -52,11 +55,12 @@ from .participant_crossing import (
     ParticipantCrossingSubjectReferenceModel,
 )
 from .participant_crossing_validation import validate_participant_crossing_occurrence_context
-from .participant_flow_control import ParticipantFlowControlRelationModel, ParticipantFlowSinkDecisionModel
+from .participant_flow_control import ParticipantFlowControlRelationModel
 from .participant_flow_control_context import ParticipantFlowControlValidationContext
-from .participant_flow_control_validation import validate_participant_flow_control_context
+from .participant_inject_application import ParticipantInjectContentModel
 
 _COMMITTED_EFFECT_MISMATCH = "realized effect differs from its committed full intent, cut, or prerequisites"
+_TRUSTED_CONTEXT_REFUSAL = "participant control trusted-context validation failed"
 
 
 @dataclass(frozen=True)
@@ -80,6 +84,8 @@ class ParticipantControlValidationContext:
     flow_relations: Mapping[str, ParticipantFlowControlRelationModel] = field(default_factory=dict)
     flow_contexts: Mapping[str, ParticipantFlowControlValidationContext] = field(default_factory=dict)
     inject_deliveries: Mapping[str, ParticipantInjectDelivery] = field(default_factory=dict)
+    inject_applications: Mapping[str, ParticipantInjectContentModel] = field(default_factory=dict)
+    inject_coordinates: Mapping[str, ControlInjectEffectModel] = field(default_factory=dict)
 
 
 def control_references(record: object) -> Iterator[ControlArtifactReferenceModel]:
@@ -133,98 +139,6 @@ def _validate_crossing(cut: ParticipantControlContextModel, context: Participant
         raise ValueError("participant control crossing coordinates differ")
 
 
-def _validate_inject(
-    target: ControlInjectEffectModel, cut: ParticipantControlContextModel, context: ParticipantControlValidationContext
-) -> None:
-    delivery = context.inject_deliveries.get(target.delivery_ref.ref)
-    if delivery is None or control_digest(delivery) != target.delivery_ref.digest:
-        raise ValueError("inject request has no exact owning delivery")
-    expected = (
-        target.participant_address,
-        target.inject_ref,
-        target.event_ref,
-        target.script_ref,
-        target.story_ref,
-        target.source_item_ref,
-        target.result_item_ref,
-        target.disclosure_ref.ref,
-    )
-    observed = (
-        delivery.participant_ref,
-        delivery.inject_ref,
-        delivery.occurrence.event_ref,
-        delivery.occurrence.script_ref,
-        delivery.occurrence.story_ref,
-        delivery.source_item_ref,
-        delivery.result_item_ref,
-        delivery.delivery_policy.disclosure_basis_ref,
-    )
-    if (
-        expected != observed
-        or target.episode_id != cut.episode_id
-        or delivery.delivery_policy.audience_scope_ref != cut.audience_ref
-    ):
-        raise ValueError("inject request owner coordinates differ")
-
-
-def _security_sink_matches(
-    decision: ParticipantFlowSinkDecisionModel,
-    decision_ids: set[str],
-    fact: ControlSecurityFactModel,
-    cut: ParticipantControlContextModel,
-) -> bool:
-    return (
-        decision.decision_id in decision_ids
-        and decision.label_ref == fact.label_ref
-        and (decision.sink.sink_ref, decision.sink.destination_ref, decision.sink.audience_scope_ref)
-        == (cut.sink_ref, cut.destination_ref, cut.audience_ref)
-        and set(decision.expected_history_head_refs) == {head.ref for head in cut.expected_history_heads}
-    )
-
-
-def _validate_security_sink(
-    relation: ParticipantFlowControlRelationModel, fact: ControlSecurityFactModel, cut: ParticipantControlContextModel
-) -> None:
-    # The IFC subject may be a derived action argument, whereas the API-423
-    # subject is its enclosing control occurrence. Follow the incumbent
-    # typed carrier relation instead of conflating these identities.
-    decision_ids = {
-        binding.relation_target.target_ref
-        for binding in relation.bindings
-        if binding.kind == "participant-crossing"
-        and binding.event_id == cut.crossing.ref
-        and binding.relation_target.target_kind == "sink-decision"
-    }
-    if not any(_security_sink_matches(decision, decision_ids, fact, cut) for decision in relation.sink_decisions):
-        raise ValueError("security fact has no exact crossing and sink binding")
-
-
-def _validate_security_fact(
-    fact: ControlSecurityFactModel, cut: ParticipantControlContextModel, context: ParticipantControlValidationContext
-) -> None:
-    relation = context.flow_relations.get(fact.relation.ref)
-    flow_context = context.flow_contexts.get(fact.relation.ref)
-    if relation is None or flow_context is None or control_digest(relation) != fact.relation.digest:
-        raise ValueError("security fact requires its exact incumbent relation and context")
-    validate_participant_flow_control_context(relation, flow_context)
-    label = next((label for label in relation.labels if label.label_id == fact.label_ref), None)
-    if label is None or label.resolution_status != "resolved":
-        raise ValueError("security fact label does not resolve")
-    if (relation.document_id, relation.document_revision) != (fact.relation.ref, fact.relation.revision):
-        raise ValueError("security relation identity differs")
-    _validate_security_sink(relation, fact, cut)
-    for name in (
-        "policy_id",
-        "policy_revision",
-        "policy_digest",
-        "policy_decision_ref",
-        "decision_cut_ref",
-        "effective_order",
-    ):
-        if getattr(label.policy, name) != getattr(cut.policy, name):
-            raise ValueError("security fact exact policy cut differs")
-
-
 def _validate_incumbents(
     record: ParticipantControlEvaluationModel, context: ParticipantControlValidationContext
 ) -> None:
@@ -268,10 +182,8 @@ def _validate_support_claims(
             raise ValueError("participant control installed binding differs")
         if context.effective_support.get(binding.instance_id) != support:
             raise ValueError("participant control effective support is unsubstantiated")
-        try:
+        with isolated_host_call("participant control declaration resolution failed", keep_cause=False):
             declared = context.support_resolver(binding, support)
-        except Exception:
-            raise ValueError("participant control declaration resolution failed") from None
         if declared is None or declared != support.declared_level:
             raise ValueError("participant control declaration strength is missing or inconsistent")
 
@@ -299,13 +211,11 @@ def validate_participant_control_resolved_context(
     record: ParticipantControlEvaluationModel, resolver: ParticipantControlContextResolver | None
 ) -> None:
     """Sanitized boundary for resolver exceptions and malformed trusted indexes."""
-    try:
+    with isolated_host_call(_TRUSTED_CONTEXT_REFUSAL, keep_cause=False):
         context = resolver(record) if resolver is not None else None
         if not isinstance(context, ParticipantControlValidationContext):
             raise ValueError("missing context")
         validate_participant_control_context(record, context)
-    except Exception:
-        raise ValueError("participant control trusted-context validation failed") from None
 
 
 @dataclass(frozen=True)
@@ -345,6 +255,8 @@ class ParticipantControlValidationContextV2:
     flow_relations: Mapping[str, ParticipantFlowControlRelationModel] = field(default_factory=dict)
     flow_contexts: Mapping[str, ParticipantFlowControlValidationContext] = field(default_factory=dict)
     inject_deliveries: Mapping[str, ParticipantInjectDelivery] = field(default_factory=dict)
+    inject_applications: Mapping[str, ParticipantInjectContentModel] = field(default_factory=dict)
+    inject_coordinates: Mapping[str, ControlInjectEffectModel] = field(default_factory=dict)
 
 
 ParticipantControlContextResolverV2 = Callable[
@@ -358,19 +270,19 @@ def validate_participant_control_resolved_context_v2(
 ) -> None:
     """Check v2 wire claims against independent exact-cut owner resolutions."""
 
-    try:
+    with isolated_host_call(_TRUSTED_CONTEXT_REFUSAL, keep_cause=False):
         record = ParticipantControlEvaluationV2Model.model_validate(record.model_dump(mode="python"))
         context = resolver(record) if resolver is not None else None
         if not isinstance(context, ParticipantControlValidationContextV2):
             raise ValueError("missing trusted context")
         _validate_v2_trusted_context(record, context)
-    except Exception:
-        raise ValueError("participant control trusted-context validation failed") from None
 
 
 def _validate_v2_trusted_context(
     record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
 ) -> None:
+    if record.continuation is not None:
+        raise ValueError("continuation requires exact committed source validation")
     _validate_admitted_v2_identity(record, context)
     _validate_v2_results_and_support(record, context)
     _validate_v2_effect_authority(record, context)
@@ -395,6 +307,9 @@ def _validate_admitted_v2_identity(
 def _validate_v2_results_and_support(
     record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
 ) -> None:
+    from .participant_owner_flow_admission import validate_owner_flow_result_coverage
+
+    validate_owner_flow_result_coverage(record.request, record.results)
     if {item.slot_id: item for item in record.results} != context.resolved_results:
         raise ValueError("provider results differ")
     bindings = {item.instance_id: item for item in record.request.selection.bindings}
@@ -412,14 +327,17 @@ def _validate_v2_results_and_support(
 
 
 def _validate_v2_effect_authority(
-    record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
+    record: ParticipantControlEvaluationV2Model,
+    context: ParticipantControlValidationContextV2,
+    *,
+    same_cut: bool = False,
 ) -> None:
     if {item.invocation_id: item for item in record.state_proposals} != context.authorized_state_proposals:
         raise ValueError("state write and commit timing differ from owner authorization")
     effects = {item.effect_id: item for item in record.effect_plan.effects}
     current_outcomes = {item.effect_id: item for item in record.effect_plan.effect_outcomes}
     for effect_id in record.effect_plan.realized_effect_ids:
-        _validate_prior_effect(record, context, effects[effect_id], current_outcomes.get(effect_id))
+        _validate_prior_effect(record, context, effects[effect_id], current_outcomes.get(effect_id), same_cut=same_cut)
     for effect_id in admitted_control_effect_ids_v2(record.composition, record.effect_plan):
         effect = effects[effect_id]
         if context.authorized_effects.get(control_digest(effect)) != record.request.context:
@@ -433,12 +351,14 @@ def _validate_prior_effect(
     context: ParticipantControlValidationContextV2,
     effect: ControlEffectRequestV2Model,
     current_outcome: ControlRealizationBindingModel | None,
+    *,
+    same_cut: bool = False,
 ) -> None:
     prior = context.committed_effect_intents.get(effect.effect_id)
     if not isinstance(prior, ControlCommittedEffectIntentV2):
         raise ValueError("realized effect lacks an owner-resolved committed intent")
     origin = ParticipantControlEvaluationV2Model.model_validate(prior.evaluation.model_dump(mode="python"))
-    _validate_prior_identity(record, origin, effect)
+    _validate_prior_identity(record, origin, effect, same_cut=same_cut)
     _validate_prior_commit(origin, effect.effect_id)
     if (
         context.authorized_effects.get(control_digest(effect)) != origin.request.context
@@ -454,17 +374,29 @@ def _validate_prior_identity(
     record: ParticipantControlEvaluationV2Model,
     origin: ParticipantControlEvaluationV2Model,
     effect: ControlEffectRequestV2Model,
+    *,
+    same_cut: bool = False,
 ) -> None:
     origin_effects = {item.effect_id: item for item in origin.effect_plan.effects}
     if (
         origin_effects.get(effect.effect_id) != effect
         or origin.request.context.run != record.request.context.run
         or origin.request.context.trigger_root != record.request.context.trigger_root
-        or origin.request.context.crossing != record.request.context.crossing
+        or origin.request.context.subject != record.request.context.subject
+        or origin.request.context.participant_address != record.request.context.participant_address
+        or origin.request.context.episode_id != record.request.context.episode_id
         or origin.request.context.order > record.request.context.order
-        or origin.request.context.effects_consumed >= record.request.context.effects_consumed
+        or not _prior_consumption_valid(record, origin, same_cut=same_cut)
     ):
         raise ValueError(_COMMITTED_EFFECT_MISMATCH)
+
+
+def _prior_consumption_valid(
+    record: ParticipantControlEvaluationV2Model, origin: ParticipantControlEvaluationV2Model, *, same_cut: bool
+) -> bool:
+    return origin.request.context.effects_consumed < record.request.context.effects_consumed or (
+        same_cut and origin.request == record.request
+    )
 
 
 def _validate_prior_commit(origin: ParticipantControlEvaluationV2Model, effect_id: str) -> None:

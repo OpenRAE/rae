@@ -323,3 +323,126 @@ assert callable(resolve_participant_control_support)
 """
     result = _run([str(installed_python), "-c", script], cwd=tmp_path, env=_sanitized_runtime_env(tmp_path))
     assert result.returncode == 0, result.stderr
+
+
+def test_modular_runtime_runner_from_independent_install(installed_python: Path, tmp_path: Path):
+    script = """
+import json
+from raes_backend_stubs.stubs import create_stub_target
+from raes_conformance.conformance import run_modular_control_conformance, modular_control_obligations, backend_conformance_report_payload
+from raes_conformance.conformance.modular_control_types import ModularControlCase, ModularControlStep, ModularControlOperation
+from raes_contracts.corpus import corpus_family_root
+from raes_contracts.contracts.participant_control_applicability import ParticipantControlSelectionV2Model
+from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts import schema_bundle
+from raes_runtime.participant_control_binding import ParticipantControlRuntimeBinding, ParticipantControlStageBinding
+from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel
+
+root = corpus_family_root('fixtures')
+selection = ParticipantControlSelectionV2Model.model_validate_json((root / 'participant-runtime/participant-control-selection-v2/valid/disjoint-sinks.json').read_bytes())
+class Provider:
+    def resolve_stage(self, invocation):
+        return ()
+class Resolver:
+    def resolve(self, **coordinates):
+        return None
+    def validation_context(self, evaluation):
+        return None
+    def effect_operation(self, request, context):
+        return None
+    def projection(self, request, slot_id, predecessors):
+        raise ValueError('no authorized projection')
+projection = ControlArtifactReferenceModel(kind='projection', ref='unavailable', revision='1', digest=canonical_json_digest('unavailable'))
+installed = ParticipantControlRuntimeBinding(selection=selection, providers={item.instance_id: Provider() for item in selection.bindings}, resolver=Resolver(), stages={item.slot_id: ParticipantControlStageBinding(unavailable_projection=projection) for item in selection.slots}, contract_digests={key: canonical_json_digest(schema_bundle()[key]) for key in ('participant-control-selection-v2', 'participant-control-evaluation-v2')})
+assert installed.selection == selection
+target = create_stub_target()
+report = run_modular_control_conformance(target, obligations=('authored-recovery',))
+assert report.passed
+assert not backend_conformance_report_payload(report)['native_conformance']
+missing = run_modular_control_conformance(target, obligations=('dependency',), effect_kinds=('inject',))
+assert not missing.passed
+assert {case.modular_control.obligation for case in missing.cases} == {'dependency', 'effect:inject'}
+assert len(modular_control_obligations()) > 10
+json.dumps(backend_conformance_report_payload(missing))
+"""
+    result = _run([str(installed_python), "-c", script], cwd=tmp_path, env=_sanitized_runtime_env(tmp_path))
+    assert result.returncode == 0, result.stderr
+
+
+# Concrete backends live in their own distributions (issue #967). RAES ships the
+# portable run-archive helper but no backend implementation or lifecycle code.
+_REMOVED_BACKEND_PACKAGES = ("raes_reference_backend", "raes_backend_libvirt")
+_RETAINED_OPERATIONS_MODULES = {"raes_operations/__init__.py", "raes_operations/run_artifacts.py"}
+
+
+@pytest.fixture(scope="module")
+def built_sdist(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    out_dir = tmp_path_factory.mktemp("sdist")
+    result = _run(
+        [
+            _UV,
+            "build",
+            "--sdist",
+            "--build-constraints",
+            str(REPO_ROOT / "implementations" / "tooling" / "python" / "build-constraints.txt"),
+            "--require-hashes",
+            "--out-dir",
+            str(out_dir),
+        ],
+        cwd=PROJECT_ROOT,
+    )
+    assert result.returncode == 0, f"sdist build failed:\n{result.stdout}\n{result.stderr}"
+    sdists = list(out_dir.glob("raes-*.tar.gz"))
+    assert len(sdists) == 1, f"expected exactly one sdist, found {sdists}"
+    return sdists[0]
+
+
+@requires_uv
+def test_built_wheel_ships_no_concrete_backend(built_wheel: Path):
+    with zipfile.ZipFile(built_wheel) as zf:
+        names = zf.namelist()
+
+    shipped = sorted(name for name in names if name.startswith(tuple(f"{p}/" for p in _REMOVED_BACKEND_PACKAGES)))
+    operations = {name for name in names if name.startswith("raes_operations/")}
+    assert shipped == [], f"wheel ships concrete backend modules: {shipped[:5]}"
+    assert operations == _RETAINED_OPERATIONS_MODULES
+
+
+@requires_uv
+def test_built_sdist_ships_no_concrete_backend(built_sdist: Path):
+    import tarfile
+
+    with tarfile.open(built_sdist) as archive:
+        names = archive.getnames()
+
+    markers = (*(f"/packages/{p}/" for p in _REMOVED_BACKEND_PACKAGES), "/raes_cli/libvirt.py", "/raes_cli/corpus.py")
+    shipped = sorted(name for name in names if any(marker in name for marker in markers))
+    assert shipped == [], f"sdist ships concrete backend sources: {shipped[:5]}"
+
+
+@requires_uv
+def test_installed_cli_offers_no_backend_lifecycle_commands(installed_python: Path, tmp_path: Path):
+    environment = _sanitized_runtime_env(tmp_path)
+    raes = installed_python.parent / ("raes.exe" if sys.platform == "win32" else "raes")
+    result = _run([str(raes), "--help"], cwd=tmp_path, env=environment)
+    assert result.returncode == 0, result.stderr
+
+    for command in ("libvirt", "corpus"):
+        removed = _run([str(raes), command, "--help"], cwd=tmp_path, env=environment)
+        assert removed.returncode != 0, f"`raes {command}` is still installed:\n{removed.stdout}"
+    for command in ("sdl", "processor", "conformance", "runtime"):
+        assert _run([str(raes), command, "--help"], cwd=tmp_path, env=environment).returncode == 0
+
+    probe = (
+        "import importlib.util\n"
+        f"missing = [name for name in {_REMOVED_BACKEND_PACKAGES!r} if importlib.util.find_spec(name) is not None]\n"
+        "assert not missing, missing\n"
+        "from raes_runtime import ExperimentRunMetadata, RuntimeControlPlane\n"
+        "from raes_runtime.runtime_experiment_records import experiment_records\n"
+        "assert ExperimentRunMetadata().result_summaries == {}\n"
+        "assert callable(experiment_records) and callable(RuntimeControlPlane.experiment_records)\n"
+        "from raes_operations.run_artifacts import RunMaterializationArchive\n"
+        "assert RunMaterializationArchive\n"
+    )
+    inspected = _run([str(installed_python), "-c", probe], cwd=tmp_path, env=environment)
+    assert inspected.returncode == 0, f"installed import closure check failed:\n{inspected.stdout}\n{inspected.stderr}"

@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from tools import release_evidence
 from tools.release_evidence import (
     ReleaseEvidenceError,
@@ -23,6 +24,7 @@ from tools.release_evidence import (
 )
 from tools.release_evidence_admission import ProducerIdentity
 from tools.release_evidence_sbom import RuntimeClosureError, observed_installation
+from tools.release_evidence_workflows import WorkflowInputError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -156,6 +158,70 @@ def test_workflow_inputs_preserve_missing_workflow_error_code(tmp_path: Path) ->
     with pytest.raises(ReleaseEvidenceError) as excinfo:
         release_evidence._workflow_actions(tmp_path)
     assert excinfo.value.code == "workflow-input-invalid"
+
+
+def test_cli_boundary_errors_are_input_refusals_not_builtins() -> None:
+    assert issubclass(ReleaseEvidenceError, InvalidInputError)
+    assert issubclass(WorkflowInputError, InvalidInputError)
+    assert not issubclass(WorkflowInputError, ValueError)
+
+
+def _verify_args(tmp_path: Path) -> list[str]:
+    return [
+        "verify",
+        "--distribution-dir",
+        str(tmp_path / "dist"),
+        "--evidence-dir",
+        str(tmp_path / "evidence"),
+        "--signer-workflow",
+        "OpenRAE/rae/.github/workflows/release-please.yml",
+        "--release-tag",
+        "v1.0.0",
+        "--repo-root",
+        str(REPO_ROOT),
+    ]
+
+
+def test_unparsable_evidence_index_is_refused_with_a_code(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (tmp_path / "dist").mkdir()
+    (tmp_path / "evidence").mkdir()
+    (tmp_path / "evidence" / "release-evidence-index.json").write_text("{secret-sentinel", encoding="utf-8")
+
+    assert release_evidence.main(_verify_args(tmp_path)) == 1
+
+    captured = capsys.readouterr()
+    assert captured.err == (
+        "release evidence refused [evidence-index-unparsable]: release evidence index could not be parsed\n"
+    )
+    assert "secret-sentinel" not in captured.err
+
+
+def test_operator_path_refusal_is_reported_without_a_traceback(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    (tmp_path / "dist").mkdir()
+    (tmp_path / "real-evidence").mkdir()
+    (tmp_path / "evidence").symlink_to(tmp_path / "real-evidence", target_is_directory=True)
+
+    assert release_evidence.main(_verify_args(tmp_path)) == 1
+
+    assert capsys.readouterr().err == "release evidence refused: evidence directory must not be a symbolic link\n"
+
+
+def test_a_defect_is_not_reported_as_a_release_refusal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def defect(_evidence_dir: Path) -> dict[str, object]:
+        raise ValueError("synthetic-private-value")
+
+    (tmp_path / "dist").mkdir()
+    (tmp_path / "evidence").mkdir()
+    monkeypatch.setattr(release_evidence, "_load_index", defect)
+
+    verify_args = _verify_args(tmp_path)
+    with pytest.raises(ValueError, match="synthetic-private-value"):
+        release_evidence.main(verify_args)
+    assert "refused" not in capsys.readouterr().err
 
 
 def _venv(tmp_path: Path, **distributions: str) -> Path:
@@ -310,7 +376,7 @@ def test_generate_loads_the_closure_profile_from_the_admitted_repository(tmp_pat
         environment_dir=tmp_path,
         sdist_environment_dir=tmp_path,
     )
-    profile_id = "public-linux-x86_64-cp312-all-extras"
+    profile_id = "public-linux-x86_64-cp314-all-extras"
 
     with pytest.raises(_StopAfterProfile):
         release_evidence.generate(paths=paths, profile_id=profile_id, release_tag="v0.0.0", environment=_ENVIRONMENT)

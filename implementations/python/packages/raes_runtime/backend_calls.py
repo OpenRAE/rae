@@ -7,7 +7,10 @@ from dataclasses import dataclass, is_dataclass
 from pydantic import BaseModel
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import RaesError
 from raes_contracts.materialization import MaterializationArchive
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .backend_account_credentials import (
@@ -33,12 +36,15 @@ from .backend_result_diagnostics import (
     _failed_apply_result,
 )
 
+_LOGGER = get_logger(__name__)
+
 
 @dataclass(frozen=True)
 class _BackendCallContext:
     """Per-invocation identity and host services one backend apply may receive."""
 
     operation_id: str | None = None
+    attempt_id: str | None = None
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None
     service_dependencies: tuple[object, ...] = ()
     materialization_archive: MaterializationArchive | None = None
@@ -54,6 +60,8 @@ def _call_backend_diagnostics(
     try:
         result = method(*(_isolated_argument(argument) for argument in args))
     except Exception as exc:
+        # Isolation of the backend method: record its failure once, without its type, then return a diagnostic.
+        _LOGGER.exception("backend method failed at %s", address, exc_info=foreign_failure_record(exc))
         diagnostics = [_backend_call_failed(address, exc)]
     else:
         diagnostics, invalid_message = _materialize_diagnostics(result, address)
@@ -117,13 +125,25 @@ def _call_backend_apply(
     )
     if invalid:
         return _failed_apply_result(snapshot, _backend_contract_invalid(address, invalid))
-    args, realization_context = _bind_submitted_plan(args, realization_context, call_context.operation_id)
+    args, realization_context = _bind_submitted_plan(
+        args, realization_context, call_context.operation_id, call_context.attempt_id
+    )
     baseline_snapshot = deepcopy(snapshot)
     if invalid := materialization_precondition(realization_context, call_context.materialization_archive):
         return _failed_apply_result(baseline_snapshot, _backend_contract_invalid(address, invalid))
     authority_diagnostics = _apply_authority_diagnostics(realization_context, address)
     if authority_diagnostics:
         result = ApplyResult(success=False, snapshot=baseline_snapshot, diagnostics=authority_diagnostics)
+    elif getattr(realization_context.operation_plan, "inventory_refresh", False):
+        result = _invoke_backend_apply(
+            method,
+            args,
+            address=address,
+            snapshot=snapshot,
+            baseline_snapshot=baseline_snapshot,
+            realization=deepcopy(realization_context),
+            call=call_context,
+        )
     else:
         result = _prepared_backend_result(
             method,
@@ -153,12 +173,15 @@ def _invoke_backend_apply(
     )
     try:
         result = method(*backend_args)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
+        # The backend protocol reports an unconstructible result with these built-ins.
         return _failed_apply_result(
             baseline_snapshot,
             _backend_contract_invalid(address, "Backend could not construct a valid apply result."),
         )
     except Exception as exc:
+        # Isolation of the backend method: record its failure once, without its type, then return a failed result.
+        _LOGGER.exception("backend apply failed at %s", address, exc_info=foreign_failure_record(exc))
         return _failed_apply_result(baseline_snapshot, _backend_call_failed(address, exc))
     return _validated_backend_result(
         result,
@@ -180,15 +203,25 @@ def _validated_backend_result(
     """Finalize a backend result, refusing anything that cannot be validated."""
 
     try:
-        accepted = _finalize_backend_apply(
-            result,
-            address=address,
-            baseline_snapshot=baseline_snapshot,
-            realization=realization,
-            information_state_context_resolver=call.information_state_context_resolver,
-        )
+        if isinstance(realization.operation_plan, ProvisioningPlan) and realization.operation_plan.inventory_refresh:
+            from .backend_inventory import admit_refresh_proposal
+
+            accepted = admit_refresh_proposal(result, baseline_snapshot, realization.operation_plan)
+        else:
+            accepted = _finalize_backend_apply(
+                result,
+                address=address,
+                baseline_snapshot=baseline_snapshot,
+                realization=realization,
+                information_state_context_resolver=call.information_state_context_resolver,
+            )
         return finalize_materialization(result, accepted, realization, baseline_snapshot, call.materialization_archive)
-    except Exception:
+    except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of untrusted backend output: a refusal category needs no record.
+            _LOGGER.exception(
+                "backend apply result validation failed at %s", address, exc_info=foreign_failure_record(exc)
+            )
         return _failed_apply_result(
             baseline_snapshot,
             _backend_contract_invalid(address, "Backend returned an apply result that could not be validated."),

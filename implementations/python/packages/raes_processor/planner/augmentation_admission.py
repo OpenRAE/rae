@@ -23,7 +23,9 @@ from raes_contracts.augmentation_scope import (
     effective_augmentation_scope,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
+from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES
 from raes_contracts.planning import RealizationAuthorityMode
 from raes_contracts.realization_structure import (
@@ -71,7 +73,7 @@ def validate_actual_augmentation(
     )
     actual = parse_sdl(submission.sdl)
     if materialization_differences(prospective, actual):
-        raise ValueError("actual effects differ from admitted prospective SDL")
+        raise InvalidInputError("actual effects differ from admitted prospective SDL")
 
 
 def compose_augmentation_admission(
@@ -99,7 +101,7 @@ def compose_augmentation_admission(
                 source.authored_digest,
                 source.instantiated_digest,
             ):
-                raise ValueError("preceding materialization does not bind this source")
+                raise EvidenceIntegrityError("preceding materialization does not bind this source")
     local = admit_prospective_content(
         parse_bounded_json_object(admission.preparation.content, max_bytes=MATERIALIZATION_MAX_BYTES)
     )
@@ -117,10 +119,10 @@ def admit_augmentation_preparation(
 ) -> AugmentationAdmission:
     """Reject incomplete/unbound reports; render refusals only from resolved facts."""
     if not validate_realization_value(report, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
-        raise ValueError("prospective report exceeds portable bounds")
+        raise InvalidInputError("prospective report exceeds portable bounds")
     report = AugmentationPreparation.model_validate(report.model_dump(mode="json"))
     if report.binding_digest != augmentation_binding_digest(request, backend_manifest_v2_model(manifest), previous):
-        raise ValueError("augmentation preparation does not bind this source and execution")
+        raise InvalidInputError("augmentation preparation does not bind this source and execution")
     original = admit_instantiated_scenario(
         parse_bounded_json_object(request.materialization_source.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)[
             "scenario"
@@ -131,10 +133,10 @@ def admit_augmentation_preparation(
     )
     for field in ("augmentation_scope", "evidence_requirements"):
         if getattr(original, field) != getattr(prospective, field):
-            raise ValueError("prospective content cannot change author policy or evidence requirements")
+            raise InvalidInputError("prospective content cannot change author policy or evidence requirements")
     differences = materialization_differences(original, prospective)
     if {item.field_pointer for item in differences} != {item.field_pointer for item in report.effects}:
-        raise ValueError("prospective effects must exactly cover materialization differences")
+        raise InvalidInputError("prospective effects must exactly cover materialization differences")
     source_scope = _scope_resolver(original)
     prospective_scope = _scope_resolver(prospective)
     policy = _canonical_policy(original.augmentation_scope, source_scope)
@@ -165,7 +167,12 @@ def _scope_resolver(content: ScenarioContent) -> ScopeResolver:
 
     @cache
     def resolve(scope: str) -> tuple[str, tuple[str, ...]]:
-        canonical = canonical_semantic_address(scope, value, collection_profiles=profiles)
+        # The address helper refuses with ValueError (E3); a report scope that does not
+        # resolve is invalid admission input (E9).
+        try:
+            canonical = canonical_semantic_address(scope, value, collection_profiles=profiles)
+        except ValueError as exc:
+            raise InvalidInputError("augmentation scope does not resolve in the scenario") from exc
         return canonical, semantic_scope_namespace(value, canonical)
 
     return resolve
@@ -186,7 +193,7 @@ def _require_requirement_references(references: tuple[str, ...], resolve: ScopeR
             continue
         tokens = reference.split("/")
         if len(tokens) != 3 or tokens[1] not in {"evidence_requirements", "objectives", "assertions", "propositions"}:
-            raise ValueError("augmentation requirement must name an admitted requirement")
+            raise InvalidInputError("augmentation requirement must name an admitted requirement")
         resolve(reference)
 
 
@@ -249,10 +256,7 @@ def _ordinary_selection(
         declaration_names={"nodes": original.nodes, "content": original.content}
     ):
         descriptor = registered.descriptor
-        pointer = "/" + "/".join(
-            token.replace("~", "~0").replace("/", "~1")
-            for token in (descriptor.section, registered.declaration_name, *descriptor.authored_path)
-        )
+        pointer = pointer_from_tokens((descriptor.section, registered.declaration_name, *descriptor.authored_path))
         if descriptor.concern_kind in ordinary and pointer == difference.field_pointer:
             return any(
                 authority.field_path == registered.field_path

@@ -24,7 +24,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "e89fe507a6b8ccef0b262b74b1f6ca7752a10bd4e41e66c778696fe6632fdf83"
+      "content_sha256": "b24f6e298fc3c37f9a74d09adf0a413115d2701c9992707fc594856fc42f628a"
     }
   ],
   "records": [
@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "93cd469a00c37e24ae0b0dca489a841876897e672aa82f130e1b2b156b47261e"
+      "content_sha256": "c7c49c04b11e0edb034057c843dc73d3f8e3399079213373b904c81d3b2b17f7"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -96,7 +96,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 27,
-      "content_sha256": "4f638d54b3fb6d3a7ce7689088e6b474114265784b9554e3bc92622703778401"
+      "content_sha256": "9e35bef2cfcd6171f52713ad745fdc64e8ba80b4b8d6ae2f3596f5789d2581f4"
     },
     {
       "path": "docs/decisions/adrs/adr-016-semantic-layer-scope-and-coverage-model.md",
@@ -331,17 +331,17 @@
     },
     {
       "path": "docs/decisions/adrs/adr-063-reference-emulation-backend.md",
-      "record_class": "accepted-adr",
+      "record_class": "dated-design-record",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 13,
-      "content_sha256": "7c82b434119b802f8acc7c23148811316b21754fac39798b5790ff5e65bb2415"
+      "content_sha256": "620a55b1f25b0b16cc61d97b3f82bf61ede68788ec8addf42f56093776c194ae"
     },
     {
       "path": "docs/decisions/adrs/adr-065-experiment-run-provenance-contract-boundary.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1630 complete experiment accounting amendment.",
       "occurrences": 1,
-      "content_sha256": "c1367c7aaa834b73fcd5d992d0ed8a406af24196d11321e8f8ccb4912e7f2683"
+      "content_sha256": "b579182ce8c13098a282cf996ffce3015fda76c679e81fd0e8e2a09fca4a0c86"
     },
     {
       "path": "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md",
@@ -353,9 +353,9 @@
     {
       "path": "docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1630 complete experiment accounting amendment.",
       "occurrences": 2,
-      "content_sha256": "82bedbc4d5ab7652f35a1458f34a8052133fdb93258a8e0b26ce9e144672db0f"
+      "content_sha256": "3c29e3670e884622c4061bf61be802a8efe78c3f0633ba1ee48715a42d19ff6b"
     },
     {
       "path": "docs/decisions/adrs/adr-069-cage-2-replication-architecture.md",
@@ -479,9 +479,9 @@
     {
       "path": "docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1740 invocation tool-action amendment.",
       "occurrences": 1,
-      "content_sha256": "f7837743e16cd93631f44df5992e90daf6a5e48c270683504ea518ab21c291fc"
+      "content_sha256": "c0b2643a15581d527918a4f83a96e4e8b08a8bf34ccbfcc350c445aac5ebda4f"
     },
     {
       "path": "docs/decisions/adrs/adr-093-raes-rename-and-compatibility-boundaries.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008 and issue-1740 amendments, the PR-1752 ADR-117 amendment and their pins.",
       "occurrences": 4,
-      "content_sha256": "d00fd5d91e9a86cde9bedfa30f71fb7af4697d557388c202c97254ae0f9d111c"
+      "content_sha256": "26a9e4dd1220d44d5e71b188ce31a1ff68249ac38b9d2f6df224bdbb48739fee"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
@@ -1783,7 +1783,7 @@
       "record_class": "lifecycle-record",
       "rationale": "Preserves the exact retired distribution identifier in its governed deprecation and removal record.",
       "occurrences": 2,
-      "content_sha256": "7c9e576186229320cd5b96f463adfffb6a7b6958bc75d69f5c50e362ce6c09fc"
+      "content_sha256": "22dc2951e78fc684eade138f41892e43e67729c5fe6d6c19cd3bba97a939b9ff"
     }
   ]
 }

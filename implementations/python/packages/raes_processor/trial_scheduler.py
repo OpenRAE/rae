@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import TypeVar
 
 from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts import (
@@ -35,9 +34,12 @@ from raes_contracts.contracts import (
     validate_scheduler_isolation_proof,
 )
 from raes_contracts.contracts.trial_cleanup import TrialOutcome
-from raes_contracts.contracts.trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_entry_order
-
-_T = TypeVar("_T")
+from raes_contracts.contracts.trial_coordinate_order import (
+    CANONICAL_ORDER_POLICY_ID,
+    canonical_entry_order,
+    scheduling_policy_id,
+)
+from raes_contracts.errors import InvalidInputError, NotFoundError
 
 
 @dataclass(frozen=True)
@@ -124,14 +126,14 @@ def plan_batch_schedule(plan: AdmittedTrialPlanModel) -> BatchSchedule:
     return BatchSchedule(
         plan_id=admitted.plan_id,
         plan_digest=admitted.plan_digest,
-        scheduling_policy_id=CANONICAL_ORDER_POLICY_ID,
+        scheduling_policy_id=scheduling_policy_id(admitted),
         admitted_parallelism_ceiling=ceiling,
         isolation_proof_ref=proof_ref,
         entries=scheduled,
     )
 
 
-def dispatch_batch_schedule(schedule: BatchSchedule, *, realize: Callable[[str], _T]) -> list[_T]:
+def dispatch_batch_schedule[T](schedule: BatchSchedule, *, realize: Callable[[str], T]) -> list[T]:
     """Commit dispatch decisions in canonical order over the one-entry seam.
 
     One serialized coordinator calls ``realize`` once per scheduled entry, in
@@ -164,9 +166,9 @@ def build_batch_execution_receipt(
     grant = grant if grant is not None else AllocatorGrant()
     scheduled = next((entry for entry in schedule.entries if entry.plan_entry_id == plan_entry_id), None)
     if scheduled is None:
-        raise ValueError("plan_entry_id is not part of the batch schedule")
+        raise NotFoundError("plan_entry_id is not part of the batch schedule")
     if grant.effective_parallelism > schedule.admitted_parallelism_ceiling:
-        raise ValueError("effective_parallelism cannot exceed the schedule's admitted parallelism ceiling")
+        raise InvalidInputError("effective_parallelism cannot exceed the schedule's admitted parallelism ceiling")
     parallel = grant.effective_parallelism > 1
     proof_ref = grant.isolation_proof_ref
     if parallel and proof_ref is None:

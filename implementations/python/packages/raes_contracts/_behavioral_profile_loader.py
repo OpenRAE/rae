@@ -8,20 +8,26 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import ValidationError
 from raes.identifiers import is_portable_identifier
 
 if TYPE_CHECKING:
     from .behavioral_relation_profiles import BehavioralRelationProfileModel
+from .behavioral_authority_errors import BehavioralAuthorityArtifactError, BehavioralAuthorityUnsupportedError
 from .corpus import PROFILES, corpus_family_root
-from .json_ingress import parse_bounded_json_object
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from .operational_logging import get_logger
 
+_LOGGER = get_logger(__name__)
 _MAX_PROFILE_BYTES = 256 * 1024
+_PROFILE_INVALID = "behavioral relation profile JSON or contract is invalid"
 SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS = frozenset(
     {
         "participant-opacity-baseline-v1",
         "participant-opacity-runtime-reference-v1",
         "participant-opacity-theorem-v1",
         "participant-crossing-dpbb-finite-v1",
+        "participant-crossing-multi-operation-dpbb-finite-v1",
     }
 )
 
@@ -32,9 +38,11 @@ def behavioral_relation_profiles_root() -> Path:
 
 def _validate_profile_id(profile_id: str) -> None:
     if not is_portable_identifier(profile_id):
-        raise ValueError("requested behavioral relation profile id must be a portable identifier")
+        raise BehavioralAuthorityUnsupportedError(
+            "requested behavioral relation profile id must be a portable identifier"
+        )
     if profile_id not in SUPPORTED_BEHAVIORAL_RELATION_PROFILE_IDS:
-        raise ValueError("requested behavioral relation profile is unsupported")
+        raise BehavioralAuthorityUnsupportedError("requested behavioral relation profile is unsupported")
 
 
 def behavioral_relation_profile_path(profile_id: str) -> Path:
@@ -55,17 +63,21 @@ def load_behavioral_relation_profile_from_path(
         descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
         with os.fdopen(descriptor, "rb") as stream:
             if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
-                raise ValueError("profile must be a regular file")
+                raise BehavioralAuthorityArtifactError(_PROFILE_INVALID)
             content = stream.read(_MAX_PROFILE_BYTES + 1)
         payload = parse_bounded_json_object(
             content,
             max_bytes=_MAX_PROFILE_BYTES,
         )
         profile = BehavioralRelationProfileModel.model_validate(payload)
-    except (OSError, ValueError):
-        raise ValueError("behavioral relation profile JSON or contract is invalid") from None
+    except OSError, StrictJsonIngressError, ValidationError:
+        # A trusted profile path fails here only when the artifact or installation is damaged.
+        _LOGGER.exception("behavioral relation profile %s failed bounded ingress", profile_id)
+        raise BehavioralAuthorityArtifactError(_PROFILE_INVALID) from None
     if profile.profile_id != profile_id:
-        raise ValueError("behavioral relation profile artifact identity does not match the requested profile")
+        raise BehavioralAuthorityArtifactError(
+            "behavioral relation profile artifact identity does not match the requested profile"
+        )
     return profile
 
 
@@ -105,9 +117,11 @@ def load_behavioral_relation_profile_revision(
     if historical_path is not None:
         profile = load_behavioral_relation_profile_from_path(profile_id, historical_path)
         if profile.profile_revision != profile_revision:
-            raise ValueError("historical behavioral relation profile revision does not match its registry entry")
+            raise BehavioralAuthorityArtifactError(
+                "historical behavioral relation profile revision does not match its registry entry"
+            )
         return profile
     current = load_behavioral_relation_profile(profile_id)
     if current.profile_revision == profile_revision:
         return current
-    raise ValueError("requested behavioral relation profile revision is unsupported")
+    raise BehavioralAuthorityUnsupportedError("requested behavioral relation profile revision is unsupported")

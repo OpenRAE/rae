@@ -19,9 +19,6 @@ CANONICAL_PATH = WORKFLOWS / "canonical-verification.yml"
 CI_PATH = WORKFLOWS / "ci.yml"
 RELEASE_PATH = WORKFLOWS / "release-please.yml"
 RELEASE_CONFIG_PATH = REPO_ROOT / "release-please-config.json"
-DOCKER_INTEGRATION_PATH = (
-    REPO_ROOT / "implementations" / "python" / "tests" / "test_reference_backend_docker_integration.py"
-)
 
 LOCAL_CANONICAL_WORKFLOW = "./.github/workflows/canonical-verification.yml"
 
@@ -368,6 +365,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "integration",
         "checks",
         "proof",
+        "model-check",
         "coverage-reduce",
         "sonar",
         "gate",
@@ -375,7 +373,8 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
 
     # Deterministic concurrent shards of the default-marker suite.
     shard = workflow["jobs"]["test-shard"]
-    assert shard["strategy"]["matrix"]["shard"] == [0, 1, 2, 3]
+    assert shard["strategy"]["matrix"]["shard"] == list(range(int(workflow["env"]["RAES_CI_SHARD_COUNT"])))
+    assert workflow["env"]["RAES_CI_SHARD_COUNT"] == "8"
     assert shard["strategy"]["fail-fast"] is False
     shard_run = _named_step(shard, "Run deterministic test shard")
     assert "nox -f noxfile.py -s verify-shard" in shard_run["run"]
@@ -399,6 +398,8 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     )
     assert "fetch-inputs" in carrier["run"]
     assert "proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle" in carrier["run"]
+    assert "--locator-ref official-isabelle-release" in carrier["run"]
+    assert "official-isabelle-cambridge-mirror" not in carrier["run"]
     acquire = _named_step(proof, "Admit the carried Isabelle archive with egress denied")["run"]
     assert acquire.startswith("bwrap --dev-bind / / --unshare-net --die-with-parent ")
     assert "implementations/tooling/python/.venv/bin/python -m tools.isabelle_tool acquire" in acquire
@@ -435,7 +436,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The full gate is an explicit fail-closed aggregate that distinguishes skips.
     gate = workflow["jobs"]["gate"]
     assert gate["if"] == "always()"
-    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "coverage-reduce"}
+    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "model-check", "coverage-reduce"}
 
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
@@ -455,7 +456,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     # dev/main branch protection requires the `verify` and `sonar` contexts. Both
     # are now decoupled joins over the reusable graph's outcomes (#935).
     verify = workflow["jobs"]["verify"]
-    assert verify["needs"] == "canonical"
+    assert verify["needs"] == ["canonical", "runtime-supervision"]
     assert verify["if"] == "always()"
     verify_join = _named_step(verify, "Preserve the required canonical verification status")
     assert verify_join["env"]["GATE_OUTCOME"] == "${{ needs.canonical.outputs.gate-outcome }}"
@@ -475,19 +476,19 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "github.actor != 'dependabot[bot]'" in reusable_sonar["if"]
     assert reusable_sonar["needs"] == "coverage-reduce"
 
-    interpreters = workflow["jobs"]["interpreters"]
-    assert interpreters["strategy"]["matrix"]["python"] == [
-        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
-        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
-        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
-        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
-    ]
-    assert interpreters["env"] == {
-        "UV_PYTHON": "${{ matrix.python.payload }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
-        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
+    # CPython 3.14 is the only supported interpreter. The canonical graph runs the
+    # full suite on it, so this job only checks the runtime and the clean
+    # distribution (#1672).
+    distribution = workflow["jobs"]["distribution"]
+    assert distribution["name"] == "CPython 3.14 compatibility"
+    assert "strategy" not in distribution
+    assert distribution["env"] == {
+        "UV_PYTHON": "3.14.7",
+        "RAES_EXPECTED_PYTHON": "3.14",
+        "RAES_PYTHON_CLOSURE_PROFILE": "public-linux-x86_64-cp314-all-extras",
+        "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY": "1",
     }
-    compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
+    compatibility = _named_step(distribution, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]
 
 
@@ -624,9 +625,8 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
     workflow = _load(RELEASE_PATH)
     jobs = workflow["jobs"]
     build = jobs["build-release"]
-    assert set(build["needs"]) == {"resolve-release", "verify-release", "integration-docker-release"}
+    assert set(build["needs"]) == {"resolve-release", "verify-release"}
     assert "needs.verify-release.result == 'success'" in build["if"]
-    assert "needs.integration-docker-release.result == 'success'" in build["if"]
     assert build["permissions"] == {"contents": "read"}
 
     checkout = build["steps"][0]
@@ -648,7 +648,7 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
 
     build_script = _named_step(build, "Build constrained release distributions")["run"]
     assert "tools.python_closure build" in build_script
-    assert "--profile public-linux-x86_64-cp312-all-extras" in build_script
+    assert "--profile public-linux-x86_64-cp314-all-extras" in build_script
     assert "uv build" not in build_script
 
     for smoke_index, distribution in ((wheel_smoke_index, "wheel"), (sdist_smoke_index, "sdist")):
@@ -666,41 +666,6 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
         assert f"installed release {distribution}" in smoke
 
 
-def test_release_requires_skip_free_real_docker_tests_at_the_exact_sha() -> None:
-    release = _load(RELEASE_PATH)
-    docker = release["jobs"]["integration-docker-release"]
-    assert set(docker["needs"]) == {"resolve-release", "verify-release"}
-    assert "needs.verify-release.result == 'success'" in docker["if"]
-    assert docker["permissions"] == {"contents": "read"}
-    assert "continue-on-error" not in docker
-
-    checkout = docker["steps"][0]
-    assert checkout["with"]["ref"] == "${{ needs.resolve-release.outputs.release_sha }}"
-    binding = _named_step(docker, "Bind real-container testing to the exact release commit")["run"]
-    assert 'actual_sha="$(git rev-parse HEAD)"' in binding
-    assert '"${actual_sha}" != "${EXPECTED_SHA}"' in binding
-
-    required = _named_step(docker, "Require real-container release integration")
-    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
-    required_script = required["run"]
-    assert "-s integration_docker -- --junitxml=" in required_script
-    assert "if not cases:" in required_script
-    assert "if skipped:" in required_script
-    assert "collected zero tests" in required_script
-    assert "skipped tests" in required_script
-
-    fixture = DOCKER_INTEGRATION_PATH.read_text(encoding="utf-8")
-    assert "RAES_DOCKER_INTEGRATION_REQUIRED" in fixture
-    assert "pytest.fail" in fixture
-    # The reviewed image identity is lock data, not a literal in the harness.
-    assert "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc" not in fixture
-    assert "oci_release_image.locked_platform_graphs()" in fixture
-
-    optional = _load(CI_PATH)["jobs"]["integration-docker"]
-    assert optional["continue-on-error"] is True
-    assert "RAES_DOCKER_INTEGRATION_REQUIRED" not in str(optional)
-
-
 def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> None:
     workflow = _load(RELEASE_PATH)
     jobs = workflow["jobs"]
@@ -708,14 +673,12 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     assert set(publish_pypi["needs"]) == {
         "resolve-release",
         "verify-release",
-        "integration-docker-release",
         "build-release",
         # Absent or rejected evidence must block the handoff, so admission is a
         # predecessor of publication rather than an optional report (#1226).
         "admit-release",
     }
     assert "needs.verify-release.result == 'success'" in publish_pypi["if"]
-    assert "needs.integration-docker-release.result == 'success'" in publish_pypi["if"]
     assert "needs.build-release.result == 'success'" in publish_pypi["if"]
     assert "github.ref == 'refs/heads/main'" in publish_pypi["if"]
     assert publish_pypi["environment"] == "pypi"
@@ -1210,7 +1173,6 @@ def test_canonical_exact_commit_gate_executes_and_rejects_a_different_checkout(
 @pytest.mark.parametrize(
     ("job_name", "step_name", "mismatch_message"),
     [
-        ("integration-docker-release", "Bind real-container testing to the exact release commit", "checkout mismatch"),
         ("build-release", "Reconfirm the exact verified release checkout", "Publish checkout mismatch"),
     ],
 )

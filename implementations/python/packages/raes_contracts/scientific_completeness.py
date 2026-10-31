@@ -89,6 +89,16 @@ class CompletenessProfileModel(ContractModel):
 
     @model_validator(mode="after")
     def validate_behavioral_claims(self) -> CompletenessProfileModel:
+        from .behavioral_authority_errors import BehavioralAuthorityArtifactError
+
+        try:
+            self._check_behavioral_claims()
+        except BehavioralAuthorityArtifactError as exc:
+            # A Pydantic validator raises only ValueError (E3); the loader has logged the damage.
+            raise ValueError("the packaged behavioral relation authority is damaged") from exc
+        return self
+
+    def _check_behavioral_claims(self) -> None:
         from .behavioral_relations import load_behavioral_relation_catalog, validate_behavioral_claim_binding
 
         catalog = load_behavioral_relation_catalog()
@@ -104,7 +114,6 @@ class CompletenessProfileModel(ContractModel):
             raise ValueError(f"relations cannot be both claimed and explicitly non-claimed: {overlap}")
         for claim in self.behavioral_claims:
             validate_behavioral_claim_binding(claim)
-        return self
 
 
 class ScientificCompletenessTaxonomyModel(ContractModel):

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime
 from types import MappingProxyType
 
 from raes_contracts.contracts.runtime_facts import (
@@ -12,6 +11,11 @@ from raes_contracts.contracts.runtime_facts import (
     RuntimeFactBindingSelectionModel,
     RuntimeFactSinkModel,
 )
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.timestamps import parse_offset_datetime
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -33,7 +37,7 @@ class RuntimeFactBindingAdmission:
             raise ValueError("trusted binding admission requires authority_refs")
         if not self.selections:
             raise ValueError("trusted binding admission requires compiled selections")
-        _parse_datetime(self.requested_at)
+        parse_offset_datetime(self.requested_at, "requested_at")
         sink_ids = [selection.sink.sink_id for selection in self.selections]
         target_fields = [selection.sink.target_field for selection in self.selections]
         if len(sink_ids) != len(set(sink_ids)):
@@ -64,7 +68,7 @@ class _RuntimeFactDispatchBinding:
     secret_ref: str | None
 
 
-class _RuntimeFactDispatchFailure(RuntimeError):
+class _RuntimeFactDispatchFailure(RaesError):
     def __init__(self, disposition: RuntimeFactBindingDisposition) -> None:
         super().__init__(disposition.value)
         self.disposition = disposition
@@ -104,16 +108,14 @@ class RuntimeFactDispatchCommand:
         except _RuntimeFactDispatchFailure:
             raise
         except Exception as exc:
+            # Isolation of the trusted send callback: the disposition replaces its failure.
+            _LOGGER.exception("runtime fact dispatch callback failed", exc_info=foreign_failure_record(exc))
             raise _RuntimeFactDispatchFailure(RuntimeFactBindingDisposition.DISPATCH_FAILED) from exc
         finally:
             inputs.clear()
 
     def __repr__(self) -> str:
         return "RuntimeFactDispatchCommand(<protected>)"
-
-
-def _parse_datetime(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00").replace("z", "+00:00"))
 
 
 def _value_matches_type(value: object, value_type: str) -> bool:
@@ -141,6 +143,8 @@ def _materialize_binding(
         try:
             value = secret_resolver(binding.secret_ref)
         except Exception as exc:
+            # Isolation of the secret resolver: the record stays value-free, and the disposition replaces it.
+            _LOGGER.exception("runtime fact secret resolution failed", exc_info=foreign_failure_record(exc))
             raise _RuntimeFactDispatchFailure(RuntimeFactBindingDisposition.SECRET_UNAVAILABLE) from exc
     if value is None:
         raise _RuntimeFactDispatchFailure(RuntimeFactBindingDisposition.SECRET_UNAVAILABLE)

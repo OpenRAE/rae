@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from tools import pytest_shard_plugin
 from tools.pytest_shard import (
     MAX_SHARD_COUNT,
@@ -31,7 +32,7 @@ def _manifests(nodeids: list[str], shard_count: int, *, source_sha: str = "abc")
         ShardManifest(
             algorithm_version=SHARD_ALGORITHM_VERSION,
             source_sha=source_sha,
-            suite_expression="not fuzz and not integration and not docker",
+            suite_expression="not fuzz and not integration",
             shard_count=shard_count,
             shard_index=index,
             node_ids=tuple(owned_nodeids(nodeids, shard_count, index)),
@@ -113,6 +114,38 @@ def test_manifest_from_dict_requires_fields() -> None:
         ShardManifest.from_dict({"shard_index": 0})
     with pytest.raises(ShardManifestError):
         ShardManifest.from_dict("not a mapping")
+
+
+def test_shard_errors_are_categories_not_builtins() -> None:
+    assert issubclass(ShardConfigurationError, InvalidInputError)
+    assert issubclass(ShardManifestError, EvidenceIntegrityError)
+    assert not issubclass(ShardConfigurationError, ValueError)
+    assert not issubclass(ShardManifestError, ValueError)
+
+
+def test_manifest_from_dict_names_every_missing_field() -> None:
+    with pytest.raises(
+        ShardManifestError,
+        match="^shard manifest is missing required fields: algorithm_version, source_sha, suite_expression, "
+        "shard_count, node_ids$",
+    ):
+        ShardManifest.from_dict({"shard_index": 0})
+
+
+def test_manifest_from_dict_refuses_a_non_array_node_id_set() -> None:
+    manifest = _manifests(_SUITE, 2)[0].to_dict()
+    manifest["node_ids"] = 7
+    with pytest.raises(ShardManifestError, match="node_ids must be a JSON array"):
+        ShardManifest.from_dict(manifest)
+
+
+def test_read_manifest_message_omits_the_decoder_detail(tmp_path: Path) -> None:
+    path = tmp_path / "broken.json"
+    path.write_bytes(b"\xffsecret-sentinel")
+    with pytest.raises(ShardManifestError) as raised:
+        read_manifest(path)
+    assert str(raised.value) == f"could not read shard manifest {path}"
+    assert isinstance(raised.value.__cause__, UnicodeDecodeError)
 
 
 def test_verify_accepts_a_complete_disjoint_partition() -> None:

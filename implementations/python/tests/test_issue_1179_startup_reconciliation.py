@@ -21,6 +21,7 @@ from raes_backend_protocols.recovery_observation import (
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.contracts import BackendManifestV2Model, schema_bundle
 from raes_contracts.diagnostics import Severity
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
@@ -423,7 +424,7 @@ def test_resolution_creates_fresh_linked_operation_and_unblocks_mutation_without
     indeterminate = store.load_records()[parent.receipt.operation_id]
     blocked_plan = ProvisioningPlan()
 
-    with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+    with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
         control_plane.submit_provisioning(blocked_plan, idempotency_key="blocked-effect")
     child_receipt = control_plane.resolve_indeterminate_operation(
         parent.receipt.operation_id,
@@ -449,7 +450,7 @@ def test_runtime_rejects_a_persisted_operation_from_another_run_scope() -> None:
     parent = _record("other-run-parent-1179", run_scope="run:other")
     store = _store_with(parent)
     target = _target()
-    with pytest.raises(RuntimeError, match="persisted operation scope does not match"):
+    with pytest.raises(ConflictError, match="persisted operation scope does not match"):
         RuntimeControlPlane(target, store=store)
 
 
@@ -470,7 +471,7 @@ def test_resolution_retry_is_idempotent_and_already_resolved_parent_rejects_a_ne
     assert sum(event.operation_id == first.operation_id for event in store.read_audit()) == 1
     operator = _operator()
 
-    with pytest.raises(ValueError, match="already resolved"):
+    with pytest.raises(ConflictError, match="already resolved"):
         control_plane.resolve_indeterminate_operation(
             parent.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
@@ -487,7 +488,7 @@ def test_participant_subject_scope_is_reauthorized_before_resolution_claim() -> 
     control_plane = RuntimeControlPlane(_target(), store=store)
     operator = _operator()
 
-    with pytest.raises(PermissionError):
+    with pytest.raises(AuthorizationError):
         control_plane.resolve_indeterminate_operation(
             parent.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
@@ -535,7 +536,7 @@ def test_core_resolution_denial_creates_no_child_claim(identity: ControlPlaneIde
     store = _store_with(parent)
     control_plane = RuntimeControlPlane(_target(), store=store)
 
-    with pytest.raises(PermissionError):
+    with pytest.raises(AuthorizationError):
         control_plane.resolve_indeterminate_operation(
             parent.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,

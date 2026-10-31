@@ -1,8 +1,7 @@
 """Portable participant action commit helpers for backend runtimes."""
 
-from hashlib import sha256
-
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.digests import sha256_digest
 from raes_contracts.participant_binding import (
     ParticipantActionAdmissionRequest,
     ParticipantActionApplyResult,
@@ -24,7 +23,7 @@ def participant_binding_post_state_digest(request: ParticipantActionAdmissionReq
             (str(request.execution_generation) if request.execution_generation is not None else ""),
         )
     )
-    return "sha256:" + sha256(digest_input.encode("utf-8")).hexdigest()
+    return sha256_digest(digest_input.encode("utf-8"))
 
 
 def as_participant_action_result(result: ApplyResult) -> ParticipantActionApplyResult:

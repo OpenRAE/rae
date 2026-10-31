@@ -12,12 +12,31 @@ from collections.abc import Iterator, Mapping, Sequence
 from pydantic import ValidationError
 
 from .contracts.participant_control_composition import ParticipantControlEvaluationModel
+from .contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+
+
+def participant_control_evaluation_from_payload(
+    payload: Mapping[str, object],
+) -> ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model:
+    """Select the exact recorded interpretation; never upgrade retained records."""
+    version = payload.get("schema_version")
+    models = {
+        "participant-control-evaluation/v1": ParticipantControlEvaluationModel,
+        "participant-control-evaluation/v2": ParticipantControlEvaluationV2Model,
+    }
+    if version not in models:
+        raise ValueError("unsupported participant control evaluation interpretation")
+    return models[version].model_validate(payload)
 
 
 def iter_participant_control_evaluation_snapshot_violations(
     history: Mapping[str, Sequence[dict[str, object]]],
 ) -> list[tuple[str, str]]:
     """Return value-safe violations for one complete evaluation-history snapshot."""
+    from .immutable_history import HistoryMap
+
+    if type(history) is HistoryMap and history._field == "participant_control_evaluation_history":
+        return []
 
     violations: list[tuple[str, str]] = []
     seen: set[str] = set()
@@ -44,10 +63,10 @@ def _validated(
     payload: dict[str, object],
     address: str,
     violations: list[tuple[str, str]],
-) -> ParticipantControlEvaluationModel | None:
+) -> ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model | None:
     try:
-        return ParticipantControlEvaluationModel.model_validate(payload)
-    except (TypeError, ValidationError, ValueError):
+        return participant_control_evaluation_from_payload(payload)
+    except TypeError, ValidationError, ValueError:
         # Bounded and value-independent: a rejected record never enters evidence.
         violations.append((address, "participant control evaluation record is not a valid API-424 evaluation"))
         return None
@@ -67,7 +86,7 @@ def iter_participant_control_evaluation_transition_violations(
     for participant_address, prior in before.items():
         address = f"runtime.snapshot.participant-control-evaluation-history.{participant_address}"
         current = after.get(participant_address)
-        if current is None or list(current) != list(prior):
+        if current is None or current != prior:
             yield address, "participant control evaluation history is runtime-owned and must be preserved exactly"
     for participant_address in set(after) - set(before):
         address = f"runtime.snapshot.participant-control-evaluation-history.{participant_address}"

@@ -35,9 +35,16 @@ dependency inputs. Those contracts keep the complete admitted apparatus
 separate from the slots applicable at one state cut, require profile-owned
 coverage and explicit input support, and separate parent decisions from
 effect prerequisites. They require exact protocol/schema negotiation and a
-trusted operator resolver. The current reference runtime and retained v1
-history continue to use provider/v1; v2 publication alone does not activate
-v2 scheduling, state commit or effect dispatch. See the
+trusted operator resolver. The reference runtime can explicitly admit a v2
+binding and evaluate its applicable slots in dependency order. Required inputs
+and support must be satisfied; optional failure is recorded without blocking
+an otherwise permitted crossing. Scoped state and the evaluation join the
+existing atomic crossing commit. Retained v1 records keep their original
+interpretation. V2 admits only effects with an installed, exactly bound owner.
+Its drain supports fresh world injects, compiled handoffs and evidenced
+cancellation of execution attempts. Parent denial applies before execution;
+independent consequences need their own authority. Evaluation eligibility
+supplies no effect permission. See the
 [migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
 
 | Plane | What it contains | What it does not imply |
@@ -65,11 +72,14 @@ participant-control intent in:
 - simulation or emulation/operation as alternative realizations; and
 - simulation and emulation/operation together in one admitted trial.
 
-Issue #1013 publishes SEM-234's revisioned semantic definition and finite
-admission/phase examples. ASR-537's realization demonstration remains DRAFT.
-This does not mean current RAES runtimes can execute a mixed trial.
+Issue #1013 publishes SEM-234's revisioned semantic definition and finite admission examples.
+The installed runtime now executes simultaneous mixed arrangements and staged handoffs.
+The [mixed-control demonstration](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/mixed-control-demonstration.md)
+checks these paths with controlled test providers.
+It establishes no native backend qualification or simulation-to-operation transfer.
+The broader ASR-537 research requirement remains DRAFT.
 
-Portable SDL stays backend-neutral. Future admitted trial intent will allocate
+Portable SDL stays backend-neutral. Admitted trial intent allocates
 stable participant-runtime, controlled-scope, action-family,
 observation-source, and crossing refs to exact apparatus components. Every
 component edge must state its adapter, authority, action/observation mapping,
@@ -113,8 +123,11 @@ Neither kind erases prior delivery or participant knowledge.
 
 Do not treat a shared adapter, passing conformance probe, paired backend run,
 or successful transfer trial as backend equivalence. The contract, runtime and
-evidence work is tracked by issues #1014 through #1019. See the
-[issue #813 design record](https://github.com/OpenRAE/rae/issues/813).
+evidence have separate owners and limits. Reusable control combined with mixed runtime remains refused.
+Distributed dispatch combined with local portable mixed services also remains refused.
+See the [current support reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/revised-control-semantics.md),
+[migration checklist](https://github.com/OpenRAE/rae/blob/dev/docs/migration/revised-control.md),
+and [executable examples](https://github.com/OpenRAE/rae/blob/dev/docs/examples/revised-control.md).
 
 ## Choose the route for your role
 
@@ -221,9 +234,9 @@ target may test. Keep the target and profile in the report. Keep the probe-set
 digest and case IDs. Keep the finite scope, errors, and real support. A feature
 without an allowed probe result is `unsupported`. It is not conformant.
 
-The shipped reference backend currently declares all six participant-policy
-features `unsupported`. Some tests use stronger manifests. Those tests do not
-turn the reference backend into a native implementation. Start with the
+The stub test double declares all six participant-policy features
+`unsupported`. Some tests use stronger manifests. Those tests do not make the
+stub a native implementation. RAES ships no concrete backend. Start with the
 [backend guide](backends.md). Then read the
 [feature-admission implementation](https://github.com/OpenRAE/rae/blob/main/implementations/python/packages/raes_backend_protocols/participant_feature_admission.py),
 and
@@ -379,7 +392,7 @@ examples in this guide:
     "implementations/python/tests/test_asr_535_participant_flow_assurance.py"
   ],
   "limitations": [
-    "The reference backend declares all participant-policy features unsupported; positive paths use explicit test manifests."
+    "The stub test double declares all participant-policy features unsupported; positive paths use explicit test manifests."
   ],
   "explicit_non_claims": [
     "Does not establish universal participant-policy noninterference or participant-projected history equivalence.",
@@ -434,12 +447,33 @@ serialized or delivered. A monitor score is evidence or advice, never
 authorization. Missing labels, provenance, profile support, or a stable state
 cut fail closed.
 
-The companion DRAFT evaluation profile distinguishes honest and attack modes
+The companion evaluation profile distinguishes honest and attack modes
 and makes objectives, policy/monitor knowledge, adaptation, collusion, audit
 budgets, monitor correlation, interventions, memory, safety, usefulness, cost,
 uncertainty, and limitations explicit.
 
-This is design authority, not a delivered robustness claim. Runtime and
-backend enforcement, attack evaluations, monitor honesty, model alignment,
-private reasoning, and undeclared covert channels remain unclaimed. See the
-[issue #812 design record](https://github.com/OpenRAE/rae/issues/812).
+RAE now has a backend-neutral harness for seven finite cases.
+It exercises an honest baseline, permitted injection, a correlation negative control,
+exfiltration denial, adaptive denial with replay, handoff denial, and apparatus invalidation.
+A permitted attack can succeed without violating the selected policy.
+Apparatus invalidation is not a successful safety observation.
+
+The [evaluation evidence guide](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/adversarial-control-evaluation.md)
+records exact source and configuration bindings, separate measures, reproduction, and unsupported conditions.
+RAE evaluation does not require a concrete backend implementation.
+Concrete backend claims still require their own exact realization evidence.
+These finite results establish no universal robustness, monitor honesty, model alignment,
+private-reasoning safety, opacity, bisimulation, or undeclared-channel control.
+
+## Finite owner-qualified information flow profiles
+
+The governed `participant-owner-flow-policy-v1@rev1` profile preserves two
+independent owners' confidentiality and integrity clauses. Each owner can release
+only its own obligations through independently resolved authority. Combined
+information retains both owners' restrictions and its source provenance.
+
+An operator must admit the exact profile and supported implementation, coverage
+and guarantees before use. Unsupported owner distinctions are rejected; losing
+an admitted guarantee blocks the affected operation. The original security
+profile keeps its existing meaning. Selecting a profile does not install a
+provider or establish that an external release operation has occurred.

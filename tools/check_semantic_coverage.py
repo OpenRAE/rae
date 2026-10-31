@@ -63,9 +63,16 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
 
@@ -141,7 +148,7 @@ _PACKAGES_ROOT = "implementations/python/packages"
 _ASSERTION_NAME_HINTS: tuple[str, ...] = ("assert", "raises", "warns", "deprecated_call", "fail", "xfail")
 
 
-class CoverageParseError(ValueError):
+class CoverageParseError(InvalidInputError):
     """The coverage note's Coverage Model section or table is missing or malformed."""
 
 
@@ -432,7 +439,7 @@ def _check_adr_links_note(repo_root: Path) -> list[PolicyFailure]:
 def _safe_parse(path: Path) -> ast.Module | None:
     try:
         return ast.parse(path.read_text(encoding="utf-8"))
-    except (OSError, SyntaxError, ValueError):
+    except OSError, SyntaxError, UnicodeDecodeError:
         return None
 
 
@@ -731,24 +738,31 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
-    if args.report:
-        print(build_coverage_report(args.repo_root, args.note_path))
-        return 0
+def _evaluate(args: argparse.Namespace) -> list[PolicyFailure]:
     failures = evaluate_semantic_coverage(args.repo_root, args.note_path)
     exceptions_file = args.repo_root / "tools" / "policy" / "exceptions.yaml"
     if exceptions_file.is_file():
         failures = apply_exceptions(failures, load_exceptions(args.repo_root))
-    if failures:
-        if args.json:
-            print(failures_to_json(failures))
-        else:
-            for failure in failures:
-                print(failure.render(), file=sys.stderr)
+    return failures
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        report = build_coverage_report(args.repo_root, args.note_path) if args.report else None
+        failures = [] if args.report else _evaluate(args)
+    except (OSError, UnicodeDecodeError, yaml.YAMLError, InvalidInputError) as exc:
+        print(f"semantic-coverage: {exc}", file=sys.stderr)
         return 1
-    return 0
+    if report is not None:
+        print(report)
+    elif failures and args.json:
+        print(failures_to_json(failures))
+    else:
+        for failure in failures:
+            print(failure.render(), file=sys.stderr)
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

@@ -399,7 +399,7 @@ class RuntimeMailSetting(SDLModel):
         return absolute_path_or_var(v, field_name="source_path")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "RuntimeMailSetting":
+    def validate_redacted_value(self) -> RuntimeMailSetting:
         enforce_observed_value_redaction(
             owner_label=f"mail setting '{self.name}'",
             value=self.value,

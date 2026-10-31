@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass, field
-from functools import cache
+from functools import cache, lru_cache
 from types import MappingProxyType
 from typing import Literal
 
@@ -15,7 +15,9 @@ from referencing.exceptions import Unresolvable
 
 from ._domain_profile_schema_registry import profile_schema_registry
 from .corpus import SCHEMAS, corpus_family_root
-from .json_ingress import parse_bounded_json_object
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
+
+_MAX_SCHEMA_BYTES = 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -82,17 +84,30 @@ def resolve_evidence_output_contract(output_contract: str) -> EvidenceOutputCont
         raise ValueError("evidence output_contract is not present in the authoritative contract registry")
     if not callable(registration.semantic_validator):
         raise ValueError("evidence output_contract has no owning semantic validator")
+    # Validators call this resolver, so a damaged published schema stays a ValueError (E3).
     try:
         path = corpus_family_root(SCHEMAS) / registration.schema_path
         with path.open("rb") as source:
-            schema = parse_bounded_json_object(source.read(1024 * 1024 + 1), max_bytes=1024 * 1024)
-        if schema.get("type") != registration.root:
-            raise ValueError("unexpected schema root")
-        Draft202012Validator.check_schema(schema)
-        validator = Draft202012Validator(schema, registry=profile_schema_registry(schema))
-    except (OSError, RuntimeError, ValueError, KeyError, SchemaError) as exc:
+            content = source.read(_MAX_SCHEMA_BYTES + 1)
+        validator = _checked_schema_validator(content, registration.root)
+    except (OSError, RuntimeError, StrictJsonIngressError, ValueError, KeyError, SchemaError) as exc:
         raise ValueError("evidence output_contract has no valid published schema") from exc
     return EvidenceOutputContract(registration.root, validator, registration.semantic_validator)
+
+
+@lru_cache(maxsize=16)
+def _checked_schema_validator(content: bytes, root: str) -> Draft202012Validator:
+    """Check one exact published schema once.
+
+    The key is the complete file content, so a changed schema is checked again.
+    The local registry binds only that document, and a refusal is never cached.
+    """
+
+    schema = parse_bounded_json_object(content, max_bytes=_MAX_SCHEMA_BYTES)
+    if schema.get("type") != root:
+        raise ValueError("unexpected schema root")
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema, registry=profile_schema_registry(schema))
 
 
 def validate_evidence_output_contract(output_contract: str, document: object) -> None:

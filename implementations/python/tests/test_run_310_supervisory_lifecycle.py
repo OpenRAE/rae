@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from raes.participant_behavior_specification import MixedControlTransitionKind
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import AuthorizationError, ConflictError, OperationalError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
@@ -53,6 +54,7 @@ from raes_runtime.participant_result_contracts import (
     participant_runtime_state_contract_diagnostics,
 )
 from starlette.testclient import TestClient
+from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
@@ -394,7 +396,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
     conflicting_record = replace(record, idempotency_key="scope-key-2")
     conflicting_audit = replace(audit, operation_id="operation-2")
     revision = restarted.load_snapshot_state().revision
-    with pytest.raises(ValueError, match="expected control history head"):
+    with pytest.raises(ConflictError, match="expected control history head"):
         restarted.commit_control_transition(
             participant_address="participant.behavior.red-agent",
             expected_head=None,
@@ -519,7 +521,7 @@ def test_supervisory_control_is_subject_bound_idempotent_and_state_revision_boun
     )
 
     unbound_identity = _identity(bound=False)
-    with pytest.raises(PermissionError, match="subject"):
+    with pytest.raises(AuthorizationError, match="subject"):
         control_plane.record_participant_control(
             _PARTICIPANT,
             intent,
@@ -528,7 +530,7 @@ def test_supervisory_control_is_subject_bound_idempotent_and_state_revision_boun
         )
     assert not control_plane.snapshot.participant_control_history
     other_target_identity = replace(_identity(), target_name="other-target")
-    with pytest.raises(PermissionError, match="target"):
+    with pytest.raises(AuthorizationError, match="target"):
         control_plane.record_participant_control(
             _PARTICIPANT,
             intent,
@@ -554,7 +556,7 @@ def test_supervisory_control_is_subject_bound_idempotent_and_state_revision_boun
 
     changed = intent.model_copy(update={"proposal_id": "proposal-2"})
     changed_identity = _identity()
-    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+    with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
         control_plane.record_participant_control(
             _PARTICIPANT,
             changed,
@@ -862,18 +864,17 @@ def test_failed_atomic_control_commit_exposes_no_partial_transition(
         payload_ref="payload:proposal-1",
     )
 
-    real_upsert = store._upsert_record
+    real_insert_audit = store._insert_audit
 
-    def fail_record_upsert(
-        connection: sqlite3.Connection,
-        record: ControlPlaneOperationRecord,
-    ) -> None:
-        real_upsert(connection, record)
-        raise OSError("commit failed")
+    def fail_transition_commit(connection: sqlite3.Connection, event: AuditEvent) -> None:
+        # The idempotency claim commits first, in its own transaction. The audit row is the control transition's
+        # last write, so its snapshot, record and audit are all pending when COMMIT fails.
+        real_insert_audit(connection, event)
+        fail_sqlite_commit(connection)
 
-    monkeypatch.setattr(store, "_upsert_record", fail_record_upsert)
+    monkeypatch.setattr(store, "_insert_audit", fail_transition_commit)
     identity = _identity()
-    with pytest.raises(OSError, match="commit failed"):
+    with pytest.raises(sqlite3.IntegrityError, match="FOREIGN KEY constraint failed"):
         control_plane.record_participant_control(
             _PARTICIPANT,
             intent,
@@ -881,12 +882,14 @@ def test_failed_atomic_control_commit_exposes_no_partial_transition(
             idempotency_key="key-1",
         )
 
-    assert not control_plane.snapshot.participant_control_history
+    # The durable claim is still running with no terminal cut, so the runtime serves no state until restart.
+    with pytest.raises(OperationalError, match="requires restart"):
+        control_plane.get_snapshot()
     control_plane.close()
     restarted = LocalControlPlaneStore(tmp_path / "control-plane")
     restarted.admit_runtime(target_scope="target:stub", run_scope="run:default")
     assert not restarted.load_snapshot().participant_control_history
-    assert not restarted.load_records()
+    assert [record.status.state for record in restarted.load_records().values()] == [OperationState.RUNNING]
     assert not restarted.read_audit()
 
 

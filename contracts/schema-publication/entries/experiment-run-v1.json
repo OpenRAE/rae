@@ -1,9 +1,9 @@
 {
-  "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
+  "content_hash": "4b139ab63445cb174f97f7d505d089aed850fae2e0f6b53883f97b596965a832",
   "contract_id": "experiment-run-v1",
   "last_change": {
-    "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
-    "summary": "Preserve evidence-requirement lineage and protected materialization archive records through run and runtime snapshots (#341, #1241)."
+    "content_hash": "4b139ab63445cb174f97f7d505d089aed850fae2e0f6b53883f97b596965a832",
+    "summary": "Retain complete and partial run accounting with coherent admitted provenance and exact immutable record identities (#1630)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft"

@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
+from dataclasses import replace
 from threading import RLock
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
-from raes_contracts.runtime_state import RuntimeSnapshot
-from raes_processor.models import ExecutionPlan
+from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
+from raes_processor.models import ExecutionPlan, RuntimeModel
+from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
 
 from .control_plane_lifecycle import runtime_owned
 
@@ -29,12 +33,41 @@ class RuntimePlanAuthorizationMixin:
             raise TypeError("planner authorization requires a composite ExecutionPlan")
         if not plan.is_valid:
             raise ValueError("invalid composite execution plans cannot be authorized")
+        from raes_processor.planner.mixed_control_admission import mixed_control_policy_addresses
+
+        if mixed_control_policy_addresses(
+            plan.model.behavior_specifications.values(), plan.model.participant_inject_deliveries.values()
+        ):
+            self._require_mixed_control_planning_model(plan.model)
         digests = tuple(
             runtime_plan_digest(phase) for phase in (plan.provisioning, plan.orchestration, plan.evaluation)
         )
         with self._trusted_runtime_plan_lock:
+            if plan.model.events and plan.model.scripts:
+                previous = self._trusted_orchestration_models.get(digests[1])
+                if previous is not None and _schedule_context(previous) != _schedule_context(plan.model):
+                    raise ConflictError("orchestration plan has ambiguous compiler context")
+                self._trusted_orchestration_models[digests[1]] = deepcopy(plan.model)
             self._trusted_runtime_plan_digests.update(digests)
         return digests[0]
+
+    def _require_mixed_control_planning_model(self, model: RuntimeModel) -> None:
+        controlled_deliveries = any(item.control is not None for item in model.participant_inject_deliveries.values())
+        if (
+            self._mixed_control is None
+            or self._mixed_control.model != model
+            or (controlled_deliveries and (self._inject_delivery is None or self._inject_delivery.model != model))
+        ):
+            raise ConflictError("reusable-control plan requires its exact installed consumer context")
+
+    @runtime_owned
+    def mixed_control_planning_admission(self) -> MixedControlPlanningAdmission:
+        from raes_processor.planner.mixed_control_admission import MixedControlPlanningAdmission
+
+        if self._mixed_control is None:
+            raise ConflictError("reusable-control planning context is unavailable")
+        self._require_mixed_control_planning_model(self._mixed_control.model)
+        return MixedControlPlanningAdmission(self._mixed_control.model)
 
     @runtime_owned
     def is_planner_authorized_plan(
@@ -44,9 +77,16 @@ class RuntimePlanAuthorizationMixin:
         """Return whether the exact published plan was registered in-process."""
 
         self._assert_runtime_owner()
+        if isinstance(plan, ProvisioningPlan) and plan.inventory_refresh:
+            plan = replace(plan, inventory_refresh=False)
         digest = runtime_plan_digest(plan)
         with self._trusted_runtime_plan_lock:
             return digest in self._trusted_runtime_plan_digests
+
+    @runtime_owned
+    def submit_inventory_refresh(self, plan: ProvisioningPlan, **options) -> OperationReceipt:
+        """Submit read-only inventory through the existing provisioning mutation owner."""
+        return self.submit_provisioning(replace(plan, inventory_refresh=True), **options)
 
     @runtime_owned
     def register_planner_produced_provisioning_plan(self, plan: ExecutionPlan) -> str:
@@ -79,9 +119,15 @@ class RuntimePlanAuthorizationMixin:
 
     def _require_observed_base_snapshot(self, base_snapshot: RuntimeSnapshot | None) -> None:
         if base_snapshot is not None and base_snapshot != self._snapshot:
-            raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
+            raise ConflictError("explicit base snapshot does not match the authoritative runtime snapshot")
 
     def _assert_runtime_owner(self) -> None:
         """Provided by RuntimeLifecycleMixin on the concrete control plane."""
 
         raise NotImplementedError
+
+
+def _schedule_context(model: RuntimeModel) -> tuple[object, object, object, object]:
+    """Only schedule semantics bind a schedule's orchestration-plan digest."""
+
+    return model.events, model.scripts, model.stories, model.time_model

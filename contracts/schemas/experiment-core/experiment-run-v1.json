@@ -144,6 +144,95 @@
       "title": "BooleanDomain",
       "type": "object"
     },
+    "CleanStateClaimModel": {
+      "additionalProperties": false,
+      "description": "Evidence-bounded post-cleanup state disposition.",
+      "properties": {
+        "boundary_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Boundary Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "disposition": {
+          "enum": [
+            "verified-clean",
+            "declared-reusable",
+            "fresh-range-required"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "disposition",
+        "boundary_refs",
+        "evidence_refs"
+      ],
+      "title": "CleanStateClaimModel",
+      "type": "object"
+    },
+    "CleanupObligationResultModel": {
+      "additionalProperties": false,
+      "description": "Attempt outcome for one declared cleanup obligation.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "obligation_id": {
+          "minLength": 1,
+          "title": "Obligation Id",
+          "type": "string"
+        },
+        "residual_state_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Residual State Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "skipped",
+            "unsupported",
+            "unverified",
+            "not-triggered"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "obligation_id",
+        "status"
+      ],
+      "title": "CleanupObligationResultModel",
+      "type": "object"
+    },
     "ClockDeclarationModel": {
       "additionalProperties": false,
       "properties": {
@@ -2229,6 +2318,135 @@
       "title": "ExperimentArtifactRefModel",
       "type": "object"
     },
+    "ExperimentAttemptAccountingModel": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt": {
+          "minimum": 1,
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "capture_status": {
+          "default": "unobserved",
+          "enum": [
+            "unobserved",
+            "complete",
+            "partial",
+            "failed"
+          ],
+          "title": "Capture Status",
+          "type": "string"
+        },
+        "cleanup_receipt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TrialCleanupReceiptModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cleanup_status": {
+          "default": "unobserved",
+          "enum": [
+            "unobserved",
+            "succeeded",
+            "failed",
+            "partial",
+            "unsupported",
+            "unverified",
+            "not-required"
+          ],
+          "title": "Cleanup Status",
+          "type": "string"
+        },
+        "configuration_status": {
+          "default": "unobserved",
+          "enum": [
+            "unobserved",
+            "observed",
+            "failed"
+          ],
+          "title": "Configuration Status",
+          "type": "string"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "minLength": 1,
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ended At"
+        },
+        "evidence_record_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentEvidenceRecordReferenceModel"
+          },
+          "maxItems": 20480,
+          "title": "Evidence Record Refs",
+          "type": "array"
+        },
+        "evidence_records": {
+          "items": {
+            "$ref": "#/$defs/ExperimentEvidenceRecordModel"
+          },
+          "maxItems": 1024,
+          "title": "Evidence Records",
+          "type": "array"
+        },
+        "execution_attempt_id": {
+          "minLength": 1,
+          "title": "Execution Attempt Id",
+          "type": "string"
+        },
+        "execution_status": {
+          "enum": [
+            "unknown",
+            "running",
+            "succeeded",
+            "failed",
+            "cancelled",
+            "timed-out",
+            "aborted"
+          ],
+          "title": "Execution Status",
+          "type": "string"
+        },
+        "operation_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4096,
+          "title": "Operation Refs",
+          "type": "array"
+        },
+        "started_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Started At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution_attempt_id",
+        "attempt",
+        "started_at",
+        "execution_status"
+      ],
+      "title": "ExperimentAttemptAccountingModel",
+      "type": "object"
+    },
     "ExperimentAugmentationDisclosureModel": {
       "additionalProperties": false,
       "allOf": [
@@ -2850,6 +3068,288 @@
       "title": "ExperimentDerivedMeasureReferenceModel",
       "type": "object"
     },
+    "ExperimentEvidenceRecordModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "redaction_state": {
+                "enum": [
+                  "redacted",
+                  "withheld"
+                ]
+              }
+            },
+            "required": [
+              "redaction_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "raw_content": {
+                "properties": {
+                  "loss_disclosure": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "loss_disclosure"
+                ]
+              }
+            },
+            "required": [
+              "raw_content"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "redaction_state": {
+                "const": "none"
+              }
+            },
+            "required": [
+              "redaction_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "redaction_policy": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "redaction_state": {
+                "enum": [
+                  "redacted",
+                  "withheld"
+                ]
+              }
+            },
+            "required": [
+              "redaction_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "redaction_policy": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "redaction_policy"
+            ]
+          }
+        }
+      ],
+      "description": "Raw captured EXP-708 evidence record, distinct from derived measures.",
+      "properties": {
+        "apparatus_context_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "capture_requirement_ref": {
+          "minLength": 1,
+          "title": "Capture Requirement Ref",
+          "type": "string"
+        },
+        "capture_spec_ref": {
+          "$ref": "#/$defs/ExperimentCaptureSpecReferenceModel"
+        },
+        "capture_window_ref": {
+          "minLength": 1,
+          "title": "Capture Window Ref",
+          "type": "string"
+        },
+        "captured_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "evidence_kind": {
+          "enum": [
+            "artifact",
+            "observation",
+            "trace",
+            "telemetry",
+            "log",
+            "packet-capture",
+            "other"
+          ],
+          "title": "Evidence Kind",
+          "type": "string"
+        },
+        "evidence_record_id": {
+          "minLength": 1,
+          "title": "Evidence Record Id",
+          "type": "string"
+        },
+        "output_contract": {
+          "minLength": 1,
+          "title": "Output Contract",
+          "type": "string"
+        },
+        "provenance_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentReferenceModel"
+          },
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "raw_content": {
+          "$ref": "#/$defs/ExperimentRawEvidenceContentModel"
+        },
+        "record_version": {
+          "minLength": 1,
+          "title": "Record Version",
+          "type": "string"
+        },
+        "redaction_policy": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction Policy"
+        },
+        "redaction_state": {
+          "enum": [
+            "none",
+            "redacted",
+            "withheld"
+          ],
+          "title": "Redaction State",
+          "type": "string"
+        },
+        "run_ref": {
+          "$ref": "#/$defs/ExperimentReferenceModel"
+        },
+        "schema_version": {
+          "const": "experiment-evidence-record/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sensitivity": {
+          "enum": [
+            "public",
+            "internal",
+            "restricted",
+            "redacted"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentReferenceModel"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "task_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentTaskReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "typed_description": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TypedRealizationDescriptionModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "schema_version",
+        "evidence_record_id",
+        "record_version",
+        "capture_spec_ref",
+        "capture_requirement_ref",
+        "output_contract",
+        "run_ref",
+        "source_refs",
+        "evidence_kind",
+        "captured_at",
+        "capture_window_ref",
+        "raw_content",
+        "sensitivity",
+        "redaction_state"
+      ],
+      "title": "ExperimentEvidenceRecordModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Typed descriptions preserve bounded supplied values, explicit knowledge, coverage and source identities; they do not carry author closure or establish capture satisfaction. Withheld evidence carries no known values. Profile owners bind to the fact scope and capture carrier; nested profile basis and evidence join fact provenance.",
+          "id": "evidence-description-nonauthoritative",
+          "inputs": [
+            {
+              "contract_id": "experiment-evidence-record-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate"
+        },
+        {
+          "description": "Evidence records must carry raw content as an artifact reference, content URI with checksum, or bounded payload summary; redacted/withheld records must disclose loss.",
+          "id": "evidence-record-raw-content-present",
+          "inputs": [
+            {
+              "contract_id": "experiment-evidence-record-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+        },
+        {
+          "description": "captured_at must be a valid RFC 3339 date-time.",
+          "id": "evidence-record-captured-at-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-evidence-record-v1",
+              "instance_path": "#/captured_at"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+        }
+      ],
+      "x-raes-plane": "captured_evidence"
+    },
     "ExperimentEvidenceRecordReferenceModel": {
       "additionalProperties": false,
       "description": "Reference constrained to a raw captured evidence record.",
@@ -3072,6 +3572,59 @@
         "ref_id"
       ],
       "title": "ExperimentEvidenceSatisfactionReferenceModel",
+      "type": "object"
+    },
+    "ExperimentExecutionAccountingModel": {
+      "additionalProperties": false,
+      "properties": {
+        "attempts": {
+          "items": {
+            "$ref": "#/$defs/ExperimentAttemptAccountingModel"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Attempts",
+          "type": "array"
+        },
+        "entry_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Entry Digest",
+          "type": "string"
+        },
+        "participant_configurations": {
+          "items": {
+            "$ref": "#/$defs/ParticipantConfigurationResultModel"
+          },
+          "maxItems": 4096,
+          "title": "Participant Configurations",
+          "type": "array"
+        },
+        "plan_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Plan Digest",
+          "type": "string"
+        },
+        "plan_entry_id": {
+          "minLength": 1,
+          "title": "Plan Entry Id",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "title": "Plan Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plan_id",
+        "plan_digest",
+        "plan_entry_id",
+        "entry_digest",
+        "attempts"
+      ],
+      "title": "ExperimentExecutionAccountingModel",
       "type": "object"
     },
     "ExperimentInvalidationModel": {
@@ -3449,6 +4002,141 @@
       "title": "ExperimentParameterModel",
       "type": "object"
     },
+    "ExperimentRawEvidenceContentModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "content_uri": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "content_uri"
+            ]
+          },
+          "then": {
+            "properties": {
+              "content_checksum": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "content_checksum"
+            ]
+          }
+        }
+      ],
+      "anyOf": [
+        {
+          "properties": {
+            "artifact_ref": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "artifact_ref"
+          ]
+        },
+        {
+          "properties": {
+            "content_uri": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "content_uri"
+          ]
+        },
+        {
+          "properties": {
+            "payload_summary": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "payload_summary"
+          ]
+        }
+      ],
+      "description": "Raw captured payload reference or bounded summary for EXP-708 records.",
+      "properties": {
+        "artifact_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentArtifactRefModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_checksum": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentChecksumModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_uri": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Uri"
+        },
+        "loss_disclosure": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Loss Disclosure"
+        },
+        "payload_summary": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payload Summary"
+        }
+      },
+      "title": "ExperimentRawEvidenceContentModel",
+      "type": "object"
+    },
     "ExperimentRealizedFormDisclosureModel": {
       "additionalProperties": false,
       "allOf": [
@@ -3766,6 +4454,28 @@
           },
           "then": {
             "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "evidence_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_status": {
+                "const": "reported"
+              }
+            },
+            "required": [
+              "value_status"
+            ]
+          },
+          "then": {
+            "properties": {
               "value": {
                 "not": {
                   "type": "null"
@@ -3807,7 +4517,6 @@
           "items": {
             "$ref": "#/$defs/ExperimentRunEvidenceArtifactReferenceModel"
           },
-          "minItems": 1,
           "title": "Evidence Refs",
           "type": "array"
         },
@@ -3876,8 +4585,7 @@
       },
       "required": [
         "metric_id",
-        "value_status",
-        "evidence_refs"
+        "value_status"
       ],
       "title": "ExperimentResultSummaryModel",
       "type": "object"
@@ -3968,6 +4676,111 @@
         }
       ]
     },
+    "ExperimentScenarioSelectionDescriptorModel": {
+      "additionalProperties": false,
+      "description": "An exact typed selection with its complete treatment source joins.",
+      "properties": {
+        "outcome": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "member": "#/$defs/ExperimentSelectionMemberOutcomeModel",
+              "order": "#/$defs/ExperimentSelectionOrderOutcomeModel",
+              "reference": "#/$defs/ExperimentSelectionReferenceOutcomeModel",
+              "subset": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionReferenceOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionMemberOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionOrderOutcomeModel"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "scenario_family_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Scenario Family Digest",
+          "type": "string"
+        },
+        "selection_id": {
+          "minLength": 1,
+          "title": "Selection Id",
+          "type": "string"
+        },
+        "source_condition_id": {
+          "minLength": 1,
+          "title": "Source Condition Id",
+          "type": "string"
+        },
+        "source_factor_id": {
+          "minLength": 1,
+          "title": "Source Factor Id",
+          "type": "string"
+        },
+        "source_factor_level_id": {
+          "minLength": 1,
+          "title": "Source Factor Level Id",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ScenarioBindingTargetModel"
+        }
+      },
+      "required": [
+        "target",
+        "scenario_family_digest",
+        "owner",
+        "outcome",
+        "selection_id",
+        "source_factor_id",
+        "source_factor_level_id",
+        "source_condition_id"
+      ],
+      "title": "ExperimentScenarioSelectionDescriptorModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+          "id": "experiment-selection-treatment-identity-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/allocation/condition_assignments"
+            },
+            {
+              "contract_id": "experiment-study-v1",
+              "instance_path": "#/run_allocation/condition_assignments"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/entries"
+            },
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/realized_selections"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+        }
+      ]
+    },
     "ExperimentScenarioSnapshotReferenceModel": {
       "additionalProperties": false,
       "description": "Reference constrained to a sealed scenario snapshot.",
@@ -4028,6 +4841,118 @@
         "ref_id"
       ],
       "title": "ExperimentScenarioSnapshotReferenceModel",
+      "type": "object"
+    },
+    "ExperimentSelectionMemberOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One named alternative/member outcome.",
+      "properties": {
+        "kind": {
+          "const": "member",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Member Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "member_id"
+      ],
+      "title": "ExperimentSelectionMemberOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionOrderOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One complete canonical order of declared structural member ids.",
+      "properties": {
+        "kind": {
+          "const": "order",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "title": "Member Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "member_ids"
+      ],
+      "title": "ExperimentSelectionOrderOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionReferenceOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One governed-reference outcome named by its declared reference id.",
+      "properties": {
+        "kind": {
+          "const": "reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "minLength": 1,
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "ExperimentSelectionReferenceOutcomeModel",
+      "type": "object"
+    },
+    "ExperimentSelectionSubsetOutcomeModel": {
+      "additionalProperties": false,
+      "description": "One canonical subset of declared structural member ids.",
+      "properties": {
+        "kind": {
+          "const": "subset",
+          "title": "Kind",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Member Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "member_ids"
+      ],
+      "title": "ExperimentSelectionSubsetOutcomeModel",
       "type": "object"
     },
     "ExperimentStochasticControlModel": {
@@ -4311,6 +5236,17 @@
         "artifact": {
           "$ref": "#/$defs/ExperimentArtifactRefModel"
         },
+        "inventory": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryReport"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "operation_id": {
           "minLength": 1,
           "title": "Operation Id",
@@ -4448,6 +5384,164 @@
       ],
       "title": "ObservationBasis",
       "type": "string"
+    },
+    "ParticipantConfigurationModel": {
+      "additionalProperties": false,
+      "description": "Canonical digest payload for one complete participant configuration.",
+      "properties": {
+        "implementation_identity": {
+          "$ref": "#/$defs/ApparatusIdentityModel"
+        },
+        "manifest_version": {
+          "minLength": 1,
+          "title": "Manifest Version",
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/RealizedConfigurationValueModel"
+          },
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "implementation_identity",
+        "manifest_version",
+        "owner",
+        "values"
+      ],
+      "title": "ParticipantConfigurationModel",
+      "type": "object"
+    },
+    "ParticipantConfigurationResultModel": {
+      "additionalProperties": false,
+      "description": "Portable result of one complete, atomic participant configuration validation.",
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/ParticipantConfigurationModel"
+        },
+        "configuration_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Configuration Digest",
+          "type": "string"
+        },
+        "manifest_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Manifest Digest",
+          "type": "string"
+        },
+        "manifest_ref": {
+          "minLength": 1,
+          "title": "Manifest Ref",
+          "type": "string"
+        },
+        "participant_address": {
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "participant-configuration-result/v1",
+          "default": "participant-configuration-result/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant_address",
+        "manifest_ref",
+        "manifest_digest",
+        "configuration",
+        "configuration_digest"
+      ],
+      "title": "ParticipantConfigurationResultModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
+          "id": "participant-configuration-digest-valid",
+          "inputs": [
+            {
+              "contract_id": "participant-configuration-result-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"
+        }
+      ]
+    },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextConfigurationSelectionModel": {
+      "additionalProperties": false,
+      "description": "Pin retained in the sealed configuration, independently of current catalogs.",
+      "properties": {
+        "asset_ref": {
+          "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+        },
+        "declaration_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^control_context_assets\\.[a-z0-9][a-z0-9_-]*(?:\\.[a-z0-9][a-z0-9_-]*)*$",
+          "title": "Declaration Ref",
+          "type": "string"
+        },
+        "slot_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "declaration_ref",
+        "asset_ref"
+      ],
+      "title": "ParticipantControlContextConfigurationSelectionModel",
+      "type": "object"
     },
     "ParticipantExposurePolicyModel": {
       "additionalProperties": false,
@@ -5886,6 +6980,65 @@
       "title": "RealizedBindingProvenanceModel",
       "type": "object"
     },
+    "RealizedConfigurationValueModel": {
+      "additionalProperties": false,
+      "description": "One normalized value in a complete participant configuration.",
+      "properties": {
+        "control_context_selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlContextConfigurationSelectionModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "origin": {
+          "enum": [
+            "default",
+            "override"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "value": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "secret-reference": "#/$defs/SecretReferenceBindingValueModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/SecretReferenceBindingValueModel"
+            }
+          ],
+          "title": "Value"
+        },
+        "value_type": {
+          "$ref": "#/$defs/BindingScalarType"
+        }
+      },
+      "required": [
+        "target_id",
+        "value_type",
+        "origin",
+        "value"
+      ],
+      "title": "RealizedConfigurationValueModel",
+      "type": "object"
+    },
     "RealizedTimeModelProvenanceModel": {
       "additionalProperties": false,
       "description": "Run-scoped declaration/realization comparison and apparatus evidence.",
@@ -6007,6 +7160,254 @@
         "fields"
       ],
       "title": "RecordDomain",
+      "type": "object"
+    },
+    "RuntimeConcernSelection": {
+      "additionalProperties": false,
+      "description": "A choice claim naming an admitted concern, never a provenance ledger write.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "field_path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Field Path",
+          "type": "string"
+        },
+        "requirement_kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Requirement Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "field_path",
+        "requirement_kind"
+      ],
+      "title": "RuntimeConcernSelection",
+      "type": "object"
+    },
+    "RuntimeDescendantBinding": {
+      "additionalProperties": false,
+      "description": "Stable causal identity; topology and ownership remain separate facts.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "creation": {
+          "$ref": "#/$defs/RuntimeInventoryEvidence"
+        },
+        "lifecycle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "native_identity_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Native Identity Digest",
+          "type": "string"
+        },
+        "parent_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Parent Address",
+          "type": "string"
+        },
+        "parent_instance_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Parent Instance Index",
+          "type": "integer"
+        },
+        "source_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Address",
+          "type": "string"
+        },
+        "state": {
+          "default": "active",
+          "enum": [
+            "active",
+            "terminated",
+            "autoremoved"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "parent_address",
+        "source_address",
+        "native_identity_digest",
+        "creation"
+      ],
+      "title": "RuntimeDescendantBinding",
+      "type": "object"
+    },
+    "RuntimeInventoryEvidence": {
+      "additionalProperties": false,
+      "description": "Producer-scoped native receipt identity, not independent observation.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "evidence_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Evidence Digest",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "operation_id",
+        "attempt_id",
+        "evidence_digest"
+      ],
+      "title": "RuntimeInventoryEvidence",
+      "type": "object"
+    },
+    "RuntimeInventoryReport": {
+      "additionalProperties": false,
+      "description": "Complete bounded producer inventory, joined to the descriptive SDL bytes.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "backend_selections": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeConcernSelection"
+          },
+          "maxItems": 4096,
+          "title": "Backend Selections",
+          "type": "array"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "contract_id": {
+          "const": "backend-runtime-descendants-v1",
+          "default": "backend-runtime-descendants-v1",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "descendants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeDescendantBinding"
+          },
+          "maxItems": 4096,
+          "title": "Descendants",
+          "type": "array"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "const": "/nodes",
+          "default": "/nodes",
+          "title": "Scope",
+          "type": "string"
+        },
+        "sequence": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 8,
+          "pattern": "^target:[^\\s\\x00-\\x1f]+$",
+          "title": "Target Scope",
+          "type": "string"
+        },
+        "unavailable_evidence": {
+          "default": [],
+          "items": {
+            "pattern": "^sha256:[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Unavailable Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "sequence",
+        "complete",
+        "source_digest",
+        "run_id",
+        "target_scope"
+      ],
+      "title": "RuntimeInventoryReport",
       "type": "object"
     },
     "ScenarioBindingTargetModel": {
@@ -6735,6 +8136,139 @@
       ],
       "title": "TimingLimitModel",
       "type": "object"
+    },
+    "TrialCleanupReceiptModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "cleanup_status": {
+                "not": {
+                  "const": "succeeded"
+                }
+              }
+            },
+            "required": [
+              "cleanup_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clean_state_claim": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Immutable attempt receipt that reports cleanup separately from trial outcome.",
+      "properties": {
+        "clean_state_claim": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CleanStateClaimModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cleanup_plan_ref": {
+          "minLength": 1,
+          "title": "Cleanup Plan Ref",
+          "type": "string"
+        },
+        "cleanup_status": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "partial",
+            "unsupported",
+            "unverified",
+            "not-required"
+          ],
+          "title": "Cleanup Status",
+          "type": "string"
+        },
+        "execution_attempt_id": {
+          "minLength": 1,
+          "title": "Execution Attempt Id",
+          "type": "string"
+        },
+        "obligation_results": {
+          "additionalProperties": {
+            "$ref": "#/$defs/CleanupObligationResultModel"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Obligation Results",
+          "type": "object"
+        },
+        "plan_entry_id": {
+          "minLength": 1,
+          "title": "Plan Entry Id",
+          "type": "string"
+        },
+        "receipt_id": {
+          "minLength": 1,
+          "title": "Receipt Id",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "trial-cleanup-receipt/v1",
+          "default": "trial-cleanup-receipt/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "trial_outcome": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "cancelled",
+            "timed-out",
+            "aborted"
+          ],
+          "title": "Trial Outcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "receipt_id",
+        "cleanup_plan_ref",
+        "plan_entry_id",
+        "run_id",
+        "execution_attempt_id",
+        "trial_outcome",
+        "cleanup_status"
+      ],
+      "title": "TrialCleanupReceiptModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, reports an attempted result for every required obligation owed by the terminal trigger, keeps results consistent with obligation triggers, requires successful required results when cleanup succeeded, and permits clean-state claims only after verified success.",
+          "id": "trial-cleanup-receipt-binds-plan-and-required-outcomes",
+          "inputs": [
+            {
+              "contract_id": "trial-cleanup-plan-v1",
+              "instance_path": "#"
+            },
+            {
+              "contract_id": "trial-cleanup-receipt-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.validate_trial_cleanup_receipt"
+        }
+      ]
     },
     "TrialCoordinateModel": {
       "additionalProperties": false,
@@ -7623,12 +9157,167 @@
           "invalidation"
         ]
       }
+    },
+    {
+      "else": {
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "execution_accounting": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "execution_accounting"
+              ]
+            },
+            "then": {
+              "properties": {
+                "trial_provenance": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "trial_provenance"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "apparatus_context": {
+            "type": "object"
+          },
+          "ended_at": {
+            "type": "string"
+          },
+          "evidence_artifacts": {
+            "minItems": 1
+          },
+          "result_summaries": {
+            "minProperties": 1
+          },
+          "run_status": {
+            "not": {
+              "enum": [
+                "in-progress",
+                "indeterminate"
+              ]
+            }
+          },
+          "traceability": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "ended_at",
+          "apparatus_context",
+          "traceability",
+          "parameter_set",
+          "stochastic_controls",
+          "evidence_artifacts",
+          "result_summaries"
+        ]
+      },
+      "if": {
+        "properties": {
+          "record_state": {
+            "const": "partial"
+          }
+        },
+        "required": [
+          "record_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "execution_accounting": {
+            "type": "object"
+          },
+          "outcome_status": {
+            "not": {
+              "const": "succeeded"
+            }
+          },
+          "run_status": {
+            "not": {
+              "const": "sealed"
+            }
+          }
+        },
+        "required": [
+          "execution_accounting"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "run_status": {
+            "enum": [
+              "in-progress",
+              "indeterminate"
+            ]
+          }
+        },
+        "required": [
+          "run_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ended_at": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "required": [
+            "execution_accounting"
+          ]
+        }
+      },
+      "then": {
+        "if": {
+          "not": {
+            "properties": {
+              "record_state": {
+                "const": "partial"
+              }
+            },
+            "required": [
+              "record_state"
+            ]
+          }
+        },
+        "then": {
+          "properties": {
+            "parameter_set": {
+              "minItems": 1
+            },
+            "stochastic_controls": {
+              "minItems": 1
+            }
+          }
+        }
+      }
     }
   ],
   "description": "Archival provenance record for one execution of an experiment task.",
   "properties": {
     "apparatus_context": {
-      "$ref": "#/$defs/ExperimentApparatusContextModel"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExperimentApparatusContextModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "augmentation_disclosures": {
       "items": {
@@ -7667,17 +9356,24 @@
       "default": null
     },
     "ended_at": {
-      "format": "date-time",
-      "minLength": 1,
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
-      "title": "Ended At",
-      "type": "string"
+      "anyOf": [
+        {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ended At"
     },
     "evidence_artifacts": {
       "items": {
         "$ref": "#/$defs/ExperimentArtifactRefModel"
       },
-      "minItems": 1,
       "title": "Evidence Artifacts",
       "type": "array"
     },
@@ -7687,6 +9383,17 @@
       },
       "title": "Evidence Requirement Relations",
       "type": "array"
+    },
+    "execution_accounting": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExperimentExecutionAccountingModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "generated_refs": {
       "items": {
@@ -7729,7 +9436,6 @@
       "items": {
         "$ref": "#/$defs/ExperimentParameterModel"
       },
-      "minItems": 1,
       "title": "Parameter Set",
       "type": "array"
     },
@@ -7758,6 +9464,14 @@
       "title": "Realized Form Disclosures",
       "type": "array"
     },
+    "realized_selections": {
+      "items": {
+        "$ref": "#/$defs/ExperimentScenarioSelectionDescriptorModel"
+      },
+      "maxItems": 256,
+      "title": "Realized Selections",
+      "type": "array"
+    },
     "realized_time_model": {
       "anyOf": [
         {
@@ -7769,11 +9483,19 @@
       ],
       "default": null
     },
+    "record_state": {
+      "default": "archival",
+      "enum": [
+        "archival",
+        "partial"
+      ],
+      "title": "Record State",
+      "type": "string"
+    },
     "result_summaries": {
       "additionalProperties": {
         "$ref": "#/$defs/ExperimentResultSummaryModel"
       },
-      "minProperties": 1,
       "propertyNames": {
         "minLength": 1
       },
@@ -7792,7 +9514,9 @@
         "failed",
         "aborted",
         "invalidated",
-        "superseded"
+        "superseded",
+        "in-progress",
+        "indeterminate"
       ],
       "title": "Run Status",
       "type": "string"
@@ -7821,7 +9545,6 @@
       "items": {
         "$ref": "#/$defs/ExperimentStochasticControlModel"
       },
-      "minItems": 1,
       "title": "Stochastic Controls",
       "type": "array"
     },
@@ -7836,7 +9559,15 @@
       "$ref": "#/$defs/ExperimentTaskReferenceModel"
     },
     "traceability": {
-      "$ref": "#/$defs/ExperimentRunTraceabilityModel"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExperimentRunTraceabilityModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "trial_provenance": {
       "anyOf": [
@@ -7870,21 +9601,26 @@
     "run_version",
     "task_ref",
     "scenario_snapshot_ref",
-    "apparatus_context",
-    "parameter_set",
-    "stochastic_controls",
     "started_at",
-    "ended_at",
     "clock_context",
     "run_status",
-    "outcome_status",
-    "traceability",
-    "evidence_artifacts",
-    "result_summaries"
+    "outcome_status"
   ],
   "title": "ExperimentRunModel",
   "type": "object",
   "x-raes-invariants": [
+    {
+      "description": "Execution accounting preserves unique ordered attempts, run-bound evidence and cleanup, exact start and bounded end times, and status consistent with the observed lifecycle. Archival accounting agrees with admitted trial provenance identities, attempts, operation references and cleanup membership.",
+      "id": "run-execution-accounting-consistent",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
     {
       "description": "When present, trial provenance binds the archival run id to one admitted plan entry, the canonical instantiated snapshot, all three published processor-plan projections, and distinct execution attempts.",
       "id": "experiment-run-admitted-trial-provenance",

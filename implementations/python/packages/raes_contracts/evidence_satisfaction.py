@@ -19,7 +19,6 @@ from .contracts import (
     ExperimentTaskModel,
     validate_experiment_run_structure_against_task,
 )
-from .contracts.base import _parse_rfc3339_datetime
 from .contracts.experiment_artifacts import _identity_matches_reference, _reference_satisfies_requirement
 from .evidence_proof import (
     _EVIDENCE_VALIDATION_KEY,
@@ -27,6 +26,7 @@ from .evidence_proof import (
     ValidatedRunEvidence,
     _mint_validated_run_evidence,
 )
+from .timestamps import parse_rfc3339_datetime
 
 _MAX_EVIDENCE_ITEMS = 1024
 _MAX_TOTAL_EVIDENCE_BYTES = 256 * 1024 * 1024
@@ -100,10 +100,10 @@ def _validate_record_capture_identity(
     requirement: ExperimentCaptureRequirementModel,
     record: ExperimentEvidenceRecordModel,
 ) -> None:
-    if (
-        record.capture_spec_ref.ref_id != capture_spec.capture_spec_id
-        or record.capture_spec_ref.ref_version != capture_spec.spec_version
-    ):
+    capture_reference = ExperimentReferenceModel(
+        ref_kind="capture-spec", ref_id=capture_spec.capture_spec_id, ref_version=capture_spec.spec_version
+    )
+    if not _reference_satisfies_requirement(capture_reference, record.capture_spec_ref):
         raise ValueError("evidence record capture_spec_ref does not match the supplied capture spec")
     if record.capture_requirement_ref != requirement.requirement_id:
         raise ValueError("evidence record capture_requirement_ref does not match the capture requirement")
@@ -179,8 +179,8 @@ def _run_bounded_capture_window(
     starts_at: datetime | None,
     ends_at: datetime | None,
 ) -> tuple[datetime, datetime]:
-    run_starts_at = _parse_rfc3339_datetime("started_at", run.started_at)
-    run_ends_at = _parse_rfc3339_datetime("ended_at", run.ended_at)
+    run_starts_at = parse_rfc3339_datetime("started_at", run.started_at)
+    run_ends_at = parse_rfc3339_datetime("ended_at", run.ended_at)
     bounded_start = max(value for value in (starts_at, run_starts_at) if value is not None)
     bounded_end = min(value for value in (ends_at, run_ends_at) if value is not None)
     return bounded_start, bounded_end
@@ -189,8 +189,8 @@ def _run_bounded_capture_window(
 def _explicit_capture_window_bounds(
     window: ExperimentCaptureWindowModel,
 ) -> tuple[datetime | None, datetime | None]:
-    starts_at = _parse_rfc3339_datetime("starts_at", window.starts_at) if window.starts_at is not None else None
-    ends_at = _parse_rfc3339_datetime("ends_at", window.ends_at) if window.ends_at is not None else None
+    starts_at = parse_rfc3339_datetime("starts_at", window.starts_at) if window.starts_at is not None else None
+    ends_at = parse_rfc3339_datetime("ends_at", window.ends_at) if window.ends_at is not None else None
     return starts_at, ends_at
 
 
@@ -201,7 +201,7 @@ def _validate_record_window(
     record: ExperimentEvidenceRecordModel,
 ) -> None:
     window = _resolve_capture_window(capture_spec, requirement, record)
-    captured_at = _parse_rfc3339_datetime("captured_at", record.captured_at)
+    captured_at = parse_rfc3339_datetime("captured_at", record.captured_at)
     starts_at, ends_at = _capture_window_bounds(run, window)
     if starts_at is not None and captured_at < starts_at:
         raise ValueError("evidence was captured before the admitted capture window")

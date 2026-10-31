@@ -5,6 +5,8 @@ from typing import cast
 
 from raes.identifiers import QualifiedName
 from raes.realization_designation import resolve_realization_designation
+from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.realization_collections import (
     PORTABLE_NODE_COLLECTION_PROFILE,
@@ -75,7 +77,7 @@ def planned_node_collection(model: RuntimeModel, plan: ProvisioningPlan) -> Prep
         ),
     )
     if built.status is not RealizationRelationStatus.CONFORMANT:
-        raise ValueError("portable node collection exceeds the admitted recursive membership bounds")
+        raise InvalidInputError("portable node collection exceeds the admitted recursive membership bounds")
     assert built.document is not None
     resolution = resolutions[""]
     return PreparedNodeCollectionAuthority(
@@ -103,6 +105,46 @@ def retain_open_collection_nodes(plan: ProvisioningPlan) -> ProvisioningPlan:
                 continue
         kept.append(operation)
     return cast("ProvisioningPlan", replace(plan, operations=kept))
+
+
+def retain_reported_descendants(
+    plan: ProvisioningPlan, model: RuntimeModel, snapshot: RuntimeSnapshot
+) -> tuple[ProvisioningPlan, list[Diagnostic]]:
+    """Authored omission does not authorize disposal of accepted descendants."""
+    retained = {
+        entry.address
+        for record in snapshot.materialization_attestations
+        if record.inventory is not None
+        for entry in record.inventory.descendants
+        if entry.address in snapshot.entries
+    }
+    if not retained:
+        return plan, []
+    kept = [
+        operation
+        for operation in plan.operations
+        if not (operation.action is ChangeAction.DELETE and operation.address in retained)
+    ]
+    plan = cast("ProvisioningPlan", replace(plan, operations=kept))
+    authority = planned_node_collection(model, plan)
+    submitted = {operation.address for operation in plan.operations}
+    members = [*plan.operations, *(snapshot.entries[address] for address in retained - submitted)]
+    if (
+        authority is not None
+        and evaluate_realization_constraint(
+            authority.constraint_document,
+            node_collection_members(members, namespaces=authority.constraint_document.root.fields),
+        ).conformant
+    ):
+        return plan, []
+    return plan, [
+        Diagnostic(
+            code="realization.descendant-collection-conflict",
+            domain="provisioning",
+            address="nodes",
+            message="Accepted descendants require explicit lifecycle disposition before this collection can close.",
+        )
+    ]
 
 
 def prepared_node_collection_binding_violation(plan: ProvisioningPlan) -> str | None:

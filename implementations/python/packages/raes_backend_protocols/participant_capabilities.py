@@ -1,10 +1,19 @@
 """Participant-runtime capability declarations and evidence requirements."""
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from pydantic import TypeAdapter
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.contracts.feature_support import ParticipantFeatureSupportModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionBindingModel
+from raes_contracts.contracts.participant_invocation_tools import (
+    ParticipantInvocationToolActionCapabilitiesModel,
+    validate_invocation_tool_action_claim,
+)
+from raes_contracts.contracts.participant_tool_support import (
+    ParticipantToolProfilesModel,
+    validate_tool_feature_support,
+)
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 from raes_contracts.manifest_authority import (
     PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE,
@@ -29,27 +38,24 @@ def _validate_unique_non_empty_strings(field_name: str, values: tuple[str, ...])
 
 
 def _validate_participant_feature_support_term(feature: str) -> None:
-    errors: list[str] = []
     for scope in (PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE, PARTICIPANT_RUNTIME_INTERACTION_FEATURE_SCOPE):
         try:
             validate_controlled_vocabulary_scope_values(scope, (feature,))
-        except ValueError as exc:
-            errors.append(str(exc))
+        except ValueError:
             continue
         return
     raise ValueError(
         "ParticipantFeatureSupport.feature must be a governed participant behavior or interaction feature "
-        f"term, or match the governed extension pattern; got {feature!r}; "
-        f"validation details: {'; '.join(errors)}"
+        f"term, or match the governed extension pattern; got {feature!r}"
     )
 
 
 def _participant_feature_support_level(
     value: ParticipantFeatureSupportLevel | str,
 ) -> ParticipantFeatureSupportLevel:
+    if isinstance(value, ParticipantFeatureSupportLevel):
+        return value
     try:
-        if isinstance(value, ParticipantFeatureSupportLevel):
-            return value
         return ParticipantFeatureSupportLevel(str(value))
     except ValueError as exc:
         raise ValueError("ParticipantFeatureSupport.support_level must be a valid support level") from exc
@@ -185,6 +191,7 @@ class ParticipantRuntimeCapabilities:
     supported_behavior_features: frozenset[str] = frozenset()
     supported_interaction_features: frozenset[str] = frozenset()
     feature_support: tuple[ParticipantFeatureSupport, ...] = ()
+    tool_profiles: ParticipantToolProfilesModel | None = None
     supports_autonomous_execution: bool = False
     supported_autonomous_selection_strategies: frozenset[str] = frozenset()
     supported_autonomous_action_contracts: frozenset[str] = frozenset()
@@ -206,6 +213,7 @@ class ParticipantRuntimeCapabilities:
     max_execution_services: int | None = None
     max_concurrent_actions: int | None = None
     resource_budgets: ParticipantResourceBudgetCapabilities | None = None
+    invocation_tool_actions: ParticipantInvocationToolActionCapabilitiesModel | None = None
     constraints: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -214,13 +222,40 @@ class ParticipantRuntimeCapabilities:
         self._validate_required_vocabularies()
         feature_support = self._normalize_feature_support()
         self._validate_feature_support(feature_support)
+        profiles = (
+            ParticipantToolProfilesModel.model_validate(self.tool_profiles.model_dump(mode="json"))
+            if self.tool_profiles is not None
+            else None
+        )
+        validate_tool_feature_support(
+            profiles,
+            (ParticipantFeatureSupportModel.model_validate(asdict(entry)) for entry in feature_support),
+            self.supported_behavior_features,
+        )
+        object.__setattr__(self, "tool_profiles", profiles)
         execution_bindings = tuple(
             binding if isinstance(binding, ParticipantExecutionBinding) else ParticipantExecutionBinding(**binding)
             for binding in self.execution_bindings
         )
         object.__setattr__(self, "execution_bindings", execution_bindings)
         self._validate_autonomous_execution()
+        self._validate_invocation_tool_actions(profiles)
         object.__setattr__(self, "feature_support", feature_support)
+
+    def _validate_invocation_tool_actions(self, profiles: ParticipantToolProfilesModel | None) -> None:
+        claim = (
+            ParticipantInvocationToolActionCapabilitiesModel.model_validate(
+                self.invocation_tool_actions.model_dump(mode="json")
+            )
+            if self.invocation_tool_actions is not None
+            else None
+        )
+        validate_invocation_tool_action_claim(
+            claim,
+            supports_autonomous_execution=self.supports_autonomous_execution,
+            supports_tool_affordances=profiles is not None,
+        )
+        object.__setattr__(self, "invocation_tool_actions", claim)
 
     def _validate_required_vocabularies(self) -> None:
         for field_name, values in (

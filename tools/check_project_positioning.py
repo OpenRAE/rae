@@ -13,10 +13,16 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 from tools.policy.common import (  # noqa: E402
+    YAML_CONTENT_FAILURES,
     PolicyFailure,
     apply_exceptions,
     failures_to_json,
@@ -65,7 +71,7 @@ def _read_text(repo_root: Path, relative_path: str) -> tuple[str | None, PolicyF
                 relative_path,
             )
         return path.read_text(encoding="utf-8"), None
-    except (OSError, UnicodeDecodeError):
+    except OSError, UnicodeDecodeError:
         return None, PolicyFailure(
             RULE_SURFACE,
             "positioning surface is not readable UTF-8 text",
@@ -165,9 +171,11 @@ def _validate_structured_metadata(repo_root: Path, failures: list[PolicyFailure]
     if pyproject_text:
         try:
             project = tomllib.loads(pyproject_text).get("project", {})
-            description = project.get("description", "") if isinstance(project, dict) else ""
-        except (tomllib.TOMLDecodeError, TypeError):
-            description = ""
+        # TOMLDecodeError is a ValueError. tomllib also raises a plain ValueError for an integer beyond
+        # the interpreter digit limit, and RecursionError for nesting beyond its recursive parser.
+        except ValueError, RecursionError:
+            project = {}
+        description = project.get("description", "") if isinstance(project, dict) else ""
         if not isinstance(description, str) or "reproducible agentic environments" not in description.casefold():
             failures.append(
                 PolicyFailure(
@@ -195,7 +203,7 @@ def _validate_structured_metadata(repo_root: Path, failures: list[PolicyFailure]
     try:
         catalog = yaml.safe_load(catalog_text)
         description = catalog.get("description", "") if isinstance(catalog, dict) else ""
-    except yaml.YAMLError:
+    except (yaml.YAMLError, *YAML_CONTENT_FAILURES):
         description = ""
     if not isinstance(description, str) or _missing_terms(description, ("domain-neutral", "agentic environment")):
         failures.append(
@@ -245,7 +253,11 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Emit failures as JSON.")
     args = parser.parse_args()
 
-    failures = apply_exceptions(validate_project_positioning(REPO_ROOT), load_exceptions(REPO_ROOT))
+    try:
+        failures = apply_exceptions(validate_project_positioning(REPO_ROOT), load_exceptions(REPO_ROOT))
+    except InvalidInputError as exc:
+        print(f"project-positioning: {exc}", file=sys.stderr)
+        return 1
     if args.json:
         print(failures_to_json(failures))
     else:
@@ -255,4 +267,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

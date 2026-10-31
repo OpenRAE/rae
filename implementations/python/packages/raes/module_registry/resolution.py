@@ -4,34 +4,32 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypedDict, Unpack
+from typing import TYPE_CHECKING, Any, TypedDict, Unpack
 from urllib.parse import quote
 
-from packaging.version import InvalidVersion, Version
 from pydantic import ValidationError
+from raes_contracts.digests import SHA256_PREFIX, sha256_digest
 
 from .._errors import SDLParseDiagnostic, SDLParseError, SDLSourceRange
 from .._model_diagnostics import _model_parse_error
 from .._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLSourceParseOptions
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
-from ._digests import _SHA256_PREFIX, _descriptor_digest, _normalize_exact_or_range, _satisfies_version
+from ._digests import _descriptor_digest, _satisfies_version, _select_tag
 from ._verified_sources import _local_resolved_source, _VerifiedSourceBundle
-from .models import (
-    Lockfile,
-    LockRecord,
-    ResolvedModule,
-    TrustPolicy,
-    _scenario_module_descriptor,
-    load_trust_policy,
-)
+from .models import Lockfile, LockRecord, ResolvedModule, TrustPolicy, _scenario_module_descriptor, load_trust_policy
 
-# The private digest/signature seams (``_sha256_digest``, ``_json_request``,
-# ``_bytes_request``, ``_extract_bundle_to_cache``, ``_verify_signatures``,
-# ``_OCI_LIMITS``) are resolved through the package facade with function-local
-# ``from . import`` at each use, rather than bound here from the submodules. A test
-# that patches ``raes.module_registry.<seam>`` then replaces the binding these
-# production calls use, exactly as the pre-split single-file module did.
+if TYPE_CHECKING:
+    from ..parser import SDLSourceDocument
+
+_LOCKED_PREFIX = "locked:"
+
+# The private request/signature seams (``_json_request``, ``_bytes_request``,
+# ``_extract_bundle_to_cache``, ``_verify_signatures``, ``_OCI_LIMITS``) are resolved
+# through the package facade with function-local ``from . import`` at each use,
+# rather than bound here from the submodules. A test that patches
+# ``raes.module_registry.<seam>`` then replaces the binding these production calls
+# use, exactly as the pre-split single-file module did.
 
 
 @dataclass(frozen=True)
@@ -45,6 +43,8 @@ class _ResolutionContext:
     source_diagnostics: list[SDLParseDiagnostic] | None
     verified_sources: _VerifiedSourceBundle | None
     registry_base_dir: Path | None
+    local_sources_only: bool
+    requested_source: str
 
 
 class _ResolutionPrivateOptions(TypedDict, total=False):
@@ -52,6 +52,7 @@ class _ResolutionPrivateOptions(TypedDict, total=False):
 
     verified_sources: _VerifiedSourceBundle | None
     _registry_base_dir: Path | None
+    _local_sources_only: bool
 
 
 def _parse_oci_source(source: str) -> tuple[str, str]:
@@ -80,31 +81,6 @@ def _registry_base_url(registry: str, *, allow_insecure_http: bool) -> str:
     return f"{scheme}{scheme_sep}{registry}".rstrip("/")
 
 
-def _parse_versioned_tags(tags: list[str]) -> list[tuple[Version, str]]:
-    parsed: list[tuple[Version, str]] = []
-    for tag in tags:
-        try:
-            parsed.append((Version(tag), tag))
-        except InvalidVersion:
-            continue
-    return parsed
-
-
-def _select_tag(tags: list[str], requested_version: str) -> str:
-    spec = _normalize_exact_or_range(requested_version)
-    parsed = _parse_versioned_tags(tags)
-    if spec is None:
-        if parsed:
-            return max(parsed)[1]
-        if tags:
-            return max(tags)
-        raise SDLParseError("OCI module has no published tags")
-    matching = [(version, tag) for version, tag in parsed if version in spec]
-    if matching:
-        return max(matching)[1]
-    raise SDLParseError(f"No OCI module tag satisfies requested version '{requested_version}'")
-
-
 def _lock_record_for(lockfile: Lockfile | None, import_decl: ImportDecl) -> LockRecord | None:
     if lockfile is None:
         return None
@@ -131,8 +107,8 @@ def _verify_allowed_parameters(
 def _validate_digest_pin(actual_digest: str, expected_digest: str, *, source: str) -> None:
     if not expected_digest:
         return
-    normalized_actual = actual_digest.removeprefix(_SHA256_PREFIX)
-    normalized_expected = expected_digest.removeprefix(_SHA256_PREFIX)
+    normalized_actual = actual_digest.removeprefix(SHA256_PREFIX)
+    normalized_expected = expected_digest.removeprefix(SHA256_PREFIX)
     if normalized_actual != normalized_expected:
         raise SDLParseError(f"Digest mismatch for import '{source}': {expected_digest!r} != {actual_digest!r}")
 
@@ -155,18 +131,26 @@ def resolve_import(
         source_diagnostics=source_diagnostics,
         verified_sources=private_options.get("verified_sources"),
         registry_base_dir=private_options.get("_registry_base_dir"),
+        local_sources_only=private_options.get("_local_sources_only", False),
+        requested_source=import_decl.normalized_source,
     )
     return _resolve_import_with_context(import_decl, context)
 
 
 def _resolve_import_with_context(import_decl: ImportDecl, context: _ResolutionContext) -> ResolvedModule:
     source = import_decl.normalized_source
-    if source.startswith("locked:"):
+    if source.startswith(_LOCKED_PREFIX):
         return _resolve_locked_import(import_decl, source, context=context)
     if source.startswith("local:"):
         return _resolve_local_import(import_decl, source, context=context)
     if not source.startswith("oci:"):
         raise SDLParseError(f"Unsupported import source '{source}'")
+    if context.local_sources_only:
+        raise SDLParseError(
+            f"Registry import '{context.requested_source}' is not resolved in editor path mode; "
+            "validate with parse_sdl_file()",
+            path=context.base_dir,
+        )
     return _resolve_oci_import(
         import_decl,
         source,
@@ -183,28 +167,52 @@ def _resolve_locked_import(
     *,
     context: _ResolutionContext,
 ) -> ResolvedModule:
-    locked_ref = source.removeprefix("locked:")
     lockfile = context.lockfile
     if lockfile is None:
         raise SDLParseError(f"Locked import '{source}' requires {LOCKFILE_NAME}")
-    record = next(
-        (
-            candidate
-            for candidate in lockfile.imports
-            if candidate.resolved_source == locked_ref or candidate.source == locked_ref
-        ),
-        None,
-    )
-    if record is None:
-        raise SDLParseError(f"Locked import '{source}' is not present in {LOCKFILE_NAME}")
-    delegated = ImportDecl(
-        source=record.source,
-        namespace=import_decl.namespace or record.namespace,
-        version=record.requested_version,
-        parameters=dict(import_decl.parameters),
-        digest=import_decl.digest or record.content_digest,
-    )
-    return _resolve_import_with_context(delegated, context)
+    visited: set[str] = set()
+    while source.startswith(_LOCKED_PREFIX):
+        if source in visited:
+            raise SDLParseError("Locked import cycle detected", path=context.base_dir / LOCKFILE_NAME)
+        if len(visited) >= context.source_options.limits.max_composition_depth:
+            raise SDLParseError("Locked import chain budget exceeded", path=context.base_dir / LOCKFILE_NAME)
+        visited.add(source)
+        record = lockfile.locked_record(source.removeprefix(_LOCKED_PREFIX))
+        if record is None:
+            raise SDLParseError(f"Locked import '{source}' is not present in {LOCKFILE_NAME}")
+        try:
+            import_decl = ImportDecl(
+                source=record.source,
+                namespace=import_decl.namespace or record.namespace,
+                version=record.requested_version,
+                parameters=dict(import_decl.parameters),
+                digest=import_decl.digest or record.content_digest,
+            )
+        except ValidationError:
+            raise SDLParseError("Locked import record is invalid", path=context.base_dir / LOCKFILE_NAME) from None
+        source = import_decl.normalized_source
+    return _resolve_import_with_context(import_decl, context)
+
+
+def _read_unverified_local_import(relative: str, context: _ResolutionContext) -> tuple[Path, SDLSourceDocument]:
+    """Read a local import below the base directory when no verified source bundle applies."""
+
+    from ..parser import read_sdl_source
+
+    # Path functions refuse a NUL character with ValueError; the verified-cache reader refuses it the same way.
+    if "\x00" in relative:
+        raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
+    import_path = (context.base_dir / relative).resolve()
+    if not import_path.is_relative_to(context.base_dir.resolve()):
+        raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
+    if not import_path.exists():
+        raise SDLParseError(f"Imported SDL file not found: {relative}")
+    try:
+        imported_source = read_sdl_source(import_path, limits=context.source_options.limits)
+    except OSError as exc:
+        # The authored import can name a directory or a file that this process cannot read.
+        raise SDLParseError(f"Imported SDL file cannot be read: {relative}") from exc
+    return import_path, imported_source
 
 
 def _resolve_local_import(
@@ -213,21 +221,14 @@ def _resolve_local_import(
     *,
     context: _ResolutionContext,
 ) -> ResolvedModule:
-    from ..parser import _load_normalized_data, read_sdl_source
-    from . import _sha256_digest
+    from ..parser import _load_normalized_data
 
     relative = source.removeprefix("local:")
     if context.verified_sources is None:
-        import_path = (context.base_dir / relative).resolve()
-        if not import_path.is_relative_to(context.base_dir.resolve()):
-            raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
-        if not import_path.exists():
-            raise SDLParseError(f"Imported SDL file not found: {relative}")
-        imported_source = read_sdl_source(import_path, limits=context.source_options.limits)
+        import_path, imported_source = _read_unverified_local_import(relative, context)
     else:
         import_path, imported_source = context.verified_sources.resolve_local(
-            base_dir=context.base_dir,
-            relative=relative,
+            base_dir=context.base_dir, relative=relative
         )
     source_ranges: dict[str, SDLSourceRange] = {}
     imported_raw = _load_normalized_data(
@@ -245,7 +246,7 @@ def _resolve_local_import(
         imported_scenario,
         source_id=relative.replace("\\", "/"),
     )
-    content_digest = f"{_SHA256_PREFIX}{_sha256_digest(imported_source.raw_bytes)}"
+    content_digest = sha256_digest(imported_source.raw_bytes)
     if not _satisfies_version(descriptor.version, import_decl.version):
         raise SDLParseError(
             f"Import '{relative}' requested version {import_decl.version!r} but module declares {descriptor.version!r}"
@@ -283,7 +284,7 @@ def _resolve_oci_manifest(
     locked: LockRecord | None,
     source: str,
 ) -> tuple[str, dict[str, Any]]:
-    from . import _bytes_request, _decode_json_object, _json_request, _sha256_digest
+    from . import _bytes_request, _decode_json_object, _json_request
 
     manifest_ref = locked.manifest_digest if locked is not None else None
     if manifest_ref is None:
@@ -297,7 +298,7 @@ def _resolve_oci_manifest(
         f"{base_url}/v2/{quote(repository, safe='/')}/manifests/{quote(str(manifest_ref), safe=':@/')}",
         headers={"Accept": OCI_LAYOUT_MEDIA_TYPE},
     )
-    manifest_digest = f"{_SHA256_PREFIX}{_sha256_digest(manifest_bytes)}"
+    manifest_digest = sha256_digest(manifest_bytes)
     manifest = _decode_json_object(manifest_bytes, context=f"OCI manifest for '{source}'")
     if locked is not None and locked.manifest_digest != manifest_digest:
         raise SDLParseError(
@@ -309,7 +310,7 @@ def _resolve_oci_manifest(
 def _resolve_oci_config(
     *, base_url: str, repository: str, manifest: dict[str, Any], source: str
 ) -> tuple[dict[str, Any], str]:
-    from . import _bytes_request, _decode_json_object, _sha256_digest
+    from . import _bytes_request, _decode_json_object
 
     config = manifest.get("config", {})
     layers = manifest.get("layers", [])
@@ -336,20 +337,20 @@ def _resolve_oci_config(
     config_bytes = _bytes_request(
         f"{base_url}/v2/{quote(repository, safe='/')}/blobs/{quote(config_digest, safe=':@/')}"
     )
-    if f"{_SHA256_PREFIX}{_sha256_digest(config_bytes)}" != config_digest:
+    if sha256_digest(config_bytes) != config_digest:
         raise SDLParseError(f"OCI module '{source}' config digest verification failed")
     config_payload = _decode_json_object(config_bytes, context=f"OCI config for '{source}'")
     return config_payload, layer_digest
 
 
 def _fetch_oci_bundle(*, base_url: str, repository: str, layer_digest: str, source: str) -> bytes:
-    from . import _OCI_LIMITS, _bytes_request, _sha256_digest
+    from . import _OCI_LIMITS, _bytes_request
 
     bundle_bytes = _bytes_request(
         f"{base_url}/v2/{quote(repository, safe='/')}/blobs/{quote(layer_digest, safe=':@/')}",
         max_bytes=_OCI_LIMITS.max_bundle_bytes,
     )
-    if f"{_SHA256_PREFIX}{_sha256_digest(bundle_bytes)}" != layer_digest:
+    if sha256_digest(bundle_bytes) != layer_digest:
         raise SDLParseError(f"OCI module '{source}' bundle digest verification failed")
     return bundle_bytes
 
@@ -428,14 +429,14 @@ def _resolve_oci_import(
         )
     verified_sources = _extract_bundle_to_cache(
         bundle_bytes=bundle_bytes,
-        manifest_digest=manifest_digest.replace(_SHA256_PREFIX, ""),
+        manifest_digest=manifest_digest.replace(SHA256_PREFIX, ""),
         content_digest=content_digest,
         root_file=root_file,
         base_dir=base_dir,
         source_options=source_options,
     )
     if not isinstance(verified_sources, _VerifiedSourceBundle):
-        raise SDLParseError("OCI module cache did not return verified source documents")
+        raise RuntimeError("OCI module cache did not return verified source documents")
     resolved_root, resolved_source_document = verified_sources.resolve_local(
         base_dir=verified_sources.cache_root,
         relative=root_file,

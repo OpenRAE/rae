@@ -117,7 +117,7 @@ class RuntimePlatformApplicationCapability(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_capability(self) -> "RuntimePlatformApplicationCapability":
+    def validate_capability(self) -> RuntimePlatformApplicationCapability:
         _reject_duplicate_values(self.evidence_refs, field_name="evidence_refs", owner=self.capability_id)
         return self
 
@@ -158,7 +158,7 @@ class RuntimePlatformApplicationContentObject(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_content_object(self) -> "RuntimePlatformApplicationContentObject":
+    def validate_content_object(self) -> RuntimePlatformApplicationContentObject:
         _reject_duplicate_values(self.references, field_name="references", owner=self.content_object_id)
         _reject_duplicate_values(self.marking_refs, field_name="marking_refs", owner=self.content_object_id)
         _reject_duplicate_values(self.evidence_refs, field_name="evidence_refs", owner=self.content_object_id)
@@ -251,7 +251,7 @@ class RuntimePlatformApplicationConnector(SDLModel):
         return parse_optional_bool_or_var(v, field_name="enabled")
 
     @model_validator(mode="after")
-    def validate_connector(self) -> "RuntimePlatformApplicationConnector":
+    def validate_connector(self) -> RuntimePlatformApplicationConnector:
         return self
 
 
@@ -321,7 +321,7 @@ class RuntimePlatformApplicationSetting(SDLModel):
         )
 
     @model_validator(mode="after")
-    def validate_setting(self) -> "RuntimePlatformApplicationSetting":
+    def validate_setting(self) -> RuntimePlatformApplicationSetting:
         enforce_observed_value_redaction(
             owner_label=f"platform setting '{self.name}'",
             value=self.value,

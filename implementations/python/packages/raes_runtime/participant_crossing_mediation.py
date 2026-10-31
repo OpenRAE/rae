@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from typing import Protocol
 from uuid import uuid4
 
@@ -26,6 +25,7 @@ from raes_contracts.contracts.participant_crossing_validation import (
 )
 from raes_contracts.contracts.participant_runtime import ParticipantRuntimeOrderingBasis
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_opacity_runtime import validate_participant_opacity_runtime_enforcement
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -36,6 +36,7 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     operation_terminal_diagnostics,
 )
+from raes_contracts.timestamps import isoformat_z
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 
 from .control_plane_mutation import external_control_plane_call
@@ -48,9 +49,8 @@ from .participant_opacity_enforcement import (
     validate_persisted_participant_opacity,
 )
 
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+_POLICY_UNRESOLVED = "participant crossing policy could not be resolved"
+_OPACITY_BINDING_NOT_ADMITTED = "participant opacity runtime binding is not admitted by the resolver context"
 
 
 class ParticipantCrossingIntent(ContractModel):
@@ -192,16 +192,20 @@ def _resolve_crossing_policy(
     incumbent_carrier: object | None,
 ) -> ParticipantCrossingPolicyResolution:
     operation_resolver = getattr(resolver, "resolve_operation", None)
-    with external_control_plane_call(control_plane):
-        resolution = (
-            operation_resolver(intent, control_plane._snapshot, incumbent_carrier)
-            if callable(operation_resolver)
-            else resolver.resolve(intent, control_plane._snapshot)
-        )
-        context = resolver.validation_context(
-            control_plane._snapshot,
-            intent.participant_address,
-        )
+    try:
+        with external_control_plane_call(control_plane):
+            resolution = (
+                operation_resolver(intent, control_plane._snapshot, incumbent_carrier)
+                if callable(operation_resolver)
+                else resolver.resolve(intent, control_plane._snapshot)
+            )
+            context = resolver.validation_context(
+                control_plane._snapshot,
+                intent.participant_address,
+            )
+    # A resolver refuses a policy that it cannot resolve with TypeError or ValueError.
+    except (TypeError, ValueError) as exc:
+        raise ConflictError(_POLICY_UNRESOLVED) from exc
     resolution = bind_active_participant_opacity_support(
         resolution,
         context.opacity_enforcement_supports,
@@ -217,13 +221,16 @@ def _resolve_crossing_policy(
         None,
     )
     if support is None:
-        raise ValueError("participant opacity runtime binding is not admitted by the resolver context")
-    validate_participant_opacity_runtime_enforcement(
-        resolution.opacity_enforcement,
-        support=support,
-        participant_address=intent.participant_address,
-        audience_scope_ref=intent.audience_scope_ref,
-    )
+        raise ConflictError(_OPACITY_BINDING_NOT_ADMITTED)
+    try:
+        validate_participant_opacity_runtime_enforcement(
+            resolution.opacity_enforcement,
+            support=support,
+            participant_address=intent.participant_address,
+            audience_scope_ref=intent.audience_scope_ref,
+        )
+    except ValueError as exc:
+        raise ConflictError(_OPACITY_BINDING_NOT_ADMITTED) from exc
     return normalize_participant_opacity_resolution(resolution)
 
 
@@ -263,7 +270,7 @@ def prepare_participant_crossing(
             resolver,
             incumbent_carrier,
         )
-    except (TypeError, ValueError):
+    except ConflictError:
         return _prepare_policy_unresolved(
             control_plane,
             intent,
@@ -317,7 +324,7 @@ def _prepare_policy_unresolved(
         identity=identity,
     )
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     diagnostic = Diagnostic(
         code="runtime.participant-crossing-policy-unresolved",
         domain="participant",

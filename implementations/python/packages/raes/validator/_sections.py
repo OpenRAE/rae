@@ -4,6 +4,7 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
 from pydantic import BaseModel
+from raes_contracts.graphs import has_cycle
 
 from .._base import VARIABLE_TOKEN_RE
 from .._stateful_resource_references import stateful_resource_reference_errors
@@ -17,24 +18,41 @@ from ..realization_designation import (
     resolve_json_pointer_surface,
 )
 from ..scenario import ExpandedScenario, Scenario
-from ._support import _topological_sort
 
 
 class _SectionsMixin:
     def _verify_stateful_resources(self) -> None:
-        self._errors.extend(
-            stateful_resource_reference_errors(
-                nodes=self._s.nodes,
-                generated_artifacts=self._s.generated_artifacts,
-                persistent_volumes=self._s.persistent_volumes,
-                content=self._s.content,
-                propositions=self._s.propositions,
-            )
-        )
+        for finding in stateful_resource_reference_errors(
+            nodes=self._s.nodes,
+            generated_artifacts=self._s.generated_artifacts,
+            persistent_volumes=self._s.persistent_volumes,
+            content=self._s.content,
+            propositions=self._s.propositions,
+        ):
+            with self._owner(finding.owner):
+                self._err(finding.message)
 
     def _verify_variables(self) -> None:
-        defined = set(getattr(self._s, "variables", {}))
-        self._check_variable_refs(self._s, "", defined)
+        variables = getattr(self._s, "variables", {})
+        defined = set(variables)
+        scenario = self._s
+        for field_name in scenario.__class__.model_fields:
+            if isinstance(scenario, Scenario) and field_name == "variables":
+                continue
+            child = getattr(scenario, field_name)
+            # Each top-level field's references depend only on that field and
+            # the defined variables, so an unchanged field reuses its errors.
+            key = ("variable-refs", field_name, id(variables))
+            errors = self._session.walker_result(key, child)
+            if errors is None:
+                collected, self._errors = self._errors, []
+                try:
+                    self._check_variable_refs(child, field_name, defined)
+                    errors = tuple(self._errors)
+                finally:
+                    self._errors = collected
+                self._session.store_walker_result(key, child, errors)
+            self._errors.extend(errors)  # type: ignore[arg-type]
 
     def _check_variable_refs(self, value: object, path: str, defined: set[str]) -> None:
         if isinstance(value, BaseModel):
@@ -72,7 +90,7 @@ class _SectionsMixin:
                 self._err(f"Undefined variable '{variable_name}' referenced at '{path}'")
 
     def _verify_explicitness(self) -> None:
-        result = classify_scenario_explicitness(self._s)
+        result = classify_scenario_explicitness(self._s, session=self._session)
         self._s._set_explicitness(result.records)
         for error in result.errors:
             self._err(error)
@@ -141,10 +159,6 @@ class _SectionsMixin:
         """Collect all named element keys across all scenario sections."""
         return set(self._named_ref_index().keys())
 
-    def _all_targetable_elements(self) -> set[str]:
-        """Collect named elements that can serve as objective targets."""
-        return set(self._named_ref_index(targetable=True).keys())
-
     def _verify_features(self) -> None:
         self._verify_feature_dependency_cycles()
 
@@ -156,10 +170,11 @@ class _SectionsMixin:
                 if self._is_unresolved_var(dep):
                     continue
                 if dep not in self._s.features:
-                    self._err(f"Feature '{name}' depends on undefined feature '{dep}'")
+                    with self._owner(("features", name)):
+                        self._err(f"Feature '{name}' depends on undefined feature '{dep}'")
                 else:
                     dep_graph[name].append(dep)
-        if dep_graph and _topological_sort(dep_graph) is None:
+        if dep_graph and has_cycle(dep_graph):
             self._err("Feature dependency graph contains a cycle")
 
     def _verify_conditions(self) -> None:
@@ -169,7 +184,8 @@ class _SectionsMixin:
 
     def _verify_entities(self) -> None:
         for name, entity in flatten_entities(self._s.entities).items():
-            self._verify_entity_refs(name, entity)
+            with self._owner(("entities", name)):
+                self._verify_entity_refs(name, entity)
 
     def _verify_entity_refs(self, name: str, entity: object) -> None:
         self._verify_membership_refs(
@@ -179,7 +195,8 @@ class _SectionsMixin:
     def _verify_injects(self) -> None:
         flat_names = self._all_entity_names()
         for name, inject in self._s.injects.items():
-            self._verify_inject_refs(name, inject, flat_names)
+            with self._owner(("injects", name)):
+                self._verify_inject_refs(name, inject, flat_names)
 
     def _verify_inject_refs(self, name: str, inject: object, flat_names: set[str]) -> None:
         if (
@@ -194,7 +211,8 @@ class _SectionsMixin:
 
     def _verify_events(self) -> None:
         for name, event in self._s.events.items():
-            self._verify_event_refs(name, event)
+            with self._owner(("events", name)):
+                self._verify_event_refs(name, event)
 
     def _verify_event_refs(self, name: str, event: object) -> None:
         self._verify_membership_refs(
@@ -207,7 +225,8 @@ class _SectionsMixin:
                 if self._is_unresolved_var(event_name):
                     continue
                 if event_name not in self._s.events:
-                    self._err(f"Script '{name}' references undefined event '{event_name}'")
+                    with self._owner(("scripts", name)):
+                        self._err(f"Script '{name}' references undefined event '{event_name}'")
 
     def _verify_stories(self) -> None:
         for name, story in self._s.stories.items():
@@ -215,7 +234,8 @@ class _SectionsMixin:
                 if self._is_unresolved_var(script_name):
                     continue
                 if script_name not in self._s.scripts:
-                    self._err(f"Story '{name}' references undefined script '{script_name}'")
+                    with self._owner(("stories", name)):
+                        self._err(f"Story '{name}' references undefined script '{script_name}'")
 
     def _verify_roles(self) -> None:
         flat_names = self._all_entity_names()
@@ -226,4 +246,7 @@ class _SectionsMixin:
                     if self._is_unresolved_var(entity_ref):
                         continue
                     if entity_ref not in flat_names:
-                        self._err(f"Node '{node_name}' role '{role_name}' references undefined entity '{entity_ref}'")
+                        self._err_for(
+                            ("nodes", node_name),
+                            f"Node '{node_name}' role '{role_name}' references undefined entity '{entity_ref}'",
+                        )

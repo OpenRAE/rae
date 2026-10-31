@@ -5,15 +5,37 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
-from typing import ParamSpec, TypeVar
+from contextvars import ContextVar
+from functools import partial
+from typing import Literal, cast
 
+import anyio
 from fastapi import HTTPException, Request
-from starlette.concurrency import run_in_threadpool
+from raes_contracts.errors import OperationalError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from ..control_plane_mutation import MutationReservationRequired, mutation_probe
+from ..errors import RuntimeBudgetExhaustedError
+from ..operation_execution_adapter import _capture_callback, require_budget_ms
 
-_P = ParamSpec("_P")
-_T = TypeVar("_T")
+HttpCallLane = Literal["effect", "control", "read", "auth"]
+_THREAD_LIMITER = ContextVar("raes_http_thread_limiter", default=None)
+_LOGGER = get_logger(__name__)
+
+
+async def run_in_threadpool[T](call: Callable[..., T], *args: object, **kwargs: object) -> T:
+    outcome = await anyio.to_thread.run_sync(
+        partial(_capture_callback, partial(call, *args, **kwargs)), limiter=_THREAD_LIMITER.get()
+    )
+    if outcome.error is not None:
+        if isinstance(outcome.error, Exception):
+            raise outcome.error
+        # A worker thread cannot stop the server; keep the hidden cause in one value-free record. RAES code
+        # raises no interruption in a worker, so the cause is backend or provider code that passed every
+        # isolation handler; its type and frames are foreign content.
+        _LOGGER.error("control-plane worker ended with an interruption", exc_info=foreign_failure_record(outcome.error))
+        raise RuntimeError("control-plane worker interrupted") from None
+    return cast(T, outcome.value)
 
 
 class _ControlPlaneCallExecutor:
@@ -25,58 +47,114 @@ class _ControlPlaneCallExecutor:
     authentication requests.
     """
 
-    def __init__(self, *, max_pending_mutations: int) -> None:
+    def __init__(self, *, max_pending_mutations: int, call_budget_ms: int = 40000, drain_budget_ms: int = 2000) -> None:
         if max_pending_mutations <= 0:
             raise ValueError("max_pending_mutations must be positive")
-        self._max_pending_mutations = max_pending_mutations
-        self._pending_mutations = 0
         self._active_calls = 0
         self._closing = False
         self._closed = False
         self._condition = asyncio.Condition()
+        self._call_budget_ms = require_budget_ms(call_budget_ms)
+        self._drain_budget_ms = require_budget_ms(drain_budget_ms)
+        self._limiters = {
+            "effect": anyio.CapacityLimiter(max_pending_mutations),
+            "control": anyio.CapacityLimiter(4),
+            "read": anyio.CapacityLimiter(8),
+            "auth": anyio.CapacityLimiter(4),
+        }
+        self._tasks = set()
+        self._pending_lanes = dict.fromkeys(self._limiters, 0)
 
-    async def run(
+    async def run[T, **P](
         self,
-        call: Callable[_P, _T],
+        call: Callable[P, T],
         /,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
-    ) -> _T:
-        async with self._admitted():
-            return await run_in_threadpool(call, *args, **kwargs)
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> T:
+        return await self._start("read", call, args, kwargs)
 
-    async def mutate(
+    async def mutate[T, **P](
         self,
-        call: Callable[_P, _T],
+        call: Callable[P, T],
         /,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
-    ) -> _T:
-        async with self._admitted():
-            if self._pending_mutations >= self._max_pending_mutations:
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> T:
+        return await self._start("effect", call, args, kwargs)
+
+    async def _start[T](
+        self, lane: HttpCallLane, call: Callable[..., T], args: tuple[object, ...], kwargs: dict[str, object]
+    ) -> T:
+        async with self._condition:
+            if self._closed or self._closing:
+                raise HTTPException(status_code=503, detail="control-plane executor unavailable")
+            if self._pending_lanes[lane] >= self._limiters[lane].total_tokens:
                 raise HTTPException(
-                    status_code=503,
-                    detail="control-plane mutation queue is full",
-                    headers={"Retry-After": "1"},
+                    status_code=503, detail="control-plane capacity unavailable", headers={"Retry-After": "1"}
                 )
-            self._pending_mutations += 1
-            try:
+            self._pending_lanes[lane] += 1
+        stage = {"active": False, "granted": False, "cancelled": False}
+        actor = asyncio.create_task(self._actor(lane, stage, call, args, kwargs))
+        self._tasks.add(actor)
+        actor.add_done_callback(partial(self._finished, stage))
+        budget_ms = self._call_budget_ms if lane == "effect" else min(self._call_budget_ms, 10000)
+        try:
+            return await asyncio.wait_for(asyncio.shield(actor), budget_ms / 1000)
+        except (asyncio.CancelledError, TimeoutError, RuntimeBudgetExhaustedError) as error:
+            # A core budget exhaustion keeps the deadline response that its built-in TimeoutError had.
+            stage["cancelled"] = True
+            if not stage["active"] and not stage["granted"]:
+                actor.cancel()
+            if isinstance(error, asyncio.CancelledError):
+                raise
+            raise HTTPException(status_code=503, detail="control-plane call deadline exceeded") from None
+
+    def _finished(self, stage: dict[str, bool], actor: asyncio.Task[object]) -> None:
+        self._tasks.discard(actor)
+        if actor.cancelled():
+            return
+        error = actor.exception()
+        if error is not None and stage["cancelled"] and not isinstance(error, (RaesError, HTTPException)):
+            # Isolation: the abandoned caller already has its response; record the late failure once.
+            _LOGGER.error("abandoned control-plane call failed after its caller left", exc_info=error)
+
+    async def _actor[T](
+        self,
+        lane: HttpCallLane,
+        stage: dict[str, bool],
+        call: Callable[..., T],
+        args: tuple[object, ...],
+        kwargs: dict[str, object],
+    ) -> T:
+        token = _THREAD_LIMITER.set(self._limiters[lane])
+        try:
+            async with self._admitted():
+                stage["active"] = True
                 try:
-                    with mutation_probe():
-                        return await run_in_threadpool(call, *args, **kwargs)
-                except MutationReservationRequired as reservation:
-                    async with reservation.authority.reserve(reservation.kind):
+                    if lane != "effect":
                         return await self._run_reserved(call, *args, **kwargs)
-            finally:
-                self._pending_mutations -= 1
+                    with mutation_probe():
+                        return await self._run_reserved(call, *args, **kwargs)
+                except MutationReservationRequired as reservation:
+                    stage["active"] = False
+                    if stage["cancelled"]:
+                        raise asyncio.CancelledError from None
+                    async with reservation.authority.reserve(reservation.kind):
+                        stage["granted"] = True
+                        return await self._run_reserved(call, *args, **kwargs)
+        finally:
+            _THREAD_LIMITER.reset(token)
+            async with self._condition:
+                self._pending_lanes[lane] -= 1
 
     @staticmethod
-    async def _run_reserved(
-        call: Callable[_P, _T],
+    async def _run_reserved[T, **P](
+        call: Callable[P, T],
         /,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
-    ) -> _T:
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> T:
         worker = asyncio.create_task(run_in_threadpool(call, *args, **kwargs))
         try:
             return await asyncio.shield(worker)
@@ -88,7 +166,7 @@ class _ControlPlaneCallExecutor:
     async def _admitted(self) -> AsyncIterator[None]:
         async with self._condition:
             if self._closing or self._closed:
-                raise RuntimeError("control-plane call executor is closed")
+                raise OperationalError("control-plane call executor is closed")
             self._active_calls += 1
         try:
             yield
@@ -98,6 +176,12 @@ class _ControlPlaneCallExecutor:
                 if self._active_calls == 0:
                     self._condition.notify_all()
 
+    async def control[T](self, call: Callable[..., T], /, *args: object, **kwargs: object) -> T:
+        return await self._start("control", call, args, kwargs)
+
+    async def authenticate[T](self, call: Callable[..., T], /, *args: object, **kwargs: object) -> T:
+        return await self._start("auth", call, args, kwargs)
+
     async def close(self) -> None:
         """Stop admission and drain every queued or active offloaded call."""
 
@@ -105,7 +189,13 @@ class _ControlPlaneCallExecutor:
             if self._closed:
                 return
             self._closing = True
-            await self._condition.wait_for(lambda: self._active_calls == 0)
+            try:
+                await asyncio.wait_for(
+                    self._condition.wait_for(lambda: self._active_calls == 0), self._drain_budget_ms / 1000
+                )
+            except TimeoutError:
+                self._closing = False
+                raise RuntimeBudgetExhaustedError("HTTP drain has unresolved calls") from None
             self._closed = True
 
 
@@ -115,18 +205,33 @@ async def _settle_worker(worker: asyncio.Task[object]) -> None:
     The worker owns a durable mutation, so cancellation arriving while it is
     still committing is absorbed rather than abandoning it mid-commit. Once the
     worker has settled, cancellation propagates immediately; the caller re-raises
-    its own cancellation in every other case, so none is ever swallowed.
+    its own cancellation in every other case, so none is ever swallowed. The
+    worker can settle before the cancellation reaches the caller, so its outcome
+    is classified on every path, including a worker that is done on entry.
     """
 
     while not worker.done():
         try:
-            await asyncio.shield(worker)
+            # Waiting neither cancels the worker nor raises its outcome; the outcome is classified below.
+            await asyncio.wait((worker,))
         except asyncio.CancelledError:
             if worker.done():
+                # Cleanup: record the settled outcome, then propagate the caller's cancellation.
+                _record_settled_worker_failure(worker)
                 raise
-            continue
-        except Exception:
-            break
+    _record_settled_worker_failure(worker)
+
+
+def _record_settled_worker_failure(worker: asyncio.Future[object]) -> None:
+    """Record one value-free failure of a settled worker whose caller was cancelled."""
+
+    if worker.cancelled():
+        return
+    error = worker.exception()
+    # A refusal settled the worker; the cancelled caller has no response to send.
+    if error is not None and not isinstance(error, (RaesError, HTTPException)):
+        # Isolation: only this wait observes the settled worker's failure; the caller re-raises its cancellation.
+        _LOGGER.error("control-plane call failed while its cancelled caller waited for settlement", exc_info=error)
 
 
 def _control_plane_calls(request: Request) -> _ControlPlaneCallExecutor:

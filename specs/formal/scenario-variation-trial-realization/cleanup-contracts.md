@@ -1,4 +1,4 @@
-# Portable Clean-State And Cleanup Contracts
+# Portable clean-state and cleanup contracts
 
 Status: normative contract semantics
 
@@ -26,7 +26,7 @@ drivers, workflow compensation, archival run identity, comparison, or scoring.
 Let `P` be a `TrialCleanupPlanModel`, `A` an execution attempt, `R` a
 `TrialCleanupReceiptModel`, and `I` a `SchedulerIsolationProofModel`.
 
-## Identity And Authority
+## Identity and authority
 
 `P.plan_entry_id` identifies the admitted entry and `P.run_id` is its
 preallocated archival run identity. `R.execution_attempt_id` identifies one
@@ -44,7 +44,7 @@ R.execution_attempt_id != R.run_id
 The cleanup plan is execution intent, not mutable scheduler state. The receipt
 is immutable attempt evidence, not a replacement for `experiment-run-v1`.
 
-## Resource And Clean-State Boundaries
+## Resource and clean-state boundaries
 
 Every clean-state requirement and cleanup obligation references a declared
 `CleanupResourceBoundaryModel`. A boundary names an owner and portable resource
@@ -62,7 +62,7 @@ Fresh and reset modes require verification probes. Reusable state additionally
 requires a reusable-state claim reference. Missing or unsupported evidence does
 not become clean state by backend convention.
 
-## Cleanup Obligations
+## Cleanup obligations
 
 Each obligation declares:
 
@@ -84,7 +84,7 @@ Workflow compensation remains governed by the workflow state machine. A
 cleanup obligation may cite compensation evidence, but a workflow compensation
 event is not by itself proof that owned resources were cleaned.
 
-## Retry Safety
+## Retry safety
 
 The first execution attempt and every later attempt have different attempt ids.
 When more than one attempt is permitted after effects may have occurred:
@@ -98,7 +98,7 @@ When more than one attempt is permitted after effects may have occurred:
 The policy does not allocate a new archival `run_id` and cannot mutate the
 admitted trial entry.
 
-## Receipt Semantics
+## Receipt semantics
 
 Primary trial outcome and cleanup status are orthogonal:
 
@@ -107,16 +107,39 @@ trial_outcome in {succeeded, failed, cancelled, timed-out, aborted}
 cleanup_status in {succeeded, failed, partial, unsupported, unverified, not-required}
 ```
 
-For the trigger selected by the primary outcome, every required obligation has
-a successful result. Failed or unverified results carry bounded failure
-evidence or residual-state references. A successful result carries verification
-evidence and cannot disclose residual state.
+The primary outcome selects one terminal trigger `T`:
+
+```text
+succeeded -> success      failed  -> failure     cancelled -> cancellation
+timed-out -> timeout      aborted -> abort
+```
+
+`retry` is not a terminal trigger. A terminal receipt never owes a
+retry-only obligation.
+
+A valid receipt reports cleanup truthfully. It does not assert that cleanup
+succeeded. `validate_trial_cleanup_receipt()` applies these rules:
+
+| Condition | Rule |
+| --- | --- |
+| A required obligation has `T` in its triggers | Its result must exist. The status must be `succeeded`, `failed`, `unsupported`, or `unverified`. `skipped`, `not-triggered`, and an omitted result are rejected. |
+| `cleanup_status` is `succeeded` | Every owed required result is `succeeded`. Each reported result is `succeeded` or `not-triggered`. |
+| `cleanup_status` is `failed`, `partial`, `unsupported`, or `unverified` | An owed required result can have any attempted status. The aggregate status is a producer disclosure. It is not a reduction over the result statuses. |
+| `cleanup_status` is `not-required` | The receipt has no results. A plan that owes a required obligation for `T` rejects it. |
+| An obligation has `T` in its triggers | Its result cannot be `not-triggered`. |
+| An obligation does not have `T` in its triggers | Omit its result, or report it as `not-triggered`. |
+| A result is `succeeded` | It carries evidence and cannot disclose residual state. |
+| A result is `failed` or `unverified` | It carries bounded failure evidence or residual-state references. |
+
+A truthful failure report keeps the admitted obligation. It does not downgrade
+the obligation, remove it, or mark it as not triggered. Acceptance of a
+failure receipt does not certify resource reuse or retry safety.
 
 A `clean_state_claim` is permitted only when cleanup succeeded. Failed,
 partial, unsupported, or unverified cleanup therefore invalidates clean or
 reusable-state claims without rewriting the primary trial outcome.
 
-## Backend Capability
+## backend capability
 
 `backend-manifest-v2` may declare `capabilities.cleanup`. The block names both
 cleanup contract versions, supported action kinds, supported verification
@@ -132,7 +155,57 @@ rejects a plan when the backend omits cleanup capability, lacks a required
 action or verification method, cannot support declared reusable state, or
 cannot disclose residual state for required cleanup.
 
-## Scheduler Isolation
+## Trial control admission
+
+Trial compilation shall check every entry before it returns any executable plan.
+The check shall use each entry's selected, digest-bound backend manifests.
+Mixed compositions shall include every selected backend in reachable stages.
+Replacement compilation shall apply the same checks to the replacement entry.
+An empty backend selection shall fail admission.
+Unused manifests shall supply no support.
+Each selected backend shall satisfy the requirements on its own.
+If any entry fails, compilation shall return no partial plan.
+
+Let `C` be the entry's sealed execution controls.
+Let `P` be the exact cleanup plan referenced by `C.cleanup_plan_ref`.
+The plan shall match the entry and run identities.
+The required operation guarantees are the union of these sets:
+
+| Condition | Required guarantees |
+| --- | --- |
+| `C.on_timeout = cancel` | `cancellation` |
+| `P.retry_policy.max_attempts > 1` | `cessation-evidence` |
+| More than one attempt and `P.retry_policy.after_effect_policy = disallow` | `effect-observation` |
+
+All other cases add no operation guarantee.
+`abort` and `cleanup-and-fail` shall not imply rollback or cessation.
+The authored cancellation response shall remain unchanged.
+Cleanup admission shall still check required actions, required probes, and initial-state probes.
+It shall check reusable-state support and residual-state disclosure for required cleanup.
+Best-effort cleanup shall keep its weaker support rules.
+Reset and compensation joins shall retain the retry-safety rules above.
+
+`backend-manifest-v2` may declare `capabilities.operation_supervision`.
+The block shall contain a non-empty `name` of at most 256 characters.
+Its optional `guarantees` array shall default to empty.
+The array shall contain at most five unique `OperationGuarantee` terms:
+`cancellation`, `effect-observation`, `cessation-evidence`, `partial-effects`, and `external-fencing`.
+A non-null block shall require all four backend operation contracts:
+`backend-operation-request-v1`, `backend-operation-capabilities-v1`,
+`backend-operation-control-v1`, and `backend-operation-response-v1`.
+An absent or null block shall supply no guarantees.
+A backend without required guarantees shall fail admission.
+An absent field shall remain omitted during serialization.
+The admitted entry shall not store a second guarantee list.
+
+Static support shall not grant execution permission or prove installed support, willingness, cessation, or clean state.
+The compiler shall make no live provider call.
+Runtime admission and evidence checks shall remain required before effects, retry, or resource reuse.
+Native operation requests shall not be assumed to carry trial-derived demands.
+Trial deadlines, cleanup budgets, operation budgets, and scenario time shall remain distinct.
+This rule shall not execute cleanup, retries, or timers.
+
+## Scheduler isolation
 
 `SchedulerIsolationProofModel.requested_parallelism` defaults to one. Serial
 execution needs no parallel-isolation evidence. A value greater than one
@@ -146,16 +219,15 @@ requires independent evidence for all of:
 - secret-resolution scope; and
 - cleanup ownership and probe independence.
 
-Secret-resolution scope is a governed isolation dimension for SCE-006: bounded
-parallelism must prove that concurrent trials resolve governed secret references
-through independent per-attempt scopes, never a shared broad worker credential
-or resolver cache.
+Secret-resolution scope is a governed isolation dimension for SCE-006.
+Bounded parallelism must prove that concurrent trials resolve governed secret references through independent per-attempt scopes.
+A shared broad worker credential or resolver cache cannot supply this isolation.
 
 The requested bound cannot exceed the number of admitted entries named in the
 proof. Missing or non-independent evidence rejects bounded parallelism; it does
 not change trial identity or scenario meaning.
 
-## Security And Disclosure
+## Security and disclosure
 
 All three roots are closed `ContractModel` shapes. They carry ids, safe
 resource references, bounded profile terms, and evidence references only. Raw

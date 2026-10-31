@@ -10,12 +10,15 @@ from raes_contracts.contracts.mixed_runtime import (
     MixedCompositionRuntimeEventModel,
     MixedCompositionRuntimeStateModel,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
-from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.runtime_state import ApplyResult, OperationReceipt, RuntimeSnapshot
 
 from .control_plane_security import ControlPlaneIdentity
+from .mixed_backend_installation import action_installation
+from .mixed_backend_invocation import MixedInvocation, reject_mixed_admission
 from .mixed_runtime_edge import MixedEdgeExecutionCapture
-from .mixed_runtime_edge_execution import _mapped_edge_method, _stage_readback_method
+from .mixed_runtime_edge_execution import _edge_action_dispatch
 from .mixed_runtime_state import append_runtime_events, runtime_state
 from .participant_crossing_mediation import PreparedParticipantCrossing
 from .participant_flow_sink import ParticipantFlowSinkDecision
@@ -33,6 +36,8 @@ class PreparedMixedActionDispatch:
     committed_history_heads: dict[str, str | None]
     capture: MixedEdgeExecutionCapture | None = None
     stage_readback: Callable[[ApplyResult], None] | None = None
+    invocation: MixedInvocation | None = None
+    refusal: OperationReceipt | None = None
 
 
 @dataclass(frozen=True)
@@ -80,7 +85,7 @@ def _active_allocation(
         and state.phase_id in allocation.phase_ids
     ]
     if len(matches) != 1:
-        raise ValueError(f"mixed composition requires exactly one active {kind} allocation for {address}")
+        raise ConflictError(f"mixed composition requires exactly one active {kind} allocation for {address}")
     return matches[0]
 
 
@@ -125,7 +130,7 @@ def prepare_mixed_lifecycle_dispatch(
 
     binding = getattr(control_plane, "_mixed_runtime", None)
     if binding is None:
-        raise ValueError("mixed runtime is not configured")
+        raise ConflictError("mixed runtime is not configured")
     lifecycle_identity = _require_lifecycle_identity(control_plane, identity)
     state = runtime_state(binding, control_plane._snapshot)
     participant_address = getattr(request, "participant_address", "")
@@ -165,9 +170,9 @@ def prepare_mixed_lifecycle_dispatch(
 
 def _require_lifecycle_identity(control_plane: object, identity: object) -> ControlPlaneIdentity:
     if not isinstance(identity, ControlPlaneIdentity):
-        raise PermissionError("mixed participant lifecycle requires an authenticated identity")
+        raise AuthorizationError("mixed participant lifecycle requires an authenticated identity")
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
-        raise PermissionError("mixed participant lifecycle identity is not authorized for this target")
+        raise AuthorizationError("mixed participant lifecycle identity is not authorized for this target")
     return identity
 
 
@@ -185,16 +190,16 @@ def _lifecycle_method(
         if item.participant_address == participant_address
     }
     if allocation.controller_ref not in controller_bindings:
-        raise PermissionError("mixed participant controller differs from the authenticated subject binding")
+        raise AuthorizationError("mixed participant controller differs from the authenticated subject binding")
     features = {requirement.feature for requirement in allocation.feature_requirements}
     if "participant_ingress_admission" not in features:
-        raise ValueError("mixed participant provider lacks the admitted lifecycle capability")
+        raise ConflictError("mixed participant provider lacks the admitted lifecycle capability")
     if allocation.provider_component_id not in state.active_component_ids:
-        raise ValueError("mixed participant provider is not active in the committed phase")
+        raise ConflictError("mixed participant provider is not active in the committed phase")
     runtime = binding.components[allocation.provider_component_id].target.participant_runtime
     method = getattr(runtime, method_name, None)
     if not callable(method):
-        raise ValueError("mixed participant provider does not expose the admitted lifecycle method")
+        raise ConflictError("mixed participant provider does not expose the admitted lifecycle method")
     return method
 
 
@@ -211,7 +216,7 @@ def record_mixed_lifecycle_result(
     state = runtime_state(binding, snapshot)
     attempt = MixedCompositionRuntimeEventModel.model_validate(snapshot.mixed_composition_history[state.run_id][-1])
     if attempt.event_id != f"composition:{operation_id}:lifecycle-attempt" or attempt.event_kind != "lifecycle-attempt":
-        raise ValueError("mixed lifecycle result requires its exact durable attempt fact")
+        raise ConflictError("mixed lifecycle result requires its exact durable attempt fact")
     common = _runtime_event_fields(
         state,
         allocation_id=attempt.allocation_id,
@@ -265,7 +270,22 @@ def prepare_mixed_action_dispatch(
     operation_id = crossing.record.receipt.operation_id
     capture = None
     stage_readback = None
-    if edge is not None:
+    portable = action_installation(binding, edge)
+    invocation = None
+    if portable is not None:
+        from .mixed_backend_action import prepare_backend_action
+
+        invocation = prepare_backend_action(control_plane, portable, crossing, request, allocation)
+        if invocation is None:
+            return PreparedMixedActionDispatch(
+                method,
+                "runtime.control-plane",
+                crossing.next_snapshot,
+                {},
+                {},
+                refusal=reject_mixed_admission(control_plane, crossing.record),
+            )
+    elif edge is not None:
         method, capture, stage_readback = _edge_action_dispatch(
             binding, edge, request, allocation, method, operation_id
         )
@@ -308,29 +328,8 @@ def prepare_mixed_action_dispatch(
         committed_history_heads=committed,
         capture=capture,
         stage_readback=stage_readback,
+        invocation=invocation,
     )
-
-
-def _edge_action_dispatch(
-    binding: object,
-    edge: object,
-    request: ParticipantActionAdmissionRequest,
-    allocation: MixedCompositionAllocationModel,
-    method: Callable[..., object],
-    operation_id: str,
-) -> tuple[Callable[..., object], MixedEdgeExecutionCapture, Callable[[ApplyResult], None]]:
-    if edge.edge_id not in binding.edge_bindings:
-        raise ValueError("mixed action dispatch requires an executable edge binding")
-    installed = binding.edge_bindings[edge.edge_id]
-    if (installed.source_action_address, installed.destination_action_address) != (
-        request.action_contract_address,
-        allocation.target_address,
-    ):
-        raise ValueError("mixed destination action differs from admitted policy and provider allocation")
-    capture = MixedEdgeExecutionCapture()
-    mapped = _mapped_edge_method(binding, edge, installed, method, operation_id, capture)
-    readback = _stage_readback_method(binding, edge, installed, request, operation_id, capture)
-    return mapped, capture, readback
 
 
 def _require_edge_crossing_authority(
@@ -372,7 +371,7 @@ def _require_edge_crossing_authority(
         or edge.authority_ref not in occurrence.authority_basis_refs
         or edge.disclosure_authority_ref not in occurrence.authority_basis_refs
     ):
-        raise ValueError("mixed edge differs from the authorized crossing or final-sink cut")
+        raise ConflictError("mixed edge differs from the authorized crossing or final-sink cut")
 
 
 def _require_action_authority(
@@ -383,20 +382,20 @@ def _require_action_authority(
     state: MixedCompositionRuntimeStateModel,
 ) -> None:
     if participant.controller_ref != allocation.controller_ref:
-        raise ValueError("mixed participant and action allocations disagree on controller authority")
+        raise ConflictError("mixed participant and action allocations disagree on controller authority")
     if participant.routing_ref != allocation.routing_ref:
-        raise ValueError("mixed participant and action allocations disagree on routing authority")
+        raise ConflictError("mixed participant and action allocations disagree on routing authority")
     controller_bindings = {
         item.controller_ref
         for item in crossing.identity.participant_control_subjects
         if item.participant_address == request.participant_address
     }
     if allocation.controller_ref not in controller_bindings:
-        raise PermissionError("mixed action controller differs from the authenticated subject binding")
+        raise AuthorizationError("mixed action controller differs from the authenticated subject binding")
     if allocation.action_authority_ref not in crossing.intent.authority_basis_refs:
-        raise PermissionError("mixed action authority is absent from the committed crossing cut")
+        raise AuthorizationError("mixed action authority is absent from the committed crossing cut")
     if allocation.provider_component_id not in state.active_component_ids:
-        raise ValueError("mixed action provider is not active in the committed phase")
+        raise ConflictError("mixed action provider is not active in the committed phase")
 
 
 def _action_edge(
@@ -416,7 +415,7 @@ def _action_edge(
         and state.phase_id in candidate.phase_ids
     ]
     if len(edges) != 1:
-        raise ValueError("mixed action dispatch requires one active admitted topology edge")
+        raise ConflictError("mixed action dispatch requires one active admitted topology edge")
     return edges[0]
 
 
@@ -424,7 +423,7 @@ def _action_method(binding: object, allocation: MixedCompositionAllocationModel)
     runtime = binding.components[allocation.provider_component_id].target.participant_runtime
     method = getattr(runtime, "admit_action", None)
     if not callable(method):
-        raise ValueError("mixed action provider has no admitted participant runtime")
+        raise ConflictError("mixed action provider has no admitted participant runtime")
     return method
 
 

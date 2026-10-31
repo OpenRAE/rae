@@ -9,9 +9,12 @@ import sys
 from collections.abc import Mapping
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.formal_semantic_validation._shape import (
     _diagnostic_payload,
     _digest,
+    _members,
     _nonempty_string,
     _sha256_file,
 )
@@ -26,7 +29,7 @@ def replay_case(repo_root: Path, case: Mapping[str, object]) -> dict[str, str | 
     fixture_value = case.get("fixture_path")
     fixture = safe_repo_path(repo_root, str(fixture_value)) if _nonempty_string(fixture_value) else None
     if fixture is None or not fixture.is_file():
-        raise ValueError(f"missing or unsafe replay fixture {fixture_value!r}")
+        raise InvalidInputError(f"missing or unsafe replay fixture {fixture_value!r}")
 
     replay_mode = case.get("replay_mode")
     if replay_mode == "parse":
@@ -41,7 +44,7 @@ def replay_case(repo_root: Path, case: Mapping[str, object]) -> dict[str, str | 
         }
     if replay_mode == "compile-distinguish":
         return _replay_compile_distinguish(repo_root, case, fixture)
-    raise ValueError(f"case {case.get('case_id')!r} is not replayable")
+    raise InvalidInputError(f"case {case.get('case_id')!r} is not replayable")
 
 
 def _migration_policy_for_case(repo_root: Path, case: Mapping[str, object], path: Path) -> object:
@@ -100,7 +103,7 @@ def _replay_compile_distinguish(
     comparison_value = case.get("comparison_fixture_path")
     comparison = safe_repo_path(repo_root, str(comparison_value)) if _nonempty_string(comparison_value) else None
     if comparison is None or not comparison.is_file():
-        raise ValueError(f"missing or unsafe comparison fixture {comparison_value!r}")
+        raise InvalidInputError(f"missing or unsafe comparison fixture {comparison_value!r}")
     first = _compiled_case_digest(repo_root, case, fixture)
     second = _compiled_case_digest(repo_root, case, comparison)
     return {
@@ -130,19 +133,17 @@ def _validate_test_ref(repo_root: Path, value: object) -> bool:
     if path is None or not path.is_file() or path.suffix != ".py":
         return False
     function_name = node_id.rsplit("::", 1)[-1]
-    return (
-        re.search(
-            rf"^def {re.escape(function_name)}\s*\(",
-            path.read_text(encoding="utf-8"),
-            re.MULTILINE,
-        )
-        is not None
-    )
+    try:
+        source = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        # A referenced file that is not UTF-8 text cannot define the test.
+        source = ""
+    return re.search(rf"^def {re.escape(function_name)}\s*\(", source, re.MULTILINE) is not None
 
 
 def _participant_test_refs(protocol: Mapping[str, object]) -> list[str]:
     refs: list[str] = []
-    for obligation in protocol.get("participant_obligations", []):
+    for obligation in _members(protocol.get("participant_obligations", [])):
         if not isinstance(obligation, Mapping):
             continue
         for key in ("positive_test_ref", "negative_test_ref"):

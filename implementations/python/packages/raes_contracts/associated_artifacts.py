@@ -9,9 +9,17 @@ from typing import BinaryIO, cast
 
 import rfc8785
 from blake3 import blake3
-from raes import MaterializedScenario, canonical_materialized_sdl_digest, canonical_sdl_digest
+from raes import (
+    MaterializedScenario,
+    admit_instantiated_scenario,
+    canonical_instantiated_sdl_digest,
+    canonical_materialized_sdl_digest,
+    canonical_sdl_digest,
+    instantiate_scenario,
+)
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
+from .canonical import canonical_json_bytes
 from .contracts import (
     AssociatedArtifactManifestModel,
     ExperimentApparatusContextModel,
@@ -20,8 +28,10 @@ from .contracts import (
     ExperimentSpecModel,
     ExperimentStudyModel,
     ExperimentTaskModel,
+    OperationArtifactReferenceModel,
 )
 from .diagnostics import Diagnostic, Severity
+from .digests import sha256_digest
 from .json_ingress import parse_bounded_json_object
 
 _DOMAIN = "associated-artifact"
@@ -30,6 +40,22 @@ _ARTIFACTS_ADDRESS = "#/artifacts"
 _MAX_MANIFEST_BYTES = 16 * 1024 * 1024
 
 JSONValue = None | bool | int | float | str | list["JSONValue"] | dict[str, "JSONValue"]
+
+
+def require_instantiated_scenario_reference(
+    parent: object, reference: OperationArtifactReferenceModel, *, instantiated: object | None = None
+) -> None:
+    """Join a trusted scenario association to its admitted instantiated content."""
+
+    if not isinstance(parent, (Scenario, InstantiatedScenario)) or reference.contract_id != "instantiated-scenario-v1":
+        raise ValueError("artifact association requires its admitted scenario reference")
+    if instantiated is not None and not isinstance(instantiated, InstantiatedScenario):
+        raise ValueError("artifact association requires an instantiated scenario")
+    if instantiated is None:
+        instantiated = parent if isinstance(parent, InstantiatedScenario) else instantiate_scenario(parent)
+    admitted = admit_instantiated_scenario(instantiated)
+    if reference.artifact_id != admitted.name or reference.digest != canonical_instantiated_sdl_digest(admitted).value:
+        raise ValueError("scenario reference does not bind its admitted instantiated content")
 
 
 @dataclass(frozen=True)
@@ -72,7 +98,7 @@ def associated_artifact_set_bytes(manifest: AssociatedArtifactManifestModel) -> 
         },
     }
     try:
-        return rfc8785.dumps(_normalized_canonical_value(projection))
+        return canonical_json_bytes(_normalized_canonical_value(projection))
     except rfc8785.CanonicalizationError as exc:
         raise ValueError("associated-artifact set canonicalization failed") from exc
 
@@ -80,8 +106,7 @@ def associated_artifact_set_bytes(manifest: AssociatedArtifactManifestModel) -> 
 def associated_artifact_set_digest(manifest: AssociatedArtifactManifestModel) -> str:
     """Derive the v1 lowercase SHA-256 identity for a manifest's artifact set."""
 
-    digest = hashlib.sha256(associated_artifact_set_bytes(manifest)).hexdigest()
-    return f"sha256:{digest}"
+    return sha256_digest(associated_artifact_set_bytes(manifest))
 
 
 def load_associated_artifact_manifest_json(source: str | bytes | bytearray) -> AssociatedArtifactManifestModel:
@@ -206,6 +231,12 @@ def _identity_diagnostics(manifest: AssociatedArtifactManifestModel, parent: obj
                 "the supplied concrete parent does not match parent_ref",
             )
         )
+    diagnostics.extend(_set_digest_diagnostics(manifest))
+    return tuple(diagnostics)
+
+
+def _set_digest_diagnostics(manifest: AssociatedArtifactManifestModel) -> tuple[Diagnostic, ...]:
+    diagnostics: list[Diagnostic] = []
     if associated_artifact_set_digest(manifest) != manifest.set_digest:
         diagnostics.append(
             _diagnostic(
@@ -258,7 +289,7 @@ def _read_payload(
     else:
         try:
             result = _read_and_hash(cast(BinaryIO, reader), artifact.checksum.algorithm, artifact.size_bytes)
-        except (OSError, TypeError, ValueError):
+        except OSError, TypeError, ValueError:
             diagnostic = _diagnostic(
                 "associated-artifact.payload-binding-invalid",
                 address,
@@ -330,7 +361,27 @@ def validate_associated_artifact_manifest(
     if limit_diagnostics:
         return limit_diagnostics
 
-    diagnostics = list(_identity_diagnostics(manifest, parent))
+    return (*_identity_diagnostics(manifest, parent), *_payload_bindings_diagnostics(manifest, artifact_readers))
+
+
+def validate_associated_artifact_payloads(
+    manifest: AssociatedArtifactManifestModel,
+    *,
+    artifact_readers: Mapping[str, BinaryIO],
+    limits: AssociatedArtifactValidationLimits | None = None,
+) -> tuple[Diagnostic, ...]:
+    """Validate bounded set/content integrity; callers still authorize and join the concrete parent."""
+
+    diagnostics = _resource_limit_diagnostics(manifest, limits or AssociatedArtifactValidationLimits())
+    if diagnostics:
+        return diagnostics
+    return (*_set_digest_diagnostics(manifest), *_payload_bindings_diagnostics(manifest, artifact_readers))
+
+
+def _payload_bindings_diagnostics(
+    manifest: AssociatedArtifactManifestModel, artifact_readers: Mapping[str, BinaryIO]
+) -> tuple[Diagnostic, ...]:
+    diagnostics = []
     manifest_ids = set(manifest.artifacts)
     supplied_ids = set(artifact_readers)
     diagnostics.extend(_binding_presence_diagnostics(manifest_ids, supplied_ids))
@@ -350,5 +401,7 @@ __all__ = [
     "associated_artifact_set_bytes",
     "associated_artifact_set_digest",
     "load_associated_artifact_manifest_json",
+    "require_instantiated_scenario_reference",
     "validate_associated_artifact_manifest",
+    "validate_associated_artifact_payloads",
 ]

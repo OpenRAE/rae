@@ -4,6 +4,7 @@ import json
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_operations.run_artifacts import RunMaterializationArchive
 from raes_runtime.backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
@@ -125,7 +126,7 @@ def test_advisory_preparation_does_not_fail_whole_run_or_emit_duplicates(tmp_pat
         supported_contract_versions=execution.manifest.supported_contract_versions
         | {"backend-realization-preparation-v1"},
     )
-    notice = Diagnostic("test.advisory", "runtime", "runtime.prepare", "Advisory.", severity=Severity(severity))
+    notice = Diagnostic("test.advisory", "runtime", "/runtime.prepare", "Advisory.", severity=Severity(severity))
 
     class AdvisoryProducer(ScopeReportingProvisioner):
         def prepare(self, request, previous):
@@ -138,6 +139,7 @@ def test_advisory_preparation_does_not_fail_whole_run_or_emit_duplicates(tmp_pat
     manager = RuntimeManager(
         RuntimeTarget(name="scope", manifest=manifest, provisioner=backend),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     request = replace(
         execution.provisioning,
@@ -234,10 +236,10 @@ def test_composition_uses_native_member_identity_and_rejects_overlapping_ownersh
     local = content([{"name": "listener", "port": 9090}, {"name": "original", "port": 80}])
     combined = compose_materialization_content(base, prior, local)
     assert {service.name for service in combined.nodes["host"].services} == {"original", "collector", "listener"}
-    with pytest.raises(ValueError, match="overlap"):
+    with pytest.raises(InvalidInputError, match="overlap"):
         compose_materialization_content(base, prior, prior)
     removed = admit_prospective_content({"name": "scope", "nodes": {}})
-    with pytest.raises(ValueError, match="overlap"):
+    with pytest.raises(InvalidInputError, match="overlap"):
         compose_materialization_content(base, prior, removed)
 
 
@@ -303,6 +305,7 @@ def test_manager_composes_all_phases_before_mutation_and_preserves_cumulative_wo
             orchestrator=Orchestrator(calls, "orchestration"),
         ),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     result = manager.apply(execution)
     assert result.success is not overlap, result.diagnostics
@@ -336,5 +339,6 @@ def test_prior_attestation_read_refuses_corruption_and_unsafe_paths(tmp_path, da
             update={"reference": record.reference.model_copy(update={"ref_path": "/tmp/foreign.sdl"})}
         )
     archive = RunMaterializationArchive(tmp_path)
-    with pytest.raises((ValueError, OSError)):
+    with pytest.raises(EvidenceIntegrityError) as caught:
         archive.read(record)
+    assert type(caught.value) is EvidenceIntegrityError

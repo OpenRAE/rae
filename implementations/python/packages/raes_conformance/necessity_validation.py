@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-import json
 import re
 from dataclasses import asdict, dataclass
 from enum import Enum
@@ -12,6 +10,7 @@ from raes_contracts.contracts import (
     PropositionTruthOutcome,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.json_serialization import sorted_json_digest
 
 from .necessity_types import (
     BoundedButForEvidence,
@@ -196,8 +195,7 @@ class BoundedButForCase:
             "verification_authority": asdict(self.verification_authority),
             "input_digest": self.input_digest,
         }
-        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
-        return "sha256:" + hashlib.sha256(encoded).hexdigest()
+        return sorted_json_digest(payload)
 
 
 @dataclass(frozen=True)

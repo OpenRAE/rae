@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .participant_crossing_mediation import ParticipantCrossingEvidence
+
+
 from dataclasses import asdict, dataclass, replace
 
+from pydantic import ValidationError
 from raes_contracts.contracts import (
     ParticipantControlDeclarationModel,
     ParticipantControlOccurrenceModel,
@@ -13,6 +20,7 @@ from raes_contracts.contracts.participant_control import (
     ParticipantControlDisposition,
     ParticipantControlTargetContextModel,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     OperationKind,
@@ -22,14 +30,18 @@ from raes_contracts.runtime_state import (
 )
 from raes_processor.models import (
     MixedControlControllerStateRuntime,
+    MixedControlPermittedTransitionRuntime,
     MixedControlTransitionRuntime,
     ParticipantBehaviorSpecificationRuntime,
 )
+from raes_processor.planner.mixed_control_admission import mixed_control_policy_addresses
 
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
-from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store import IDEMPOTENCY_CLAIM_CONFLICT, AuditEvent, ControlPlaneOperationRecord
+from .errors import IdempotencyClaimConflictError
+from .participant_control_cancellation import control_supervision
 from .participant_control_intents import ParticipantControlIntent
 from .participant_control_occurrences import (
     ParticipantControlOccurrenceContext,
@@ -40,19 +52,23 @@ from .participant_control_operation import (
     participant_control_operation_artifacts,
 )
 from .participant_control_rejections import participant_control_rejection_reason
+from .participant_control_request import control_application_context
 from .participant_control_targets import (
     participant_control_target_contexts,
     resolve_participant_control_target,
 )
 
+_RETAINED_HISTORY_INVALID = "retained participant control history does not validate"
+
 
 @dataclass(frozen=True)
 class _BoundControlRequest:
     specification: ParticipantBehaviorSpecificationRuntime
-    transition: MixedControlTransitionRuntime
+    transition: MixedControlTransitionRuntime | MixedControlPermittedTransitionRuntime
     state: MixedControlControllerStateRuntime
     idempotency_key: str
     context: OperationAdmissionContext
+    effective_order: int
 
 
 @dataclass(frozen=True)
@@ -77,11 +93,12 @@ def record_participant_control(
     """Bind, validate, and atomically append one supervisory occurrence."""
 
     if not isinstance(identity, ControlPlaneIdentity):
-        raise PermissionError("participant control requires an authenticated identity")
+        raise AuthorizationError("participant control requires an authenticated identity")
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
-        raise PermissionError("participant control identity is not authorized for this target")
+        raise AuthorizationError("participant control identity is not authorized for this target")
     _require_participant_binding(identity, participant_address)
     with (
+        control_supervision(control_plane, intent),
         control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL),
         control_plane._participant_control_lock,
     ):
@@ -93,6 +110,18 @@ def record_participant_control(
             identity,
             idempotency_key,
         )
+        existing = (
+            control_plane._store.find_by_idempotency(idempotency_key, context=bound.context)
+            if idempotency_key
+            else None
+        )
+        if existing is not None:
+            if (
+                existing.receipt.context != bound.context
+                or existing.request_fingerprint != bound.context.request_commitment
+            ):
+                raise IdempotencyClaimConflictError(IDEMPOTENCY_CLAIM_CONFLICT)
+            return existing.receipt
         prepared = prepare_participant_control_transition(
             control_plane,
             participant_address,
@@ -128,16 +157,14 @@ def bind_participant_control_request(
     intent: ParticipantControlIntent,
     identity: ControlPlaneIdentity,
     idempotency_key: str,
+    crossing_evidence: ParticipantCrossingEvidence | None = None,
 ) -> _BoundControlRequest:
     specification = _specification_for_participant(control_plane, participant_address, identity)
+    intent = type(intent).model_validate(intent.model_dump(mode="json"))
     transition = _transition_for_intent(specification, intent, identity)
     state = _state_by_address(specification, transition.from_state_address)
-    return _BoundControlRequest(
-        specification=specification,
-        transition=transition,
-        state=state,
-        idempotency_key=idempotency_key,
-        context=operation_admission_context(
+    if intent.application is None:
+        context = operation_admission_context(
             control_plane,
             kind=OperationKind.PARTICIPANT_CONTROL,
             request={
@@ -147,7 +174,18 @@ def bind_participant_control_request(
                 "transition": asdict(transition),
             },
             identity=identity,
-        ),
+        )
+        effective_order = transition.effective_order
+    else:
+        context = control_application_context(control_plane, participant_address, intent, identity, crossing_evidence)
+        effective_order = intent.application.effective_order
+    return _BoundControlRequest(
+        specification=specification,
+        transition=transition,
+        state=state,
+        idempotency_key=idempotency_key,
+        context=context,
+        effective_order=effective_order,
     )
 
 
@@ -158,6 +196,10 @@ def prepare_participant_control_transition(
     identity: ControlPlaneIdentity,
     bound: _BoundControlRequest,
 ) -> PreparedParticipantControlTransition:
+    if intent.application is not None:
+        from .participant_control_application_mediation import prepare_control_application
+
+        return prepare_control_application(control_plane, participant_address, intent, identity, bound)
     history = list(control_plane._snapshot.participant_control_history.get(participant_address, ()))
     current_state, current_revision = _fold_controller_state(
         bound.specification,
@@ -239,8 +281,10 @@ def _specification_for_participant(
         if specification.mixed_control_participant_address == participant_address
         and any(state.controller_address in authorized_controllers for state in specification.controller_states)
     ]
+    if mixed_control_policy_addresses(candidates) and getattr(control_plane, "_mixed_control", None) is None:
+        raise ConflictError("participant control cannot execute a mixed-control-policy-occurrence/rev1 specification")
     if len(candidates) != 1:
-        raise ValueError("participant must resolve exactly one trusted mixed-control specification")
+        raise ConflictError("participant must resolve exactly one trusted mixed-control specification")
     return candidates[0]
 
 
@@ -248,22 +292,26 @@ def _transition_for_intent(
     specification: ParticipantBehaviorSpecificationRuntime,
     intent: ParticipantControlIntent,
     identity: ControlPlaneIdentity,
-) -> MixedControlTransitionRuntime:
+) -> MixedControlTransitionRuntime | MixedControlPermittedTransitionRuntime:
     authorized_controllers = _authorized_controller_refs(
         identity,
         specification.mixed_control_participant_address,
     )
     states = {state.address: state for state in specification.controller_states}
+    policy = specification.mixed_control_policy
+    if (policy is None) != (intent.application is None):
+        raise ConflictError("control intent interpretation must match its compiled policy")
+    transitions = specification.control_transitions if policy is None else policy.permitted_transitions
     candidates = [
         transition
-        for transition in specification.control_transitions
+        for transition in transitions
         if transition.address == intent.declaration_ref
         and transition.transition_kind == intent.kind
         and transition.from_state_address in states
         and states[transition.from_state_address].controller_address in authorized_controllers
     ]
     if len(candidates) != 1:
-        raise ValueError("control intent must resolve exactly one compiled transition")
+        raise ConflictError("control intent must resolve exactly one compiled transition")
     return candidates[0]
 
 
@@ -273,7 +321,7 @@ def _state_by_address(
 ) -> MixedControlControllerStateRuntime:
     candidates = [state for state in specification.controller_states if state.address == address]
     if len(candidates) != 1:
-        raise ValueError("compiled controller state must resolve exactly once")
+        raise ConflictError("compiled controller state must resolve exactly once")
     return candidates[0]
 
 
@@ -282,7 +330,7 @@ def _require_participant_binding(
     participant_address: str,
 ) -> None:
     if not _authorized_controller_refs(identity, participant_address):
-        raise PermissionError("participant control subject is not authorized")
+        raise AuthorizationError("participant control subject is not authorized")
 
 
 def _authorized_controller_refs(
@@ -306,16 +354,20 @@ def _fold_controller_state(
     revision = 0
     transitions = {transition.address: transition for transition in specification.control_transitions}
     for payload in history:
-        event = ParticipantControlOccurrenceModel.model_validate(payload)
+        try:
+            event = ParticipantControlOccurrenceModel.model_validate(payload)
+        # A restored store can retain a record that the history map keeps as opaque legacy data.
+        except ValidationError as exc:
+            raise EvidenceIntegrityError(_RETAINED_HISTORY_INVALID) from exc
         if event.episode_id != episode_id:
             continue
         if event.occurrence.disposition is not ParticipantControlDisposition.ACCEPTED:
             continue
         transition = transitions.get(event.occurrence.declaration_ref)
         if transition is None:
-            raise ValueError("control history references an unknown compiled transition")
+            raise EvidenceIntegrityError("control history references an unknown compiled transition")
         if transition.from_state_address != state_address or transition.expected_state_revision != revision:
-            raise ValueError("control history does not replay from compiled controller state")
+            raise EvidenceIntegrityError("control history does not replay from compiled controller state")
         state_address = transition.to_state_address
         revision = transition.resulting_state_revision
     return state_address, revision
@@ -371,11 +423,14 @@ def _validate_candidate_history(
         )
         for record in records
     ]
-    validate_participant_control_occurrence_context(
-        records,
-        declarations=declarations,
-        known_targets=known_targets,
-    )
+    try:
+        validate_participant_control_occurrence_context(
+            records,
+            declarations=declarations,
+            known_targets=known_targets,
+        )
+    except ValueError as exc:
+        raise ConflictError("participant control occurrence conflicts with its retained history") from exc
 
 
 __all__ = (

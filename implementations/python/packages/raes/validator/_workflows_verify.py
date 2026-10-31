@@ -7,12 +7,13 @@ from raes_contracts.controlled_vocabularies import (
     validate_controlled_vocabulary_scope_values,
     validate_controlled_vocabulary_value,
 )
+from raes_contracts.graphs import has_cycle
 
 from ..orchestration import WorkflowStepType
 from ..participant_behavior import ParticipantActionGranularity, ParticipantInformationBoundaryClass
 from ..participant_behavior_specification import tool_affordance_reference
 from ..semantics.workflow import branch_closure
-from ._support import _AvailableStateContext, _CompensationState, _topological_sort, _WorkflowBuildState
+from ._support import _AvailableStateContext, _CompensationState, _WorkflowBuildState
 
 
 class _WorkflowVerifyMixin:
@@ -22,7 +23,8 @@ class _WorkflowVerifyMixin:
             compensation_graph={workflow_name: set() for workflow_name in self._s.workflows},
         )
         for workflow_name, workflow in self._s.workflows.items():
-            self._verify_workflow(workflow_name, workflow, comp)
+            with self._owner(("workflows", workflow_name)):
+                self._verify_workflow(workflow_name, workflow, comp)
         self._verify_workflow_call_cycles(comp)
         self._verify_compensation_targets(comp)
 
@@ -32,7 +34,7 @@ class _WorkflowVerifyMixin:
         build = self._build_workflow_step_graph(workflow_name, workflow, comp)
         self._verify_workflow_join_targets(workflow_name, workflow, build.join_targets)
         self._verify_workflow_unreferenced_joins(workflow_name, workflow, build.join_targets)
-        if build.graph and _topological_sort(build.graph) is None:
+        if build.graph and has_cycle(build.graph):
             self._err(f"Workflow '{workflow_name}' graph contains a cycle")
         if self._is_unresolved_var(workflow.start) or workflow.start not in workflow.steps:
             return
@@ -248,26 +250,26 @@ class _WorkflowVerifyMixin:
         for ref in step.capability_refs:
             if self._is_unresolved_var(ref):
                 continue
-            governed, errors = self._governed_capability_ref(ref)
-            if not governed:
+            if not self._governed_capability_ref(ref):
+                # The vocabulary error text repeats the term, so the message states the rule (E7).
                 self._err(
                     f"Workflow '{workflow_name}' step '{step_name}' references ungoverned participant "
-                    f"capability '{ref}': {'; '.join(errors)}"
+                    f"capability '{ref}': it is neither a listed term nor an accepted extension term of the "
+                    "participant runtime behavior or interaction feature vocabularies"
                 )
 
     @staticmethod
-    def _governed_capability_ref(ref: str) -> tuple[bool, list[str]]:
-        errors: list[str] = []
+    def _governed_capability_ref(ref: str) -> bool:
         for vocabulary_id in (
             "participant-runtime-behavior-features",
             "participant-runtime-interaction-features",
         ):
             try:
                 validate_controlled_vocabulary_value(vocabulary_id, ref)
-                return True, errors
-            except ValueError as exc:
-                errors.append(str(exc))
-        return False, errors
+            except ValueError:
+                continue
+            return True
+        return False
 
     def _verify_workflow_step_fact_binding_refs(self, workflow_name: str, step_name: str, step: object) -> None:
         for ref in step.fact_binding_refs:
@@ -275,10 +277,11 @@ class _WorkflowVerifyMixin:
                 continue
             try:
                 validate_controlled_vocabulary_scope_values("workflows.steps.fact_binding_refs", [ref])
-            except ValueError as exc:
+            except ValueError:
                 self._err(
                     f"Workflow '{workflow_name}' step '{step_name}' references ungoverned runtime-fact "
-                    f"binding '{ref}': {exc}"
+                    f"binding '{ref}': it is neither a listed term nor an accepted extension term of the "
+                    "workflow step fact-binding vocabulary"
                 )
 
     def _verify_workflow_step_action_contract_ref(
@@ -471,7 +474,7 @@ class _WorkflowVerifyMixin:
             workflow_name: sorted(callee for callee in callees if callee in comp.call_graph)
             for workflow_name, callees in comp.call_graph.items()
         }
-        if call_only and _topological_sort(call_only) is None:
+        if call_only and has_cycle(call_only):
             self._err("Workflow call graph contains a cycle")
         combined = {
             workflow_name: sorted(
@@ -479,13 +482,14 @@ class _WorkflowVerifyMixin:
             )
             for workflow_name in self._s.workflows
         }
-        if combined and _topological_sort(combined) is None:
+        if combined and has_cycle(combined):
             self._err("Combined workflow call/compensation graph contains a cycle")
 
     def _verify_compensation_targets(self, comp: _CompensationState) -> None:
         for workflow_name in sorted(comp.compensation_targets):
             if workflow_name in comp.workflows_with_compensation:
-                self._err(
-                    f"Workflow '{workflow_name}' cannot be used as a compensation "
-                    "workflow because it also declares compensate-with steps"
-                )
+                with self._owner(("workflows", workflow_name)):
+                    self._err(
+                        f"Workflow '{workflow_name}' cannot be used as a compensation "
+                        "workflow because it also declares compensate-with steps"
+                    )

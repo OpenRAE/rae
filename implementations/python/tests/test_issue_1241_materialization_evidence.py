@@ -4,13 +4,20 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError
 from tools.check_formal_semantic_validation import load_release_bundles, validate_release_bundle
 from tools.formal_semantic_validation import _production, _releases, _replay, _retest
 from tools.formal_semantic_validation._archival_invariants import validate_archival_evidence_invariants
 from tools.formal_semantic_validation._archival_shape import validate_archival_evidence_shape
+from tools.formal_semantic_validation._release_revisions import source_bound_revision
+
+ROOT = Path(__file__).resolve().parents[3]
+SOURCE_BOUND_RELEASES = [
+    item.manifest["revision"] for item in load_release_bundles(ROOT) if source_bound_revision(item.manifest["revision"])
+]
 
 
-@pytest.mark.parametrize("revision", sorted(_releases._SOURCE_BOUND_RETEST_REVISIONS))
+@pytest.mark.parametrize("revision", SOURCE_BOUND_RELEASES)
 @pytest.mark.parametrize("tampered", [False, True])
 def test_each_source_bound_release_checks_its_explicit_baseline(revision, tampered):
     root = Path(__file__).resolve().parents[3]
@@ -56,5 +63,5 @@ def test_progressive_archival_admission_rejects_changed_recorded_payloads(mode):
     changed = deepcopy(payload)
     changed["source"]["byte_digest"] = "sha256:" + "0" * 64
     validate_archival_evidence_shape(root, changed, mode)
-    with pytest.raises(ValueError):
+    with pytest.raises(EvidenceIntegrityError, match="historical evidence invariant failed"):
         validate_archival_evidence_invariants(changed, mode)

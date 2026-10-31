@@ -30,6 +30,33 @@ shape alone.
 
 See the [API reference](../api/sdl.rst) for signatures and model details.
 
+## Admit an import-free experiment family
+
+Use `admit_scenario_family` to pass a parsed scenario without imports to the
+experiment APIs:
+
+```python
+from raes import admit_scenario_family, parse_sdl
+
+family = admit_scenario_family(parse_sdl(sdl_text))
+```
+
+The function returns a semantically validated `ExpandedScenario`. The experiment
+selection validator, binding-target resolver, scenario selector, and trial
+compiler accept this family. Build family digest references from the returned
+object with `canonical_sdl_digest(family)`.
+
+Admission checks current content and preserves source diagnostics and realization
+intent. It does not select outcomes or grant permission to execute. Unresolved
+imports and other document phases are rejected. For a family with imports, use
+the existing `parse_sdl_file` composition path.
+
+Treat the admitted family as read-only. Python still permits edits.
+After edits, reparse the SDL and admit the new `Scenario`. If an edit changes
+an omitted default field on the input, admission also asks you to reparse.
+This prevents serialization from silently losing that edit. The parser return
+types remain unchanged.
+
 ## Transform an admitted artifact
 
 Transformation functions operate on already parsed models and never write

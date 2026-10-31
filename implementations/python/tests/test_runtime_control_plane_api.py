@@ -13,7 +13,7 @@ from multiprocessing import get_context
 from pathlib import Path
 from threading import Barrier as ThreadBarrier
 from threading import Event
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
 
 import httpx
 import pytest
@@ -25,6 +25,7 @@ from raes_contracts.contracts import (
     ParticipantHistoryViewModel,
     ParticipantStatusViewModel,
 )
+from raes_contracts.errors import ConflictError, NotFoundError, OperationalError
 from raes_contracts.observation_demand import (
     ObservationDemandDocument,
     ObservationDemandRule,
@@ -66,13 +67,12 @@ from raes_runtime.control_plane_store import (
 )
 from starlette.requests import Request
 from starlette.testclient import TestClient
+from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
-_T = TypeVar("_T")
 
-
-def _run(coroutine: Coroutine[Any, Any, _T]) -> _T:
+def _run[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """Run one coroutine without replacing or closing pytest's default loop."""
 
     loop = asyncio.new_event_loop()
@@ -307,7 +307,7 @@ def test_control_plane_api_openapi_documents_explicit_error_responses():
         ),
     ),
 )
-def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
+def test_control_plane_api_maps_mutation_conflicts_to_conflict_responses(
     monkeypatch: pytest.MonkeyPatch,
     method_name: str,
     path: str,
@@ -318,7 +318,7 @@ def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
 
     def conflict(*_args: object, **_kwargs: object) -> None:
-        raise ValueError(IDEMPOTENCY_CLAIM_CONFLICT)
+        raise ConflictError(IDEMPOTENCY_CLAIM_CONFLICT)
 
     monkeypatch.setattr(control_plane, method_name, conflict)
     headers = {
@@ -656,7 +656,7 @@ def test_control_plane_api_redacts_core_conflict_exception_text(
     secret = "token=abcd /var/secrets/store.db SELECT * FROM operations WHERE actor='alice'"
 
     def leaking(*_args: object, **_kwargs: object) -> None:
-        raise ValueError(secret)
+        raise ConflictError(secret)
 
     monkeypatch.setattr(control_plane, method_name, leaking)
     headers = {
@@ -682,7 +682,7 @@ def test_control_plane_api_redacts_participant_execution_state_error_text(
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
 
     def leaking(*_args: object, **_kwargs: object) -> None:
-        raise ValueError("/secret/exec/path backend disclosure detail")
+        raise NotFoundError("/secret/exec/path backend disclosure detail")
 
     monkeypatch.setattr(control_plane, "participant_execution_state", leaking)
 
@@ -891,7 +891,8 @@ def test_control_plane_api_operational_apparatus_summary_requires_read_role():
     assert audits[-1].allowed is False
 
 
-def test_operational_apparatus_summary_snapshots_operations_safely_during_mutation() -> None:
+@pytest.mark.parametrize("incremental", [False, True])
+def test_operational_apparatus_summary_snapshots_operations_safely_during_mutation(incremental) -> None:
     target = create_stub_target()
     control_plane = RuntimeControlPlane(target)
     control_plane._claim_record(_participant_operation_record("existing", "participant.alice"))
@@ -915,8 +916,13 @@ def test_operational_apparatus_summary_snapshots_operations_safely_during_mutati
             super().__setitem__(key, value)
             mutation_completed.set()
 
+    control_plane._refresh_operation_records()
     pausing_records = PausingOperationRecords(control_plane._operations)
-    control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
+    if incremental:
+        control_plane._operations = pausing_records
+    else:
+        control_plane._store.load_operation_changes = None
+        control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         summary = executor.submit(control_plane.operational_apparatus_summary)
@@ -1082,7 +1088,7 @@ def test_create_control_plane_app_rejects_multi_worker_configuration(
     control_plane = RuntimeControlPlane(target)
     security = _test_security(target.name)
 
-    with pytest.raises(RuntimeError, match="unsupported for a local control-plane store"):
+    with pytest.raises(OperationalError, match="unsupported for a local control-plane store"):
         create_control_plane_app(control_plane, security=security)
 
 
@@ -1343,7 +1349,7 @@ def test_control_plane_rejects_mutation_queue_overload(
                     timeout=1,
                 )
                 assert overloaded.status_code == 503
-                assert overloaded.json() == {"detail": "control-plane mutation queue is full"}
+                assert overloaded.json() == {"detail": "control-plane capacity unavailable"}
                 assert overloaded.headers["retry-after"] == "1"
             finally:
                 release.set()
@@ -1866,25 +1872,25 @@ def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
     monkeypatch: pytest.MonkeyPatch,
 ):
     store = _admitted_local_store(tmp_path / "cp-store")
+    before = store.load_snapshot_state()
     real_upsert = store._upsert_snapshot
 
-    def fail_upsert(
+    def fail_commit_after_upsert(
         connection: sqlite3.Connection,
         snapshot: RuntimeSnapshot,
         *,
         revision: int = 0,
     ) -> None:
         real_upsert(connection, snapshot, revision=revision)
-        raise OSError("commit failed")
+        fail_sqlite_commit(connection)
 
-    monkeypatch.setattr(store, "_upsert_snapshot", fail_upsert)
-    snapshot = RuntimeSnapshot()
-    revision = store.load_snapshot_state().revision
+    monkeypatch.setattr(store, "_upsert_snapshot", fail_commit_after_upsert)
+    snapshot = RuntimeSnapshot(metadata={"must": "roll back"})
 
-    with pytest.raises(OSError, match="commit failed"):
-        store.save_snapshot(snapshot, expected_revision=revision)
+    with pytest.raises(sqlite3.IntegrityError, match="FOREIGN KEY constraint failed"):
+        store.save_snapshot(snapshot, expected_revision=before.revision)
 
-    assert store.load_snapshot() == RuntimeSnapshot()
+    assert store.load_snapshot_state() == before
 
 
 def test_local_control_plane_store_preserves_concurrent_operation_writes(tmp_path: Path) -> None:

@@ -24,15 +24,19 @@ import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 PYTHON_LINK_NAME = "current"
 _TOOLING_PROJECT = "implementations/tooling/python"
-_Result = TypeVar("_Result")
 _PROJECTS = (
     ("implementations/python", ("--all-extras", "--frozen")),
     (_TOOLING_PROJECT, ("--frozen", "--no-default-groups")),
@@ -42,12 +46,19 @@ _SHEBANG_READ_LIMIT = 512
 _VENV_INTERPRETER_SUFFIX = "/.venv/bin/python"
 
 
-class DevcontainerSetupError(RuntimeError):
+class DevcontainerSetupError(OperationalError):
     """A setup step failed; the message is safe to show to the contributor."""
 
 
 def default_kit_root() -> Path:
-    cache_home = os.environ.get("XDG_CACHE_HOME") or str(Path.home() / ".cache")
+    cache_home = os.environ.get("XDG_CACHE_HOME")
+    if not cache_home:
+        try:
+            home = Path.home()
+        except RuntimeError as exc:
+            # Path.home() raises RuntimeError when neither HOME nor the user database names a home directory.
+            raise DevcontainerSetupError("the user cache directory could not be determined") from exc
+        cache_home = str(home / ".cache")
     return Path(cache_home) / "raes-bootstrap"
 
 
@@ -90,12 +101,16 @@ def _payload_ids(artifacts: Sequence[Mapping[str, Any]]) -> tuple[str, str]:
 
 
 def _verified_archive(path: Path, raw: Mapping[str, Any]) -> bool:
-    if not path.is_file() or path.is_symlink() or path.stat().st_size != raw["size"]:
-        return False
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
+    try:
+        if not path.is_file() or path.is_symlink() or path.stat().st_size != raw["size"]:
+            return False
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError:
+        # The cache volume is never trusted; an archive that cannot be read is fetched again.
+        return False
     return digest.hexdigest() == raw["sha256"]
 
 
@@ -110,28 +125,43 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
     selection = load_tooling_host_profile_selection_with_current_interpreter(host_profile_id)
     artifacts = {str(item["artifact_id"]): item for item in selection["artifacts"]}
     python_id, uv_id = _payload_ids(list(artifacts.values()))
-    kit_root.parent.mkdir(parents=True, exist_ok=True)
-    staging = Path(tempfile.mkdtemp(prefix=".raes-bootstrap-staging-", dir=kit_root.parent))
+    try:
+        kit_root.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise DevcontainerSetupError("the bootstrap kit directory could not be created") from exc
+    try:
+        staging = Path(tempfile.mkdtemp(prefix=".raes-bootstrap-staging-", dir=kit_root.parent))
+    except OSError as exc:
+        raise DevcontainerSetupError("the bootstrap kit staging directory could not be created") from exc
     try:
         missing: list[str] = []
         for artifact_id in (python_id, uv_id):
             raw = artifacts[artifact_id]["platform"]["raw_manifest"][0]
             relative = Path("archives") / artifact_id / raw["path"]
             if _verified_archive(kit_root / relative, raw):
-                (staging / relative).parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(kit_root / relative, staging / relative)
+                try:
+                    (staging / relative).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(kit_root / relative, staging / relative)
+                except OSError as exc:
+                    raise DevcontainerSetupError("a cached bootstrap archive could not be copied into staging") from exc
             else:
                 missing.append(artifact_id)
         if missing:
             bootstrap_profile.fetch_bootstrap_payloads(host_profile_id, staging, missing)
         bootstrap_profile.install_uv_payload(host_profile_id, staging, uv_id)
         python = bootstrap_profile.install_python_payload(host_profile_id, staging, python_id)
-        (staging / "python" / PYTHON_LINK_NAME).symlink_to(Path(python["path"]).name, target_is_directory=True)
+        try:
+            (staging / "python" / PYTHON_LINK_NAME).symlink_to(Path(python["path"]).name, target_is_directory=True)
+        except OSError as exc:
+            raise DevcontainerSetupError("the bootstrap kit interpreter link could not be created") from exc
         previous = kit_root.with_name(f".{kit_root.name}-previous")
         shutil.rmtree(previous, ignore_errors=True)
-        if kit_root.exists() or kit_root.is_symlink():
-            kit_root.rename(previous)
-        staging.rename(kit_root)
+        try:
+            if kit_root.exists() or kit_root.is_symlink():
+                kit_root.rename(previous)
+            staging.rename(kit_root)
+        except OSError as exc:
+            raise DevcontainerSetupError("the bootstrap kit could not be replaced") from exc
         shutil.rmtree(previous, ignore_errors=True)
     except BaseException:
         shutil.rmtree(staging, ignore_errors=True)
@@ -197,7 +227,10 @@ def sync_projects(repo_root: Path, kit_root: Path) -> None:
     for project, options in _PROJECTS:
         venv = repo_root / project / ".venv"
         if environment_is_relocated(venv):
-            shutil.rmtree(venv)
+            try:
+                shutil.rmtree(venv)
+            except OSError as exc:
+                raise DevcontainerSetupError("a relocated project environment could not be removed") from exc
         _run([str(uv), "sync", "--project", project, *options], repo_root, environment)
 
 
@@ -225,15 +258,20 @@ def install_generic_tools(repo_root: Path, kit_root: Path) -> None:
 def install_git_hooks(repo_root: Path, kit_root: Path) -> str:
     """Install configured hooks unless the checkout cannot hold them."""
 
-    git_dir = subprocess.run(  # noqa: S603 - fixed argv
-        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
-        cwd=repo_root,
-        capture_output=True,
-        text=True,
-        stdin=subprocess.DEVNULL,
-        check=False,
-        timeout=60,
-    )
+    try:
+        git_dir = subprocess.run(  # noqa: S603 - fixed argv
+            ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            check=False,
+            timeout=60,
+        )
+    # Git that cannot start or exceeds its deadline, or a reported path that is not UTF-8 text
+    # (text mode decodes strictly), leaves the git directory unknown.
+    except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as exc:
+        raise DevcontainerSetupError("the checkout's git directory could not be resolved") from exc
     common_dir = Path(git_dir.stdout.strip()) if git_dir.returncode == 0 else None
     if common_dir is None or not common_dir.is_dir():
         return "skipped: the checkout's git directory is not inside the container"
@@ -284,7 +322,7 @@ def setup(repo_root: Path = REPO_ROOT, *, kit_root: Path | None = None) -> None:
     )
 
 
-def _step(label: str, action: Callable[[], _Result]) -> _Result:
+def _step[Result](label: str, action: Callable[[], Result]) -> Result:
     print(f"==> {label}", flush=True)
     return action()
 
@@ -294,12 +332,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.parse_args(argv)
     try:
         setup()
-    # DevcontainerSetupError is a RuntimeError; policy and installer refusals raise ValueError.
-    except (RuntimeError, ValueError) as exc:
+    # Setup steps, the artifact policy gate and the tool installers raise OperationalError;
+    # the reviewed profile and payload refusals raise InvalidInputError.
+    except (InvalidInputError, OperationalError) as exc:
         print(f"devcontainer-setup: {exc}", file=sys.stderr)
         return 1
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

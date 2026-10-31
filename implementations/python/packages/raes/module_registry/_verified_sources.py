@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import os
 import stat
 from collections.abc import Mapping
@@ -12,16 +11,16 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, BinaryIO
 
 from pydantic import ValidationError
+from raes_contracts.digests import sha256_hasher
 
 from .._errors import SDLParseError
 from .._source_profile import SDLSourceParseOptions
 from ..scenario import ImportDecl
+from ._cache_integrity import _CACHE_INTEGRITY_ERROR, _CacheIntegrityError
 from ._filesystem import _O_BINARY, _O_NOFOLLOW, _same_file_identity
 
 if TYPE_CHECKING:
     from ..parser import SDLSourceDocument
-
-_CACHE_INTEGRITY_ERROR = "OCI module cache tree failed integrity validation"
 
 
 @dataclass(frozen=True)
@@ -111,15 +110,15 @@ def _require_expected_cache_file(
 ) -> None:
     expected_fingerprint = (True, expected_size, expected_mode)
     if _cache_file_fingerprint(metadata) != expected_fingerprint:
-        raise SDLParseError(_CACHE_INTEGRITY_ERROR)
+        raise _CacheIntegrityError(_CACHE_INTEGRITY_ERROR)
     if identity is not None and not _same_file_identity(identity, metadata):
-        raise SDLParseError(_CACHE_INTEGRITY_ERROR)
+        raise _CacheIntegrityError(_CACHE_INTEGRITY_ERROR)
 
 
 def _capture_source_bytes(source: BinaryIO, *, capture_limit: int) -> tuple[bytes, int, str]:
     """Hash an entire admitted source while retaining only the parser limit."""
 
-    digest = hashlib.sha256()
+    digest = sha256_hasher()
     captured = bytearray()
     byte_count = 0
     while chunk := source.read(1024 * 1024):
@@ -166,16 +165,14 @@ def _read_verified_cache_source(
             expected_mode=expected_mode,
             identity=opened,
         )
-    except SDLParseError:
-        raise
     except OSError as exc:
-        raise SDLParseError(_CACHE_INTEGRITY_ERROR) from exc
+        raise _CacheIntegrityError(_CACHE_INTEGRITY_ERROR) from exc
     finally:
         if descriptor >= 0:
             os.close(descriptor)
 
     if byte_count != expected_size or f"sha256:{digest}" != expected_entry["digest"]:
-        raise SDLParseError(_CACHE_INTEGRITY_ERROR)
+        raise _CacheIntegrityError(_CACHE_INTEGRITY_ERROR)
 
     from ..parser import _source_document_from_bytes
 

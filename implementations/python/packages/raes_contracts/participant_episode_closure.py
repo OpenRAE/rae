@@ -27,12 +27,15 @@ from raes_contracts._validation import (
     enum_value,
     require_non_empty_string,
     require_non_negative_int,
+    text_value,
 )
 from raes_contracts.participant_episode import (
     PARTICIPANT_EPISODE_TERMINAL_EVENTS,
     ParticipantEpisodeHistoryEvent,
     ParticipantEpisodeTerminalReason,
 )
+
+from .immutable_history import EventHistory
 
 # Record-format version for the closure contract. This is a typed semantic record,
 # not a published wire schema, so its version lives with the record rather than in
@@ -108,16 +111,17 @@ class ParticipantEpisodeClosureRecord:
         if isinstance(sequence_number_raw, bool) or not isinstance(sequence_number_raw, int):
             raise TypeError("participant episode closure record sequence_number must be an int")
         return cls(
-            participant_address=str(payload["participant_address"]),
-            episode_id=str(payload["episode_id"]),
+            participant_address=text_value(payload["participant_address"], "participant_address"),
+            episode_id=text_value(payload["episode_id"], "episode_id"),
             sequence_number=sequence_number_raw,
             source_signal=enum_value(ParticipantEpisodeClosureSignal, payload["source_signal"]),
             mapped_terminal_reason=enum_value(ParticipantEpisodeTerminalReason, payload["mapped_terminal_reason"]),
-            deriving_authority=str(payload["deriving_authority"]),
+            deriving_authority=text_value(payload["deriving_authority"], "deriving_authority"),
             evidence_refs=_normalize_evidence_refs(payload["evidence_refs"]),
-            derived_at=str(payload["derived_at"]),
-            record_schema_version=str(
-                payload.get("record_schema_version", PARTICIPANT_EPISODE_CLOSURE_RECORD_SCHEMA_VERSION)
+            derived_at=text_value(payload["derived_at"], "derived_at"),
+            record_schema_version=text_value(
+                payload.get("record_schema_version", PARTICIPANT_EPISODE_CLOSURE_RECORD_SCHEMA_VERSION),
+                "record_schema_version",
             ),
         )
 
@@ -203,7 +207,7 @@ def iter_participant_episode_closure_violations(
 def _closure_records_shape_error(records_key: str, outer_key: object, records: object) -> tuple[str, str] | None:
     if not isinstance(outer_key, str) or not outer_key:
         return (records_key, "participant episode closure record keys must be non-empty strings")
-    if not isinstance(records, list):
+    if not isinstance(records, (list, EventHistory)):
         return (str(outer_key), "participant episode closure records must be a list")
     return None
 
@@ -291,7 +295,7 @@ def _participant_episode_terminal_index(
     if not isinstance(participant_episode_history, Mapping):
         return index
     for outer_key, history in participant_episode_history.items():
-        if not isinstance(outer_key, str) or not outer_key or not isinstance(history, list):
+        if not isinstance(outer_key, str) or not outer_key or not isinstance(history, (list, EventHistory)):
             continue
         index[outer_key] = _address_terminal_reasons(outer_key, history)
     return index
@@ -307,7 +311,7 @@ def _address_terminal_reasons(
             continue
         try:
             normalized = ParticipantEpisodeHistoryEvent.from_payload(event)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             continue
         if (
             normalized.participant_address == outer_key

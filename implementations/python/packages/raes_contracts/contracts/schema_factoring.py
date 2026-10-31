@@ -1,11 +1,11 @@
 """Lossless local factoring of repeated schemas, never instance data or text."""
 
-import json
 from collections import Counter
 from collections.abc import Callable
 from copy import deepcopy
 from typing import Any, cast
 
+from ..json_serialization import sorted_json_text
 from .schema_invariants import _SCHEMA_MAP_KEYS, _SCHEMA_SUBSCHEMA_KEYS
 
 _DEFINITIONS = "$defs"
@@ -16,7 +16,7 @@ def _map_children(node: dict[str, Any], transform: Callable[[object, bool], obje
     for key in _SCHEMA_MAP_KEYS:
         if isinstance(result.get(key), dict):
             result[key] = {name: transform(value, key == _DEFINITIONS) for name, value in result[key].items()}
-    for key in _SCHEMA_SUBSCHEMA_KEYS:
+    for key in (*_SCHEMA_SUBSCHEMA_KEYS, "propertyNames", "if", "then", "else", "not"):
         value = result.get(key)
         if isinstance(value, list):
             result[key] = [transform(child, False) for child in value]
@@ -50,7 +50,7 @@ def factor_shared_schema(schema: dict[str, Any]) -> dict[str, Any]:
     candidates: dict[str, dict[str, Any]] = {}
 
     def key_of(node: object) -> str:
-        return json.dumps(node, sort_keys=True, separators=(",", ":"))
+        return sorted_json_text(node)
 
     def count(node: object, root: bool = False) -> object:
         if not isinstance(node, dict):

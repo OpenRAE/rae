@@ -15,6 +15,7 @@ from raes_contracts.contracts import (
     ExperimentTaskModel,
     ExternalConceptBindingDocumentModel,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.semantic_comparison import (
     ArtifactCoordinate,
     ArtifactKind,
@@ -218,7 +219,7 @@ def project_artifact(
 ) -> _Projection:
     scenario_version = profile.owner_projection_versions[ArtifactKind.SCENARIO]
     if type(artifact) is Scenario and scenario_version != "2":
-        raise ValueError("current SDL requires scenario projection version 2, including untagged source")
+        raise InvalidInputError("current SDL requires scenario projection version 2, including untagged source")
     current_revision_two = {
         ExperimentTaskModel: ArtifactKind.TASK,
         ExperimentRunModel: ArtifactKind.RUN,
@@ -226,12 +227,12 @@ def project_artifact(
     }
     required_kind = current_revision_two.get(type(artifact))
     if required_kind is not None and profile.owner_projection_versions[required_kind] != "2":
-        raise ValueError(f"current {required_kind.value} artifacts require projection version 2")
+        raise InvalidInputError(f"current {required_kind.value} artifacts require projection version 2")
     coordinate = coordinate_for_artifact(
         artifact, exact_representation=expected.exact_representation, scenario_projection_version=scenario_version
     )
     if coordinate != expected:
-        raise ValueError("admitted artifact does not match its declared owner-specific coordinate")
+        raise InvalidInputError("admitted artifact does not match its declared owner-specific coordinate")
     projection_version = profile.owner_projection_versions[coordinate.artifact_kind]
     structural_profile = f"{coordinate.artifact_kind.value}-structural-projection/v{projection_version}"
     semantic_profile = f"{coordinate.artifact_kind.value}-semantic-projection/v{projection_version}"

@@ -6,9 +6,14 @@ This is the normative amendment for ACT-617, API-409, RUN-310 and DSL-142.
 Its semantic revision is independent of the existing occurrence wire version,
 policy revision, schema publication hash and store version.
 
-This publication establishes the design contract. The current SDL, compiler,
-API-409 v1 and runtime implement the earlier fixed-coordinate form; their
-schemas and executable behavior do not acquire these semantics by publication.
+This publication establishes the design contract. The SDL and compiler accept
+both the earlier fixed-coordinate form and this form, and API-409
+`participant-control-occurrence-v2` publishes the occurrence carrier. API-409
+v1 implements only the fixed-coordinate form, and v1 schemas acquire nothing by
+publication. Only the explicitly installed RUN-310 control path of issue #1364
+executes this form; planning without that path's admission, the runtime
+manager, and control-plane construction without the installed binding refuse
+it.
 The [migration contract](../../../docs/migration/reusable-mixed-control.md)
 defines the required producer/reader boundary. The
 [worked cases](../../../docs/research/reusable-mixed-control/cases.md) distinguish
@@ -50,9 +55,9 @@ legacy readers keep their explicit historical interpretation.
 ## MC-02 — Reusable policies and finite scripts
 
 The semantic forms are explicitly distinguished as **reusable-policy** and
-**finite-script**. These are design-level discriminants, not new SDL syntax
-accepted by the current parser. Neither missing fields nor graph topology may
-select a form implicitly.
+**finite-script**. The SDL spells them as the required `form` of a policy
+pinned by `semantics: mixed-control-policy-occurrence/rev1`. Neither missing
+fields nor graph topology may select a form implicitly.
 
 A reusable-policy permits any finite trace admitted by its edges and ordinary
 authority, lifecycle, budget and validity gates. An edge never schedules itself.

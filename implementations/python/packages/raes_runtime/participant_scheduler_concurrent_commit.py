@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from asyncio import CancelledError
 from typing import TYPE_CHECKING, cast
 
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest, ParticipantActionApplyResult
 from raes_contracts.runtime_state import RuntimeSnapshot
 
@@ -22,6 +23,8 @@ from .participant_temporal import assess_temporal_result
 
 if TYPE_CHECKING:
     from .participant_scheduler_types import SchedulerRunState, _DueActionContext
+
+_LOGGER = get_logger(__name__)
 
 
 def participant_generation_commit_diagnostic(
@@ -71,7 +74,12 @@ def _concurrent_result_protocol_invalid(
                 )
                 is not None
             )
-    except (Exception, CancelledError):  # NOSONAR - a malformed backend envelope must fail closed
+    except Exception as exc:  # NOSONAR - a malformed backend envelope must fail closed
+        # Isolation: the checks read a backend-supplied object; log only RAES frames. A cancellation
+        # propagates to the batch commit, which fences every peer without a committed outcome.
+        _LOGGER.exception(
+            "concurrent participant result envelope failed validation", exc_info=foreign_failure_record(exc)
+        )
         invalid = True
     return invalid
 
@@ -123,7 +131,15 @@ def _commit_valid_concurrent_result(
     result = assess_temporal_result(request, result, run.working)
     try:
         run.working = _stage_concurrent_action_snapshot(base, run.working, result.snapshot)
-    except (Exception, CancelledError):  # NOSONAR - backend snapshot merge is a trust boundary
+    except Exception as exc:  # NOSONAR - backend snapshot merge is a trust boundary
+        # A concurrent write conflict is an expected outcome; any other merge failure is not.
+        # The merge reads the backend-supplied snapshot, so log only RAES frames. A cancellation
+        # propagates to the batch commit, which fences this peer and each later peer.
+        if not isinstance(exc, ConflictError):
+            _LOGGER.exception(
+                "concurrent participant result could not be merged at the commit boundary",
+                exc_info=foreign_failure_record(exc),
+            )
         should_stop = _settle_failed_concurrent_occurrence(
             context,
             state,

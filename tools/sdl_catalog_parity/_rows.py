@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.sdl_catalog_parity._paths import (
     _BACKTICK_RE,
     _MAX_CATALOG_BYTES,
@@ -17,7 +19,7 @@ from tools.sdl_catalog_parity._paths import (
 )
 
 
-class CatalogParseError(ValueError):
+class CatalogParseError(InvalidInputError):
     """A normative catalog table is absent or malformed."""
 
 

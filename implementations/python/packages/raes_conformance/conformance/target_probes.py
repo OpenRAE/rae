@@ -3,22 +3,25 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import RaesError
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminalReason,
     iter_participant_episode_snapshot_violations,
 )
-from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
-from raes_contracts.runtime_state import RuntimeSnapshot, RuntimeSnapshotEnvelope
+from raes_contracts.planning import PlanScope, ProvisioningPlan, RuntimeDomain
+from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_processor.models import ExecutionPlan
 from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
+from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 
+from raes_conformance._materialization_scope import materialization_probe_scope
 from raes_conformance.conformance.diagnostics import (
     _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
     _diagnostic,
@@ -26,8 +29,10 @@ from raes_conformance.conformance.diagnostics import (
 )
 from raes_conformance.conformance.participant_execution_probes import (
     _drive_participant_execution_probe,
+    _isolated_control_cases,
     _participant_execution_probe_snapshot,
 )
+from raes_conformance.conformance.probe_runtime import ProbeRuntimeOwner
 from raes_conformance.conformance.profiles import (
     BackendCapabilityProfile,
     BackendProfileSelector,
@@ -42,6 +47,8 @@ from raes_conformance.conformance.target_planning import (
 )
 from raes_conformance.conformance.validators import _validate_payload
 
+_LOGGER = get_logger(__name__)
+
 
 class _UnavailableConformanceCrossingPolicyResolver:
     """Explicitly fail closed if an unrelated adapter probe reaches crossing policy."""
@@ -52,6 +59,7 @@ class _UnavailableConformanceCrossingPolicyResolver:
         snapshot: RuntimeSnapshot,
     ) -> object:
         del intent, snapshot
+        # The resolver protocol refuses an unresolvable policy with ValueError (rule E4).
         raise ValueError("target adapter conformance does not supply a crossing policy")
 
     @staticmethod
@@ -174,6 +182,9 @@ def _drive_participant_episode_probe(
             receipt = invoke()
         except Exception as exc:
             # Defensive: a well-behaved backend does not raise here; surface it as a diagnostic.
+            if not isinstance(exc, RaesError):
+                # Isolation of the participant runtime: a refusal category needs no record.
+                _LOGGER.exception("participant episode probe action failed", exc_info=foreign_failure_record(exc))
             cases.append(
                 ConformanceCaseResult(
                     name=case_name,
@@ -281,72 +292,27 @@ def _provisioning_probe_case(
     )
 
 
-def _hermetic_snapshot_payload(control_plane: RuntimeControlPlane) -> dict[str, Any]:
-    """Serialize the hermetic control-plane snapshot to its portable envelope shape."""
-
-    return {
-        "schema_version": RuntimeSnapshotEnvelope().schema_version,
-        "entries": {
-            address: {
-                "address": entry.address,
-                "domain": entry.domain.value,
-                "resource_type": entry.resource_type,
-                "payload": dict(entry.payload),
-                "ordering_dependencies": list(entry.ordering_dependencies),
-                "refresh_dependencies": list(entry.refresh_dependencies),
-                "status": entry.status,
-            }
-            for address, entry in control_plane.snapshot.entries.items()
-        },
-        "orchestration_results": dict(control_plane.snapshot.orchestration_results),
-        "orchestration_history": dict(control_plane.snapshot.orchestration_history),
-        "evaluation_results": dict(control_plane.snapshot.evaluation_results),
-        "evaluation_history": dict(control_plane.snapshot.evaluation_history),
-        "participant_episode_results": dict(control_plane.snapshot.participant_episode_results),
-        "participant_episode_history": {
-            participant_address: list(events)
-            for participant_address, events in control_plane.snapshot.participant_episode_history.items()
-        },
-        "participant_behavior_history": {
-            participant_address: list(events)
-            for participant_address, events in control_plane.snapshot.participant_behavior_history.items()
-        },
-        "participant_control_history": {
-            participant_address: list(events)
-            for participant_address, events in control_plane.snapshot.participant_control_history.items()
-        },
-        "participant_autonomous_execution_states": dict(control_plane.snapshot.participant_autonomous_execution_states),
-        "participant_execution_services": dict(control_plane.snapshot.participant_execution_services),
-        "shared_state_records": dict(control_plane.snapshot.shared_state_records),
-        "shared_state_history": {
-            state_address: list(records)
-            for state_address, records in control_plane.snapshot.shared_state_history.items()
-        },
-        "joint_action_records": dict(control_plane.snapshot.joint_action_records),
-        "time_management_contexts": dict(control_plane.snapshot.time_management_contexts),
-        "time_model_state": (
-            control_plane.snapshot.time_model_state.model_dump(mode="json")
-            if control_plane.snapshot.time_model_state is not None
-            else None
-        ),
-        "metadata": dict(control_plane.snapshot.metadata),
-    }
-
-
-def _hermetic_snapshot_case(control_plane: RuntimeControlPlane) -> ConformanceCaseResult:
+def _hermetic_snapshot_case(
+    control_plane: RuntimeControlPlane,
+    *,
+    materialization_required: bool = False,
+) -> ConformanceCaseResult:
     """Validate the post-provisioning snapshot and prove it was mutated.
 
-    Runs the ``runtime-snapshot-v1`` schema + semantic checks on the hermetic
-    snapshot and additionally requires at least one provisioning-domain entry
-    (issue #606), so a target cannot pass with a schema-valid but empty
-    (unmutated) snapshot.
+    Runs the ``runtime-snapshot-v1`` schema + semantic checks on the payload the
+    control plane's ``/snapshot`` route publishes (issue #1551), including the
+    realization envelope and realization provenance. Semantic checks run only on a
+    schema-valid payload, because they would raise on an invalid one instead of
+    reporting a diagnostic. The case also requires at least one provisioning-domain
+    entry (issue #606), so a target cannot pass with a schema-valid but empty
+    (unmutated) snapshot. A negotiated materialization producer must also leave
+    an archived attestation reference (issue #1667).
     """
 
-    snapshot_payload = _hermetic_snapshot_payload(control_plane)
-    diagnostics = [
-        *_validate_payload("runtime-snapshot-v1", snapshot_payload),
-        *_semantic_diagnostics("runtime-snapshot-v1", snapshot_payload),
-    ]
+    snapshot_payload = runtime_snapshot_contract_payload(control_plane.get_snapshot())
+    diagnostics = _validate_payload("runtime-snapshot-v1", snapshot_payload)
+    if not diagnostics:
+        diagnostics = _semantic_diagnostics("runtime-snapshot-v1", snapshot_payload)
     has_provisioning_entry = any(
         entry.domain == RuntimeDomain.PROVISIONING for entry in control_plane.snapshot.entries.values()
     )
@@ -358,6 +324,17 @@ def _hermetic_snapshot_case(control_plane: RuntimeControlPlane) -> ConformanceCa
                 (
                     "Hermetic snapshot carries no provisioning-domain entry after the provisioning "
                     "probe; the backend validated contracts without realizing runtime state."
+                ),
+            )
+        )
+    if materialization_required and not control_plane.snapshot.materialization_attestations:
+        diagnostics.append(
+            _diagnostic(
+                "conformance.materialization-not-archived",
+                "runtime.snapshot.materialization_attestations",
+                (
+                    "Hermetic snapshot carries no archived materialization attestation; the negotiated "
+                    "producer did not deliver an admitted report."
                 ),
             )
         )
@@ -400,10 +377,12 @@ def _target_adapter_cases(
         return tuple(cases)
 
     scenario = DEFAULT_TARGET_CONFORMANCE_SCENARIO if reference_scenario is None else reference_scenario
+    scope = materialization_probe_scope(target)
     execution_plan = target_probe_execution_plan(
         scenario,
         target,
         provisioning_only=known == BackendCapabilityProfile.PROVISIONING_ONLY,
+        scope=scope,
     )
     planning_errors = tuple(diagnostic for diagnostic in execution_plan.diagnostics if diagnostic.is_error)
     if planning_errors:
@@ -424,7 +403,7 @@ def _target_adapter_cases(
             )
         )
     else:
-        cases.extend(_target_runtime_cases(target, known, execution_plan))
+        cases.extend(_target_runtime_cases(target, known, execution_plan, scope))
     return tuple(cases)
 
 
@@ -432,34 +411,64 @@ def _target_runtime_cases(
     target: RuntimeTarget,
     known: BackendCapabilityProfile,
     execution_plan: ExecutionPlan,
+    scope: PlanScope | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     """Drive the runtime surfaces that are valid for one known backend profile."""
 
+    owner = ProbeRuntimeOwner(scope)
+    try:
+        return _target_runtime_probe_cases(target, known, execution_plan, owner)
+    finally:
+        owner.close()
+
+
+def _target_runtime_probe_cases(
+    target: RuntimeTarget,
+    known: BackendCapabilityProfile,
+    execution_plan: ExecutionPlan,
+    owner: ProbeRuntimeOwner,
+) -> tuple[ConformanceCaseResult, ...]:
     cases: list[ConformanceCaseResult] = []
+    materialization_required = owner.materialization_required
     # Legacy API-423-only conformance resolver: opt out of the SEM-233 final-sink
     # permit that this probe's resolver does not produce.
-    control_plane = RuntimeControlPlane(
+    control_plane = owner.runtime(
         target,
         initial_snapshot=_participant_execution_probe_snapshot(target),
         crossing_policy_resolver=_conformance_crossing_policy_resolver(target),
         enforce_final_sink_flow_control=False,
     )
-    control_plane.register_planner_produced_plan(execution_plan)
-    cases.append(_provisioning_probe_case(control_plane, execution_plan.provisioning))
-    if known != BackendCapabilityProfile.PROVISIONING_ONLY:
-        if target.orchestrator is not None:
-            control_plane.submit_orchestration(execution_plan.orchestration)
-        if target.evaluator is not None:
-            control_plane.submit_evaluation(execution_plan.evaluation)
-        if target.participant_runtime is not None:
-            cases.extend(
-                _drive_participant_episode_probe(
-                    control_plane,
-                    participant_address="participant.conformance",
+    controls = frozenset()
+    with control_plane:
+        control_plane.register_planner_produced_plan(execution_plan)
+        provisioning = _provisioning_probe_case(control_plane, execution_plan.provisioning)
+        cases.append(provisioning)
+        if not provisioning.passed:
+            cases.append(_hermetic_snapshot_case(control_plane, materialization_required=materialization_required))
+            return tuple(cases)
+        if known != BackendCapabilityProfile.PROVISIONING_ONLY:
+            if target.orchestrator is not None:
+                control_plane.submit_orchestration(execution_plan.orchestration)
+            if target.evaluator is not None:
+                control_plane.submit_evaluation(execution_plan.evaluation)
+            if target.participant_runtime is not None:
+                cases.extend(
+                    _drive_participant_episode_probe(control_plane, participant_address="participant.conformance")
                 )
+                capability = target.manifest.participant_runtime
+                if capability is not None and capability.supports_autonomous_execution:
+                    cases.extend(_drive_participant_execution_probe(target, control_plane))
+                    controls = capability.supported_execution_control_actions
+        cases.append(_hermetic_snapshot_case(control_plane, materialization_required=materialization_required))
+        snapshot = control_plane.snapshot
+    if controls and controls != {"start", "pause", "resume", "drain", "reset", "teardown"}:
+        cases.extend(
+            _isolated_control_cases(
+                target,
+                snapshot,
+                "participant.autonomous-execution.conformance",
+                controls - {"start"},
+                owner.runtime,
             )
-            capability = target.manifest.participant_runtime
-            if capability is not None and capability.supports_autonomous_execution:
-                cases.extend(_drive_participant_execution_probe(target, control_plane))
-    cases.append(_hermetic_snapshot_case(control_plane))
+        )
     return tuple(cases)

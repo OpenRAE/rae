@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
 from uuid import uuid4
 
 from raes_contracts.contracts.participant_crossing import (
@@ -14,13 +13,12 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingOccurrenceModel,
     ParticipantCrossingOperation,
 )
-from raes_contracts.contracts.participant_crossing_validation import (
-    validate_participant_crossing_occurrence_context,
-)
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     RuntimeSnapshot,
 )
+from raes_contracts.timestamps import WallClock, isoformat_z
 
 from .control_plane_mutation import external_control_plane_call
 from .control_plane_security import ControlPlaneIdentity
@@ -41,9 +39,7 @@ from .participant_crossing_policy import (
 )
 from .participant_crossing_state_cut import expected_participant_history_heads as _expected_history_heads
 
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+_RETAINED_HISTORY_INVALID = "retained participant crossing history does not validate"
 
 
 @dataclass(frozen=True)
@@ -63,30 +59,38 @@ def _next_crossing_snapshot(
     intent: ParticipantCrossingIntent,
     records: list[ParticipantCrossingOccurrenceModel],
 ) -> RuntimeSnapshot:
-    history = list(control_plane._snapshot.participant_crossing_history.get(intent.participant_address, ()))
-    candidate_history = [
-        *history,
-        *(record.model_dump(mode="json", exclude_none=True) for record in records),
-    ]
+    from raes_contracts.contracts.participant_crossing_prefix import CrossingPrefix
+    from raes_contracts.immutable_history import seal_history
+
+    history = seal_history("participant_crossing_history", control_plane._snapshot.participant_crossing_history)
+    prefixes = getattr(control_plane, "_crossing_prefixes", None)
+    if prefixes is None:
+        prefixes = control_plane._crossing_prefixes = {}
+    prefix = prefixes.setdefault(intent.participant_address, CrossingPrefix())
+    # The published crossing validators refuse records with ValueError.
+    try:
+        prefix.refresh(history.get(intent.participant_address, prefix.history.__class__()))
+    except ValueError as exc:
+        raise EvidenceIntegrityError(_RETAINED_HISTORY_INVALID) from exc
+    try:
+        appended = history.append(
+            intent.participant_address, (record.model_dump(mode="json", exclude_none=True) for record in records)
+        )
+    # The history map refuses to extend history that retains opaque legacy records of any participant.
+    except ValueError as exc:
+        raise EvidenceIntegrityError(_RETAINED_HISTORY_INVALID) from exc
     next_snapshot = control_plane._snapshot.with_entries(
-        dict(control_plane._snapshot.entries),
-        participant_crossing_history={
-            **control_plane._snapshot.participant_crossing_history,
-            intent.participant_address: candidate_history,
-        },
+        dict(control_plane._snapshot.entries), participant_crossing_history=appended
     )
     with external_control_plane_call(control_plane):
         context = control_plane._crossing_policy_resolver.validation_context(
             control_plane._snapshot,
             intent.participant_address,
         )
-    validate_participant_crossing_occurrence_context(
-        [ParticipantCrossingOccurrenceModel.model_validate(item) for item in candidate_history],
-        known_subjects=context.known_subjects,
-        policies=context.policies,
-        known_evidence_refs=context.known_evidence_refs,
-        known_authority_basis_refs=context.known_authority_basis_refs,
-    )
+    try:
+        prefix.validate_extension(records, context)
+    except ValueError as exc:
+        raise ConflictError("participant crossing conflicts with its retained history or context") from exc
     return next_snapshot
 
 
@@ -98,9 +102,8 @@ def _prepare_crossing_decision(
     identity = preparation.identity
     resolution = preparation.resolution
     support = preparation.support
-    gates = preparation.gates
     disposition = preparation.disposition
-    request, decision = _crossing_records(intent, identity, resolution, support, gates, disposition)
+    request, decision = _crossing_records(intent, preparation, wall_clock=control_plane.wall_clock)
     records = [request, decision]
     final_decision = decision
     final_disposition = disposition
@@ -129,14 +132,21 @@ def _prepare_crossing_decision(
                 fresh_support.gate,
             )
             fresh_disposition = _decision_disposition(fresh_gates, fresh_resolution)
+            fresh_preparation = _CrossingDecisionPreparation(
+                identity=identity,
+                resolution=fresh_resolution,
+                support=fresh_support,
+                gates=fresh_gates,
+                disposition=fresh_disposition,
+                expected_heads=preparation.expected_heads,
+                context=preparation.context,
+                idempotency_key=preparation.idempotency_key,
+            )
             fresh_request, fresh_decision = _crossing_records(
                 fresh_intent,
-                identity,
-                fresh_resolution,
-                fresh_support,
-                fresh_gates,
-                fresh_disposition,
+                fresh_preparation,
                 request_predecessor_refs=(transformed.event_id,),
+                wall_clock=control_plane.wall_clock,
             )
             records.extend((fresh_request, fresh_decision))
             final_decision = fresh_decision
@@ -179,15 +189,14 @@ def _prepare_crossing_decision(
 
 def _crossing_records(
     intent: ParticipantCrossingIntent,
-    identity: ControlPlaneIdentity,
-    resolution: ParticipantCrossingPolicyResolution,
-    support: _BackendSupport,
-    gates: ParticipantCrossingDecisionGatesModel,
-    disposition: ParticipantCrossingDecisionDisposition,
+    preparation: _CrossingDecisionPreparation,
     *,
     request_predecessor_refs: tuple[str, ...] = (),
+    wall_clock: WallClock,
 ) -> tuple[ParticipantCrossingOccurrenceModel, ParticipantCrossingOccurrenceModel]:
-    now = _utc_now()
+    identity, resolution, support = preparation.identity, preparation.resolution, preparation.support
+    gates, disposition = preparation.gates, preparation.disposition
+    now = isoformat_z(wall_clock())
     request_id = f"crossing-request.{uuid4()}"
     request_event_id = f"crossing-occurrence.requested.{uuid4()}"
     decision_id = f"crossing-decision.{uuid4()}"

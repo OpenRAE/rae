@@ -158,6 +158,8 @@ adr-111-control-applicability-and-effect-decisions
 adr-112-external-inject-triggering-and-execution
 adr-113-reusable-execution-machinery
 adr-114-ifc-profile-variability-and-publication
+adr-115-concrete-backends-owned-outside-raes
+adr-116-shared-exceptions-and-operational-logging
 ```
 
 | ADR | Title | Status | Date |
@@ -225,7 +227,7 @@ adr-114-ifc-profile-variability-and-publication
 | [060](adr-060-participant-backend-facing-contract-surface.md) | Participant Backend-Facing Contract Surface | proposed | 2026-06-11 |
 | [061](adr-061-published-schema-evolution-policy.md) | Published Schema Evolution Policy | accepted | 2026-06-14 |
 | [062](adr-062-concept-authority-catalog-governance-gate.md) | Concept-Authority Catalog Governance Gate | accepted | 2026-06-14 |
-| [063](adr-063-reference-emulation-backend.md) | Reference Emulation Backend | accepted | 2026-06-20 |
+| [063](adr-063-reference-emulation-backend.md) | Reference Emulation Backend | superseded by ADR-115 | 2026-06-20 |
 | [064](adr-064-experiment-evidence-and-measure-contract-boundary.md) | Experiment Evidence and Measure Contract Boundary | accepted | 2026-06-21 |
 | [065](adr-065-experiment-run-provenance-contract-boundary.md) | Experiment Run Provenance Contract Boundary | accepted | 2026-06-22 |
 | [066](adr-066-observability-evidence-plane-separation.md) | Observability and Evidence Plane Separation | accepted | 2026-06-23 |
@@ -276,3 +278,7 @@ adr-114-ifc-profile-variability-and-publication
 | [112](adr-112-external-inject-triggering-and-execution.md) | External Inject Triggering and Execution | accepted | 2026-09-22 |
 | [113](adr-113-reusable-execution-machinery.md) | Reusable Execution Machinery Under RAE Authority | accepted | 2026-09-23 |
 | [114](adr-114-ifc-profile-variability-and-publication.md) | IFC Profile Variability and Publication | accepted | 2026-09-23 |
+| [115](adr-115-concrete-backends-owned-outside-raes.md) | Concrete Backends Are Owned Outside RAES | accepted | 2026-10-21 |
+| [116](adr-116-shared-exceptions-and-operational-logging.md) | Shared Exceptions and Operational Logging | accepted | 2026-10-28 |
+| [117](adr-117-ratcheted-structural-checks.md) | Ratcheted Structural Checks for Package Modules | accepted | 2026-10-30 |
+| [118](adr-118-shared-primitives-and-injected-wall-clock.md) | Shared Primitives and an Injected Wall Clock | accepted | 2026-10-31 |

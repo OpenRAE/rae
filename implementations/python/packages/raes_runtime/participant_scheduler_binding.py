@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import replace
-from hashlib import sha256
 from typing import cast
 
 from raes_contracts.contracts import (
@@ -13,6 +12,9 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
+from raes_contracts.digests import sha256_hex
+from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import RuntimeSnapshot
 
@@ -20,6 +22,10 @@ from .participant_activity_support import activity_attempt_id
 from .participant_scheduler_resources import measurement_requirements
 from .participant_scheduler_time import clock_coordinate, participant_time_domain
 from .participant_scheduler_types import _DueActionContext
+
+_BINDING_INVALID = "backend autonomous action binding does not satisfy its contract"
+_BINDING_FAILED = "backend autonomous action binding did not complete"
+_LOGGER = get_logger(__name__)
 
 
 def bound_action_request(
@@ -33,7 +39,7 @@ def bound_action_request(
     segment, _ = clock_coordinate(working, policy.clock_address)
     service_payload = working.participant_execution_services.get(policy.address)
     if service_payload is None:
-        raise ValueError("autonomous participant action requires execution-service state")
+        raise ConflictError("autonomous participant action requires execution-service state")
     service = ParticipantExecutionServiceStateModel.model_validate(service_payload)
     temporal_contexts = _default_temporal_contexts(context, segment)
     bindings = tuple(
@@ -116,7 +122,7 @@ def _bound_action_instance_id(
     segment: int,
 ) -> str:
     identity = f"{action_instance_id}:episode={state.episode_id}:segment={segment}:generation={service.generation}"
-    return "participant-action-" + sha256(identity.encode()).hexdigest()
+    return "participant-action-" + sha256_hex(identity.encode())
 
 
 def _bound_temporal_context(
@@ -155,6 +161,35 @@ def _bound_temporal_context(
     )
 
 
+def _backend_request(
+    context: _DueActionContext,
+    action_address: str,
+    action_instance_id: str,
+    temporal_contexts: tuple[ParticipantTemporalRuntimeContextModel, ...],
+    working: RuntimeSnapshot,
+) -> object:
+    """Call the backend binding method; its failure is an operational failure, not a contract refusal."""
+
+    policy = context.policy
+    try:
+        return deepcopy(
+            context.participant_runtime.bind_autonomous_action(
+                context.participant_address,
+                action_address,
+                policy.observation_boundary_address,
+                policy.participant_implementation_ref,
+                action_instance_id,
+                deepcopy(temporal_contexts),
+                deepcopy(working),
+            )
+        )
+    # Isolation: the binding method is backend code that RAES does not own; log only RAES frames.
+    except Exception as exc:
+        _LOGGER.exception("backend autonomous action binding failed", exc_info=foreign_failure_record(exc))
+    # Raised after the handler, so the failure carries no backend exception as its context.
+    raise OperationalError(_BINDING_FAILED)
+
+
 def _bound_runtime_request(
     context: _DueActionContext,
     working: RuntimeSnapshot,
@@ -165,26 +200,18 @@ def _bound_runtime_request(
     has_bound_temporal_contexts: bool,
 ) -> ParticipantActionAdmissionRequest:
     policy = context.policy
-    request = context.participant_runtime.bind_autonomous_action(
-        context.participant_address,
-        action_address,
-        policy.observation_boundary_address,
-        policy.participant_implementation_ref,
-        action_instance_id,
-        deepcopy(temporal_contexts),
-        deepcopy(working),
-    )
-    request = deepcopy(request)
+    request = _backend_request(context, action_address, action_instance_id, temporal_contexts, working)
+    if not isinstance(request, ParticipantActionAdmissionRequest):
+        raise InvalidInputError(_BINDING_INVALID)
     if request.implementation_selection.manifest_ref != policy.participant_implementation_ref:
-        raise ValueError("participant implementation selection does not match the autonomous execution policy")
+        raise InvalidInputError("participant implementation selection does not match the autonomous execution policy")
     matching_bindings = tuple(
         binding for binding in policy.execution_bindings if binding.action_contract_address == action_address
     )
     if len(matching_bindings) != 1:
-        raise ValueError("autonomous participant action must resolve exactly one execution binding")
-    return cast(
-        ParticipantActionAdmissionRequest,
-        replace(
+        raise ConflictError("autonomous participant action must resolve exactly one execution binding")
+    try:
+        bound = replace(
             request,
             participant_address=context.participant_address,
             action_contract_address=action_address,
@@ -203,5 +230,8 @@ def _bound_runtime_request(
             execution_scope_ref=policy.address,
             execution_generation=service.generation,
             resource_measurement_requirements=measurement_requirements(policy),
-        ),
-    )
+        )
+    # The admission request validates the backend-built fields when it is rebuilt.
+    except (TypeError, ValueError) as exc:
+        raise InvalidInputError(_BINDING_INVALID) from exc
+    return cast(ParticipantActionAdmissionRequest, bound)

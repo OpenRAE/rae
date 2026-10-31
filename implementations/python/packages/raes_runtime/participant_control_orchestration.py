@@ -20,21 +20,26 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import cast
 
+from raes_contracts.contracts.participant_control_applicability import (
+    ParticipantControlRequestV2Model,
+    ParticipantControlSelectionV2Model,
+)
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
     ParticipantControlRequestModel,
     control_digest,
     derive_control_composition,
 )
-from raes_contracts.contracts.participant_control_resolution import (
-    validate_participant_control_resolved_context,
-)
+from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+from raes_contracts.contracts.participant_control_resolution import validate_participant_control_resolved_context
 from raes_contracts.contracts.participant_control_results import ControlMechanismResultModel
 from raes_contracts.contracts.participant_control_selection import (
     ControlMechanismBindingModel,
     ControlResultSlotModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationReceipt, OperationState, operation_terminal_diagnostics
 
 from .control_plane_mutation import external_control_plane_call
@@ -47,13 +52,11 @@ from .participant_control_binding import (
 from .participant_control_cut import binds_live_cut, declares_committed_consumption
 from .participant_crossing_commit import commit_prepared_crossing
 from .participant_crossing_mediation import PreparedParticipantCrossing
-from .participant_crossing_state_cut import (
-    control_history_head_refs,
-    expected_participant_history_heads,
-)
+from .participant_crossing_state_cut import control_history_head_refs, expected_participant_history_heads
 from .participant_flow_sink import early_crossing_receipt, resolve_flow_sink_denial
 
 _UNRESOLVED = "unresolved"
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -62,7 +65,7 @@ class ParticipantControlOutcome:
 
     disposition: str
     reason_code: str
-    evaluation: ParticipantControlEvaluationModel | None = None
+    evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model | None = None
 
     @property
     def eligible(self) -> bool:
@@ -92,7 +95,13 @@ def resolve_participant_control_outcome(
         return None
     if crossing.decision is None:
         return _unresolved(_UNRESOLVED, "control-unresolved")
-    return _resolved_outcome(control_plane, binding, crossing, sink_kind)
+    if isinstance(binding.selection, ParticipantControlSelectionV2Model):
+        from .participant_control_evaluation_v2 import resolve_v2_outcome
+
+        outcome = resolve_v2_outcome(control_plane, binding, crossing, sink_kind)
+    else:
+        outcome = _resolved_outcome(control_plane, binding, crossing, sink_kind)
+    return outcome
 
 
 def _resolved_outcome(
@@ -105,7 +114,7 @@ def _resolved_outcome(
     resolution = _resolve(control_plane, binding, crossing, sink_kind, head_refs)
     if not isinstance(resolution, ParticipantControlResolution):
         return resolution
-    request = _revalidated_request(resolution.request)
+    request = resolution.request
     refusal = _request_refusal(control_plane, binding, crossing, request, sink_kind, head_refs)
     return refusal or _composed_outcome(control_plane, binding, crossing, request, resolution)
 
@@ -114,7 +123,7 @@ def _request_refusal(
     control_plane: object,
     binding: ParticipantControlRuntimeBinding,
     crossing: PreparedParticipantCrossing,
-    request: ParticipantControlRequestModel | None,
+    request: ParticipantControlRequestModel | ParticipantControlRequestV2Model | None,
     sink_kind: object,
     head_refs: tuple[str, ...],
 ) -> ParticipantControlOutcome | None:
@@ -122,6 +131,10 @@ def _request_refusal(
 
     if request is None:
         return _unresolved(_UNRESOLVED, "control-unresolved")
+    from .participant_control_effect_evidence import declares_effect_parent
+
+    if not declares_effect_parent(control_plane, crossing, request):
+        return _unresolved("stale", "control-stale-effect-parent")
     gates = (
         # PC-01: a different profile, mechanism, authority or bound is a new
         # admitted binding at an explicit cut, never a resolve-time swap.
@@ -133,11 +146,7 @@ def _request_refusal(
         ("stale", "control-stale-cut", lambda: binds_live_cut(request, crossing, sink_kind, head_refs)),
         # PC-11/PC-12: budgets and logical claims are durable, so a fresh
         # context may not re-spend what this causal root already consumed.
-        (
-            "stale",
-            "control-exhausted-or-stale-claims",
-            lambda: declares_committed_consumption(control_plane, request),
-        ),
+        ("stale", "control-exhausted-or-stale-claims", lambda: declares_committed_consumption(control_plane, request)),
     )
     failed = next(((disposition, reason) for disposition, reason, passes in gates if not passes()), None)
     return None if failed is None else _unresolved(*failed)
@@ -159,23 +168,36 @@ def _resolve(
                 sink_kind=sink_kind,
                 expected_history_head_refs=head_refs,
             )
-    except Exception:
-        # Fail closed for every resolver failure; its detail never leaks.
+        if isinstance(resolution, ParticipantControlResolution):
+            # Rebuild the request from its portable projection; unchecked mutation cannot pass.
+            request = ParticipantControlRequestModel.model_validate(resolution.request.model_dump(mode="python"))
+            resolution = replace(resolution, request=request)
+    # Isolation: fail closed for every resolver failure or request that does not revalidate; no detail leaks.
+    except Exception as exc:
+        _LOGGER.exception(
+            "participant control resolver failed; control is unresolved", exc_info=foreign_failure_record(exc)
+        )
         return _unresolved(_UNRESOLVED, "control-unresolved")
     if resolution is None or isinstance(resolution, ParticipantControlResolution):
         return resolution
     return _unresolved(_UNRESOLVED, "control-unresolved")
 
 
-def _revalidated_request(request: object) -> ParticipantControlRequestModel | None:
-    """Rebuild from the portable projection; unchecked mutation cannot pass."""
-
-    try:
-        return ParticipantControlRequestModel.model_validate(
-            cast(ParticipantControlRequestModel, request).model_dump(mode="python")
-        )
-    except Exception:
-        return None
+def _parent_crossing_decisions(
+    request: ParticipantControlRequestModel, results: tuple[ControlMechanismResultModel, ...]
+) -> set[str]:
+    """Return the deny or withhold decisions that mandatory slots make on the parent crossing."""
+    required = {slot.slot_id for slot in request.selection.slots if slot.role == "mandatory"}
+    return {
+        result.payload.target.kind
+        for result in results
+        if result.slot_id in required
+        and result.payload is not None
+        and result.payload.kind == "effect-request"
+        and result.payload.target.kind in {"deny", "withhold"}
+        and result.payload.target.crossing_decision == request.context.crossing
+        and result.payload.target.subject == request.context.subject
+    }
 
 
 def _composed_outcome(
@@ -206,10 +228,25 @@ def _composed_outcome(
         validate_participant_control_resolved_context(
             evaluation, fenced_validation_context(control_plane, binding, evaluation)
         )
-    except Exception:
-        # Bounded: a rejected composition or trusted-context failure never
-        # discloses its rejected value, and never widens permission.
+    # A refused composition or trusted context never discloses its rejected value and never widens
+    # permission. The fenced context and the published validation already logged any resolver failure.
+    except ValueError:
+        evaluation = None
+    # Isolation: the composition reads the support and gate evidence that the installed resolver returned.
+    except Exception as exc:
+        _LOGGER.exception(
+            "participant control composition failed on resolver input", exc_info=foreign_failure_record(exc)
+        )
+        evaluation = None
+    if evaluation is None:
         return _unresolved(_UNRESOLVED, "control-context-invalid")
+    # V1 wire evidence keeps its original interpretation. Fresh parent-targeted
+    # crossing decisions are nevertheless enforced before any scheduled effect;
+    # a phase label can never postpone a refusal until after parent execution.
+    parent_decisions = _parent_crossing_decisions(request, results)
+    if parent_decisions:
+        disposition = "deny" if "deny" in parent_decisions else "withhold"
+        return _unresolved(disposition, "control-" + disposition)
     return ParticipantControlOutcome(
         disposition=composition.disposition,
         reason_code="control-" + composition.disposition,
@@ -274,10 +311,14 @@ def _provider_results(
                 cast(ControlMechanismResultModel, item).model_dump(mode="python")
             )
             if result.slot_id in resolved or result.slot_id not in owned:
-                raise ValueError("provider returned a duplicate or unowned result slot")
+                raise InvalidInputError("provider returned a duplicate or unowned result slot")
             resolved[result.slot_id] = result
-    except Exception:
-        # A malformed or failing provider contributes no fact and no permit.
+    # Isolation of the provider (foreign code): a malformed or failing provider contributes no fact and no permit.
+    except Exception as exc:
+        _LOGGER.exception(
+            "participant control provider failed or returned a malformed response",
+            exc_info=foreign_failure_record(exc),
+        )
         return None
     return resolved
 
@@ -336,16 +377,19 @@ def with_participant_control_evaluation(
 
 def _with_appended_evaluation(
     crossing: PreparedParticipantCrossing,
-    evaluation: ParticipantControlEvaluationModel,
+    evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
 ) -> PreparedParticipantCrossing:
     participant_address = crossing.intent.participant_address
-    history = crossing.next_snapshot.participant_control_evaluation_history
+    from raes_contracts.immutable_history import append_history
+
     next_snapshot = crossing.next_snapshot.with_entries(
         dict(crossing.next_snapshot.entries),
-        participant_control_evaluation_history={
-            **history,
-            participant_address: [*history.get(participant_address, ()), evaluation.model_dump(mode="json")],
-        },
+        participant_control_evaluation_history=append_history(
+            crossing.next_snapshot,
+            "participant_control_evaluation_history",
+            participant_address,
+            [evaluation.model_dump(mode="json")],
+        ),
     )
     return cast(
         PreparedParticipantCrossing,
@@ -394,10 +438,7 @@ def resolve_participant_control_denial(
     if outcome is None or outcome.eligible:
         return outcome, None
     denied = with_participant_control_evaluation(crossing, outcome, allowed=False)
-    rejected = cast(
-        PreparedParticipantCrossing,
-        replace(denied, record=control_denied_record(denied)),
-    )
+    rejected = cast(PreparedParticipantCrossing, replace(denied, record=control_denied_record(denied)))
     return outcome, commit_prepared_crossing(control_plane, rejected)
 
 

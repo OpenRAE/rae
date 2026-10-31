@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
+from raes_contracts.json_pointer import pointer_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode
 
 from ._errors import (
@@ -39,6 +41,14 @@ class _SDLSafeLoader(yaml.SafeLoader):
 install_yaml_12_core_resolvers(_SDLSafeLoader)
 
 
+@dataclass(frozen=True)
+class SDLSourceLocations:
+    """Optional collectors for value and declaration-key locations in one source."""
+
+    value_ranges: dict[str, SDLSourceRange] | None = None
+    key_ranges: dict[str, SDLSourceRange] | None = None
+
+
 def load_sdl_yaml(
     content: str,
     *,
@@ -47,7 +57,7 @@ def load_sdl_yaml(
     base_pointer: str = "",
     source_options: SDLSourceParseOptions = DEFAULT_SOURCE_PARSE_OPTIONS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
-    source_ranges: dict[str, SDLSourceRange] | None = None,
+    source_locations: SDLSourceLocations | None = None,
 ) -> object:
     """Validate and safely construct one SDL YAML document or fragment."""
     prepared = prepare_content(content, path=path)
@@ -68,7 +78,7 @@ def load_sdl_yaml(
             base_pointer=base_pointer,
             migration_policy=policy,
             source_diagnostics=source_diagnostics,
-            source_ranges=source_ranges,
+            source_locations=source_locations,
         )
         constructed = loader.construct_document(root)
         validate_constructed_domain(constructed, path=path)
@@ -77,11 +87,10 @@ def load_sdl_yaml(
             or constructed.get("semantic_revision") != source_options.required_semantic_revision
         ):
             raise SDLParseError("Imported source must carry the selected semantic revision.", path=path)
-        return constructed
-    except SDLParseError:
-        raise
     except yaml.YAMLError as exc:
         raise yaml_parse_error(exc, path=path) from exc
+    else:
+        return constructed
     finally:
         if loader is not None:
             loader.dispose()
@@ -116,13 +125,12 @@ def compose_sdl_yaml(
             base_pointer=base_pointer,
             migration_policy=policy,
             source_diagnostics=source_diagnostics,
-            source_ranges=source_ranges,
+            source_locations=SDLSourceLocations(value_ranges=source_ranges),
         )
-        return root
-    except SDLParseError:
-        raise
     except yaml.YAMLError as exc:
         raise yaml_parse_error(exc, path=path) from exc
+    else:
+        return root
     finally:
         if loader is not None:
             loader.dispose()
@@ -145,12 +153,14 @@ def _validate_mapping_keys(
     base_pointer: str,
     migration_policy: SDLMigrationPolicy,
     source_diagnostics: list[SDLParseDiagnostic] | None,
-    source_ranges: dict[str, SDLSourceRange] | None,
+    source_locations: SDLSourceLocations | None,
 ) -> None:
+    locations = source_locations or SDLSourceLocations()
     diagnostics = _MappingAnalyzer(
         migration_policy=migration_policy,
         path=path,
-        source_ranges=source_ranges,
+        source_ranges=locations.value_ranges,
+        source_key_ranges=locations.key_ranges,
         materialized=_is_materialized_mapping(root, scope, base_pointer),
     ).analyze(
         root,
@@ -182,4 +192,4 @@ def _decode_pointer(pointer: str) -> list[str]:
         return []
     if not pointer.startswith("/"):
         raise ValueError("base_pointer must be an RFC 6901 pointer")
-    return [token.replace("~1", "/").replace("~0", "~") for token in pointer[1:].split("/")]
+    return list(pointer_tokens(pointer))

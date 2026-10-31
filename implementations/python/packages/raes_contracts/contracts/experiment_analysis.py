@@ -54,7 +54,9 @@ def _run_ref_matches_run(reference: ExperimentReferenceModel, run: ExperimentRun
 
 
 def _run_is_eligible_for_study_analysis(run: ExperimentRunModel) -> bool:
-    return run.run_status not in {"invalidated", "superseded"} and run.outcome_status != "not-evaluated"
+    from .experiment_analysis_eligibility import experiment_run_is_analysis_eligible
+
+    return experiment_run_is_analysis_eligible(run)
 
 
 def _validate_study_analysis_run_eligibility(
@@ -459,12 +461,16 @@ def validate_experiment_study_against_tasks_and_runs(
     tasks: list[ExperimentTaskModel],
     runs: list[ExperimentRunModel] | None = None,
     *,
+    study_definition: ExperimentStudyModel | None = None,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
     relation_scenarios: Mapping[str, Any] | None = None,
     relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None,
 ) -> None:
     """Validate study semantics and content-backed evidence for every claimed run."""
 
+    from .experiment_study_definition import validate_study_definition
+
+    validate_study_definition(study, study_definition)
     _validate_experiment_study_against_tasks_and_runs(
         study,
         tasks,

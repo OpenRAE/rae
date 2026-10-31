@@ -47,9 +47,16 @@ import argparse
 import sys
 from pathlib import Path
 
+import yaml
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
 from tools.schema_coverage._classify import classify
@@ -135,21 +142,27 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _waived_failures(repo_root: Path) -> list[PolicyFailure]:
+    return apply_exceptions(evaluate_schema_coverage(repo_root), _waivers(repo_root))
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    if args.report:
-        print(build_coverage_report(args.repo_root))
-        return 0
-    failures = apply_exceptions(evaluate_schema_coverage(args.repo_root), _waivers(args.repo_root))
-    if not failures:
-        return 0
-    if args.json:
+    try:
+        report = build_coverage_report(args.repo_root) if args.report else None
+        failures = [] if args.report else _waived_failures(args.repo_root)
+    except (OSError, UnicodeDecodeError, yaml.YAMLError, InvalidInputError) as exc:
+        print(f"schema-coverage: {exc}", file=sys.stderr)
+        return 1
+    if report is not None:
+        print(report)
+    elif failures and args.json:
         print(failures_to_json(failures))
     else:
         for failure in failures:
             print(failure.render(), file=sys.stderr)
-    return 1
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

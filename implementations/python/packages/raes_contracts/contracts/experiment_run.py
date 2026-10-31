@@ -8,8 +8,9 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import EXPERIMENT_RUN_SCHEMA_VERSION
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
 from .difficulty_provenance import DifficultyRunProvenanceModel
 from .experiment_apparatus import (
     ExperimentApparatusComponentModel,
@@ -35,6 +36,7 @@ from .experiment_evidence_refinement import (
     ExperimentEvidenceRequirementRelationModel,
     validate_evidence_requirement_relation_carrier,
 )
+from .experiment_execution_accounting import ExperimentExecutionAccountingModel, validate_run_record_shape
 from .experiment_manifest_references import ExperimentRunEvidenceArtifactReferenceModel
 from .experiment_references import (
     ExperimentParameterModel,
@@ -48,6 +50,7 @@ from .experiment_run_difficulty import (
 )
 from .experiment_run_stochastic import _validate_run_stochastic_draw_control_refs
 from .experiment_run_timing import validate_run_invalidation_status, validate_run_timing
+from .experiment_treatments import ExperimentScenarioSelectionDescriptorModel, validate_selection_descriptor_set
 from .materialization_attestation import MaterializationArchiveRecord, validate_run_materializations
 from .participant_manifests import ParticipantImplementationProvenanceModel
 from .random_stream import RandomStreamDrawRecordModel
@@ -79,12 +82,14 @@ class ExperimentResultSummaryModel(ContractModel):
     metric_id: NonEmptyString
     value: str | int | float | bool | None = None
     value_status: Literal["reported", "missing", "withheld", "not-applicable"]
-    evidence_refs: list[ExperimentRunEvidenceArtifactReferenceModel] = Field(min_length=1)
+    evidence_refs: list[ExperimentRunEvidenceArtifactReferenceModel] = Field(default_factory=list)
     uncertainty: NonEmptyString | None = None
     notes: NonEmptyString | None = None
 
     @model_validator(mode="after")
     def _validate_reported_value(self) -> ExperimentResultSummaryModel:
+        if self.value_status == "reported" and not self.evidence_refs:
+            raise ValueError("reported results require evidence references")
         _validate_reported_value_status(
             self.value_status,
             self.value,
@@ -101,6 +106,12 @@ class ExperimentResultSummaryModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
+        json_schema.setdefault("allOf", []).append(
+            {
+                "if": {"properties": {"value_status": {"const": "reported"}}, "required": ["value_status"]},
+                "then": {"required": ["evidence_refs"], "properties": {"evidence_refs": {"minItems": 1}}},
+            }
+        )
         _extend_reported_value_status_schema(json_schema)
         return json_schema
 
@@ -114,7 +125,7 @@ class ExperimentInvalidationModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_invalidated_at(self) -> ExperimentInvalidationModel:
-        _parse_rfc3339_datetime("invalidated_at", self.invalidated_at)
+        parse_rfc3339_datetime("invalidated_at", self.invalidated_at)
         return self
 
 
@@ -122,30 +133,41 @@ class ExperimentRunModel(ContractModel):
     """Archival provenance record for one execution of an experiment task."""
 
     schema_version: Literal[EXPERIMENT_RUN_SCHEMA_VERSION]
+    record_state: Literal["archival", "partial"] = Field(
+        default="archival", exclude_if=lambda value: value == "archival"
+    )
+    execution_accounting: ExperimentExecutionAccountingModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     run_id: NonEmptyString
     run_version: NonEmptyString
     task_ref: ExperimentTaskReferenceModel
     scenario_snapshot_ref: ExperimentScenarioSnapshotReferenceModel
     trial_provenance: TrialRunProvenanceModel | None = None
     difficulty_provenance: DifficultyRunProvenanceModel | None = None
-    apparatus_context: ExperimentApparatusContextModel
+    apparatus_context: ExperimentApparatusContextModel | None = None
     participant_implementation_provenance: ParticipantImplementationProvenanceModel | None = None
-    parameter_set: list[ExperimentParameterModel] = Field(min_length=1)
+    parameter_set: list[ExperimentParameterModel] = Field(default_factory=list)
     realized_bindings: list[RealizedBindingProvenanceModel] = Field(default_factory=list)
-    stochastic_controls: list[ExperimentStochasticControlModel] = Field(min_length=1)
+    realized_selections: list[ExperimentScenarioSelectionDescriptorModel] = Field(
+        default_factory=list, max_length=256, exclude_if=lambda value: not value
+    )
+    stochastic_controls: list[ExperimentStochasticControlModel] = Field(default_factory=list)
     stochastic_draws: list[RandomStreamDrawRecordModel] = Field(default_factory=list)
     started_at: Rfc3339DateTimeString
-    ended_at: Rfc3339DateTimeString
+    ended_at: Rfc3339DateTimeString | None = None
     clock_context: ExperimentClockContextModel
     realized_time_model: RealizedTimeModelProvenanceModel | None = None
-    run_status: Literal["sealed", "completed", "failed", "aborted", "invalidated", "superseded"]
+    run_status: Literal[
+        "sealed", "completed", "failed", "aborted", "invalidated", "superseded", "in-progress", "indeterminate"
+    ]
     outcome_status: Literal["succeeded", "failed", "partial", "inconclusive", "not-evaluated"]
-    traceability: ExperimentRunTraceabilityModel
+    traceability: ExperimentRunTraceabilityModel | None = None
     realized_form_disclosures: list[ExperimentRealizedFormDisclosureModel] = Field(default_factory=list)
     augmentation_disclosures: list[ExperimentAugmentationDisclosureModel] = Field(default_factory=list)
     materialization_attestations: list[MaterializationArchiveRecord] = Field(default_factory=list, max_length=4096)
-    evidence_artifacts: list[ExperimentArtifactRefModel] = Field(min_length=1)
-    result_summaries: dict[NonEmptyString, ExperimentResultSummaryModel] = Field(min_length=1)
+    evidence_artifacts: list[ExperimentArtifactRefModel] = Field(default_factory=list)
+    result_summaries: dict[NonEmptyString, ExperimentResultSummaryModel] = Field(default_factory=dict)
     deviations: list[NonEmptyString] = Field(default_factory=list)
     invalidation: ExperimentInvalidationModel | None = None
     used_refs: list[ExperimentReferenceModel] = Field(default_factory=list)
@@ -156,6 +178,7 @@ class ExperimentRunModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_archival_run(self) -> ExperimentRunModel:
+        validate_run_record_shape(self)
         validate_run_timing(self)
         validate_run_difficulty_provenance(self)
         validate_run_invalidation_status(self)
@@ -167,6 +190,7 @@ class ExperimentRunModel(ContractModel):
         _validate_run_augmentation_disclosures(self)
         validate_run_materializations(self)
         _validate_realized_bindings(self.realized_bindings)
+        validate_selection_descriptor_set(self.realized_selections)
         validate_trial_run_provenance_binding(
             self.trial_provenance, run_id=self.run_id, scenario_digest=self.scenario_snapshot_ref.ref_digest
         )
@@ -207,6 +231,9 @@ class ExperimentRunModel(ContractModel):
                 },
             }
         )
+        from .experiment_execution_accounting_schema import add_record_shape_schema
+
+        add_record_shape_schema(json_schema)
         add_trial_run_provenance_invariant(json_schema)
         add_run_difficulty_invariants(json_schema)
         _add_raes_invariant(
@@ -297,7 +324,7 @@ def _participant_implementation_components(
 ) -> list[ExperimentApparatusComponentModel]:
     return [
         component
-        for component in run.apparatus_context.components.values()
+        for component in (() if run.apparatus_context is None else run.apparatus_context.components.values())
         if component.component_kind == "participant-implementation"
     ]
 
@@ -349,7 +376,11 @@ def _validate_run_evidence_artifact_refs(run: ExperimentRunModel) -> None:
 
 
 def _traced_evidence_record_refs(run: ExperimentRunModel) -> set[str]:
-    return {_experiment_reference_key(evidence_ref) for evidence_ref in run.traceability.evidence_record_refs}
+    return (
+        set()
+        if run.traceability is None
+        else {_experiment_reference_key(evidence_ref) for evidence_ref in run.traceability.evidence_record_refs}
+    )
 
 
 def _validate_run_realized_form_disclosures(run: ExperimentRunModel) -> None:
@@ -421,6 +452,8 @@ def validate_experiment_run_structure_against_task(task: ExperimentTaskModel, ru
     Authoritative admission uses ``validate_experiment_run_against_task``.
     """
 
+    if run.record_state == "partial":
+        raise ValueError("partial run record cannot establish task evidence satisfaction")
     _validate_run_task_ref(task, run)
     _validate_run_scenario_ref(task, run)
     _validate_run_apparatus_constraints(task, run)

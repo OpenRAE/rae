@@ -68,6 +68,7 @@ from raes_runtime.participant_activity import (
 from raes_runtime.participant_clock_driver import ParticipantClockDriver
 from raes_runtime.participant_scheduler import ParticipantScheduler
 from raes_runtime.time_coordinator import ReferenceTimeRuntime, TimeCoordinator
+from test_runtime_manager import close_runtime_owners as close_runtime_owners
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 EXAMPLE = REPO_ROOT / "examples" / "scenarios" / "enterprise-participant-evidence-loop.sdl.yaml"
@@ -1079,7 +1080,7 @@ def test_runtime_manager_drives_due_actions_from_shared_clock_controls() -> None
 
     applied = manager.apply(manager.plan(scenario))
 
-    assert applied.success
+    assert applied.success, applied.diagnostics
     assert len(participant_runtime.native_actions) == 1
     policy = next(
         specification.autonomous_execution
@@ -1091,7 +1092,7 @@ def test_runtime_manager_drives_due_actions_from_shared_clock_controls() -> None
     assert skipped.diagnostics[0].code == "runtime.participant-autonomous-cadence-skipped"
     assert manager.read_time_state().clocks[policy.clock_address].coordinate.tick == 0
     paused = manager.pause_time(policy.clock_address)
-    assert paused.success
+    assert paused.success, paused.diagnostics
     assert any(
         address.endswith(".state.participant.behavior.participant-agent") for address in paused.changed_addresses
     )
@@ -2055,7 +2056,7 @@ def test_wall_driver_cannot_advance_during_time_state_readback() -> None:
     def read_state() -> None:
         try:
             outcome.append(manager.read_time_state())
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             outcome.append(exc)
 
     reader = threading.Thread(target=read_state)
@@ -2274,6 +2275,7 @@ def test_wall_driver_records_an_unexpected_runtime_exception() -> None:
 
     assert driver.failure is not None
     assert driver.failure.diagnostics[0].code == "runtime.participant-clock-driver-failed"
+    assert "clock backend failed" not in driver.failure.diagnostics[0].message
     execution_state = ParticipantExecutionServiceStateModel.model_validate(
         driver.failure.snapshot.participant_execution_services[policy.address]
     )
@@ -2288,9 +2290,9 @@ def test_runtime_manager_refuses_destroy_while_clock_driver_is_live(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     manager = RuntimeManager(create_stub_target())
-    monkeypatch.setattr(manager, "_stop_participant_clock_driver", lambda: False)
-
-    result = manager.destroy()
+    with monkeypatch.context() as changes:
+        changes.setattr(manager, "_stop_participant_clock_driver", lambda: False)
+        result = manager.destroy()
 
     assert not result.success
     assert result.diagnostics[0].code == "runtime.participant-clock-driver-stop-timeout"

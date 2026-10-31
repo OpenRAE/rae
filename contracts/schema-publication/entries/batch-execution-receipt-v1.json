@@ -1,10 +1,10 @@
 {
+  "content_hash": "3ea0cd5c849c81cb10df4914d07cb878a60124a25e8592538152bc604a9be82e",
   "contract_id": "batch-execution-receipt-v1",
-  "schema_path": "contracts/schemas/control-plane/batch-execution-receipt-v1.json",
-  "stability": "draft",
-  "content_hash": "9f7882166edf0a800e73c412a6493ac6e245b29582db71ddbd7032ed283272dc",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "9f7882166edf0a800e73c412a6493ac6e245b29582db71ddbd7032ed283272dc"
-  }
+    "content_hash": "3ea0cd5c849c81cb10df4914d07cb878a60124a25e8592538152bc604a9be82e",
+    "summary": "Add EXP-719 bounded cross-plane factorial conditions, realized binding criteria, and integrity-bound randomized allocation with matching dispatch receipts; preserve legacy profile semantics (#275)."
+  },
+  "schema_path": "contracts/schemas/control-plane/batch-execution-receipt-v1.json",
+  "stability": "draft"
 }

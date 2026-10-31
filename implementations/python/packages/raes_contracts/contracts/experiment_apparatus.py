@@ -8,6 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import (
     BACKEND_MANIFEST_V2_SCHEMA_VERSION,
     EXPERIMENT_APPARATUS_CONTEXT_SCHEMA_VERSION,
@@ -15,7 +16,7 @@ from ..versions import (
     PROCESSOR_MANIFEST_V2_SCHEMA_VERSION,
 )
 from . import experiment_task as _experiment_task
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _canonical_digest, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _canonical_digest
 from .capabilities import ApparatusIdentityModel
 from .experiment_artifacts import (
     ExperimentApparatusCompatibilityReferenceModel,
@@ -115,7 +116,7 @@ class ExperimentApparatusContextModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_instrument_context(self) -> ExperimentApparatusContextModel:
-        _parse_rfc3339_datetime("declared_at", self.declared_at)
+        parse_rfc3339_datetime("declared_at", self.declared_at)
         processor, backend = _require_processor_and_backend_components(self.components)
         selected_manifest_keys = _validate_selected_manifest_subject_uniqueness(self.selected_manifests)
         canonical_component_manifest_keys = _validate_core_component_manifest_refs(
@@ -425,6 +426,18 @@ def _validate_component_manifest_digest_match(
         )
 
 
+def processor_backend_manifests_are_mutually_compatible(
+    processor_manifest: ProcessorManifestV2Model,
+    backend_manifest: BackendManifestV2Model,
+) -> bool:
+    """Return whether two typed manifests name each other exactly."""
+
+    return (
+        backend_manifest.identity.name in processor_manifest.compatibility.backends
+        and processor_manifest.identity.name in backend_manifest.compatibility.processors
+    )
+
+
 def validate_experiment_apparatus_context_against_manifests(
     apparatus_context: ExperimentApparatusContextModel,
     processor_manifest: ProcessorManifestV2Model,
@@ -449,11 +462,5 @@ def validate_experiment_apparatus_context_against_manifests(
         expected_schema_version=BACKEND_MANIFEST_V2_SCHEMA_VERSION,
         supplied_digest=backend_manifest_digest,
     )
-    if backend_manifest.identity.name not in processor_manifest.compatibility.backends:
-        raise ValueError(
-            "processor manifest compatibility.backends must include the selected backend manifest identity"
-        )
-    if processor_manifest.identity.name not in backend_manifest.compatibility.processors:
-        raise ValueError(
-            "backend manifest compatibility.processors must include the selected processor manifest identity"
-        )
+    if not processor_backend_manifests_are_mutually_compatible(processor_manifest, backend_manifest):
+        raise ValueError("processor and backend manifests are not mutually compatible")

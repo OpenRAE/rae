@@ -113,7 +113,7 @@ def parse_workflow_step_ref(step_ref: str) -> ParsedWorkflowStepRef | None:
 
     try:
         parts = QualifiedName.parse(step_ref).parts
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
     if len(parts) < 2:
         return None

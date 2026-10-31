@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import ValidationError
 from raes.artifact_requirements import ArtifactMechanismProfile, ArtifactRequirement
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.capabilities import BackendManifest
@@ -237,7 +238,7 @@ def evaluate_artifact_realization(
     payload = snapshot_entry.payload.get("artifact_satisfaction") if snapshot_entry is not None else None
     try:
         satisfaction = ArtifactSatisfactionDisclosureModel.model_validate(payload)
-    except (TypeError, ValueError):
+    except ValidationError:
         return _silent_approximation_diagnostic(requirement), None
 
     facts = (availability or ArtifactAvailabilityContext()).for_address(requirement.address)

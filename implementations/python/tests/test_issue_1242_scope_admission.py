@@ -6,6 +6,7 @@ from dataclasses import replace
 import pytest
 from raes import parse_sdl
 from raes_backend_protocols.augmentation import augmentation_preparation
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import PlanScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
@@ -107,7 +108,7 @@ def test_unbound_incomplete_or_permission_changing_reports_are_refused(tamper):
     elif tamper == "effects":
         report = report.model_copy(update={"effects": ()})
     previous = RuntimeSnapshot()
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         admit_augmentation_preparation(report, request, execution.manifest, previous)
 
 
@@ -233,7 +234,5 @@ def test_preparation_bounds_aggregate_scope_resolution_work():
 
 def test_publishing_a_contract_does_not_claim_unimplemented_backend_support():
     from raes_backend_stubs.stubs import create_stub_manifest
-    from raes_reference_backend.manifest import create_reference_backend_manifest
 
-    for manifest in (create_stub_manifest(), create_reference_backend_manifest()):
-        assert "backend-augmentation-scope-v1" not in manifest.supported_contract_versions
+    assert "backend-augmentation-scope-v1" not in create_stub_manifest().supported_contract_versions

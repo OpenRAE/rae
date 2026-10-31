@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -12,9 +10,13 @@ from typing import Protocol
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.errors import RaesError
+from raes_contracts.json_serialization import sorted_json_digest
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from ._realization_models import ExecutionBasis
 
+_LOGGER = get_logger(__name__)
 _SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
@@ -118,8 +120,7 @@ class BehavioralProbeCase:
             "execution_basis": self.execution_basis.value,
             "mutates_state": self.mutates_state,
         }
-        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
-        return "sha256:" + hashlib.sha256(encoded).hexdigest()
+        return sorted_json_digest(payload)
 
 
 @dataclass(frozen=True)
@@ -310,6 +311,9 @@ def run_behavioral_validation_probe(
     try:
         evidence = executor.execute(case)
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the injected executor and the subject it drives: a refusal category needs no record.
+            _LOGGER.exception("behavioral probe executor failed", exc_info=foreign_failure_record(exc))
         return _result(
             case,
             outcome=BehavioralProbeOutcome.FAILED,

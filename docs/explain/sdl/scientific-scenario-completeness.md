@@ -51,6 +51,12 @@ simulation, refinement, strong or weak bisimulation, model checking, or proof.
 Documentation explains the assessed status; it does not change the canonical
 profile or assessment.
 
+Issue #1008 adds source-bound intentional-subversion harness evidence to this assessment.
+The [evaluation guide](../reference/adversarial-control-evaluation.md) separates
+observed RAE runtime behavior from protocol declarations and unsupported conditions.
+Backend realization is not a prerequisite for this RAE evaluation.
+This evidence does not certify a backend or promote whole-scenario completeness.
+
 ## Use Through MCP
 
 Agents using `raes-mcp` should call `raes_intended_use_profiles` before

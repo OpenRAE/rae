@@ -8,6 +8,7 @@ import yaml
 from pydantic import Field
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ArtifactTransformationPreservationModel, ArtifactTransformationReportModel
+from raes_contracts.json_pointer import escape_token
 
 from ._base import SDLModel, is_variable_ref
 from ._errors import SDLError
@@ -35,7 +36,7 @@ class ParticipantIdentityMigrationContext(SDLModel):
 
 
 def _pointer(section: str, name: str) -> str:
-    return f"/{section}/" + name.replace("~", "~0").replace("/", "~1")
+    return f"/{section}/" + escape_token(name)
 
 
 def _legacy_objectives(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -177,14 +178,18 @@ def migrate_participant_identity(
     context_payload = context.model_dump(mode="json") if context else None
     policy_digest = canonical_json_digest(context_payload)
     output: Scenario | None = None
+    target_digest: str | None = None
     pointer = ""
     code = None
     try:
         payload = load_sdl_yaml(content, source_options=SDLSourceParseOptions(limits=limits))
         payload, code, pointer = _adopt(payload, context, digest)
         if payload is not None:
-            output = parse_sdl(yaml.safe_dump(payload, sort_keys=False), limits=limits)
-    except (SDLError, ValueError, TypeError):
+            candidate = parse_sdl(yaml.safe_dump(payload, sort_keys=False), limits=limits)
+            # A target without a canonical digest, such as one with an integer outside I-JSON, is refused.
+            target_digest = canonical_sdl_digest(candidate).value
+            output = candidate
+    except SDLError:
         code = "source-or-target-invalid"
     diagnostic_code = f"participant-migration.{code}" if code else None
     report = ArtifactTransformationReportModel(
@@ -195,7 +200,7 @@ def migrate_participant_identity(
         target_profile="sdl-authoring-input/v1",
         canonicalization_profile="participant-migration-digest-pair/v1",
         source_digest=digest,
-        target_digest=canonical_sdl_digest(output).value if output is not None else None,
+        target_digest=target_digest,
         policy_digest=policy_digest,
         derivation_digest=canonical_json_digest(
             {"operation": PARTICIPANT_MIGRATION_PROFILE, "source": digest, "policy": policy_digest}

@@ -202,6 +202,8 @@ entries:
 
   - subsystem: experiment-core
     delivered_artifacts:
+      - kind: unit_tests
+        path: implementations/python/tests/test_exp_719_factorial_allocation.py
       - kind: invariant_list
         path: specs/formal/experiment-core/README.md
       - kind: unit_tests
@@ -220,6 +222,8 @@ entries:
     # immutable batch execution receipt over the one-entry realization seam).
     # Runtime provenance/fact-binding remains sequenced.
     delivered_artifacts:
+      - kind: unit_tests
+        path: implementations/python/tests/test_exp_719_factorial_allocation.py
       - kind: invariant_list
         path: specs/formal/scenario-variation-trial-realization/README.md
       - kind: unit_tests
@@ -315,56 +319,46 @@ entries:
     waived_artifacts: []
 
   - subsystem: participant-runtime
-    # Design coverage only (RUN-305-308): the README is the documented invariant
-    # list, but the executable runtime, typed contracts, differential tests, and
-    # abstract state machine do not yet exist. Per the issue finding, those gaps
-    # are recorded as dated, tracked waivers rather than left invisible.
+    # RUN-305-308: the waivers tracked by #486, #194 and #195 were delivered
+    # (issue #219 audit). The RUN-305-308 runtime tests drive shipped runtime,
+    # contract and conformance code; the participant-runtime contracts are typed
+    # schemas; the trace-predicate oracle is a Hypothesis-based executable
+    # encoding of the README's abstract trace predicates over a test-local
+    # model, not evidence that production code enforces them.
     delivered_artifacts:
       - kind: invariant_list
         path: specs/formal/participant-runtime/README.md
-    waived_artifacts:
       - kind: unit_tests
-        date: 2026-06-13
-        tracking:
-          - "#486"
-          - "#194"
-          - "#195"
-        rationale: >-
-          Participant-runtime is at design coverage, not implementation
-          coverage; no executable runtime tests yet.
+        path: implementations/python/tests/test_run_305_participant_runtime_state_history.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_run_306_participant_decision_lifecycle.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_run_307_shared_operational_state.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_run_308_concurrent_participant_execution.py
       - kind: typed_ir_or_contract_coverage
-        date: 2026-06-13
-        tracking:
-          - "#486"
-          - "#194"
-          - "#195"
-        rationale: >-
-          No typed runtime contract realizes the RUN-305-308 runtime model yet.
+        path: contracts/schemas/participant-runtime/participant-shared-state-record-v1.json
+      - kind: typed_ir_or_contract_coverage
+        path: contracts/schemas/participant-runtime/participant-joint-action-record-v1.json
+      - kind: typed_ir_or_contract_coverage
+        path: contracts/schemas/participant-runtime/participant-lifecycle-event-v1.json
       - kind: property_based_or_differential_tests
-        date: 2026-06-13
-        tracking:
-          - "#486"
-          - "#194"
-          - "#195"
-        rationale: >-
-          No property-based or differential coverage of the runtime model yet.
+        path: implementations/python/tests/test_participant_runtime_invariants.py
       - kind: abstract_state_machine_model
-        date: 2026-06-13
-        tracking:
-          - "#486"
-          - "#194"
-          - "#195"
-        rationale: >-
-          The README defines the design but no executable abstract state-machine
-          model exists; #486 tracks the executable invariant oracle.
+        path: implementations/python/tests/test_participant_runtime_invariants.py
+    waived_artifacts: []
 
   - subsystem: participant-semantics
     # SEM-230 adds an executable bounded policy model, SEM-233 adds an exact
     # two-coordinate algebra with a test-local finite falsification model, and
-    # ASR-535 adds bounded enforcement and backend-conformance falsification, while
-    # runtime-wide typed contract coverage remains incomplete for the broader
-    # participant surface. ASR-535 makes no model-check or proof claim.
+    # ASR-535 adds bounded enforcement and backend-conformance falsification, and
+    # issues #1370 and #1363 deliver the owner-qualified IFC profile and the
+    # API-409 v2 reusable mixed-control occurrence contracts, while typed
+    # contract coverage remains incomplete for the observation capture
+    # apparatus (waiver below). ASR-535 makes no model-check or proof claim.
     delivered_artifacts:
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_1008_evaluation_backed_claims.py
       - kind: invariant_list
         path: specs/formal/participant-semantics/modular-participant-control.md
       - kind: abstract_state_machine_model
@@ -405,61 +399,63 @@ entries:
         path: contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json
       - kind: unit_tests
         path: implementations/python/tests/test_sem_233_flow_control_contracts.py
+      - kind: typed_ir_or_contract_coverage
+        path: contracts/schemas/control-plane/participant-behavior-history-event-stream-v1.json
+      - kind: typed_ir_or_contract_coverage
+        path: contracts/schemas/control-plane/participant-decision-surface-v2.json
+      - kind: typed_ir_or_contract_coverage
+        path: contracts/schemas/profiles/participant-owner-flow-policy-v1.json
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_1370_ifc_profiles.py
+      - kind: typed_ir_or_contract_coverage
+        path: contracts/schemas/participant-runtime/participant-control-occurrence-v2.json
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_1363_occurrence_v2_contract.py
     waived_artifacts:
       - kind: typed_ir_or_contract_coverage
-        date: 2026-08-02
+        date: 2026-10-25
         tracking:
-          - "#487"
+          - "#1595"
         rationale: >-
-          SEM-233 now has exact portable profile and relation contracts, but
-          the broader participant-semantics SDL/compiler/runtime contract
-          surface remains incomplete.
+          The issue #219 audit found typed contracts for behavior history,
+          decision surfaces, context views, flow control, the owner-qualified
+          IFC profile (issue #1370) and the reusable mixed-control occurrence
+          (issue #1363), all delivered above. One typed contract gap remains:
+          no typed carrier discloses the observation capture apparatus
+          (capture basis, granularity, loss model, redaction policy, observer
+          effects) that I3 and I13 require (#1595).
+          specs/formal/participant-semantics/semantic-coverage.md
+          names #1595 as the open owner of those rows.
 
   - subsystem: participant-behavior-model
-    # Design coverage for ACT-602/603/606/607/608 plus executable ACT-602
-    # conformance coverage. Remaining executable artifacts are owned by the
-    # other spawned implementation issues.
+    # Design coverage for ACT-602/603/606/607/608 plus executable coverage from
+    # the closed per-UID issues #204-#208 (issue #219 audit). Property-based or
+    # differential behavior-model coverage is still missing; #220 owns the
+    # cross-stage conformance corpus that the coverage matrix assigns it to.
     delivered_artifacts:
       - kind: invariant_list
         path: specs/formal/participant-behavior-model/README.md
       - kind: unit_tests
         path: implementations/python/tests/test_runtime_conformance.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_sem_208_participant_behavior.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_act_617_mixed_control.py
       - kind: typed_ir_or_contract_coverage
         path: implementations/python/packages/raes_processor/models/history_event.py
-    waived_artifacts:
-      - kind: unit_tests
-        date: 2026-06-23
-        tracking:
-          - "#205"
-          - "#206"
-          - "#207"
-          - "#208"
-        rationale: >-
-          ACT-602 conformance tests now cover the executable behavior-model
-          binding gate; the remaining behavior-model test coverage is owned by
-          the other per-UID implementation issues.
       - kind: typed_ir_or_contract_coverage
-        date: 2026-06-23
-        tracking:
-          - "#205"
-          - "#206"
-          - "#207"
-          - "#208"
-        rationale: >-
-          ACT-602 reuses the existing compiled participant behavior binding;
-          additional SDL fields, contract schemas, and runtime carriers are
-          owned by the other per-UID implementation issues.
+        path: implementations/python/packages/raes/participant_behavior_specification.py
+    waived_artifacts:
       - kind: property_based_or_differential_tests
-        date: 2026-06-23
+        date: 2026-10-13
         tracking:
-          - "#205"
-          - "#206"
-          - "#207"
-          - "#208"
+          - "#220"
         rationale: >-
-          No property-based or differential behavior-model coverage ships with
-          the joint design or ACT-602 conformance gate; that evidence is owned
-          by the remaining per-UID implementation issues.
+          No property-based or differential behavior-model coverage exists.
+          The coverage matrix
+          (specs/formal/participant-semantics/semantic-coverage.md) assigns
+          the missing valid, invalid, cross-contract and cross-stage cases to
+          #220, the participant conformance corpus.
 
   - subsystem: realization
     # SEM-218 realization enforcement is in flight across #489/#490/#491; the

@@ -1,9 +1,9 @@
 {
-  "content_hash": "54cd31302d274faafbeb5daaf7013f489c79fed165bb189646004db3cf7361fa",
+  "content_hash": "2c5b3dffd9b6911030f3ad02933a25dcfe7838f53b6ab78f3a1f5731a3e4b155",
   "contract_id": "provisioning-plan-v1",
   "last_change": {
-    "content_hash": "54cd31302d274faafbeb5daaf7013f489c79fed165bb189646004db3cf7361fa",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "2c5b3dffd9b6911030f3ad02933a25dcfe7838f53b6ab78f3a1f5731a3e4b155",
+    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
   },
   "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
   "stability": "draft"

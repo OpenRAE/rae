@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-import re
 from collections.abc import Mapping
-from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
 from raes_contracts._base import ContractModel, NonEmptyString, PrefixedDigestString
 from raes_contracts.runtime_vocabulary_scopes import SDL_IDENTITY_VOCABULARY_SCOPES
+from raes_contracts.timestamps import parse_rfc3339_datetime
+
+Sha256DigestString = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
 
 BehavioralRelationId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9-]*$")]
 
@@ -304,74 +305,11 @@ _CHECKSUM_VALUE_PATTERNS = {
 }
 
 
-_RFC3339_DATETIME_PATTERN = re.compile(
-    r"^\d{4}-\d{2}-\d{2}[Tt](?:[01]\d|2[0-3]):[0-5]\d:(?P<second>[0-5]\d|60)"
-    r"(?:\.\d+)?(?:[Zz]|[+-](?:[01]\d|2[0-3]):[0-5]\d)$"
-)
-
-
-_VALID_UTC_LEAP_SECOND_DATES = frozenset(
-    {
-        (1972, 6, 30),
-        (1972, 12, 31),
-        (1973, 12, 31),
-        (1974, 12, 31),
-        (1975, 12, 31),
-        (1976, 12, 31),
-        (1977, 12, 31),
-        (1978, 12, 31),
-        (1979, 12, 31),
-        (1981, 6, 30),
-        (1982, 6, 30),
-        (1983, 6, 30),
-        (1985, 6, 30),
-        (1987, 12, 31),
-        (1989, 12, 31),
-        (1990, 12, 31),
-        (1992, 6, 30),
-        (1993, 6, 30),
-        (1994, 6, 30),
-        (1995, 12, 31),
-        (1997, 6, 30),
-        (1998, 12, 31),
-        (2005, 12, 31),
-        (2008, 12, 31),
-        (2012, 6, 30),
-        (2015, 6, 30),
-        (2016, 12, 31),
-    }
-)
-
-
 _RAES_SEMANTIC_INVARIANT_PROFILE_URI = "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
 
 
 def _canonical_digest(digest: str | None) -> str | None:
     return digest.casefold() if digest is not None else None
-
-
-def _parse_rfc3339_datetime(field_name: str, value: str) -> datetime:
-    match = _RFC3339_DATETIME_PATTERN.fullmatch(value)
-    if match is None:
-        raise ValueError(f"{field_name} must be a valid RFC 3339 date-time")
-    normalized_value = f"{value[:-1]}+00:00" if value.endswith(("Z", "z")) else value
-    if match.group("second") == "60":
-        normalized_value = f"{normalized_value[:17]}59{normalized_value[19:]}"
-    try:
-        parsed = datetime.fromisoformat(normalized_value)
-    except ValueError as exc:
-        raise ValueError(f"{field_name} must be a valid RFC 3339 date-time") from exc
-    if match.group("second") == "60":
-        utc_leap_second = parsed.astimezone(UTC)
-        if (
-            (utc_leap_second.year, utc_leap_second.month, utc_leap_second.day) not in _VALID_UTC_LEAP_SECOND_DATES
-            or utc_leap_second.hour != 23
-            or utc_leap_second.minute != 59
-            or utc_leap_second.second != 59
-        ):
-            raise ValueError(f"{field_name} must use a valid RFC 3339 leap-second instant")
-        parsed += timedelta(seconds=1)
-    return parsed
 
 
 def _payload_get(payload: object, field_name: str) -> object:
@@ -383,14 +321,14 @@ def _payload_get(payload: object, field_name: str) -> object:
 def _validate_rfc3339_payload_field(payload: object, field_name: str) -> None:
     value = _payload_get(payload, field_name)
     if value is not None:
-        _parse_rfc3339_datetime(field_name, value)
+        parse_rfc3339_datetime(field_name, value)
 
 
 def _validate_artifact_collection_created_at(field_name: str, artifacts: object) -> None:
     for index, artifact in enumerate(artifacts or []):
         created_at = _payload_get(artifact, "created_at")
         if created_at is not None:
-            _parse_rfc3339_datetime(f"{field_name}/{index}/created_at", created_at)
+            parse_rfc3339_datetime(f"{field_name}/{index}/created_at", created_at)
 
 
 __all__ = [
@@ -413,5 +351,6 @@ __all__ = [
     "Rfc3339DateTimeString",
     "SemanticAssumptionId",
     "SemanticProfileId",
+    "Sha256DigestString",
     "UnitIntervalFloat",
 ]

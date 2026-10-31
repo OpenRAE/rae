@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, Field, WithJsonSchema, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from raes_contracts.bounded_domains import (
     BooleanDomain,
     EnumDomain,
@@ -15,18 +15,18 @@ from raes_contracts.bounded_domains import (
 )
 
 from ._base import SDLModel
-from ._identifiers import PortableIdentifier, require_qualified_identifier
-
-
-def _qualified_reference(value: str) -> str:
-    return require_qualified_identifier(value, field_name="variation reference")
-
-
-QualifiedReference = Annotated[
-    str,
-    AfterValidator(_qualified_reference),
-    WithJsonSchema({"type": "string", "minLength": 1, "maxLength": 2048}),
-]
+from ._identifiers import PortableIdentifier
+from ._reference_targetability import ReferencePurpose, reference_domain
+from .variation_structure import (
+    STRUCTURAL_MEMBER_KINDS,
+    STRUCTURAL_TARGET_SPECS,
+    AlternativeMember,
+    QualifiedReference,
+    SelectionRelation,
+    StructuralTarget,
+    VariationMember,
+    validate_alternative_members,
+)
 
 VARIATION_SATISFIABILITY_STATE_LIMIT = 100_000
 
@@ -98,7 +98,7 @@ COLLECTION_TARGET_SPECS: dict[CollectionTargetSlot, tuple[str, str]] = {
     CollectionTargetSlot.STORY_SCRIPTS: ("stories", "scripts"),
     CollectionTargetSlot.AGENT_STARTING_ACCOUNTS: ("agents", "accounts"),
     CollectionTargetSlot.AGENT_STARTING_ASSERTIONS: ("agents", "assertions"),
-    CollectionTargetSlot.OBJECTIVE_TARGETS: ("objectives", "targetable"),
+    CollectionTargetSlot.OBJECTIVE_TARGETS: ("objectives", reference_domain(ReferencePurpose.OBJECTIVE_SUBJECT)),
     CollectionTargetSlot.OBJECTIVE_DEPENDS_ON: ("objectives", "objectives"),
 }
 
@@ -132,28 +132,6 @@ class LogicalTimingTarget(SDLModel):
     kind: Literal["logical-timing"] = "logical-timing"
     owner: QualifiedReference
     slot: TimingTargetSlot
-
-
-class SelectionRelation(SDLModel):
-    """A finite cross-point member requirement or exclusion."""
-
-    point: QualifiedReference
-    members: list[PortableIdentifier] = Field(min_length=1)
-
-    @model_validator(mode="after")
-    def _unique_members(self) -> SelectionRelation:
-        if len(self.members) != len(set(self.members)):
-            raise ValueError("selection relation members must be unique")
-        return self
-
-
-class VariationMember(SDLModel):
-    """One named semantic object referenced by a structural point."""
-
-    reference: QualifiedReference
-    description: str = ""
-    requires: list[SelectionRelation] = Field(default_factory=list)
-    excludes: list[SelectionRelation] = Field(default_factory=list)
 
 
 class OrderPrecedence(SDLModel):
@@ -284,17 +262,58 @@ class GovernedReferenceVariationPoint(SDLModel):
     description: str = ""
 
 
+def _structural_member_kind_schema(member_kind: str, slots: tuple[str, ...]) -> dict[str, object]:
+    """Bind one structural slot group to its member kind in the published schema."""
+
+    return {
+        "if": {"properties": {"target": {"properties": {"slot": {"enum": list(slots)}}}}},
+        "then": {
+            "properties": {
+                "alternatives": {
+                    "additionalProperties": {"properties": {"kind": {"const": member_kind}}, "required": ["kind"]}
+                }
+            }
+        },
+    }
+
+
 class AlternativeVariationPoint(SDLModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "target": {"properties": {"kind": {"const": "structural"}}, "required": ["kind"]}
+                        }
+                    },
+                    "then": {
+                        "allOf": [
+                            _structural_member_kind_schema(member_kind, slots)
+                            for member_kind, slots in STRUCTURAL_MEMBER_KINDS.items()
+                        ]
+                    },
+                    "else": {"properties": {"alternatives": {"additionalProperties": {"required": ["reference"]}}}},
+                }
+            ]
+        }
+    )
+
     kind: Literal["alternative"] = "alternative"
-    target: ReferenceTarget
-    alternatives: dict[PortableIdentifier, VariationMember] = Field(min_length=1)
+    target: Annotated[ReferenceTarget | StructuralTarget, Field(discriminator="kind")]
+    alternatives: dict[PortableIdentifier, AlternativeMember] = Field(min_length=1)
     description: str = ""
+
+    @field_validator("target", mode="before")
+    @classmethod
+    def _legacy_reference_target(cls, value: object) -> object:
+        if isinstance(value, dict) and "kind" not in value:
+            return ReferenceTarget.model_validate(value)
+        return value
 
     @model_validator(mode="after")
     def _unique_references(self) -> AlternativeVariationPoint:
-        references = [member.reference for member in self.alternatives.values()]
-        if len(references) != len(set(references)):
-            raise ValueError("alternative references must be unique")
+        validate_alternative_members(self.target, self.alternatives)
         return self
 
 
@@ -361,7 +380,7 @@ VariationPoint = Annotated[
 ]
 
 
-def structural_members(point: VariationPoint) -> dict[PortableIdentifier, VariationMember]:
+def structural_members(point: VariationPoint) -> dict[PortableIdentifier, AlternativeMember]:
     if isinstance(point, AlternativeVariationPoint):
         return point.alternatives
     if isinstance(point, (SubsetVariationPoint, OrderVariationPoint)):
@@ -384,6 +403,8 @@ __all__ = [
     "ReferenceTarget",
     "ReferenceTargetSlot",
     "SelectionRelation",
+    "STRUCTURAL_TARGET_SPECS",
+    "StructuralTarget",
     "SubsetVariationPoint",
     "TIMING_TARGET_SPECS",
     "TimingTargetSlot",

@@ -289,7 +289,6 @@ def _bound_os_observation_context():
     from dataclasses import replace
 
     from raes import parse_sdl
-    from raes_backend_libvirt.envelopes import LibvirtDriverMode, load_libvirt_realization_envelope
     from raes_contracts.realization_envelope import (
         BackendRealizationEnvelopeModel,
         ObservationStrength,
@@ -305,7 +304,9 @@ def _bound_os_observation_context():
     from raes_processor.planner import plan
 
     execution_plan = plan(compile_runtime_model(parse_sdl(_OS_NODE_SCENARIO)), _os_manifest("22.04"))
-    envelope_payload = load_libvirt_realization_envelope(LibvirtDriverMode.GENERIC).model_dump(mode="json")
+    from t2_envelope_manifests import VIRTUAL_MACHINE_ENVELOPE, published_envelope
+
+    envelope_payload = published_envelope(VIRTUAL_MACHINE_ENVELOPE).model_dump(mode="json")
     envelope_payload["configuration"]["operating_systems"] = [
         {"family": "linux", "distribution": "ubuntu", "versions": ["22.04"]}
     ]
@@ -381,20 +382,14 @@ class TestOperatingSystemCompilationAndAdmission:
             diagnostic.code == "provisioner.unsupported-operating-system" for diagnostic in execution_plan.diagnostics
         )
 
-    @pytest.mark.parametrize("backend", ["reference", "libvirt"])
-    def test_existing_backends_reject_specific_os_without_selector_and_observer(self, backend: str) -> None:
+    def test_backend_without_os_row_rejects_specific_os_without_selector_and_observer(self) -> None:
         from raes import parse_sdl
+        from raes_backend_stubs.manifest import create_stub_manifest
         from raes_processor.compiler import compile_runtime_model
         from raes_processor.planner import plan
 
-        if backend == "reference":
-            from raes_reference_backend.manifest import create_reference_backend_manifest
-
-            manifest = create_reference_backend_manifest()
-        else:
-            from raes_backend_libvirt.manifest import create_libvirt_manifest
-
-            manifest = create_libvirt_manifest()
+        manifest = create_stub_manifest(with_realization_envelope=True)
+        assert manifest.provisioner.operating_systems == ()
 
         execution_plan = plan(compile_runtime_model(parse_sdl(_OS_NODE_SCENARIO)), manifest)
 
@@ -433,9 +428,9 @@ class TestOperatingSystemCompilationAndAdmission:
 
     def test_open_distribution_and_version_require_a_compatible_apparatus_row(self) -> None:
         from raes import parse_sdl
+        from raes_backend_stubs.manifest import create_stub_manifest
         from raes_processor.compiler import compile_runtime_model
         from raes_processor.planner import plan
-        from raes_reference_backend.manifest import create_reference_backend_manifest
 
         scenario = parse_sdl(
             "name: open-os-details\n"
@@ -451,7 +446,7 @@ class TestOperatingSystemCompilationAndAdmission:
         )
 
         admitted = plan(compile_runtime_model(scenario), _os_manifest("22.04"))
-        rejected = plan(compile_runtime_model(scenario), create_reference_backend_manifest())
+        rejected = plan(compile_runtime_model(scenario), create_stub_manifest(with_realization_envelope=True))
 
         assert not any(d.code == "provisioner.unsupported-operating-system" for d in admitted.diagnostics)
         assert any(d.code == "provisioner.unsupported-operating-system" for d in rejected.diagnostics)

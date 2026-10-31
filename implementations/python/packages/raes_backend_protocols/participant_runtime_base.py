@@ -2,14 +2,13 @@
 
 Provides ``BaseParticipantRuntime``, which implements the complete RUN-311
 episode state machine. Backend-specific runtimes subclass this and override
-``_model_action`` to inject domain side-effects (e.g. actual libvirt domain
+``_model_action`` to inject domain side-effects (e.g. native virtual-machine
 calls) before behavior history events are recorded.
 """
 
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import UTC, datetime
 
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_binding import (
@@ -32,6 +31,7 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminateRequest,
 )
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.timestamps import WallClock, isoformat_z, utc_now
 
 from .participant_action_commit import (
     as_participant_action_result,
@@ -51,10 +51,6 @@ _TERMINAL_EVENT_FOR_REASON: dict[ParticipantEpisodeTerminalReason, ParticipantEp
 }
 
 
-def _now_iso() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
-
-
 class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
     """Shared RUN-311 episode lifecycle base for RAES participant runtimes.
 
@@ -64,11 +60,12 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
     need to inject domain side-effects before behavior history events are
     recorded override ``_model_action``.
 
-    This class is backend-neutral; the concrete driver connection, libvirt
+    This class is backend-neutral; the concrete driver connection, native
     domain calls, or any other infrastructure concerns belong in subclasses.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, wall_clock: WallClock = utc_now) -> None:
+        self._wall_clock = wall_clock
         self._results: dict[str, dict[str, object]] = {}
         self._history: dict[str, list[dict[str, object]]] = {}
         self._episode_counter: dict[str, int] = {}
@@ -87,7 +84,7 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
                 f"participant {address!r} already has a live episode; use reset or restart",
                 address,
             )
-        now = _now_iso()
+        now = isoformat_z(self._wall_clock())
         episode_id = request.episode_id or self._allocate_episode_id(address)
         state = ParticipantEpisodeExecutionState(
             participant_address=address,
@@ -179,7 +176,7 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
             return current_state
         if (current_state.status == ParticipantEpisodeStatus.TERMINATED) != require_terminated:
             return self._reject(snapshot, wrong_state_message.format(address=address), address)
-        now = _now_iso()
+        now = isoformat_z(self._wall_clock())
         new_episode_id = request.episode_id or self._allocate_episode_id(address)
         new_sequence = current_state.sequence_number + 1
         new_state = ParticipantEpisodeExecutionState(
@@ -228,7 +225,7 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
             return current_state
         if current_state.status == ParticipantEpisodeStatus.TERMINATED:
             return self._reject(snapshot, f"participant {address!r} is already terminated", address)
-        now = _now_iso()
+        now = isoformat_z(self._wall_clock())
         terminal_reason = request.terminal_reason
         new_state = ParticipantEpisodeExecutionState(
             participant_address=address,
@@ -293,16 +290,17 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
                 action_result=native.action_result,
                 post_state_digest=native.post_state_digest or request.post_state_digest,
             )
-        except (TypeError, ValueError) as exc:
+        except TypeError, ValueError:
+            # The validation text can repeat native outcome values; the diagnostic stays value-free (E7).
             return reject_participant_action_outcome(
                 snapshot,
                 modeled,
                 address,
                 "runtime.participant-autonomous-native-outcome-mismatch",
-                f"Native action outcome contradicts its autonomous binding: {exc}",
+                "Native action outcome contradicts its autonomous binding.",
             )
         working_snapshot = modeled.snapshot
-        now = _now_iso()
+        now = isoformat_z(self._wall_clock())
         post_state_digest = request.post_state_digest or participant_binding_post_state_digest(request)
         events = participant_action_binding_events(
             request,
@@ -444,8 +442,9 @@ class BaseParticipantRuntime(ParticipantExecutionRuntimeMixin):
             return self._reject(snapshot, message, address)
         try:
             return ParticipantEpisodeExecutionState.from_payload(current)
-        except (TypeError, ValueError) as exc:
-            return self._reject(snapshot, f"current state is invalid: {exc}", address)
+        except TypeError, ValueError:
+            # The validation text can repeat stored state values; the diagnostic stays value-free (E7).
+            return self._reject(snapshot, "current state is invalid", address)
 
     def _apply(
         self,

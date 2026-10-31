@@ -4,36 +4,47 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import asdict, replace
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
-from .control_plane_store import ControlPlaneOperationRecord
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
+
+from .control_plane_store import ControlPlaneOperationRecord, require_operation_record_scopes
 from .control_plane_store_legacy import _read_legacy_state
-from .control_plane_store_local_codec import decode_payload as _decode_payload
+from .control_plane_store_local_codec import CORE_LOCAL_TABLES, CURRENT_LOCAL_TABLES, require_local_tables
+from .control_plane_store_local_codec import decode_contract as _decode_contract
 from .control_plane_store_local_codec import encode_payload as _encode_payload
 from .control_plane_store_paths import _copy_regular_file_durably, _fsync_directory
+from .control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION, UNSUPPORTED_SCHEMA
 from .control_plane_store_records import _record_from_payload, _record_payload
 
 _OPERATION_RECORD_KIND = "operation record"
 _INSERT_AUDIT_EVENT = "INSERT INTO audit_events(payload, digest) VALUES (?, ?)"
+_SCHEMA_VERSION_QUERY = "SELECT value FROM metadata WHERE key='schema-version'"
+_ANY_TABLE_QUERY = "SELECT 1 FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' LIMIT 1"
 
 
 class LocalStoreScopeMigrationMixin:
-    """Bind immutable runtime scope and migrate legacy local-store payloads."""
+    """Bind immutable runtime scope, validate persisted state and migrate legacy local-store payloads."""
 
     @staticmethod
     def _scope_metadata(connection: sqlite3.Connection) -> tuple[str | None, str | None]:
-        table = connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='metadata'").fetchone()
-        if table is None:
+        columns = {row[0] for row in connection.execute("SELECT name FROM pragma_table_info('metadata')")}
+        if not columns:
+            # The schema script creates the metadata table first. Thus a database that has another table
+            # but no metadata table lost it, and it is not a new or unbound store.
+            if connection.execute(_ANY_TABLE_QUERY).fetchone() is not None:
+                raise EvidenceIntegrityError("local control-plane database is missing a required table or column")
             return None, None
+        if not {"key", "value"} <= columns:
+            raise EvidenceIntegrityError("local control-plane database is missing a required table or column")
         rows = connection.execute(
             "SELECT key, value FROM metadata WHERE key IN ('target-scope', 'run-scope')"
         ).fetchall()
         values: dict[str, str] = {}
         for key, value in rows:
             if key in values:
-                raise RuntimeError("local control-plane store scope metadata contains duplicate keys")
+                raise EvidenceIntegrityError("local control-plane store scope metadata contains duplicate keys")
             values[key] = value
         return values.get("target-scope"), values.get("run-scope")
 
@@ -47,9 +58,38 @@ class LocalStoreScopeMigrationMixin:
     ) -> None:
         stored_target, stored_run = cls._scope_metadata(connection)
         if (stored_target is None) != (stored_run is None):
-            raise RuntimeError("local control-plane store scope metadata is incomplete")
+            raise EvidenceIntegrityError("local control-plane store scope metadata is incomplete")
         if stored_target is not None and (stored_target, stored_run) != (target_scope, run_scope):
-            raise RuntimeError("local control-plane store scope does not match runtime admission")
+            raise ConflictError("local control-plane store scope does not match runtime admission")
+        if stored_target is not None:
+            # A bound store keeps every table of its schema. Admission must refuse a dropped table rather
+            # than create an empty one in its place.
+            current = connection.execute(_SCHEMA_VERSION_QUERY).fetchone() == (LOCAL_OPERATION_SCHEMA_VERSION,)
+            require_local_tables(connection, CURRENT_LOCAL_TABLES if current else CORE_LOCAL_TABLES)
+
+    @classmethod
+    def _validate_persisted_state(
+        cls,
+        connection: sqlite3.Connection,
+        *,
+        target_scope: str,
+        run_scope: str,
+    ) -> None:
+        """Run strict startup/maintenance validation over one SQLite cut."""
+
+        stored_target, stored_run = cls._scope_metadata(connection)
+        if (stored_target, stored_run) != (target_scope, run_scope):
+            raise ConflictError("local control-plane store scope does not match runtime admission")
+        if connection.execute(_SCHEMA_VERSION_QUERY).fetchone() != (LOCAL_OPERATION_SCHEMA_VERSION,):
+            raise ConflictError(UNSUPPORTED_SCHEMA)
+        require_local_tables(connection, CURRENT_LOCAL_TABLES)
+        cls._load_snapshot_state(connection)
+        records = cls._load_records(connection)
+        require_operation_record_scopes(records, target_scope=target_scope, run_scope=run_scope)
+        cls._load_audits(connection)
+        quick_check = connection.execute("PRAGMA quick_check").fetchone()
+        if quick_check is None or quick_check[0] != "ok":
+            raise EvidenceIntegrityError("local control-plane database failed its integrity check")
 
     @classmethod
     def _bind_runtime_scope(
@@ -93,7 +133,7 @@ class LocalStoreScopeMigrationMixin:
         stored_record_count = connection.execute("SELECT COUNT(*) FROM operations").fetchone()[0]
         stored_audit_count = connection.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0]
         if stored_record_count != len(records) or stored_audit_count != len(audits):
-            raise ValueError("legacy control-plane migration verification failed")
+            raise EvidenceIntegrityError("legacy control-plane migration verification failed")
         connection.execute(
             "INSERT INTO metadata(key, value) VALUES ('legacy-json-migration', ?)",
             (backup_dir.name,),
@@ -108,7 +148,7 @@ class LocalStoreScopeMigrationMixin:
     ) -> None:
         rows = connection.execute("SELECT operation_id, payload, digest FROM operations").fetchall()
         for operation_id, payload, digest in rows:
-            record = _record_from_payload(_decode_payload(payload, digest, kind=_OPERATION_RECORD_KIND))
+            record = _decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
             context = record.status.context
             if (
                 context.target_scope != "target:legacy-unattributed"
@@ -151,12 +191,12 @@ class LocalStoreScopeMigrationMixin:
     ) -> None:
         rows = connection.execute("SELECT operation_id, payload, digest FROM operations").fetchall()
         for operation_id, payload, digest in rows:
-            record = _record_from_payload(_decode_payload(payload, digest, kind=_OPERATION_RECORD_KIND))
+            record = _decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
             context = record.status.context
             if (context.target_scope, context.run_scope) != (target_scope, run_scope):
-                raise ValueError("persisted operation scope does not match admitted store scope")
+                raise ConflictError("persisted operation scope does not match admitted store scope")
             if record.receipt.operation_id != operation_id:
-                raise ValueError("operation record identity does not match its durable key")
+                raise EvidenceIntegrityError("operation record identity does not match its durable key")
 
     def _existing_legacy_paths(self) -> list[Path]:
         return [
@@ -171,7 +211,7 @@ class LocalStoreScopeMigrationMixin:
         ]
 
     def _backup_legacy_files(self, paths: list[Path]) -> Path:
-        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S.%fZ")
+        timestamp = self._wall_clock().strftime("%Y%m%dT%H%M%S.%fZ")
         backup_dir = self._base_dir / f"legacy-json-backup-{timestamp}"
         backup_dir.mkdir(mode=0o700)
         for path in paths:

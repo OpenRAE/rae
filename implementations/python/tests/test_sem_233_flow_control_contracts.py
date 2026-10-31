@@ -7,6 +7,10 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from deterministic_participant_fixtures import (
+    build_implementation_manifest,
+    build_implementation_selection,
+)
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance.validators import (
@@ -50,10 +54,6 @@ from raes_contracts.participant_flow_policy_profiles import (
     load_participant_boundary_flow_policy_profile,
     load_participant_boundary_flow_policy_profile_from_path,
     load_participant_boundary_flow_policy_profile_revision,
-)
-from raes_operations.deterministic_participant_fixtures import (
-    build_implementation_manifest,
-    build_implementation_selection,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -876,7 +876,10 @@ def test_resolved_context_redacts_resolver_exceptions() -> None:
     with pytest.raises(ValueError, match="context resolution failed") as exc_info:
         validate_participant_flow_control_resolved_context(relation, resolver)
     assert "sensitive caller-selected value" not in str(exc_info.value)
-    assert exc_info.value.__cause__ is None
+    # The cause is the value-free record of the host failure, never the host exception (ADR-116, H2).
+    from raes_contracts.operational_logging import ForeignCodeFailure
+
+    assert isinstance(exc_info.value.__cause__, ForeignCodeFailure)
 
 
 def test_resolved_context_requires_exact_profile_rules() -> None:

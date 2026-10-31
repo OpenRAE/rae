@@ -198,10 +198,10 @@ def test_proof_workflow_retains_only_the_harness_output_it_produces() -> None:
     assert uploads == ["proof-input-qualification.json"]
 
 
-def test_interpreter_workflow_has_no_upload_without_an_evidence_producer() -> None:
+def test_distribution_workflow_has_no_upload_without_an_evidence_producer() -> None:
     root = Path(__file__).resolve().parents[3]
     workflow = yaml.safe_load((root / ".github/workflows/ci.yml").read_text())
-    steps = workflow["jobs"]["interpreters"]["steps"]
+    steps = workflow["jobs"]["distribution"]["steps"]
     assert any("-s python-compatibility" in step.get("run", "") for step in steps)
     assert not any(step.get("uses", "").startswith("actions/upload-artifact@") for step in steps)
 
@@ -221,38 +221,6 @@ def test_development_container_uses_native_signed_package_sources() -> None:
     assert "--allow-unauthenticated" not in dockerfile
     assert "apt-get update" in dockerfile
     assert "USER raes" in dockerfile
-
-
-def test_release_container_lane_has_no_same_job_export_import() -> None:
-    root = Path(__file__).resolve().parents[3]
-    workflow = yaml.safe_load((root / ".github/workflows/release-please.yml").read_text())
-    job = workflow["jobs"]["integration-docker-release"]
-    commands = "\n".join(step.get("run", "") for step in job["steps"])
-    assert "oci_release_image.py export" not in commands
-    assert "oci_release_image.py import" not in commands
-    required = next(step for step in job["steps"] if step.get("name") == "Require real-container release integration")
-    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
-    assert "RAES_OCI_SOURCE_CLASS" not in required["env"]
-
-
-@pytest.mark.parametrize("mode", ["mirror", "preseeded"])
-def test_retired_oci_modes_do_not_silently_enable_public_network(mode: str) -> None:
-    from tools.oci_release_image import ImageAdmissionError, resolve_source
-
-    with pytest.raises(ImageAdmissionError, match="source-class"):
-        resolve_source({"RAES_OCI_SOURCE_CLASS": mode, "RAES_OCI_MIRROR_REPOSITORY": "mirror.invalid/alpine"})
-
-
-@pytest.mark.parametrize("script", ["run_aws_smoke.sh", "run_aws_guest_certify.sh"])
-def test_online_aws_smokes_do_not_preseed_a_complete_python_wheelhouse(script: str) -> None:
-    root = Path(__file__).resolve().parents[3]
-    text = (root / "tools/real-daemon" / script).read_text()
-    assert "snapshot.ubuntu.com" not in text
-    assert "Check-Valid-Until: no" not in text
-    assert "stage/wheelhouse" not in text
-    assert "--require-hashes" in text
-    assert "--build-constraints" in text
-    assert "--frozen" in text
 
 
 def test_release_inventory_reads_only_its_native_workflow_graph(tmp_path: Path) -> None:
@@ -301,7 +269,7 @@ def test_selection_launcher_sanitizes_environment_and_failure(monkeypatch: pytes
         if host
         else {"artifact_id": "tool", "version": "1", "platform_id": "linux-x86_64", "profile_id": "public-linux-x86_64"}
     )
-    with pytest.raises(RuntimeError) as caught:
+    with pytest.raises(tooling_policy_gate.ArtifactPolicyError) as caught:
         validator(["python", "validator"], **selection)
     assert "fixture-credential" not in str(caught.value)
     assert "candidate-url" not in str(caught.value)

@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from uuid import uuid4
 
-from raes_contracts.contracts import ParticipantInformationStateContextResolver
+from pydantic import ValidationError
+from raes_contracts.contracts import InjectOccurrenceModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     ApplyResult,
@@ -19,12 +20,15 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     RuntimeSnapshot,
     operation_terminal_diagnostics,
+    validate_changed_addresses,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
+from .backend_calls import _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
+from .control_plane_participant_apply import apply_authorized_participant_action as apply_authorized_participant_action
 from .control_plane_store import (
     ControlPlaneOperationRecord,
     NewClaimRejected,
@@ -33,34 +37,8 @@ from .control_plane_store import (
 )
 from .diagnostics import _has_error_diagnostic
 from .observation_results import PreparedObservationExecution
-from .participant_effect_authority import participant_effect_authority
 
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
-
-
-def apply_authorized_participant_action(
-    *,
-    method: Callable[..., object],
-    request: object,
-    snapshot: RuntimeSnapshot,
-    address: str,
-    information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
-) -> ApplyResult:
-    """Invoke and validate a participant backend after durable authorization."""
-
-    return _call_backend_apply(
-        method,
-        request,
-        snapshot,
-        address=address,
-        snapshot=snapshot,
-        realization=participant_effect_authority(request, snapshot),
-        call=_BackendCallContext(
-            information_state_context_resolver=information_state_context_resolver,
-        ),
-    )
+__all__ = ("apply_authorized_participant_action",)
 
 
 def execute_participant_action(
@@ -103,8 +81,14 @@ def _execute_participant_action_locked(
         identity=identity,
     )
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     target_address = getattr(request, "participant_address", "")
+    changed_addresses = [target_address] if isinstance(target_address, str) and target_address else []
+    try:
+        # A participant route takes this address from the request path; the validator refuses with ValueError (E3).
+        validate_changed_addresses(changed_addresses)
+    except ValueError as exc:
+        raise InvalidInputError("participant address is not a canonical compiled address") from exc
     status = OperationStatus(
         operation_id=operation_id,
         domain=RuntimeDomain.PARTICIPANT,
@@ -112,7 +96,7 @@ def _execute_participant_action_locked(
         submitted_at=submitted_at,
         updated_at=submitted_at,
         context=context,
-        changed_addresses=[target_address] if isinstance(target_address, str) and target_address else [],
+        changed_addresses=changed_addresses,
     )
     receipt = OperationReceipt(
         operation_id=operation_id,
@@ -135,36 +119,28 @@ def _execute_participant_action_locked(
     )
     if claimed.receipt.operation_id != operation_id:
         return claimed.receipt
-    with control_plane._mutation_authority.external_call():
-        result = _call_backend_apply(
-            method,
-            request,
-            control_plane._snapshot,
-            address=address,
-            snapshot=control_plane._snapshot,
-            realization=participant_effect_authority(request, control_plane._snapshot),
-            call=_BackendCallContext(
-                information_state_context_resolver=getattr(
-                    control_plane,
-                    "_information_state_context_resolver",
-                    None,
-                ),
-            ),
-        )
-    final_state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
-    final_status = OperationStatus(
-        operation_id=operation_id,
-        domain=RuntimeDomain.PARTICIPANT,
-        state=final_state,
-        submitted_at=submitted_at,
-        updated_at=_utc_now(),
-        context=context,
-        diagnostics=operation_terminal_diagnostics(
-            final_state,
-            [*status.diagnostics, *result.diagnostics],
-        ),
-        changed_addresses=list(result.changed_addresses),
+    from .participant_control_episode_admission import execute_participant_policy_call
+
+    result, final_state, policy_admissions = execute_participant_policy_call(
+        control_plane,
+        method=method,
+        request=request,
+        address=address,
     )
+    try:
+        final_status = OperationStatus(
+            operation_id=operation_id,
+            domain=RuntimeDomain.PARTICIPANT,
+            state=final_state,
+            submitted_at=submitted_at,
+            updated_at=isoformat_z(control_plane.wall_clock()),
+            context=context,
+            diagnostics=operation_terminal_diagnostics(final_state, [*status.diagnostics, *result.diagnostics]),
+            changed_addresses=list(result.changed_addresses),
+        )
+    except ValidationError as exc:
+        # A diagnostic that names an oversized request value, such as a long scope reference, has no portable form.
+        raise InvalidInputError("participant action diagnostics have no portable form") from exc
     control_plane._commit_terminal_operation(
         result.snapshot,
         ControlPlaneOperationRecord(
@@ -172,6 +148,7 @@ def _execute_participant_action_locked(
             status=final_status,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
+            result_payload=policy_admissions,
         ),
     )
     return receipt
@@ -259,6 +236,13 @@ class OperationExecutionRequest:
     exact_retry_fingerprint: str | None = None
     validation_method: Callable[..., object] | None = None
     admission_diagnostics: Callable[[], list[Diagnostic]] | None = None
+    inject_occurrence: InjectOccurrenceModel | None = None
+    local_executor: Callable[..., object] | None = None
+    realization: _RealizationApplyContext | None = None
+    execute_observation: bool = True
+    result_sink: Callable[..., None] | None = None
+    # The state that a cancelled local executor settled; the operation commits it before the cancellation propagates.
+    cancellation_result: Callable[[], ApplyResult | None] | None = None
 
 
 @dataclass(frozen=True)
@@ -280,7 +264,7 @@ def _claim_running_operation(
     current_state_rejects_new_claim: bool,
 ) -> tuple[str, str, RuntimeSnapshot, OperationReceipt, OperationReceipt]:
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     snapshot = request.base_snapshot if request.base_snapshot is not None else control_plane._snapshot
     status = OperationStatus(
         operation_id=operation_id,
@@ -380,7 +364,7 @@ def _commit_operation_result(
         domain=request.domain,
         state=final_state,
         submitted_at=outcome.submitted_at,
-        updated_at=_utc_now(),
+        updated_at=isoformat_z(control_plane.wall_clock()),
         context=request.context,
         diagnostics=operation_terminal_diagnostics(
             final_state,
@@ -410,6 +394,10 @@ def execute_operation(
     with control_plane_mutation(control_plane, request.context.operation_kind):
         with control_plane._operation_lock:
             control_plane._reload_derived_state()
+        if getattr(control_plane, "_execution_adapter", None) is not None:
+            from .control_plane_supervised_execution import execute_supervised_operation
+
+            return execute_supervised_operation(control_plane, request)
         return _execute_operation_locked(control_plane, request)
 
 
@@ -444,7 +432,7 @@ def reject_new_operation_if_admission_fails(
             context=request.context,
         )
     if claimed_receipt.operation_id == operation_id:
-        raise AssertionError("a state-rejected operation cannot create a new claim")
+        raise RuntimeError("a state-rejected operation cannot create a new claim")
     return claimed_receipt
 
 
@@ -467,10 +455,18 @@ def _execute_operation_locked(
             current_state_rejects_new_claim=bool(admission_diagnostics),
         )
     except NewClaimRejected:
-        assert admission_diagnostics
+        # Stopped effect admission also rejects a new claim that carries no admission diagnostic.
         return control_plane._reject_diagnostics(
             domain=request.domain,
-            diagnostics=admission_diagnostics,
+            diagnostics=admission_diagnostics
+            or [
+                Diagnostic(
+                    code="runtime.control-plane.effect-admission-closed",
+                    domain="runtime",
+                    address="runtime.control-plane",
+                    message="Effect admission is closed or reserved.",
+                )
+            ],
             idempotency_key=request.idempotency_key,
             request_fingerprint=request.request_fingerprint,
             context=request.context,

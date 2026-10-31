@@ -57,7 +57,7 @@ from .trial_cleanup import (
     TrialOutcome,
     validate_trial_cleanup_receipt,
 )
-from .trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_entry_order
+from .trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_entry_order, scheduling_policy_id
 
 
 def validate_scheduler_isolation_proof(plan: AdmittedTrialPlanModel, proof: SchedulerIsolationProofModel) -> None:
@@ -99,7 +99,9 @@ class BatchExecutionReceiptModel(ContractModel):
     run_id: NonEmptyString
     execution_attempt_id: NonEmptyString
     dispatch_ordinal: NonNegativeInteger
-    scheduling_policy_id: Literal[CANONICAL_ORDER_POLICY_ID] = CANONICAL_ORDER_POLICY_ID
+    scheduling_policy_id: Literal["trial-coordinate-canonical-v1", "experiment-recorded-allocation-v1"] = (
+        CANONICAL_ORDER_POLICY_ID
+    )
     effective_parallelism: PositiveInteger = 1
     isolation_proof_ref: NonEmptyString | None = None
     lease_evidence_refs: list[NonEmptyString] = Field(default_factory=list, json_schema_extra={"uniqueItems": True})
@@ -187,6 +189,8 @@ def validate_batch_execution_receipt(
         raise ValueError("batch execution receipt plan_entry_id does not resolve inside the admitted plan")
     if receipt.run_id != entry.run_id:
         raise ValueError("batch execution receipt run_id must match the admitted entry run_id")
+    if receipt.scheduling_policy_id != scheduling_policy_id(plan):
+        raise ValueError("batch execution receipt scheduling policy must match the admitted allocation")
     expected_ordinal = canonical_entry_order(plan).index(receipt.plan_entry_id)
     if receipt.dispatch_ordinal != expected_ordinal:
         raise ValueError("batch execution receipt dispatch_ordinal does not match the canonical dispatch order")

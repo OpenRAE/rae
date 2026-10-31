@@ -16,10 +16,15 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
-from tools.evidence_bundle_index import load_index_records, revision_key
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
+
+from tools.evidence_bundle_index import load_index_records
 from tools.policy.common import (
     PolicyFailure,
     load_bounded_json_object,
@@ -41,7 +46,11 @@ from tools.specification_coverage._keys import (
 from tools.specification_coverage._primitives import _failure, _sha256
 from tools.specification_coverage._protocol import _validate_protocol
 from tools.specification_coverage._snapshot import _validate_snapshot
-from tools.research_evidence import current_release_path
+from tools.research_evidence import (
+    current_release_path,
+    evidence_key,
+    validate_inventory,
+)
 
 __all__ = [
     "EXPECTED_CLASSIFICATIONS",
@@ -77,13 +86,10 @@ def load_bundle(
     repo_root: Path = REPO_ROOT,
 ) -> tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]:
     bundles = load_bundles(repo_root)
-    return max(
-        bundles,
-        key=lambda item: (
-            revision_key(item[0].get("revision")),
-            item[0]["snapshot_path"],
-        ),
-    )
+    records = _load_bundle_index(repo_root)
+    current = current_release_path(records, repo_root)
+    selected = dict(records)[current]
+    return next(bundle for bundle in bundles if bundle[0] == selected)
 
 
 def load_bundles(
@@ -101,90 +107,7 @@ def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
         directory_key="bundles_directory",
         max_bytes=_MAX_FILE_BYTES,
     )
-    current_path = current_release_path(records)
-    supported_revisions = {
-        "1.0.0",
-        "1.1.0",
-        "2.0.0",
-        "3.0.0",
-        "4.0.0",
-        "5.0.0",
-        "6.0.0",
-        "7.0.0",
-        "8.0.0",
-        "9.0.0",
-        "10.0.0",
-        "11.0.0",
-        "12.0.0",
-        "13.0.0",
-        "14.0.0",
-        "15.0.0",
-        "16.0.0",
-        "17.0.0",
-        "18.0.0",
-        "19.0.0",
-        "20.0.0",
-        "21.0.0",
-        "22.0.0",
-        "23.0.0",
-        "24.0.0",
-        "25.0.0",
-        "26.0.0",
-        "27.0.0",
-        "28.0.0",
-        "29.0.0",
-        "30.0.0",
-        "31.0.0",
-        "32.0.0",
-        "33.0.0",
-        "34.0.0",
-        "35.0.0",
-        "36.0.0",
-        "37.0.0",
-        "38.0.0",
-        "39.0.0",
-        "40.0.0",
-        "41.0.0",
-        "42.0.0",
-        "43.0.0",
-        "44.0.0",
-        "45.0.0",
-        "46.0.0",
-        "47.0.0",
-        "48.0.0",
-        "49.0.0",
-        "50.0.0",
-        "51.0.0",
-        "52.0.0",
-        "53.0.0",
-    } | {
-        "54.0.0",
-        "55.0.0",
-        "56.0.0",
-        "57.0.0",
-        "58.0.0",
-        "59.0.0",
-        "60.0.0",
-        "61.0.0",
-        "62.0.0",
-        "63.0.0",
-        "64.0.0",
-        "65.0.0",
-        "66.0.0",
-        "67.0.0",
-        "68.0.0",
-        "69.0.0",
-        "70.0.0",
-        "71.0.0",
-        "72.0.0",
-        "73.0.0",
-        "74.0.0",
-    }
-    if (
-        dict(records)[current_path].get("revision") != "74.0.0"
-        or {record.get("revision") for _, record in records} != supported_revisions
-    ):
-        raise ValueError("coverage evidence requires the explicit current 74.0.0 release and supported history")
+    validate_inventory(repo_root, "specification-coverage", records)
     return records
 
 
@@ -194,21 +117,21 @@ def _load_bundle_record(
     manifest: dict[str, object],
 ) -> tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]:
     if set(manifest) != _MANIFEST_KEYS:
-        raise ValueError(
+        raise InvalidInputError(
             f"{manifest_path!r} fields must exactly match {sorted(_MANIFEST_KEYS)}; got {sorted(manifest)}"
         )
-    revision_key(manifest.get("revision"))
+    evidence_key(manifest.get("revision"))
     loaded: list[dict[str, object]] = []
     for label in ("protocol", "snapshot", "analysis"):
         path_value = manifest[f"{label}_path"]
         sha_value = manifest[f"{label}_sha256"]
         resolved = safe_repo_path(repo_root, path_value) if isinstance(path_value, str) else None
         if resolved is None or not resolved.is_file():
-            raise ValueError(f"{manifest_path!r} contains unsafe or missing {label}_path")
+            raise InvalidInputError(f"{manifest_path!r} contains unsafe or missing {label}_path")
         if not isinstance(sha_value, str) or not _SHA256_RE.fullmatch(sha_value):
-            raise ValueError(f"{manifest_path!r} contains invalid {label}_sha256")
+            raise InvalidInputError(f"{manifest_path!r} contains invalid {label}_sha256")
         if _sha256(resolved) != sha_value:
-            raise ValueError(f"{manifest_path!r} contains stale {label}_sha256")
+            raise InvalidInputError(f"{manifest_path!r} contains stale {label}_sha256")
         loaded.append(load_bounded_json_object(repo_root, path_value, max_bytes=_MAX_FILE_BYTES))
     return manifest, loaded[0], loaded[1], loaded[2]
 
@@ -216,12 +139,12 @@ def _load_bundle_record(
 def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
         records = _load_bundle_index(repo_root)
-        current_path = current_release_path(records)
+        current_path = current_release_path(records, repo_root)
         bundles = [
             (manifest_path, _load_bundle_record(repo_root, manifest_path, manifest))
             for manifest_path, manifest in records
         ]
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         return [_failure("specification-coverage-bundle-invalid", str(exc), MANIFEST_PATH)]
     failures: list[PolicyFailure] = []
     for manifest_path, (manifest, protocol, snapshot, analysis) in bundles:
@@ -259,7 +182,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="Emit failures as JSON")
     args = parser.parse_args()
-    failures = evaluate(REPO_ROOT)
+    try:
+        failures = evaluate(REPO_ROOT)
+    except (OSError, InvalidInputError) as exc:
+        print(f"specification-coverage: {exc}", file=sys.stderr)
+        return 1
     if args.json:
         print(
             json.dumps(
@@ -282,4 +209,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

@@ -6,7 +6,7 @@ The guide stops at that backend boundary. Nothing is provisioned or started.
 
 ## Install the command-line tool
 
-You need Python 3.11 through 3.14. Install RAES in a virtual environment:
+You need Python 3.14. Install RAES in a virtual environment:
 
 ```console
 python -m venv .venv

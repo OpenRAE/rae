@@ -52,8 +52,9 @@ def _compiled_result_contract(
     diagnostics: list[Diagnostic] = []
     try:
         contract = WorkflowResultContract.from_mapping(payload)
-    except (TypeError, ValueError) as exc:
-        diagnostics.append(contract_diagnostic(workflow_address, f"Workflow result_contract is invalid: {exc}"))
+    except TypeError, ValueError:
+        # The validator text can echo backend values; the diagnostic stays value-free (E7).
+        diagnostics.append(contract_diagnostic(workflow_address, "Workflow result_contract is invalid."))
     return contract, diagnostics
 
 
@@ -66,6 +67,6 @@ def _compiled_execution_contract(
     diagnostics: list[Diagnostic] = []
     try:
         contract = WorkflowExecutionContract.from_mapping(payload)
-    except (TypeError, ValueError) as exc:
-        diagnostics.append(contract_diagnostic(workflow_address, f"Workflow execution_contract is invalid: {exc}"))
+    except TypeError, ValueError:
+        diagnostics.append(contract_diagnostic(workflow_address, "Workflow execution_contract is invalid."))
     return contract, diagnostics

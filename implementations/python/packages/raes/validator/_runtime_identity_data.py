@@ -23,10 +23,11 @@ class _RuntimeIdentityDataMixin:
                 continue
             service_names = self._node_service_names(node)
             for authority in runtime.identity_authorities:
-                self._verify_identity_authority_services(node_name, authority, service_names)
-                local_refs = self._identity_authority_local_refs(authority)
-                self._verify_identity_authority_relationships(node_name, authority, local_refs)
-                self._verify_identity_authority_policies(node_name, authority, local_refs)
+                with self._owner(("nodes", node_name)):
+                    self._verify_identity_authority_services(node_name, authority, service_names)
+                    local_refs = self._identity_authority_local_refs(authority)
+                    self._verify_identity_authority_relationships(node_name, authority, local_refs)
+                    self._verify_identity_authority_policies(node_name, authority, local_refs)
 
     def _verify_identity_authority_services(
         self,
@@ -52,6 +53,9 @@ class _RuntimeIdentityDataMixin:
         refs.update(subject.subject_id for subject in authority.subjects)
         refs.update(policy.policy_id for policy in authority.policies)
         refs.update(relationship.relationship_id for relationship in authority.relationships)
+        refs.update(scope.scope_id for scope in authority.resource_scopes)
+        refs.update(use.use_id for use in authority.identity_uses)
+        refs.update(observation.observation_id for observation in authority.access_observations)
         return refs
 
     def _verify_identity_authority_relationships(
@@ -131,48 +135,49 @@ class _RuntimeIdentityDataMixin:
                 continue
             service_names = self._node_service_names(node)
             local_user_names = self._node_local_user_names(node)
-            for service in runtime.file_services:
-                owner_label = f"Node '{node_name}' runtime file service '{service.file_service_id}'"
-                self._verify_owned_service_ref(
-                    node_name,
-                    getattr(service, "service", ""),
-                    service_names,
-                    owner_label=owner_label,
-                )
-                self._verify_file_service_principals(
-                    owner_label,
-                    service,
-                    local_user_names,
-                    identity_subject_refs,
-                )
-                share_ids = {share.share_id for share in service.shares}
-                subject_refs = {
-                    principal.principal_id for principal in service.principals
-                } | self._FILE_SERVICE_SUBJECT_LITERALS
-                for rule in service.access_rules:
-                    self._verify_file_service_ref(
-                        rule.subject_ref,
-                        subject_refs,
-                        label=f"{owner_label} rule '{rule.rule_id}'",
-                        field_name="subject_ref",
+            with self._owner(("nodes", node_name)):
+                for service in runtime.file_services:
+                    owner_label = f"Node '{node_name}' runtime file service '{service.file_service_id}'"
+                    self._verify_owned_service_ref(
+                        node_name,
+                        getattr(service, "service", ""),
+                        service_names,
+                        owner_label=owner_label,
                     )
-                    self._verify_file_service_resource_ref(
-                        rule.resource_ref,
-                        share_ids,
-                        label=f"{owner_label} rule '{rule.rule_id}'",
+                    self._verify_file_service_principals(
+                        owner_label,
+                        service,
+                        local_user_names,
+                        identity_subject_refs,
                     )
-                for observation in service.access_observations:
-                    self._verify_file_service_ref(
-                        observation.subject_ref,
-                        subject_refs,
-                        label=f"{owner_label} observation '{observation.observation_id}'",
-                        field_name="subject_ref",
-                    )
-                    self._verify_file_service_resource_ref(
-                        observation.resource_ref,
-                        share_ids,
-                        label=f"{owner_label} observation '{observation.observation_id}'",
-                    )
+                    share_ids = {share.share_id for share in service.shares}
+                    subject_refs = {
+                        principal.principal_id for principal in service.principals
+                    } | self._FILE_SERVICE_SUBJECT_LITERALS
+                    for rule in service.access_rules:
+                        self._verify_file_service_ref(
+                            rule.subject_ref,
+                            subject_refs,
+                            label=f"{owner_label} rule '{rule.rule_id}'",
+                            field_name="subject_ref",
+                        )
+                        self._verify_file_service_resource_ref(
+                            rule.resource_ref,
+                            share_ids,
+                            label=f"{owner_label} rule '{rule.rule_id}'",
+                        )
+                    for observation in service.access_observations:
+                        self._verify_file_service_ref(
+                            observation.subject_ref,
+                            subject_refs,
+                            label=f"{owner_label} observation '{observation.observation_id}'",
+                            field_name="subject_ref",
+                        )
+                        self._verify_file_service_resource_ref(
+                            observation.resource_ref,
+                            share_ids,
+                            label=f"{owner_label} observation '{observation.observation_id}'",
+                        )
 
     @staticmethod
     def _node_local_user_names(node: object) -> set[str]:
@@ -273,13 +278,14 @@ class _RuntimeIdentityDataMixin:
                 continue
             service_names = self._node_service_names(node)
             for dbsvc in runtime.database_services:
-                self._verify_owned_service_ref(
-                    name,
-                    getattr(dbsvc, "service", ""),
-                    service_names,
-                    owner_label=f"Node '{name}' runtime database service '{dbsvc.database_service_id}'",
-                )
-                self._verify_database_grants(name, dbsvc)
+                with self._owner(("nodes", name)):
+                    self._verify_owned_service_ref(
+                        name,
+                        getattr(dbsvc, "service", ""),
+                        service_names,
+                        owner_label=f"Node '{name}' runtime database service '{dbsvc.database_service_id}'",
+                    )
+                    self._verify_database_grants(name, dbsvc)
 
     def _verify_database_grants(self, node_name: str, dbsvc: object) -> None:
         role_ids = {role.role_id for role in dbsvc.roles}
@@ -314,33 +320,34 @@ class _RuntimeIdentityDataMixin:
                 continue
             service_names = self._node_service_names(node)
             observed_paths = self._node_observed_paths(node)
-            for dns_service in runtime.dns_services:
-                owner_label = f"Node '{node_name}' runtime DNS service '{dns_service.dns_service_id}'"
-                self._verify_owned_service_ref(
-                    node_name,
-                    getattr(dns_service, "service", ""),
-                    service_names,
-                    owner_label=owner_label,
-                )
-                self._verify_dns_file_refs(
-                    owner_label,
-                    getattr(dns_service, "configuration_file_refs", []),
-                    field_name="configuration_file_refs",
-                    observed_paths=observed_paths,
-                )
-                self._verify_dns_file_refs(
-                    owner_label,
-                    getattr(dns_service, "log_file_refs", []),
-                    field_name="log_file_refs",
-                    observed_paths=observed_paths,
-                )
-                for zone in dns_service.zones:
+            with self._owner(("nodes", node_name)):
+                for dns_service in runtime.dns_services:
+                    owner_label = f"Node '{node_name}' runtime DNS service '{dns_service.dns_service_id}'"
+                    self._verify_owned_service_ref(
+                        node_name,
+                        getattr(dns_service, "service", ""),
+                        service_names,
+                        owner_label=owner_label,
+                    )
                     self._verify_dns_file_refs(
-                        f"{owner_label} zone '{zone.zone_id}'",
-                        getattr(zone, "zone_file_refs", []),
-                        field_name="zone_file_refs",
+                        owner_label,
+                        getattr(dns_service, "configuration_file_refs", []),
+                        field_name="configuration_file_refs",
                         observed_paths=observed_paths,
                     )
+                    self._verify_dns_file_refs(
+                        owner_label,
+                        getattr(dns_service, "log_file_refs", []),
+                        field_name="log_file_refs",
+                        observed_paths=observed_paths,
+                    )
+                    for zone in dns_service.zones:
+                        self._verify_dns_file_refs(
+                            f"{owner_label} zone '{zone.zone_id}'",
+                            getattr(zone, "zone_file_refs", []),
+                            field_name="zone_file_refs",
+                            observed_paths=observed_paths,
+                        )
 
     def _verify_dns_file_refs(
         self,

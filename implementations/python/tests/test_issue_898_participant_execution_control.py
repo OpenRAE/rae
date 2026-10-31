@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from dataclasses import replace
 
@@ -566,7 +567,7 @@ class _OneFailedOverlappingParticipantRuntime(_OverlappingParticipantRuntime):
 
 
 class _SnapshotProjectionParticipantRuntime(_NativeParticipantRuntime):
-    """Backend that writes a portable field outside the historical merge allowlist."""
+    """Backend that contributes nested plain-data metadata to the snapshot."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -580,25 +581,20 @@ class _SnapshotProjectionParticipantRuntime(_NativeParticipantRuntime):
         episode_id: str,
     ) -> ParticipantNativeActionExecution:
         execution = super()._model_action(request, snapshot, episode_id=episode_id)
-        result_address = f"evaluation.result.native-{request.participant_address.rsplit('.', 1)[-1]}"
+        result_key = f"native-projection:{request.participant_address}"
         metadata = dict(execution.apply_result.snapshot.metadata)
         action_instance_id = metadata.pop("last_native_action")
         metadata[f"last_native_action:{request.participant_address}"] = action_instance_id
-        evaluation_results = {
-            **execution.apply_result.snapshot.evaluation_results,
-            result_address: {
-                "participant_address": request.participant_address,
-                "nested": {"state": "committed"},
-            },
+        metadata[result_key] = {
+            "participant_address": request.participant_address,
+            "nested": {"state": "committed"},
         }
         modeled = replace(
             execution.apply_result,
             snapshot=execution.apply_result.snapshot.with_entries(
                 dict(execution.apply_result.snapshot.entries),
-                evaluation_results=evaluation_results,
                 metadata=metadata,
             ),
-            changed_addresses=[*execution.apply_result.changed_addresses, result_address],
         )
         return replace(execution, apply_result=modeled)
 
@@ -693,28 +689,28 @@ def test_serial_and_concurrent_actions_commit_the_same_backend_owned_projection(
 
     serial, _serial_runtime = _apply(1)
     concurrent, concurrent_runtime = _apply(2)
-    prefix = "evaluation.result.native-"
-    serial_projection = {
-        key: value for key, value in serial.snapshot.evaluation_results.items() if key.startswith(prefix)
-    }
+    prefix = "native-projection:"
+    serial_projection = {key: value for key, value in serial.snapshot.metadata.items() if key.startswith(prefix)}
     concurrent_projection = {
-        key: value for key, value in concurrent.snapshot.evaluation_results.items() if key.startswith(prefix)
+        key: value for key, value in concurrent.snapshot.metadata.items() if key.startswith(prefix)
     }
 
     assert serial.success is True
     assert concurrent.success is True
     assert concurrent_projection == serial_projection
     assert len(concurrent_projection) == 2
-    assert set(concurrent_projection) <= set(concurrent.changed_addresses)
+    assert {value["participant_address"] for value in concurrent_projection.values()} <= set(
+        concurrent.changed_addresses
+    )
 
     retained = next(
         result
         for result in concurrent_runtime._retained_results
-        if any(key.startswith(prefix) for key in result.snapshot.evaluation_results)
+        if any(key.startswith(prefix) for key in result.snapshot.metadata)
     )
-    retained_key = next(key for key in retained.snapshot.evaluation_results if key.startswith(prefix))
-    retained.snapshot.evaluation_results[retained_key]["nested"]["state"] = "mutated-after-return"
-    assert concurrent.snapshot.evaluation_results[retained_key]["nested"]["state"] == "committed"
+    retained_key = next(key for key in retained.snapshot.metadata if key.startswith(prefix))
+    retained.snapshot.metadata[retained_key]["nested"]["state"] = "mutated-after-return"
+    assert concurrent.snapshot.metadata[retained_key]["nested"]["state"] == "committed"
 
 
 def test_serial_action_rejects_backend_mutation_of_scheduler_owned_state() -> None:
@@ -910,3 +906,32 @@ def test_live_conformance_rejects_autonomous_claim_without_executable_behavior()
 
     assert action_case.passed is False
     assert action_case.diagnostics[0].code == ("conformance.participant-execution-action-inert")
+
+
+def test_live_conformance_sanitizes_and_logs_a_failing_native_action(caplog: pytest.LogCaptureFixture) -> None:
+    secret = "native-action-secret-1678"
+
+    class _FailingParticipantRuntime(_NativeParticipantRuntime):
+        def bind_autonomous_action(self, *args, **kwargs):
+            raise RuntimeError(f"backend detail {secret}")
+
+    runtime_model = compile_runtime_model(_two_green_participant_scenario())
+    target = replace(
+        create_stub_target(),
+        manifest=_autonomous_manifest(runtime_model),
+        participant_runtime=_FailingParticipantRuntime(),
+    )
+
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        cases = _target_adapter_cases(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE)
+    action_case = next(case for case in cases if case.name == "participant-execution-bounded-native-actions")
+
+    assert action_case.passed is False
+    assert action_case.diagnostics[0].code == "conformance.participant-execution-action-failed"
+    assert secret not in action_case.diagnostics[0].message
+    records = [record for record in caplog.records if record.name.endswith("participant_execution_probes")]
+    assert records
+    for record in records:
+        assert secret not in record.getMessage()
+        assert secret not in (record.exc_text or "")
+        assert "ForeignCodeFailure" in (record.exc_text or "")

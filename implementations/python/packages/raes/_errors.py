@@ -5,14 +5,16 @@ SDLValidationError collects all issues from a validation pass rather
 than failing on the first error.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from raes_contracts.errors import InvalidInputError
 
-class SDLError(Exception):
-    """Base exception for all SDL operations."""
+
+class SDLError(InvalidInputError):
+    """Base exception for all SDL operations: authored SDL is not valid input."""
 
 
 @dataclass(frozen=True)
@@ -51,6 +53,8 @@ class SDLParseDiagnostic:
     stage: str = "parse"
     severity: str = "error"
     source: str | None = None
+    original_pointer: str | None = None
+    canonical_address: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -63,6 +67,10 @@ class SDLParseDiagnostic:
         }
         if self.source is not None:
             payload["source"] = self.source
+        if self.original_pointer is not None:
+            payload["original_path"] = self.original_pointer
+        if self.canonical_address is not None:
+            payload["canonical_address"] = self.canonical_address
         if self.authored_keys is not None:
             payload["authored_keys"] = list(self.authored_keys)
         if self.related_range is not None:
@@ -97,6 +105,20 @@ class SDLParseError(SDLError):
         super().__init__(f"{prefix}{message}")
 
 
+@dataclass(frozen=True)
+class SDLValidationFinding:
+    """One semantic validation error and the data that a handler needs (ADR-116 rule E7).
+
+    ``owner`` is the ``(section, name)`` pair of the declaration that the message names first.
+    ``section.name`` is the canonical address of that declaration, also for a nested declaration.
+    ``pointer`` is the JSON pointer of the authored location, when the validator records it.
+    """
+
+    message: str
+    owner: tuple[str, str] | None = None
+    pointer: str | None = None
+
+
 class SDLValidationError(SDLError):
     """Semantic validation failed.
 
@@ -105,16 +127,22 @@ class SDLValidationError(SDLError):
 
     Attributes:
         errors: List of individual error descriptions.
+        findings: One finding for each error, in the same order. A plain
+            message gives a finding without owner or pointer.
         path: The file that failed validation (if applicable).
     """
 
-    def __init__(self, errors: list[str], path: Path | None = None) -> None:
-        self.errors = errors
+    def __init__(self, errors: Sequence[str | SDLValidationFinding], path: Path | None = None) -> None:
+        self.findings = tuple(
+            error if isinstance(error, SDLValidationFinding) else SDLValidationFinding(error) for error in errors
+        )
+        self.errors = [finding.message for finding in self.findings]
         self.path = path
+        self.diagnostics: tuple[SDLParseDiagnostic | None, ...] = ()
         prefix = f"{path}: " if path else ""
-        count = len(errors)
+        count = len(self.errors)
         summary = f"{count} validation error{'s' if count != 1 else ''}"
-        detail = "\n  ".join(errors)
+        detail = "\n  ".join(self.errors)
         super().__init__(f"{prefix}{summary}:\n  {detail}")
 
 
@@ -134,3 +162,7 @@ class SDLInstantiationError(SDLError):
         summary = f"{count} instantiation error{'s' if count != 1 else ''}"
         detail = "\n  ".join(errors)
         super().__init__(f"{prefix}{summary}:\n  {detail}")
+
+
+class SDLSelectionError(SDLError):
+    """A selection, or a selection policy, does not fit the admitted scenario family."""

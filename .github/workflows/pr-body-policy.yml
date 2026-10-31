@@ -31,9 +31,9 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.base.sha }}
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Validate pull request body
         env:
           GH_TOKEN: ${{ github.token }}
@@ -48,11 +48,11 @@ jobs:
             bundle=$(mktemp -d "$RUNNER_TEMP/pr-body-policy.XXXXXX")
             mkdir "$bundle/tools"
             validator="$bundle/tools/check_pr_body.py"
-            gh api "repos/$GITHUB_REPOSITORY/git/blobs/063f086c5cd151a45ff2659a5af87c3e454ef0ec" \
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/9d9eb11a8929e4d3d9673d20eff83b99f6e7f0c4" \
               --jq .content | base64 --decode > "$validator"
             gh api "repos/$GITHUB_REPOSITORY/git/blobs/2060ea8ea5bc8e3f9ee42d3707c1882f9990c052" \
               --jq .content | base64 --decode > "$bundle/tools/pr_body_issue_scope.py"
-            echo "b65c484270ebcdcb9ddce580caf8ab073b68ddba7cfa3e839940d629353d39ef  $validator" | sha256sum --check --strict
+            echo "6b8721dd738beb04f847d06b7294916a04749daf3afe48be39eb12d568f93cab  $validator" | sha256sum --check --strict
             echo "271afe45e06d3d99a245f586ca0f797eae36de9ede7a6a6ee547d34e939af9a3  $bundle/tools/pr_body_issue_scope.py" | sha256sum --check --strict
           fi
           python -I -S "$validator"

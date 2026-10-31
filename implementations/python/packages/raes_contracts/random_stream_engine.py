@@ -35,6 +35,8 @@ from dataclasses import dataclass
 import blake3
 import rfc8785
 
+from .canonical import canonical_json_bytes
+from .contracts.experiment_allocation import AllocationStreamAddressModel
 from .contracts.random_stream import ParticipantStreamAddressModel, PublicSeedModel, StreamAddressModel
 from .diagnostics import Diagnostic, Severity
 from .random_stream_profiles import SUPPORTED_RANDOM_STREAM_PROFILE_IDS
@@ -86,7 +88,9 @@ def derive_stream_key(*, profile_id: str, root_entropy: bytes) -> bytes:
     return hasher.digest()
 
 
-def canonical_stream_address_bytes(address: StreamAddressModel | ParticipantStreamAddressModel) -> bytes:
+def canonical_stream_address_bytes(
+    address: StreamAddressModel | ParticipantStreamAddressModel | AllocationStreamAddressModel,
+) -> bytes:
     """Return the RFC 8785/JCS canonical bytes for one closed ``StreamAddressModel``.
 
     Uses ``exclude_none=True`` rather than ``exclude_unset=True``: the
@@ -99,16 +103,17 @@ def canonical_stream_address_bytes(address: StreamAddressModel | ParticipantStre
 
     payload = address.model_dump(mode="json", by_alias=True, exclude_none=True)
     try:
-        return rfc8785.dumps(payload)
+        return canonical_json_bytes(payload)
     except rfc8785.CanonicalizationError as exc:
-        raise ValueError(f"stream address canonicalization failed: {exc}") from exc
+        # The library message can carry address values; the cause stays chained (E7).
+        raise ValueError("stream address canonicalization failed") from exc
 
 
 def raw_block(
     *,
     profile_id: str,
     stream_key: bytes,
-    address: StreamAddressModel | ParticipantStreamAddressModel,
+    address: StreamAddressModel | ParticipantStreamAddressModel | AllocationStreamAddressModel,
     byte_length: int = BLOCK_BYTES,
     byte_offset: int = 0,
 ) -> bytes:
@@ -150,7 +155,7 @@ def draw_bounded_integer(
     *,
     profile_id: str,
     stream_key: bytes,
-    address: StreamAddressModel | ParticipantStreamAddressModel,
+    address: StreamAddressModel | ParticipantStreamAddressModel | AllocationStreamAddressModel,
     minimum: int,
     maximum: int,
     max_rejection_attempts: int,

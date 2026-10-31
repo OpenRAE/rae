@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ._common import RealizationRelationResult, RelationBudget, actual_identity, pointer_tokens, relation_result
+from ..json_pointer import array_index, is_array_index_token, pointer_tokens
+from ._common import RealizationRelationResult, RelationBudget, actual_identity, relation_result
 from ._models import (
     RealizationClosurePosture,
     RealizationConstraintDocument,
@@ -209,8 +210,8 @@ def _advance_sequence_target(
     token: str,
 ) -> None:
     assert isinstance(target.actual, list)
-    index = int(token)
-    if index >= len(target.actual):
+    index = array_index(token, len(target.actual))
+    if index is None:
         target.present = False
     else:
         target.actual = target.actual[index]
@@ -230,7 +231,7 @@ def _advance_list_target(
     failure = None
     if isinstance(target.rule, RealizationKeyedCollectionConstraint):
         failure = _advance_keyed_target(target, token, address, budget)
-    elif token.isdigit() and isinstance(target.rule, (RealizationSequenceConstraint, type(None))):
+    elif is_array_index_token(token) and isinstance(target.rule, (RealizationSequenceConstraint, type(None))):
         _advance_sequence_target(target, token)
     else:
         failure = _scope_failure(
@@ -327,7 +328,9 @@ def _evaluate_closed_record(
     address: str,
 ) -> list[RealizationRelationResult]:
     declared = set(rule.fields) if isinstance(rule, RealizationRecordConstraint) else set()
-    declared.update(token for token in declared_by_scope if not token.startswith("@") and not token.isdigit())
+    declared.update(
+        token for token in declared_by_scope if not token.startswith("@") and not is_array_index_token(token)
+    )
     return (
         _scope_failure(
             RealizationRelationStatus.NONCONFORMANT,
@@ -376,7 +379,8 @@ def _closed_collection_extras(
             declared_keys = set(declared) | {token.removeprefix("@") for token in declared_by_scope}
             has_extras = bool(indexed.keys() - declared_keys)
     else:
-        declared_indices = {int(token) for token in declared_by_scope if token.isdigit()}
+        positions = (array_index(token, len(actual)) for token in declared_by_scope)
+        declared_indices = {index for index in positions if index is not None}
         if isinstance(rule, RealizationSequenceConstraint):
             declared_indices.update(range(len(rule.items)))
         has_extras = any(index not in declared_indices for index in range(len(actual)))

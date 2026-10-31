@@ -5,19 +5,33 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, Literal, Protocol
 
 from pydantic import ConfigDict, Field, model_validator
+from pydantic_core import PydanticCustomError
 
 from ._base import ContractModel
 from .canonical import canonical_json_digest
-from .json_ingress import parse_bounded_json_object
-from .realization_structure import validate_realization_value
-from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
+from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from .materialization_inventory import InventoryTargetScope
+from .realization_structure import DOCUMENT_SCALAR, validate_realization_value
+from .runtime_value_limits import MATERIALIZATION_MAX_BYTES, RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 if TYPE_CHECKING:
     from .contracts.materialization_attestation import MaterializationArchiveRecord
 
 MATERIALIZATION_ATTESTATION_CONTRACT = "backend-materialization-attestation-v1"
-MATERIALIZATION_MAX_BYTES = 1048576
+MATERIALIZATION_LIMIT_ERROR = "materialization_limit_exceeded"
 MaterializationDigest = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
+# One admitted SDL document body. ``max_length`` counts characters; validators also check UTF-8 bytes.
+MaterializationDocument = Annotated[str, Field(min_length=1, max_length=MATERIALIZATION_MAX_BYTES), DOCUMENT_SCALAR]
+
+
+def require_materialization_document_bytes(value: str, subject: str) -> None:
+    """Refuse a document whose UTF-8 encoding exceeds the shared materialization ceiling."""
+    try:
+        size = len(value.encode("utf-8"))
+    except UnicodeEncodeError:
+        raise ValueError(f"{subject} is not valid UTF-8 text") from None
+    if size > MATERIALIZATION_MAX_BYTES:
+        raise PydanticCustomError(MATERIALIZATION_LIMIT_ERROR, f"{subject} exceeds the byte limit")
 
 
 class MaterializationSource(ContractModel):
@@ -25,10 +39,11 @@ class MaterializationSource(ContractModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     contract_id: Literal["backend-materialization-attestation-v1"] = MATERIALIZATION_ATTESTATION_CONTRACT
-    snapshot: str = Field(min_length=1, max_length=MATERIALIZATION_MAX_BYTES)
+    snapshot: MaterializationDocument
     authored_digest: MaterializationDigest
     instantiated_digest: MaterializationDigest
     run_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+    target_scope: InventoryTargetScope | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @property
     def augmentation_scope_required(self) -> bool:
@@ -38,9 +53,13 @@ class MaterializationSource(ContractModel):
 
     @model_validator(mode="after")
     def _validate_source_identity(self) -> MaterializationSource:
-        payload = parse_bounded_json_object(self.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
+        require_materialization_document_bytes(self.snapshot, "materialization source")
+        try:
+            payload = parse_bounded_json_object(self.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
+        except StrictJsonIngressError as exc:
+            raise ValueError(f"materialization source snapshot failed strict JSON ingress ({exc.code})") from exc
         if not validate_realization_value(payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
-            raise ValueError("materialization source exceeds portable bounds")
+            raise PydanticCustomError(MATERIALIZATION_LIMIT_ERROR, "materialization source exceeds portable bounds")
         if payload.get("profile") != "raes-sdl-instantiated-snapshot/v2" or set(payload) != {"profile", "scenario"}:
             raise ValueError("materialization source requires the admitted instantiated snapshot profile")
         if canonical_json_digest(payload) != self.instantiated_digest:
@@ -58,12 +77,11 @@ class MaterializationSubmission(ContractModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     contract_id: Literal["backend-materialization-attestation-v1"] = MATERIALIZATION_ATTESTATION_CONTRACT
-    sdl: str = Field(min_length=1, max_length=MATERIALIZATION_MAX_BYTES)
+    sdl: MaterializationDocument
 
     @model_validator(mode="after")
     def _validate_size(self) -> MaterializationSubmission:
-        if len(self.sdl.encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
-            raise ValueError("materialization submission exceeds the byte limit")
+        require_materialization_document_bytes(self.sdl, "materialization submission")
         return self
 
 
@@ -98,7 +116,11 @@ def require_materialization_records(records: object) -> None:
 
 __all__ = [
     "MATERIALIZATION_ATTESTATION_CONTRACT",
+    "MATERIALIZATION_LIMIT_ERROR",
+    "MATERIALIZATION_MAX_BYTES",
     "MaterializationArchive",
+    "MaterializationDocument",
     "MaterializationSource",
     "MaterializationSubmission",
+    "require_materialization_document_bytes",
 ]

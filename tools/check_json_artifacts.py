@@ -13,8 +13,13 @@ import subprocess
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import REPO_ROOT as POLICY_REPO_ROOT, changed_paths
 from tools.tooling_artifact_policy_common import is_regular_repo_file
@@ -103,8 +108,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _load_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _load_json(path: Path, relative: str) -> object:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    # The try holds only stdlib calls. They report text that is not UTF-8, is not JSON or has an
+    # integer beyond the interpreter digit limit with ValueError, and nesting beyond the decoder
+    # with RecursionError.
+    except (ValueError, RecursionError) as exc:
+        raise InvalidInputError(f"{relative} is not UTF-8 JSON within the decoder limits") from exc
 
 
 def _repo_rel_from(repo_root: Path, path: Path) -> str:
@@ -150,7 +161,9 @@ def _frozen_historical_records(repo_root: Path) -> frozenset[str]:
     if is_regular_repo_file(repo_root, _HISTORICAL_IDENTITY_RECORDS_PATH):
         try:
             payload = json.loads((repo_root / _HISTORICAL_IDENTITY_RECORDS_PATH).read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+        # The try holds only stdlib calls. They report undecodable text with ValueError: bad UTF-8,
+        # bad JSON syntax, or an integer beyond the interpreter digit limit.
+        except OSError, ValueError:
             payload = {}
         records = payload.get("records") if isinstance(payload, dict) else None
     if not isinstance(records, list):
@@ -161,9 +174,16 @@ def _frozen_historical_records(repo_root: Path) -> frozenset[str]:
 
 
 def _versioned_schema(repo_root: Path, path: Path, family: str) -> Path:
-    """Resolve the published schema an artifact names through its own ``schema_version``."""
+    """Resolve the published schema an artifact names through its own ``schema_version``.
 
-    schema_version = _load_json(path)["schema_version"]
+    Raise ``InvalidInputError`` when the artifact cannot name its schema.
+    """
+
+    relative = _repo_rel_from(repo_root, path)
+    document = _load_json(path, relative)
+    schema_version = document.get("schema_version") if isinstance(document, dict) else None
+    if not isinstance(schema_version, str):
+        raise InvalidInputError(f"{relative} does not name a string schema_version")
     return repo_root / "contracts" / "schemas" / family / _schema_filename(schema_version)
 
 
@@ -380,9 +400,9 @@ def validate_targets(targets: list[ValidationTarget]) -> list[str]:
     try:
         worker_count = int(worker_value)
     except ValueError as exc:
-        raise ValueError(f"{JSON_SCHEMA_WORKERS_ENV} must be an integer") from exc
+        raise InvalidInputError(f"{JSON_SCHEMA_WORKERS_ENV} must be an integer") from exc
     if worker_count < 1:
-        raise ValueError(f"{JSON_SCHEMA_WORKERS_ENV} must be at least one")
+        raise InvalidInputError(f"{JSON_SCHEMA_WORKERS_ENV} must be at least one")
     with ThreadPoolExecutor(max_workers=min(worker_count, len(batches)), thread_name_prefix="json-schema") as executor:
         results = list(executor.map(_validate_batch, batches))
 
@@ -406,8 +426,12 @@ def main() -> int:
             base_rev=args.base_rev,
         )
     )
-    targets = collect_validation_targets(REPO_ROOT, paths=paths if paths else None)
-    failures = validate_targets(targets)
+    try:
+        targets = collect_validation_targets(REPO_ROOT, paths=paths if paths else None)
+        failures = validate_targets(targets)
+    except InvalidInputError as exc:
+        print(f"[json-schema-validation] {exc}", file=sys.stderr)
+        return 1
     if failures:
         for failure in failures:
             print(f"[json-schema-validation] {failure}", file=sys.stderr)
@@ -416,4 +440,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

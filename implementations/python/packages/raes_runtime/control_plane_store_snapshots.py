@@ -13,6 +13,8 @@ from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureM
 from raes_contracts.contracts import RealizationEnvelopeIdentityModel
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.errors import EvidenceIntegrityError
+from raes_contracts.immutable_history import HISTORY_FIELDS, HistoryMap
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -25,6 +27,7 @@ from raes_contracts.runtime_state import (
 )
 
 from .control_plane_store_observations import realization_observation_from_payload
+from .control_plane_store_revision import SnapshotState
 
 
 def _require_complete_runtime_snapshot_fields(values: dict[str, Any]) -> None:
@@ -92,9 +95,19 @@ def _realization_observations_payload(snapshot: RuntimeSnapshot) -> list[dict[st
     ]
 
 
-def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
+def _snapshot_histories_payload(snapshot: RuntimeSnapshot, include_histories: bool) -> dict[str, object]:
+    return {
+        field: {address: list(events) for address, events in getattr(snapshot, field).items()}
+        if include_histories
+        else {}
+        for field in HISTORY_FIELDS
+    }
+
+
+def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = True) -> dict[str, Any]:
     require_participant_autonomous_runtime_snapshot(snapshot)
     snapshot_fields: dict[str, Any] = {
+        **_snapshot_histories_payload(snapshot, include_histories),
         "materialization_attestations": [
             record.model_dump(mode="json") for record in snapshot.materialization_attestations
         ],
@@ -116,55 +129,16 @@ def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
             for address, entry in snapshot.entries.items()
         },
         "orchestration_results": dict(snapshot.orchestration_results),
-        "orchestration_history": {address: list(events) for address, events in snapshot.orchestration_history.items()},
         "evaluation_results": dict(snapshot.evaluation_results),
-        "evaluation_history": {address: list(events) for address, events in snapshot.evaluation_history.items()},
         "proposition_truth_results": dict(snapshot.proposition_truth_results),
         "participant_episode_results": dict(snapshot.participant_episode_results),
-        "participant_episode_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_episode_history.items()
-        },
-        "participant_episode_closure_records": {
-            participant_address: list(records)
-            for participant_address, records in snapshot.participant_episode_closure_records.items()
-        },
-        "participant_behavior_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_behavior_history.items()
-        },
-        "participant_control_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_control_history.items()
-        },
-        "participant_crossing_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_crossing_history.items()
-        },
-        "participant_control_evaluation_history": {
-            participant_address: list(records)
-            for participant_address, records in snapshot.participant_control_evaluation_history.items()
-        },
         "mixed_composition_states": dict(snapshot.mixed_composition_states),
-        "mixed_composition_history": {
-            run_id: list(events) for run_id, events in snapshot.mixed_composition_history.items()
-        },
-        "information_state_history": {
-            participant_address: list(records)
-            for participant_address, records in snapshot.information_state_history.items()
-        },
-        "participant_outcome_history": {
-            address: list(records) for address, records in snapshot.participant_outcome_history.items()
-        },
         "participant_autonomous_execution_states": dict(snapshot.participant_autonomous_execution_states),
         "participant_execution_services": dict(snapshot.participant_execution_services),
         "participant_resource_budget_states": dict(snapshot.participant_resource_budget_states),
         "participant_resource_pool_states": dict(snapshot.participant_resource_pool_states),
         "participant_resource_budget_events": dict(snapshot.participant_resource_budget_events),
         "shared_state_records": dict(snapshot.shared_state_records),
-        "shared_state_history": {
-            state_address: list(records) for state_address, records in snapshot.shared_state_history.items()
-        },
         "joint_action_records": dict(snapshot.joint_action_records),
         "time_management_contexts": dict(snapshot.time_management_contexts),
         "time_model_state": (
@@ -188,7 +162,76 @@ def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
         entry_payload = entry["payload"]
         if account_placement_has_credential_bindings(entry_payload):
             entry["payload"] = value_free_account_placement_payload(entry_payload)
-    return payload
+    from raes_contracts.immutable_history import mutable_history_value
+
+    return mutable_history_value(payload)
+
+
+_SNAPSHOT_OBJECT_MAPS = (
+    "orchestration_results",
+    "evaluation_results",
+    "proposition_truth_results",
+    "participant_episode_results",
+    "mixed_composition_states",
+    "participant_autonomous_execution_states",
+    "participant_execution_services",
+    "participant_resource_budget_states",
+    "participant_resource_pool_states",
+    "participant_resource_budget_events",
+    "shared_state_records",
+    "joint_action_records",
+    "time_management_contexts",
+)
+_SNAPSHOT_ARRAYS = ("materialization_attestations", "realization_provenance", "realization_observations")
+
+
+def _is_array(value: object, *, items: type | None = None) -> bool:
+    return isinstance(value, (list, tuple)) and (items is None or all(isinstance(item, items) for item in value))
+
+
+def _require_snapshot_payload_shape(payload: dict[str, Any]) -> None:
+    """Refuse a snapshot payload whose containers do not have the snapshot shape (ValueError, E3).
+
+    The codec below then sees only the container types that it reads, so a malformed
+    stored snapshot fails with ValueError and never with TypeError, AttributeError or KeyError.
+    Every entry and every carrier element must be an object, so the codec drops no stored evidence.
+    """
+
+    if not isinstance(payload, dict):
+        raise ValueError("runtime snapshot must be an object")
+    for name in _SNAPSHOT_OBJECT_MAPS:
+        value = payload.get(name, {})
+        if not isinstance(value, dict) or not all(isinstance(item, dict) for item in value.values()):
+            raise ValueError(f"runtime snapshot {name} must map names to objects")
+    if not isinstance(payload.get("metadata", {}), dict):
+        raise ValueError("runtime snapshot metadata must be an object")
+    if not all(_is_array(payload.get(name, []), items=dict) for name in _SNAPSHOT_ARRAYS):
+        raise ValueError("runtime snapshot carriers must be arrays of objects")
+    _require_snapshot_histories(payload)
+    _require_snapshot_entries(payload)
+
+
+def _require_snapshot_histories(payload: dict[str, Any]) -> None:
+    for name in HISTORY_FIELDS:
+        history = payload.get(name, {})
+        if isinstance(history, HistoryMap):
+            continue
+        if not isinstance(history, dict) or not all(_is_array(events, items=dict) for events in history.values()):
+            raise ValueError(f"runtime snapshot {name} must map names to arrays of objects")
+
+
+def _require_snapshot_entries(payload: dict[str, Any]) -> None:
+    entries = payload.get("entries", {})
+    if not isinstance(entries, dict):
+        raise ValueError("runtime snapshot entries must be an object")
+    for entry in entries.values():
+        if not isinstance(entry, dict) or not (
+            isinstance(entry.get("payload", {}), dict)
+            and _is_array(entry.get("ordering_dependencies", ()))
+            and _is_array(entry.get("refresh_dependencies", ()))
+            and _is_array(entry.get("profile_bindings", ()))
+        ):
+            raise ValueError("runtime snapshot entry has an invalid shape")
 
 
 def _snapshot_entries_from_payload(payload: dict[str, Any]) -> dict[str, SnapshotEntry]:
@@ -207,7 +250,6 @@ def _snapshot_entries_from_payload(payload: dict[str, Any]) -> dict[str, Snapsho
             ),
         )
         for address, entry in entries_payload.items()
-        if isinstance(entry, dict)
     }
 
 
@@ -230,13 +272,13 @@ def _realization_provenance_from_payload(payload: dict[str, Any]) -> tuple[Reali
             ),
         )
         for item in payload.get("realization_provenance", [])
-        if isinstance(item, dict)
     )
 
 
 def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
     from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 
+    _require_snapshot_payload_shape(payload)
     snapshot_fields: dict[str, Any] = {
         "materialization_attestations": tuple(
             MaterializationArchiveRecord.model_validate(record)
@@ -244,59 +286,28 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
         ),
         "entries": _snapshot_entries_from_payload(payload),
         "orchestration_results": dict(payload.get("orchestration_results", {})),
-        "orchestration_history": {
-            address: list(events) for address, events in payload.get("orchestration_history", {}).items()
-        },
+        "orchestration_history": _snapshot_history(payload, "orchestration_history"),
         "evaluation_results": dict(payload.get("evaluation_results", {})),
-        "evaluation_history": {
-            address: list(events) for address, events in payload.get("evaluation_history", {}).items()
-        },
+        "evaluation_history": _snapshot_history(payload, "evaluation_history"),
         "proposition_truth_results": dict(payload.get("proposition_truth_results", {})),
         "participant_episode_results": dict(payload.get("participant_episode_results", {})),
-        "participant_episode_history": {
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_episode_history", {}).items()
-        },
-        "participant_episode_closure_records": {
-            participant_address: list(records)
-            for participant_address, records in payload.get("participant_episode_closure_records", {}).items()
-        },
-        "participant_behavior_history": {
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_behavior_history", {}).items()
-        },
-        "participant_control_history": {
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_control_history", {}).items()
-        },
-        "participant_crossing_history": {
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_crossing_history", {}).items()
-        },
-        "participant_control_evaluation_history": {
-            participant_address: list(records)
-            for participant_address, records in payload.get("participant_control_evaluation_history", {}).items()
-        },
+        "participant_episode_history": _snapshot_history(payload, "participant_episode_history"),
+        "participant_episode_closure_records": _snapshot_history(payload, "participant_episode_closure_records"),
+        "participant_behavior_history": _snapshot_history(payload, "participant_behavior_history"),
+        "participant_control_history": _snapshot_history(payload, "participant_control_history"),
+        "participant_crossing_history": _snapshot_history(payload, "participant_crossing_history"),
+        "participant_control_evaluation_history": _snapshot_history(payload, "participant_control_evaluation_history"),
         "mixed_composition_states": dict(payload.get("mixed_composition_states", {})),
-        "mixed_composition_history": {
-            run_id: list(events) for run_id, events in payload.get("mixed_composition_history", {}).items()
-        },
-        "information_state_history": {
-            participant_address: list(records)
-            for participant_address, records in payload.get("information_state_history", {}).items()
-        },
-        "participant_outcome_history": {
-            address: list(records) for address, records in payload.get("participant_outcome_history", {}).items()
-        },
+        "mixed_composition_history": _snapshot_history(payload, "mixed_composition_history"),
+        "information_state_history": _snapshot_history(payload, "information_state_history"),
+        "participant_outcome_history": _snapshot_history(payload, "participant_outcome_history"),
         "participant_autonomous_execution_states": dict(payload.get("participant_autonomous_execution_states", {})),
         "participant_execution_services": dict(payload.get("participant_execution_services", {})),
         "participant_resource_budget_states": dict(payload.get("participant_resource_budget_states", {})),
         "participant_resource_pool_states": dict(payload.get("participant_resource_pool_states", {})),
         "participant_resource_budget_events": dict(payload.get("participant_resource_budget_events", {})),
         "shared_state_records": dict(payload.get("shared_state_records", {})),
-        "shared_state_history": {
-            state_address: list(records) for state_address, records in payload.get("shared_state_history", {}).items()
-        },
+        "shared_state_history": _snapshot_history(payload, "shared_state_history"),
         "joint_action_records": dict(payload.get("joint_action_records", {})),
         "time_management_contexts": dict(payload.get("time_management_contexts", {})),
         "time_model_state": (
@@ -306,9 +317,7 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
         ),
         "realization_provenance": _realization_provenance_from_payload(payload),
         "realization_observations": tuple(
-            realization_observation_from_payload(item)
-            for item in payload.get("realization_observations", [])
-            if isinstance(item, dict)
+            realization_observation_from_payload(item) for item in payload.get("realization_observations", [])
         ),
         "realization_envelope": (
             RealizationEnvelopeIdentityModel.model_validate(payload["realization_envelope"])
@@ -323,4 +332,32 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
     return snapshot
 
 
-__all__ = ("_snapshot_from_payload", "_snapshot_payload")
+def durable_snapshot_state(payload: dict[str, Any], revision: int) -> SnapshotState:
+    """Rebuild one stored snapshot state; a stored value that fails its contract is damaged state."""
+
+    try:
+        # The snapshot value objects refuse an invalid value with ValueError (E3).
+        return SnapshotState(snapshot=_snapshot_from_payload(payload), revision=revision)
+    except ValueError as exc:
+        raise EvidenceIntegrityError("runtime snapshot failed its durable contract check") from exc
+
+
+__all__ = ("_snapshot_from_payload", "_snapshot_payload", "durable_snapshot_state")
+
+
+def _snapshot_history(payload: dict[str, Any], field: str) -> HistoryMap | dict[str, list[dict[str, object]]]:
+    from raes_contracts.immutable_history import HistoryMap
+
+    history = payload.get(field, {})
+    if isinstance(history, HistoryMap) and history._field == field:
+        return history
+    return {address: list(events) for address, events in history.items()}
+
+
+def _canonical_snapshot(snapshot: RuntimeSnapshot) -> RuntimeSnapshot:
+    """Normalize header fields while retaining separately validated JSON histories."""
+    from raes_contracts.immutable_history import HISTORY_FIELDS, seal_history
+
+    payload = _snapshot_payload(snapshot, include_histories=False)
+    payload.update({field: seal_history(field, getattr(snapshot, field)) for field in HISTORY_FIELDS})
+    return _snapshot_from_payload(payload)

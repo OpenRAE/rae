@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from typing import Any, TypeAlias
+from typing import Any
 
+from pydantic import ValidationError
 from raes.explicitness import ExplicitnessProvenance
 from raes.materialization import MaterializedScenario
 from raes.materialization_provenance import MaterializationOrigin
@@ -12,6 +13,8 @@ from raes.nodes import Node
 from raes.runtime_inventory import runtime_inventory_collection_identity
 from raes.scenario import InstantiatedScenario, ScenarioContent
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -22,7 +25,7 @@ from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 from ..semantics.realization_concerns import registered_realization_concern_descriptors
 
 _ABSENT = object()
-_CollectionProfiles: TypeAlias = dict[tuple[str, ...], tuple[str, ...]]
+type _CollectionProfiles = dict[tuple[str, ...], tuple[str, ...]]
 
 
 def materialization_differences(
@@ -35,7 +38,7 @@ def materialization_differences(
         if not validate_realization_value(
             content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
         ).conformant:
-            raise ValueError("materialization comparison exceeds portable bounds")
+            raise InvalidInputError("materialization comparison exceeds portable bounds")
     before = source.model_dump(mode="json", exclude={"instantiation_provenance"})
     after = materialized.model_dump(mode="json", exclude={"materialization_provenance"})
     profiles = _profiles(
@@ -78,7 +81,7 @@ def materialization_collection_profiles(content: ScenarioContent) -> tuple[Reali
             if identity:
                 result.append(
                     RealizationCollectionProfile(
-                        field_pointer=_pointer(path),
+                        field_pointer=pointer_from_tokens(path),
                         collection_kind="sdl-collection",
                         identity_fields=identity,
                         closure=closure,
@@ -113,10 +116,10 @@ def compose_materialization_content(
     )
     merged = _compose_owned(*values, (), profiles)
     if not validate_realization_value(merged, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
-        raise ValueError("cumulative prospective SDL exceeds portable bounds")
+        raise InvalidInputError("cumulative prospective SDL exceeds portable bounds")
     admitted = admit_prospective_content(merged)
     if len(admitted.model_dump_json().encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
-        raise ValueError("cumulative prospective SDL exceeds the byte limit")
+        raise InvalidInputError("cumulative prospective SDL exceeds the byte limit")
     return admitted
 
 
@@ -146,7 +149,7 @@ def _compose_changed_containers(
         identity := _collection_identity(path, profiles)
     ):
         return _compose_owned_members(base, preceding, local, path, profiles, identity)
-    raise ValueError("prospective effects overlap another producer's ownership")
+    raise InvalidInputError("prospective effects overlap another producer's ownership")
 
 
 def _compose_owned_members(
@@ -183,10 +186,15 @@ def materialization_node_payloads_match(name: str, described: object, observed: 
     try:
         left = Node.model_validate(described).model_dump(mode="json")
         right = Node.model_validate(observed).model_dump(mode="json")
-        path = ("nodes", name)
-        return not any(_differences(left, right, path, path, _profiles({name}, set())))
-    except (TypeError, ValueError):
+    except ValidationError:
         return False
+    path = ("nodes", name)
+    try:
+        differs = any(_differences(left, right, path, path, _profiles({name}, set())))
+    except InvalidInputError:
+        # A keyed collection without its native identity cannot match.
+        differs = True
+    return not differs
 
 
 def validate_materialization_origins(source: InstantiatedScenario, materialized: MaterializedScenario) -> None:
@@ -194,17 +202,13 @@ def validate_materialization_origins(source: InstantiatedScenario, materialized:
     actual = {item.model_dump_json() for item in materialization_differences(source, materialized)}
     claimed = {item.model_dump_json() for item in materialized.materialization_provenance.origins}
     if actual != claimed:
-        raise ValueError("materialization origins do not exactly account for the source differences")
-
-
-def _pointer(tokens: tuple[str, ...]) -> str:
-    return "".join("/" + token.replace("~", "~0").replace("/", "~1") for token in tokens)
+        raise InvalidInputError("materialization origins do not exactly account for the source differences")
 
 
 def _origin(change: str, before_path: tuple[str, ...], after_path: tuple[str, ...]) -> MaterializationOrigin:
     return MaterializationOrigin(
-        field_pointer=_pointer(before_path if change == "removed" else after_path),
-        source_pointer=None if change == "added" else _pointer(before_path),
+        field_pointer=pointer_from_tokens(before_path if change == "removed" else after_path),
+        source_pointer=None if change == "added" else pointer_from_tokens(before_path),
         change=change,
         origin=ExplicitnessProvenance.BACKEND_REALIZED,
     )
@@ -215,11 +219,11 @@ def _collection_identity(path: tuple[str, ...], profiles: _CollectionProfiles) -
     if path in profiles:
         identity = profiles[path]
     elif path and path[0] == "forwarding_agents":
-        identity = runtime_inventory_collection_identity("forwarding-agents", _pointer(path[1:]))
+        identity = runtime_inventory_collection_identity("forwarding-agents", pointer_from_tokens(path[1:]))
     elif len(path) == 3 and path[0] == "nodes" and path[2] == "services":
         identity = ("name",)
     elif len(path) >= 4 and path[0] == "nodes" and path[2] == "runtime":
-        identity = runtime_inventory_collection_identity(path[3].replace("_", "-"), _pointer(path[4:]))
+        identity = runtime_inventory_collection_identity(path[3].replace("_", "-"), pointer_from_tokens(path[4:]))
     return identity
 
 
@@ -227,10 +231,10 @@ def _indexed(values: list[object], identity: tuple[str, ...]) -> dict[str, tuple
     result = {}
     for index, value in enumerate(values):
         if not isinstance(value, dict) or any(field not in value for field in identity):
-            raise ValueError("materialization inventory lacks its owning collection identity")
+            raise InvalidInputError("materialization inventory lacks its owning collection identity")
         key = canonical_json_digest({field: value[field] for field in identity})
         if key in result:
-            raise ValueError("materialization inventory has duplicate collection identities")
+            raise InvalidInputError("materialization inventory has duplicate collection identities")
         result[key] = (index, value)
     return result
 

@@ -57,7 +57,7 @@ def test_real_lineage_ledger_is_valid_and_covers_exact_current_subject_set() -> 
     ledger = SDLLineageLedgerModel.model_validate(_payload())
     current = {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "current"}
     assert current == _canonical_subjects(REPO_ROOT)
-    assert len(current) == 92
+    assert len(current) == 93
     assert {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "removed"} == {
         "sdl-field:evaluations",
         "sdl-field:goals",
@@ -394,3 +394,26 @@ def test_prose_doi_label_year_must_match_verified_identity(tmp_path: Path) -> No
     ledger = SDLLineageLedgerModel.model_validate(_payload())
     failures = _validate_current_prose(tmp_path, ledger, ("lineage.md",))
     assert [failure.rule_id for failure in failures] == ["lineage-doi-label-year-mismatch"]
+
+
+def test_json_pointer_with_a_non_decimal_digit_does_not_resolve() -> None:
+    # "²" is a digit to str.isdigit() but not an int() literal; it must not raise.
+    assert lineage_checker._resolve_json_pointer([0, 1, 2], "#/²") is False
+    assert lineage_checker._resolve_json_pointer([0, 1, 2], "#/2") is True
+
+
+def test_a_missing_ledger_is_a_ledger_failure(tmp_path: Path) -> None:
+    failures = lineage_checker.evaluate(tmp_path)
+    assert [failure.rule_id for failure in failures] == ["lineage-ledger-invalid"]
+    assert "missing or unsafe repository artifact" in failures[0].message
+
+
+def test_a_defect_while_validating_the_ledger_is_not_reported_as_an_invalid_ledger(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def defective(_payload: object) -> SDLLineageLedgerModel:
+        raise ValueError("validator defect outside Pydantic")
+
+    monkeypatch.setattr(lineage_checker.SDLLineageLedgerModel, "model_validate", defective)
+    with pytest.raises(ValueError, match="validator defect outside Pydantic"):
+        lineage_checker.evaluate(REPO_ROOT)

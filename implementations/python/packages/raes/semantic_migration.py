@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import yaml
+from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     ArtifactTransformationPreservationModel,
@@ -17,7 +18,7 @@ from ._semantic_migration_decisions import apply_sentinel_decisions
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDLParserLimits, SDLSourceParseOptions
 from ._transformation_bindings import _retarget_binding_documents
 from ._transformation_support import check, diagnostic
-from ._transformation_types import SDLTransformationResult
+from ._transformation_types import SDLTransformationResult, _TransformationRefusal
 from ._yaml_loader import load_sdl_yaml
 from .canonical import canonical_sdl_digest
 from .external_concept_subjects import external_concept_subjects
@@ -39,6 +40,7 @@ def _report(
     context: SDLSemanticMigrationContext | None,
     *,
     output: Scenario | None = None,
+    target_digest: str | None = None,
     code: str | None = None,
     source_profile: str = LEGACY_SDL_REVISION,
     linked_context_digest: str | None = None,
@@ -52,7 +54,7 @@ def _report(
         target_profile=PROGRESSIVE_SDL_REVISION,
         canonicalization_profile="sdl-progressive-migration-digest-pair/v1",
         source_digest=source_digest,
-        target_digest=canonical_sdl_digest(output).value if output is not None else None,
+        target_digest=target_digest,
         policy_digest=policy_digest,
         derivation_digest=canonical_json_digest(
             {
@@ -109,6 +111,7 @@ def migrate_sdl_semantics(
     )
     code = None
     output = None
+    target_digest = None
     documents = ()
     source_profile = LEGACY_SDL_REVISION
     try:
@@ -119,12 +122,16 @@ def migrate_sdl_semantics(
             else:
                 output = read_versioned_sdl(content, limits=limits).scenario
                 documents = _bindings(binding_documents, scheme_snapshots, output, output)
+                target_digest = canonical_sdl_digest(output).value
                 source_profile = PROGRESSIVE_SDL_REVISION
         else:
             output, documents, code = _adopt_source(raw, digest, context, binding_documents, scheme_snapshots, limits)
-    except (SDLError, ValueError, TypeError):
+            # A target without a canonical digest, such as one with an integer outside I-JSON, is refused.
+            target_digest = canonical_sdl_digest(output).value if output is not None else None
+    except SDLError, ValidationError, _TransformationRefusal:
         code = "semantic-migration.source-or-target-invalid"
         output = None
+        target_digest = None
         documents = ()
     return SDLTransformationResult(
         output,
@@ -133,6 +140,7 @@ def migrate_sdl_semantics(
             digest,
             context,
             output=output,
+            target_digest=target_digest,
             code=code,
             source_profile=source_profile,
             linked_context_digest=linked_digest,
@@ -162,8 +170,9 @@ def _adopt_legacy_source(
     scheme_snapshots: tuple[ExternalConceptSchemeSnapshotModel, ...],
     limits: SDLParserLimits,
 ) -> tuple[Scenario | None, tuple[ExternalConceptBindingDocumentModel, ...], str | None]:
-    if not isinstance(raw, dict) or raw.get("semantic_revision") not in {None, LEGACY_SDL_REVISION}:
-        raise ValueError("unsupported source revision")
+    # Tuple membership compares by equality, so an unhashable authored revision is refused, not a TypeError.
+    if not isinstance(raw, dict) or raw.get("semantic_revision") not in (None, LEGACY_SDL_REVISION):
+        raise _TransformationRefusal("unsupported source revision")
     if raw.get("imports"):
         return None, (), "semantic-migration.migrate-modules-independently"
     source_payload = {key: value for key, value in raw.items() if key != "semantic_revision"}
@@ -201,7 +210,7 @@ def _bindings(
         not admit_external_concept_bindings(document, subjects=subjects, scheme_snapshots=snapshots).admitted
         for document in transformed
     ):
-        raise ValueError("linked classification binding admission failed")
+        raise _TransformationRefusal("linked classification binding admission failed")
     return transformed
 
 
