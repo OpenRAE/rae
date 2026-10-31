@@ -1,0 +1,689 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "enterprise-participant-sdl",
+      "kind": "sdl",
+      "path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+      "sha256": "f7a8897beec243e188ee081975006fad32725f469f267db6e75a1e1cf5727032",
+      "validator": "raes parse, semantic, instantiation/admission, and compiler pipeline"
+    },
+    {
+      "artifact_id": "port-range-sdl",
+      "kind": "sdl",
+      "path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+      "sha256": "0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f",
+      "validator": "raes parse, semantic, instantiation/admission, and compiler pipeline"
+    },
+    {
+      "artifact_id": "experiment-task-contract",
+      "kind": "experiment-task",
+      "path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+      "sha256": "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc",
+      "validator": "raes_contracts.contracts.ExperimentTaskModel"
+    },
+    {
+      "artifact_id": "apparatus-context-contract",
+      "kind": "experiment-apparatus-context",
+      "path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+      "sha256": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299",
+      "validator": "raes_contracts.contracts.ExperimentApparatusContextModel"
+    },
+    {
+      "artifact_id": "backend-profile",
+      "kind": "backend-profile",
+      "path": "contracts/profiles/backend/orchestration-capable.json",
+      "sha256": "f70b8505a5c0055416db86c533e2e5bf08b11e5a514f076223b6d6c36215a092",
+      "validator": "raes_contracts.backend_profiles.BackendProfileModel"
+    },
+    {
+      "artifact_id": "known-limitations",
+      "kind": "documentation",
+      "path": "docs/explain/sdl/limitations.md",
+      "sha256": "489eeab3ce682627682311581eb98af9abb9ff42a437145af266eefb71dc7fc4",
+      "validator": "documentation evidence only"
+    }
+  ],
+  "baseline": {
+    "release_revision": "1.1.0",
+    "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
+  },
+  "captured_at": "2026-10-31T06:31:04.445274+00:00",
+  "concept_results": [
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "range-topology",
+      "rationale": "SDL nodes and infrastructure own host, network, link, and dependency meaning; the compiler emits canonical node deployment addresses.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/infrastructure/shipping-portal",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/node_deployments/provision.node.shipping-portal",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/nodes/shipping-portal"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "exercise-roles",
+      "rationale": "SDL entity roles own exercise responsibility without becoming control-plane identity or authorization.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/entities/enterprise-participant/role",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/entities/enterprise-participant",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/entities/enterprise-participant/role",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/entity_specs/enterprise-participant/role",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/entities/enterprise-participant/role"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "evaluation-objectives",
+      "rationale": "SDL objectives own organization ownership, participant assignment, targets, windows, and assertion-based success; measures remain experiment contracts.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/objectives/demonstrate-handoff",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/objectives/demonstrate-handoff/success",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/objectives/demonstrate-handoff",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/objectives/evaluation.objective.demonstrate-handoff",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/objectives/demonstrate-handoff"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "control-workflows",
+      "rationale": "SDL workflows own the portable control graph and compile to canonical orchestration state contracts.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/workflows/yard-recovery",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/workflows/yard-recovery/steps",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/workflows/yard-recovery",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/workflows/orchestration.workflow.yard-recovery",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/workflows/yard-recovery"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "authored-evidence-expectations",
+      "rationale": "SDL evidence requirements own portable capture intent and remain distinct from evidence records and measures.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/evidence_requirements/objective-truth-evidence",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/evidence_requirements/objective-truth-evidence",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/evidence_requirements/objective-truth-evidence",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        }
+      ],
+      "typed_pointer": "/evidence_requirements/objective-truth-evidence"
+    },
+    {
+      "backend_support": "profile-bound",
+      "backend_vocabulary_occurrences": [],
+      "classification": "profile-or-manifest-constraint",
+      "completeness_disposition": "implemented",
+      "concept_id": "apparatus-selection-constraints",
+      "rationale": "The experiment task contract binds processor/backend identities, manifest refs, and capabilities outside SDL.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/apparatus_constraints/allowed_backend_refs/0",
+          "stage_id": "contract",
+          "validation_strength": "contract"
+        }
+      ],
+      "typed_pointer": "/apparatus_constraints/allowed_backend_refs/0"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "participant-agent",
+      "rationale": "SDL agents own participant entity, knowledge, actions, observation boundaries, and operating scope.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/agents/participant-agent",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/agents/participant-agent/observation_boundaries",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/agents/participant-agent",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/agent_specs/participant-agent",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/agents/participant-agent"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "participant-action-contract",
+      "rationale": "The action contract declares portable preconditions, effects, observations, evidence, and failure classes without a runner command.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/probe-customer-portal-login",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/probe-customer-portal-login/effects",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/probe-customer-portal-login",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/participant.action-contract.probe-customer-portal-login",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/action_contracts/probe-customer-portal-login"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "participant-observation-boundary",
+      "rationale": "The observation boundary separately declares visible, hidden, and evidence-only information with transition rules.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant-view",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant-view/view_rules",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant-view",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant.observation-boundary.participant-view",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/observation_boundaries/participant-view"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "evaluation-measure",
+      "rationale": "ExperimentTaskModel owns metric construct, unit, direction, aggregation, and evidence requirements outside SDL objectives.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/evaluation_protocol/metric_definitions/foothold-achieved",
+          "stage_id": "contract",
+          "validation_strength": "contract"
+        }
+      ],
+      "typed_pointer": "/evaluation_protocol/metric_definitions/foothold-achieved"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "missing",
+      "completeness_disposition": "documented-gap",
+      "concept_id": "participant-tool-affordance",
+      "rationale": "This preregistered matrix has no tested carrier for participant tool affordances. The retained missing classification records missing coverage evidence, not the absence of current participant-behavior capabilities.",
+      "stage_results": [
+        {
+          "artifact_path": "docs/explain/sdl/limitations.md",
+          "diagnostic_codes": [],
+          "note": "The preregistered carrier slot was not run; metadata does not substitute for a typed coverage test.",
+          "outcome": "not_run",
+          "pointer": null,
+          "stage_id": "authored",
+          "validation_strength": "not-applicable"
+        }
+      ],
+      "typed_pointer": null
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "resource-constrained-topology",
+      "rationale": "SDL node resources and infrastructure dependencies express portable resource intent without provider resource identifiers.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal/resources",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/infrastructure/shipping-portal",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal/resources",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/node_deployments/provision.node.shipping-portal",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/nodes/shipping-portal/resources"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "missing",
+      "completeness_disposition": "documented-gap",
+      "concept_id": "formal-constraint-satisfiability",
+      "rationale": "This coverage matrix did not exercise a solver-backed carrier. The separate formal-semantic-validation release demonstrates its bounded finite-domain profile; that result is not silently imported into this protocol's missing carrier slot.",
+      "stage_results": [
+        {
+          "artifact_path": "docs/explain/sdl/limitations.md",
+          "diagnostic_codes": [],
+          "note": "No coverage-carrier execution was performed here; independent solver evidence does not change this preregistered denominator.",
+          "outcome": "not_run",
+          "pointer": null,
+          "stage_id": "semantic",
+          "validation_strength": "not-applicable"
+        }
+      ],
+      "typed_pointer": null
+    },
+    {
+      "backend_support": "profile-bound",
+      "backend_vocabulary_occurrences": [
+        {
+          "allowed": true,
+          "artifact_path": "source:vsdl-paper",
+          "pointer": "source sections 4-5",
+          "reason": "Legitimate VSDL realization vocabulary, not RAES core SDL structure.",
+          "term": "OpenStack/Terraform/Packer"
+        }
+      ],
+      "classification": "deliberately-backend-specific",
+      "completeness_disposition": "external",
+      "concept_id": "provider-specific-provisioning",
+      "rationale": "Provider image selection and provisioning engines are realization mechanics and therefore remain outside core SDL.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/profiles/backend/orchestration-capable.json",
+          "diagnostic_codes": [],
+          "note": "The portable boundary requires backend contracts; it does not standardize a provider engine.",
+          "outcome": "not_applicable",
+          "pointer": "/required_contracts",
+          "stage_id": "realization-disclosure",
+          "validation_strength": "profile"
+        }
+      ],
+      "typed_pointer": null
+    },
+    {
+      "backend_support": "profile-bound",
+      "backend_vocabulary_occurrences": [],
+      "classification": "profile-or-manifest-constraint",
+      "completeness_disposition": "implemented",
+      "concept_id": "apparatus-clock-context",
+      "rationale": "ExperimentApparatusContextModel records clock authority, time domain, and synchronization as apparatus facts outside scenario meaning.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+          "diagnostic_codes": [],
+          "note": "Fresh offline production replay resolved this typed pointer.",
+          "outcome": "passed",
+          "pointer": "/clocks/0",
+          "stage_id": "contract",
+          "validation_strength": "contract"
+        }
+      ],
+      "typed_pointer": "/clocks/0"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "missing",
+      "completeness_disposition": "documented-gap",
+      "concept_id": "federated-object-event-exchange",
+      "rationale": "The federated cyber object/event exchange carrier was not exercised by this preregistered matrix. Runtime event internals are not treated as equivalent evidence.",
+      "stage_results": [
+        {
+          "artifact_path": "docs/explain/sdl/limitations.md",
+          "diagnostic_codes": [],
+          "note": "The missing coverage-carrier test is recorded explicitly, without inferring an ecosystem-wide capability absence.",
+          "outcome": "not_run",
+          "pointer": null,
+          "stage_id": "contract",
+          "validation_strength": "not-applicable"
+        }
+      ],
+      "typed_pointer": null
+    }
+  ],
+  "deviations": [
+    {
+      "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+      "baseline_sha256": "54ba1a60220e27a55da9cd2a407d7d3ab836fa54460d0b0c6cad87c2e744ddbb",
+      "rationale": "Current governed artifact bytes were replayed through their production boundary; historical baseline bytes remain retained.",
+      "retest_sha256": "f7a8897beec243e188ee081975006fad32725f469f267db6e75a1e1cf5727032"
+    },
+    {
+      "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+      "baseline_sha256": "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec",
+      "rationale": "Current governed artifact bytes were replayed through their production boundary; historical baseline bytes remain retained.",
+      "retest_sha256": "0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f"
+    },
+    {
+      "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+      "baseline_sha256": "21952a752f4e8581a9fc3b872e4bc308150548170d38bcfc83dbbe35ff5e0b9f",
+      "rationale": "Current governed artifact bytes were replayed through their production boundary; historical baseline bytes remain retained.",
+      "retest_sha256": "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc"
+    },
+    {
+      "artifact_path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+      "baseline_sha256": "9536d897a09cbc6920e667e4f8f9371e51307aa0b3b5ff3c7de682dd783420ab",
+      "rationale": "Current governed artifact bytes were replayed through their production boundary; historical baseline bytes remain retained.",
+      "retest_sha256": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299"
+    },
+    {
+      "artifact_path": "docs/explain/sdl/limitations.md",
+      "baseline_sha256": "129cf17810aad4c51988bc872e28fe43ae95019a80053c42d800ff7e2b9cc93e",
+      "rationale": "Current governed artifact bytes were replayed through their production boundary; historical baseline bytes remain retained.",
+      "retest_sha256": "489eeab3ce682627682311581eb98af9abb9ff42a437145af266eefb71dc7fc4"
+    }
+  ],
+  "execution_status": "complete",
+  "implementation_surfaces": [
+    {
+      "content_sha256": "d51e087b13266ae20200b899ae389e9d4c5c2cb491cce581e50b007aafcb690a",
+      "path": "implementations/python/packages/raes_contracts",
+      "surface_id": "contract-models"
+    },
+    {
+      "content_sha256": "68f73f948fb8517dd3466cf9fbc92782102c9c1955e2b3b30db6cfdd212bdac0",
+      "path": "implementations/python/packages/raes_processor",
+      "surface_id": "processor-pipeline"
+    },
+    {
+      "content_sha256": "252b76ee4e67a20033405468fb15ddf7b0a816fc1e11d7474c69aaa2c47fa11c",
+      "path": "implementations/python/packages/raes",
+      "surface_id": "sdl-pipeline"
+    }
+  ],
+  "limitations": [
+    "The execution validates the pinned reference implementation and published contracts, not an independent backend.",
+    "Repository-owned examples are exact execution artifacts; the preregistered requests and concepts remain the coverage corpus.",
+    "No live range, participant, simulator federation or provider provisioning engine was executed.",
+    "Missing concepts retain the preregistered classification and bounded claims.",
+    "EXP-719 factorial generation, randomized allocation and participant configuration evidence are verified by dedicated regression tests; this retained offline corpus makes no additional treatment, runtime or backend realization claim.",
+    "Issue 1549 external-backend compatibility and trial realization are verified by dedicated regression tests; this retained offline corpus makes no independent-backend execution claim.",
+    "Issue 1520 condition membership is verified by dedicated experiment-authoring regressions. This retained offline corpus adds no ontology, domain completeness, or execution claim.",
+    "API-414 declarations and capacity checks have dedicated targeted tests. This offline corpus establishes no native participant tool execution.",
+    "This retained offline corpus adds no modular control runtime or independent backend conformance claim. Issue 1071 has separate bounded runtime probes.",
+    "Issue 1629 shared runtime sequencing, Temporal recovery and authored retry behavior have separate targeted tests; this offline corpus adds no live backend or durable workflow assurance.",
+    "Issue 1543 combines MCP argument sanitization with the issue 1678 exception boundary. Dedicated MCP regressions cover both protections; this offline corpus adds no live backend assurance."
+  ],
+  "protocol_revision": "1.0.0",
+  "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
+  "raes_revision": "a601b696ce6d5d5a84f74305ee77d1983fca8ce8",
+  "snapshot_id": "issue-1758-open-empty-concern-specification-replay",
+  "snapshot_revision": "1.0.0",
+  "source_state": {
+    "base_revision": "a601b696ce6d5d5a84f74305ee77d1983fca8ce8",
+    "checkout_state": "modified",
+    "implementation_digest": "697752c403bd6ceea551483cde408465d15caf7bc45338a81a42cd07c06f9fcf",
+    "profile": "python-reference-source/v2"
+  }
+}
