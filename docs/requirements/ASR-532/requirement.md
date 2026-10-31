@@ -30,6 +30,9 @@ requirement.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Original authority is validated before cleanup comparison)
+- TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Reject unsupported success and preserve trusted or recoverable inventory)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_scheduler_initialization.py` (Autonomous initialization uses participant-scoped result admission)
 - TESTS → TEST `implementations/python/tests/test_issue_1439_participant_initialization.py` (Reject initialization metadata mutation and accepted resource deletion)
 
