@@ -151,6 +151,7 @@ accounts:
 - [SDL Sections Reference](sections.md) — Explanatory reference for the complete live authoring-section catalog
 - [Parser Behavior](parser.md) — `sdl-yaml/v1`, explicit migration, typed normalization, and canonical identity
 - [Scenario-Family Variation Points](variation-points.md) — Bounded domains, typed targets, constraints, and composition behavior
+- [Supplied-Source Parsing](supplied-source-parsing.md) — Consumer parse of untrusted packs from supplied bytes, with pinned and locked local imports
 - [Language-Service Tools](language-service.md) — Agent-facing completions, references, formatting, diagnostics, and structured edits
 - [Agent Guidance Profile](agent-guidance.md) — Machine-readable scope boundaries, invariants, review priorities, and safe-operating expectations
 - [Semantic Validation](validation.md) — Cross-reference checks and what the validator enforces

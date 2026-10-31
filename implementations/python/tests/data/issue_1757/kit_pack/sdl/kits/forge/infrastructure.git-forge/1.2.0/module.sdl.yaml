@@ -1,0 +1,149 @@
+name: git-forge
+version: 1.2.0
+description: Reusable static infrastructure for Git forge. Configures organization_name through
+  the kit parameter contract.
+module:
+  id: infrastructure/git-forge
+  version: 1.2.0
+  parameters:
+  - deployment_profile
+  - service_label
+  - organization_name
+  exports:
+    nodes:
+    - forge
+    content:
+    - seed_inventory
+    accounts:
+    - forge_user
+  description: Composable Git forge infrastructure module.
+variables:
+  deployment_profile:
+    type: string
+    default: standard
+    allowed_values:
+    - compact
+    - standard
+  service_label:
+    type: string
+    default: git-forge
+  organization_name:
+    type: string
+    default: engineering
+nodes:
+  forge:
+    type: compute
+    description: '${deployment_profile} profile for ${service_label} (Git forge). Configuration:
+      ${organization_name}.'
+    source:
+      name: gitea
+      version: '1'
+    resources:
+      cpu: 2
+      ram: 2 GiB
+    services:
+    - port: 22
+      protocol: tcp
+      name: ssh
+      description: Declared ssh service surface.
+    - port: 3000
+      protocol: tcp
+      name: http
+      description: Declared http service surface.
+    runtime:
+      applications:
+      - application_id: forge_surface
+        service: http
+        protocol: http
+        name: Forge surface
+        routes:
+        - route_id: primary
+          path: /
+          methods:
+          - GET
+          responses:
+          - status_code: 200
+            description: Declared primary response.
+        - route_id: health
+          path: /health
+          methods:
+          - GET
+          responses:
+          - status_code: 200
+            description: Declared health response.
+content:
+  seed_inventory:
+    type: dataset
+    target: forge
+    description: Benign infrastructure seed inventory for ${organization_name}.
+    items:
+    - name: organization
+      display_name: Organization
+      tags:
+      - infrastructure
+      - seed
+      description: Declared organization for this reusable service.
+    - name: repositories
+      display_name: Repositories
+      tags:
+      - infrastructure
+      - seed
+      description: Declared repositories for this reusable service.
+    - name: teams
+      display_name: Teams
+      tags:
+      - infrastructure
+      - seed
+      description: Declared teams for this reusable service.
+    - name: seed_commits
+      display_name: Seed Commits
+      tags:
+      - infrastructure
+      - seed
+      description: Declared seed commits for this reusable service.
+    format: application/json
+    text: |
+      {
+        "organization": {
+          "visibility": "private",
+          "membership": "managed",
+          "default_role": "member"
+        },
+        "repositories": [
+          {
+            "name": "sample-app",
+            "visibility": "private",
+            "default_branch": "main"
+          }
+        ],
+        "teams": [
+          {
+            "name": "Developers",
+            "permission": "write"
+          },
+          {
+            "name": "Reviewers",
+            "permission": "read"
+          }
+        ],
+        "seed_commits": [
+          {
+            "message": "Initial synthetic fixture",
+            "author": "Lab Author",
+            "files": [
+              "README.md"
+            ]
+          }
+        ]
+      }
+accounts:
+  forge_user:
+    username: developer
+    node: forge
+    password_strength: strong
+    description: Declared environment account; credential delivery remains backend-owned.
+realization:
+  constraints:
+  - field_pointer: /nodes/forge
+    concern: compute-substrate
+    posture: open

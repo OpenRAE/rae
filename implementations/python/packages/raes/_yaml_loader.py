@@ -10,6 +10,8 @@ from raes_contracts.json_pointer import pointer_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode
 
 from ._errors import (
+    SDLImportError,
+    SDLImportErrorCode,
     SDLParseDiagnostic,
     SDLParseError,
     SDLSourceRange,
@@ -86,7 +88,11 @@ def load_sdl_yaml(
             not isinstance(constructed, dict)
             or constructed.get("semantic_revision") != source_options.required_semantic_revision
         ):
-            raise SDLParseError("Imported source must carry the selected semantic revision.", path=path)
+            raise SDLImportError(
+                SDLImportErrorCode.REVISION_MISMATCH,
+                "Imported source must carry the selected semantic revision.",
+                path=path,
+            )
     except yaml.YAMLError as exc:
         raise yaml_parse_error(exc, path=path) from exc
     else:
