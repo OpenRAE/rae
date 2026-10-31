@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-976-crossing-publication-formal-analysis",
+  "analysis_id": "issue-297-current-dev-formal-analysis",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-976-crossing-publication-formal-6382a3969ae5",
-  "generated_at": "2026-10-31T18:13:46.858380+00:00",
+  "execution_id": "issue-297-current-dev-formal-8c426b8a5efb",
+  "generated_at": "2026-10-31T15:13:16.809178+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "EXP-719 factorial generation, randomized allocation and participant configuration behavior are covered by their dedicated regressions; this retained corpus adds no treatment or live execution claim.",
@@ -136,6 +136,6 @@
     "Issue 1629 shared runtime sequencing, Temporal recovery and authored retry behavior have separate targeted tests; this offline corpus adds no live backend or durable workflow assurance.",
     "Issue 1543 combines MCP argument sanitization with the issue 1678 exception boundary. Dedicated MCP regressions cover both protections; this offline corpus adds no live backend assurance."
   ],
-  "plain_language_outcome": "Supported formal controls and fourteen named participant fixtures were freshly replayed after the authored exposure changes. Unsupported classes remain untested; no native or universal qualification is added.",
+  "plain_language_outcome": "The combined development source was freshly replayed through the retained offline parser, compiler, finite solver, typed exploit-path, and participant controls. Unsupported classes and bounded limits remain explicit.",
   "protocol_revision": "2.0.0"
 }

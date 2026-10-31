@@ -8,6 +8,7 @@ from raes_contracts.graphs import has_cycle
 
 from .._base import VARIABLE_TOKEN_RE
 from .._stateful_resource_references import stateful_resource_reference_errors
+from ..descriptor_profiles import descriptor_owner_errors
 from ..entities import flatten_entities
 from ..explicitness import classify_scenario_explicitness
 from ..nodes import Node, NodeType
@@ -94,6 +95,13 @@ class _SectionsMixin:
         self._s._set_explicitness(result.records)
         for error in result.errors:
             self._err(error)
+
+    def _verify_descriptor_profiles(self) -> None:
+        """Require each typed descriptor binding to be owned by its own field (ADR-120)."""
+
+        for owner, pointer, message in descriptor_owner_errors(self._s):
+            with self._owner(owner):
+                self._err(message, pointer=pointer.removeprefix("#"))
 
     def _verify_realization_designations(self) -> None:
         records, constraints, known_namespaces = self._realization_designation_surfaces()

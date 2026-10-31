@@ -514,6 +514,10 @@ ownership:
     - implementations/python/packages/raes_runtime/control_plane_api_models.py
     - implementations/python/packages/raes_runtime/control_plane_submission.py
     - implementations/python/packages/raes_runtime/manager.py
+    # Issue #298 rechecks typed descriptor profile admission at runtime plan admission (ADR-120).
+    - implementations/python/packages/raes_runtime/manager_plan_admission.py
+    # Issue #298 repins the ADR index identity digests for ADR-120.
+    - tools/policy/historical_identity_records.json
     - implementations/python/tests
     - specs/formal/participant-semantics
     - specs/formal/sdl-phases
@@ -595,6 +599,8 @@ ownership:
     - implementations/python/packages/raes_runtime/observation_results.py
     # Prepared-resource provenance remains runtime-owned (issue #1697).
     - implementations/python/packages/raes_runtime/backend_apply_results.py
+    # Issue #298: runtime plan admission rechecks typed descriptor profiles (ADR-120).
+    - implementations/python/packages/raes_runtime/manager_plan_admission.py
     - docs/migration/runtime-lifetime.md
     - contracts/fixtures/experiment-core/experiment-evidence-record-v1
     - implementations/python/tests

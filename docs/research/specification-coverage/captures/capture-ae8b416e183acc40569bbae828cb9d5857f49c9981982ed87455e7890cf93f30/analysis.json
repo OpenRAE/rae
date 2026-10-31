@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-976-crossing-publication-specification-analysis",
+  "analysis_id": "issue-297-current-dev-specification-analysis",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-10-31T18:13:46.858380+00:00",
+  "generated_at": "2026-10-31T15:13:16.809178+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -57,7 +57,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "Six retained specification artifacts and their passing typed pointers were freshly replayed after the authored exposure changes. Missing and backend-specific concepts retain their bounded classifications.",
+  "plain_language_outcome": "The combined development source freshly executed all six retained specification artifacts and their typed pointers. Missing and backend-specific concepts retain their bounded classifications.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -89,6 +89,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "issue-976-crossing-publication-specification-replay",
-  "snapshot_sha256": "634245499327d62e40a9f082a1555554da43dcf59345c1bc4b5e2c97632648fb"
+  "snapshot_id": "issue-297-current-dev-specification-replay",
+  "snapshot_sha256": "184f5d9c8969568a8f9f54a412f88375e949254717d2e884ac567123dc1274a4"
 }
