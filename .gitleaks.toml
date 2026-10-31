@@ -19,8 +19,12 @@ same directory:
    field context (not a bare hex pattern) to match -- a differently named secret field in the same
    file (e.g. a real credential mistakenly added alongside a vector) is still flagged by
    `generic-api-key`.
-3. `paths` restricts the exemption to the canonical vector directory -- the same field name/value
-   shape placed anywhere else in the repository is still flagged.
+3. `paths` restricts the exemption to the canonical vector directory and to the Go parity corpus
+   inputs -- the same field name/value shape placed anywhere else in the repository is still flagged.
+
+The Go parity corpus (implementations/go/internal/parity/testdata/inputs/) keeps byte-identical
+copies of these vectors, so that module-local tests can read them. The file name of each copy is the
+SHA-256 digest of its content. The same rule and field scope applies to these copies (#1779).
 
 `targetRules` is required for the AND semantics to hold: gitleaks' directory walker prunes a whole
 file/directory from scanning based on `paths` alone for any *global* (non-rule-targeted) allowlist,
@@ -49,6 +53,7 @@ regexes = [
 ]
 paths = [
   '''(^|/)contracts/fixtures/random-stream-vectors/.*''',
+  '''(^|/)implementations/go/internal/parity/testdata/inputs/[0-9a-f]{64}$''',
 ]
 
 [[allowlists]]
