@@ -169,8 +169,9 @@ def test_review_cannot_self_approve_or_detach_from_the_measured_subject(capture,
         forged["qualified_run"]["url"] = "https://example.com/runs/1"
     else:
         forged["approved_by"] = "self"
+    bundle = bundle_of(reproduction, files, forged)
     with pytest.raises(EvidenceIntegrityError):
-        admit(bundle_of(reproduction, files, forged), pin)
+        admit(bundle, pin)
 
 
 @pytest.mark.parametrize("fault", ["target", "manifest", "inventory", "execution-subject", "execution-claim"])
@@ -294,8 +295,9 @@ def test_retain_publishes_only_an_admitted_and_server_bound_capture(capture, mon
     assert path == reproduction_record.OUTPUT_ROOT + "/capture-" + manifest_digest.split(":", 1)[1]
     stage["review.json"] = reproduction.encoded({**review, "reviewer_ref": PRODUCER})
     published.clear()
+    fetch = fetcher(records)
     with pytest.raises(EvidenceIntegrityError):
-        reproduction_record.retain(ROOT, staging, pin, fetch=fetcher(records))
+        reproduction_record.retain(ROOT, staging, pin, fetch=fetch)
     assert published == []
 
 
@@ -368,6 +370,7 @@ def test_retain_refuses_review_references_without_matching_server_records(captur
     else:
         records[reviewer]["body"] = "reviewer run"
     staging, _stage, published = staged_retain(monkeypatch, files, review)
+    fetch = fetcher(records)
     with pytest.raises((EvidenceIntegrityError, OperationalError)):
-        reproduction_record.retain(ROOT, staging, pin, fetch=fetcher(records))
+        reproduction_record.retain(ROOT, staging, pin, fetch=fetch)
     assert published == []

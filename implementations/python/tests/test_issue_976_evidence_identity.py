@@ -93,8 +93,9 @@ def test_subject_change_refuses_the_retained_machine_check(monkeypatch, path):
     from implementations.formal.participant_crossing import machine_check
 
     checkout_with_changed(monkeypatch, path)
+    bundle, pin = machine_check.load_retained(ROOT)
     with pytest.raises(EvidenceIntegrityError):
-        machine_check.admit_bundle(ROOT, *machine_check.load_retained(ROOT))
+        machine_check.admit_bundle(ROOT, bundle, pin)
 
 
 def test_apparatus_drift_during_a_run_still_stops_the_producer(monkeypatch):
