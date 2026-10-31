@@ -88,3 +88,13 @@ ADR-081 governs relation discipline and current tests provide bounded evidence, 
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_checks.py` (Complete comparison inventory, exact original bytes and always-accept rejection)
 - TESTS → TEST `implementations/python/tests/test_issue_975_reproduction_record.py` (Retained qualified evidence, exact artifact joins and attributable agent acceptance)
 - IMPLEMENTS → DOCUMENTATION `specs/formal/participant-semantics/reproduction/pin.json` (Immutable qualified reproduction and separate acceptance record)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#976` (Reproduced finite model-check publication with explicit nonclaims)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction_record.py` (Separate attributable review admission for the retained reproduction)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/publication.py` (Bounded publication facts from admitted evidence only)
+- IMPLEMENTS → DOCUMENTATION `specs/formal/assurance-fulfillment.yaml` (FM3 participant-semantics fulfillment with the finite model-check artifacts)
+- IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json` (Assessment evidence without profile promotion)
+- TESTS → TEST `implementations/python/tests/test_issue_976_reproduction_record.py` (Self-approved, detached, and stale reproduction records are refused)
+- TESTS → TEST `implementations/python/tests/test_issue_976_crossing_publication.py` (Finite evidence is not promoted to proof, runtime, backend, noninterference, or opacity)
+- TESTS → TEST `implementations/python/tests/test_issue_976_evidence_identity.py` (Retained evidence stays admissible across apparatus changes and refuses subject changes)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/reproduction_attestation.py` (Retain-time binding of review references to GitHub comment, run, job, artifact, and commit records)
