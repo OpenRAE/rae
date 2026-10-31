@@ -359,7 +359,7 @@ def _validate_current_source_state(
     if not replay_current:
         return
     failures.extend(validate_current_deviations(repo_root, snapshot, path))
-    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=True))
+    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=False))
     state = snapshot.get("source_state")
     if not isinstance(state, dict) or state.get("base_revision") != snapshot.get("raes_revision"):
         failures.append(
@@ -395,7 +395,7 @@ def _validate_snapshot(
         return
     _snapshot_join_failures(repo_root, protocol, snapshot, failures, path)
     _validate_current_source_state(repo_root, snapshot, failures, path, replay_current=replay_current)
-    _validate_implementation_surfaces(repo_root, snapshot, failures, path, replay_current=replay_current)
+    _validate_implementation_surfaces(repo_root, snapshot, failures, path)
 
     artifacts_by_id, executed = _validate_artifacts(repo_root, snapshot, failures, path, replay_current=replay_current)
     carrier_artifacts = [

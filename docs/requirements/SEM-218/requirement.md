@@ -392,3 +392,5 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/descriptor_profiles.py` (Planning refusal of unadmitted descriptor profiles)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Runtime refusal of unadmitted descriptor profiles)
 - TESTS → TEST `implementations/python/tests/test_issue_298_descriptor_profiles.py` (Descriptor owner, composition, planning and runtime admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_scope_index.py` (Budgeted evaluation-local scope lookup)
+- TESTS → TEST `implementations/python/tests/test_issue_1759_runtime_constraint_budget.py` (Default-budget application conformance and finite scope work)
