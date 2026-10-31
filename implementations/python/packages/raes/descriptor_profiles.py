@@ -136,19 +136,25 @@ def descriptor_profiles_admitted(
     bindings = tuple(bindings)
     if not bindings:
         return True
-    if context is None:
-        return False
-    try:
-        if profile_context_digest(context) != manifest_context_digest:
-            return False
-    except ValueError:
-        # The contract owner refuses an unbounded or malformed context with ValueError (E3).
-        return False
-    return all(
+    return _committed_context(context, manifest_context_digest) and all(
         _owned_by_a_descriptor_field(binding)
         and admit_domain_profile_bindings((binding,), context, policy=_POLICY).admitted
         for binding in bindings
     )
+
+
+def _committed_context(
+    context: DomainProfileResolutionContextModel | None, manifest_context_digest: str | None
+) -> bool:
+    """Report whether a bounded target context matches the digest that its manifest commits."""
+
+    if context is None:
+        return False
+    try:
+        return profile_context_digest(context) == manifest_context_digest
+    except ValueError:
+        # The contract owner refuses an unbounded or malformed context with ValueError (E3).
+        return False
 
 
 @dataclass(frozen=True)
@@ -174,17 +180,19 @@ def _entries(node: object) -> tuple[tuple[str, object], ...]:
 def _walk(
     host: DescriptorProfileHost, node: object, remaining: tuple[str, ...], keys: tuple[str, ...]
 ) -> Iterator[DescriptorProfileField]:
-    if node is None:
-        return
-    if not remaining:
+    if node is not None and not remaining:
         yield DescriptorProfileField(host, (host.section, keys[0]), host.pointer(*keys), node)
-        return
-    segment, rest = remaining[0], remaining[1:]
+    elif node is not None:
+        for child, child_keys in _selected(node, remaining[0], keys):
+            yield from _walk(host, child, remaining[1:], child_keys)
+
+
+def _selected(node: object, segment: str, keys: tuple[str, ...]) -> tuple[tuple[object, tuple[str, ...]], ...]:
+    """Return each child that one path segment selects, with the map keys that reach it."""
+
     if segment == EACH_KEY:
-        for key, child in _entries(node):
-            yield from _walk(host, child, rest, (*keys, key))
-    else:
-        yield from _walk(host, _child(node, segment), rest, keys)
+        return tuple((child, (*keys, key)) for key, child in _entries(node))
+    return ((_child(node, segment), keys),)
 
 
 def descriptor_profile_fields(document: object) -> Iterator[DescriptorProfileField]:

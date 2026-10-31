@@ -188,23 +188,26 @@ def test_field_owned_binding_validates_and_compiles_into_the_descriptor_tuple(ho
     ids=["contract", "address", "family", "phase", "context", "use"],
 )
 def test_binding_owned_by_anything_but_its_field_fails_validation(host, owner):
+    binding = _binding(host, **owner)
     with pytest.raises(SDLValidationError, match="typed profile binding must be owned by its own field"):
-        _parse(host, _binding(host, **owner))
+        _parse(host, binding)
 
 
 @pytest.mark.parametrize("host", _HOST_IDS)
 def test_binding_owner_of_another_descriptor_field_fails_validation(host):
     other = next(item for item in _HOST_IDS if item != host)
     family, context, pointer = _HOSTS[other]
+    binding = _binding(host, canonical_address=pointer, concept_family=family, context=context)
     with pytest.raises(SDLValidationError, match="typed profile binding must be owned by its own field"):
-        _parse(host, _binding(host, canonical_address=pointer, concept_family=family, context=context))
+        _parse(host, binding)
 
 
 def test_nested_binding_must_keep_its_parent_owner():
     parent = _binding("channel")
     child = _binding("channel", binding_id="child", canonical_address="#/agents/other/interactive_access/x/channel")
+    foreign = parent.model_copy(update={"children": (child,)})
     with pytest.raises(SDLValidationError, match="typed profile binding must be owned by its own field"):
-        _parse("channel", parent.model_copy(update={"children": (child,)}))
+        _parse("channel", foreign)
     owned = parent.model_copy(update={"children": (_binding("channel", binding_id="child"),)})
     assert compile_runtime_model(_parse("channel", owned)).descriptor_profile_bindings == (owned,)
 
@@ -275,8 +278,9 @@ def test_admitted_channel_grants_no_account_or_endpoint():
     assert admitted.model.participant_behaviors == model.participant_behaviors
     source = _payload("channel", binding)
     source["agents"]["blue-participant"]["starting_accounts"] = []
+    without_account = yaml.safe_dump(source)
     with pytest.raises(SDLValidationError, match="not in starting_accounts"):
-        parse_sdl(yaml.safe_dump(source))
+        parse_sdl(without_account)
 
 
 def test_built_in_descriptor_values_need_no_profile_context():
