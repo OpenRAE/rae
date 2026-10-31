@@ -106,5 +106,6 @@ def test_measurement_admission_refuses_promotion_and_drift(monkeypatch, result, 
         record["result"]["non_claims"] = []
     else:
         record["reviewer"] = "self-approved"
+    payload = reproduction.encoded(record)
     with pytest.raises(EvidenceIntegrityError):
-        reproduction.admit_measurement(ROOT, reproduction.encoded(record), pin)
+        reproduction.admit_measurement(ROOT, payload, pin)

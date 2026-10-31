@@ -21,7 +21,8 @@ def test_independent_inventory_rebuilds_the_exact_original_bundle(result):
     def recorded(root, name, left, right, mode, *, formula=False):
         calls.append((name, mode, formula))
         if name == "baseline":
-            assert left == result["abstract.aut"] and right == result["concrete.aut"]
+            assert left == result["abstract.aut"]
+            assert right == result["concrete.aut"]
             return Comparison(True, None)
         return corpus.compare(root, left, right, mode, formula=formula)
 
