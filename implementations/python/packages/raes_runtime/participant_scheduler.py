@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from asyncio import CancelledError
 from collections.abc import Callable, Iterable
+from typing import TypedDict, Unpack
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
@@ -258,6 +259,14 @@ def _initialize_policy(
     )
 
 
+class RunDueOptions(TypedDict, total=False):
+    """Keyword options of one :meth:`ParticipantScheduler.run_due` pass."""
+
+    cancellation_sink: Callable[[ApplyResult], None] | None
+    invocation_tools: InvocationToolActionConfiguration | None
+    wall_clock: WallClock
+
+
 class ParticipantScheduler:
     """Deterministically selects due actions and delegates native execution."""
 
@@ -303,10 +312,7 @@ class ParticipantScheduler:
         participant_runtime: object,
         snapshot: RuntimeSnapshot,
         activity_controls: dict[str, ParticipantActivityRandomControl] | None = None,
-        *,
-        cancellation_sink: Callable[[ApplyResult], None] | None = None,
-        invocation_tools: InvocationToolActionConfiguration | None = None,
-        wall_clock: WallClock = utc_now,
+        **options: Unpack[RunDueOptions],
     ) -> ApplyResult:
         """Run each due action; on cancellation, give the settled state to ``cancellation_sink``.
 
@@ -316,8 +322,15 @@ class ParticipantScheduler:
         actions hosted by any dispatched invocation commit on both paths.
         """
 
+        for name in options.keys() - RunDueOptions.__optional_keys__:
+            raise TypeError(f"ParticipantScheduler.run_due() got an unexpected keyword argument {name!r}")
+        cancellation_sink = options.get("cancellation_sink")
         run = SchedulerRunState(
-            working=snapshot, diagnostics=[], changed=[], invocation_tools=invocation_tools, wall_clock=wall_clock
+            working=snapshot,
+            diagnostics=[],
+            changed=[],
+            invocation_tools=options.get("invocation_tools"),
+            wall_clock=options.get("wall_clock", utc_now),
         )
         resolved_activity_controls = activity_controls or {}
         try:

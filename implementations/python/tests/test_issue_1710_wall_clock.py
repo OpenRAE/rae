@@ -80,11 +80,22 @@ def test_a_run_cannot_replace_the_clock_of_its_engine():
     clock = _fixed(FIRST)
     plane = RuntimeControlPlane(create_stub_target(), wall_clock=clock)
     try:
+        other = _fixed(SECOND)
         with pytest.raises(ValueError, match="^a run cannot replace engine execution configuration$"):
-            plane.open_run(run_scope="run:clock-other", wall_clock=_fixed(SECOND))
+            plane.open_run(run_scope="run:clock-other", wall_clock=other)
         assert plane.open_run(run_scope="run:clock-same", wall_clock=clock).wall_clock is clock
     finally:
         plane.close()
+
+
+def test_a_scheduler_pass_refuses_an_unknown_keyword():
+    from raes_runtime.participant_scheduler import ParticipantScheduler
+
+    snapshot = RuntimeSnapshot()
+    with pytest.raises(
+        TypeError, match="^ParticipantScheduler.run_due\\(\\) got an unexpected keyword argument 'clock'$"
+    ):
+        ParticipantScheduler.run_due([], None, None, snapshot, clock=utc_now)
 
 
 def test_backend_participant_runtime_records_episode_time_from_its_clock():

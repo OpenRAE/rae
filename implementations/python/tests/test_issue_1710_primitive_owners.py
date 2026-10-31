@@ -49,15 +49,24 @@ def _wall_clock_read(node: ast.AST) -> bool:
     return _attribute_call(node, "datetime", "now") or _attribute_call(node, "datetime", "utcnow")
 
 
+def _named_sha256(node: ast.AST) -> bool:
+    first = node.args[0] if _attribute_call(node, "hashlib", "new") and node.args else None
+    return isinstance(first, ast.Constant) and str(first.value).lower() == "sha256"
+
+
 def _sha256_construction(node: ast.AST) -> bool:
-    if isinstance(node, ast.Attribute) and node.attr == "sha256" and isinstance(node.value, ast.Name):
-        return node.value.id == "hashlib"
-    if isinstance(node, ast.ImportFrom) and node.module == "hashlib":
-        return any(alias.name == "sha256" for alias in node.names)
-    if _attribute_call(node, "hashlib", "new") and node.args:
-        first = node.args[0]
-        return isinstance(first, ast.Constant) and str(first.value).lower() == "sha256"
-    return False
+    attribute = (
+        isinstance(node, ast.Attribute)
+        and node.attr == "sha256"
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "hashlib"
+    )
+    imported = (
+        isinstance(node, ast.ImportFrom)
+        and node.module == "hashlib"
+        and any(alias.name == "sha256" for alias in node.names)
+    )
+    return attribute or imported or _named_sha256(node)
 
 
 def _pointer_escape(node: ast.AST) -> bool:

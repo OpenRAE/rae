@@ -119,11 +119,9 @@ def test_offset_datetime_parser_accepts_lowercase_z_and_keeps_the_offset():
 @pytest.mark.parametrize(("value", "field"), [("2024-01-01T00:00:00", "observed_at"), ("x", "expires_at"), (5, None)])
 def test_offset_datetime_parser_refusals_name_the_field_and_not_the_value(value, field):
     name = field or "timestamp"
+    arguments = (value,) if field is None else (value, field)
     with pytest.raises(ValueError, match=f"^{name} must be an ISO 8601 date-time with an explicit UTC offset$"):
-        if field is None:
-            parse_offset_datetime(value)
-        else:
-            parse_offset_datetime(value, field)
+        parse_offset_datetime(*arguments)
 
 
 # --- Naive values read as UTC (result-contract diagnostics) -------------------------------------------------

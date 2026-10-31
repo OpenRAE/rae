@@ -25,10 +25,11 @@ if TYPE_CHECKING:
 _LOCKED_PREFIX = "locked:"
 
 # The private request/signature seams (``_json_request``, ``_bytes_request``,
-# ``_extract_bundle_to_cache``, ``_verify_signatures``, ``_OCI_LIMITS``) are resolved through the package facade with function-local
-# ``from . import`` at each use, rather than bound here from the submodules. A test
-# that patches ``raes.module_registry.<seam>`` then replaces the binding these
-# production calls use, exactly as the pre-split single-file module did.
+# ``_extract_bundle_to_cache``, ``_verify_signatures``, ``_OCI_LIMITS``) are resolved
+# through the package facade with function-local ``from . import`` at each use,
+# rather than bound here from the submodules. A test that patches
+# ``raes.module_registry.<seam>`` then replaces the binding these production calls
+# use, exactly as the pre-split single-file module did.
 
 
 @dataclass(frozen=True)

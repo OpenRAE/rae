@@ -39,6 +39,9 @@ __all__ = (
 #: A callable that returns the current instant as an aware UTC ``datetime``.
 type WallClock = Callable[[], datetime]
 
+#: The ISO 8601 text of a zero UTC offset.
+_UTC_OFFSET = "+00:00"
+
 #: The one refusal message of :func:`parse_offset_timestamp_utc`.
 EXPLICIT_OFFSET_TIMESTAMP_ERROR = "timestamp must be an ISO-8601 value with an explicit UTC offset"
 
@@ -90,7 +93,7 @@ def utc_now() -> datetime:
 def isoformat_z(instant: datetime) -> str:
     """Return ``instant.isoformat()`` with ``Z`` in place of the ``+00:00`` offset."""
 
-    return instant.isoformat().replace("+00:00", "Z")
+    return instant.isoformat().replace(_UTC_OFFSET, "Z")
 
 
 def parse_rfc3339_datetime(field_name: str, value: str) -> datetime:
@@ -99,7 +102,7 @@ def parse_rfc3339_datetime(field_name: str, value: str) -> datetime:
     match = _RFC3339_DATETIME_PATTERN.fullmatch(value)
     if match is None:
         raise ValueError(f"{field_name} must be a valid RFC 3339 date-time")
-    normalized_value = f"{value[:-1]}+00:00" if value.endswith(("Z", "z")) else value
+    normalized_value = f"{value[:-1]}{_UTC_OFFSET}" if value.endswith(("Z", "z")) else value
     if match.group("second") == "60":
         normalized_value = f"{normalized_value[:17]}59{normalized_value[19:]}"
     try:
@@ -124,7 +127,7 @@ def parse_offset_timestamp_utc(raw: str) -> datetime:
 
     if not isinstance(raw, str) or not raw:
         raise ValueError(EXPLICIT_OFFSET_TIMESTAMP_ERROR)
-    normalized = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+    normalized = raw[:-1] + _UTC_OFFSET if raw.endswith("Z") else raw
     try:
         parsed = datetime.fromisoformat(normalized)
         offset = parsed.utcoffset()
@@ -151,7 +154,7 @@ def parse_offset_datetime(value: object, field_name: str = "timestamp") -> datet
     if not isinstance(value, str):
         raise ValueError(message)
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00").replace("z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", _UTC_OFFSET).replace("z", _UTC_OFFSET))
     except ValueError:
         raise ValueError(message) from None
     if parsed.utcoffset() is None:
@@ -163,7 +166,7 @@ def parse_timestamp_assuming_utc(raw: str) -> datetime:
     """Parse ISO 8601 text; a value without an offset is UTC."""
 
     if raw.endswith("Z"):
-        raw = raw[:-1] + "+00:00"
+        raw = raw[:-1] + _UTC_OFFSET
     parsed = datetime.fromisoformat(raw)
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)

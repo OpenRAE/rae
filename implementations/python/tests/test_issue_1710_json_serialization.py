@@ -51,15 +51,17 @@ def test_unicode_text_keeps_non_ascii_characters():
 def test_only_the_finite_variants_refuse_nan_and_infinity():
     assert sorted_json_text(float("nan")) == "NaN"
     assert sorted_json_text_unicode(float("-inf")) == "-Infinity"
+    infinite = {"x": float("inf")}
     for encode in (sorted_json_text_finite, sorted_json_text_unicode_finite):
         with pytest.raises(ValueError, match="Out of range float values are not JSON compliant"):
-            encode({"x": float("inf")})
+            encode(infinite)
 
 
 def test_conversion_callback_is_explicit():
+    amount = {"amount": Decimal("1.5")}
     with pytest.raises(TypeError, match="not JSON serializable"):
-        sorted_json_text({"amount": Decimal("1.5")})
-    assert sorted_json_text({"amount": Decimal("1.5")}, default=str) == '{"amount":"1.5"}'
+        sorted_json_text(amount)
+    assert sorted_json_text(amount, default=str) == '{"amount":"1.5"}'
     instant = datetime(2024, 1, 2, 3, 4, 5, tzinfo=UTC)
     assert sorted_json_digest({"at": instant}, default=str) == (
         "sha256:" + hashlib.sha256(b'{"at":"2024-01-02 03:04:05+00:00"}').hexdigest()

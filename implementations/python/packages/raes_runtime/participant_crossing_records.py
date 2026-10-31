@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from uuid import uuid4
 
 from raes_contracts.contracts.participant_crossing import (
@@ -102,11 +102,8 @@ def _prepare_crossing_decision(
     identity = preparation.identity
     resolution = preparation.resolution
     support = preparation.support
-    gates = preparation.gates
     disposition = preparation.disposition
-    request, decision = _crossing_records(
-        intent, identity, resolution, support, gates, disposition, wall_clock=control_plane.wall_clock
-    )
+    request, decision = _crossing_records(intent, preparation, wall_clock=control_plane.wall_clock)
     records = [request, decision]
     final_decision = decision
     final_disposition = disposition
@@ -137,11 +134,13 @@ def _prepare_crossing_decision(
             fresh_disposition = _decision_disposition(fresh_gates, fresh_resolution)
             fresh_request, fresh_decision = _crossing_records(
                 fresh_intent,
-                identity,
-                fresh_resolution,
-                fresh_support,
-                fresh_gates,
-                fresh_disposition,
+                replace(
+                    preparation,
+                    resolution=fresh_resolution,
+                    support=fresh_support,
+                    gates=fresh_gates,
+                    disposition=fresh_disposition,
+                ),
                 request_predecessor_refs=(transformed.event_id,),
                 wall_clock=control_plane.wall_clock,
             )
@@ -186,15 +185,13 @@ def _prepare_crossing_decision(
 
 def _crossing_records(
     intent: ParticipantCrossingIntent,
-    identity: ControlPlaneIdentity,
-    resolution: ParticipantCrossingPolicyResolution,
-    support: _BackendSupport,
-    gates: ParticipantCrossingDecisionGatesModel,
-    disposition: ParticipantCrossingDecisionDisposition,
+    preparation: _CrossingDecisionPreparation,
     *,
     request_predecessor_refs: tuple[str, ...] = (),
     wall_clock: WallClock,
 ) -> tuple[ParticipantCrossingOccurrenceModel, ParticipantCrossingOccurrenceModel]:
+    identity, resolution, support = preparation.identity, preparation.resolution, preparation.support
+    gates, disposition = preparation.gates, preparation.disposition
     now = isoformat_z(wall_clock())
     request_id = f"crossing-request.{uuid4()}"
     request_event_id = f"crossing-occurrence.requested.{uuid4()}"

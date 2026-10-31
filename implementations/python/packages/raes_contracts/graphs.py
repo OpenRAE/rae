@@ -73,57 +73,68 @@ def cyclic_components[N: Hashable](graph: Mapping[N, Collection[N]], *, key: Cal
     a long chain cannot exhaust the interpreter stack.
     """
 
-    index = 0
-    indices: dict[N, int] = {}
-    lowlinks: dict[N, int] = {}
-    stack: list[N] = []
-    on_stack: set[N] = set()
-    components: list[tuple[N, ...]] = []
+    traversal = _Tarjan(graph, key)
+    for node in sorted(graph, key=key):
+        if node not in traversal.indices:
+            traversal.strongconnect(node)
+    return sorted(traversal.components, key=lambda component: tuple(key(node) for node in component))
 
-    def visit(node: N) -> None:
-        nonlocal index
-        indices[node] = index
-        lowlinks[node] = index
-        index += 1
-        stack.append(node)
-        on_stack.add(node)
 
-    def close_component(node: N) -> None:
-        component: list[N] = []
-        while stack:
-            member = stack.pop()
-            on_stack.remove(member)
-            component.append(member)
-            if member == node:
-                break
-        component = sorted(component, key=key)
-        if len(component) > 1 or component[0] in graph[component[0]]:
-            components.append(tuple(component))
+class _Tarjan[N: Hashable]:
+    """State of one iterative Tarjan traversal (Tarjan 1972)."""
 
-    def strongconnect(root: N) -> None:
-        visit(root)
-        frames: list[tuple[N, Iterator[N]]] = [(root, iter(graph[root]))]
+    def __init__(self, graph: Mapping[N, Collection[N]], key: Callable[[N], Any]) -> None:
+        self.graph = graph
+        self.key = key
+        self.index = 0
+        self.indices: dict[N, int] = {}
+        self.lowlinks: dict[N, int] = {}
+        self.stack: list[N] = []
+        self.on_stack: set[N] = set()
+        self.components: list[tuple[N, ...]] = []
+
+    def visit(self, node: N) -> None:
+        self.indices[node] = self.index
+        self.lowlinks[node] = self.index
+        self.index += 1
+        self.stack.append(node)
+        self.on_stack.add(node)
+
+    def unvisited_successor(self, node: N, successors: Iterator[N]) -> N | None:
+        """Advance ``successors`` to the next unvisited node; lower ``node``'s link for each one on the stack."""
+
+        for successor in successors:
+            if successor not in self.indices:
+                return successor
+            if successor in self.on_stack:
+                self.lowlinks[node] = min(self.lowlinks[node], self.indices[successor])
+        return None
+
+    def strongconnect(self, root: N) -> None:
+        self.visit(root)
+        frames: list[tuple[N, Iterator[N]]] = [(root, iter(self.graph[root]))]
         while frames:
             node, successors = frames[-1]
-            descended = False
-            for successor in successors:
-                if successor not in indices:
-                    visit(successor)
-                    frames.append((successor, iter(graph[successor])))
-                    descended = True
-                    break
-                if successor in on_stack:
-                    lowlinks[node] = min(lowlinks[node], indices[successor])
-            if descended:
+            successor = self.unvisited_successor(node, successors)
+            if successor is not None:
+                self.visit(successor)
+                frames.append((successor, iter(self.graph[successor])))
                 continue
             frames.pop()
             if frames:
                 parent = frames[-1][0]
-                lowlinks[parent] = min(lowlinks[parent], lowlinks[node])
-            if lowlinks[node] == indices[node]:
-                close_component(node)
+                self.lowlinks[parent] = min(self.lowlinks[parent], self.lowlinks[node])
+            if self.lowlinks[node] == self.indices[node]:
+                self.close_component(node)
 
-    for node in sorted(graph, key=key):
-        if node not in indices:
-            strongconnect(node)
-    return sorted(components, key=lambda component: tuple(key(node) for node in component))
+    def close_component(self, node: N) -> None:
+        component: list[N] = []
+        while self.stack:
+            member = self.stack.pop()
+            self.on_stack.remove(member)
+            component.append(member)
+            if member == node:
+                break
+        component = sorted(component, key=self.key)
+        if len(component) > 1 or component[0] in self.graph[component[0]]:
+            self.components.append(tuple(component))
