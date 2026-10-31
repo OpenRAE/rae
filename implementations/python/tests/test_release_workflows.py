@@ -442,8 +442,8 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     workflow = _load(CI_PATH)
     assert workflow["permissions"] == {"contents": "read"}
-    assert workflow["on"]["push"]["branches"] == ["main", "dev"]
-    assert workflow["on"]["pull_request"]["branches"] == ["main", "dev"]
+    assert workflow["on"]["push"]["branches"] == ["main", "dev", "go-cutover"]
+    assert workflow["on"]["pull_request"]["branches"] == ["main", "dev", "go-cutover"]
     assert "continue-on-error" not in workflow["jobs"]["supply-chain"]
     canonical = workflow["jobs"]["canonical"]
     assert canonical["uses"] == LOCAL_CANONICAL_WORKFLOW
