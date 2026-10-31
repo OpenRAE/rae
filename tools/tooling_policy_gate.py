@@ -22,12 +22,35 @@ from tools.tooling_installed_tree import (
 from tools.tooling_oci_selection import LockedOciGraph, locked_oci_graph
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+# Evidence producers bind the validator that this launcher executes, including
+# its shared policy readers and schema authorities, rather than only this file.
+VALIDATION_SOURCE_PATHS = tuple(
+    sorted(
+        {
+            *(path.relative_to(REPO_ROOT).as_posix() for path in (REPO_ROOT / "tools").glob("tooling_*.py")),
+            *(
+                path.relative_to(REPO_ROOT).as_posix()
+                for path in (REPO_ROOT / "implementations/tooling/schemas").glob("*.json")
+            ),
+            "tools/check_tooling_artifact_policy.py",
+            "tools/policy/common.py",
+            "tools/generate_python_closures.py",
+            "tools/generate_python_closures_locks.py",
+            "tools/python_closure_profiles.py",
+            "implementations/tooling/python/pyproject.toml",
+            "implementations/tooling/python/uv.lock",
+        }
+    )
+)
 _VALIDATOR_TIMEOUT_SECONDS = 180
 _INVALID_SELECTION_RESPONSE = "development artifact policy failed before acquisition: invalid selection response"
 _INVALID_HOST_RESPONSE = "development artifact policy failed before acquisition: invalid host selection response"
 _SELECTION_REJECTED = "development artifact policy failed before acquisition: selection rejected"
 _VALIDATOR_INCOMPLETE = (
     "development artifact policy failed before acquisition: the frozen project validator could not complete"
+)
+_VALIDATOR_UNAVAILABLE = (
+    "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
 )
 
 
@@ -139,25 +162,23 @@ def host_platform_id() -> str:
     return f"{system}-{machine}"
 
 
-def _frozen_validator_command(policy_root: Path) -> list[str]:
+def _frozen_validator_command(policy_root: Path, *, offline: bool = False) -> list[str]:
     project_root = policy_root / "implementations" / "tooling" / "python"
     validator_python = project_root / ".venv" / "bin" / "python"
     validator = policy_root / "tools" / "check_tooling_artifact_policy.py"
     if not validator.is_file():
-        raise ArtifactPolicyError(
-            "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
-        )
+        raise ArtifactPolicyError(_VALIDATOR_UNAVAILABLE)
     if validator_python.is_file():
         return [str(validator_python), str(validator)]
+    if offline:
+        raise ArtifactPolicyError(_VALIDATOR_UNAVAILABLE)
     uv_executable = shutil.which("uv")
     if (
         uv_executable is None
         or not (project_root / "pyproject.toml").is_file()
         or not (project_root / "uv.lock").is_file()
     ):
-        raise ArtifactPolicyError(
-            "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
-        )
+        raise ArtifactPolicyError(_VALIDATOR_UNAVAILABLE)
     return [
         uv_executable,
         "run",
@@ -373,10 +394,13 @@ def load_tooling_artifact_selection(
     version: str,
     platform_id: str,
     profile_id: str,
+    offline: bool = False,
 ) -> LockedArtifactSelection:
     """Load one reviewed lock selection before cache lookup or acquisition."""
 
-    validator_command = _frozen_validator_command(REPO_ROOT)
+    validator_command = (
+        _frozen_validator_command(REPO_ROOT, offline=True) if offline else _frozen_validator_command(REPO_ROOT)
+    )
     payload = _validator_stdout(
         validator_command,
         artifact_id=artifact_id,

@@ -12,6 +12,7 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.operational_logging import run_application
 
 from tools.mcrl2_tool import MODES, compare, selection
+from tools.tooling_policy_gate import VALIDATION_SOURCE_PATHS
 
 from . import export
 from .aut import parse_aut, render_aut
@@ -26,6 +27,7 @@ MAPPING_ROOT = "specs/formal/participant-semantics/runtime-mapping/rev1"
 CALIBRATION_IDS = ("finite-stutter", "weak-choice", "internal-divergence")
 SOURCE_PATHS = (
     *export.SOURCE_PATHS,
+    *VALIDATION_SOURCE_PATHS,
     *(
         "implementations/formal/participant_crossing/" + name
         for name in (
