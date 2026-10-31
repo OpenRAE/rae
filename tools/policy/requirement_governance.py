@@ -41,8 +41,9 @@ class GroundControlError(OperationalError):
 class GroundControlUnavailable(GroundControlError):
     """The endpoint could not be reached or returned a non-auth error.
 
-    Covers connection refusal, DNS failure, read/connect timeout, and any HTTP
-    status other than the auth-rejection codes. Governance was *not* evaluated.
+    Covers connection refusal, DNS failure, read/connect timeout, a dropped or
+    truncated reply, a reply that is not UTF-8 JSON, and any HTTP status other
+    than the auth-rejection codes. Governance was *not* evaluated.
     """
 
 
