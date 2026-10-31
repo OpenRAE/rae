@@ -124,6 +124,10 @@ def _observation_kind(requirement: CompiledRealizationRequirement) -> str:
     )
 
 
+def _left_empty(requirement: CompiledRealizationRequirement) -> bool:
+    return requirement.structure is None and requirement.constraint_document is None
+
+
 def _open_support_diagnostic(
     requirement: CompiledRealizationRequirement,
     declarations: list[RealizationSupportDeclaration],
@@ -136,10 +140,16 @@ def _open_support_diagnostic(
             if declaration.support_mode is RealizationSupportMode.OPEN_REALIZATION
         ]
         if supporting:
-            sufficiently_observed = requirement.verification_scope is None or has_required_observation_support(
-                requirement,
-                supporting,
-                observation_kind=_observation_kind(requirement),
+            # An open concern the author left empty demands readback only for a member the
+            # backend reports; the runtime gate rejects one that lacks corroboration (SEM-218 I2).
+            sufficiently_observed = (
+                requirement.verification_scope is None
+                or _left_empty(requirement)
+                or has_required_observation_support(
+                    requirement,
+                    supporting,
+                    observation_kind=_observation_kind(requirement),
+                )
             )
             if not sufficiently_observed:
                 diagnostic = _under_observed_support_diagnostic(requirement, posture="open")
