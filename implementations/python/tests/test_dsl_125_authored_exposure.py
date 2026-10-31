@@ -414,14 +414,15 @@ def test_sealed_trial_configuration_uses_the_same_slot_join():
     validate_authored_participant_exposure_v2(
         model, surface, relation={selected.declaration_ref: "observable"}, authored=authored
     )
+    wrong_participant = replace(
+        authored, configuration=configuration.model_copy(update={"participant_address": "agents.other"})
+    )
     with pytest.raises(ValueError, match="configuration-participant-mismatch"):
         validate_authored_participant_exposure_v2(
             model,
             surface,
             relation={selected.declaration_ref: "observable"},
-            authored=replace(
-                authored, configuration=configuration.model_copy(update={"participant_address": "agents.other"})
-            ),
+            authored=wrong_participant,
         )
 
 
