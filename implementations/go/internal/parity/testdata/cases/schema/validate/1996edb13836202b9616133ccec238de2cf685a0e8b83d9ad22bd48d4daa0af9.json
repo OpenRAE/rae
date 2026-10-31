@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "76cd5e6bcef584606938911f218dbbacb4fe8f0349478b289524b13e33f10140"
+  },
+  "name": "contracts/fixtures/semantic-profile/semantic-profile-v1/invalid/missing-concept-catalog-version",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

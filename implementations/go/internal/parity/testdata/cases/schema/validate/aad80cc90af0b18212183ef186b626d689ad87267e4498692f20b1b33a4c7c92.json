@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-execution-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "4914be377efccffb6db744c796233e9dc4a576304d9aaa51aac77b9aaea0f44c"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-execution-binding-v1/invalid/duplicate-target-address",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

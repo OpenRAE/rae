@@ -1,0 +1,57 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-authoring-input-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "9052cc6adae0d30b94a6a2d2a50d3e4b3fdfc816953e21c5f9fc4d642925baa0"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/invalid/enumerate-selection-unbounded",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-authoring-input-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-authoring-input-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 7,
+        "members": [
+          "description",
+          "run_plan",
+          "schema_version",
+          "spec_id",
+          "spec_version",
+          "task_ref",
+          "title"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

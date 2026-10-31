@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "materialization-archive-record-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "3ba3ac0cab18caf3d83889b2e66eacd78c9d080cf4ed73baee70b76c9d0478d3"
+  },
+  "name": "contracts/fixtures/experiment-core/materialization-archive-record-v1/invalid/wrong-phase",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "materialization-archive-record-v1",
+      "diagnostics": [
+        {
+          "address": "materialization-archive-record-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 4,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

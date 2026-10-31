@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "1549bf308d7e6f8c711f8f16ce44831b82bf2a65d82080c8e774d6b4dd9475f4"
+  },
+  "name": "examples/scenarios/temporal-profiles/user-deadline.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: user-deadline\ndescription: Portable bounded temporal profile; native realization requires matching\n  manifest claims and evidence.\nnodes:\n  customer-portal:\n    type: compute\n    source:\n      name: customer-portal-app\n      version: reference\n    resources:\n      ram: 1073741824\n      cpu: 1\n    services:\n    - port: 8080\n      protocol: tcp\n      name: http\ninfrastructure:\n  customer-portal:\n    count: 1\nentities:\n  enterprise-participant:\n    role: green\ncontent:\n  participant-observation:\n    type: dataset\n    description: Action and timing evidence.\n    target: customer-portal\n    items:\n    - name: response\n      description: Bounded action observation.\nagents:\n  participant-agent:\n    affiliations:\n    - enterprise-participant\n    actions:\n    - probe-customer-portal-login\n    observation_boundaries:\n    - participant-view\naction_contracts:\n  probe-customer-portal-login:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    behavioral_granularity: atomic\n    procedure_basis: bounded HTTP login probe through participant runtime\n    realization_profile: backend-declared\n    fidelity_claim: Declares an HTTP probe, not a native implementation or fidelity\n      claim.\n    preconditions:\n    - precondition_id: participant-authorized\n      precondition_class: authority\n      description: The participant is authorized to probe the customer portal login\n        endpoint.\n      support_refs:\n      - agents.participant-agent\n      - nodes.customer-portal.services.http\n    - precondition_id: portal-present\n      precondition_class: target\n      description: The DMZ customer portal exists inside the enterprise slice.\n      support_refs:\n      - nodes.customer-portal.services.http\n    - precondition_id: runtime-binding-available\n      precondition_class: realization\n      description: 'A downstream participant implementation/runtime binding can perform\n        the declared probe without changing SDL semantics.\n\n        '\n      support_refs:\n      - participant-implementation-manifest:participant-agent\n    effects:\n    - effect_id: portal-reachability-observed\n      effect_class: intended_effect\n      description: The participant obtains a bounded reachability observation.\n      target_refs:\n      - nodes.customer-portal.services.http\n    - effect_id: terminal-observation-emitted\n      effect_class: observation_effect\n      description: Runtime emits a terminal participant observation envelope.\n      evidence_refs:\n      - content.participant-observation\n    state_transition_effects:\n    - participant customer-portal knowledge expands\n    observation_expectations:\n    - terminal customer portal observation\n    evidence_expectations:\n    - action outcome and bound timing evidence\n    failure_classes:\n    - precondition_unsatisfied\n    - target_unavailable\n    - unsupported_action\n    - authority_denied\n    - unsafe_withheld\n    - partial_success\n    - backend_error\n    - unknown\n    temporal_contracts:\n    - temporal_id: finish\n      temporal_kind: deadline\n      time_domain: simulation_time\n      clock_authority: scenario-clock\n      event_points:\n      - end\n      - deadline\n      description: Bounded action deadline.\n      duration_ref: finish-by-five\n      reset_boundary: fresh-segment\n      replay_boundary: fresh-evidence\n      ordering_basis: shared-superdense-time\n      backend_disclosure_refs:\n      - timing\n      shared_time_binding:\n        profile: participant-shared-time/v1\n        clock_ref: scenario-clock\n        constraint_ref: finish-by-five\n        event_point: end\n        evidence_mode: event\n    backend_timing_disclosures:\n    - disclosure_id: timing\n      disclosure_kind: synchronization\n      support_mode: exact\n      description: Admission requires exact bound-event evidence from the selected\n        backend.\n      affected_temporal_ids:\n      - finish\nobservation_boundaries:\n  participant-view:\n    projection_basis: Declared HTTP target and bounded response.\n    observable_refs:\n    - nodes.customer-portal.services.http\n    evidence_refs:\n    - content.participant-observation\n    redaction_policy: No backend-private data.\n    latency_profile: terminal action observation\n    observer_effects:\n    - HTTP request may create service logs\n    realized_view_disclosure: Only the declared response and evidence references.\nbehavior_specifications:\n  participant-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - participant-agent\n    participant_role_refs:\n    - green\n    action_contract_refs:\n    - probe-customer-portal-login\n    observation_boundary_refs:\n    - participant-view\n    outcome_interpretation_rule_refs: []\n    authority_scope_refs: []\n    behavior_mode: autonomous\n    autonomous_execution:\n      participant_implementation_ref: participant-implementation-manifests.green-worker.v1\n      clock_ref: scenario-clock\n      progression_policy_ref: scenario-progression\n      temporal_constraint_refs:\n      - green-cadence\n      action_order:\n      - probe-customer-portal-login\n      observation_boundary_ref: participant-view\n      selection_strategy: ordered_cycle\n      max_action_attempts: ${attempts}\n      max_in_flight: 1\n      failure_policy: stop\n      evaluation_authority:\n        mode: none\n    realization_profile_ref: participant-implementation-manifest:participant-agent\n    backend_feature_support_refs:\n    - action_contracts\n    - autonomous_execution\n    - behavior_history\n    - observation_boundaries\n    - temporal_contracts\n    evidence_contract_refs:\n    - participant-behavior-history-event-stream-v1\n    extension_policy: governed-extension\ntime_domains:\n  scenario:\n    kind: simulated\n    tick_period_seconds:\n      numerator: 1\n      denominator: 1\n    epoch: scenario_start\n    visibility: participant_visible\n    description: Exact shared scenario time for benign participant actions.\nclocks:\n  scenario-clock:\n    time_domain_ref: scenario\n    authority_kind: runtime\n    authority_ref: runtime.time-coordinator\n    monotonicity: non_decreasing\n    supports_pause: true\n    supports_reset: true\n    description: Authoritative shared scenario clock.\ntime_progression_policies:\n  scenario-progression:\n    clock_ref: scenario-clock\n    advancement_mode: stepped\n    synchronization_mode: barrier\n    step_ticks: 10\n    reset_behavior: new_segment_zero\n    replay_behavior: restore_recorded_advances\n    description: Deterministic stepped progression.\ntemporal_constraints:\n  green-cadence:\n    constraint_kind: cadence\n    clock_ref: scenario-clock\n    subject_refs:\n    - nodes.customer-portal\n    start:\n      tick: 0\n    cadence_ticks: 10\n    description: One benign participant action every ten ticks.\n  finish-by-five:\n    constraint_kind: deadline\n    clock_ref: scenario-clock\n    subject_refs:\n    - action_contracts.probe-customer-portal-login\n    end:\n      tick: 5\n    description: The selected action event must occur no later than tick five.\nvariables:\n  attempts:\n    type: integer\n    default: 1\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:081d334183ed86c813b193e528e8518aff64e16b899986b3ca8f11537dea9ff2"
+        },
+        "field_count": 15,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "user-deadline",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

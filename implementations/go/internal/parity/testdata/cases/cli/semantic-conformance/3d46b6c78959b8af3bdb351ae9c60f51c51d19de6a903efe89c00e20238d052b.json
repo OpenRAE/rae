@@ -1,0 +1,37 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.yaml": "7971dfbc7cb0dd9dea753f880b56ef5bf34e340d52af7ec2f705c584b9cbb910"
+  },
+  "name": "examples/scenarios/techvault-attacker-target.sdl",
+  "result": {
+    "exit_code": 3,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "conformance",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "unsupported",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

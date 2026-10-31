@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-binding-descriptors-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a370ad162315615a1281789d81b39a84a9e3020f10688d8ffbed123ff73f9a0c"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-binding-descriptors-v1/invalid/duplicate-canonical-target",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

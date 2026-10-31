@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "participant-owner-flow-policy-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "00b45447f878000797517d31bd6b3c53ed57906e8688cc38c058bd686d85a134"
+  },
+  "name": "contracts/fixtures/profiles/participant-owner-flow-policy-v1/invalid/reference",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-owner-flow-policy-v1",
+      "diagnostics": [
+        {
+          "address": "participant-owner-flow-policy-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 24,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

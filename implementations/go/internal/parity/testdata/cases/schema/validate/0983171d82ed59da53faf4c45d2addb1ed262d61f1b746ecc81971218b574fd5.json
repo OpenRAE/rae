@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "37d51774b0a153063f4d77903ec75976efb6670b92401c3cdce95f346175b188"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/invalid/missing-raw-content",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

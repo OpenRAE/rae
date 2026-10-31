@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reusable-asset-trust-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "10580ea9792339c7621d2e323db89ef18435ced9d7a6ae9a544f8ee8b6ff4f76"
+  },
+  "name": "contracts/fixtures/asset-trust/reusable-asset-trust-policy-v1/invalid/secret-bearing",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

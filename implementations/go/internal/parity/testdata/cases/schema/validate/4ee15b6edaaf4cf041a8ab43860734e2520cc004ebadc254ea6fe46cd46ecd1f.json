@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reusable-asset-trust-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "393085df520699a43bc6b9916e4e18a23b213ca6ddc9904d5b7eb2a6193a99ab"
+  },
+  "name": "contracts/fixtures/asset-trust/reusable-asset-trust-policy-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

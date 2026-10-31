@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-evaluation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "cf450c394ff60722460a85440e8776449a41a9176ba56a5d01764be20e6c239b"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/conflict",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "36a55ab96f211b084de18065f73215f5975ffda618123f81dab4b2e0bb01b5a1"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-v1/invalid/missing-schedule-kind",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

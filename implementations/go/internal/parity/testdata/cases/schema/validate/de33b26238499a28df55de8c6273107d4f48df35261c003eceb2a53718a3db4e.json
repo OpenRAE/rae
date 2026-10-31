@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-task-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2fc27115e8b13d41448f9deda9de88325063a505036f3caa8e7738019314772c"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-task-v1/invalid/scenario-ref-is-run",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

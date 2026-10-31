@@ -1,0 +1,59 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-flow-control-relation-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "20f2d8048d2a411245d77b50ee000f23e6f5813c0403a8d56e8179ed3249d293"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-flow-control-relation-v1/valid/conservative-release-chain",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-flow-control-relation-v1",
+      "diagnostics": [
+        {
+          "address": "participant-flow-control-relation-v1",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 9,
+        "members": [
+          "bindings",
+          "derivations",
+          "document_id",
+          "document_revision",
+          "labels",
+          "profile",
+          "releases",
+          "schema_version",
+          "sink_decisions"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

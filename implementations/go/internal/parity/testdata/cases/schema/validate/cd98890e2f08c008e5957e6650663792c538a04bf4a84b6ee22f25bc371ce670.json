@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "892bbf5b6de411a06a000708aacf15a3a19c735b6e83a7ad2bc3d2381e96c6c6"
+  },
+  "name": "contracts/fixtures/control-plane/backend-operation-response-v1/valid/cancel-race-02",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

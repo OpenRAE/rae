@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-information-state-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "112ae20feebcfdcebf86a50dd3533db92fb1d322e9b263a9e2e164032ccbe5e3"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-information-state-record-v1/valid/history-consistent-cut",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

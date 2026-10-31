@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realized-time-model-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "4d2829157faf585badbdc749cdaf73cce24429d7cfbd5504b7c73d86dfca9c33"
+  },
+  "name": "contracts/fixtures/time/realized-time-model-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

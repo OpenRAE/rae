@@ -1,0 +1,14 @@
+{
+  "args": [
+    "runtime-fact-binding-plane-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2e95a4fcbb6b1b750d0fd771957de1923dd98bec622b56c4d9fc628c2f9f3a46"
+  },
+  "name": "contracts/fixtures/participant-runtime/runtime-fact-binding-plane-v1/valid/failure-dispositions",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

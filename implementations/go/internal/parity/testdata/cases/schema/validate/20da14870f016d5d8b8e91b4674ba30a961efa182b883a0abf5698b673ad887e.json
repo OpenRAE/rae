@@ -1,0 +1,14 @@
+{
+  "args": [
+    "operation-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "368731cd72de5ea1a0c585485670375fdb6f9d10bf605c5f46276247fe7a5ccd"
+  },
+  "name": "contracts/fixtures/control-plane/operation-receipt-v1/invalid/missing-context",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

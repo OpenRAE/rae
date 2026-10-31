@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reference-models-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "e42c0e605d5975d7e1738af15506b022aff10257685207c81ed15e76cd1df44a"
+  },
+  "name": "contracts/fixtures/concept-authority/reference-models-v1/invalid/schema-pointer-not-found",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

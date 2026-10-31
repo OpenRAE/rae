@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-run-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "91cc6ac55fd9dbe1b2a5b82ea6c06717b6fa3b8f26e384200a9c696ab5348ace"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-run-v1/invalid/augmentation-comparability-without-observer-effect",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

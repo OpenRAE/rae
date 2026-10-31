@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "c4b78981954ad5121b7b37999818e54a937b9b47d6e0402eb6812aef985c77b9"
+  },
+  "name": "contracts/fixtures/backend-manifest/backend-manifest-v2/invalid/operation-supervision-without-contracts",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

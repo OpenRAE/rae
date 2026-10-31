@@ -1,0 +1,14 @@
+{
+  "args": [
+    "validation-basis-disclosure-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "99b3f72c5906a4e2cf226216589e1482bfcdbf9ec7b8d5a2efdd0c310d34823b"
+  },
+  "name": "contracts/fixtures/profiles/validation-basis-disclosure-v1/invalid/scenario-snapshot-missing-digest",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

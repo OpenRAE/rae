@@ -1,0 +1,14 @@
+{
+  "args": [
+    "recursive-realization-constraint-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "426e172db909d89e9dd43801e466bd6a9de7253c648e9fe058316abb5c18840d"
+  },
+  "name": "contracts/fixtures/realization-constraints/recursive-realization-constraint-v1/valid/nested-open",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
