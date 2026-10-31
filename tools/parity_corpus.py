@@ -9,8 +9,10 @@ The corpus lives in ``implementations/go/internal/parity/testdata``:
 - ``manifest.json`` names the corpus schema and the last commit that changed
   the Python implementation.
 - ``inputs/<sha256>`` holds the bytes of each input file once.
-- ``cases/<surface>/<command>/<name>.json`` holds one recorded invocation: its
-  surface, command, arguments, input files by digest, and result.
+- ``cases/<surface>/<command>/<sha256 of the name>.json`` holds one recorded
+  invocation: its name, surface, command, arguments, input files by digest, and
+  result. The name follows the input path; the file name does not, because
+  repository path policy reserves some fixture path names.
 
 The ``cli`` surface runs the ``raes`` command. Its result is the exit code and
 the JSON standard output. The free-text ``message`` of each diagnostic is not
@@ -81,7 +83,7 @@ class Case:
     def path(self) -> Path:
         """Return the case file path relative to the corpus directory."""
 
-        return Path("cases", self.surface, self.command.replace(" ", "-"), self.name + ".json")
+        return Path("cases", self.surface, self.command.replace(" ", "-"), digest(self.name.encode()) + ".json")
 
 
 def semantic_case(command: str, contract: str, source: Path, repo: Path, *options: str, name: str = "") -> Case:
@@ -246,6 +248,7 @@ def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]
     """Return the JSON document that records one case and its result."""
 
     return {
+        "name": case.name,
         "surface": case.surface,
         "command": case.command,
         "args": list(case.args),

@@ -3,7 +3,7 @@
 //
 // The corpus is in testdata. manifest.json names the corpus schema and the
 // commit of the recorded Python implementation. Each file under cases/ records
-// one invocation of a surface command: its surface, its command, its
+// one invocation of a surface command: its name, its surface, its command, its
 // arguments, its input files by SHA-256 digest, and its result. inputs/ holds
 // each input file once, under its digest. tools/parity_corpus.py records the
 // corpus and documents the surfaces and their results.
@@ -24,7 +24,6 @@ import (
 	"io"
 	"io/fs"
 	"path"
-	"strings"
 )
 
 // Schema is the schema identifier of the corpus manifest.
@@ -32,7 +31,7 @@ const Schema = "raes-parity-corpus/v1"
 
 // Case is one recorded invocation of a surface command.
 type Case struct {
-	// Name is the path of the case file below cases/, without its extension.
+	// Name identifies the case. It follows the path of the recorded input.
 	Name    string
 	Surface string
 	Command string
@@ -94,6 +93,7 @@ func Load(fsys fs.FS) (Corpus, error) {
 
 func loadCase(fsys fs.FS, name string) (Case, error) {
 	var record struct {
+		Name    string            `json:"name"`
 		Surface string            `json:"surface"`
 		Command string            `json:"command"`
 		Args    []string          `json:"args"`
@@ -115,7 +115,7 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 		files[fileName] = content
 	}
 	return Case{
-		Name:    strings.TrimSuffix(strings.TrimPrefix(name, "cases/"), ".json"),
+		Name:    record.Name,
 		Surface: record.Surface,
 		Command: record.Command,
 		Args:    record.Args,

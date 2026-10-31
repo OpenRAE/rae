@@ -23,7 +23,7 @@ func corpus(stored []byte) fstest.MapFS {
 	digest := hex.EncodeToString(sum[:])
 	fsys := fstest.MapFS{
 		"manifest.json": {Data: []byte(manifest)},
-		caseName: {Data: []byte(`{"surface": "cli", "command": "semantic validate", "args": ["semantic", "validate", "input.yaml"],` +
+		caseName: {Data: []byte(`{"name": "examples/a", "surface": "cli", "command": "semantic validate", "args": ["semantic", "validate", "input.yaml"],` +
 			` "files": {"input.yaml": "` + digest + `"}, "result": {"exit_code": 0}}`)},
 	}
 	if stored != nil {
@@ -40,7 +40,7 @@ func TestLoadReadsEachCaseWithItsInputs(t *testing.T) {
 	want := Corpus{
 		PythonCommit: "abc123",
 		Cases: []Case{{
-			Name:    "cli/semantic-validate/examples/a",
+			Name:    "examples/a",
 			Surface: "cli",
 			Command: "semantic validate",
 			Args:    []string{"semantic", "validate", "input.yaml"},
