@@ -39,3 +39,4 @@ People validating their own processors or backends need more than a binary pass/
 - TESTS → TEST `implementations/python/tests/test_issue_222_conformance_reporting.py`
 - TESTS → TEST `implementations/python/tests/test_issue_222_conformance_cli.py`
 - TESTS → TEST `implementations/python/tests/test_conformance_facade_parity.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1678_sweep_pf.py`

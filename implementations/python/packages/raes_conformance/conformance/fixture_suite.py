@@ -115,7 +115,6 @@ def run_fixture_suite(
                     f"Missing valid fixture directory for {contract_name}.",
                 )
             )
-            continue
 
         cases.extend(_fixture_case(contract_name, path, valid=True) for path in valid_paths)
         if invalid_dir.exists():

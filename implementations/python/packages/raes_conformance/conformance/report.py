@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import asdict, dataclass, field
 from importlib.metadata import PackageNotFoundError, version
 
@@ -10,6 +9,7 @@ from raes_contracts.behavioral_relations import validate_behavioral_claim_bindin
 from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.digests import sha256_digest
+from raes_contracts.json_serialization import sorted_json_text_unicode
 
 from raes_conformance.conformance.diagnostics import _diagnostic_payload
 from raes_conformance.conformance.mixed_backend_types import MixedBackendCaseBinding, mixed_case_binding_payload
@@ -544,12 +544,7 @@ def contract_content_digests(schemas: dict[str, object]) -> dict[str, str]:
     uses sorted, compact UTF-8 JSON rather than the artifact JCS helper.
     """
 
-    return {
-        name: sha256_digest(
-            json.dumps(schema, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-        )
-        for name, schema in schemas.items()
-    }
+    return {name: sha256_digest(sorted_json_text_unicode(schema).encode("utf-8")) for name, schema in schemas.items()}
 
 
 def conformance_tool_version() -> str:

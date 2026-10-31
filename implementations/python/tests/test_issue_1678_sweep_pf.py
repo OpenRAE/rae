@@ -435,9 +435,13 @@ def test_undecodable_fixture_gets_the_invalid_payload_refusal(tmp_path, document
             f"operation-receipt-v1 failed contract validation: {reason}",
         )
     ]
-    # Like any payload that fails contract validation: a valid fixture fails, an invalid fixture is rejected.
+    # A valid fixture fails, while an invalid fixture passes its expected rejection.
     assert case.passed is (directory == "invalid")
-    assert report.passed is (directory == "invalid")
+    # An invalid-only corpus has no positive coverage, so ASR-526 keeps the aggregate incomplete.
+    assert report.passed is False
+    assert bool(report.diagnostics) is (directory == "invalid")
+    if directory == "invalid":
+        assert report.diagnostics[0].code == "conformance.fixture-missing"
 
 
 def test_backend_conformance_command_reports_an_undecodable_fixture(tmp_path) -> None:

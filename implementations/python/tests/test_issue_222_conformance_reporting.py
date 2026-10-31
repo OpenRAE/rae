@@ -371,3 +371,20 @@ def test_failed_target_report_preserves_known_subject_identity(tmp_path):
     assert report.subject_name == target.manifest.name
     assert report.subject_version == target.manifest.version
     assert report.profile == "missing-profile"
+
+
+def test_missing_positive_fixtures_do_not_hide_invalid_fixture_results(tmp_path):
+    from raes_conformance.conformance import run_fixture_suite
+
+    profiles = tmp_path / "profiles"
+    profiles.mkdir()
+    (profiles / "minimal.json").write_text(
+        json.dumps({"profile": "minimal", "required_contracts": ["operation-receipt-v1"]})
+    )
+    invalid = tmp_path / "fixtures" / "operation-receipt-v1" / "invalid"
+    invalid.mkdir(parents=True)
+    (invalid / "malformed.json").write_text("{")
+    report = run_fixture_suite(profile="minimal", root=tmp_path / "fixtures", profiles_root=profiles)
+    assert not report.passed
+    assert len(report.cases) == 1
+    assert report.cases[0].name == "malformed" and report.cases[0].passed
