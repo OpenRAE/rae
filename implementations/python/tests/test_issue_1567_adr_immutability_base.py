@@ -268,3 +268,15 @@ def test_base_blob_read_preserves_exact_bytes(repo: Path, payload: bytes) -> Non
 @pytest.mark.parametrize("path", ["docs/decisions/adrs", "missing.md"])
 def test_base_blob_read_requires_an_existing_blob(repo: Path, path: str) -> None:
     assert adr_gate._git_show(repo, f"HEAD:{path}", follow_symlinks=True) is None
+
+
+@pytest.mark.parametrize("revision", ["", "--all", "HEAD\n--all", "HEAD:path", "HEAD;whoami"])
+def test_invalid_base_revision_never_reaches_git(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, revision: str
+) -> None:
+    def unexpected_subprocess(*args: object, **kwargs: object) -> None:
+        pytest.fail("invalid revision reached the subprocess boundary")
+
+    monkeypatch.setattr(adr_gate.subprocess, "run", unexpected_subprocess)
+
+    assert adr_gate._resolve_commit(tmp_path, revision) is None

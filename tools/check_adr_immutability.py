@@ -259,6 +259,25 @@ def _accepted_adrs(repo_root: Path) -> dict[str, Path]:
     return accepted
 
 
+def _git_base_blob(repo_root: Path, gitref: str) -> str | None:
+    """Read a validated tree expression, resolving symlinks within that tree."""
+    proc = subprocess.run(
+        ["git", "cat-file", "--batch", "--follow-symlinks"],
+        input=f"{gitref}\n".encode(),
+        cwd=repo_root,
+        capture_output=True,
+    )
+    if proc.returncode != 0:
+        return None
+    header, _, payload = proc.stdout.partition(b"\n")
+    fields = header.split()
+    # Missing/dangling/looping links, directories and links outside the tree
+    # have no blob response. In particular, an outside link is never read.
+    if len(fields) != 3 or fields[1] != b"blob":
+        return None
+    return payload[: int(fields[2])].decode("utf-8", errors="surrogateescape")
+
+
 def _git_show(repo_root: Path, gitref: str, *, follow_symlinks: bool = False) -> str | None:
     """Content of a path at a git ref (``<rev>:<path>`` or ``:<path>`` for the
     index). Returns None when the path does not exist at that ref.
@@ -273,21 +292,7 @@ def _git_show(repo_root: Path, gitref: str, *, follow_symlinks: bool = False) ->
     if follow_symlinks:
         # Git resolves links in the historical tree, never against the checkout.
         # Index reads keep using show: cat-file cannot follow index symlinks.
-        proc = subprocess.run(
-            ["git", "cat-file", "--batch", "--follow-symlinks"],
-            input=f"{gitref}\n".encode(),
-            cwd=repo_root,
-            capture_output=True,
-        )
-        if proc.returncode != 0:
-            return None
-        header, _, payload = proc.stdout.partition(b"\n")
-        fields = header.split()
-        # Missing/dangling/looping links, directories and links outside the tree
-        # have no blob response. In particular, an outside link is never read.
-        if len(fields) != 3 or fields[1] != b"blob":
-            return None
-        return payload[: int(fields[2])].decode("utf-8", errors="surrogateescape")
+        return _git_base_blob(repo_root, gitref)
     command = ["git", "show", "--end-of-options", gitref]
     try:
         proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True)
@@ -302,6 +307,9 @@ def _resolve_commit(repo_root: Path, rev: str) -> str | None:
     """Full SHA of the commit ``rev`` names, or None when it names no commit.
     ``--end-of-options`` keeps a ``rev`` that starts with ``-`` from being read
     as a git option."""
+    # Validate API callers as well as CLI input before constructing an argument.
+    if not re.match(r"^\w[\w./@^~{}-]*\Z", rev, re.ASCII):
+        return None
     proc = subprocess.run(
         ["git", "rev-parse", "--verify", "--quiet", "--end-of-options", f"{rev}^{{commit}}"],
         cwd=repo_root,
