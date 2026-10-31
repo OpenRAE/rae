@@ -3,7 +3,7 @@ name: Bootstrap qualification
 # Qualify changed tooling components, not unrelated application or documentation edits.
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, go-cutover]
     paths:
       - '.github/workflows/bootstrap-qualification.yml'
       - '.devcontainer/**'
