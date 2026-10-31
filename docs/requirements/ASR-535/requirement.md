@@ -67,3 +67,11 @@ ADR-081 governs relation discipline and current tests provide bounded evidence, 
 - IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_witnesses.py` (Measured decisions and independent witness admission)
 - TESTS → TEST `implementations/python/tests/test_issue_973_crossing_corpus.py` (False witness, claim promotion, source and artifact drift rejection)
 - TESTS → TEST `implementations/python/tests/test_issue_973_crossing_witnesses.py` (False witness, claim promotion, source and artifact drift rejection)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_publication.py` (Qualified hosted provenance and admitted artifact inventory)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check_publication.py` (Offline verification and refusal of unadmitted publication)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)

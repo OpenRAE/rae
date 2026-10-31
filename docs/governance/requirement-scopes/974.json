@@ -1,0 +1,310 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 974,
+  "primary_requirement_uid": "SEM-232",
+  "requirement_uids": [
+    "SEM-232",
+    "ASR-535",
+    "SEM-230",
+    "API-423",
+    "RUN-319"
+  ],
+  "bindings": {
+    ".github/workflows/canonical-verification.yml": [
+      "SEM-232"
+    ],
+    "docs/decisions/issue-974-finite-crossing-bisimulation-preflight.md": [
+      "SEM-232"
+    ],
+    "docs/governance/requirement-scopes/974.json": [
+      "SEM-232"
+    ],
+    "docs/requirements/API-423/requirement.md": [
+      "API-423"
+    ],
+    "docs/requirements/ASR-535/requirement.md": [
+      "ASR-535"
+    ],
+    "docs/requirements/RUN-319/requirement.md": [
+      "RUN-319"
+    ],
+    "docs/requirements/SEM-230/requirement.md": [
+      "SEM-230"
+    ],
+    "docs/requirements/SEM-232/requirement.md": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/README.md": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/counterexample_corpus.py": [
+      "SEM-232"
+    ],
+    "implementations/formal/participant_crossing/machine_check.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/formal/participant_crossing/machine_check_evidence.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/formal/participant_crossing/machine_check_publication.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/python/tests/test_issue_974_machine_check.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "implementations/python/tests/test_issue_974_machine_check_publication.py": [
+      "SEM-232",
+      "ASR-535"
+    ],
+    "noxfile.py": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/abstract.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/abstract.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/cases.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/concrete.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/concrete.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/finite-stutter.left.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/finite-stutter.right.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-denial.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-denial.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-denial.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-divergence.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-divergence.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-divergence.witness.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-observation.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-observation.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/hidden-observation.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/internal-divergence.left.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/internal-divergence.right.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/later-cut-replay.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/later-cut-replay.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/later-cut-replay.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/removed-delivery.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/removed-delivery.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/removed-delivery.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/results.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/weak-choice.left.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-1270466c1b97a9673c7fd3949cecaf0f75a009a2c852be8d534d1ba2edcfc401/weak-choice.right.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/abstract.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/abstract.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/cases.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/concrete.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/concrete.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/finite-stutter.left.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/finite-stutter.right.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-denial.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-denial.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-denial.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-divergence.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-divergence.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-divergence.witness.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-observation.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-observation.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/hidden-observation.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/internal-divergence.left.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/internal-divergence.right.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/later-cut-replay.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/later-cut-replay.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/later-cut-replay.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/removed-delivery.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/removed-delivery.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/removed-delivery.mcf": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/results.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/weak-choice.left.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/capture-7ad0404c155d86e5f70b7866cce5438296cb974c3b2ce75bb371a1754fa2a5ec/weak-choice.right.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/counterexamples/pin.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/abstract.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/abstract.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/concrete.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/concrete.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/corpus-manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/model-manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/mutation-results.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-2bc4a26a483d1a647abcd9d2ce9a25c90a2c0594976dc04661dc141cf3d2d9b6/result.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/abstract.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/abstract.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/concrete.aut": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/concrete.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/corpus-manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/model-manifest.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/mutation-results.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/capture-c4f5a586393d1dc787136b0f691f90263c993f32b27c6afbbd92757931818575/result.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/machine-check/pin.json": [
+      "SEM-232"
+    ],
+    "specs/formal/participant-semantics/participant-crossing-machine-check.md": [
+      "SEM-232"
+    ],
+    "tools/mcrl2_tool.py": [
+      "SEM-232"
+    ],
+    "tools/nox_support/machine_check_lane.py": [
+      "SEM-232"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "SEM-232"
+    ],
+    "tools/tooling_policy_gate.py": [
+      "SEM-232"
+    ]
+  }
+}

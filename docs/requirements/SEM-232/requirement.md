@@ -73,3 +73,12 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 - TESTS → TEST `implementations/python/tests/test_issue_973_crossing_corpus.py` (Safe mutation and checked evidence regressions)
 - TESTS → TEST `implementations/python/tests/test_issue_973_crossing_mutations.py` (Safe mutation and checked evidence regressions)
 - TESTS → TEST `implementations/python/tests/test_issue_973_crossing_witnesses.py` (Safe mutation and checked evidence regressions)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_publication.py` (Qualified hosted provenance and admitted artifact inventory)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check_publication.py` (Offline verification and refusal of unadmitted publication)
+- DOCUMENTS → CODE_FILE `tools/tooling_policy_gate.py` (Shared validation-source inventory and offline installed-validator boundary)
+- DOCUMENTS → CODE_FILE `tools/mcrl2_tool.py` (Pinned native checker refuses a missing tooling environment without acquisition fallback)

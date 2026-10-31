@@ -29,6 +29,7 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 from raes_contracts.errors import InvalidInputError
 
 from tools.nox_support.compatibility_lanes import _run_python_compatibility
+from tools.nox_support.machine_check_lane import run_machine_check
 from tools.nox_support.config import (
     CONTRACT_TRIGGER_PREFIXES,
     COVERAGE_REDUCE_DIR_ENV,
@@ -121,6 +122,18 @@ def participant_opacity_proof(session: nox.Session) -> None:
     reporter = SessionReporter(session, "participant-opacity-proof")
     try:
         _run_participant_opacity_proof(session, reporter)
+    finally:
+        reporter.summary()
+
+
+@nox.session(name="participant-crossing-machine-check")
+def participant_crossing_machine_check(session: nox.Session) -> None:
+    """Replay the complete finite decision without synchronization or acquisition."""
+    reporter = SessionReporter(session, "participant-crossing-machine-check")
+    try:
+        if list(session.posargs) not in ([], ["--publish"]):
+            session.error("Use no arguments, or --publish for qualified CI artifact staging.")
+        run_machine_check(session, reporter, publish=list(session.posargs) == ["--publish"])
     finally:
         reporter.summary()
 
