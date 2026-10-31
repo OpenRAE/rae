@@ -10,12 +10,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .._base import is_variable_ref
+from raes_contracts.participant_inject_delivery import participant_inject_delivery_reference
+from raes_contracts.variable_references import is_variable_ref
+
 from .._declarations import DeclarationIndex, build_declaration_index
 from .._errors import SDLValidationError
 from .._reference_targetability import PURPOSE_LABELS, ReferencePurpose
 from ..participant_behavior_specification import tool_affordance_reference
-from ..participant_inject_delivery import participant_inject_delivery_reference
 from ._control_context import rewrite_control_context as _rewrite_control_context
 from ._references import (
     _maybe_rename,

@@ -9,12 +9,12 @@ from raes_contracts.realization_envelope import (
     ObservationStrength,
     RealizationConcern,
 )
-from raes_contracts.realization_observation import (
-    RealizationObservation,
+from raes_contracts.realization_observation import RealizationObservation
+from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
+from raes_contracts.realization_operational_observation import (
     bind_compute_substrate_observations,
     compute_substrate_readback_addresses,
 )
-from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 from raes_contracts.timestamps import WallClock, isoformat_z, utc_now
 from raes_runtime.registry import (

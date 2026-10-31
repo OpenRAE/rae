@@ -6,7 +6,6 @@ from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import rfc8785
-from raes_contracts.associated_artifacts import require_instantiated_scenario_reference
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.inject_occurrence_outcome import InjectOccurrenceCorrelationModel
 from raes_contracts.contracts.participant_crossing import (
@@ -21,6 +20,7 @@ from raes_contracts.contracts.participant_inject_application import (
 from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationKind, OperationState
+from raes_processor.compiler.scenario_references import require_realization_reference
 from raes_processor.models import ParticipantInjectDeliveryRuntime
 
 from .control_plane_mutation import control_plane_mutation
@@ -277,9 +277,7 @@ def _world_correlation(
     correlation = plane.get_inject_correlation(application.world_operation_id, identity=identity)
     if world is None or correlation is None:
         raise ConflictError("inject delivery world predecessor is unavailable")
-    require_instantiated_scenario_reference(
-        plane._inject_delivery.model.realization_instance, world.inject_occurrence.scenario
-    )
+    require_realization_reference(plane._inject_delivery.model, world.inject_occurrence.scenario)
     placement = world.inject_occurrence.request.placement
     if (
         world.inject_occurrence.request.inject != delivery.inject_address

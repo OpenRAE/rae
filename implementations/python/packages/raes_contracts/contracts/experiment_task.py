@@ -23,7 +23,7 @@ from .experiment_evidence_refinement import (
     validate_evidence_requirement_relation_carrier,
 )
 from .experiment_references import ExperimentScenarioReferenceModel
-from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, _add_raes_invariant
+from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, add_raes_invariant
 from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
 
 
@@ -68,7 +68,7 @@ class ExperimentTaskModel(ContractModel):
         _add_carrier_validation_basis_disclosure_invariant(
             json_schema, contract_id="experiment-task-v1", subject_kind="experiment_task"
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "task-evidence-requirement-relation-owner-valid",
             "Task-scoped evidence requirement relations must identify this exact task and scenario snapshot.",

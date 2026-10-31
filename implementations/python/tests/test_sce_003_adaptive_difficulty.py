@@ -35,10 +35,10 @@ from raes_contracts.contracts import (
     difficulty_decision_history_head,
     difficulty_policy_digest,
     resolve_difficulty_policy,
-    schema_bundle,
     validate_experiment_difficulty_against_spec,
     validate_experiment_study_structure_against_tasks_and_runs,
 )
+from raes_schemas import schema_bundle
 
 _DIGEST_A = "sha256:" + "1" * 64
 _DIGEST_B = "sha256:" + "2" * 64

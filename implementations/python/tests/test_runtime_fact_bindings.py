@@ -9,7 +9,6 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import validate_contract_payload
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.runtime_facts import (
     RuntimeFactAbsenceDisposition,
     RuntimeFactAudience,
@@ -34,6 +33,7 @@ from raes_runtime.runtime_fact_bindings import (
     RuntimeFactBindingPlane,
     RuntimeFactDispatchCommand,
 )
+from raes_schemas import schema_bundle
 
 
 def _host_declaration() -> RuntimeFactDeclarationModel:

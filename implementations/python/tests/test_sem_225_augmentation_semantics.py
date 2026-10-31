@@ -9,11 +9,8 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
-from raes_contracts.contracts import (
-    ExperimentAugmentationDisclosureModel,
-    ExperimentRunModel,
-    schema_bundle,
-)
+from raes_contracts.contracts import ExperimentAugmentationDisclosureModel, ExperimentRunModel
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 

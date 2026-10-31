@@ -10,12 +10,11 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, Field, model_validator
 
-from .contracts import (
-    BehavioralClaimBindingModel,
-    BehavioralRelationId,
-    ContractModel,
-    NonEmptyString,
-)
+from raes_contracts._base import ContractModel, NonEmptyString
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel, BehavioralRelationId
+
+from .behavioral_authority_errors import BehavioralAuthorityArtifactError
+from .behavioral_relations import load_behavioral_relation_catalog, validate_behavioral_claim_binding
 from .corpus import PROFILES, corpus_family_root
 from .errors import NotFoundError, OperationalError
 from .versions import (
@@ -90,7 +89,6 @@ class CompletenessProfileModel(ContractModel):
 
     @model_validator(mode="after")
     def validate_behavioral_claims(self) -> CompletenessProfileModel:
-        from .behavioral_authority_errors import BehavioralAuthorityArtifactError
 
         try:
             self._check_behavioral_claims()
@@ -100,7 +98,6 @@ class CompletenessProfileModel(ContractModel):
         return self
 
     def _check_behavioral_claims(self) -> None:
-        from .behavioral_relations import load_behavioral_relation_catalog, validate_behavioral_claim_binding
 
         catalog = load_behavioral_relation_catalog()
         claimed_ids = [claim.relation_id for claim in self.behavioral_claims]

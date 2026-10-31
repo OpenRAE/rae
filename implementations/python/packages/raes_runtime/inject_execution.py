@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 from raes_backend_protocols.inject_execution import InjectAdmission
 from raes_contracts.contracts import InjectTargetBindingModel
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.errors import InvalidInputError
-from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import OrchestrationOp, OrchestrationPlan
 
 if TYPE_CHECKING:

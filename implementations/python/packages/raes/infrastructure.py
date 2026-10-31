@@ -11,15 +11,14 @@ from enum import Enum
 from ipaddress import ip_address, ip_network
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import (
-    SDLModel,
+from raes_contracts.identifiers import OptionalPortableIdentifier
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import (
     is_variable_ref,
     parse_bool_or_var,
     parse_enum_or_var,
     parse_int_or_var,
 )
-from ._identifiers import OptionalPortableIdentifier
 
 MINIMUM_NODE_COUNT = 1
 DEFAULT_NODE_COUNT = 1

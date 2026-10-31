@@ -59,8 +59,8 @@ def test_content_encoding_and_decoded_byte_bounds_are_enforced(changes):
 
 def test_resolved_required_parameter_instance_does_not_reinstantiate_its_parent():
     from raes import canonical_instantiated_sdl_digest, parse_sdl
+    from raes.associated_artifacts import require_instantiated_scenario_reference
     from raes.instantiate import instantiate_scenario
-    from raes_contracts.associated_artifacts import require_instantiated_scenario_reference
     from raes_contracts.contracts import OperationArtifactReferenceModel
 
     parent = parse_sdl(

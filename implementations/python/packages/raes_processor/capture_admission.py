@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from raes.evidence_requirements import EvidenceRequirement
+from raes.authored_scenario_evidence import AuthoredScenarioEvidenceView
 from raes.scenario import ScenarioContent
 from raes_backend_protocols.capabilities import ObservationCapabilities, ObservationCaptureOffer
 from raes_contracts.capture_dimensions import CAPTURE_DIMENSIONS, project_capture_dimensions
@@ -15,6 +15,7 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.evidence_requirements import EvidenceRequirement
 
 _CHANNEL_CAPTURE_KIND = {
     "packet_capture": "packet-capture",
@@ -175,7 +176,7 @@ def compile_scoped_evidence_requirement_demands(
     try:
         validate_evidence_requirement_relations(
             relations,
-            scenario=relation_scenario or scenario,
+            scenario=AuthoredScenarioEvidenceView(relation_scenario or scenario),
             capture_specs=supplied_specs,
         )
     except ValueError as exc:

@@ -4,13 +4,12 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.apparatus import RealizationObservationCapability
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.realization_envelope import RealizationConcern
-from raes_contracts.realization_observation import (
-    RealizationObservation,
-    RealizationObservationDisclosure,
+from raes_contracts.realization_observation import RealizationObservation, RealizationObservationDisclosure
+from raes_contracts.realization_operational_observation import (
     bind_compute_substrate_observations,
     compute_substrate_readback_addresses,
 )

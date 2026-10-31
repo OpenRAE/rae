@@ -14,10 +14,10 @@ from raes_contracts.bounded_domains import (
     NumericIntervalDomain,
     NumericType,
 )
+from raes_contracts.identifiers import QualifiedName
 
 from .._behavior_authoring import validate_authored_behavior_references
 from .._errors import SDLValidationError
-from .._identifiers import QualifiedName
 from .._incremental_reuse import ALL_FIELDS
 from .._reference_targetability import purpose_for_domain
 from ..scenario import Scenario

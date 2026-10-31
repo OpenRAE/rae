@@ -27,6 +27,7 @@ Different experiments may need to add or tighten evidence requirements without c
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_evidence_requirement_exports.py` (Evidence-requirement facade exports extracted to keep the public contract surface within static-analysis limits)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Governed public evidence-requirement relation exports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_evidence_refinement.py` (Typed scoped relation, exact lineage resolution, and governed monotone refinement validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/authored_scenario_evidence.py` (Typed scoped relation, exact lineage resolution, and governed monotone refinement validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_evidence.py` (Evidence-contract public relation surface)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_apparatus.py` (Compatibility export for the extracted task relation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_task.py` (Task-scoped evidence-requirement relation carrier)

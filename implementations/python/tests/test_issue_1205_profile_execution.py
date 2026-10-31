@@ -6,6 +6,7 @@ from dataclasses import replace
 import pytest
 import yaml
 from raes import parse_sdl
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.domain_profiles import (
     DomainProfileBindingProvenanceModel,
@@ -13,7 +14,6 @@ from raes_contracts.domain_profiles import (
     draft_domain_profile_definition,
     seal_domain_profile_definition,
 )
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_profiles import profile_context_digest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model

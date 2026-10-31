@@ -13,8 +13,8 @@ from pydantic import ValidationError
 from raes import SDLInstantiationError, SDLParseError, instantiate_scenario, parse_sdl, parse_sdl_file
 from raes.canonical import InstantiatedScenarioSnapshot, canonical_instantiated_sdl_bytes
 from raes.runtime_application import RuntimeApplicationRoute, RuntimeApplicationSurface
-from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
+from raes_schemas import schema_bundle
 from test_issue_1210_semantic_comparison import compare
 
 

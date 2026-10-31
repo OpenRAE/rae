@@ -18,7 +18,7 @@ from .external_concept_bindings import (
     ExternalConceptLifecyclePhase,
     ExternalConceptSubjectModel,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 from .semantic_projection_profile_registry import (
     PROFILE_ADAPTERS,
     PROFILE_AXES,
@@ -407,7 +407,7 @@ class SemanticProjectionReportModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "semantic-projection-exact-frame-partition",
             "The complete digest-bound frame selects one native predicate and every explicitly included "
@@ -415,7 +415,7 @@ class SemanticProjectionReportModel(ContractModel):
             validator=_REPORT_VALIDATOR,
             inputs=[{"contract_id": "semantic-projection-report-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "semantic-projection-evidence-bounded-witnesses",
             "Only witness rows carry digest-stable native results whose subject, producer, and profile join "

@@ -6,11 +6,15 @@ from collections.abc import Mapping
 from typing import Any
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
-from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.mixed_runtime_history import (
+from raes_contracts.contracts.mixed_runtime_history import (
     iter_mixed_runtime_snapshot_violations,
     iter_mixed_runtime_transition_violations,
 )
+from raes_contracts.contracts.participant_outcome_history import (
+    iter_outcome_snapshot_violations,
+    iter_outcome_transition_violations,
+)
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_behavior import (
     iter_participant_behavior_snapshot_violations,
     iter_participant_runtime_history_transition_violations,
@@ -30,15 +34,11 @@ from raes_contracts.participant_crossing_history import (
     iter_participant_crossing_history_snapshot_violations,
     iter_participant_crossing_history_transition_violations,
 )
-from raes_contracts.participant_episode import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_episode_closure import iter_participant_episode_closure_violations
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_history_transition_violations,
     iter_participant_information_state_snapshot_violations,
-)
-from raes_contracts.participant_outcome_history import (
-    iter_outcome_snapshot_violations,
-    iter_outcome_transition_violations,
 )
 from raes_contracts.participant_shared_state import (
     iter_participant_shared_state_history_transition_violations,

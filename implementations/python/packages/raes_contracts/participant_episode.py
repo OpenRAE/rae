@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -361,17 +361,6 @@ def _validate_episode_history_sequence(event: ParticipantEpisodeHistoryEvent) ->
         )
 
 
-def iter_participant_episode_snapshot_violations(
-    participant_episode_results: object,
-    participant_episode_history: object,
-) -> Iterator[tuple[str, str]]:
-    from raes_contracts.participant_episode_snapshot import (
-        iter_participant_episode_snapshot_violations as _iter_snapshot_violations,
-    )
-
-    yield from _iter_snapshot_violations(participant_episode_results, participant_episode_history)
-
-
 __all__ = (
     "ParticipantEpisodeControlAction",
     "PARTICIPANT_EPISODE_CONTROL_EVENTS",
@@ -385,5 +374,4 @@ __all__ = (
     "ParticipantEpisodeStatus",
     "ParticipantEpisodeTerminalReason",
     "ParticipantEpisodeTerminateRequest",
-    "iter_participant_episode_snapshot_violations",
 )

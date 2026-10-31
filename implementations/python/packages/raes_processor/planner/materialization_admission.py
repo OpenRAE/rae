@@ -15,7 +15,12 @@ from raes.materialization_provenance import MaterializedResourceBinding
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+from raes_contracts.contracts.materialization_attestation import (
+    MaterializationArchiveRecord,
+    require_materialization_records,
+)
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.realization_preparation import preparation_snapshot_digest
 from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
@@ -23,11 +28,8 @@ from raes_contracts.materialization import (
     MATERIALIZATION_MAX_BYTES,
     MaterializationSource,
     MaterializationSubmission,
-    require_materialization_records,
 )
-from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlannedResource, ProvisioningPlan, RuntimeDomain
-from raes_contracts.realization_preparation import preparation_snapshot_digest
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 
 from ..compiler import compile_runtime_model, validate_materialization_origins

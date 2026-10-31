@@ -16,17 +16,18 @@ from raes.canonical import (
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, read_sdl_source
 from raes.scenario import ExpandedScenario
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import EvidenceIntegrityError, OperationalError
-from raes_contracts.satisfiability import (
+from raes_contracts.source_identity import SourceArtifactIdentityModel
+
+from raes_processor.satisfiability.evidence import (
     SatisfiabilityOutcome,
     SatisfiableWitnessModel,
     ScenarioSatisfiabilityEvidenceModel,
     SolverConfigurationModel,
-    SourceArtifactIdentityModel,
     UnsatisfiableCoreModel,
     UnsupportedAnalysisModel,
-    canonical_contract_digest,
 )
 
 from ._solver import SOLVER_TIMEOUT_MS, SolverOperationalError, solve_model

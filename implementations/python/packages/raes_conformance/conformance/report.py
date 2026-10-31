@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from importlib.metadata import PackageNotFoundError, version
 
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
-from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.digests import sha256_digest
+from raes_contracts.errors import OperationalError
 from raes_contracts.json_serialization import sorted_json_text_unicode
+from raes_contracts.published_schemas import published_schema
 
 from raes_conformance.conformance.diagnostics import _diagnostic_payload
 from raes_conformance.conformance.mixed_backend_types import MixedBackendCaseBinding, mixed_case_binding_payload
@@ -550,6 +553,22 @@ def _report_summary(report: BackendConformanceReport) -> dict[str, object]:
             )
         ),
     }
+
+
+def required_contract_schemas(contract_ids: Iterable[str]) -> dict[str, dict[str, object]]:
+    """Return the published schema of each required contract, in the given order.
+
+    A required contract with no published schema means that the installed
+    corpus is incomplete, so the run fails instead of reporting partial evidence.
+    """
+
+    schemas: dict[str, dict[str, object]] = {}
+    for contract_id in contract_ids:
+        try:
+            schemas[contract_id] = published_schema(contract_id)
+        except KeyError:
+            raise OperationalError(f"required contract {contract_id} has no published schema") from None
+    return schemas
 
 
 def contract_content_digests(schemas: dict[str, object]) -> dict[str, str]:

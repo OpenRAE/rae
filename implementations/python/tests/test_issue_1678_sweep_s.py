@@ -359,7 +359,7 @@ def test_one_public_array_index_rule_serves_every_pointer_walker():
 
 @_needs_digit_limit
 def test_ram_size_refusals_do_not_repeat_the_authored_value():
-    from raes.runtime_values import parse_ram
+    from raes_contracts.runtime_values import parse_ram
 
     for value in ("²", _SECRET, "9" * (_LIMIT + 1)):
         with pytest.raises(ValueError) as refused:
@@ -426,7 +426,7 @@ def _snapshot_payload(accounts: object) -> dict:
 def test_snapshot_migration_refuses_nesting_beyond_its_depth_limit():
     from pydantic import ValidationError
     from raes.canonical import InstantiatedScenarioSnapshot, migrate_legacy_instantiated_snapshot_payload
-    from raes_contracts.satisfiability import SatisfiableWitnessModel
+    from raes_processor.satisfiability.evidence import SatisfiableWitnessModel
 
     nested: object = {}
     for _ in range(3000):
@@ -630,7 +630,7 @@ def test_migration_refusals_do_not_report_a_defect_as_a_refusal(monkeypatch, mod
 def test_editor_context_does_not_report_a_composition_defect_as_a_missing_import(monkeypatch, tmp_path):
     from raes._language_context import document_context
 
-    monkeypatch.setattr("raes.composition.expand_sdl_modules", _defect)
+    monkeypatch.setattr("raes._language_context.expand_sdl_modules", _defect)
 
     with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
         document_context({"name": "root", "imports": [{"path": "module.yaml"}]}, tmp_path / "root.yaml")

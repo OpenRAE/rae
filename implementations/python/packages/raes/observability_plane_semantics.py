@@ -1,71 +1,28 @@
-"""Carrier-oriented observability/evidence plane classifier (SEM-224).
+"""Observability/evidence planes of SDL sections and runtime families (SEM-224).
 
 ADR-066 and ``specs/formal/observability-evidence-plane.md`` define five named
-planes for observability and evidence concerns. This module is the unifying,
-*data-only* classifier #334 owns: it assigns exactly one primary plane to a
-claim-bearing carrier by its contract role or runtime-family identity, never by
-a free-form string such as ``log``, ``trace``, ``telemetry``, ``observation``,
-or ``evidence`` (OE-11).
+planes for observability and evidence concerns. This module assigns exactly one
+primary plane to an SDL authoring section or a runtime family by its identity,
+never by a free-form string such as ``log``, ``trace``, ``telemetry``,
+``observation``, or ``evidence`` (OE-11). Claim-bearing contracts get their
+plane in ``raes_contracts.observability_planes``.
 
 It deliberately holds no runtime internals, inspects no backend-native DTOs, and
-infers nothing from arbitrary text. The plane separation each carrier enforces
-lives in the existing experiment-core, participant-runtime, and apparatus
-contracts; this module is the single source of plane ownership and the source of
-the portable ``x-raes-plane`` annotation published on the claim-bearing
-contracts.
+infers nothing from arbitrary text.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterable
-from enum import Enum
+
+from raes_contracts.observability_planes import ObservabilityEvidencePlane as _ObservabilityEvidencePlane
 
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES, collect_qualified_runtime_family_refs
 
-
-class ObservabilityEvidencePlane(str, Enum):
-    """The five named observability/evidence planes (ADR-066)."""
-
-    SCENARIO_NATIVE_OBSERVABILITY = "scenario_native_observability"
-    AUTHORED_EVIDENCE_REQUIREMENT = "authored_evidence_requirement"
-    PROCESSOR_BACKEND_OPERATIONAL = "processor_backend_operational_observability"
-    CAPTURED_EVIDENCE = "captured_evidence"
-    DERIVED_ANALYSIS = "derived_analysis"
-
-
-# Claim-bearing carriers whose contract role decides a single primary plane.
-# Authored evidence requirement, captured evidence, and derived analysis are the
-# three experiment-core carriers; processor/backend operational observability is
-# carried by apparatus manifests, processor manifests, and apparatus context.
-PLANE_BY_CONTRACT_ID: dict[str, ObservabilityEvidencePlane] = {
-    "participant-control-selection-v1": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
-    "participant-control-evaluation-v1": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
-    "participant-control-selection-v2": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
-    "participant-control-evaluation-v2": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
-    "experiment-capture-spec-v1": ObservabilityEvidencePlane.AUTHORED_EVIDENCE_REQUIREMENT,
-    "experiment-evidence-record-v1": ObservabilityEvidencePlane.CAPTURED_EVIDENCE,
-    "experiment-derived-measure-v1": ObservabilityEvidencePlane.DERIVED_ANALYSIS,
-    "backend-manifest-v2": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
-    "processor-manifest-v2": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
-    "experiment-apparatus-context-v1": ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL,
-}
-
 # SDL authoring sections whose carrier role decides a single primary plane.
-PLANE_BY_SDL_SECTION: dict[str, ObservabilityEvidencePlane] = {
-    "evidence_requirements": ObservabilityEvidencePlane.AUTHORED_EVIDENCE_REQUIREMENT,
+PLANE_BY_SDL_SECTION: dict[str, _ObservabilityEvidencePlane] = {
+    "evidence_requirements": _ObservabilityEvidencePlane.AUTHORED_EVIDENCE_REQUIREMENT,
 }
-
-# Contracts whose ``x-raes-plane`` annotation is published as portable
-# traceability (the three experiment-core carriers that map 1:1 to a plane).
-PLANE_ANNOTATED_CONTRACT_IDS: tuple[str, ...] = (
-    "participant-control-selection-v1",
-    "participant-control-evaluation-v1",
-    "participant-control-selection-v2",
-    "participant-control-evaluation-v2",
-    "experiment-capture-spec-v1",
-    "experiment-evidence-record-v1",
-    "experiment-derived-measure-v1",
-)
 
 # Scenario-native observability systems are in-world SDL runtime families
 # (``specs/sdl/observability-and-evidence.md``). Names are validated against the
@@ -127,23 +84,7 @@ AMBIGUOUS_PLANE_TOKENS: frozenset[str] = frozenset(
 _PLANE_DECIDING_TOKENS: frozenset[str] = frozenset()
 
 
-def classify_contract_plane(contract_id: str) -> ObservabilityEvidencePlane:
-    """Return the single primary plane for a registered claim-bearing carrier.
-
-    Raises ``ValueError`` for an unregistered carrier: plane ownership is decided
-    by carrier role, never inferred.
-    """
-
-    try:
-        return PLANE_BY_CONTRACT_ID[contract_id]
-    except KeyError:
-        raise ValueError(
-            f"no observability/evidence plane is registered for carrier '{contract_id}'; "
-            "plane ownership is decided by carrier role, not inferred"
-        ) from None
-
-
-def classify_runtime_family(collection_name: str) -> ObservabilityEvidencePlane:
+def classify_runtime_family(collection_name: str) -> _ObservabilityEvidencePlane:
     """Classify an SDL runtime family as scenario-native observability.
 
     Raises ``ValueError`` for a runtime family that is not a scenario-native
@@ -151,11 +92,11 @@ def classify_runtime_family(collection_name: str) -> ObservabilityEvidencePlane:
     """
 
     if collection_name in SCENARIO_NATIVE_OBSERVABILITY_FAMILIES:
-        return ObservabilityEvidencePlane.SCENARIO_NATIVE_OBSERVABILITY
+        return _ObservabilityEvidencePlane.SCENARIO_NATIVE_OBSERVABILITY
     raise ValueError(f"runtime family '{collection_name}' is not a scenario-native observability surface")
 
 
-def classify_sdl_section_plane(section_name: str) -> ObservabilityEvidencePlane:
+def classify_sdl_section_plane(section_name: str) -> _ObservabilityEvidencePlane:
     """Return the primary plane for a registered SDL authoring carrier."""
 
     try:
@@ -182,8 +123,8 @@ def collect_scenario_native_observability_refs(scenario: object) -> set[str]:
 
 
 def assert_single_primary_plane(
-    planes: Iterable[ObservabilityEvidencePlane],
-) -> ObservabilityEvidencePlane:
+    planes: Iterable[_ObservabilityEvidencePlane],
+) -> _ObservabilityEvidencePlane:
     """Enforce OE-01: a claim-bearing artifact has exactly one primary plane."""
 
     distinct = set(planes)
@@ -207,13 +148,9 @@ def token_decides_plane(token: str) -> bool:
 
 __all__ = [
     "AMBIGUOUS_PLANE_TOKENS",
-    "PLANE_ANNOTATED_CONTRACT_IDS",
-    "PLANE_BY_CONTRACT_ID",
     "PLANE_BY_SDL_SECTION",
     "SCENARIO_NATIVE_OBSERVABILITY_FAMILIES",
-    "ObservabilityEvidencePlane",
     "assert_single_primary_plane",
-    "classify_contract_plane",
     "classify_runtime_family",
     "classify_sdl_section_plane",
     "collect_scenario_native_observability_refs",

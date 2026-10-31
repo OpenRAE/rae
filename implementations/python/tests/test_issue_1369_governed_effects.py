@@ -213,8 +213,8 @@ def test_inject_effect_creates_a_fresh_real_world_occurrence(tmp_path, disclosur
     from participant_control_v2_fixtures import binding
     from participant_crossing_fixtures import admission_request, behavior, evidence
     from participant_inject_runtime_fixtures import configured_plane
-    from raes.participant_inject_delivery import ParticipantInjectDelivery
     from raes_backend_protocols.inject_execution import InjectAdmission
+    from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
     from raes_runtime.inject_claims import inject_order_head
     from raes_runtime.participant_control_effects import ParticipantControlEffectOperation
     from test_issue_1368_control_inject_owner import effect_target

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
 from raes_contracts.vocabulary import ObservationStrength
 
 if TYPE_CHECKING:
@@ -34,7 +35,6 @@ def _binding_fields(disclosure: RealizationObservationDisclosure) -> tuple[objec
 
 
 def _require_compute_substrate_evidence(disclosure: RealizationObservationDisclosure) -> None:
-    from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
 
     if (
         disclosure.observed_value is None

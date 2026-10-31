@@ -25,16 +25,21 @@ import re
 from typing import Any
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
+    coerce_string_list,
+    enforce_observed_value_redaction,
+    parse_optional_bool_or_var,
+    parse_runtime_enum_or_var,
+    reject_duplicates,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_bool_or_var, parse_int_or_var
 
 from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import (
-    SDLModel,
-    is_variable_ref,
-    parse_bool_or_var,
-    parse_int_or_var,
-)
 from .runtime_database_vocab import (
     ENGINE_TO_PROTOCOLS as _ENGINE_TO_PROTOCOLS,
 )
@@ -46,15 +51,6 @@ from .runtime_database_vocab import (
     DatabaseProtocol,
     DatabaseRoleType,
     DatabaseSettingProvenance,
-)
-from .runtime_filesystem import RuntimeSensitivityClassification
-from .runtime_values import (
-    coerce_string_list,
-    enforce_observed_value_redaction,
-    parse_optional_bool_or_var,
-    parse_runtime_enum_or_var,
-    reject_duplicates,
-    require_symbol,
 )
 
 __all__ = [

@@ -201,7 +201,7 @@ def test_selected_binding_must_resolve_in_the_exact_pinned_plan(tmp_path):
 def test_artifact_only_inject_cannot_omit_native_augmentation_obligations(tmp_path):
     from dataclasses import replace
 
-    from raes_contracts.plan_projection import runtime_plan_digest
+    from raes_contracts.contracts.plan_projection import runtime_plan_digest
 
     plane, backend, request = configured_plane(tmp_path)
     backend.plan = replace(

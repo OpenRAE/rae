@@ -9,11 +9,15 @@ from typing import Protocol, cast
 from raes import SDLParseError
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_payload
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import ProcessorManifestV2Model, SemanticProfileModel, schema_bundle
+from raes_contracts.contracts import ProcessorManifestV2Model, SemanticProfileModel
+from raes_contracts.contracts.plan_projection import (
+    evaluation_plan_model,
+    orchestration_plan_model,
+    provisioning_plan_model,
+)
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.plan_projection import evaluation_plan_model, orchestration_plan_model, provisioning_plan_model
 from raes_contracts.semantic_profiles import load_semantic_profile
 from raes_contracts.validation_profiles import ValidationProfileDefinitionModel, select_validation_profile
 from raes_processor.reference import ReferenceProcessorResult
@@ -25,6 +29,7 @@ from .report import (
     bounded_conformance_claim,
     conformance_tool_version,
     contract_content_digests,
+    required_contract_schemas,
 )
 from .validators import validate_contract_payload
 
@@ -374,7 +379,6 @@ def run_processor_conformance(
     _validate_selection(requested_features, probes)
     profile = load_semantic_profile("reference-stack-v1")
     validation = select_validation_profile("raes-structural-validation", "v1", subject_kind="published_claim")
-    bundle = schema_bundle()
     required = profile.processing.required_contracts
     manifest, diagnostics = _load_manifest(processor)
     cases: list[ConformanceCaseResult] = []
@@ -412,7 +416,7 @@ def run_processor_conformance(
         profile_digest=canonical_json_digest(suite),
         tool_version=conformance_tool_version(),
         contract_versions={name: name for name in required},
-        contract_digests=contract_content_digests({name: bundle[name] for name in required}),
+        contract_digests=contract_content_digests(required_contract_schemas(required)),
         unsupported_contract_gaps=contract_gaps,
         unsupported_capability_gaps=capability_gaps,
         required_case_refs=tuple(f"conformance-case:{case.contract_name}:{case.name}" for case in case_tuple),

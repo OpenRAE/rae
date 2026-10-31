@@ -10,7 +10,6 @@ from raes_contracts.description_coverage import DescriptionCoverageUnsatisfied
 from raes_contracts.description_reporting import DescriptionProfileAdmission
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.observation_demand import (
-    AchievedObservationValue,
     EffectiveObservationDemand,
     ObservationBasis,
     ObservationDemandResolution,
@@ -18,11 +17,14 @@ from raes_contracts.observation_demand import (
     ObservationLifecycleStage,
     ObservationPurpose,
     ObservationSelector,
-    execute_observation_lifecycle,
     observation_selector_has_more_specific_policy,
+)
+from raes_contracts.observation_lifecycle import execute_observation_lifecycle
+from raes_contracts.observation_reporting import (
+    AchievedObservationValue,
+    RealizationDescriptionItem,
     realization_description_report,
 )
-from raes_contracts.observation_reporting import RealizationDescriptionItem
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import RuntimeSnapshot
 

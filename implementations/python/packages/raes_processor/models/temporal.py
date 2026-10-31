@@ -4,12 +4,12 @@ from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from raes.participant_temporal_semantics import (
+from raes.participant_temporal_semantics import ParticipantTemporalState
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
+from raes_contracts.participant_temporal_vocabulary import (
     ParticipantTemporalEventPoint,
-    ParticipantTemporalState,
     ParticipantTimeDomain,
 )
-from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
 
 from .behavior_resources import (
     _optional_payload_string,

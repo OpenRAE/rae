@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts import (
     ParticipantDecisionSurfaceDerivationAnchorV2Model,
     ParticipantDecisionSurfaceEpisodeReadinessAnchorV2Model,
@@ -13,7 +14,6 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceViewV2Model,
 )
 from raes_contracts.runtime_state import RuntimeSnapshot
-from raes_contracts.satisfiability import canonical_contract_digest
 
 from .authored_participant_exposure_v2 import AuthoredParticipantExposureV2, validate_authored_participant_exposure_v2
 from .behavior_anchor_checks import participant_observation_effective_relation

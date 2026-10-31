@@ -27,7 +27,7 @@ from raes_contracts.contracts import (
     validate_experiment_run_against_task,
     validate_experiment_study_against_tasks_and_runs,
 )
-from raes_contracts.evidence_satisfaction import validate_experiment_run_evidence
+from raes_contracts.contracts.evidence_satisfaction import validate_experiment_run_evidence
 from raes_contracts.planning import PlanScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan

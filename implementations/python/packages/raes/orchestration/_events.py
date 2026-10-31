@@ -1,8 +1,9 @@
 """Authored narrative timing models: injects, events, scripts, and stories."""
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_float_or_var
 
-from .._base import SDLModel, parse_float_or_var
 from .._source import Source
 from ._durations import parse_duration
 

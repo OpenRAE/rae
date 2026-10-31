@@ -5,22 +5,23 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from pydantic import Field, SerializerFunctionWrapHandler, StrictInt, model_serializer, model_validator
-from raes.participant_attribution_semantics import (
-    ParticipantAttributionCandidateKind,
-    ParticipantAttributionOrderingBasisKind,
-    ParticipantAttributionSupportClass,
-)
-from raes.participant_behavior import (
+
+from raes_contracts.participant_action_semantics import (
     ParticipantEffectClass,
     ParticipantFailureClass,
     ParticipantInteractionClass,
     ParticipantPreconditionClass,
 )
-from raes.participant_outcome_semantics import (
+from raes_contracts.participant_attribution_semantics import (
+    ParticipantAttributionCandidateKind,
+    ParticipantAttributionOrderingBasisKind,
+    ParticipantAttributionSupportClass,
+)
+from raes_contracts.participant_outcome_semantics import (
     OutcomeInterpretationSourceLayer,
     OutcomeInterpretationTargetLayer,
 )
-from raes.participant_temporal_semantics import (
+from raes_contracts.participant_temporal_vocabulary import (
     ParticipantTemporalEventPoint,
     ParticipantTimeDomain,
 )

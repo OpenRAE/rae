@@ -17,7 +17,6 @@ from typing import Literal, Protocol
 
 from raes_backend_protocols.protocols import ParticipantControlProvider, ParticipantControlProviderV2
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.participant_control_applicability import (
     ParticipantControlRequestV2Model,
     ParticipantControlSelectionV2Model,
@@ -34,6 +33,7 @@ from raes_contracts.contracts.participant_control_selection import ParticipantCo
 from raes_contracts.contracts.participant_control_support_v2 import ControlSupportAssessmentV2Model
 from raes_contracts.errors import InvalidInputError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.published_schemas import published_schema
 
 from .control_plane_mutation import external_control_plane_call
 from .control_plane_store_revision import SnapshotRevisionConflict
@@ -139,7 +139,7 @@ class ParticipantControlRuntimeBinding:
 
     def _require_v2_inputs(self, selection: ParticipantControlSelectionV2Model) -> None:
         contracts = ("participant-control-selection-v2", "participant-control-evaluation-v2")
-        expected = {name: canonical_json_digest(schema_bundle()[name]) for name in contracts}
+        expected = {name: canonical_json_digest(published_schema(name)) for name in contracts}
         if self.contract_digests != expected:
             raise ValueError("participant control v2 requires exact published contract content pins")
         slots = {item.slot_id: item for item in selection.slots}

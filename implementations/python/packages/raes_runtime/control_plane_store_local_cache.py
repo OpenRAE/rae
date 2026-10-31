@@ -18,7 +18,7 @@ class SnapshotCache:
             pending = getattr(connection, "pending_snapshot", None)
             if pending is not None:
                 self.identity, self.state = pending
-                from raes_contracts.immutable_history import snapshot_history_roots
+                from raes_contracts.snapshot_histories import snapshot_history_roots
 
                 self.history_roots = snapshot_history_roots(self.state.snapshot)
 

@@ -1,9 +1,12 @@
 """Authored module descriptors and import declarations."""
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier, require_module_identifier, require_portable_identifier
+from raes_contracts.identifiers import (
+    PortableIdentifier,
+    require_module_identifier,
+    require_portable_identifier,
+)
+from raes_contracts.sdl_model import SDLModel
 
 
 class ModuleDescriptor(SDLModel):

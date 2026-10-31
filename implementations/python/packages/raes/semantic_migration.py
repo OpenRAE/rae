@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import yaml
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
@@ -11,7 +13,6 @@ from raes_contracts.contracts import (
     ExternalConceptBindingDocumentModel,
 )
 from raes_contracts.external_concept_bindings import ExternalConceptSchemeSnapshotModel, admit_external_concept_bindings
-from raes_contracts.sdl_semantic_migration import SDLSemanticMigrationContext
 
 from ._errors import SDLError
 from ._semantic_migration_decisions import apply_sentinel_decisions
@@ -31,6 +32,9 @@ from .semantic_revisions import (
     read_versioned_sdl,
     source_byte_digest,
 )
+
+if TYPE_CHECKING:
+    from raes.semantic_migration_context import SDLSemanticMigrationContext
 
 SEMANTIC_MIGRATION_PROFILE = "adopt-progressive-sdl-semantics/v1"
 
@@ -214,4 +218,4 @@ def _bindings(
     return transformed
 
 
-__all__ = ["SDLSemanticMigrationContext", "SEMANTIC_MIGRATION_PROFILE", "migrate_sdl_semantics"]
+__all__ = ["SEMANTIC_MIGRATION_PROFILE", "migrate_sdl_semantics"]

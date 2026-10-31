@@ -32,8 +32,7 @@ EXTRA_SOURCE_PATHS = (
     "tools/policy/__init__.py",
     "implementations/tooling/action_policy_yaml.py",
     "implementations/python/packages/raes/__init__.py",
-    "implementations/python/packages/raes/identifiers.py",
-    "implementations/python/packages/raes/_identifiers.py",
+    "implementations/python/packages/raes_contracts/identifiers.py",
     "implementations/formal/participant_crossing/reproduction_sandbox.py",
     "implementations/formal/participant_crossing/reproduction_checks.py",
 )

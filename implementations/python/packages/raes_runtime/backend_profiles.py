@@ -28,7 +28,7 @@ def validate_profile_target(manifest: BackendManifest, provisioner: object) -> N
         if manifest.domain_profile_context_digest is not None:
             raise ValueError("Unnegotiated profile context digest")
         return
-    from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
+    from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT
 
     context = getattr(provisioner, "domain_profile_context", None)
     if (

@@ -8,11 +8,16 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 from raes_contracts.apparatus import ProcessResourceLimitCapability
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import (
+    WholeFieldVariableReference,
+    contains_variable_token,
+    parse_int_or_var,
+)
 from raes_contracts.vocabulary import ProcessResourceLimitKind, ProcessResourceLimitScope
 
 from raes.runtime_filesystem import flagged_raw_value_schema
 
-from ._base import SDLModel, WholeFieldVariableReference, contains_variable_token, parse_int_or_var
 from .runtime_capabilities import (
     RuntimeProcessIdentity,
     RuntimeProcessRole,

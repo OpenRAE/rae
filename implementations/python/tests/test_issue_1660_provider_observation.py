@@ -8,7 +8,8 @@ import yaml
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.observation_demand import AchievedObservationValue, ObservationBasis
+from raes_contracts.observation_demand import ObservationBasis
+from raes_contracts.observation_reporting import AchievedObservationValue
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS

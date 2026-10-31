@@ -3,10 +3,10 @@
 from copy import deepcopy
 
 import pytest
-from raes._base import is_variable_ref
 from raes.image_provenance import ImageAttestation, ImageVerificationStatus
 from raes.runtime_forwarding_agent import RelationshipForwardingEdge, RuntimeForwardingShipTarget
 from raes.validator._relationships import _RelationshipsMixin
+from raes_contracts.variable_references import is_variable_ref
 
 
 class _AgreementBoundary(_RelationshipsMixin):

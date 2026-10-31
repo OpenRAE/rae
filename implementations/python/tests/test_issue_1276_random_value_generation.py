@@ -931,7 +931,7 @@ class TestDirectPlanContentAdmission:
 
 # --- run-identity plumbing through published models + digest (finding #2) -----
 
-from raes_contracts.plan_projection import (  # noqa: E402
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     provisioning_plan_model,
     runtime_plan_digest,

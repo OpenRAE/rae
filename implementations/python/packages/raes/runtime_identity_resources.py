@@ -6,10 +6,10 @@ Provider strings and conditions are inert data. These models never decide access
 from typing import Annotated, Literal
 
 from pydantic import AfterValidator, ConfigDict, Field, model_validator
-
-from ._base import SDLModel, WholeFieldVariableReference
-from ._identifiers import PortableIdentifier
-from .runtime_values import reject_duplicates, require_non_empty
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.runtime_values import reject_duplicates, require_non_empty
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import WholeFieldVariableReference
 
 __all__ = [
     "RuntimeIdentityResourceScope",

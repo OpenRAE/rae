@@ -19,8 +19,8 @@ from .experiment_manifest_references import (
     ExperimentProcessorReferenceModel,
 )
 from .experiment_references import ExperimentReferenceModel
-from .schema_invariants import _add_raes_invariant
-from .validators import _validate_unique_string_values
+from .schema_invariants import add_raes_invariant
+from .validators import validate_unique_string_values
 
 __all__ = [
     "ExperimentApparatusConstraintModel",
@@ -107,9 +107,9 @@ class ExperimentAugmentationDisclosureModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_augmentation_disclosure(self) -> ExperimentAugmentationDisclosureModel:
-        _validate_unique_string_values("augmentation classifications", self.classifications)
-        _validate_unique_string_values("augmentation disclosure markings", self.markings)
-        _validate_unique_string_values("augmentation disclosure notes", self.notes)
+        validate_unique_string_values("augmentation classifications", self.classifications)
+        validate_unique_string_values("augmentation disclosure markings", self.markings)
+        validate_unique_string_values("augmentation disclosure notes", self.notes)
         _validate_unique_experiment_references("augmentation disclosure carrier_refs", self.carrier_refs)
         _validate_unique_experiment_references("augmentation disclosure affected_refs", self.affected_refs)
         _validate_unique_experiment_references("augmentation disclosure evidence_refs", self.evidence_refs)
@@ -194,7 +194,7 @@ class ExperimentAugmentationDisclosureModel(ContractModel):
                 },
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "augmentation-disclosure-semantics-valid",
             "Augmentation disclosures must keep environment-visible, participant-visible, and "
@@ -255,7 +255,7 @@ class ExperimentEvaluationProtocolModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "metric-definition-key-matches-metric-id",
             "Every metric_definitions object key must match the embedded metric_id value.",
@@ -443,7 +443,7 @@ class ExperimentApparatusConstraintModel(ContractModel):
                 {"required": ["notes"], "properties": {"notes": {"minItems": 1}}},
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "apparatus-constraint-identity-manifest-resolves",
             "Every allowed processor/backend identity reference must have a matching required manifest ref_id "

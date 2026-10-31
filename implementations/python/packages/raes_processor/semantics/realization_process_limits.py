@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_resource_limits import process_resource_limit_domain_admits
 from raes_contracts.apparatus import (
     DECLARED_CAPABILITY_MATCH_REQUIREMENT_KIND,
@@ -13,6 +12,7 @@ from raes_contracts.apparatus import (
     RealizationSupportDeclaration,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_contracts.vocabulary import (
     ProcessResourceLimitKind,

@@ -6,8 +6,8 @@ from collections.abc import Callable, Mapping, Sequence
 
 from pydantic import BaseModel
 from raes_contracts.json_pointer import escape_token
+from raes_contracts.variable_references import extract_variable_name
 
-from ._base import extract_variable_name
 from .nodes import Node
 from .parameter_derivations import capture_parameter_derivation
 from .phase_contracts import CapabilityConstraint, ParameterDerivation

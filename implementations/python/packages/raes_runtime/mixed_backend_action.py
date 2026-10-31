@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from raes_contracts.contracts.mixed_backend_stages import MixedBackendStage
     from raes_contracts.contracts.mixed_composition import MixedCompositionAllocationModel
     from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeStateModel
-    from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 
     from .control_plane import RuntimeControlPlane
     from .mixed_backend_installation import MixedBackendInstallation

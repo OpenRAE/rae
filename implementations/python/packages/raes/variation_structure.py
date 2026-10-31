@@ -7,9 +7,9 @@ from typing import Annotated, Any, Literal
 
 from pydantic import AfterValidator, ConfigDict, Field, StrictBool, WithJsonSchema, field_validator, model_validator
 from raes_contracts.canonical import canonical_json_bytes
+from raes_contracts.identifiers import PortableIdentifier, require_qualified_identifier
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier, require_qualified_identifier
 from ._runtime_service_families import RUNTIME_SERVICE_FAMILIES, iter_runtime_family_references
 from .stateful_resources import validate_mount_destination
 

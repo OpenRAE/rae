@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol, runtime_checkable
 
-from raes_contracts.contracts import BehavioralClaimBindingModel
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_runtime.registry import RuntimeTarget
 
 from raes_conformance.conformance.report import (

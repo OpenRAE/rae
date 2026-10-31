@@ -6,18 +6,23 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..evidence_proof import ValidatedRunEvidence
+from raes_contracts.contracts.evidence_satisfaction import ValidatedRunEvidence
+
+from .experiment_analysis_eligibility import experiment_run_is_analysis_eligible
 from .experiment_apparatus import (
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
 )
 from .experiment_artifacts import (
     _experiment_reference_key,
-    _format_reference,
+    format_reference,
 )
 from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_conditions import _run_satisfies_condition_assignment
-from .experiment_evidence_refinement import validate_evidence_requirement_relations_against_artifacts
+from .experiment_evidence_refinement import (
+    AuthoredScenarioEvidence,
+    validate_evidence_requirement_relations_against_artifacts,
+)
 from .experiment_references import ExperimentReferenceModel
 from .experiment_run import ExperimentRunModel
 from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs
@@ -26,6 +31,7 @@ from .experiment_study import (
     ExperimentRunAllocationPlanModel,
     ExperimentStudyMembershipModel,
 )
+from .experiment_study_definition import validate_study_definition
 from .experiment_study_run_validation import validate_study_run_task_membership
 
 
@@ -54,8 +60,6 @@ def _run_ref_matches_run(reference: ExperimentReferenceModel, run: ExperimentRun
 
 
 def _run_is_eligible_for_study_analysis(run: ExperimentRunModel) -> bool:
-    from .experiment_analysis_eligibility import experiment_run_is_analysis_eligible
-
     return experiment_run_is_analysis_eligible(run)
 
 
@@ -73,7 +77,7 @@ def _validate_study_analysis_run_eligibility(
     ambiguous_run_refs: list[str] = []
     ineligible_run_refs: list[str] = []
     for member in evaluation_run_members:
-        reference_label = _format_reference(member.target_ref)
+        reference_label = format_reference(member.target_ref)
         matching_runs = [run for run in runs if _run_ref_matches_run(member.target_ref, run)]
         if len(matching_runs) > 1:
             ambiguous_run_refs.append(reference_label)
@@ -163,7 +167,7 @@ def _classify_evaluation_run_allocation_member(
     condition_set: set[str],
     state: _RunAllocationCoverageState,
 ) -> None:
-    reference_label = _format_reference(member.target_ref)
+    reference_label = format_reference(member.target_ref)
     if member.grouping is None:
         state.ungrouped_run_refs.append(reference_label)
         return
@@ -334,7 +338,7 @@ def _resolve_and_validate_study_tasks(
     ]
     matched_tasks = [task for task in tasks if any(_task_ref_matches_task(reference, task) for reference in task_refs)]
     missing_task_refs = sorted(
-        _format_reference(reference)
+        format_reference(reference)
         for reference in task_refs
         if not any(_task_ref_matches_task(reference, task) for task in tasks)
     )
@@ -360,7 +364,7 @@ def _resolve_and_validate_study_runs(
         run for run in runs if any(_run_ref_matches_run(reference, run) for reference in evaluation_run_refs)
     ]
     missing_run_refs = sorted(
-        _format_reference(reference)
+        format_reference(reference)
         for reference in run_refs
         if not any(_run_ref_matches_run(reference, run) for run in runs)
     )
@@ -408,7 +412,7 @@ def _validate_experiment_study_against_tasks_and_runs(
     runs: list[ExperimentRunModel] | None = None,
     *,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
-    relation_scenarios: Mapping[str, Any] | None,
+    relation_scenarios: Mapping[str, AuthoredScenarioEvidence] | None,
     relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None,
     structural_only: bool,
 ) -> None:
@@ -463,12 +467,10 @@ def validate_experiment_study_against_tasks_and_runs(
     *,
     study_definition: ExperimentStudyModel | None = None,
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
-    relation_scenarios: Mapping[str, Any] | None = None,
+    relation_scenarios: Mapping[str, AuthoredScenarioEvidence] | None = None,
     relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None,
 ) -> None:
     """Validate study semantics and content-backed evidence for every claimed run."""
-
-    from .experiment_study_definition import validate_study_definition
 
     validate_study_definition(study, study_definition)
     _validate_experiment_study_against_tasks_and_runs(

@@ -206,7 +206,7 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
         "import json\n"
         "from raes_contracts.corpus import corpus_root, corpus_family_root\n"
         "from raes_contracts.provenance import load_sdl_lineage_ledger, sdl_lineage_ledger_path\n"
-        "from raes_contracts.evidence_output_validation import evidence_output_registrations, resolve_evidence_output_contract\n"
+        "from raes_contracts.contracts.evidence_output_contracts import evidence_output_registrations, resolve_evidence_output_contract\n"
         "evidence_fixtures = {\n"
         "  'experiment-evidence-record-v1': 'experiment-core/experiment-evidence-record-v1/valid/reference.json',\n"
         "  'participant-behavior-history-event-stream-v1': 'control-plane/participant-behavior-history-event-stream-v1/valid/terminal-observation.json',\n"
@@ -307,15 +307,16 @@ def test_modular_control_contracts_from_independent_install(installed_python: Pa
     script = """
 from raes_backend_protocols.protocols import ParticipantControlProvider
 from raes_backend_protocols.participant_control_admission import resolve_participant_control_support
-from raes_contracts.contracts import parse_participant_control_evaluation, load_teaching_influence_profile, schema_bundle
+from raes_contracts.contracts import parse_participant_control_evaluation, load_teaching_influence_profile
 from raes_contracts.corpus import corpus_family_root
+from raes_contracts.published_schemas import published_schema
 from raes_conformance.conformance.validators import validate_contract_payload
 from jsonschema import Draft202012Validator
 root = corpus_family_root('fixtures')
 assert 'site-packages' in str(root)
 source = (root / 'participant-runtime/participant-control-evaluation-v1/valid/teaching-inject.json').read_bytes()
 record = parse_participant_control_evaluation(source)
-Draft202012Validator(schema_bundle()['participant-control-evaluation-v1']).validate(record.model_dump(mode='json'))
+Draft202012Validator(published_schema('participant-control-evaluation-v1')).validate(record.model_dump(mode='json'))
 assert validate_contract_payload('participant-control-evaluation-v1', record.model_dump(mode='json'))[0].code == 'conformance.semantic-context-required'
 assert load_teaching_influence_profile().release == 'none'
 assert not getattr(ParticipantControlProvider, '_is_runtime_protocol', False)
@@ -334,7 +335,7 @@ from raes_conformance.conformance.modular_control_types import ModularControlCas
 from raes_contracts.corpus import corpus_family_root
 from raes_contracts.contracts.participant_control_applicability import ParticipantControlSelectionV2Model
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import schema_bundle
+from raes_contracts.published_schemas import published_schema
 from raes_runtime.participant_control_binding import ParticipantControlRuntimeBinding, ParticipantControlStageBinding
 from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel
 
@@ -353,7 +354,7 @@ class Resolver:
     def projection(self, request, slot_id, predecessors):
         raise ValueError('no authorized projection')
 projection = ControlArtifactReferenceModel(kind='projection', ref='unavailable', revision='1', digest=canonical_json_digest('unavailable'))
-installed = ParticipantControlRuntimeBinding(selection=selection, providers={item.instance_id: Provider() for item in selection.bindings}, resolver=Resolver(), stages={item.slot_id: ParticipantControlStageBinding(unavailable_projection=projection) for item in selection.slots}, contract_digests={key: canonical_json_digest(schema_bundle()[key]) for key in ('participant-control-selection-v2', 'participant-control-evaluation-v2')})
+installed = ParticipantControlRuntimeBinding(selection=selection, providers={item.instance_id: Provider() for item in selection.bindings}, resolver=Resolver(), stages={item.slot_id: ParticipantControlStageBinding(unavailable_projection=projection) for item in selection.slots}, contract_digests={key: canonical_json_digest(published_schema(key)) for key in ('participant-control-selection-v2', 'participant-control-evaluation-v2')})
 assert installed.selection == selection
 target = create_stub_target()
 report = run_modular_control_conformance(target, obligations=('authored-recovery',))

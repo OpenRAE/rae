@@ -1,5 +1,6 @@
 """Retained qualified measurements, execution provenance and acceptance stay joined."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -20,7 +21,12 @@ def test_retained_qualified_reproduction_has_exact_artifacts_and_agent_acceptanc
     assert review["decision"] == "accepted-bounded-reproduction"
     assert review["reviewer_role"] == "implementation-agent"
     assert review["reviewer_ref"] != review["producer_ref"]
-    assert review["acceptance_record_ref"].startswith("https://github.com/OpenRAE/rae/issues/976#issuecomment-")
+    # The reviewer run and its acceptance are comments on one repository issue.
+    issue = re.fullmatch(
+        r"(https://github\.com/OpenRAE/rae/issues/[1-9][0-9]*)#issuecomment-[1-9][0-9]*", review["reviewer_ref"]
+    )
+    assert issue is not None
+    assert re.fullmatch(re.escape(issue[1]) + r"#issuecomment-[1-9][0-9]*", review["acceptance_record_ref"])
 
 
 @pytest.mark.parametrize("fault", ["payload", "subject", "sources"])

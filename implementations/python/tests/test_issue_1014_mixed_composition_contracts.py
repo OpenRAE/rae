@@ -14,7 +14,6 @@ from pydantic import ValidationError
 from raes_backend_protocols.capabilities import ParticipantFeatureSupport
 from raes_backend_protocols.participant_feature_admission import resolve_participant_feature_support
 from raes_conformance.conformance import contract_validation_strength, validate_contract_payload
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.mixed_composition import (
     MIXED_COMPOSITION_CONTRACT_ID,
     CompositionFeatureRequirementModel,
@@ -42,6 +41,7 @@ from raes_contracts.contracts.time_model import (
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
+from raes_schemas import schema_bundle
 
 SHA_A = "sha256:" + "a" * 64
 SHA_B = "sha256:" + "b" * 64

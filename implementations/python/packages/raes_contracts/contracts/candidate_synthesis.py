@@ -33,7 +33,7 @@ from .candidate_synthesis_traces import (
     validate_resolved_contributions,
 )
 from .external_concept_bindings import ExternalConceptSchemeCoordinateModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 StableId = Annotated[
     str,
@@ -270,14 +270,14 @@ class CandidateSynthesisInputModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-pinned-source-join",
             "Every assertion and reference resolves inside one digest-pinned source envelope and assertion set.",
             validator="raes_contracts.contracts.CandidateSynthesisInputModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-stable-input-order",
             "Assertions, assumptions, decisions, references, values, and target identities use stable unique ordering.",
@@ -442,7 +442,7 @@ class CandidateSynthesisRecordModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-all-or-none",
             (
@@ -452,7 +452,7 @@ class CandidateSynthesisRecordModel(ContractModel):
             validator="raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-record-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-provenance-separation",
             (

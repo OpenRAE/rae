@@ -1,13 +1,9 @@
 """Software precision does not select acquisition telemetry or evidence work."""
 
-from raes_contracts.observation_demand import (
-    AchievedObservationValue,
-    ObservationBasis,
-    ObservationDemandRule,
-    execute_observation_lifecycle,
-    normalize_observation_demands,
-    realization_description_report,
-)
+from raes_contracts.observation_demand import ObservationBasis, ObservationDemandRule
+from raes_contracts.observation_demand_resolution import normalize_observation_demands
+from raes_contracts.observation_lifecycle import execute_observation_lifecycle
+from raes_contracts.observation_reporting import AchievedObservationValue, realization_description_report
 from test_issue_1212_observation_demand import _document, _selector
 
 

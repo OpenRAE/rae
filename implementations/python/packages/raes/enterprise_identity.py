@@ -4,10 +4,10 @@ from enum import Enum
 
 from pydantic import Field, field_validator
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import WholeFieldVariableReference, parse_enum_or_var
 
-from ._base import SDLModel
 from .profile_selections import parse_profile_or_enum
-from .value_parsing import WholeFieldVariableReference, parse_enum_or_var
 
 
 class IdentityFacadeProtocol(str, Enum):

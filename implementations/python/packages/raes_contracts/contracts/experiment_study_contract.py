@@ -8,8 +8,12 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
+
+from ..behavioral_authority_errors import BehavioralAuthorityArtifactError
+from ..behavioral_relations import validate_behavioral_claim_binding
 from ..versions import EXPERIMENT_STUDY_SCHEMA_VERSION
-from .base import BehavioralClaimBindingModel, ContractModel, NonEmptyString
+from .base import ContractModel, NonEmptyString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .experiment_capture import ExperimentValidityNoteModel
 from .experiment_difficulty import add_adaptive_study_invariant, validate_adaptive_difficulty_treatment
@@ -25,7 +29,7 @@ from .experiment_study import (
     ExperimentStudyMembershipModel,
     _validate_condition_factor_levels,
 )
-from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, _add_raes_invariant
+from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, add_raes_invariant
 from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
 
 _STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR = (
@@ -87,8 +91,6 @@ class ExperimentStudyModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_claim_bearing_study(self) -> ExperimentStudyModel:
-        from ..behavioral_authority_errors import BehavioralAuthorityArtifactError
-        from ..behavioral_relations import validate_behavioral_claim_binding
 
         self._validate_definition_reference()
         relation_ids = [claim.relation_id for claim in self.behavioral_claims]
@@ -177,7 +179,7 @@ class ExperimentStudyModel(ContractModel):
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
         _add_claim_bearing_study_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "claim-bearing-study-analysis-plan-required",
             "Study and benchmark records must include research questions, revisioned behavioral claim bindings, run "
@@ -185,7 +187,7 @@ class ExperimentStudyModel(ContractModel):
             validator="raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study",
             inputs=[{"contract_id": "experiment-study-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "study-analysis-metrics-grounded-in-task-protocols",
             "Study analysis_plan metrics must be declared by included experiment task protocols.",
@@ -196,7 +198,7 @@ class ExperimentStudyModel(ContractModel):
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
             ],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "study-analysis-metrics-covered-by-evaluation-run-results",
             "Study analysis_plan metrics must have result_summaries, including explicit missing/withheld "
@@ -208,7 +210,7 @@ class ExperimentStudyModel(ContractModel):
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
             ],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "study-analysis-runs-eligible",
             "Study analysis_plan evaluation-run members must resolve unambiguously and exclude invalidated, "
@@ -219,7 +221,7 @@ class ExperimentStudyModel(ContractModel):
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
             ],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "study-run-allocation-covered-by-evaluation-run-members",
             "Study run_allocation compared_conditions must be represented by eligible included evaluation-run "
@@ -236,14 +238,14 @@ class ExperimentStudyModel(ContractModel):
         _add_carrier_validation_basis_disclosure_invariant(
             json_schema, contract_id="experiment-study-v1", subject_kind="experiment_study"
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "study-evidence-requirement-relation-owner-valid",
             "Study-scoped evidence requirement relations must identify this exact study authority.",
             validator="raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study",
             inputs=[{"contract_id": "experiment-study-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "study-run-allocation-stochastic-control-consistency",
             "When run_allocation compares evaluation runs, every shared stochastic_controls control_id across "

@@ -8,8 +8,7 @@ from typing import Annotated
 
 from pydantic import WithJsonSchema
 from raes_contracts.operating_systems import OS_VERSION_PATTERN, OS_VERSION_RE
-
-from ._base import VARIABLE_TOKEN_PATTERN, is_variable_ref
+from raes_contracts.variable_references import VARIABLE_TOKEN_PATTERN, is_variable_ref
 
 
 class OSDistribution(str, Enum):

@@ -15,8 +15,8 @@ from typing import Any
 import yaml
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_pointer import pointer_tokens
+from raes_contracts.variable_references import is_variable_ref
 
-from ._base import is_variable_ref
 from ._composition_budget import CompositionTraversal
 from ._declarations import DeclarationIndex, preferred_spelling
 from ._errors import SDLParseError, SDLValidationError

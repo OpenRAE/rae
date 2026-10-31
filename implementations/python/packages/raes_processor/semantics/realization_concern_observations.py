@@ -15,7 +15,7 @@ from raes.runtime_listeners import RuntimeServiceListener
 from raes.runtime_mounts import RuntimeMount
 from raes.runtime_network import RuntimePublishedPort
 from raes.runtime_resource_limits import RuntimeProcessResourceLimit
-from raes.value_parsing import is_variable_ref
+from raes_contracts.variable_references import is_variable_ref
 
 _COMMITMENT_PREFIX = "raes-runtime-value-jcs-sha256-v1:"
 _COMMITMENT_RE = re.compile(rf"^{re.escape(_COMMITMENT_PREFIX)}sha256:[0-9a-f]{{64}}$")

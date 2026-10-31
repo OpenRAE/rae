@@ -9,7 +9,7 @@ from functools import cached_property
 
 from pydantic import ValidationError
 from pydantic_core import to_jsonable_python
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
+from raes.explicitness import ExplicitnessRecord
 from raes.parameter_derivations import ParameterDerivation, finite_derivation_image
 from raes.runtime_software import RuntimeSoftwareComponent
 from raes.runtime_software_repositories import RuntimeSoftwareRepository, RuntimeSoftwareTrustBinding
@@ -17,6 +17,7 @@ from raes.scenario import InstantiatedScenario
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.errors import RaesError
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.json_pointer import escape_token
 from raes_contracts.realization_structure import (
     RealizationClosure,

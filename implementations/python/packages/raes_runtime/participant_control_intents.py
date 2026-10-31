@@ -13,8 +13,8 @@ from pydantic import (
     model_serializer,
     model_validator,
 )
-from raes_contracts.contracts.participant_control import ParticipantControlTargetKind
 from raes_contracts.contracts.participant_control_coordinates import ControlCount
+from raes_contracts.participant_mixed_control_vocabulary import ParticipantControlTargetKind
 
 from .participant_control_applications import ParticipantControlApplicationCoordinates
 

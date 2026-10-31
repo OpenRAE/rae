@@ -10,13 +10,11 @@ from raes.orchestration import (
     WorkflowStepType,
 )
 from raes.scenario import InstantiatedScenario
-from raes.semantics.workflow import (
-    workflow_step_semantic_contract,
-)
 from raes_backend_protocols.capabilities import (
     WorkflowFeature,
     WorkflowStatePredicateFeature,
 )
+from raes_contracts.workflow.semantics import workflow_step_semantic_contract
 
 from ..models import (
     AssertionRuntime,

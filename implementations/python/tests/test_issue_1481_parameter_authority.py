@@ -15,15 +15,16 @@ from jsonschema import Draft202012Validator
 from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from raes import instantiate_scenario, parse_sdl, parse_sdl_file
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.scenario import InstantiatedScenario
-from raes_contracts.contracts import ProvisioningPlanModel, schema_bundle
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts import ProvisioningPlanModel
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.realization_structure import evaluate_realization_constraint
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_processor.semantics.realization_concerns import project_realization_concern
 from raes_runtime.control_plane_api_models import _provisioning_plan
+from raes_schemas import schema_bundle
 from test_issue_1200_mixed_runtime_constraints import _apply, _fixture
 
 CASES = [

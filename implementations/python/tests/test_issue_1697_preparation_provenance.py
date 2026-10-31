@@ -5,10 +5,10 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
-from raes_contracts.planning import PlanScope
-from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT, RealizationPreparation
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT, PlanScope
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import RealizationSupportMode
 from raes_processor.compiler import compile_runtime_model

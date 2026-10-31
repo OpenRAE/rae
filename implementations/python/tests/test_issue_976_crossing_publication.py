@@ -5,12 +5,12 @@ import re
 from pathlib import Path
 
 import pytest
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import (
     load_behavioral_relation_catalog,
     load_behavioral_relation_catalog_revision,
     validate_behavioral_claim_binding,
 )
-from raes_contracts.contracts.base import BehavioralClaimBindingModel
 from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.scientific_completeness import (
     CURRENT_ASSESSMENT_REVISION,

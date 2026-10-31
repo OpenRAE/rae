@@ -6,9 +6,9 @@ from dataclasses import replace
 from typing import cast
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState
 from raes_processor.models import ParticipantBehaviorRuntime
 

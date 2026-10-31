@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from ._host_isolation import isolated_host_call
-from .contracts import (
+from raes_contracts.contracts.participant_decision_surface_v2 import (
     ParticipantDecisionSurfaceDeliveryV2Model,
     ParticipantDecisionSurfaceV2Model,
 )
+
+from ._host_isolation import isolated_host_call
 
 
 class ParticipantDecisionSurfaceDeliveryResolverV2(Protocol):

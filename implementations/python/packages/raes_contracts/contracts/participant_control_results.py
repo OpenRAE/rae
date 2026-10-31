@@ -18,7 +18,9 @@ from .participant_control_coordinates import (
     require_unique,
 )
 from .participant_control_effects import ControlEffectRequestModel
+from .participant_control_profiles import validate_control_profile_reference
 from .participant_flow_control_semantics import ParticipantFlowFinalDisposition
+from .participant_owner_flow import OWNER_FLOW_PROFILE_ID
 
 
 class ControlTeachingFactModel(ContractModel):
@@ -63,9 +65,6 @@ class ControlOwnerSecurityFactModel(ControlSecurityFactModel):
 
     @model_validator(mode="after")
     def _profile(self) -> Self:
-        from .participant_control_profiles import validate_control_profile_reference
-        from .participant_owner_flow import OWNER_FLOW_PROFILE_ID
-
         require_kind(self.profile, "profile")
         if self.profile.ref != OWNER_FLOW_PROFILE_ID:
             raise ValueError("owner flow fact requires its exact published profile")

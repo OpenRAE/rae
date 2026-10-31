@@ -4,17 +4,17 @@ import re
 from typing import Any
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_filesystem import flagged_raw_value_schema
-
-from ._base import SDLModel, is_variable_ref, parse_bool_or_var
-from .runtime_values import (
+from raes_contracts.runtime_values import (
     absolute_path_or_var,
     coerce_string_list,
     parse_optional_bool_or_var,
     parse_ram,
     validate_absolute_paths,
 )
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_bool_or_var
+
+from raes.runtime_filesystem import flagged_raw_value_schema
 
 
 class RuntimeNetworkNamespace(SDLModel):

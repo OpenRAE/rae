@@ -57,13 +57,18 @@ from .admitted_trial_plan_components import (
     validate_entry_participant_configurations,
 )
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
-from .experiment_allocation import AdmittedExperimentAllocationModel, compile_experiment_allocation
+from .experiment_allocation import (
+    RECORDED_ALLOCATION_POLICY_ID,
+    AdmittedExperimentAllocationModel,
+    compile_experiment_allocation,
+)
 from .experiment_apparatus import ExperimentStochasticControlModel
 from .experiment_bindings import ParticipantConfigurationResultModel
 from .experiment_treatments import validate_plan_treatments
 from .random_stream import RandomStreamDrawRecordModel, TrialCoordinateModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 from .trial_cleanup import SchedulerIsolationProofModel, TrialCleanupPlanModel
+from .trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_coordinate_sort_key
 from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 
 #: Canonical-shape placeholder used only while sealing; replaced by the real digest.
@@ -183,7 +188,7 @@ class AdmittedTrialEntryModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "admitted-trial-entry-resolved-and-integrity-bound",
             "An admitted trial entry keeps run_id distinct from plan_entry_id, records unique resolved variation "
@@ -251,8 +256,6 @@ class AdmittedTrialPlanModel(ContractModel):
         if (self.profiles.allocation_profile != "none") != (self.allocation is not None):
             raise ValueError("allocation profile and recorded allocation must agree")
         if self.allocation is not None:
-            from .trial_coordinate_order import canonical_coordinate_sort_key
-
             if "designed" not in self.profiles.compiler_profile:
                 raise ValueError("recorded allocation requires a designed compiler profile")
             domain = [
@@ -426,7 +429,7 @@ class AdmittedTrialPlanModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "admitted-trial-plan-identity-joins-and-integrity",
             "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, "
@@ -468,6 +471,19 @@ def seal_admitted_trial_plan(**fields: object) -> AdmittedTrialPlanModel:
     return _seal(AdmittedTrialPlanModel, "plan_digest", fields)  # type: ignore[return-value]
 
 
+def canonical_entry_order(plan: AdmittedTrialPlanModel) -> tuple[str, ...]:
+    """Return the plan's admitted entry ids in canonical dispatch order."""
+
+    if plan.allocation is not None:
+        return tuple(plan.allocation.entry_order)
+    ordered = sorted(plan.entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
+    return tuple(entry.plan_entry_id for entry in ordered)
+
+
+def scheduling_policy_id(plan: AdmittedTrialPlanModel) -> str:
+    return RECORDED_ALLOCATION_POLICY_ID if plan.allocation is not None else CANONICAL_ORDER_POLICY_ID
+
+
 __all__ = [
     "AdmittedApparatusBindingModel",
     "AdmittedBindingModel",
@@ -485,8 +501,10 @@ __all__ = [
     "BindingOrigin",
     "ExperimentScenarioFamilyReferenceModel",
     "SelectionPolicyKind",
+    "canonical_entry_order",
     "entry_owned_resource_refs",
     "isolation_resource_overlaps",
+    "scheduling_policy_id",
     "seal_admitted_trial_entry",
     "seal_admitted_trial_plan",
 ]

@@ -54,10 +54,10 @@ def _unchanged_backend_result(snapshot):
 
 
 def test_shared_history_has_no_mutable_base_containers_or_caller_owned_children():
-    from raes_contracts.immutable_history import HistoryMap
+    from raes_contracts.snapshot_histories import seal_history
 
     child = {"values": [1]}
-    history = HistoryMap("evaluation_history", {"run": [MappingProxyType({"nested": child})]})
+    history = seal_history("evaluation_history", {"run": [MappingProxyType({"nested": child})]})
     digest = history["run"].prefix_digest(1)
     copied = deepcopy(history)
     child["values"].append(2)

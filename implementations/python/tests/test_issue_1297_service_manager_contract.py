@@ -15,10 +15,10 @@ from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes import instantiate_scenario, parse_sdl
 from raes.runtime_service_units import ServiceManagerKind, ServiceManagerUnit, ServiceUnitActiveState
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.realization_structure import evaluate_realization_constraint
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.semantics.realization_concerns import realization_concern_descriptor
+from raes_schemas import schema_bundle
 
 
 def _authoring_payload(unit: dict[str, object]) -> dict[str, object]:

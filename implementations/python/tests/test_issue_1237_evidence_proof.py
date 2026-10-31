@@ -13,9 +13,9 @@ from raes_contracts.contracts import (
     validate_experiment_run_against_task,
     validate_experiment_study_against_tasks_and_runs,
 )
+from raes_contracts.contracts.evidence_satisfaction import validate_experiment_run_evidence
 from raes_contracts.contracts.experiment_conditions import _run_satisfies_condition_reference
 from raes_contracts.contracts.experiment_manifest_references import ExperimentEvidenceSatisfactionReferenceModel
-from raes_contracts.evidence_satisfaction import validate_experiment_run_evidence
 from test_issue_1112_capture_admission import _evidence_bundle, _fixture
 
 
@@ -163,7 +163,7 @@ def test_unsafe_evidence_locators_fail_before_reader_io(locator):
 
 @pytest.mark.parametrize("limit", ["_MAX_EVIDENCE_ITEMS", "_MAX_TOTAL_EVIDENCE_BYTES"])
 def test_evidence_aggregate_limits_reject_before_reader_io(monkeypatch, limit):
-    import raes_contracts.evidence_satisfaction as evidence
+    import raes_contracts.contracts.evidence_satisfaction as evidence
 
     task, run, spec, record, payload = _evidence_bundle()
     monkeypatch.setattr(evidence, limit, 0, raising=False)
@@ -285,3 +285,40 @@ def test_all_evidence_consumers_require_the_same_emitted_content(consumer: str, 
         }
         with pytest.raises(ValueError, match=messages[failure]):
             validate()
+
+
+def test_a_blake3_evidence_artifact_satisfies_content_validation() -> None:
+    from blake3 import blake3
+    from raes_contracts.contracts.experiment_capture import ExperimentCaptureSpecModel
+    from raes_contracts.contracts.experiment_evidence import ExperimentEvidenceRecordModel
+    from raes_contracts.contracts.experiment_run import ExperimentRunModel
+
+    task, run, spec, record, payload = _evidence_bundle()
+    checksum = {"algorithm": "blake3", "value": blake3(payload).hexdigest()}
+    spec_payload = spec.model_dump(mode="json")
+    spec_payload["capture_requirements"]["auth-log-evidence"]["integrity_requirements"] = ["checksum"]
+    run_payload = run.model_dump(mode="json")
+    run_payload["evidence_artifacts"][0]["checksum"] = checksum
+    record_payload = record.model_dump(mode="json")
+    record_payload["raw_content"]["content_checksum"] = checksum
+    spec = ExperimentCaptureSpecModel.model_validate(spec_payload)
+    run = ExperimentRunModel.model_validate(run_payload)
+    record = ExperimentEvidenceRecordModel.model_validate(record_payload)
+
+    proof = validate_experiment_run_evidence(
+        task,
+        run,
+        capture_specs={spec.capture_spec_id: spec},
+        evidence_records={record.evidence_record_id: record},
+        artifact_readers={run.evidence_artifacts[0].artifact_id: io.BytesIO(payload)},
+    )
+
+    assert proof.bindings[0].artifact_digest == f"blake3:{checksum['value']}"
+    with pytest.raises(ValueError, match="checksum does not match the captured bytes"):
+        validate_experiment_run_evidence(
+            task,
+            run,
+            capture_specs={spec.capture_spec_id: spec},
+            evidence_records={record.evidence_record_id: record},
+            artifact_readers={run.evidence_artifacts[0].artifact_id: io.BytesIO(payload[:-1] + b" ")},
+        )

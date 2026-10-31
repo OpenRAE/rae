@@ -16,7 +16,6 @@ from implementations.python.tests.test_dsl_437_benign_participant_execution impo
 )
 from implementations.python.tests.test_runtime_control_plane_api import _test_security
 from raes import parse_sdl
-from raes.participant_behavior import ParticipantFailureClass
 from raes_backend_protocols.capability_admission import (
     participant_autonomous_execution_capability_gaps,
 )
@@ -32,15 +31,14 @@ from raes_contracts.contracts import (
     ParticipantAutonomousExecutionStateModel,
     ParticipantTemporalRuntimeContextModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionBindingModel,
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
-from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantNativeActionExecution,
-)
+from raes_contracts.participant_action_semantics import ParticipantFailureClass
+from raes_contracts.participant_binding import ParticipantNativeActionExecution
 from raes_contracts.participant_episode import ParticipantEpisodeInitializeRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model

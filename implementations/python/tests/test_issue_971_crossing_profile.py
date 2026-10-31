@@ -4,12 +4,12 @@ from copy import deepcopy
 
 import pytest
 from crossing_model_fixtures import profile_payload
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relation_profiles import BehavioralRelationProfileModel
 from raes_contracts.behavioral_relations import (
     load_behavioral_relation_catalog_revision,
     validate_behavioral_claim_binding,
 )
-from raes_contracts.contracts.base import BehavioralClaimBindingModel
 
 
 def test_admit_complete_profile():

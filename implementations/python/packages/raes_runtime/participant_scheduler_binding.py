@@ -10,12 +10,12 @@ from raes_contracts.contracts import (
     ParticipantAutonomousExecutionStateModel,
     ParticipantTemporalRuntimeContextModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
 from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .participant_activity_support import activity_attempt_id

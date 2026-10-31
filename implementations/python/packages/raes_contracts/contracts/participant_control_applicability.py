@@ -30,6 +30,7 @@ from .participant_control_selection import (
     ControlResultSlotModel,
     ParticipantControlSelectionModel,
 )
+from .participant_owner_flow_admission import validate_owner_flow_selection
 
 
 class ControlStateScopeV2Model(ContractModel):
@@ -125,7 +126,6 @@ class ParticipantControlSelectionV2Model(ParticipantControlSelectionModel):
             raise ValueError("required participant control profile has no obligations")
         if any(item.profile not in selected for item in self.obligations):
             raise ValueError("participant control obligation profile is not admitted")
-        from .participant_owner_flow_admission import validate_owner_flow_selection
 
         validate_owner_flow_selection(self)
         return self

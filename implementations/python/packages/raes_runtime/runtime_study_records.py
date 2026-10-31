@@ -16,6 +16,7 @@ from raes_contracts.contracts import (
     validate_replacement_trial_study,
 )
 from raes_contracts.errors import RaesError
+from raes_processor.compiler.scenario_references import authored_scenario_evidence
 
 from .experiment_records import ExperimentRecordBundle
 from .runtime_record_decisions import ExperimentStudyDefinitionDecision
@@ -147,7 +148,7 @@ def _validate_study(
     ]
     kwargs = {
         "study_definition": definition,
-        "relation_scenarios": {experiment.inputs.family.name: experiment.inputs.family},
+        "relation_scenarios": {experiment.inputs.family.name: authored_scenario_evidence(experiment.inputs.family)},
         "relation_capture_specs": experiment.inputs.capture_specs,
     }
     if experiment.plan.replacement_policy is not None and experiment.plan.replacement_policy.max_replacements:

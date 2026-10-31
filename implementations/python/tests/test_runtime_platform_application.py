@@ -30,7 +30,7 @@ from raes.runtime_platform_application import (
 )
 from raes.scenario import Scenario
 from raes.validator import SemanticValidator
-from raes_contracts.contracts import schema_bundle
+from raes_schemas import schema_bundle
 
 # --------------------------------------------------------------------------- #
 # Legacy per-platform_kind fixtures retained as compatibility examples

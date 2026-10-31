@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from raes.explicitness import ExplicitnessClass
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import RealizationAuthorityMode
 from raes_contracts.vocabulary import Closure

@@ -8,7 +8,13 @@ from typing import Annotated, Literal
 from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
+
+from raes_contracts.participant_mixed_control_vocabulary import (
+    MixedControlTransitionKind,
+)
+from raes_contracts.participant_mixed_control_vocabulary import (
+    ParticipantControlTargetKind as _ParticipantControlTargetKind,
+)
 
 from .base import (
     ContractModel,
@@ -18,7 +24,7 @@ from .base import (
     PrefixedDigestString,
 )
 from .participant_envelopes import ParticipantRuntimeBaseEnvelopeModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 
 class ParticipantControlDisposition(str, Enum):
@@ -115,7 +121,7 @@ class ParticipantControlDeclarationModel(ContractModel):
 class ParticipantControlTargetContextModel(ContractModel):
     """Typed revision and scope coordinates for one referenced control target."""
 
-    target_kind: ParticipantControlTargetKind
+    target_kind: _ParticipantControlTargetKind
     target_ref: NonEmptyString
     target_revision: PositiveInteger
     participant_address: NonEmptyString
@@ -181,9 +187,9 @@ class ParticipantExternalDirectionOccurrenceModel(ParticipantControlOccurrenceBa
 
     kind: Literal[MixedControlTransitionKind.EXTERNAL_DIRECTION]
     target_kind: Literal[
-        ParticipantControlTargetKind.PROPOSAL,
-        ParticipantControlTargetKind.ACTION,
-        ParticipantControlTargetKind.CONTROL,
+        _ParticipantControlTargetKind.PROPOSAL,
+        _ParticipantControlTargetKind.ACTION,
+        _ParticipantControlTargetKind.CONTROL,
     ]
     target_ref: NonEmptyString
     target_revision: PositiveInteger
@@ -194,9 +200,9 @@ class ParticipantInterventionOccurrenceModel(ParticipantControlOccurrenceBaseMod
 
     kind: Literal[MixedControlTransitionKind.INTERVENTION]
     affected_target_kind: Literal[
-        ParticipantControlTargetKind.ACTION,
-        ParticipantControlTargetKind.CONTROL,
-        ParticipantControlTargetKind.ATTEMPT,
+        _ParticipantControlTargetKind.ACTION,
+        _ParticipantControlTargetKind.CONTROL,
+        _ParticipantControlTargetKind.ATTEMPT,
     ]
     affected_occurrence_ref: NonEmptyString
     affected_revision: PositiveInteger
@@ -224,8 +230,8 @@ class ParticipantOverrideOccurrenceModel(ParticipantControlOccurrenceBaseModel):
 
     kind: Literal[MixedControlTransitionKind.OVERRIDE]
     superseded_target_kind: Literal[
-        ParticipantControlTargetKind.CONTROL,
-        ParticipantControlTargetKind.DECISION,
+        _ParticipantControlTargetKind.CONTROL,
+        _ParticipantControlTargetKind.DECISION,
     ]
     superseded_occurrence_ref: NonEmptyString
     superseded_revision: PositiveInteger
@@ -237,10 +243,10 @@ class ParticipantCancellationOccurrenceModel(ParticipantControlOccurrenceBaseMod
 
     kind: Literal[MixedControlTransitionKind.CANCELLATION]
     target_kind: Literal[
-        ParticipantControlTargetKind.PROPOSAL,
-        ParticipantControlTargetKind.DECISION,
-        ParticipantControlTargetKind.ADMITTED_ACTION,
-        ParticipantControlTargetKind.ATTEMPT,
+        _ParticipantControlTargetKind.PROPOSAL,
+        _ParticipantControlTargetKind.DECISION,
+        _ParticipantControlTargetKind.ADMITTED_ACTION,
+        _ParticipantControlTargetKind.ATTEMPT,
     ]
     target_ref: NonEmptyString
     target_revision: PositiveInteger
@@ -282,7 +288,7 @@ class ParticipantControlOccurrenceModel(ParticipantRuntimeBaseEnvelopeModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-control-occurrence-context-agreement",
             "Every occurrence must resolve one matching compiled ACT-617 declaration and preserve participant, "
@@ -290,7 +296,7 @@ class ParticipantControlOccurrenceModel(ParticipantRuntimeBaseEnvelopeModel):
             validator="raes_contracts.contracts.validate_participant_control_occurrence_context",
             inputs=[{"contract_id": "participant-control-occurrence-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-control-occurrence-not-lifecycle-evidence",
             "Proposal, approval, denial, direction, intervention, handoff, override, and cancellation remain "
@@ -311,7 +317,6 @@ __all__ = [
     "ParticipantControlOccurrenceDetail",
     "ParticipantControlOccurrenceModel",
     "ParticipantControlTargetContextModel",
-    "ParticipantControlTargetKind",
     "ParticipantDenialOccurrenceModel",
     "ParticipantExternalDirectionOccurrenceModel",
     "ParticipantHandoffOccurrenceModel",

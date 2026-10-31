@@ -6,7 +6,7 @@ from pydantic import Field, model_validator
 
 from ..manifest_authority import validate_backend_supported_contract_versions
 from .base import ContractModel, NonEmptyString
-from .validators import _validate_unique_string_values
+from .validators import validate_unique_string_values
 
 _TIME_CAPABILITY_REQUIRED_CONTRACTS = {
     "time-model-v1",
@@ -65,7 +65,7 @@ class TimeCapabilitiesModel(ContractModel):
         validate_backend_supported_contract_versions(self.supported_contract_versions)
         for field_name, allowed in _TIME_CAPABILITY_TERMS.items():
             values = getattr(self, field_name)
-            _validate_unique_string_values(f"time {field_name}", values)
+            validate_unique_string_values(f"time {field_name}", values)
             unknown = sorted(set(values) - allowed)
             if unknown:
                 raise ValueError(f"time {field_name} contains unknown values: {', '.join(unknown)}")

@@ -25,22 +25,21 @@ from raes_contracts.contracts import (
     ParticipantHistoryViewModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.errors import ConflictError, NotFoundError, OperationalError
-from raes_contracts.observation_demand import (
-    ObservationDemandDocument,
-    ObservationDemandRule,
-    ObservationSelector,
-    normalize_observation_demands,
-)
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.errors import ConflictError, NotFoundError, OperationalError
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.observation_demand import (
+    ObservationDemandDocument,
+    ObservationDemandRule,
+    ObservationSelector,
+)
+from raes_contracts.observation_demand_resolution import normalize_observation_demands
 from raes_contracts.planning import ChangeAction, EvaluationPlan, OrchestrationOp, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import (
-    ExplicitnessClass,
-    ExplicitnessProvenance,
     OperationAdmissionContext,
     OperationKind,
     RealizationProvenanceEntry,

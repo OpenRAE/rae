@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 
 import pytest
+from raes.authored_scenario_evidence import AuthoredScenarioEvidenceView
 from raes_contracts.contracts import (
     ExperimentRunEvidenceInputs,
     ExperimentRunModel,
@@ -51,7 +52,7 @@ def test_authoritative_archival_run_validation_resolves_relation_artifacts() -> 
         capture_specs={evidence_capture_spec.capture_spec_id: evidence_capture_spec},
         evidence_records={evidence_record.evidence_record_id: evidence_record},
         artifact_readers={"auth-log-evidence": io.BytesIO(payload)},
-        scenarios={scenario.name: scenario},
+        scenarios={scenario.name: AuthoredScenarioEvidenceView(scenario)},
     )
 
     assert validate_experiment_run_against_task(task, run, evidence=inputs)
@@ -71,7 +72,7 @@ def test_authoritative_archival_run_validation_resolves_relation_artifacts() -> 
         capture_specs={invalid_relation_capture_spec.capture_spec_id: invalid_relation_capture_spec},
         evidence_records={evidence_record.evidence_record_id: evidence_record},
         artifact_readers={"auth-log-evidence": io.BytesIO(payload)},
-        scenarios={scenario.name: scenario},
+        scenarios={scenario.name: AuthoredScenarioEvidenceView(scenario)},
     )
     with pytest.raises(ValueError, match="refinement_dimensions must strengthen"):
         validate_experiment_run_against_task(task, run, evidence=invalid_inputs)
@@ -99,7 +100,7 @@ def test_authoritative_archival_study_validation_resolves_relation_artifacts() -
                 artifact_readers={"auth-log-evidence": io.BytesIO(payload)},
             )
         },
-        relation_scenarios={scenario.name: scenario},
+        relation_scenarios={scenario.name: AuthoredScenarioEvidenceView(scenario)},
         relation_capture_specs={valid_capture_spec.capture_spec_id: valid_capture_spec},
     )
 
@@ -126,6 +127,6 @@ def test_authoritative_archival_study_validation_resolves_relation_artifacts() -
             [task],
             [run],
             evidence_by_run=evidence_by_run,
-            relation_scenarios={scenario.name: scenario},
+            relation_scenarios={scenario.name: AuthoredScenarioEvidenceView(scenario)},
             relation_capture_specs=relation_capture_specs,
         )

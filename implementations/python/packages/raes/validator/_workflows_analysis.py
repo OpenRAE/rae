@@ -3,9 +3,10 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
+from raes_contracts.workflow.semantics import workflow_step_semantic_contract
+
 from ..orchestration import Workflow, WorkflowPredicate, WorkflowStep, WorkflowStepType
 from ..propositions import AssertionRole
-from ..semantics.workflow import workflow_step_semantic_contract
 from ._support import _AvailableStateContext, _CompensationState, _WorkflowBuildState
 
 

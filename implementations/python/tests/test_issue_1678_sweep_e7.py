@@ -5,12 +5,11 @@ import types
 from typing import Annotated
 
 import pytest
+import raes.semantics.participant_behavior._behavior_spec as behavior_spec
 import raes.validator._workflows_verify as workflows_verify
-import raes_contracts.controlled_vocabularies as controlled_vocabularies
 import yaml
 from pydantic import AfterValidator, BaseModel, TypeAdapter, ValidationError
 from raes import SDLParseError, SDLValidationError, parse_sdl
-from raes._identifiers import PortableIdentifier, require_portable_identifier, require_qualified_identifier
 from raes._model_diagnostics import _model_parse_error
 from raes.semantics.participant_behavior._behavior_spec import (
     _backend_feature_support_issue,
@@ -21,6 +20,11 @@ from raes_contracts import participant_control_context as control_context
 from raes_contracts._validation import enum_value, text_value
 from raes_contracts.errors import ConflictError
 from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
+from raes_contracts.identifiers import (
+    PortableIdentifier,
+    require_portable_identifier,
+    require_qualified_identifier,
+)
 from raes_contracts.participant_episode import ParticipantEpisodeStatus
 from raes_contracts.participant_episode_closure import iter_participant_episode_closure_violations
 from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
@@ -402,9 +406,7 @@ def test_workflow_fact_binding_refusal_omits_the_vocabulary_error_text(monkeypat
 
 def test_behavior_mode_issue_omits_the_vocabulary_error_text(monkeypatch: pytest.MonkeyPatch) -> None:
     assert _behavior_mode_issue(spec_name="red-scan-behavior", behavior_mode="autonomous") is None
-    monkeypatch.setattr(
-        controlled_vocabularies, "validate_controlled_vocabulary_scope_values", _vocabulary_refusal_with_secret
-    )
+    monkeypatch.setattr(behavior_spec, "validate_controlled_vocabulary_scope_values", _vocabulary_refusal_with_secret)
 
     issue = _behavior_mode_issue(spec_name="red-scan-behavior", behavior_mode="autonomous")
 
@@ -419,9 +421,7 @@ def test_behavior_mode_issue_omits_the_vocabulary_error_text(monkeypatch: pytest
 
 def test_backend_feature_issue_omits_the_vocabulary_error_text(monkeypatch: pytest.MonkeyPatch) -> None:
     assert _backend_feature_support_issue(spec_name="red-scan-behavior", feature_ref="action_contracts") is None
-    monkeypatch.setattr(
-        controlled_vocabularies, "validate_controlled_vocabulary_value", _vocabulary_refusal_with_secret
-    )
+    monkeypatch.setattr(behavior_spec, "validate_controlled_vocabulary_value", _vocabulary_refusal_with_secret)
 
     issue = _backend_feature_support_issue(spec_name="red-scan-behavior", feature_ref="action_contracts")
 

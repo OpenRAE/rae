@@ -1,9 +1,9 @@
 {
-  "content_hash": "b1fa0c00a7818064c9b7b319e1d3e8d6f21e215f7b9cf6420faf3fe694330d65",
+  "content_hash": "0c86436eface1022626b08dbef631f93eb75d40624389564e8500dfa9ed94671",
   "contract_id": "sdl-semantic-migration-context-v1",
   "last_change": {
-    "content_hash": "b1fa0c00a7818064c9b7b319e1d3e8d6f21e215f7b9cf6420faf3fe694330d65",
-    "summary": "Require explicit progressive semantic adoption and concrete sentinel identities; reject normalized sentinel aliases and variable references (#1210)."
+    "content_hash": "0c86436eface1022626b08dbef631f93eb75d40624389564e8500dfa9ed94671",
+    "summary": "Point the semantic-invariant validator locator at the module that now owns the validator (issue #1711, ADR-121). The schema shape and the invariant do not change."
   },
   "schema_path": "contracts/schemas/sdl/sdl-semantic-migration-context-v1.json",
   "stability": "draft"

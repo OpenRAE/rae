@@ -8,7 +8,7 @@ from raes.semantic_revisions import PROGRESSIVE_SDL_REVISION, source_byte_digest
 
 
 def context(source, decisions=()):
-    from raes.semantic_migration import SDLSemanticMigrationContext
+    from raes.semantic_migration_context import SDLSemanticMigrationContext
 
     return SDLSemanticMigrationContext(
         source_digest=source_byte_digest(source),
@@ -160,8 +160,8 @@ def test_converting_current_output_again_is_a_semantic_noop():
 def test_generated_migration_context_schema_matches_authorization_rules():
     import pytest
     from jsonschema import Draft202012Validator
-    from raes.semantic_migration import SDLSemanticMigrationContext
-    from raes_contracts.contracts import schema_bundle
+    from raes.semantic_migration_context import SDLSemanticMigrationContext
+    from raes_schemas import schema_bundle
 
     schema = schema_bundle()["sdl-semantic-migration-context-v1"]
     payload = context("name: old\n").model_dump(mode="json")
@@ -177,8 +177,8 @@ def test_generated_migration_context_schema_matches_authorization_rules():
 )
 def test_exact_identity_rejects_sentinel_aliases_and_variable_references(identity):
     from jsonschema import Draft202012Validator
-    from raes.semantic_migration import SDLSemanticMigrationContext
-    from raes_contracts.contracts import schema_bundle
+    from raes.semantic_migration_context import SDLSemanticMigrationContext
+    from raes_schemas import schema_bundle
 
     payload = context("name: old\n").model_dump(mode="json")
     payload["sentinel_decisions"] = [
@@ -198,7 +198,7 @@ def test_exact_identity_rejects_sentinel_aliases_and_variable_references(identit
 def test_exact_identity_accepts_concrete_native_and_private_values(identity):
     from jsonschema import Draft202012Validator
     from raes.semantic_migration import migrate_sdl_semantics
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     source = "name: old\nnodes: {host: {type: compute, runtime: {database_services: [{database_service_id: db, engine: other}]}}}\n"
     author_context = context(

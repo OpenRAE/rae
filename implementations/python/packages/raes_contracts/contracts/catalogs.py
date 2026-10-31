@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+import json
+from functools import lru_cache
+from typing import Annotated, Any, Literal
 
 from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..corpus import CONCEPT_AUTHORITY, corpus_family_root
+from ..published_schemas import published_contract_ids, published_schema
 from ..versions import (
     CONCEPT_FAMILIES_SCHEMA_VERSION,
     REFERENCE_MODELS_SCHEMA_VERSION,
@@ -15,12 +19,7 @@ from ..versions import (
 )
 from ..vocabulary import ConceptFamilyId, ConceptProvenanceCategory
 from .base import ContractModel, InstancePath, JsonPointerString, NonEmptyString
-from .validators import (
-    _authoritative_concept_family_ids,
-    _known_contract_ids,
-    _uco_cyber_concept_family_provenance,
-    _validate_reference_model_schema_binding,
-)
+from .schema_resolution import resolve_instance_path_schema, resolve_ref_schema, resolve_schema_pointer
 
 
 class ConceptFamilyDefinitionModel(ContractModel):
@@ -185,9 +184,7 @@ class ReferenceModelCatalogModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_reference_models(self) -> ReferenceModelCatalogModel:
-        from .bundle import schema_bundle
-
-        known_families = _authoritative_concept_family_ids()
+        known_families = authoritative_concept_family_ids()
         unknown_families = {
             model.concept_family for model in self.models.values() if model.concept_family not in known_families
         }
@@ -195,7 +192,7 @@ class ReferenceModelCatalogModel(ContractModel):
             unknown = ", ".join(sorted(unknown_families))
             raise ValueError(f"reference models include unknown concept families: {unknown}")
 
-        known_contracts = _known_contract_ids()
+        known_contracts = published_contract_ids()
         unknown_contracts = {
             binding.contract_id
             for model in self.models.values()
@@ -206,22 +203,19 @@ class ReferenceModelCatalogModel(ContractModel):
             unknown = ", ".join(sorted(unknown_contracts))
             raise ValueError(f"reference models include unknown contract ids: {unknown}")
 
-        schemas = schema_bundle()
         for model_id, model in self.models.items():
-            _validate_reference_model_schema_binding(
+            validate_reference_model_schema_binding(
                 model_id=model_id,
                 binding_label="authoritative_schema",
                 binding=model.authoritative_schema,
                 key_fields=model.key_fields,
-                schemas=schemas,
             )
             for index, binding in enumerate(model.reused_schemas):
-                _validate_reference_model_schema_binding(
+                validate_reference_model_schema_binding(
                     model_id=model_id,
                     binding_label=f"reused_schemas[{index}]",
                     binding=binding,
                     key_fields=model.key_fields,
-                    schemas=schemas,
                 )
         return self
 
@@ -303,7 +297,7 @@ class UcoAlignmentCatalogModel(ContractModel):
                     f"uco alignment entry key {family_id!r} must match its concept_family {alignment.concept_family!r}"
                 )
 
-        expected_provenance = _uco_cyber_concept_family_provenance()
+        expected_provenance = uco_cyber_concept_family_provenance()
         actual_ids = set(self.alignments)
         expected_ids = set(expected_provenance)
         missing = expected_ids - actual_ids
@@ -335,3 +329,77 @@ class UcoAlignmentCatalogModel(ContractModel):
         if isinstance(alignments_schema, dict):
             alignments_schema.setdefault("propertyNames", {"minLength": 1})
         return json_schema
+
+
+@lru_cache(maxsize=1)
+def authoritative_concept_family_ids() -> frozenset[str]:
+    catalog_path = corpus_family_root(CONCEPT_AUTHORITY) / "concept-families-v1.json"
+    payload = json.loads(catalog_path.read_text(encoding="utf-8"))
+    catalog = ConceptFamilyCatalogModel.model_validate(payload)
+    return frozenset(catalog.families)
+
+
+@lru_cache(maxsize=1)
+def uco_cyber_concept_family_provenance() -> dict[str, str]:
+    """Map each adopted/adapted family whose authority is UCO to its provenance.
+
+    This is the single source of truth for UCO alignment coverage: the
+    ``uco-alignment-v1`` catalog must declare exactly these families, so the
+    cyber-domain family slice is never hard-coded in a second place.
+    """
+    catalog_path = corpus_family_root(CONCEPT_AUTHORITY) / "concept-families-v1.json"
+    payload = json.loads(catalog_path.read_text(encoding="utf-8"))
+    catalog = ConceptFamilyCatalogModel.model_validate(payload)
+    return {
+        family_id: family.provenance.value
+        for family_id, family in catalog.families.items()
+        if family.provenance in {ConceptProvenanceCategory.ADOPTED, ConceptProvenanceCategory.ADAPTED}
+        and family.authority == "UCO"
+    }
+
+
+def validate_reference_model_schema_binding(
+    *,
+    model_id: str,
+    binding_label: str,
+    binding: ReferenceModelSchemaBindingModel,
+    key_fields: list[str],
+    schemas: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    schema_root = published_schema(binding.contract_id) if schemas is None else schemas[binding.contract_id]
+    try:
+        pointer_schema = resolve_ref_schema(schema_root, resolve_schema_pointer(schema_root, binding.schema_pointer))
+    except KeyError as exc:
+        raise ValueError(
+            f"reference model {model_id} {binding_label} schema_pointer '{binding.schema_pointer}' "
+            f"does not resolve within contract '{binding.contract_id}'"
+        ) from exc
+
+    try:
+        instance_schema = resolve_instance_path_schema(schema_root, binding.instance_path)
+    except KeyError as exc:
+        raise ValueError(
+            f"reference model {model_id} {binding_label} instance_path '{binding.instance_path}' "
+            f"does not resolve within contract '{binding.contract_id}'"
+        ) from exc
+
+    if pointer_schema != instance_schema:
+        raise ValueError(
+            f"reference model {model_id} {binding_label} instance_path '{binding.instance_path}' "
+            f"does not resolve to schema_pointer '{binding.schema_pointer}' in contract '{binding.contract_id}'"
+        )
+
+    properties = pointer_schema.get("properties")
+    if not isinstance(properties, dict):
+        raise ValueError(
+            f"reference model {model_id} {binding_label} schema_pointer '{binding.schema_pointer}' "
+            "must resolve to an object schema with properties"
+        )
+
+    missing_key_fields = [field for field in key_fields if field not in properties]
+    if missing_key_fields:
+        missing = ", ".join(sorted(missing_key_fields))
+        raise ValueError(
+            f"reference model {model_id} key_fields are not declared by schema_pointer "
+            f"'{binding.schema_pointer}' in contract '{binding.contract_id}': {missing}"
+        )

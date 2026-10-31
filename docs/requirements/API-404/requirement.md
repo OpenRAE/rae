@@ -389,7 +389,6 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_control_evaluation_history.py` (Append-only evaluation-history invariants in the runtime snapshot)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py` (Durable persistence and absent-carrier classification)
 - TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_durability.py` (P0 process-loss nonclaims and P1 restart replay)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_snapshot_updates.py` (Participant-control evaluation history in the snapshot update surface)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Participant-control evaluation history in the published snapshot envelope)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_snapshot_contracts.py` (Runtime ownership of the participant-control evaluation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Participant-control evaluation history in the control-plane projection)
@@ -408,6 +407,7 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_issue_1367_inject_execution.py` (Executing fixture, actor isolation, original budget, refusal and typed evidence; not concrete OCI evidence)
 - TESTS → TEST `implementations/python/tests/test_issue_1367_inject_http.py` (Actual HTTP authorization, strict bounded ingress, retry and retained artifact disclosure)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py` (C1 independent bounded artifact content and admitted scenario-reference validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/associated_artifacts.py` (C1 independent bounded artifact content and admitted scenario-reference validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_operation_validation.py` (C1 shared authored policy capability checks for native and inject commands)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_composition.py` (C1 explicitly installed trusted inject resolver)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_mutations.py` (C2 occurrence claim checks within the existing authoritative transaction)
@@ -425,7 +425,7 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_sql_changes.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/immutable_history.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/immutable_history_stats.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/snapshot_histories.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1373_history_prefixes.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1373_durable_history.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1373_operation_changes.py`

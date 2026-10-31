@@ -22,11 +22,11 @@ def context(record):
 
 def test_crossing_prefix_joins_new_decision_and_rejects_wrong_predecessor():
     from raes_contracts.contracts.participant_crossing_prefix import CrossingPrefix
-    from raes_contracts.immutable_history import HistoryMap
+    from raes_contracts.snapshot_histories import seal_history
 
     request = _request()
     participant = request.participant_address
-    history = HistoryMap("participant_crossing_history", {participant: [request.model_dump(mode="json")]})
+    history = seal_history("participant_crossing_history", {participant: [request.model_dump(mode="json")]})
     prefix = CrossingPrefix()
     prefix.refresh(history[participant])
     prefix.validate_extension([_decision(request)], context(request))

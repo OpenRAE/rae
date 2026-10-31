@@ -3,12 +3,13 @@
 from collections.abc import Mapping
 from dataclasses import replace
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
+from raes.explicitness import ExplicitnessRecord
 from raes.nodes import NodeType
 from raes.profile_selections import profile_owned_mailbox_inventory
 from raes.scenario import InstantiatedScenario
 from raes.semantics.domain_topology import DomainTopologyAnalysis
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope

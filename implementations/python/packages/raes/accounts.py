@@ -13,18 +13,17 @@ from typing import Annotated, Literal
 
 from pydantic import Field, WithJsonSchema, field_validator, model_validator
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.sdl_model import SDLModel
 from raes_contracts.secret_references import SecretReferenceId
-
-from ._base import (
+from raes_contracts.variable_references import (
     VARIABLE_TOKEN_PATTERN,
-    SDLModel,
     WholeFieldVariableReference,
     is_variable_ref,
     normalize_enum_value,
     parse_bool_or_var,
     parse_enum_or_var,
 )
-from ._identifiers import PortableIdentifier
 
 
 class PasswordStrength(str, Enum):

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, RealizationConcernDisclosureModel
 from raes_contracts.realization_observation_demand import compute_substrate_demand_applies

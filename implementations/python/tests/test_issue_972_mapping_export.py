@@ -124,3 +124,19 @@ def test_release_version_bump_keeps_mapping_capture_identity():
         pins = export.source_pins(ROOT)
     assert RELEASE_MANAGED_VERSION_SOURCE in reads
     assert pins == export.source_pins(ROOT)
+
+
+def test_a_removed_historical_source_is_drift_and_an_unsafe_one_is_refused(tmp_path) -> None:
+    (tmp_path / "kept.py").write_bytes(b"same")
+    (tmp_path / "changed.py").write_bytes(b"new")
+    (tmp_path / "link.py").symlink_to(tmp_path / "kept.py")
+    pins = {
+        "kept.py": export.export.digest(b"same"),
+        "changed.py": export.export.digest(b"old"),
+        "removed.py": export.export.digest(b"gone"),
+        "gone/deep.py": export.export.digest(b"gone"),
+    }
+
+    assert export.source_drift(tmp_path, pins) == ["changed.py", "gone/deep.py", "removed.py"]
+    with pytest.raises(InvalidInputError, match="unsafe"):
+        export.source_drift(tmp_path, {"link.py": export.export.digest(b"same")})

@@ -24,7 +24,6 @@ from raes_contracts.contracts import (
     ExternalConceptBindingDocumentModel,
     PreservationOutcome,
     TransformationCheckOutcome,
-    schema_bundle,
 )
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import StrictJsonIngressError
@@ -50,6 +49,7 @@ from raes_processor.semantic_comparison import (
     build_impact_scope,
     coordinate_for_artifact,
 )
+from raes_schemas import schema_bundle
 
 _ROOT = Path(__file__).resolve().parents[3]
 _PROFILE_PATH = _ROOT / "contracts/profiles/semantic-comparison/reference-v2.json"

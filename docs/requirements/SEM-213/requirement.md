@@ -22,7 +22,7 @@ Requirement inventory expansion. Temporal behavior must have shared meaning beyo
 ## Traceability
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_temporal.py` (Bounded shared-time contexts, evidence and assessments)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_temporal.py` (Deadline/dwell assessment and history consistency)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_temporal_history.py` (Deadline/dwell assessment and history consistency)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/autonomous-execution.md` (Explicit bounded action guarantees)
 - TESTS → TEST `implementations/python/tests/test_act_614_temporal_runtime.py` (Bound event, coverage and lifecycle enforcement)
 - TESTS → TEST `implementations/python/tests/test_act_614_temporal_durability.py` (Evidence consistency and projection)

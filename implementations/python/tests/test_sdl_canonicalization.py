@@ -243,7 +243,7 @@ def test_legacy_snapshot_join_reports_sdl_refusal_as_validation_error() -> None:
     from pydantic import ValidationError
     from raes.canonical import InstantiatedScenarioSnapshot, migrate_legacy_instantiated_snapshot_join
     from raes_contracts.canonical import canonical_json_digest
-    from raes_contracts.satisfiability import SatisfiableWitnessModel
+    from raes_processor.satisfiability.evidence import SatisfiableWitnessModel
 
     scenario = instantiate_scenario(parse_sdl("name: legacy-refusal\nnodes: {}\n"))
     payload = InstantiatedScenarioSnapshot(profile="raes-sdl-instantiated-snapshot/v2", scenario=scenario).model_dump(

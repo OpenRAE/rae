@@ -6,7 +6,10 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from .base import BehavioralClaimBindingModel, ContractModel, NonEmptyString, PrefixedDigestString
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
+from raes_contracts.canonical import canonical_json_digest
+
+from .base import ContractModel, NonEmptyString, PrefixedDigestString
 
 ParticipantOpacityObservationChannel = Literal[
     "participant-state",
@@ -84,8 +87,6 @@ class ParticipantOpacityObservationInventoryModel(ContractModel):
     @property
     def canonical_digest(self) -> str:
         """Bind the exact closed inventory independently of runtime state."""
-
-        from raes_contracts.canonical import canonical_json_digest
 
         return canonical_json_digest(self.model_dump(mode="json"))
 

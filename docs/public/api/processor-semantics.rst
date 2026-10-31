@@ -6,10 +6,11 @@ reconciliation helpers — dependency-graph construction over compiled
 resources, topological ordering, and resource-action reconciliation between
 compiled resources and runtime snapshots.
 
-Per ADR-015, the SDL-language semantic helpers (objective windows, the
-workflow step-type contract, branch closure, the workflow step-result
-validator) live under ``raes.semantics`` and are documented in
-:doc:`sdl-semantics`.
+Per ADR-015, the SDL-language semantic helpers, such as objective windows,
+live under ``raes.semantics``. The workflow step-type contract, branch closure,
+and the workflow step-result validator live in
+``raes_contracts.workflow.semantics`` (ADR-121). :doc:`sdl-semantics` documents
+both.
 
 .. currentmodule:: raes_processor.semantics
 

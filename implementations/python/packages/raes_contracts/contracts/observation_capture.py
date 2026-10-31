@@ -10,9 +10,9 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from ..capture_dimensions import CAPTURE_SET_FIELDS
-from ..evidence_output_validation import validate_evidence_output_offer
 from .base import ContractModel, NonEmptyString
-from .validators import _validate_unique_string_values
+from .evidence_output_contracts import validate_evidence_output_offer
+from .validators import validate_unique_string_values
 
 
 class ObservationCaptureOfferModel(ContractModel):
@@ -44,7 +44,7 @@ class ObservationCaptureOfferModel(ContractModel):
     @model_validator(mode="after")
     def _validate_capture_offer(self) -> ObservationCaptureOfferModel:
         for field_name in CAPTURE_SET_FIELDS:
-            _validate_unique_string_values(field_name, getattr(self, field_name))
+            validate_unique_string_values(field_name, getattr(self, field_name))
         if len(self.field_selectors) != len(set(self.field_selectors)):
             raise ValueError("field_selectors must not contain duplicate values")
         if not self.channel_kinds and not self.channel_refs:

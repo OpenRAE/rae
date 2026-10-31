@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
+
 from ..canonical import canonical_json_digest
+from ..execution_policy import execution_policy_capability_gaps
+from ..planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from .backend_operation import (
     BackendOperationCapabilitiesModel,
     BackendOperationControlModel,
@@ -126,8 +130,6 @@ def require_backend_plan_policy_capabilities(
 ) -> None:
     """Reuse the exact authored policy checks after a trusted owner resolves its command."""
 
-    from ..execution_policy import execution_policy_capability_gaps
-
     for operation in native_plan.operations:
         for effective in (operation.execution_policy, *operation.execution_policy_scopes):
             if effective is not None and execution_policy_capability_gaps(
@@ -141,9 +143,6 @@ def _validate_native_plan_commitment(
     native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
     resolved_commitment: str | None = None,
 ) -> None:
-    from ..plan_projection import runtime_plan_digest
-    from ..planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
-
     kinds = {ProvisioningPlan: "provisioning", OrchestrationPlan: "orchestration", EvaluationPlan: "evaluation"}
     kind = kinds.get(type(native_plan))
     if kind is None or request.command.contract_id != kind + "-plan-v1":

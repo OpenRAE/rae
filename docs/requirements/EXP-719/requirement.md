@@ -38,8 +38,8 @@ Requirement inventory expansion. Designed variation is a distinct experiment con
 
 - IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-binding-descriptors-v1.json` (experiment-binding-descriptors-v1 published schema)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_allocation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/random_stream.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_factorial.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_factorial_treatments.py` (Bounded typed treatment criteria and materialization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_treatments.py` (Shared typed selection source, owner, and family joins)
 - TESTS → TEST `implementations/python/tests/test_issue_1665_factorial_treatments.py` (Typed treatment contracts, exact archival criteria, and compatibility)
 - TESTS → TEST `implementations/python/tests/test_issue_1665_treatment_type_agreement.py` (Boolean and numeric outcome agreement at all treatment boundaries)
@@ -55,7 +55,7 @@ Requirement inventory expansion. Designed variation is a distinct experiment con
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_analysis.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_coordinate_order.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/experiment_spec.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/random_stream_engine.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/random_stream_engine.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/bindings.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/compiler.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/inputs.py`

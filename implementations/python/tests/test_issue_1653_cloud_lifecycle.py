@@ -130,7 +130,7 @@ def test_unsupported_execution_does_not_invoke_the_provisioner(monkeypatch):
 
 
 def test_portable_plan_codec_preserves_the_cloud_description():
-    from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+    from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
     from raes_runtime.control_plane_api_models import _provisioning_plan
 
     planned = plan(compile_runtime_model(parse_sdl(json.dumps(cloud_scenario()))), create_stub_manifest())

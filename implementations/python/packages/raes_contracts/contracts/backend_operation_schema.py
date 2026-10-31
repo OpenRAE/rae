@@ -10,7 +10,7 @@ from .backend_operation import (
     BackendOperationRequestModel,
 )
 from .backend_operation_response import BackendOperationResponseModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 
 def backend_operation_schema_bundle() -> dict[str, dict[str, Any]]:
@@ -23,7 +23,7 @@ def backend_operation_schema_bundle() -> dict[str, dict[str, Any]]:
     schemas = {}
     for contract_id, model in models.items():
         schema = model.model_json_schema()
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "backend-operation-local-consistency",
             "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; "
@@ -32,7 +32,7 @@ def backend_operation_schema_bundle() -> dict[str, dict[str, Any]]:
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
         schemas[contract_id] = schema
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["backend-operation-response-v1"],
         "backend-operation-response-binding",
         "Require exact request binding and commitment, scoped residuals and independently bound controls when present.",
@@ -42,7 +42,7 @@ def backend_operation_schema_bundle() -> dict[str, dict[str, Any]]:
             {"contract_id": "backend-operation-response-v1", "instance_path": "#"},
         ],
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["backend-operation-capabilities-v1"],
         "backend-operation-contextual-admission",
         "Before invocation require installed support, matching declaration and current exact-context willingness.",

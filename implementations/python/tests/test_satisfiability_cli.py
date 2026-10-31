@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from raes_cli.main import app
 from raes_contracts.errors import OperationalError
-from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
+from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
 from typer.testing import CliRunner
 
 

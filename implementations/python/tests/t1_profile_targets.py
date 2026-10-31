@@ -15,14 +15,14 @@ from copy import deepcopy
 from dataclasses import replace
 
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.domain_profiles import (
     DomainProfileBindingBasis,
     DomainProfileBindingModel,
     DomainProfileBindingProvenanceModel,
     DomainProfileResolutionContextModel,
 )
-from raes_contracts.planning import ChangeAction, ProvisioningPlan
-from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT, RealizationPreparation
+from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT, ChangeAction, ProvisioningPlan
 from raes_contracts.realization_profiles import (
     PLAN_PROFILE_CONTRACT,
     profile_context_digest,

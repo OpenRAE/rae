@@ -23,8 +23,8 @@ from .experiment_apparatus import (
 from .experiment_artifacts import (
     ExperimentArtifactRefModel,
     _experiment_reference_key,
-    _format_reference,
-    _reference_satisfies_requirement,
+    format_reference,
+    reference_satisfies_requirement,
 )
 from .experiment_bindings import RealizedBindingProvenanceModel, _validate_realized_bindings
 from .experiment_disclosure import ExperimentAugmentationDisclosureModel
@@ -37,6 +37,7 @@ from .experiment_evidence_refinement import (
     validate_evidence_requirement_relation_carrier,
 )
 from .experiment_execution_accounting import ExperimentExecutionAccountingModel, validate_run_record_shape
+from .experiment_execution_accounting_schema import add_record_shape_schema
 from .experiment_manifest_references import ExperimentRunEvidenceArtifactReferenceModel
 from .experiment_references import (
     ExperimentParameterModel,
@@ -56,9 +57,9 @@ from .participant_manifests import ParticipantImplementationProvenanceModel
 from .random_stream import RandomStreamDrawRecordModel
 from .schema_invariants import (
     _add_carrier_validation_basis_disclosure_invariant,
-    _add_raes_invariant,
     _extend_reported_value_status_schema,
     _validate_reported_value_status,
+    add_raes_invariant,
 )
 from .time_model import (
     RealizedTimeModelProvenanceModel,
@@ -71,7 +72,7 @@ from .trial_provenance import (
     validate_trial_run_provenance_binding,
 )
 from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
-from .validators import _validate_unique_string_values
+from .validators import validate_unique_string_values
 
 _ARCHIVAL_RUN_VALIDATOR = "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
 
@@ -231,40 +232,39 @@ class ExperimentRunModel(ContractModel):
                 },
             }
         )
-        from .experiment_execution_accounting_schema import add_record_shape_schema
 
         add_record_shape_schema(json_schema)
         add_trial_run_provenance_invariant(json_schema)
         add_run_difficulty_invariants(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "ended-at-not-before-started-at",
             "ended_at must be greater than or equal to started_at.",
             validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "result-evidence-ref-resolves",
             "Every result_summaries evidence_refs ref_id must match an evidence_artifacts artifact_id.",
             validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-implementation-provenance-resolves",
             "Participant implementation apparatus components must resolve to run-level participant provenance.",
             validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "realized-form-evidence-refs-traced",
             "Every realized-form disclosure evidence ref must also appear in the run traceability evidence refs.",
             validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "augmentation-disclosure-evidence-refs-traced",
             "Every augmentation disclosure evidence ref must also appear in the run traceability evidence refs, "
@@ -275,7 +275,7 @@ class ExperimentRunModel(ContractModel):
         _add_carrier_validation_basis_disclosure_invariant(
             json_schema, contract_id="experiment-run-v1", subject_kind="experiment_run"
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "stochastic-draws-control-ref-resolves",
             "Every stochastic_draws control_id must resolve to a stochastic_controls control_id with an "
@@ -284,14 +284,14 @@ class ExperimentRunModel(ContractModel):
             validator="raes_contracts.contracts.validate_experiment_run_structure_against_task",
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/stochastic_draws"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "realized-time-model-bound-to-run",
             "When present, realized-time provenance must match the run id and its declared model digest.",
             validator=_ARCHIVAL_RUN_VALIDATOR,
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_time_model"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "task-run-protocol-binding-valid",
             "Run apparatus and result metric ids must satisfy the referenced task protocol. "
@@ -302,7 +302,7 @@ class ExperimentRunModel(ContractModel):
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
             ],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-evidence-requirement-relation-owner-valid",
             "Archived run-scoped evidence requirement relations must identify this exact run and scenario snapshot.",
@@ -386,7 +386,7 @@ def _traced_evidence_record_refs(run: ExperimentRunModel) -> set[str]:
 def _validate_run_realized_form_disclosures(run: ExperimentRunModel) -> None:
     traced_evidence_record_refs = _traced_evidence_record_refs(run)
     missing_disclosure_evidence_refs = sorted(
-        _format_reference(evidence_ref)
+        format_reference(evidence_ref)
         for disclosure in run.realized_form_disclosures
         for evidence_ref in disclosure.evidence_refs
         if _experiment_reference_key(evidence_ref) not in traced_evidence_record_refs
@@ -399,13 +399,13 @@ def _validate_run_realized_form_disclosures(run: ExperimentRunModel) -> None:
 
 
 def _validate_run_augmentation_disclosures(run: ExperimentRunModel) -> None:
-    _validate_unique_string_values(
+    validate_unique_string_values(
         "augmentation_disclosures augmentation_id",
         [disclosure.augmentation_id for disclosure in run.augmentation_disclosures],
     )
     traced_evidence_record_refs = _traced_evidence_record_refs(run)
     missing_augmentation_evidence_refs = sorted(
-        _format_reference(evidence_ref)
+        format_reference(evidence_ref)
         for disclosure in run.augmentation_disclosures
         for evidence_ref in disclosure.evidence_refs
         if _experiment_reference_key(evidence_ref) not in traced_evidence_record_refs
@@ -424,7 +424,7 @@ def _validate_run_task_ref(task: ExperimentTaskModel, run: ExperimentRunModel) -
 
 def _validate_run_scenario_ref(task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
     if task.scenario_ref.ref_kind == "scenario-snapshot":
-        if not _reference_satisfies_requirement(run.scenario_snapshot_ref, task.scenario_ref):
+        if not reference_satisfies_requirement(run.scenario_snapshot_ref, task.scenario_ref):
             raise ValueError("run scenario_snapshot_ref must satisfy task scenario_ref")
     elif run.scenario_snapshot_ref.ref_id != task.scenario_ref.ref_id:
         raise ValueError("run scenario_snapshot_ref ref_id must match task scenario_ref ref_id")

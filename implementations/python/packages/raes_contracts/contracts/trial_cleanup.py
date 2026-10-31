@@ -17,7 +17,7 @@ from ..versions import (
 )
 from ._trial_cleanup_validation import validate_cleanup_receipt_results, validate_reset_retry_obligations
 from .base import ContractModel, NonEmptyString, PositiveInteger
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 CleanupTrigger = Literal["success", "failure", "cancellation", "timeout", "retry", "abort"]
 CleanupRequirement = Literal["required", "best-effort"]
@@ -205,7 +205,7 @@ class TrialCleanupPlanModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "trial-cleanup-plan-references-and-retry-safe",
             "Cleanup boundary and dependency references resolve, ordering is acyclic, required cleanup is "
@@ -295,7 +295,7 @@ class TrialCleanupReceiptModel(ContractModel):
                 "then": {"properties": {"clean_state_claim": {"type": "null"}}},
             }
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "trial-cleanup-receipt-binds-plan-and-required-outcomes",
             "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, "
@@ -410,7 +410,7 @@ class SchedulerIsolationProofModel(ContractModel):
                 "then": parallel_then,
             }
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "scheduler-isolation-serial-default-and-complete-parallel-proof",
             "Scheduling defaults to serial; bounded parallelism requires independent evidence for range, capacity, "

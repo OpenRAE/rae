@@ -16740,7 +16740,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.participant_temporal.require_participant_temporal_history"
+      "validator": "raes_contracts.contracts.participant_temporal_history.require_participant_temporal_history"
     }
   ],
   "x-raes-semantic-profile": {

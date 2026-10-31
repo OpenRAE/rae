@@ -10,7 +10,6 @@ from raes import SDLValidationError
 from raes.orchestration import WorkflowStep, WorkflowStepExecutionMode
 from raes.parser import parse_sdl
 from raes_backend_protocols.capabilities import WorkflowFeature
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.execution_state import WorkflowStepAttemptProvenanceModel
 from raes_contracts.workflow import (
     WorkflowStepAttemptProvenance,
@@ -19,6 +18,7 @@ from raes_contracts.workflow import (
     WorkflowStepOutcome,
 )
 from raes_processor.compiler import compile_runtime_model
+from raes_schemas import schema_bundle
 
 
 def test_legacy_workflow_step_remains_scripted() -> None:

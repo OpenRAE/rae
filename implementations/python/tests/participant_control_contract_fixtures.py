@@ -208,8 +208,8 @@ def delivery_payload():
 
 
 def inject_payload():
-    from raes.participant_inject_delivery import ParticipantInjectDelivery
     from raes_contracts._canonical import canonical_json_digest
+    from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
     target = {
         "kind": "inject",

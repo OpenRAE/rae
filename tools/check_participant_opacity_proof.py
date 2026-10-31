@@ -13,6 +13,7 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
     if str(_source_root) not in sys.path:
         sys.path.insert(0, str(_source_root))
 
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel  # noqa: E402
 from raes_contracts.behavioral_relation_profiles import (  # noqa: E402
     load_behavioral_relation_profile_revision,
 )
@@ -20,7 +21,6 @@ from raes_contracts.behavioral_relations import (  # noqa: E402
     load_behavioral_relation_catalog_revision,
     validate_behavioral_claim_binding,
 )
-from raes_contracts.contracts.base import BehavioralClaimBindingModel  # noqa: E402
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError  # noqa: E402
 from raes_contracts.json_ingress import parse_bounded_json_object  # noqa: E402
 from raes_contracts.operational_logging import run_application  # noqa: E402

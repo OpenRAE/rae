@@ -7,9 +7,9 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_stubs.manifest import create_stub_manifest
 from raes_contracts.apparatus import RealizationObservationCapability
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_structure import ExactRealizationValue
 from raes_contracts.runtime_state import RealizationObservationDisclosure, RuntimeSnapshot, SnapshotEntry

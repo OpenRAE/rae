@@ -3,11 +3,11 @@
 from dataclasses import replace
 
 from pydantic import TypeAdapter
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.nodes import Node
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import ProvisioningPlan, ProvisionOp
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot

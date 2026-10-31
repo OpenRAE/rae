@@ -32,7 +32,6 @@ from raes_contracts.contracts.participant_control_resolution import (
     validate_participant_control_resolved_context,
 )
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
-from raes_contracts.immutable_history import append_history, seal_history
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -41,6 +40,7 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     operation_terminal_diagnostics,
 )
+from raes_contracts.snapshot_histories import append_history, seal_history
 from raes_contracts.timestamps import isoformat_z
 
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
