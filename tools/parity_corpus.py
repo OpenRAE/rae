@@ -9,8 +9,10 @@ The corpus lives in ``implementations/go/internal/parity/testdata``:
 - ``manifest.json`` names the corpus schema and the last commit that changed
   the Python implementation.
 - ``inputs/<sha256>`` holds the bytes of each input file once.
-- ``cases/<surface>/<command>/<name>.json`` holds one recorded invocation: its
-  surface, command, arguments, input files by digest, and result.
+- ``cases/<surface>/<command>/<sha256 of the name>.json`` holds one recorded
+  invocation: its name, surface, command, arguments, input files by digest, and
+  result. The name follows the input path; the file name does not, because
+  repository path policy reserves some fixture path names.
 
 The ``cli`` surface runs the ``raes`` command. Its result is the exit code and
 the JSON standard output. The free-text ``message`` of each diagnostic is not
@@ -45,8 +47,8 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 from jsonschema import Draft202012Validator  # noqa: E402
 from raes_cli.main import app  # noqa: E402
 from raes_conformance.conformance import contract_payload_root  # noqa: E402
-from raes_contracts.contracts import schema_bundle  # noqa: E402
 from raes_contracts.canonical import canonical_json_bytes  # noqa: E402
+from raes_contracts.contracts import schema_bundle  # noqa: E402
 from raes_contracts.digests import sha256_digest  # noqa: E402
 from raes_contracts.json_serialization import (  # noqa: E402
     sorted_json_text_finite,
@@ -124,14 +126,10 @@ class Case:
     def path(self) -> Path:
         """Return the case file path relative to the corpus directory."""
 
-        return Path(
-            "cases", self.surface, self.command.replace(" ", "-"), self.name + ".json"
-        )
+        return Path("cases", self.surface, self.command.replace(" ", "-"), digest(self.name.encode()) + ".json")
 
 
-def semantic_case(
-    command: str, contract: str, source: Path, repo: Path, *options: str, name: str = ""
-) -> Case:
+def semantic_case(command: str, contract: str, source: Path, repo: Path, *options: str, name: str = "") -> Case:
     """Return a ``raes semantic`` case for one input file."""
 
     case_name = source.relative_to(repo).with_suffix("").as_posix()
@@ -160,14 +158,9 @@ def sdl_cases(repo: Path) -> Iterator[Case]:
     """Yield the semantic commands over each SDL example and each SDL source fixture."""
 
     fixtures = repo / "contracts" / "fixtures" / "sdl" / "sdl-yaml-v1"
-    for source in sorted(
-        [*(repo / "examples" / "scenarios").rglob("*.yaml"), *fixtures.rglob("*.yaml")]
-    ):
+    for source in sorted([*(repo / "examples" / "scenarios").rglob("*.yaml"), *fixtures.rglob("*.yaml")]):
         option_sets: list[tuple[str, ...]] = [()]
-        if (
-            source.is_relative_to(fixtures)
-            and "migration" in source.relative_to(fixtures).parts
-        ):
+        if source.is_relative_to(fixtures) and "migration" in source.relative_to(fixtures).parts:
             option_sets.append(("--migration-policy", "accept"))
         for options in option_sets:
             for command in SDL_COMMANDS:
@@ -184,9 +177,7 @@ def sdl_cases(repo: Path) -> Iterator[Case]:
                 )
 
 
-def contract_fixtures(
-    repo: Path, contracts: Iterable[str]
-) -> Iterator[tuple[str, Path]]:
+def contract_fixtures(repo: Path, contracts: Iterable[str]) -> Iterator[tuple[str, Path]]:
     """Yield each valid and invalid fixture of each contract."""
 
     root = repo / "contracts" / "fixtures"
@@ -210,27 +201,19 @@ def portable_cases(repo: Path, contracts: Iterable[str]) -> Iterator[Case]:
     contract, fixture = first
     for command in UNSUPPORTED_PORTABLE_COMMANDS:
         yield semantic_case(command, contract, fixture, repo)
-    yield semantic_case(
-        "validate", "unknown-contract-v1", fixture, repo, name="unknown-contract"
-    )
+    yield semantic_case("validate", "unknown-contract-v1", fixture, repo, name="unknown-contract")
 
 
 def supported_contracts() -> list[str]:
     """Return the published contracts that the semantic commands accept."""
 
-    return [
-        contract
-        for contract in schema_bundle()
-        if contract_payload_root(contract) is not None
-    ]
+    return [contract for contract in schema_bundle() if contract_payload_root(contract) is not None]
 
 
 def schema_cases(repo: Path) -> Iterator[Case]:
     """Yield the schema verdict for each fixture of each published contract."""
 
-    contracts = sorted(
-        path.stem for path in (repo / PUBLICATION_ENTRIES).glob("*.json")
-    )
+    contracts = sorted(path.stem for path in (repo / PUBLICATION_ENTRIES).glob("*.json"))
     for contract, fixture in contract_fixtures(repo, contracts):
         yield Case(
             surface="schema",
@@ -304,9 +287,7 @@ def run_schema(repo: Path, case: Case) -> dict[str, object]:
     """Validate the payload of a schema case against the published schema of its contract."""
 
     (contract,) = case.args
-    entry = json.loads(
-        (repo / PUBLICATION_ENTRIES / f"{contract}.json").read_text(encoding="utf-8")
-    )
+    entry = json.loads((repo / PUBLICATION_ENTRIES / f"{contract}.json").read_text(encoding="utf-8"))
     schema = json.loads((repo / entry["schema_path"]).read_text(encoding="utf-8"))
     try:
         payload = json.loads(case.files["payload.json"])
@@ -334,10 +315,8 @@ def run_canonical(case: Case) -> dict[str, object]:
     result: dict[str, object] = {}
     for form, encode_value in encoders.items():
         try:
-            result[form] = (
-                None if value is ValueError else sha256_digest(encode_value(value))
-            )
-        except (ValueError, TypeError, UnicodeError):
+            result[form] = None if value is ValueError else sha256_digest(encode_value(value))
+        except ValueError, TypeError, UnicodeError:
             result[form] = None
     return result
 
@@ -357,21 +336,18 @@ def digest(content: bytes) -> str:
 
 
 def encode(document: object) -> bytes:
-    return (
-        json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-    ).encode()
+    return (json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode()
 
 
 def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]:
     """Return the JSON document that records one case and its result."""
 
     return {
+        "name": case.name,
         "surface": case.surface,
         "command": case.command,
         "args": list(case.args),
-        "files": {
-            name: digest(content) for name, content in sorted(case.files.items())
-        },
+        "files": {name: digest(content) for name, content in sorted(case.files.items())},
         "result": dict(result),
     }
 
@@ -405,11 +381,7 @@ def read_corpus(root: Path) -> dict[Path, bytes]:
 
     if not root.is_dir():
         return {}
-    return {
-        path.relative_to(root): path.read_bytes()
-        for path in sorted(root.rglob("*"))
-        if path.is_file()
-    }
+    return {path.relative_to(root): path.read_bytes() for path in sorted(root.rglob("*")) if path.is_file()}
 
 
 def write_corpus(root: Path, files: Mapping[Path, bytes]) -> None:
@@ -423,9 +395,7 @@ def write_corpus(root: Path, files: Mapping[Path, bytes]) -> None:
         target.write_bytes(content)
 
 
-def corpus_differences(
-    recorded: Mapping[Path, bytes], committed: Mapping[Path, bytes]
-) -> list[str]:
+def corpus_differences(recorded: Mapping[Path, bytes], committed: Mapping[Path, bytes]) -> list[str]:
     """Describe each corpus file that differs. The recorded Python commit is provenance, not data."""
 
     differences = []
@@ -435,9 +405,7 @@ def corpus_differences(
         elif path not in recorded:
             differences.append(f"unexpected: {path}")
         elif path == MANIFEST:
-            if json.loads(recorded[path])["schema"] != json.loads(committed[path]).get(
-                "schema"
-            ):
+            if json.loads(recorded[path])["schema"] != json.loads(committed[path]).get("schema"):
                 differences.append(f"changed: {path}")
         elif recorded[path] != committed[path]:
             differences.append(f"changed: {path}")
@@ -445,9 +413,7 @@ def corpus_differences(
 
 
 def parse_args(argv: Iterable[str] | None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Record or check the golden parity corpus."
-    )
+    parser = argparse.ArgumentParser(description="Record or check the golden parity corpus.")
     parser.add_argument("mode", choices=("record", "check"))
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     parser.add_argument(

@@ -84,7 +84,7 @@ def test_sdl_cases_record_each_command_and_the_migration_policy_of_migration_fix
         "input.yaml",
     )
     assert transform.files == {"input.yaml": b"name: minimal\n"}
-    assert transform.path == Path("cases/cli/semantic-transform/examples/scenarios/minimal.sdl/transform-format.json")
+    assert transform.path == Path("cases/cli/semantic-transform", pc.digest(transform.name.encode()) + ".json")
 
 
 def test_portable_cases_cover_each_fixture_and_the_rejected_commands(repo: Path) -> None:
@@ -138,12 +138,14 @@ def test_check_reports_drift_and_ignores_the_recorded_python_commit(repo: Path) 
     del changed[cases[1].path]
     changed[Path("cases/schema/validate/extra.json")] = b"{}\n"
     changed[pc.MANIFEST] = pc.encode({"schema": "other/v1", "python_commit": "commit-a"})
-    assert pc.corpus_differences(recorded, changed) == [
-        f"missing: {cases[1].path}",
-        f"changed: {cases[0].path}",
-        "unexpected: cases/schema/validate/extra.json",
-        "changed: manifest.json",
-    ]
+    assert sorted(pc.corpus_differences(recorded, changed)) == sorted(
+        [
+            f"missing: {cases[1].path}",
+            f"changed: {cases[0].path}",
+            "unexpected: cases/schema/validate/extra.json",
+            "changed: manifest.json",
+        ]
+    )
     assert pc.read_corpus(repo / "absent") == {}
 
 
