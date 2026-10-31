@@ -644,6 +644,59 @@ def test_completion_uses_targeted_feedback(monkeypatch: pytest.MonkeyPatch) -> N
     assert calls == [["--base-rev", "base"]]
 
 
+@pytest.mark.parametrize(
+    "posargs,entrypoint",
+    [([], "replay"), (["--publish"], "implementations.formal.participant_crossing.machine_check_publication")],
+)
+def test_machine_check_session_dispatches_declared_modes(monkeypatch, posargs, entrypoint) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    calls = []
+    messages = []
+    session = types.SimpleNamespace(
+        posargs=posargs, run=lambda *args, **kwargs: calls.append(args), log=messages.append
+    )
+
+    noxfile.participant_crossing_machine_check(session)
+
+    assert len(calls) == 1
+    assert calls[0][-1] == entrypoint
+    assert any("stage summary:" in message for message in messages)
+    assert any("PASS" in message for message in messages)
+
+
+@pytest.mark.parametrize("posargs", [["--unknown"], ["--publish", "extra"]])
+def test_machine_check_session_rejects_extra_arguments_before_execution(monkeypatch, posargs) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    messages = []
+
+    def refuse(message):
+        raise InvalidInputError(message)
+
+    session = types.SimpleNamespace(
+        posargs=posargs,
+        run=lambda *args, **kwargs: pytest.fail("invalid arguments reached execution"),
+        error=refuse,
+        log=messages.append,
+    )
+    with pytest.raises(InvalidInputError, match="Use no arguments"):
+        noxfile.participant_crossing_machine_check(session)
+    assert any("SKIP no stages executed" in message for message in messages)
+
+
+def test_machine_check_session_reports_and_propagates_process_failure(monkeypatch) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    messages = []
+
+    def fail(*args, **kwargs):
+        raise OperationalError("native replay refused")
+
+    session = types.SimpleNamespace(posargs=[], run=fail, log=messages.append)
+    with pytest.raises(OperationalError, match="native replay refused"):
+        noxfile.participant_crossing_machine_check(session)
+    assert any("stage summary:" in message for message in messages)
+    assert any("FAIL" in message for message in messages)
+
+
 def test_graph_base_revision_and_cpu_fallbacks(monkeypatch: pytest.MonkeyPatch) -> None:
     assert nox_graph._changed_base_rev(["--base-rev", "base"]) == "base"
     with pytest.raises(InvalidInputError, match="requires a revision"):
