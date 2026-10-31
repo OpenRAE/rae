@@ -13,6 +13,8 @@ The original result and its claim remain unchanged.
 
 The formal package owns the reproduction controller and its measurement record.
 The public interface is `reproduction.measure`.
+`reproduction_record` owns retained-record admission.
+Its public interfaces are `admit_record`, `admit_capture`, and `retain`.
 `reproduction_checks` owns the fixed comparison inventory and native invocation inside the worker.
 It uses `machine_check.load_retained` and `admit_bundle` for the expected subject.
 The existing result formatter binds fresh decisions to the original claim.
@@ -36,11 +38,18 @@ It keeps every count and mutation outcome.
 It keeps the command and original claim limits.
 No candidate command or path controls execution.
 
+The measurement binds the reproducer subject sources only.
+These are the reproduction, comparison, and sandbox modules.
+Each run checks the staged package tree and other apparatus before and after execution.
+The measurement names no producer or reviewer.
+So an unrelated package change keeps a retained measurement admissible.
+
 Measurement does not authenticate a reviewer.
 A separate review must name the record digest.
 It must name the mutation review subject.
 The review must name its reviewer.
 It must state their role and separation from the original producer.
+The producer and reviewer references must differ.
 An implementation agent may perform that review.
 The repository review authority owns that acceptance record.
 A caller-supplied name, second CI job, or producer approval cannot replace it.
@@ -50,11 +59,20 @@ Unsigned evidence cannot satisfy a policy that requires authenticity.
 The retained record is selected by `reproduction/pin.json`.
 Its manifest binds exact measurement, execution, and review bytes.
 The capture directory names the manifest digest.
+Its target must equal the current machine-check pin.
+`admit_record` checks the pin, inventory, digests, measurement, execution record, and review.
+`retain` writes a new capture only after the same admission passes.
+It also checks the review references against GitHub records.
+The reviewer and acceptance comments must exist on the named issue after the producer record.
+The acceptance comment must name the measurement, execution, claim, and subject digests and the qualified run.
+The run head revision, model-check job result, artifact name, artifact digest, and merge parents must match.
+Offline admission checks retained bytes and joins only.
+A reviewed change then moves the pin.
 The measurement retains its separate acceptance requirement.
-The review names the current implementation-agent run and its acceptance comment.
+The review names the producer run, the reviewer run, and the acceptance comment.
 It also binds the qualified run, source revision, parents, and artifact digest.
-The earlier implementation-agent run remains the original producer.
-No human review is claimed.
+The producer and reviewer are separate agent runs under one repository account.
+No separate principal, human review, or authenticity is claimed.
 This immutable capture survives the hosted artifact retention period.
 
 ## Execution boundary and data flows
@@ -134,8 +152,7 @@ It must retain exact revisions, pinned actions, and required-job aggregation.
 The result supplies no live-runtime realization or backend conformance.
 It supplies no noninterference, opacity, unbounded proof, or broader profile result.
 Historical runtime-mapping gaps remain explicit.
-SEM-232 remains DRAFT until its remaining delivery obligations are met.
-Issue 976 owns subsequent public and scientific claims.
+Public and scientific claims cite only the admitted pinned record.
 
 ## References and document review
 
@@ -143,17 +160,16 @@ Issue 976 owns subsequent public and scientific claims.
 - [Bubblewrap reference architecture](https://github.com/containers/bubblewrap/blob/main/README.md): explicit filesystem, process, and network isolation policy.
 - [ASD-STE100 Issue 9](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf): sections 1, 4, 5, and 6.
 - [Architecture preflight](../../../docs/decisions/issue-975-independent-crossing-reproduction-preflight.md): exact subject, reviewer authority, and existing module boundaries.
+- [Evidence identity design](../../../docs/decisions/issue-976-crossing-evidence-identity-design.md): subject sources, record admission, and publication.
 
 The review checks technical names, sentence limits, and one fact per sentence.
 It keeps architecture descriptions separate from implementation tasks.
 
 ## Retained and fresh admission
 
-`reproduction.admit_measurement` checks a fresh measurement against current reproducer sources.
-`reproduction.admit_retained_measurement` checks the measurement selected by `reproduction/pin.json`.
-The retained path verifies the capture manifest, target subject, and exact measurement digest.
-It checks all subject and claim fields against the selected finite bundle.
-Only the reproducer source map retains the original execution's pins.
+`reproduction.admit_measurement` rebuilds the expected measurement from the selected subject and the reproducer subject sources.
+It applies to fresh and retained measurements alike.
+An unrelated package change does not change those inputs.
+`reproduction_record.admit_record` also checks the pin, capture manifest, target subject, execution record, and review.
 A replacement payload, changed source map, or different subject fails admission.
-This path establishes archival integrity, without claiming fresh execution or authenticating reviewer acceptance.
-The separate execution and review records retain their existing digest joins and authority requirements.
+A changed reproducer subject source requires a new qualified measurement and review.

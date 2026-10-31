@@ -43,7 +43,7 @@ from tools.check_scientific_scenario_completeness import (
 )
 
 TAXONOMY_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json"
-ASSESSMENT_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/delivery-assessment-2026-07-12.json"
+ASSESSMENT_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json"
 
 
 def _taxonomy_payload() -> dict[str, object]:

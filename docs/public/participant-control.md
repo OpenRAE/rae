@@ -361,6 +361,7 @@ instead of defining relation meaning in a report.
 | Can implementation and abstract steps be matched in one direction? | `forward-simulation` or `backward-simulation` | State relation, initiality, direction, and step obligations |
 | Do concrete states and operations preserve an abstract data model? | `data-refinement` | Retrieve relation plus initialization and operation obligations |
 | Do two branching systems match in both directions? | `strong-bisimulation` or `weak-bisimulation` | Symmetry; weak matching also names the governed hidden-action set, closure, stuttering, and divergence treatment |
+| Do two finite crossing models match in both directions with explicit hidden steps and divergence? | `divergence-preserving-branching-bisimulation` | Closed relation-parameter profile, complete finite carrier, both initial states, projection, hidden-label set, tool provenance, mutations, and a separately reviewed reproduction |
 
 Two equal sampled histories support a bounded comparison. They do not show
 participant-policy noninterference. A successful trace sample does not show
@@ -406,6 +407,93 @@ The public documentation test loads this JSON through
 `BehavioralClaimBindingModel` and resolves its relation against the canonical
 catalog. A stronger claim needs the full governed binding. It also needs the
 right proof. A prose change is not enough.
+
+## Read the finite participant-crossing result
+
+RAES has one reproduced finite result for the
+`divergence-preserving-branching-bisimulation` relation.
+The result compares two formal models of one participant crossing.
+The abstract model follows SEM-230.
+The concrete model follows the API-423 and RUN-319 crossing kernel.
+Separate transition authorities construct the two models.
+Both models are complete for profile `participant-crossing-dpbb-finite-v1@rev2`.
+The profile has one participant, audience, controller, episode, and request.
+It has the exact policy cuts `p0` and `p1`.
+Projection `participant-crossing-projection@rev1` hides only five mediation classes.
+Denial, unsupported outcomes, delivery, observation, replay rejection, and cut advance stay visible.
+Deadlock, termination, and divergence stay explicit.
+
+The pinned mCRL2 `202607.0` `dpbranching-bisim` decision relates the declared initial states.
+Every mandatory mutation fails the relation.
+A fresh isolated run in the qualified CI environment reproduced every result byte.
+A separate implementation-agent reviewer accepted that reproduction.
+No human review is claimed.
+Both records are unsigned.
+
+This is a finite model-check result.
+It is not an unbounded proof, a proof certificate, or a checked relation witness.
+It does not establish live-runtime realization or backend conformance.
+It does not establish policy noninterference or predicate opacity.
+It makes no timed, probabilistic, concurrent, fair, partial-order, handoff, or multi-operation claim.
+The separate multi-operation profile has no result.
+
+The original claim binding follows.
+It keeps its `independent-reproduction` nonclaim, because the claim predates the review.
+
+<!-- participant-crossing-claim:start -->
+```json
+{
+  "assurance_axis": "model-check",
+  "assurance_status": "model-checked",
+  "evidence_boundary": "Only the complete reachable carrier of participant-crossing-dpbb-finite-v1@rev2.",
+  "evidence_refs": [
+    "sha256:5891bbc5b3da53c7345f383da7f935ee9f8f0e4dd56b50c6edc132bbbd33964b",
+    "sha256:8d8ca9681c2893abf048a0988aa5efc76c22e1fe148c4c75be78780e9be09b39",
+    "sha256:8cfd29f2e46e18f145dc56981cb62232ad13c1a1708efd4c1c3549300091e525"
+  ],
+  "evidence_scope": "model-check",
+  "explicit_non_claims": [
+    "unbounded-proof",
+    "proof-certificate",
+    "independent-reproduction",
+    "runtime-realization",
+    "backend-conformance",
+    "noninterference",
+    "opacity",
+    "other-profiles-carriers-orders-times-probabilities-concurrency-controllers-policy-cuts-backends"
+  ],
+  "left_carrier_ref": "sem-230-participant-crossing-abstract",
+  "limitations": [
+    "One fresh operation with retries, sequential total order, untimed and nonprobabilistic.",
+    "Singleton participant, audience, controller, episode and request; exact policy cuts p0 and p1.",
+    "Native finite decision with no positive certificate or checked relation witness."
+  ],
+  "observation_projection_ref": "participant-crossing-projection",
+  "observation_projection_revision": "rev1",
+  "quantifier_scope": "all-admitted-inputs",
+  "relation_id": "divergence-preserving-branching-bisimulation",
+  "relation_parameter_profile_ref": "participant-crossing-dpbb-finite-v1",
+  "relation_parameter_profile_revision": "rev2",
+  "right_carrier_ref": "api-423-run-319-crossing-kernel",
+  "subject": "Declared initial states of the complete single-operation rev2 finite carrier",
+  "taxonomy_id": "raes-behavioral-relations",
+  "taxonomy_revision": "rev8"
+}
+```
+<!-- participant-crossing-claim:end -->
+
+The publication facts follow.
+A repository test compares each value with the admitted machine-check and reproduction records.
+
+<!-- participant-crossing-evidence:start -->
+```json
+{}
+```
+<!-- participant-crossing-evidence:end -->
+
+The [machine-check specification](https://github.com/OpenRAE/rae/blob/dev/specs/formal/participant-semantics/participant-crossing-machine-check.md)
+and the [reproduction specification](https://github.com/OpenRAE/rae/blob/dev/specs/formal/participant-semantics/participant-crossing-reproduction.md)
+give the complete boundary.
 
 ## Diagnose failures without leaking data
 

@@ -109,9 +109,9 @@ boundary. Its normative design is
 [`participant-crossing-bisimulation.md`](participant-crossing-bisimulation.md).
 It selects a complete finite abstract crossing LTS and an independently
 derived formal API-423/RUN-319 crossing-kernel LTS under one closed
-participant/audience projection. It does not report the downstream
-model-check, runtime mapping, backend conformance, noninterference, or opacity
-result.
+participant/audience projection. Issues #974 through #976 add the finite
+model check, its reviewed reproduction, and their publication. No runtime
+mapping, backend conformance, noninterference, or opacity result follows.
 
 Issue #812 and ADR-101 add the SEM-233 boundary-flow and ASR-536
 intentional-subversion evaluation design. Issue #1001 publishes the exact
@@ -1871,7 +1871,16 @@ family, mapping boundary, proof-tool contract, counterexample design, DRAFT
 SEM-232 authority, and child program. It does not run the model check. Issue
 #971 (PR #1397) delivered independent model construction. Issue #972 delivered
 [bounded runtime mapping](participant-crossing-runtime-mapping.md) against the single-operation rev2 carrier.
-Issues #973–#976 own negative mutations, finite equivalence checking, independent reproduction, and reproduced scientific documentation.
+Issue #973 delivered the [negative mutations](participant-crossing-counterexamples.md).
+Issue #974 delivered the [finite machine check](participant-crossing-machine-check.md).
+Issue #975 delivered the [isolated reproduction](participant-crossing-reproduction.md).
+Issue #976 retains a separately reviewed reproduction and publishes the result.
+
+The pinned `dpbranching-bisim` decision relates the declared initial states of
+the complete `participant-crossing-dpbb-finite-v1@rev2` carrier. Taxonomy
+revision `rev14` records this finite model-check axis only. The result is not
+an unbounded proof. It does not establish runtime realization, backend
+conformance, noninterference, opacity, or a multi-operation result.
 
 ## SEM-233 and ASR-536 - Adversarial Participant Flow Control
 
