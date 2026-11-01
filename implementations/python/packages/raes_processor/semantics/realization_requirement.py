@@ -55,6 +55,12 @@ class CompiledRealizationRequirement:
         self._validate_authority_metadata()
         self._validate_requirement_metadata()
 
+    @property
+    def authored_empty(self) -> bool:
+        """Return whether the author gave this concern no structure or constraint document."""
+
+        return self.structure is None and self.constraint_document is None
+
     def _validate_authority_metadata(self) -> None:
         if self.delegated != (self.explicitness is None):
             raise ValueError("delegated realization requirements must carry unresolved explicitness")

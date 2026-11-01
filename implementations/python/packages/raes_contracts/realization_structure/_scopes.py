@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ..json_pointer import array_index, is_array_index_token, pointer_tokens
 from ._common import RealizationRelationResult, RelationBudget, actual_identity, relation_result
@@ -145,6 +145,42 @@ def _keyed_rule_members(
 
 
 @dataclass
+class _KeyedIndexes:
+    """Index each keyed collection once for one scope evaluation.
+
+    Scopes beneath a keyed collection resolve through the same members, so the
+    identity budget pays for each member once, not once for each scope.
+    """
+
+    entries: dict[tuple[int, int], tuple[dict[str, object], dict[str, RecursiveRealizationStructure]]] = field(
+        default_factory=dict
+    )
+
+    def resolve(
+        self,
+        actual: list[object],
+        rule: RealizationKeyedCollectionConstraint,
+        address: str,
+        budget: RelationBudget,
+    ) -> tuple[
+        tuple[dict[str, object], dict[str, RecursiveRealizationStructure]] | None,
+        list[RealizationRelationResult] | None,
+    ]:
+        key = (id(actual), id(rule))
+        if key in self.entries:
+            return self.entries[key], None
+        actual_members, failure = _indexed_keyed_actual(actual, rule, address, budget)
+        rule_members = None
+        if failure is None:
+            rule_members, failure = _keyed_rule_members(rule, address, budget)
+        if failure is not None:
+            return None, failure
+        assert actual_members is not None and rule_members is not None
+        self.entries[key] = (actual_members, rule_members)
+        return self.entries[key], None
+
+
+@dataclass
 class _ScopeTarget:
     actual: object
     rule: RecursiveRealizationStructure | None
@@ -180,6 +216,7 @@ def _advance_keyed_target(
     token: str,
     address: str,
     budget: RelationBudget,
+    indexes: _KeyedIndexes,
 ) -> list[RealizationRelationResult] | None:
     failure = None
     assert isinstance(target.actual, list)
@@ -191,12 +228,10 @@ def _advance_keyed_target(
             "A keyed-collection scope must use a semantic member identity.",
         )
     else:
-        actual_members, failure = _indexed_keyed_actual(target.actual, target.rule, address, budget)
-        rule_members = None
+        members, failure = indexes.resolve(target.actual, target.rule, address, budget)
         if failure is None:
-            rule_members, failure = _keyed_rule_members(target.rule, address, budget)
-        if failure is None:
-            assert actual_members is not None and rule_members is not None
+            assert members is not None
+            actual_members, rule_members = members
             key = token.removeprefix("@")
             if key not in actual_members:
                 target.present = False
@@ -228,10 +263,11 @@ def _advance_list_target(
     token: str,
     address: str,
     budget: RelationBudget,
+    indexes: _KeyedIndexes,
 ) -> list[RealizationRelationResult] | None:
     failure = None
     if isinstance(target.rule, RealizationKeyedCollectionConstraint):
-        failure = _advance_keyed_target(target, token, address, budget)
+        failure = _advance_keyed_target(target, token, address, budget, indexes)
     elif is_array_index_token(token) and isinstance(target.rule, (RealizationSequenceConstraint, type(None))):
         _advance_sequence_target(target, token)
     else:
@@ -248,13 +284,14 @@ def _advance_scope_target(
     token: str,
     address: str,
     budget: RelationBudget,
+    indexes: _KeyedIndexes,
 ) -> list[RealizationRelationResult] | None:
     failure = _spend_operation(budget, address)
     if failure is None:
         if isinstance(target.actual, dict):
             failure = _advance_record_target(target, token, address)
         elif isinstance(target.actual, list):
-            failure = _advance_list_target(target, token, address, budget)
+            failure = _advance_list_target(target, token, address, budget, indexes)
         else:
             failure = _scope_failure(
                 RealizationRelationStatus.UNSUPPORTED,
@@ -269,11 +306,12 @@ def _resolve_scope_target(
     actual: object,
     address: str,
     budget: RelationBudget,
+    indexes: _KeyedIndexes,
 ) -> tuple[object | None, RecursiveRealizationStructure | None, bool, list[RealizationRelationResult] | None]:
     target = _ScopeTarget(actual, document.root)
     failure = None
     for token in pointer_tokens(address):
-        failure = _advance_scope_target(target, token, address, budget)
+        failure = _advance_scope_target(target, token, address, budget, indexes)
         if failure is not None or not target.present:
             break
     return target.actual, target.rule, target.present, failure
@@ -285,6 +323,7 @@ def _evaluate_closed_target(
     address: str,
     budget: RelationBudget,
     scope_index: ScopeIndex,
+    indexes: _KeyedIndexes,
 ) -> list[RealizationRelationResult]:
     declared_by_scope, failure = _declared_scope_children(scope_index, address, budget)
     results: list[RealizationRelationResult]
@@ -293,7 +332,7 @@ def _evaluate_closed_target(
     elif isinstance(actual, dict):
         results = _evaluate_closed_record(actual, rule, declared_by_scope, address)
     elif isinstance(actual, list):
-        results = _evaluate_closed_collection(actual, rule, declared_by_scope, address, budget)
+        results = _evaluate_closed_collection(actual, rule, declared_by_scope, address, budget, indexes)
     else:
         results = _scope_failure(
             RealizationRelationStatus.UNSUPPORTED,
@@ -343,8 +382,9 @@ def _evaluate_closed_collection(
     declared_by_scope: set[str],
     address: str,
     budget: RelationBudget,
+    indexes: _KeyedIndexes,
 ) -> list[RealizationRelationResult]:
-    has_extras, failure = _closed_collection_extras(actual, rule, declared_by_scope, address, budget)
+    has_extras, failure = _closed_collection_extras(actual, rule, declared_by_scope, address, budget, indexes)
     results = failure or []
     if failure is None and has_extras:
         results = _scope_failure(
@@ -361,16 +401,15 @@ def _closed_collection_extras(
     declared_by_scope: set[str],
     address: str,
     budget: RelationBudget,
+    indexes: _KeyedIndexes,
 ) -> tuple[bool, list[RealizationRelationResult] | None]:
     failure = None
     has_extras = False
     if isinstance(rule, RealizationKeyedCollectionConstraint):
-        indexed, failure = _indexed_keyed_actual(actual, rule, address, budget)
-        declared = None
+        members, failure = indexes.resolve(actual, rule, address, budget)
         if failure is None:
-            declared, failure = _keyed_rule_members(rule, address, budget)
-        if failure is None:
-            assert indexed is not None and declared is not None
+            assert members is not None
+            indexed, declared = members
             declared_keys = set(declared) | {token.removeprefix("@") for token in declared_by_scope}
             has_extras = bool(indexed.keys() - declared_keys)
     else:
@@ -391,12 +430,14 @@ def evaluate_scope_overlays(
     """Apply every declared scope, including those beneath open or delegated nodes."""
 
     results: list[RealizationRelationResult] = []
+    indexes = _KeyedIndexes()
     for scope in document.scopes:
         target, rule, present, failure = _resolve_scope_target(
             document,
             actual,
             scope.field_pointer,
             budget,
+            indexes,
         )
         if failure is not None:
             results.extend(failure)
@@ -428,5 +469,5 @@ def evaluate_scope_overlays(
                 )
             )
             continue
-        results.extend(_evaluate_closed_target(target, rule, scope.field_pointer, budget, scope_index))
+        results.extend(_evaluate_closed_target(target, rule, scope.field_pointer, budget, scope_index, indexes))
     return results

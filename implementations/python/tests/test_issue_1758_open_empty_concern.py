@@ -115,7 +115,7 @@ def test_open_concern_with_authored_structure_keeps_its_readback_demand() -> Non
     assert realization_support_diagnostics((requirement,), _open_manifest({"runtime-mail-services": _CAPABILITY})) == []
 
 
-def test_runtime_gate_rejects_an_unreported_open_concern_and_an_uncorroborated_member() -> None:
+def test_runtime_gate_admits_no_member_and_rejects_an_uncorroborated_member() -> None:
     model = _model()
     requirement = _requirement(model, "runtime-environment")
     manifest = _open_manifest()
@@ -125,9 +125,8 @@ def test_runtime_gate_rejects_an_unreported_open_concern_and_an_uncorroborated_m
     def evaluate(snapshot: RuntimeSnapshot, gate_manifest=manifest):
         return realization_disclosure((requirement,), provisioning, snapshot, manifest=gate_manifest)
 
-    diagnostics, provenance = evaluate(_snapshot(operation, requirement))
-    assert [item.code for item in diagnostics] == ["runtime.backend-contract-invalid"]
-    assert provenance == ()
+    # Without readback the backend can add no member, so it reports none (issue #1828).
+    assert evaluate(_snapshot(operation, requirement)) == ([], ())
     for snapshot in (
         _snapshot(operation, requirement, runtime={"environment": _MEMBER}),
         _snapshot(operation, requirement, runtime={"environment": _MEMBER}, observed=True),

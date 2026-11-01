@@ -146,7 +146,8 @@ def test_composition_compile_comparison_and_snapshot_preserve_exact_identity(tmp
     requirement = next(
         item for item in compiled.realization_requirements if item.requirement_kind == "runtime-applications"
     )
-    route_constraints = requirement.constraint_document.root.items[0].fields["routes"].items[0].fields
+    application = requirement.constraint_document.root.members[0].constraint
+    route_constraints = application.fields["routes"].members[0].constraint.fields
     assert [item.value for item in route_constraints["methods"].items] == [
         "PROPFIND",
         "PrivateQuery",

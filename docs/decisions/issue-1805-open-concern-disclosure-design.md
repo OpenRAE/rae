@@ -9,7 +9,8 @@ ADR-036 preserves these package boundaries.
 
 The shared evaluator serves both public planner interfaces:
 `realization_disclosure` and `realization_authority_disclosure`.
-An applicable open concern with a verification floor requires an explicit report.
+An applicable open concern with a verification floor requires an explicit report
+when the selected manifest declares readback for its kind.
 A missing value does not establish an empty concern.
 An explicit empty collection uses the existing concern validator and corroboration checks.
 A valid reported value produces backend realization provenance.
@@ -18,8 +19,11 @@ An absent report produces no success provenance.
 The requirement's verification scope and observation strength select the evidence contract.
 Concerns without a verification floor retain their existing omission behavior.
 Missing operations and DELETE operations retain their existing applicability rules.
-The planner still admits authored-empty open concerns without observation capability.
-Planning admission does not establish successful execution.
+The planner admits authored-empty open concerns without observation capability.
+Issue #1828 aligns the runtime gate with that admission.
+A backend without readback for the kind adds no member.
+Its omission or empty report produces no provenance and needs no corroboration.
+A reported member or an unsupported readback disclosure still fails.
 
 The concern registry owns payload paths and safe projections.
 The existing observation matcher owns identity matching.
