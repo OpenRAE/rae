@@ -52,11 +52,13 @@ const fixedAdd = "package m\n\nfunc Add(a, b int) int { return a + b }\n"
 
 const baseTest = "package m\n\nimport \"testing\"\n\nfunc TestAddZero(t *testing.T) {\n\tif Add(0, 0) != 0 {\n\t\tt.Fatal(\"Add(0, 0) != 0\")\n\t}\n}\n"
 
+const testingHeader = "package m\n\nimport \"testing\"\n"
+
 func TestRunAcceptsARegressionTestThatFailsOnTheBase(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{
-		"add.go":      fixedAdd,
-		"add_test.go": baseTest + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+		"add.go":                 fixedAdd,
+		"add_regression_test.go": testingHeader + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
 	})
 
 	stdout, stderr, status := runIn(t, repo)
@@ -72,8 +74,8 @@ func TestRunAcceptsARegressionTestThatFailsOnTheBase(t *testing.T) {
 func TestRunRefusesARegressionTestThatPassesOnTheBase(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{
-		"add.go":      fixedAdd,
-		"add_test.go": baseTest + regressionTest("TestRegressionZero", "Add(0, 0) != 0"),
+		"add.go":                  fixedAdd,
+		"zero_regression_test.go": testingHeader + regressionTest("TestRegressionZero", "Add(0, 0) != 0"),
 	})
 
 	_, stderr, status := runIn(t, repo)
@@ -86,8 +88,8 @@ func TestRunRefusesARegressionTestThatPassesOnTheBase(t *testing.T) {
 func TestRunRefusesARegressionTestThatDoesNotBuildOnTheBase(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{
-		"add.go":      fixedAdd + "\nfunc Sub(a, b int) int { return a - b }\n",
-		"add_test.go": baseTest + regressionTest("TestRegressionSub", "Sub(3, 1) != 2"),
+		"add.go":                 fixedAdd + "\nfunc Sub(a, b int) int { return a - b }\n",
+		"sub_regression_test.go": testingHeader + regressionTest("TestRegressionSub", "Sub(3, 1) != 2"),
 	})
 
 	_, stderr, status := runIn(t, repo)
@@ -100,8 +102,8 @@ func TestRunRefusesARegressionTestThatDoesNotBuildOnTheBase(t *testing.T) {
 func TestRunRefusesARegressionTestInANewPackage(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{
-		"sub/sub.go":      "package sub\n\nfunc One() int { return 1 }\n",
-		"sub/sub_test.go": "package sub\n\nimport \"testing\"\n" + regressionTest("TestRegressionOne", "One() != 1"),
+		"sub/sub.go":                 "package sub\n\nfunc One() int { return 1 }\n",
+		"sub/sub_regression_test.go": "package sub\n\nimport \"testing\"\n" + regressionTest("TestRegressionOne", "One() != 1"),
 	})
 
 	_, stderr, status := runIn(t, repo)
@@ -111,13 +113,27 @@ func TestRunRefusesARegressionTestInANewPackage(t *testing.T) {
 	}
 }
 
+func TestRunRefusesARegressionTestOutsideARegressionFile(t *testing.T) {
+	repo := fixtureRepo(t)
+	commit(t, repo, map[string]string{
+		"add.go":      fixedAdd,
+		"add_test.go": baseTest + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+	})
+
+	_, stderr, status := runIn(t, repo)
+
+	if status != 1 || !strings.Contains(stderr, "TestRegressionAdd: add_test.go declares it; a regression test belongs in a file whose name ends with _regression_test.go") {
+		t.Errorf("run() = %d with stderr %q, want 1 and a misplaced regression test", status, stderr)
+	}
+}
+
 // A head fixture must reach the base run: a missing fixture would fail the
 // test there and so give false evidence.
 func TestRunReplaysTheTestdataOfTheHead(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{
 		"testdata/two.txt": "2\n",
-		"fixture_test.go": "package m\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc TestRegressionFixture(t *testing.T) {\n" +
+		"fixture_regression_test.go": "package m\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc TestRegressionFixture(t *testing.T) {\n" +
 			"\tif _, err := os.ReadFile(\"testdata/two.txt\"); err != nil {\n\t\tt.Fatal(err)\n\t}\n" +
 			"\tif Add(0, 0) != 0 {\n\t\tt.Fatal(\"Add(0, 0) != 0\")\n\t}\n}\n",
 	})
@@ -129,14 +145,16 @@ func TestRunReplaysTheTestdataOfTheHead(t *testing.T) {
 	}
 }
 
-// Only the declarations that the new regression tests need reach the base run,
-// so a new test of a new function does not break the base build.
-func TestRunLeavesOutAnUnrelatedNewTest(t *testing.T) {
+// The other test files of the package stay out of the base run. Here they hold
+// a new test and a helper, named like a testing method, that use an API that
+// only the head has.
+func TestRunIgnoresTheOtherTestFilesOfThePackage(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{
-		"add.go":             fixedAdd + "\nfunc Sub(a, b int) int { return a - b }\n",
-		"sub_test.go":        "package m\n\nimport \"testing\"\n" + regressionTest("TestSub", "Sub(3, 1) != 2"),
-		"regression_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+		"add.go":                 fixedAdd + "\nfunc Mul(a, b int) int { return a * b }\n",
+		"helpers_test.go":        "package m\n\nfunc TempDir() int { return Mul(2, 3) }\n",
+		"mul_test.go":            testingHeader + regressionTest("TestMul", "Mul(2, 3) != 6"),
+		"add_regression_test.go": testingHeader + regressionTest("TestRegressionAdd", "len(t.TempDir()) == 0 || Add(1, 2) != 3"),
 	})
 
 	stdout, stderr, status := runIn(t, repo)
@@ -148,10 +166,12 @@ func TestRunLeavesOutAnUnrelatedNewTest(t *testing.T) {
 
 func TestRunFindsANewRegressionTestInARenamedFile(t *testing.T) {
 	repo := fixtureRepo(t)
-	gitIn(t, repo, "mv", "add_test.go", "sum_test.go")
+	addToBase(t, repo, map[string]string{"old_regression_test.go": testingHeader + regressionTest("TestRegressionOld", "Add(0, 0) != 0")})
+	gitIn(t, repo, "mv", "old_regression_test.go", "renamed_regression_test.go")
 	commit(t, repo, map[string]string{
-		"add.go":      fixedAdd,
-		"sum_test.go": baseTest + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+		"add.go": fixedAdd,
+		"renamed_regression_test.go": testingHeader + regressionTest("TestRegressionOld", "Add(0, 0) != 0") +
+			regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
 	})
 
 	stdout, stderr, status := runIn(t, repo)
@@ -165,10 +185,8 @@ func TestRunFindsANewRegressionTestInARenamedFile(t *testing.T) {
 // to another file of its package.
 func TestRunSkipsAnOldRegressionTestInAnotherFile(t *testing.T) {
 	repo := fixtureRepo(t)
-	gitIn(t, repo, "switch", "--quiet", "main")
-	commit(t, repo, map[string]string{"old_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionOld", "Add(0, 0) != 0")})
-	gitIn(t, repo, "switch", "--quiet", "--force-create", "change")
-	gitIn(t, repo, "mv", "old_test.go", "moved_test.go")
+	addToBase(t, repo, map[string]string{"old_regression_test.go": testingHeader + regressionTest("TestRegressionOld", "Add(0, 0) != 0")})
+	gitIn(t, repo, "mv", "old_regression_test.go", "moved_regression_test.go")
 	commit(t, repo, map[string]string{"add.go": fixedAdd})
 
 	stdout, stderr, status := runIn(t, repo)
@@ -181,12 +199,10 @@ func TestRunSkipsAnOldRegressionTestInAnotherFile(t *testing.T) {
 // The base testdata must not decide the base run when the head deletes it.
 func TestRunRemovesTheBaseTestdataThatTheHeadDeletes(t *testing.T) {
 	repo := fixtureRepo(t)
-	gitIn(t, repo, "switch", "--quiet", "main")
-	commit(t, repo, map[string]string{"testdata/stale.txt": "stale\n"})
-	gitIn(t, repo, "switch", "--quiet", "--force-create", "change")
+	addToBase(t, repo, map[string]string{"testdata/stale.txt": "stale\n"})
 	gitIn(t, repo, "rm", "-r", "--quiet", "testdata")
 	commit(t, repo, map[string]string{
-		"stale_test.go": "package m\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc TestRegressionStale(t *testing.T) {\n" +
+		"stale_regression_test.go": "package m\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc TestRegressionStale(t *testing.T) {\n" +
 			"\tif _, err := os.Stat(\"testdata/stale.txt\"); err == nil {\n\t\tt.Fatal(\"a stale fixture exists\")\n\t}\n}\n",
 	})
 
@@ -194,58 +210,6 @@ func TestRunRemovesTheBaseTestdataThatTheHeadDeletes(t *testing.T) {
 
 	if status != 1 || !strings.Contains(stderr, "TestRegressionStale: passes on the base revision") {
 		t.Errorf("run() = %d with stderr %q, want 1 and a pass on the base revision", status, stderr)
-	}
-}
-
-// The replay keeps the head declarations that a regression test needs, from
-// any test file of its package.
-func TestRunKeepsTheHelpersThatARegressionTestNeeds(t *testing.T) {
-	repo := fixtureRepo(t)
-	commit(t, repo, map[string]string{
-		"add.go":             fixedAdd,
-		"helpers_test.go":    "package m\n\nfunc sum(a, b int) int { return Add(a, b) }\n",
-		"regression_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionSum", "sum(1, 2) != 3"),
-	})
-
-	stdout, stderr, status := runIn(t, repo)
-
-	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
-		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
-	}
-}
-
-// An external test package reaches the declarations of the internal test
-// package through the package import.
-func TestRunKeepsTheInternalHelpersOfAnExternalTest(t *testing.T) {
-	repo := fixtureRepo(t)
-	commit(t, repo, map[string]string{
-		"add.go":         fixedAdd,
-		"export_test.go": "package m\n\nvar AddForTest = Add\n",
-		"external_test.go": "package m_test\n\nimport (\n\t\"testing\"\n\n\t\"example.com/m\"\n)\n" +
-			regressionTest("TestRegressionExternal", "m.AddForTest(1, 2) != 3"),
-	})
-
-	stdout, stderr, status := runIn(t, repo)
-
-	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
-		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
-	}
-}
-
-// A constant block stays whole, because its specs share iota and implicit
-// values.
-func TestRunKeepsEachConstantOfABlock(t *testing.T) {
-	repo := fixtureRepo(t)
-	commit(t, repo, map[string]string{
-		"add.go":          fixedAdd,
-		"consts_test.go":  "package m\n\nconst (\n\tzero = iota\n\tone\n\ttwo\n)\n",
-		"numbers_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionTwo", "Add(one, one) != two"),
-	})
-
-	stdout, stderr, status := runIn(t, repo)
-
-	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
-		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
 	}
 }
 
@@ -257,6 +221,45 @@ func TestRunAcceptsAChangeWithoutRegressionTests(t *testing.T) {
 
 	if status != 0 || !strings.Contains(stdout, "0 new regression tests") {
 		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and no regression tests", status, stdout, stderr)
+	}
+}
+
+func TestRunReportsADirectoryOutsideGit(t *testing.T) {
+	t.Chdir(t.TempDir())
+	var stdout, stderr bytes.Buffer
+
+	if got := run(t.Context(), []string{"-base", "main"}, &stdout, &stderr); got != 1 || !strings.Contains(stderr.String(), "git rev-parse") {
+		t.Errorf("run() = %d with stderr %q, want 1 and a git rev-parse error", got, stderr.String())
+	}
+}
+
+// TestRunReportsEachGitFailure puts a git wrapper first in PATH. The wrapper
+// fails one subcommand, and the command must report the failure.
+func TestRunReportsEachGitFailure(t *testing.T) {
+	realGit, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, subcommand := range []string{"merge-base", "diff", "ls-tree", "show", "rev-parse HEAD", "worktree add", "restore"} {
+		t.Run(subcommand, func(t *testing.T) {
+			repo := fixtureRepo(t)
+			commit(t, repo, map[string]string{
+				"add.go":                 fixedAdd,
+				"add_regression_test.go": testingHeader + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+			})
+			bin := t.TempDir()
+			wrapper := "#!/bin/sh\ncase \"$1 $2\" in \"" + subcommand + "\"*) exit 1 ;; esac\nexec \"" + realGit + "\" \"$@\"\n"
+			if err := os.WriteFile(filepath.Join(bin, "git"), []byte(wrapper), 0o700); err != nil { //nolint:gosec // G306: the wrapper must be executable.
+				t.Fatal(err)
+			}
+			t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+			_, stderr, status := runIn(t, repo)
+
+			if status != 1 || !strings.Contains(stderr, "regressiontest: git "+subcommand) {
+				t.Errorf("run() = %d with stderr %q, want 1 and the failed git %s", status, stderr, subcommand)
+			}
+		})
 	}
 }
 
@@ -282,6 +285,15 @@ func fixtureRepo(t *testing.T) string {
 	commit(t, repo, map[string]string{"go.mod": "module example.com/m\n\ngo 1.27\n", "add.go": buggyAdd, "add_test.go": baseTest})
 	gitIn(t, repo, "switch", "--quiet", "--create", "change")
 	return repo
+}
+
+// addToBase commits files on the main branch and starts the change branch
+// again from it.
+func addToBase(t *testing.T, repo string, files map[string]string) {
+	t.Helper()
+	gitIn(t, repo, "switch", "--quiet", "main")
+	commit(t, repo, files)
+	gitIn(t, repo, "switch", "--quiet", "--force-create", "change")
 }
 
 func regressionTest(name, condition string) string {
