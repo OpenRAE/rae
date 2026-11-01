@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.3.0](https://github.com/OpenRAE/rae/compare/v10.2.0...v10.3.0) (2026-11-01)
+
+
+### Features
+
+* publish the reproduced finite participant-crossing bisimulation result ([#1806](https://github.com/OpenRAE/rae/issues/1806)) ([4120ee7](https://github.com/OpenRAE/rae/commit/4120ee77a49e89dfe273016e7721b52b3b1b7dfd))
+
+
+### Bug Fixes
+
+* bound application evaluation and shrink evidence requirements ([#1807](https://github.com/OpenRAE/rae/issues/1807)) ([9e048e6](https://github.com/OpenRAE/rae/commit/9e048e62e7d553f9c97d0f3fa15b1e834d6c2746))
+* **evidence:** record combined-source research captures for dev ([#1818](https://github.com/OpenRAE/rae/issues/1818)) ([de53c08](https://github.com/OpenRAE/rae/commit/de53c081a1ec3ca03363fb39476525ad9454ca42))
+* reject omitted open concern runtime reports ([#1809](https://github.com/OpenRAE/rae/issues/1809)) ([66f2058](https://github.com/OpenRAE/rae/commit/66f205806e6d60e360d732c6bf49d4e44e5ccc00))
+* **sdl:** own and admit typed descriptor profile bindings ([#1770](https://github.com/OpenRAE/rae/issues/1770)) ([33265ac](https://github.com/OpenRAE/rae/commit/33265ac0e22e1fe0dee8056e98b14743378f929a))
+
 ## [10.2.0](https://github.com/OpenRAE/rae/compare/v10.1.0...v10.2.0) (2026-10-31)
 
 
