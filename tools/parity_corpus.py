@@ -86,9 +86,9 @@ UNSUPPORTED_PORTABLE_COMMANDS = ("parse", "normalize", "resolve", "compile")
 MANIFEST = Path("manifest.json")
 PUBLICATION_ENTRIES = Path("contracts/schema-publication/entries")
 # JSON texts at the edges of the canonical forms: number notation, the exact
-# integer range of RFC 8785, string escapes, and the two key orders. Each input
-# file ends with a newline, which JSON reads as whitespace, so that the corpus
-# meets the repository text hygiene.
+# integer range of RFC 8785, the integer digit limit of Python, string escapes,
+# and the two key orders. Each input file ends with a newline, which JSON reads
+# as whitespace, so that the corpus meets the repository text hygiene.
 CANONICAL_EDGE_TEXTS = (
     "1.0",
     "1e16",
@@ -120,6 +120,8 @@ CANONICAL_EDGE_TEXTS = (
     "null",
     "[1, 2] 3",
     "NaN",
+    "-" + "9" * 4300,
+    "9" * 4301,
 )
 
 

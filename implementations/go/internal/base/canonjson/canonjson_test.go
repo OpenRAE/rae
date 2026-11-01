@@ -2,6 +2,7 @@ package canonjson
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/gowebpki/jcs"
@@ -26,6 +27,7 @@ func TestFormsMatchThePythonReference(t *testing.T) {
 		{"123456789.123", "123456789.123", "123456789.123", "123456789.123"},
 		{"1.5e300", "1.5e+300", "1.5e+300", "1.5e+300"},
 		{"9007199254740991", "9007199254740991", "9007199254740991", "9007199254740991"},
+		{"-9007199254740991", "-9007199254740991", "-9007199254740991", "-9007199254740991"},
 		{"\"é\u2028😀\"", "\"é\u2028😀\"", `"\u00e9\u2028\ud83d\ude00"`, "\"é\u2028😀\""},
 		{`"\u0000\u001f\u007f\"\\\/\b\f\n\r\t"`, `"\u0000\u001f` + "\x7f" + `\"\\/\b\f\n\r\t"`, `"\u0000\u001f\u007f\"\\/\b\f\n\r\t"`, `"\u0000\u001f` + "\x7f" + `\"\\/\b\f\n\r\t"`},
 		{`{"b": 1, "a": [true, null, false], "a": "last"}`, `{"a":"last","b":1}`, `{"a":"last","b":1}`, `{"a":"last","b":1}`},
@@ -61,9 +63,22 @@ func TestJCSRefusesAnInexactInteger(t *testing.T) {
 			t.Errorf("JCS(%s) error = %v, want ErrInput", input, err)
 		}
 	}
-	got, err := Sorted([]byte("123456789012345678901234567890"), true)
-	if err != nil || string(got) != "123456789012345678901234567890" {
-		t.Errorf("Sorted(big integer) = %s, %v, want the integer", got, err)
+}
+
+// The Python reference writes an integer with up to 4,300 digits, without the
+// sign, and refuses a longer one.
+func TestSortedKeepsThePythonIntegerDigitLimit(t *testing.T) {
+	for _, input := range []string{"123456789012345678901234567890", "-" + strings.Repeat("9", 4300)} {
+		for _, ascii := range []bool{true, false} {
+			if got, err := Sorted([]byte(input), ascii); err != nil || string(got) != input {
+				t.Errorf("Sorted(%d digits, %t) = %.20s, %v, want the integer", len(input), ascii, got, err)
+			}
+		}
+	}
+	for _, input := range []string{strings.Repeat("9", 4301), "-" + strings.Repeat("9", 4301)} {
+		if _, err := Sorted([]byte(input), true); !errors.Is(err, ErrInput) {
+			t.Errorf("Sorted(%d digits) error = %v, want ErrInput", len(input), err)
+		}
 	}
 }
 
@@ -101,7 +116,8 @@ func TestEscapesThatAreNotSurrogatesStayValid(t *testing.T) {
 
 // FuzzForms checks that each sorted form is idempotent and that each JCS text
 // is canonical for the RFC 8785 transform. JCS itself is not idempotent: it
-// writes a float of 1e16 as an integer, which RFC 8785 then refuses.
+// writes the float 1e16 as an integer, which it then refuses as an integer
+// outside the exact range.
 func FuzzForms(f *testing.F) {
 	for _, seed := range []string{`{"b": [1, 2.5e-7, "é"], "a": null}`, "1e16", `"😀"`, "-0.0"} {
 		f.Add([]byte(seed))
