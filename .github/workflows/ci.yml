@@ -8,14 +8,14 @@ name: CI
 # equal to the files Release Please manages (#1266).
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, go-cutover]
     tags: ["v*"]
     paths-ignore:
       - CHANGELOG.md
       - .release-please-manifest.json
       - implementations/python/packages/raes/_version.py
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, go-cutover]
     paths-ignore:
       - CHANGELOG.md
       - .release-please-manifest.json

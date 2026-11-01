@@ -12,7 +12,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, go-cutover]
     paths-ignore:
       - CHANGELOG.md
       - .release-please-manifest.json
