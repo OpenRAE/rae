@@ -1,7 +1,7 @@
 # Development container
 
 The repository ships an optional connected development container with locked
-Python/uv, frozen project and tooling environments, CLI tools and git hooks.
+Python/uv and Go, frozen project and tooling environments, CLI tools and git hooks.
 The bootstrap workflow exercises an x86_64 Docker build and repeated lifecycle
 setup. Each start route below is labelled verified or unverified. The verified
 entry points section records the host, client versions and results behind those
@@ -31,7 +31,7 @@ The first open builds the image and runs the repository setup. Setup prints each
 step and finishes with `Ready.`:
 
 1. confirms the reviewed container profile for the platform;
-2. downloads and verifies the locked uv and CPython against the artifact lock;
+2. downloads and verifies the locked uv, CPython, and Go against the artifact lock;
 3. syncs `implementations/python` and `implementations/tooling/python` from
    their `uv.lock` files;
 4. downloads, verifies, and runs Conftest, Gitleaks, OSV-Scanner, and Vale;
@@ -43,7 +43,7 @@ and the reason, and the container stays usable for investigation.
 
 ## Start working
 
-Every terminal already has `uv`, `python`, `nox`, `pre-commit`, and `ruff` on
+Every terminal already has `uv`, `python`, `go`, `nox`, `pre-commit`, and `ruff` on
 its path, alongside `git`, `gh`, `ssh`, `gpg`, `make`, `jq`, `less`, and `nano`.
 
 ```shell
@@ -131,9 +131,10 @@ no setup steps again, as this page describes.
 - A non-root `raes` account with no `sudo`.
 
 The image contains no checkout, credentials, tokens, SSH material, virtual
-environment, or payload cache. uv, CPython, and the CLI tools are downloaded
-into the cache volume by the repository's verified installers, and uv is
-forbidden from downloading any interpreter the lock did not admit.
+environment, or payload cache. uv, CPython, Go, and the CLI tools are downloaded
+into the cache volume by the repository's verified installers. uv is
+forbidden from downloading any interpreter the lock did not admit, and
+`GOTOOLCHAIN=local` stops Go from downloading a toolchain the lock did not admit.
 
 The artifact lock owns the base digest and verified bootstrap payloads.
 `.devcontainer/Dockerfile` owns native packages, account setup and environment;

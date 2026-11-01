@@ -897,10 +897,24 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   LTS. It hides only finite validation, cut-resolution, effective-capability,
   record-preparation, and atomic-commit classes under a closed
   participant/audience projection and preserves explicit divergence. Issue
-  #811 defines the target but does not run it. Issues #971 through #976 own
-  model construction, live-runtime mapping, counterexamples, finite mCRL2
-  checking, independent reproduction, and reproduction-gated scientific
+  #811 defines the target but does not run it. Issues #971 through #976
+  deliver model construction, live-runtime mapping, counterexamples, finite
+  mCRL2 checking, independent reproduction, and reproduction-gated scientific
   documentation.
+- SEM-232 delivery status is finite-model-checked and independently
+  reproduced for `participant-crossing-dpbb-finite-v1@rev2` only. The pinned
+  mCRL2 `202607.0` `dpbranching-bisim` decision relates the declared initial
+  states of the complete abstract (88 states) and concrete (178 states)
+  carriers. Every mandatory mutation fails the relation. A separate
+  implementation-agent reviewer accepted a fresh qualified reproduction; no
+  human review or cryptographic authenticity is claimed. Evidence is
+  `specs/formal/participant-semantics/participant-crossing-machine-check.md`,
+  `specs/formal/participant-semantics/participant-crossing-reproduction.md`,
+  their pinned captures, catalog revision `rev14`, and
+  `implementations/python/tests/test_issue_976_crossing_publication.py`.
+  Issue #976 also separates each retained record's subject identity from its
+  execution provenance, following the SLSA provenance split. The result is not
+  an unbounded proof and does not cover the multi-operation profile.
 - RAES does not derive whole-runtime or backend equivalence, policy
   noninterference, or opacity from this design. Runtime realization and
   backend conformance remain separate axes; noninterference and opacity
@@ -1306,7 +1320,9 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   capability, and adversarial overclaim. A declared API-407 participant-policy
   feature that no harness executed is now recorded as unsupported instead of
   conforming.
-- ASR-535 explicitly makes no model-check and no proof claim. The relation
+- The issue #800 ASR-535 delivery makes no model-check and no proof claim.
+  Later lanes add the separately bounded opacity model check and proof and the
+  finite participant-crossing model check. The relation
   `policy-noninterference` keeps its deliberately unproved status, and its
   evidence boundary is the finite enumerated domain, the named probe cases, and
   the named target, profile, and execution environment. Exhausting a declared

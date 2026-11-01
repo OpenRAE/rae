@@ -19,8 +19,11 @@ from raes_conformance.conformance import (  # noqa: E402
     _fixture_case_diagnostics,
     validate_contract_payload,
 )
+from raes_contracts import scientific_completeness  # noqa: E402
 from raes_contracts.contracts import schema_bundle  # noqa: E402
+from raes_contracts.errors import NotFoundError, OperationalError  # noqa: E402
 from raes_contracts.scientific_completeness import (  # noqa: E402
+    CURRENT_ASSESSMENT_REVISION,
     DeliveryStatus,
     ProfileDisposition,
     ScientificCompletenessAssessmentModel,
@@ -43,7 +46,7 @@ from tools.check_scientific_scenario_completeness import (
 )
 
 TAXONOMY_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json"
-ASSESSMENT_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/delivery-assessment-2026-07-12.json"
+ASSESSMENT_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json"
 
 
 def _taxonomy_payload() -> dict[str, object]:
@@ -359,3 +362,26 @@ def test_policy_rejects_a_required_deliberate_exclusion() -> None:
     failures = _validate_required_exclusions(load_scientific_completeness_taxonomy(), assessment)
 
     assert {failure.rule_id for failure in failures} == {"scientific-completeness-required-exclusion"}
+
+
+def test_loader_selects_the_reviewed_current_assessment_and_retains_history() -> None:
+    assert load_scientific_completeness_assessment().assessment_revision == CURRENT_ASSESSMENT_REVISION
+    assert load_scientific_completeness_assessment("2026-07-12").assessment_revision == "2026-07-12"
+
+
+def test_loader_refuses_an_unretained_assessment_revision() -> None:
+    with pytest.raises(NotFoundError):
+        load_scientific_completeness_assessment("2099-01-01")
+
+
+def test_loader_refuses_a_packaged_assessment_whose_revision_differs(tmp_path, monkeypatch) -> None:
+    payload = _assessment_payload()
+    payload["assessment_revision"] = "2026-07-12"
+    (tmp_path / f"delivery-assessment-{CURRENT_ASSESSMENT_REVISION}.json").write_text(json.dumps(payload))
+    monkeypatch.setattr(scientific_completeness, "scientific_completeness_root", lambda: tmp_path)
+    load_scientific_completeness_assessment.cache_clear()
+    try:
+        with pytest.raises(OperationalError, match="does not match"):
+            load_scientific_completeness_assessment(CURRENT_ASSESSMENT_REVISION)
+    finally:
+        load_scientific_completeness_assessment.cache_clear()

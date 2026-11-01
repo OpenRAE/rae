@@ -24,6 +24,11 @@
           "trust_root_ref": "system-ca"
         },
         {
+          "locator_id": "official-go-release",
+          "kind": "official-https",
+          "trust_root_ref": "system-ca"
+        },
+        {
           "locator_id": "official-sonarsource-release",
           "kind": "official-https",
           "trust_root_ref": "sonarqube-action-reviewed-sha256"
@@ -45,6 +50,7 @@
         "cpython-3.14t",
         "devcontainer-base-image",
         "gitleaks",
+        "go",
         "osv-scanner",
         "scorecard-action-image",
         "sonar-scanner-cli",
@@ -74,12 +80,18 @@
           "locator_id": "official-github-release",
           "kind": "official-https",
           "trust_root_ref": "system-ca"
+        },
+        {
+          "locator_id": "official-go-release",
+          "kind": "official-https",
+          "trust_root_ref": "system-ca"
         }
       ],
       "supported_artifact_ids": [
         "conftest",
         "cpython-3.14",
         "gitleaks",
+        "go",
         "osv-scanner",
         "uv",
         "vale"
@@ -105,12 +117,18 @@
           "locator_id": "official-github-release",
           "kind": "official-https",
           "trust_root_ref": "system-ca"
+        },
+        {
+          "locator_id": "official-go-release",
+          "kind": "official-https",
+          "trust_root_ref": "system-ca"
         }
       ],
       "supported_artifact_ids": [
         "conftest",
         "cpython-3.14",
         "gitleaks",
+        "go",
         "osv-scanner",
         "uv",
         "vale"
@@ -381,6 +399,7 @@
         "conftest",
         "cpython-3.14",
         "gitleaks",
+        "go",
         "osv-scanner",
         "uv",
         "vale",
@@ -432,6 +451,7 @@
         "conftest",
         "cpython-3.14",
         "gitleaks",
+        "go",
         "osv-scanner",
         "uv",
         "vale"
@@ -483,6 +503,7 @@
         "conftest",
         "cpython-3.14",
         "gitleaks",
+        "go",
         "osv-scanner",
         "uv",
         "vale"
@@ -584,6 +605,7 @@
         "conftest",
         "cpython-3.14",
         "gitleaks",
+        "go",
         "osv-scanner",
         "uv",
         "vale"

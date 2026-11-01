@@ -47,6 +47,28 @@ def test_mutable_executable_is_rejected(tmp_path: Path, workflow: dict, uses: st
     assert "tooling-action-pin" in _check(tmp_path, workflow)
 
 
+@pytest.mark.parametrize(
+    "step",
+    [
+        {"uses": "actions/setup-go@" + "b" * 40},
+        {"run": "go install golang.org/x/vuln/cmd/govulncheck@latest"},
+        {"run": "go -C tools run example.com/linter@v1.2.3 ./..."},
+    ],
+)
+def test_go_toolchain_and_tools_must_use_their_admitted_routes(tmp_path: Path, workflow: dict, step: dict) -> None:
+    workflow["jobs"]["test"]["steps"].append(step)
+    assert "tooling-go-acquisition" in _check(tmp_path, workflow)
+
+
+@pytest.mark.parametrize(
+    "run",
+    ["go -C implementations/tooling/go tool golangci-lint run", "go run ./cmd/raes", "cargo install tool@1.0.0"],
+)
+def test_admitted_go_commands_are_not_acquisition_bypasses(tmp_path: Path, workflow: dict, run: str) -> None:
+    workflow["jobs"]["test"]["steps"].append({"run": run})
+    assert _check(tmp_path, workflow) == set()
+
+
 @pytest.mark.parametrize("permissions", ["write-all", {"contents": "write"}, {"id-token": "write"}])
 def test_pull_request_cannot_acquire_publishing_permissions(tmp_path: Path, workflow: dict, permissions) -> None:
     workflow["jobs"]["test"]["permissions"] = permissions

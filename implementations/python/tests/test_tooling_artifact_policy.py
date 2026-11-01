@@ -1039,6 +1039,7 @@ def test_exact_host_selection_runs_the_canonical_policy_boundary() -> None:
         "conftest",
         "cpython-3.14",
         "gitleaks",
+        "go",
         "osv-scanner",
         "uv",
         "vale",

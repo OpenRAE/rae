@@ -23,7 +23,7 @@ def test_canonical_gate_requires_model_check(tmp_path: Path, result: str, expect
     assert completed.returncode == expected
 
 
-def test_model_check_has_distinct_host_and_exact_replay() -> None:
+def test_model_check_has_distinct_host_and_current_verification() -> None:
     workflow = yaml.safe_load((ROOT / ".github/workflows/canonical-verification.yml").read_text())
     job = workflow["jobs"]["model-check"]
     assert job["runs-on"] == "ubuntu-26.04"
@@ -31,7 +31,8 @@ def test_model_check_has_distinct_host_and_exact_replay() -> None:
     commands = "\n".join(step.get("run", "") for step in job["steps"])
     assert "tools.mcrl2_tool acquire" in commands
     assert "--local-input" in commands
-    assert "nox -f noxfile.py -s participant-crossing-machine-check -- --publish" in commands
+    assert "nox -f noxfile.py -s participant-crossing-machine-check" in commands
+    assert "--publish" not in commands
     assert "--offline --no-sync" in commands
     assert "sysctl" not in commands
     assert "apparmor_parser" not in commands

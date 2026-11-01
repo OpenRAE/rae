@@ -36,11 +36,39 @@ def test_measure_requires_fresh_bytes_and_retains_the_exact_claim(monkeypatch, r
     )
     assert record["result"] == reproduction.decoded(result["result.json"])
     assert record["review_acceptance"] == "required"
-    assert record["producer_run_ref"] == "https://github.com/OpenRAE/rae/issues/974"
-    assert record["reproducer_run_ref"].endswith("/975#issuecomment-6539701555")
-    assert record["reproducer_role"] == "implementation-agent"
+    assert record["schema"] == "participant-crossing-reproduction-measurement/v2"
+    assert set(record["reproducer_sources"]) == set(reproduction.SUBJECT_SOURCE_PATHS)
+    assert not {"producer_run_ref", "reproducer_run_ref", "reproducer_role"} & set(record)
     assert "runtime-realization" in record["result"]["non_claims"]
     reproduction.admit_measurement(ROOT, payload, pin)
+
+
+def test_package_tree_change_keeps_a_retained_measurement_admissible(monkeypatch, result):
+    reproduction, pin = prepare(monkeypatch, result)
+    monkeypatch.setattr(reproduction.sandbox, "replay", lambda root: dict(result))
+    payload = reproduction.measure(ROOT, pin)
+    original = reproduction.sandbox.package_source_paths
+    monkeypatch.setattr(
+        reproduction.sandbox,
+        "package_source_paths",
+        lambda root: tuple(path for path in original(root) if not path.endswith("raes/_supplied_sources.py")),
+    )
+    reproduction.admit_measurement(ROOT, payload, pin)
+
+
+def test_reproducer_subject_change_refuses_a_retained_measurement(monkeypatch, result):
+    reproduction, pin = prepare(monkeypatch, result)
+    monkeypatch.setattr(reproduction.sandbox, "replay", lambda root: dict(result))
+    payload = reproduction.measure(ROOT, pin)
+    original = reproduction.read_bytes
+    changed = "implementations/formal/participant_crossing/reproduction_checks.py"
+    monkeypatch.setattr(
+        reproduction,
+        "read_bytes",
+        lambda root, name, **kwargs: b"changed" if name == changed else original(root, name, **kwargs),
+    )
+    with pytest.raises(EvidenceIntegrityError, match="invalid reproduction measurement"):
+        reproduction.admit_measurement(ROOT, payload, pin)
 
 
 @pytest.mark.parametrize("name", ["abstract.aut", "result.json", "mutation-results.json", "manifest.json"])

@@ -87,6 +87,17 @@
       ]
     },
     {
+      "binding_id": "go-toolchain-version",
+      "artifact_id": "go",
+      "authority_field": "version",
+      "consumers": [
+        {
+          "path": "implementations/tooling/go/go.mod",
+          "template": "go {selector}"
+        }
+      ]
+    },
+    {
       "binding_id": "conftest-tool-version",
       "artifact_id": "conftest",
       "authority_field": "version",

@@ -51,7 +51,8 @@ def test_descendant_reporting_preserves_author_and_processor_concern_origins(tmp
 def test_public_report_distinguishes_equal_constrained_backend_choice(tmp_path, backend_choice):
     manager, backend, plan, _target, _archive = descendant_runtime(
         tmp_path,
-        "name: constrained\nrealization: {default: open}\n"
+        "name: constrained\nrealization:\n  default: open\n  scopes:\n"
+        "    - {field_pointer: /nodes/host/runtime, posture: closed}\n"
         "variables:\n  family: {type: string, default: linux, allowed_values: [linux, windows]}\n"
         "nodes:\n  host: {type: compute, os: '${family}'}\n",
     )

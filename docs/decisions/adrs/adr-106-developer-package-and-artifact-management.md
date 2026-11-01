@@ -45,6 +45,24 @@ acceptance; #1277 owns supported dev-container entry-point verification.
 [current migration table](../package-artifacts/migration.md) is the active
 scope/dependency record.
 
+## Go toolchain and modules — issue #1773 amendment
+
+The Go port (milestone 74) adds Go inputs. They follow the same rule: reviewed
+Git files hold every digest, and installation never accepts a new digest.
+
+- The development-artifact lock admits the Go toolchain as a bootstrap payload,
+  with the exact archive SHA-256 and size for each platform. CI and the
+  development container get it through `fetch-inputs` and `install-go` in
+  `tools.bootstrap_profile`. `actions/setup-go` is not an admitted route.
+- The `go.mod` and `go.sum` of each Go module are its resolution authority, as
+  `uv.lock` is for Python. `go.sum` holds the reviewed module digests. The `go`
+  command checks them on each build and refuses a missing or different digest.
+  `GOTOOLCHAIN=local` keeps each build on the admitted toolchain.
+- Go tools are tool dependencies of the module `implementations/tooling/go`, so
+  they resolve only through its `go.sum`. `go install` or `go run` with a module
+  version is not an admitted route. The tooling policy rejects both bypasses.
+- The OSV-Scanner gate scans the `go.mod` of each Go module.
+
 ## Historical decision
 
 The sections below preserve the accepted 2026-09-05 design for audit history.
@@ -204,3 +222,4 @@ acceptance; closing #1168 does not claim that the migration issues are shipped.
 |------|-----------|---------|
 | 2026-09-06 | #1229 | Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest. |
 | 2026-09-17 | #1313 | Narrowed the operating scope to connected single-maintainer OSS development and ordinary release recovery; preserved the original accepted design as history. |
+| 2026-10-31 | #1773 | Admitted the Go toolchain through the development-artifact lock and Go modules through their reviewed `go.sum`, with Go tools in `implementations/tooling/go`. |

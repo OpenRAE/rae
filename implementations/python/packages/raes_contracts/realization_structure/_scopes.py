@@ -17,6 +17,7 @@ from ._models import (
     RecursiveRealizationStructure,
     identity_key,
 )
+from ._scope_index import ScopeIndex
 
 
 def _scope_failure(
@@ -279,13 +280,13 @@ def _resolve_scope_target(
 
 
 def _evaluate_closed_target(
-    document: RealizationConstraintDocument,
     actual: object,
     rule: RecursiveRealizationStructure | None,
     address: str,
     budget: RelationBudget,
+    scope_index: ScopeIndex,
 ) -> list[RealizationRelationResult]:
-    declared_by_scope, failure = _declared_scope_children(document, address, budget)
+    declared_by_scope, failure = _declared_scope_children(scope_index, address, budget)
     results: list[RealizationRelationResult]
     if failure is not None:
         results = failure
@@ -303,22 +304,16 @@ def _evaluate_closed_target(
 
 
 def _declared_scope_children(
-    document: RealizationConstraintDocument,
+    scope_index: ScopeIndex,
     address: str,
     budget: RelationBudget,
 ) -> tuple[set[str], list[RealizationRelationResult] | None]:
-    scope_tokens = pointer_tokens(address)
-    declared_by_scope: set[str] = set()
-    failure = None
-    for declared_scope in document.scopes:
-        failure = _spend_operation(budget, address)
-        if failure is None:
-            tokens = pointer_tokens(declared_scope.field_pointer)
-            if tokens[: len(scope_tokens)] == scope_tokens and len(tokens) > len(scope_tokens):
-                declared_by_scope.add(tokens[len(scope_tokens)])
-        else:
-            break
-    return declared_by_scope, failure
+    children = scope_index.declared_children(pointer_tokens(address), budget)
+    if children is None:
+        return set(), _scope_failure(
+            RealizationRelationStatus.LIMIT_EXCEEDED, address, "Scope child lookup exceeded max_operations."
+        )
+    return children, None
 
 
 def _evaluate_closed_record(
@@ -391,6 +386,7 @@ def evaluate_scope_overlays(
     document: RealizationConstraintDocument,
     actual: object,
     budget: RelationBudget,
+    scope_index: ScopeIndex,
 ) -> list[RealizationRelationResult]:
     """Apply every declared scope, including those beneath open or delegated nodes."""
 
@@ -432,5 +428,5 @@ def evaluate_scope_overlays(
                 )
             )
             continue
-        results.extend(_evaluate_closed_target(document, target, rule, scope.field_pointer, budget))
+        results.extend(_evaluate_closed_target(target, rule, scope.field_pointer, budget, scope_index))
     return results

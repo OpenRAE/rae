@@ -13,6 +13,8 @@ from tools.tooling_artifact_policy_common import as_list, as_mapping, failure
 
 _ACTION_PIN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40}$")
 _IMAGE_PIN = re.compile(r"^[^\s@]+@sha256:[0-9a-f]{64}$")
+# `go install` or `go run` with a module version resolves outside the reviewed go.sum (ADR-106).
+_GO_VERSIONED_RUN = re.compile(r"\bgo\s+(?:-C\s+\S+\s+)?(?:install|run)\s[^\n;&|]*@")
 _SECRET = re.compile(r"\bsecrets\b", re.IGNORECASE)
 _CANONICAL = ".github/workflows/canonical-verification.yml"
 # A specific credential boundary, not a general Actions expression interpreter.
@@ -184,6 +186,19 @@ def _container_pin_failures(path: str, container: object) -> list[PolicyFailure]
     return []
 
 
+def _go_acquisition_failures(path: str, step: Mapping[str, Any]) -> list[PolicyFailure]:
+    """Keep the Go toolchain and the Go tools on their admitted routes."""
+
+    failures = []
+    uses = step.get("uses")
+    if isinstance(uses, str) and uses.startswith("actions/setup-go@"):
+        failures.append(failure("tooling-go-acquisition", "the Go toolchain must come from the artifact lock", path))
+    run = step.get("run")
+    if isinstance(run, str) and _GO_VERSIONED_RUN.search(run):
+        failures.append(failure("tooling-go-acquisition", "Go tools must come from the locked Go tool module", path))
+    return failures
+
+
 def _job_input_failures(path: str, job: Mapping[str, Any], workflows: Mapping[str, Any]) -> list[PolicyFailure]:
     failures = _pin_failures(path, job, workflows)
     uses = job.get("uses")
@@ -198,6 +213,7 @@ def _job_input_failures(path: str, job: Mapping[str, Any], workflows: Mapping[st
             )
     for step in as_list(job.get("steps")):
         failures.extend(_pin_failures(path, as_mapping(step), workflows))
+        failures.extend(_go_acquisition_failures(path, as_mapping(step)))
     for container in [job.get("container"), *as_mapping(job.get("services")).values()]:
         failures.extend(_container_pin_failures(path, container))
     return failures

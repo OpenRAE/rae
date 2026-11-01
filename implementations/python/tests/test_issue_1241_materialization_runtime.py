@@ -266,7 +266,11 @@ def test_permitted_in_world_addition_is_archived_at_member_granularity(tmp_path)
         tmp_path,
         mutate=mutate,
         realize=True,
-        source="name: augmented\nrealization: {default: open}\nnodes:\n  host: {type: compute}",
+        source=(
+            "name: augmented\nrealization:\n  default: open\n  scopes:\n"
+            "    - {field_pointer: /nodes/host/runtime, posture: closed}\n"
+            "nodes:\n  host: {type: compute}"
+        ),
     )
     assert result.success, result.diagnostics
     from raes import parse_sdl
@@ -281,7 +285,11 @@ def test_truthful_report_does_not_excuse_a_changed_exact_authored_value(tmp_path
         tmp_path,
         mutate=lambda document: document["nodes"]["host"].update(architecture="aarch64"),
         realize=True,
-        source="name: exact\nrealization: {default: open}\nnodes:\n  host: {type: compute, architecture: x86_64}",
+        source=(
+            "name: exact\nrealization:\n  default: open\n  scopes:\n"
+            "    - {field_pointer: /nodes/host/runtime, posture: closed}\n"
+            "nodes:\n  host: {type: compute, architecture: x86_64}"
+        ),
     )
     assert not result.success
     assert any(diagnostic.code != "runtime.materialization-attestation-invalid" for diagnostic in result.diagnostics)
