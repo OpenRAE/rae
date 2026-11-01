@@ -69,6 +69,8 @@ SCHEMA = "raes-parity-corpus/v1"
 JSON_FILES = "*.json"
 # The input file of each canonical case.
 CANONICAL_VALUE = "value.json"
+# The input file of each random-stream case.
+RANDSTREAM_VECTOR = "vector.json"
 SDL_CONTRACT = "sdl-yaml/v1"
 SDL_COMMANDS = (
     "parse",
@@ -262,10 +264,10 @@ def canonical_cases(repo: Path) -> Iterator[Case]:
 def randstream_cases(repo: Path) -> Iterator[Case]:
     """Yield each published random-stream vector."""
 
-    for vector in sorted((repo / "contracts" / "fixtures" / "random-stream-vectors").rglob("*.json")):
+    for vector in sorted((repo / "contracts" / "fixtures" / "random-stream-vectors").rglob(JSON_FILES)):
         name = vector.relative_to(repo).with_suffix("").as_posix()
         yield Case(
-            surface="randstream", command="vector", name=name, args=(), files={"vector.json": vector.read_bytes()}
+            surface="randstream", command="vector", name=name, args=(), files={RANDSTREAM_VECTOR: vector.read_bytes()}
         )
 
 
@@ -348,7 +350,7 @@ def run_canonical(case: Case) -> dict[str, object]:
 def run_randstream(case: Case) -> dict[str, object]:
     """Run the random-stream engine on the inputs of a published vector."""
 
-    vector = json.loads(case.files["vector.json"])
+    vector = json.loads(case.files[RANDSTREAM_VECTOR])
     profile = vector["profile_id"]
     seed = random_stream_engine.decode_public_seed(PublicSeedModel.model_validate(vector["root_entropy"]))
     key = random_stream_engine.derive_stream_key(profile_id=profile, root_entropy=seed)
