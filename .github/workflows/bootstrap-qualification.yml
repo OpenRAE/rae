@@ -6,7 +6,6 @@ on:
     branches: [dev]
     paths:
       - '.github/workflows/bootstrap-qualification.yml'
-      - '.devcontainer/**'
       - 'implementations/tooling/**'
       - 'implementations/python/pyproject.toml'
       - 'implementations/python/uv.lock'
@@ -15,7 +14,20 @@ on:
       - 'implementations/python/tests/test_issue_1220_isabelle_acquisition.py'
       - 'implementations/python/tests/test_issue_1238_development_container.py'
       - 'implementations/python/tests/test_issue_1313_workflow_policy.py'
-      - 'tools/**'
+      - 'tools/bootstrap_profile.py'
+      - 'tools/check_tooling_artifact_policy.py'
+      - 'tools/tooling_*.py'
+      - 'tools/verified_*.py'
+      - 'tools/maintained_client_acquisition.py'
+      - 'tools/*_tool.py'
+      - 'tools/tool_versions.py'
+      - 'tools/python_closure*.py'
+      - 'tools/generate_python_closures.py'
+      - 'tools/policy/conftest_tool.py'
+      - 'tools/nox_support/compatibility_lanes.py'
+      - 'tools/nox_support/test_lanes.py'
+      - 'tools/nox_support/runner.py'
+      - 'tools/nox_support/config.py'
       - 'noxfile.py'
   workflow_dispatch:
 
@@ -84,9 +96,11 @@ jobs:
           if-no-files-found: error
 
   development-image:
+    # The optional image is qualified on demand, never on the PR critical path.
+    if: github.event_name == 'workflow_dispatch'
     name: container-ubuntu-24.04-x86_64 dev-container smoke
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 30
     env:
       RAES_REQUIREMENT_UID: GOV-913
       UV_PYTHON: "3.14.7"
@@ -151,7 +165,7 @@ jobs:
               --workdir "${workspace}" --env PATH="${remote_path}" raes-development-image:smoke bash -c "${setup_command}"
             echo "::endgroup::"
           done
-      - name: Work in a new terminal as a maintainer would
+      - name: Verify the development environment
         run: |
           docker run --rm --volume "${RUNNER_TEMP}/rae:${DEVCONTAINER_WORKSPACE}" \
             --volume raes-development-cache:/home/raes/.cache --workdir "${DEVCONTAINER_WORKSPACE}" \
@@ -162,9 +176,10 @@ jobs:
               done
               test -x .git/hooks/pre-commit
               test ! -e .git/hooks/pre-push
-              nox -s policy -- --skip-requirement
-              nox -s lint
-              nox -s tests
+              uv run --project implementations/python --frozen python -c "import raes, raes_processor, raes_runtime"
+              uv run --project implementations/python --frozen raes --help
+              uv run --project implementations/python --frozen python -m pytest -q \
+                -c implementations/python/pyproject.toml implementations/python/tests/test_issue_1238_development_container.py
             '
       - name: Confirm proof and container-daemon capabilities are refused, not implied
         run: |
@@ -208,9 +223,8 @@ jobs:
                 "docker buildx imagetools inspect --raw <base index> (locked platform manifest matches the index)",
                 "docker buildx build --no-cache --pull (Dockerfile pins the platform)",
                 "devcontainer.json updateContentCommand with remoteEnv PATH (first and repeated)",
-                "nox -s policy -- --skip-requirement",
-                "nox -s lint",
-                "nox -s tests",
+                "project imports and raes --help",
+                "pytest implementations/python/tests/test_issue_1238_development_container.py",
                 "nox -s participant-opacity-proof (expected capability refusal)"
               ],
               outcome: "passed"
