@@ -72,6 +72,7 @@ flowchart LR
 | A suppression hides a real finding | `nolintlint` requires the linter name and a reason | golangci-lint in the `go` job |
 | An option injected through the base revision of `regressiontest` | The command refuses a base that starts with `-`, and `--end-of-options` comes before the revision | `TestRunRejectsBadUsage` |
 | A regression test that does not reproduce its defect | `regressiontest` runs each new test at the merge base and requires its failure | The `regressiontest` tests |
+| A missing fixture or an unrelated new test decides the base outcome | The base run gets the head content of the files that declare new regression tests, and of their testdata. Other test files keep their base content. | `TestRunReplaysTheTestdataOfTheHead` and `TestRunReplaysOnlyTheFilesOfTheRegressionTests` |
 | Untested code passes | The 90% coverage floor and the mutation gate | The `go` job |
 | Pull request code reads a CI secret | The reusable workflow grants `contents: read` only, and the `go` job uses no secret | `test_canonical_verifier_requires_and_checks_out_an_exact_commit_sha` and `test_go_lanes_enforce_each_go_engineering_standard` |
 
