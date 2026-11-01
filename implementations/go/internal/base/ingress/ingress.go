@@ -7,14 +7,22 @@
 // codes, and finds the first failure in the same order. One difference is
 // deliberate: Parse refuses a UTF-16 surrogate that is not part of a pair,
 // because valid UTF-8 cannot hold it and I-JSON (RFC 7493) forbids it.
+//
+// The parser is custom, because encoding/json gives other results: it keeps
+// the last of duplicate members, reads NaN and Infinity as syntax errors,
+// replaces an unpaired surrogate and invalid UTF-8 with U+FFFD, and stops at
+// 10,000 levels of nesting.
 package ingress
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"slices"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
 )
@@ -48,7 +56,8 @@ type Root int
 
 // The root types.
 const (
-	Object Root = iota + 1
+	_ Root = iota
+	Object
 	Array
 )
 
@@ -66,6 +75,15 @@ const (
 	decoderDepth = 65000
 	// maxDigits is the integer digit limit of the Python reference.
 	maxDigits = 4300
+)
+
+// The byte order marks that Python's json.detect_encoding recognizes.
+const (
+	utf32BE = "\x00\x00\xfe\xff"
+	utf32LE = "\xff\xfe\x00\x00"
+	utf16BE = "\xfe\xff"
+	utf16LE = "\xff\xfe"
+	utf8BOM = "\xef\xbb\xbf"
 )
 
 // Parse parses data as one JSON value of the root type. An object is a
@@ -118,16 +136,15 @@ func tooDeep(data []byte, limit int) bool {
 			inString, escaped = advanceQuoted(b, escaped)
 			continue
 		}
-		if b == '"' {
+		switch b {
+		case '"':
 			inString = true
-		}
-		if b == '[' || b == '{' {
+		case '[', '{':
 			depth++
 			if depth > limit {
 				return true
 			}
-		}
-		if b == ']' || b == '}' {
+		case ']', '}':
 			depth--
 		}
 	}
@@ -145,80 +162,80 @@ func advanceQuoted(b byte, escaped bool) (inString, nowEscaped bool) {
 	return b != '"', false
 }
 
-// decodeText returns data as UTF-8 text. It detects UTF-16 and UTF-32 and
-// removes a byte order mark as Python's json.detect_encoding does.
+// decodeText returns data as UTF-8 text. It detects the encoding and removes a
+// byte order mark as Python's json.detect_encoding and its codecs do.
 func decodeText(data []byte) (string, bool) {
-	switch {
-	case bytes.HasPrefix(data, []byte{0, 0, 0xfe, 0xff}):
-		return decodeUTF32(data[4:], true)
-	case bytes.HasPrefix(data, []byte{0xff, 0xfe, 0, 0}):
-		return decodeUTF32(data[4:], false)
-	case bytes.HasPrefix(data, []byte{0xfe, 0xff}):
-		return decodeUTF16(data[2:], true)
-	case bytes.HasPrefix(data, []byte{0xff, 0xfe}):
-		return decodeUTF16(data[2:], false)
-	case bytes.HasPrefix(data, []byte{0xef, 0xbb, 0xbf}):
-		data = data[3:]
-	case len(data) >= 4 && data[0] == 0:
+	if rest, ok := bytes.CutPrefix(data, []byte(utf32BE)); ok {
+		return decodeUTF32(rest, binary.BigEndian)
+	}
+	if rest, ok := bytes.CutPrefix(data, []byte(utf32LE)); ok {
+		return decodeUTF32(rest, binary.LittleEndian)
+	}
+	if rest, ok := bytes.CutPrefix(data, []byte(utf16BE)); ok {
+		return decodeUTF16(rest, binary.BigEndian)
+	}
+	if rest, ok := bytes.CutPrefix(data, []byte(utf16LE)); ok {
+		return decodeUTF16(rest, binary.LittleEndian)
+	}
+	if rest, ok := bytes.CutPrefix(data, []byte(utf8BOM)); ok {
+		return string(rest), utf8.Valid(rest)
+	}
+	return decodeUnmarked(data)
+}
+
+// decodeUnmarked decodes text without a byte order mark. Its zero bytes select
+// the encoding, as in json.detect_encoding.
+func decodeUnmarked(data []byte) (string, bool) {
+	if len(data) >= 4 && data[0] == 0 {
 		if data[1] != 0 {
-			return decodeUTF16(data, true)
+			return decodeUTF16(data, binary.BigEndian)
 		}
-		return decodeUTF32(data, true)
-	case len(data) >= 4 && data[1] == 0:
+		return decodeUTF32(data, binary.BigEndian)
+	}
+	if len(data) >= 4 && data[1] == 0 {
 		if data[2] != 0 || data[3] != 0 {
-			return decodeUTF16(data, false)
+			return decodeUTF16(data, binary.LittleEndian)
 		}
-		return decodeUTF32(data, false)
-	case len(data) == 2 && data[0] == 0:
-		return decodeUTF16(data, true)
-	case len(data) == 2 && data[1] == 0:
-		return decodeUTF16(data, false)
+		return decodeUTF32(data, binary.LittleEndian)
+	}
+	if len(data) == 2 && data[0] == 0 {
+		return decodeUTF16(data, binary.BigEndian)
+	}
+	if len(data) == 2 && data[1] == 0 {
+		return decodeUTF16(data, binary.LittleEndian)
 	}
 	return string(data), utf8.Valid(data)
 }
 
-func decodeUTF16(data []byte, bigEndian bool) (string, bool) {
+// decodeUTF16 decodes UTF-16 text. It refuses an odd length and a surrogate
+// that is not part of a pair.
+func decodeUTF16(data []byte, order binary.ByteOrder) (string, bool) {
 	if len(data)%2 != 0 {
 		return "", false
 	}
 	units := make([]uint16, len(data)/2)
 	for i := range units {
-		high, low := data[2*i], data[2*i+1]
-		if !bigEndian {
-			high, low = low, high
-		}
-		units[i] = uint16(high)<<8 | uint16(low)
+		units[i] = order.Uint16(data[2*i:])
 	}
-	// utf16.Decode would replace an unpaired surrogate; such text is refused.
-	for i := 0; i < len(units); i++ {
-		if units[i] >= 0xdc00 && units[i] <= 0xdfff {
-			return "", false
-		}
-		if units[i] >= 0xd800 && units[i] < 0xdc00 {
-			if i+1 == len(units) || units[i+1] < 0xdc00 || units[i+1] > 0xdfff {
-				return "", false
-			}
-			i++
-		}
-	}
-	return string(utf16.Decode(units)), true
+	runes := utf16.Decode(units)
+	// Decode replaces an unpaired surrogate with U+FFFD, so the runes then
+	// encode to other units.
+	return string(runes), slices.Equal(utf16.Encode(runes), units)
 }
 
-func decodeUTF32(data []byte, bigEndian bool) (string, bool) {
+// decodeUTF32 decodes UTF-32 text. It refuses a length that is not a multiple
+// of four, a surrogate, and a value above U+10FFFF.
+func decodeUTF32(data []byte, order binary.ByteOrder) (string, bool) {
 	if len(data)%4 != 0 {
 		return "", false
 	}
 	var text strings.Builder
 	for i := 0; i < len(data); i += 4 {
-		b := data[i : i+4]
-		r := rune(b[0])<<24 | rune(b[1])<<16 | rune(b[2])<<8 | rune(b[3])
-		if !bigEndian {
-			r = rune(b[3])<<24 | rune(b[2])<<16 | rune(b[1])<<8 | rune(b[0])
-		}
-		if !utf8.ValidRune(r) {
+		value := order.Uint32(data[i:])
+		if value > unicode.MaxRune || utf16.IsSurrogate(rune(value)) {
 			return "", false
 		}
-		text.WriteRune(r)
+		text.WriteRune(rune(value))
 	}
 	return text.String(), true
 }
@@ -230,17 +247,19 @@ type parser struct {
 	maxDepth int
 }
 
-func (p *parser) space() {
-	for p.pos < len(p.text) && strings.IndexByte(" \t\n\r", p.text[p.pos]) >= 0 {
-		p.pos++
-	}
-}
-
-func (p *parser) peek() byte {
-	if p.pos < len(p.text) {
-		return p.text[p.pos]
+// peek returns the byte at offset from the position, or zero after the end.
+// A zero byte is not valid outside a string, so the parser reads it as the end.
+func (p *parser) peek(offset int) byte {
+	if i := p.pos + offset; i < len(p.text) {
+		return p.text[i]
 	}
 	return 0
+}
+
+func (p *parser) space() {
+	for strings.ContainsRune(" \t\n\r", rune(p.peek(0))) {
+		p.pos++
+	}
 }
 
 func (p *parser) value(depth int) (any, error) {
@@ -250,14 +269,14 @@ func (p *parser) value(depth int) (any, error) {
 	if value, ok := p.literal(); ok {
 		return value, nil
 	}
-	if p.peek() == '"' {
+	switch p.peek(0) {
+	case '"':
 		return p.str()
-	}
-	if p.peek() == '[' || p.peek() == '{' {
+	case '[', '{':
 		if depth >= p.maxDepth {
 			return nil, &Error{TooDeep}
 		}
-		if p.peek() == '[' {
+		if p.peek(0) == '[' {
 			return p.array(depth + 1)
 		}
 		return p.object(depth + 1)
@@ -281,7 +300,7 @@ func (p *parser) literal() (any, bool) {
 func (p *parser) array(depth int) (any, error) {
 	p.pos++
 	items := []any{}
-	if p.space(); p.peek() == ']' {
+	if p.space(); p.peek(0) == ']' {
 		p.pos++
 		return items, nil
 	}
@@ -292,7 +311,7 @@ func (p *parser) array(depth int) (any, error) {
 		}
 		items = append(items, item)
 		p.space()
-		next := p.peek()
+		next := p.peek(0)
 		p.pos++
 		if next == ']' {
 			return items, nil
@@ -308,19 +327,19 @@ func (p *parser) object(depth int) (any, error) {
 	p.pos++
 	var keys []string
 	var values []any
-	if p.space(); p.peek() == '}' {
+	if p.space(); p.peek(0) == '}' {
 		p.pos++
 		return map[string]any{}, nil
 	}
 	for {
-		if p.peek() != '"' {
+		if p.peek(0) != '"' {
 			return nil, &Error{Invalid}
 		}
 		key, err := p.str()
 		if err != nil {
 			return nil, err
 		}
-		if p.space(); p.peek() != ':' {
+		if p.space(); p.peek(0) != ':' {
 			return nil, &Error{Invalid}
 		}
 		p.pos++
@@ -331,7 +350,7 @@ func (p *parser) object(depth int) (any, error) {
 		}
 		keys, values = append(keys, key), append(values, value)
 		p.space()
-		next := p.peek()
+		next := p.peek(0)
 		p.pos++
 		if next == '}' {
 			return members(keys, values)
@@ -381,10 +400,7 @@ func (p *parser) str() (string, error) {
 
 // escape writes the character of the escape after a backslash.
 func (p *parser) escape(out *strings.Builder) error {
-	if p.pos >= len(p.text) {
-		return &Error{Invalid}
-	}
-	c := p.text[p.pos]
+	c := p.peek(0)
 	p.pos++
 	if simple := strings.IndexByte(`"\/bfnrt`, c); simple >= 0 {
 		out.WriteByte("\"\\/\b\f\n\r\t"[simple])
@@ -399,7 +415,7 @@ func (p *parser) escape(out *strings.Builder) error {
 	}
 	r := rune(unit)
 	if utf16.IsSurrogate(r) {
-		if unit >= 0xdc00 || !strings.HasPrefix(p.text[p.pos:], `\u`) {
+		if !strings.HasPrefix(p.text[p.pos:], `\u`) {
 			return &Error{Invalid}
 		}
 		p.pos += 2
@@ -407,6 +423,7 @@ func (p *parser) escape(out *strings.Builder) error {
 		if !ok {
 			return &Error{Invalid}
 		}
+		// DecodeRune returns U+FFFD unless r is a high and low a low surrogate.
 		if r = utf16.DecodeRune(r, rune(low)); r == utf8.RuneError {
 			return &Error{Invalid}
 		}
@@ -417,11 +434,10 @@ func (p *parser) escape(out *strings.Builder) error {
 
 // unit reads four hexadecimal digits.
 func (p *parser) unit() (uint16, bool) {
-	if p.pos+4 > len(p.text) {
-		return 0, false
-	}
-	value, err := strconv.ParseUint(p.text[p.pos:p.pos+4], 16, 16)
-	if err != nil {
+	digits := p.text[p.pos:min(p.pos+4, len(p.text))]
+	// ParseUint takes only hexadecimal digits: no sign, prefix, or underscore.
+	value, err := strconv.ParseUint(digits, 16, 16)
+	if err != nil || len(digits) != 4 {
 		return 0, false
 	}
 	p.pos += 4
@@ -437,7 +453,7 @@ func (p *parser) number() (any, error) {
 	}
 	integerEnd := p.pos
 	isFloat := false
-	if p.peek() == '.' && p.pos+1 < len(p.text) && isDigit(p.text[p.pos+1]) {
+	if p.peek(0) == '.' && isDigit(p.peek(1)) {
 		p.pos++
 		p.digits()
 		isFloat = true
@@ -476,7 +492,7 @@ func (p *parser) skip(prefix string) bool {
 // digits reads one or more ASCII digits.
 func (p *parser) digits() bool {
 	start := p.pos
-	for p.pos < len(p.text) && isDigit(p.text[p.pos]) {
+	for isDigit(p.peek(0)) {
 		p.pos++
 	}
 	return p.pos > start
