@@ -7,7 +7,7 @@ from copy import deepcopy
 from dataclasses import replace
 from threading import Lock
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from pydantic import TypeAdapter
 from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
@@ -221,7 +221,7 @@ class ParticipantDeliveryInvocationTools:
     ) -> ParticipantToolActionDecision:
         if not isinstance(request, ParticipantToolActionRequest):
             raise TypeError("request must be a ParticipantToolActionRequest")
-        request = replace(request)
+        request = cast(ParticipantToolActionRequest, replace(request))
 
         def refusal(reason: object) -> ParticipantToolActionDecision:
             return ParticipantToolActionDecision(request.tool_call_id, False, refusal=reason)
@@ -367,7 +367,7 @@ class ParticipantDeliveryInvocationTools:
         proofs = tuple(
             ParticipantTemporalEvidenceModel.model_validate(item.model_dump(mode="json")) for item in temporal_evidence
         )
-        admitted = replace(entry.admission, temporal_evidence=proofs)
+        admitted = cast(ParticipantActionAdmissionRequest, replace(entry.admission, temporal_evidence=proofs))
         self._current_request = entry.request
         crossing, governed = prepare_tool_crossing(self, admitted, entry.crossing_evidence, stage="dispatch")
         refusal = self._dispatch_crossing_refusal(entry, crossing, governed, admitted, proofs)

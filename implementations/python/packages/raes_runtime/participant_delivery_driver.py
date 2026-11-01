@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from raes_contracts.contracts.participant_invocation_tools import delivery_tool_actions_enabled
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalBindingModel
 from raes_processor.compiler import compile_participant_invocation_tools
 
 
@@ -42,7 +43,11 @@ def _driver_available(installed: object, model: object, capability: object, exec
 
 
 def _binding_executable(
-    delivery: object, binding: object, capability: object, implementation: str, temporal: object
+    delivery: object,
+    binding: object,
+    capability: object,
+    implementation: str,
+    temporal: tuple[ParticipantTemporalBindingModel, ...],
 ) -> bool:
     if delivery.participant_address not in binding.participant_addresses or not binding.target_addresses:
         return False
@@ -61,8 +66,8 @@ def matching_delivery_tool_offers(
     *,
     action_contract_address: str,
     implementation_ref: str,
-    target_addresses: object,
-    temporal_bindings: object,
+    target_addresses: tuple[str, ...],
+    temporal_bindings: tuple[ParticipantTemporalBindingModel, ...],
 ) -> list[object]:
     digests = {
         item.contract_digest for item in temporal_bindings if item.action_contract_address == action_contract_address

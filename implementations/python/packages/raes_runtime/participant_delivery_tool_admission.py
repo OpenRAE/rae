@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import replace
+from typing import cast
 
 from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing_evidence import ParticipantCrossingEvidence
@@ -142,8 +143,12 @@ def require_live_invocation(port: object) -> None:
 
 
 def prepare_tool_crossing(
-    port: object, admission: object, evidence: ParticipantCrossingEvidence | None, *, stage: str
-) -> tuple[object, object]:
+    port: object,
+    admission: ParticipantActionAdmissionRequest,
+    evidence: ParticipantCrossingEvidence | None,
+    *,
+    stage: str,
+) -> tuple[object, ParticipantActionAdmissionRequest | None]:
     plane = port.delivery_tools_context().plane
     if not isinstance(evidence, ParticipantCrossingEvidence):
         raise ConflictError("tool action crossing evidence is required")
@@ -183,7 +188,10 @@ def prepare_tool_crossing(
     )
     if refused is not None:
         return None, None
-    governed = replace(deepcopy(plane.delivery_governed_action_request(crossing, deepcopy(admission))))
+    governed = cast(
+        ParticipantActionAdmissionRequest,
+        replace(deepcopy(plane.delivery_governed_action_request(crossing, deepcopy(admission)))),
+    )
     # The policy owns a transformed carrier's reference. Its exact digest, kind,
     # contract, participant and episode must still describe the returned carrier.
     actual_subject = plane.delivery_action_subject(governed).model_copy(

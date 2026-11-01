@@ -38,7 +38,7 @@ def require_delivery_invocation_transition(existing: object, replacement: object
         raise immutable_value_error("delivery invocation binding is immutable")
 
 
-def delivery_tool_origin_matches(delivery: object, claim: object) -> bool:
+def delivery_tool_origin_matches(delivery: object, claim: dict[str, object] | None) -> bool:
     return claim is not None and (
         claim["invocation_action_instance_id"],
         claim["participant_address"],
@@ -63,7 +63,7 @@ def delivery_tool_binding(record: object) -> ParticipantActionAdmissionRequest |
     if retained is None:
         return None
     claim = tool_action_claim_payload(payload)
-    if _invalid_tool_claim(record, retained, claim):
+    if claim is None or _invalid_tool_claim(record, retained, claim):
         raise ValueError("delivery tool claim identity differs")
     admission = TypeAdapter(ParticipantActionAdmissionRequest).validate_python(retained.get("admission"))
     if _invalid_tool_binding(record, admission, claim):
@@ -71,17 +71,18 @@ def delivery_tool_binding(record: object) -> ParticipantActionAdmissionRequest |
     return admission
 
 
-def _invalid_tool_claim(record: object, retained: dict, claim: object) -> bool:
+def _invalid_tool_claim(record: object, retained: dict[str, object], claim: dict[str, object]) -> bool:
     return (
-        claim is None
-        or record.status.context.operation_kind is not OperationKind.PARTICIPANT_ACTION
+        record.status.context.operation_kind is not OperationKind.PARTICIPANT_ACTION
         or record.status.context.request_commitment != canonical_json_digest(claim)
         or type(retained.get("admission_ordinal")) is not int
         or retained["admission_ordinal"] < 0
     )
 
 
-def _invalid_tool_binding(record: object, admission: ParticipantActionAdmissionRequest, claim: dict) -> bool:
+def _invalid_tool_binding(
+    record: object, admission: ParticipantActionAdmissionRequest, claim: dict[str, object]
+) -> bool:
     return (
         admission.action_instance_id != record.receipt.operation_id
         or admission.participant_address != claim["participant_address"]

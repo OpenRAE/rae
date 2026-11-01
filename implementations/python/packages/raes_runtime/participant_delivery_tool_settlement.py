@@ -95,13 +95,7 @@ def settle_delivery_tool(
     except Exception:
         # The durability owner already read back the record, snapshot and actor audit.
         # Accept only the exact confirmed terminal cut; never repeat the write or effect.
-        confirmed = (
-            not getattr(plane, "_durability_poisoned", False)
-            and plane.delivery_operations.get(entry.action_instance_id) == terminal
-            and plane.delivery_expected_participant_history_heads(plane.delivery_snapshot, port.participant_address)
-            == terminal.result_history_heads
-        )
-        if not confirmed:
+        if not _terminal_confirmed(plane, entry, terminal):
             raise
     entry.record, entry.state, entry.settlement = terminal, "settled", settlement
     entry.action_result, entry.settled_at = outcome, settled_at
@@ -132,3 +126,14 @@ def _temporal_assessments(
             )
         )
     return assessments
+
+
+def _terminal_confirmed(plane: object, entry: object, terminal: object) -> bool:
+    if getattr(plane, "_durability_poisoned", False):
+        return False
+    if plane.delivery_operations.get(entry.action_instance_id) != terminal:
+        return False
+    heads = plane.delivery_expected_participant_history_heads(
+        plane.delivery_snapshot, entry.request.participant_address
+    )
+    return heads == terminal.result_history_heads
