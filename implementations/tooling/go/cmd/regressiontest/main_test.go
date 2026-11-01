@@ -232,6 +232,23 @@ func TestRunKeepsTheInternalHelpersOfAnExternalTest(t *testing.T) {
 	}
 }
 
+// A constant block stays whole, because its specs share iota and implicit
+// values.
+func TestRunKeepsEachConstantOfABlock(t *testing.T) {
+	repo := fixtureRepo(t)
+	commit(t, repo, map[string]string{
+		"add.go":          fixedAdd,
+		"consts_test.go":  "package m\n\nconst (\n\tzero = iota\n\tone\n\ttwo\n)\n",
+		"numbers_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionTwo", "Add(one, one) != two"),
+	})
+
+	stdout, stderr, status := runIn(t, repo)
+
+	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
+		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
+	}
+}
+
 func TestRunAcceptsAChangeWithoutRegressionTests(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{"add.go": fixedAdd})
