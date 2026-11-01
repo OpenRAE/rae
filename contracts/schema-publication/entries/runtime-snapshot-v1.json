@@ -1,9 +1,9 @@
 {
-  "content_hash": "bf6e02fd00fd52090f62145a735e72a9474da9e7843d84ecd2397ea0a2734e0e",
+  "content_hash": "68e8c473a027486a81aea5fb24be982f2f1d0c06603c41e95f01e1b625b14eb9",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "bf6e02fd00fd52090f62145a735e72a9474da9e7843d84ecd2397ea0a2734e0e",
-    "summary": "Carry the optional invocation_tool_context on participant behavior history events for hosted tool actions; issue #1740."
+    "content_hash": "68e8c473a027486a81aea5fb24be982f2f1d0c06603c41e95f01e1b625b14eb9",
+    "summary": "Point the semantic-invariant validator locator at the module that now owns the validator (issue #1711, ADR-121). The schema shape and the invariant do not change."
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

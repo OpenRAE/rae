@@ -3,7 +3,7 @@
 from collections.abc import Iterable, Mapping
 from typing import Any
 
-from raes.participant_behavior import ParticipantInteractionClass
+from raes_contracts.participant_action_semantics import ParticipantInteractionClass
 from raes_contracts.participant_behavior import (
     ParticipantAdmissionDisposition,
     ParticipantBehaviorHistoryEventType,

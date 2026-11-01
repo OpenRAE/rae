@@ -6,10 +6,11 @@ from enum import Enum
 from typing import Annotated, Literal
 
 from pydantic import BeforeValidator, Field, field_validator, model_validator
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.participant_action_semantics import ParticipantFailureClass
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import WholeFieldVariableReference, parse_int_or_var
 
-from ._base import SDLModel, WholeFieldVariableReference, parse_int_or_var
-from ._identifiers import PortableIdentifier
-from .participant_action_semantics import ParticipantFailureClass
 from .participant_resource_budgets import ParticipantResourceBudgetPolicy
 
 _AttemptLimit = Annotated[

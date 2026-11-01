@@ -4,8 +4,8 @@ from copy import deepcopy
 from dataclasses import replace
 
 import pytest
-from raes.explicitness import ExplicitnessProvenance
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.explicitness import ExplicitnessProvenance
 from raes_contracts.planning import ChangeAction, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope

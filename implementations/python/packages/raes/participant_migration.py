@@ -9,8 +9,9 @@ from pydantic import Field
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ArtifactTransformationPreservationModel, ArtifactTransformationReportModel
 from raes_contracts.json_pointer import escape_token
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref
 
-from ._base import SDLModel, is_variable_ref
 from ._errors import SDLError
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDLParserLimits, SDLSourceParseOptions
 from ._transformation_support import check, diagnostic

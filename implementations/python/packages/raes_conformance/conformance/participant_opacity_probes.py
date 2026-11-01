@@ -23,10 +23,10 @@ from typing import cast
 
 from raes_backend_protocols.capabilities import ParticipantFeatureSupport, resolve_participant_feature_support
 from raes_backend_protocols.manifest import backend_manifest_payload
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relation_profiles import load_behavioral_relation_profile
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import InvalidInputError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger

@@ -11,7 +11,6 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.domain_profiles import (
     SAFE_DOMAIN_PROFILE_SCHEMA_KEYWORDS,
     AdmittedDomainProfileDefinitionModel,
@@ -39,6 +38,7 @@ from raes_contracts.domain_profiles import (
     seal_domain_profile_definition,
 )
 from raes_contracts.json_ingress import StrictJsonIngressError
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _PUBLISHED_DOMAIN_PROFILE_FIXTURES = (

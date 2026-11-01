@@ -4,8 +4,7 @@ from enum import Enum
 from math import gcd
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import SDLModel
+from raes_contracts.sdl_model import SDLModel
 
 
 class TimeDomainKind(str, Enum):

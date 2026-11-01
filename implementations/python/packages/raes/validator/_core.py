@@ -7,7 +7,8 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from typing import cast
 
-from .._base import is_variable_ref
+from raes_contracts.variable_references import is_variable_ref
+
 from .._declarations import DeclarationIndex, Purposes, build_declaration_index
 from .._errors import SDLValidationError, SDLValidationFinding
 from .._incremental_reuse import (

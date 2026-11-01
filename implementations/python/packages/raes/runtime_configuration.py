@@ -4,9 +4,13 @@ from collections.abc import Iterable
 from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
 from raes_contracts.realization_structure import RealizationPresence
-
-from raes.runtime_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import absolute_path_or_var as _abs_path_or_var
+from raes_contracts.runtime_values import parse_ram as _parse_ram
+from raes_contracts.runtime_values import parse_runtime_enum_or_var as _parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_float_or_var, parse_int_or_var
 
 from . import runtime_app_authorization as _runtime_app_authorization
 from . import runtime_application as _runtime_application
@@ -25,11 +29,6 @@ from . import runtime_platform_application as _runtime_platform_application
 from . import runtime_scheduled_job as _runtime_scheduled_job
 from . import runtime_security_monitoring as _runtime_security_monitoring
 from . import runtime_ssh_server as _runtime_ssh_server
-from ._base import (
-    SDLModel,
-    parse_float_or_var,
-    parse_int_or_var,
-)
 from ._runtime_service_families import install_runtime_service_family_exports
 from .runtime_capabilities import (
     RuntimeCapabilityOverrideScope,
@@ -59,7 +58,6 @@ from .runtime_filesystem import (
     RuntimeFilesystemPresence,
     RuntimeFilesystemStability,
     RuntimeMountPropagation,
-    RuntimeSensitivityClassification,
 )
 from .runtime_identity import (
     RuntimeIdentityProvenance,
@@ -113,9 +111,6 @@ from .runtime_software import (
     RuntimeSoftwareComponentType,
 )
 from .runtime_software_repositories import RuntimeSoftwareRepositoryState, require_compatible_presence
-from .runtime_values import absolute_path_or_var as _abs_path_or_var
-from .runtime_values import parse_ram
-from .runtime_values import parse_runtime_enum_or_var as _parse_runtime_enum_or_var
 
 _RUNTIME_SERVICE_FAMILY_EXPORTS = install_runtime_service_family_exports(globals())
 __all__ = [
@@ -167,7 +162,6 @@ __all__ = [
     "RuntimePublishedPort",
     "RuntimeResourceLimits",
     "RuntimeRestartPolicy",
-    "RuntimeSensitivityClassification",
     "RuntimeSoftwareComponent",
     "RuntimeSoftwareComponentHash",
     "RuntimeSoftwareComponentProvenance",
@@ -183,7 +177,6 @@ __all__ = [
     "ServiceUnitKind",
     "ServiceUnitLoadState",
     "ServiceUnitResult",
-    "parse_ram",
 ]
 
 
@@ -211,7 +204,7 @@ class RuntimeResourceLimits(SDLModel):
     @field_validator("memory", "memory_swap", mode="before")
     @classmethod
     def parse_memory_limit(cls, v: int | str | None) -> int | str | None:
-        return parse_ram(v) if v is not None else v
+        return _parse_ram(v) if v is not None else v
 
     @field_validator("cpu", mode="before")
     @classmethod

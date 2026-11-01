@@ -27,6 +27,16 @@ def safe_path(root: Path, relative: str) -> Path:
 
 
 def read_bytes(root: Path, relative: str, *, max_bytes: int = MAX_BYTES) -> bytes:
+    content = read_bytes_if_present(root, relative, max_bytes=max_bytes)
+    if content is None:
+        # The path stays out of the message; absence is an expected refusal.
+        raise InvalidInputError("model artifact is unavailable or unsafe")
+    return content
+
+
+def read_bytes_if_present(root: Path, relative: str, *, max_bytes: int = MAX_BYTES) -> bytes | None:
+    """Read a file as ``read_bytes`` does, but return ``None`` when the path does not exist."""
+
     # The byte limit is a caller argument, not repository input (rule E2).
     if type(max_bytes) is not int or not 0 < max_bytes <= 32 * 1024 * 1024:
         raise ValueError("invalid model artifact byte limit")
@@ -47,8 +57,10 @@ def read_bytes(root: Path, relative: str, *, max_bytes: int = MAX_BYTES) -> byte
             if len(content) > max_bytes:
                 raise InvalidInputError("model artifact exceeds byte limit")
             return content
+    except FileNotFoundError:
+        return None
     except OSError:
-        # The path and OS detail stay out of the message; absence is an expected refusal.
+        # The path and OS detail stay out of the message.
         raise InvalidInputError("model artifact is unavailable or unsafe") from None
     finally:
         os.close(directory)

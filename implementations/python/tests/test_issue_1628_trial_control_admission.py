@@ -152,7 +152,7 @@ def test_published_schema_accepts_support_and_rejects_duplicates():
 def test_published_schema_requires_each_operation_contract(missing_contract):
     import json
 
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     model = next(iter(_with_backend(_request(), lambda p: _declare(p, ["cancellation"])).apparatus_manifests.values()))
     payload = model.model_dump(mode="json")

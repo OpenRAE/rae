@@ -10,13 +10,13 @@ from raes_contracts.contracts.random_stream import (
     ParticipantStreamAddressModel,
     PublicSeedModel,
 )
-from raes_contracts.errors import ConflictError, OperationalError
-from raes_contracts.random_stream_engine import (
+from raes_contracts.contracts.random_stream_engine import (
     decode_public_seed,
     derive_stream_key,
     draw_bounded_integer,
 )
-from raes_contracts.random_stream_profiles import load_random_stream_profile
+from raes_contracts.contracts.random_stream_profiles import load_random_stream_profile
+from raes_contracts.errors import ConflictError, OperationalError
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 _PARTICIPANT_PROFILE = "blake3-xof-participant-v1"

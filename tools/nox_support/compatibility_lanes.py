@@ -67,6 +67,7 @@ for module in (
     "raes_operations",
     "raes_processor",
     "raes_runtime",
+    "raes_schemas",
 ):
     importlib.import_module(module)
 # Concrete backends ship in their own distributions (issue #967).

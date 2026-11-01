@@ -46,7 +46,7 @@ def test_array_index_rule_keeps_the_digit_limit_guard():
 
 @_LEADING_ZERO_TOKENS
 def test_evidence_selector_and_authority_pointers_do_not_alias_a_leading_zero_index(token):
-    from raes_contracts._evidence_content_validation import _json_pointer_resolves
+    from raes_contracts.contracts.evidence_satisfaction import _json_pointer_resolves
     from raes_contracts.realization_authority import _MISSING_REALIZATION_SELECTION, _planned_pointer_value
     from raes_processor.planner.realization_authority import _MISSING, _pointer_value
 
@@ -471,7 +471,7 @@ def test_profile_artifact_with_a_foreign_identity_is_an_operational_failure(tmp_
 
 
 def _unsupported_claim(**changes: object):
-    from raes_contracts.contracts import BehavioralClaimBindingModel
+    from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
     from test_behavioral_relations import _bounded_empirical_claim
 
     return BehavioralClaimBindingModel.model_validate({**_bounded_empirical_claim(), **changes})

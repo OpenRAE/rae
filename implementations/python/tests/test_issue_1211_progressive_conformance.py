@@ -8,10 +8,10 @@ import pytest
 from raes import SDLParseError, canonical_sdl_bytes, instantiate_scenario, parse_sdl, parse_sdl_file
 from raes._source_profile import SDLParserLimits
 from raes.canonical import InstantiatedScenarioSnapshot, canonical_instantiated_sdl_bytes
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import OperatingSystemCompatibility
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.apparatus import RealizationObservationCapability
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.realization_observation import (
     ObservedOperatingSystemIdentity,
     RealizationObservationDisclosure,

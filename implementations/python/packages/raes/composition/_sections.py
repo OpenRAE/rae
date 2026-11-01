@@ -10,10 +10,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from raes_contracts.identifiers import QualifiedName
 from raes_contracts.profile_selections import profile_selection_binding
 
 from .._errors import SDLImportError, SDLImportErrorCode
-from .._identifiers import QualifiedName
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from ..entities import flatten_entities

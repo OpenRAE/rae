@@ -1056,7 +1056,7 @@ Failure classes:
 
 Current implementation artifacts for the `SEM-211` slice:
 
-- `implementations/python/packages/raes/participant_action_semantics.py`
+- `implementations/python/packages/raes_contracts/participant_action_semantics.py`
   defines controlled precondition, effect, and portable failure vocabularies
   plus typed action-contract declarations and backend failure mappings;
 - `implementations/python/packages/raes/participant_behavior/__init__.py` embeds
@@ -1102,7 +1102,7 @@ Design commitments:
 
 Current implementation artifacts for the first `SEM-212` slice:
 
-- `implementations/python/packages/raes/participant_attribution_semantics.py`
+- `implementations/python/packages/raes_contracts/participant_attribution_semantics.py`
   defines controlled candidate, ordering-basis, and support-class
   vocabularies;
 - `implementations/python/packages/raes_processor/models/` defines typed

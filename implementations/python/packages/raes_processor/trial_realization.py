@@ -17,10 +17,6 @@ from raes.scenario import ExpandedScenario, InstantiatedScenario
 from raes.selected_scenario import ExpandedScenarioBindingTargetResolver
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
-from raes_contracts.admitted_trial_plan_ingress import (
-    AdmittedTrialPlanIngressError,
-    revalidate_admitted_trial_plan,
-)
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -40,13 +36,17 @@ from raes_contracts.contracts import (
     TrialProcessorPlanReferenceModel,
     processor_backend_manifests_are_mutually_compatible,
 )
-from raes_contracts.errors import InvalidInputError, NotFoundError
-from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey, ParticipantManifestKey
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    revalidate_admitted_trial_plan,
+)
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.errors import InvalidInputError, NotFoundError
+from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey, ParticipantManifestKey
 from raes_contracts.planning import PlanScope
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 

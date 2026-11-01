@@ -24,6 +24,7 @@ Requirement inventory expansion. Rich participant behavior requires portable sem
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-information-state-record-v1.json` (ACT-604 portable participant information-state record schema)
 - IMPLEMENTS → SPEC `contracts/schemas/profiles/participant-information-reconstruction-profile-v1.json` (ACT-604 governed information-state reconstruction profile schema)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_information_state.py` (ACT-604 participant information-state contract and contextual validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_information_reconstruction_profiles.py` (ACT-604 participant information-state contract and contextual validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_information_state_sources.py` (ACT-604 typed source-coordinate validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_information_state_validation.py` (ACT-604 runtime information-state validation boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (ACT-604 append-only runtime information-state carriage)

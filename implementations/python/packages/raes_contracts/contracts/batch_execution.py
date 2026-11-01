@@ -41,7 +41,12 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from ..versions import BATCH_EXECUTION_RECEIPT_SCHEMA_VERSION
-from .admitted_trial_plan import AdmittedTrialPlanModel, isolation_resource_overlaps
+from .admitted_trial_plan import (
+    AdmittedTrialPlanModel,
+    canonical_entry_order,
+    isolation_resource_overlaps,
+    scheduling_policy_id,
+)
 from .base import (
     ContractModel,
     NonEmptyString,
@@ -50,14 +55,14 @@ from .base import (
     PrefixedDigestString,
     Rfc3339DateTimeString,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 from .trial_cleanup import (
     SchedulerIsolationProofModel,
     TrialCleanupReceiptModel,
     TrialOutcome,
     validate_trial_cleanup_receipt,
 )
-from .trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_entry_order, scheduling_policy_id
+from .trial_coordinate_order import CANONICAL_ORDER_POLICY_ID
 
 
 def validate_scheduler_isolation_proof(plan: AdmittedTrialPlanModel, proof: SchedulerIsolationProofModel) -> None:
@@ -151,7 +156,7 @@ class BatchExecutionReceiptModel(ContractModel):
                 },
             }
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "batch-execution-receipt-binds-plan-schedule-and-attempt",
             "A batch execution receipt keeps attempt identity distinct from plan, entry, and run identities, records "

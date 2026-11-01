@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.apparatus import (
     DECLARED_CAPABILITY_MATCH_REQUIREMENT_KIND,
     RealizationSupportDeclaration,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.runtime_state import (
     RealizationObservationDisclosure,
     RealizationProvenanceEntry,

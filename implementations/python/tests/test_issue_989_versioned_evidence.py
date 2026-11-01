@@ -207,8 +207,8 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
     ],
 )
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
-    from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
-    from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
+    from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel
+    from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
     from tools.formal_semantic_validation import _production, _releases, _retest
     from tools.formal_semantic_validation._loading import load_release_bundles
 

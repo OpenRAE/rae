@@ -39,7 +39,6 @@ SOURCE_PATHS = (
     "implementations/formal/participant_crossing/export.py",
     _PACKAGE + "raes_contracts/_participant_crossing_profile.py",
     _PACKAGE + "raes_contracts/behavioral_relation_profiles.py",
-    _PACKAGE + "raes_contracts/_behavioral_profile_loader.py",
     _PACKAGE + "raes_contracts/canonical.py",
     _PACKAGE + "raes_contracts/_canonical.py",
     _PACKAGE + "raes_contracts/json_ingress.py",

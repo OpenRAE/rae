@@ -2,7 +2,8 @@
 
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 
-from .._base import is_variable_ref
+from raes_contracts.variable_references import is_variable_ref
+
 from .._errors import SDLValidationFinding
 from ..participant_temporal_semantics import ParticipantSharedTimeBinding
 from ..scenario import ScenarioContent

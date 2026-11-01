@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Protocol
 
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts import (
     ExperimentEvidenceRecordModel,
     ExperimentRunEvidenceInputs,
@@ -14,7 +15,6 @@ from raes_contracts.contracts import (
     validate_experiment_run_against_task,
 )
 from raes_contracts.json_serialization import sorted_json_digest
-from raes_contracts.satisfiability import canonical_contract_digest
 
 from .necessity_types import (
     BoundedButForEvidence,

@@ -1,7 +1,7 @@
 """Canonical-vector conformance tests for published EXP-718 BLAKE3 profiles.
 
 Every vector under ``contracts/fixtures/random-stream-vectors/``
-was computed independently of ``raes_contracts.random_stream_engine`` (a
+was computed independently of ``raes_contracts.contracts.random_stream_engine`` (a
 one-off script that calls the ``blake3`` library directly -- see the EXP-718
 implementation notes); these tests run the same inputs through the public
 reference engine API and assert the outputs match, so the vector tests do not
@@ -19,7 +19,7 @@ from raes_contracts.contracts.random_stream import (
     RandomStreamVectorModel,
     StreamAddressModel,
 )
-from raes_contracts.random_stream_engine import (
+from raes_contracts.contracts.random_stream_engine import (
     canonical_stream_address_bytes,
     decode_public_seed,
     derive_stream_key,

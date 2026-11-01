@@ -5,8 +5,8 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 
 from pydantic import BaseModel
 from raes_contracts.graphs import has_cycle
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE
 
-from .._base import VARIABLE_TOKEN_RE
 from .._stateful_resource_references import stateful_resource_reference_errors
 from ..descriptor_profiles import descriptor_owner_errors
 from ..entities import flatten_entities

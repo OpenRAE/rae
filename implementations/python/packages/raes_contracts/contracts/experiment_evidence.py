@@ -31,10 +31,10 @@ from .experiment_references import (
 )
 from .realization_descriptions import TypedRealizationDescriptionModel, validate_description_host
 from .schema_invariants import (
-    _add_raes_invariant,
     _add_raes_plane,
     _extend_reported_value_status_schema,
     _validate_reported_value_status,
+    add_raes_invariant,
 )
 
 ExperimentEvidenceRequirementRelationModel = _evidence_refinement.ExperimentEvidenceRequirementRelationModel
@@ -88,7 +88,7 @@ class ExperimentEvidenceRecordModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "evidence-description-nonauthoritative",
             "Typed descriptions preserve bounded supplied values, explicit knowledge, coverage and source identities; "
@@ -99,7 +99,7 @@ class ExperimentEvidenceRecordModel(ContractModel):
             validator="raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate",
             inputs=[{"contract_id": "experiment-evidence-record-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "evidence-record-raw-content-present",
             "Evidence records must carry raw content as an artifact reference, content URI with checksum, or bounded "
@@ -107,7 +107,7 @@ class ExperimentEvidenceRecordModel(ContractModel):
             validator="raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record",
             inputs=[{"contract_id": "experiment-evidence-record-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "evidence-record-captured-at-valid",
             "captured_at must be a valid RFC 3339 date-time.",
@@ -203,14 +203,14 @@ class ExperimentDerivedMeasureModel(ContractModel):
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
         _extend_reported_value_status_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "derived-measure-reported-value-present",
             "Reported derived measures must include a value; missing/withheld/not-applicable measures must not.",
             validator="raes_contracts.contracts.ExperimentDerivedMeasureModel._validate_derived_measure",
             inputs=[{"contract_id": "experiment-derived-measure-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "derived-measure-generated-at-valid",
             "generated_at must be a valid RFC 3339 date-time.",
@@ -248,7 +248,7 @@ class ExperimentRunTraceabilityModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-traceability-refs-unique",
             "Run provenance traceability references must be duplicate-free, and claim refs must be grounded by "
@@ -339,7 +339,7 @@ class ExperimentRealizedFormDisclosureModel(ContractModel):
                 },
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "realized-form-disclosure-substantive",
             "Every realized-form disclosure must name a realized reference or value summary and use the right "
@@ -349,7 +349,7 @@ class ExperimentRealizedFormDisclosureModel(ContractModel):
             ),
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_form_disclosures"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "realized-description-nonauthoritative",
             "Typed descriptions preserve explicit knowledge, bounded recursive values and coverage separately from "

@@ -4,10 +4,10 @@ from collections.abc import Iterable
 
 from raes_contracts.contracts import ExperimentStochasticControlModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
+from raes_contracts.contracts.participant_temporal_history import require_participant_temporal_history
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, RaesError
 from raes_contracts.operational_logging import get_logger
-from raes_contracts.participant_temporal import require_participant_temporal_history
 from raes_runtime.registry import RuntimeTarget, participant_temporal_probe_manager
 
 from .diagnostics import _diagnostic, sanitized_failure_message

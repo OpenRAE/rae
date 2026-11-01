@@ -1,9 +1,9 @@
 """The declarative experiment workflow control graph."""
 
 from pydantic import Field, field_validator
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.sdl_model import SDLModel
 
-from .._base import SDLModel
-from .._identifiers import PortableIdentifier
 from ._steps import WorkflowCompensationPolicy, WorkflowStep, WorkflowTimeoutPolicy
 
 

@@ -8,10 +8,8 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import RaesError
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_episode import (
-    ParticipantEpisodeTerminalReason,
-    iter_participant_episode_snapshot_violations,
-)
+from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.planning import PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel

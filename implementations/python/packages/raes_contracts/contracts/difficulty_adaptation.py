@@ -6,7 +6,8 @@ import math
 from typing import Literal
 
 from pydantic import Field, model_validator
-from raes.identifiers import PortableIdentifier
+
+from raes_contracts.identifiers import PortableIdentifier
 
 from ..canonical import canonical_json_digest
 from .base import (

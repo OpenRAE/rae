@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.identifiers import require_qualified_identifier
+
+from raes_contracts.identifiers import require_qualified_identifier
 
 from .base import ContractModel, NonEmptyString
 from .experiment_capture import ExperimentCaptureRequirementModel, ExperimentCaptureSpecModel
@@ -17,11 +18,32 @@ from .experiment_references import (
     ExperimentReferenceModel,
     ExperimentScenarioSnapshotReferenceModel,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 if TYPE_CHECKING:
-    from raes.evidence_requirements import EvidenceRequirement
-    from raes.scenario import Scenario
+    from raes_contracts.evidence_requirements import EvidenceRequirement
+
+ScenarioIdentity = tuple[str, str, str | None, str | None, str | None]
+
+
+@runtime_checkable
+class AuthoredScenarioEvidence(Protocol):
+    """The authored scenario facts that evidence-relation validation needs.
+
+    ``raes.authored_scenario_evidence.AuthoredScenarioEvidenceView`` implements
+    it for an SDL scenario (ADR-121).
+    """
+
+    @property
+    def scenario_identity(self) -> ScenarioIdentity:
+        """The ``scenario-snapshot`` reference identity: kind, name, version, digest and path."""
+        ...
+
+    @property
+    def evidence_requirements(self) -> Mapping[str, EvidenceRequirement]:
+        """The authored evidence requirements by name."""
+        ...
+
 
 # A plain alias keeps the Literal inline in the published JSON schema. A `type`
 # statement would publish it as a separate named definition.
@@ -130,7 +152,7 @@ class ExperimentEvidenceRequirementRelationModel(ContractModel):
                 },
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "evidence-requirement-relation-lineage-valid",
             "Evidence requirement relations must resolve an exact immutable SDL declaration and a separately "
@@ -210,27 +232,15 @@ def validate_evidence_requirement_relation_carrier(
 
 def _resolved_authored_requirement(
     relation: ExperimentEvidenceRequirementRelationModel,
-    scenario: Scenario,
+    scenario: AuthoredScenarioEvidence,
 ) -> EvidenceRequirement:
-    if _reference_identity(relation.base_scenario_ref) != _resolved_scenario_identity(scenario):
+    if _reference_identity(relation.base_scenario_ref) != scenario.scenario_identity:
         raise ValueError("evidence relation base_scenario_ref must match the resolved authored scenario")
     requirement_name = relation.base_requirement_address.removeprefix("evidence_requirements.")
     requirement = scenario.evidence_requirements.get(requirement_name)
     if requirement is None:
         raise ValueError("base_requirement_address must resolve to exactly one authored evidence requirement")
     return requirement
-
-
-def _resolved_scenario_identity(scenario: Scenario) -> tuple[str, str, str | None, str | None, str | None]:
-    from raes import canonical_sdl_digest
-
-    return (
-        "scenario-snapshot",
-        scenario.name,
-        scenario.version,
-        canonical_sdl_digest(scenario).value,
-        None,
-    )
 
 
 def _resolved_capture_requirement(
@@ -326,7 +336,7 @@ def _dimension_is_stricter(
 def validate_evidence_requirement_relations(
     relations: Sequence[ExperimentEvidenceRequirementRelationModel],
     *,
-    scenario: Scenario,
+    scenario: AuthoredScenarioEvidence,
     capture_specs: Mapping[str, ExperimentCaptureSpecModel],
 ) -> tuple[ExperimentEvidenceRequirementRelationModel, ...]:
     """Resolve and validate scoped relationships without mutating their inputs.
@@ -359,7 +369,7 @@ def validate_evidence_requirement_relations(
 def validate_evidence_requirement_relations_against_artifacts(
     relations: Sequence[ExperimentEvidenceRequirementRelationModel],
     *,
-    scenarios: Mapping[str, Scenario],
+    scenarios: Mapping[str, AuthoredScenarioEvidence],
     capture_specs: Mapping[str, ExperimentCaptureSpecModel],
 ) -> tuple[ExperimentEvidenceRequirementRelationModel, ...]:
     """Resolve each relation against exactly one supplied authored scenario."""
@@ -372,7 +382,7 @@ def validate_evidence_requirement_relations_against_artifacts(
         matching_scenarios = [
             scenario
             for scenario in scenarios.values()
-            if _resolved_scenario_identity(scenario) == _reference_identity(relation.base_scenario_ref)
+            if scenario.scenario_identity == _reference_identity(relation.base_scenario_ref)
         ]
         if len(matching_scenarios) != 1:
             raise ValueError("base_scenario_ref must resolve to exactly one supplied authored scenario")
@@ -385,8 +395,10 @@ def validate_evidence_requirement_relations_against_artifacts(
 
 
 __all__ = [
+    "AuthoredScenarioEvidence",
     "EvidenceRequirementRefinementDimension",
     "ExperimentEvidenceRequirementRelationModel",
+    "ScenarioIdentity",
     "validate_evidence_requirement_relation_carrier",
     "validate_evidence_requirement_relations",
     "validate_evidence_requirement_relations_against_artifacts",

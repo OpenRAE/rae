@@ -46,7 +46,8 @@ from .materialization_admission import validate_materialization_archive_record
 if TYPE_CHECKING:
     from raes.materialization_provenance import MaterializationOrigin
     from raes_backend_protocols.capabilities import BackendManifest
-    from raes_contracts.materialization import MaterializationArchive, MaterializationSubmission
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchive
+    from raes_contracts.materialization import MaterializationSubmission
     from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
     from raes_contracts.runtime_state import RuntimeSnapshot
 

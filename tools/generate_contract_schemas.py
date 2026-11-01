@@ -168,7 +168,7 @@ def write_schema_bundle(schemas_dir: Path) -> None:
     throwaway directory so it can compare the reference output against the
     published normative schemas without overwriting them.
     """
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     bundle = schema_bundle()
     for name, schema in bundle.items():

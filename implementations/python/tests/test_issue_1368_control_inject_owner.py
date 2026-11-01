@@ -4,10 +4,10 @@ from types import SimpleNamespace
 
 import pytest
 from participant_inject_runtime_fixtures import apply_control, caller, configured_plane
-from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_effects import ControlInjectEffectModel
 from raes_contracts.contracts.participant_control_resolution import _validate_inject
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
 
 def selected_application(plane, request):

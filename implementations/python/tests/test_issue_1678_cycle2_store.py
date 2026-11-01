@@ -460,6 +460,6 @@ def test_the_archive_read_lets_a_defect_propagate(
     def _defect(_records: object) -> None:
         raise KeyError("defect")
 
-    monkeypatch.setattr("raes_contracts.materialization.require_materialization_records", _defect)
+    monkeypatch.setattr("raes_operations.run_artifacts.require_materialization_records", _defect)
     with pytest.raises(KeyError):
         archive.read(record)

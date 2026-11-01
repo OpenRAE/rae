@@ -29,7 +29,7 @@ from raes_contracts.contracts import (
     TrialCoordinateModel,
 )
 from raes_contracts.contracts.experiment_treatments import ExperimentScenarioSelectionDescriptorModel
-from raes_contracts.random_stream_engine import (
+from raes_contracts.contracts.random_stream_engine import (
     BOUNDED_INTEGER_TRANSFORM_ID,
     BOUNDED_INTEGER_TRANSFORM_VERSION,
     BoundedIntegerDrawRequest,
@@ -37,7 +37,7 @@ from raes_contracts.random_stream_engine import (
     derive_stream_key,
     draw_bounded_integer_batch,
 )
-from raes_contracts.random_stream_profiles import load_random_stream_profile
+from raes_contracts.contracts.random_stream_profiles import load_random_stream_profile
 
 from .domains import canonical_domain_outcomes
 from .models import CompilationFailure

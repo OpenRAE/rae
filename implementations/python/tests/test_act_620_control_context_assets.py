@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from raes import parse_sdl
+from raes.associated_artifacts import ScenarioArtifactParent
 from raes_contracts.associated_artifacts import associated_artifact_set_digest
 from raes_contracts.contracts import AssociatedArtifactManifestModel, ParticipantDecisionSurfaceSequenceCutModel
 
@@ -134,7 +135,7 @@ def test_exact_asset_reuses_full_manifest_parent_and_byte_validation():
             asset,
             context=_context(asset),
             manifest=_manifest(asset),
-            parent=parse_sdl("name: training\nversion: 1.0.0\n"),
+            parent=ScenarioArtifactParent(parse_sdl("name: training\nversion: 1.0.0\n")),
             artifact_readers={asset.content.artifact_id: BytesIO(PAYLOAD)},
         )
         == ()
@@ -150,7 +151,7 @@ def test_stale_content_or_wrong_parent_is_rejected(bad_parent):
         asset,
         context=_context(asset),
         manifest=_manifest(asset),
-        parent=parse_sdl(f"name: {'wrong' if bad_parent else 'training'}\nversion: 1.0.0\n"),
+        parent=ScenarioArtifactParent(parse_sdl(f"name: {'wrong' if bad_parent else 'training'}\nversion: 1.0.0\n")),
         artifact_readers={asset.content.artifact_id: BytesIO(PAYLOAD if bad_parent else b"x" * len(PAYLOAD))},
     )
     assert diagnostics

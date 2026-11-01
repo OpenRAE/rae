@@ -11,7 +11,7 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from tools.research_evidence import release_managed_source_bytes
 
 from . import export
-from .ingress import read_bytes, safe_path
+from .ingress import read_bytes, read_bytes_if_present, safe_path
 
 OUTPUT_ROOT = "specs/formal/participant-semantics/runtime-mapping"
 SOURCE_ROOTS = (
@@ -39,6 +39,17 @@ EXTRA_SOURCES = (
 )
 ROOT = Path(__file__).resolve().parents[3]
 HISTORICAL_TOMBSTONES = "contracts/schema-publication/tombstones"
+
+
+def source_drift(root: Path, pins: dict[str, str]) -> list[str]:
+    """Return each pinned path whose current bytes differ from its pin. A removed path has drifted."""
+
+    drifted = []
+    for path, pin in pins.items():
+        content = read_bytes_if_present(root, path)
+        if content is None or export.digest(content) != pin:
+            drifted.append(path)
+    return sorted(drifted)
 
 
 def test_driver_paths(root: Path) -> set[str]:
@@ -141,11 +152,7 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "artifact_digests": {"cases.json": export.digest(cases)},
         "case_counts": counts,
         "case_count": len(reports),
-        "historical_source_drift": sorted(
-            name
-            for name, digest in retained["source_digests"].items()
-            if export.digest(read_bytes(root, name)) != digest
-        ),
+        "historical_source_drift": source_drift(root, retained["source_digests"]),
         "equivalence_result": "not-established",
         "runtime_realization": "not-established",
         "backend_conformance": "not-established",

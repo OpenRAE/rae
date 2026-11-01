@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.operation_lifecycle import OperationKind
-from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_operation_context import operation_admission_context

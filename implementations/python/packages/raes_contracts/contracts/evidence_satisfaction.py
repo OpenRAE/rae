@@ -1,0 +1,713 @@
+"""Content-backed post-run evidence satisfaction validation."""
+
+from __future__ import annotations
+
+from collections.abc import Collection, Mapping
+from dataclasses import InitVar, dataclass, field
+from datetime import datetime
+from typing import BinaryIO
+from urllib.parse import urlsplit
+
+from raes_contracts.contracts.evidence_output_contracts import resolve_evidence_output_contract
+from raes_contracts.contracts.experiment_artifacts import ExperimentArtifactRefModel
+from raes_contracts.contracts.experiment_capture import (
+    ExperimentCaptureRequirementModel,
+    ExperimentCaptureSpecModel,
+    ExperimentCaptureWindowModel,
+)
+from raes_contracts.contracts.experiment_evidence import ExperimentEvidenceRecordModel
+from raes_contracts.contracts.experiment_references import ExperimentReferenceModel
+from raes_contracts.contracts.experiment_run import (
+    ExperimentRunModel,
+    validate_experiment_run_structure_against_task,
+)
+from raes_contracts.contracts.experiment_task import ExperimentTaskModel
+
+from ..artifact_checksums import checksum_hasher
+from ..canonical import canonical_json_digest
+from ..json_ingress import JSONValue, StrictJsonIngressError, parse_bounded_json, parse_bounded_json_object
+from ..json_pointer import array_index, unescape_token
+from ..timestamps import parse_rfc3339_datetime
+from ..uri_safety import validate_safe_absolute_uri
+from .experiment_artifacts import identity_matches_reference, reference_satisfies_requirement
+
+_EVIDENCE_VALIDATION_KEY = object()
+
+
+@dataclass(frozen=True, slots=True)
+class ValidatedEvidenceBinding:
+    """Immutable identity facts from a fully validated requirement/artifact join."""
+
+    requirement_id: str
+    capture_spec_id: str
+    capture_spec_version: str
+    record_id: str
+    record_version: str
+    output_contract: str
+    artifact_id: str
+    artifact_digest: str
+    artifact_path_digest: str
+    _validation_key: InitVar[object]
+
+    def __post_init__(self, _validation_key: object) -> None:
+        if _validation_key is not _EVIDENCE_VALIDATION_KEY:
+            raise TypeError("evidence binding requires content validation")
+
+    def matches(self, reference: ExperimentReferenceModel) -> bool:
+        return (
+            reference.ref_kind == "evidence"
+            and reference.ref_id == self.requirement_id
+            and (reference.ref_version is None or reference.ref_version == self.record_version)
+            and (reference.ref_digest is None or reference.ref_digest.casefold() == self.artifact_digest.casefold())
+            and (reference.ref_path is None or canonical_json_digest(reference.ref_path) == self.artifact_path_digest)
+        )
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class ValidatedRunEvidence:
+    """Content proof bound to the exact validated task and run, not their ids alone."""
+
+    bindings: tuple[ValidatedEvidenceBinding, ...]
+    task_digest: str
+    run_digest: str
+
+    def __init__(self) -> None:
+        raise TypeError("evidence proof requires content validation")
+
+    def __reduce_ex__(self, _protocol: int) -> object:
+        raise TypeError("evidence proofs cannot be serialized; repeat content validation")
+
+    def require_context(self, task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
+        """Reject use after either validated input has changed."""
+
+        self.require_run(run)
+        if canonical_json_digest(task.model_dump(mode="json")) != self.task_digest:
+            raise ValueError("validated evidence proof does not match the supplied task")
+
+    def require_run(self, run: ExperimentRunModel) -> None:
+        if canonical_json_digest(run.model_dump(mode="json")) != self.run_digest:
+            raise ValueError("validated evidence proof does not match the supplied run")
+
+    def satisfies(
+        self,
+        run: ExperimentRunModel,
+        reference: ExperimentReferenceModel,
+        *,
+        artifact_ids: Collection[str] | None = None,
+    ) -> bool:
+        """Match a consumer's relation only against content-proven bindings."""
+
+        self.require_run(run)
+        return any(
+            binding.matches(reference) and (artifact_ids is None or binding.artifact_id in artifact_ids)
+            for binding in self.bindings
+        )
+
+
+def _mint_validated_run_evidence(
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    bindings: tuple[ValidatedEvidenceBinding, ...],
+) -> ValidatedRunEvidence:
+    """Internal final step of evidence_satisfaction; never a reference decoder."""
+
+    proof = object.__new__(ValidatedRunEvidence)
+    object.__setattr__(proof, "bindings", bindings)
+    object.__setattr__(proof, "task_digest", canonical_json_digest(task.model_dump(mode="json")))
+    object.__setattr__(proof, "run_digest", canonical_json_digest(run.model_dump(mode="json")))
+    return proof
+
+
+_CHUNK_SIZE = 64 * 1024
+_MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
+_OUTPUT_CONTRACT_UNSATISFIED = "emitted evidence does not satisfy the declared output_contract"
+
+
+@dataclass
+class _EvidenceContentCache:
+    """One bounded validation invocation; never shared or restored as proof."""
+
+    payloads: dict[str, tuple[bytes, str]] = field(default_factory=dict)
+    documents: dict[tuple[str, str], JSONValue] = field(default_factory=dict)
+
+
+def _validate_evidence_locator(uri: str) -> None:
+    # Published evidence contracts also permit relative artifact paths. Admit
+    # those as inert URI paths, not host paths; reuse the canonical secret test.
+    parsed = urlsplit(uri)
+    if any(ord(char) < 32 or ord(char) == 127 for char in uri):
+        raise ValueError("evidence artifact locator contains control characters")
+    if not parsed.scheme:
+        if parsed.netloc or uri.startswith(("/", "\\")) or "\\" in uri or ".." in parsed.path.split("/"):
+            raise ValueError("evidence artifact locator is not an inert relative path")
+        uri = "urn:raes-artifact:" + uri
+    validate_safe_absolute_uri(
+        uri,
+        field_name="evidence artifact locator",
+        forbidden_schemes=("file",),
+        forbid_fragment=True,
+    )
+
+
+def _read_payload(reader: BinaryIO, *, size: int, algorithm: str) -> tuple[bytes, str]:
+    if size > _MAX_ARTIFACT_BYTES:
+        raise ValueError("evidence artifact exceeds the bounded validation limit")
+    try:
+        digest = checksum_hasher(algorithm)
+    except ValueError as exc:
+        raise ValueError("evidence artifact checksum algorithm is unsupported") from exc
+    chunks: list[bytes] = []
+    total = 0
+    while total <= size:
+        chunk = reader.read(min(_CHUNK_SIZE, size + 1 - total))
+        if not isinstance(chunk, bytes):
+            raise ValueError("evidence artifact reader must return bytes")
+        if not chunk:
+            break
+        chunks.append(chunk)
+        digest.update(chunk)
+        total += len(chunk)
+    if total != size:
+        raise ValueError("evidence artifact bytes do not match the declared size")
+    return b"".join(chunks), digest.hexdigest()
+
+
+def _json_pointer_resolves(document: object, pointer: str) -> bool:
+    if pointer == "":
+        return True
+    current = document
+    for encoded in pointer.removeprefix("/").split("/"):
+        token = unescape_token(encoded)
+        if isinstance(current, dict) and token in current:
+            current = current[token]
+        elif isinstance(current, list) and (index := array_index(token, len(current))) is not None:
+            current = current[index]
+        else:
+            return False
+    return True
+
+
+def _parse_contract_document(payload: bytes, *, media_type: str, output_contract: str) -> JSONValue:
+    contract = resolve_evidence_output_contract(output_contract)
+    root = contract.root
+    if media_type not in contract.media_types:
+        raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED)
+    json_document = media_type == "application/json"
+    lines = [] if json_document else payload.splitlines()
+    if not json_document and (not lines or any(not line.strip() for line in lines)):
+        raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED)
+    try:
+        if json_document:
+            document = parse_bounded_json(payload, max_bytes=_MAX_ARTIFACT_BYTES, root=root)
+        else:
+            document = [parse_bounded_json_object(line, max_bytes=_MAX_ARTIFACT_BYTES) for line in lines]
+    except StrictJsonIngressError as exc:
+        raise ValueError(_OUTPUT_CONTRACT_UNSATISFIED) from exc
+    contract.validate(document)
+    return document
+
+
+def _validate_artifact_content(
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+    artifact: ExperimentArtifactRefModel,
+    reader: BinaryIO | None,
+    cache: _EvidenceContentCache,
+) -> None:
+    if reader is None:
+        raise ValueError("required emitted evidence has no concrete byte reader")
+    _validate_artifact_metadata(requirement, record, artifact)
+    _validate_evidence_locator(artifact.uri)
+    identity = canonical_json_digest(artifact.model_dump(mode="json"))
+    if identity not in cache.payloads:
+        cache.payloads[identity] = _read_payload(
+            reader,
+            size=artifact.size_bytes,
+            algorithm=artifact.checksum.algorithm,
+        )
+    payload, checksum = cache.payloads[identity]
+    if checksum.casefold() != artifact.checksum.value.casefold():
+        raise ValueError("emitted evidence checksum does not match the captured bytes")
+    _validate_artifact_integrity(requirement, artifact)
+    document_key = (identity, requirement.output_contract)
+    if document_key not in cache.documents:
+        cache.documents[document_key] = _parse_contract_document(
+            payload,
+            media_type=artifact.media_type,
+            output_contract=requirement.output_contract,
+        )
+    _validate_field_selectors(requirement, cache.documents[document_key])
+
+
+def _validate_artifact_metadata(
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+    artifact: ExperimentArtifactRefModel,
+) -> None:
+    if requirement.required_artifact_roles and artifact.role not in requirement.required_artifact_roles:
+        raise ValueError("emitted evidence artifact role does not match the capture requirement")
+    if artifact.media_type not in requirement.expected_media_types:
+        raise ValueError("emitted evidence media type does not match the capture requirement")
+    if artifact.sensitivity != requirement.sensitivity or artifact.sensitivity != record.sensitivity:
+        raise ValueError("emitted evidence artifact sensitivity does not match the validated capture record")
+
+
+def _validate_artifact_integrity(
+    requirement: ExperimentCaptureRequirementModel,
+    artifact: ExperimentArtifactRefModel,
+) -> None:
+    for integrity in requirement.integrity_requirements:
+        if integrity in {"checksum", "sha256-digest"}:
+            if integrity == "sha256-digest" and artifact.checksum.algorithm != "sha256":
+                raise ValueError("emitted evidence does not satisfy the required sha256 integrity mode")
+        else:
+            raise ValueError(f"emitted evidence cannot prove integrity requirement {integrity!r}")
+
+
+def _validate_field_selectors(requirement: ExperimentCaptureRequirementModel, document: JSONValue) -> None:
+    missing = sorted(
+        selector for selector in requirement.field_selectors if not _json_pointer_resolves(document, selector)
+    )
+    if missing:
+        raise ValueError("emitted evidence is missing required field selector(s): " + ", ".join(missing))
+
+
+_MAX_EVIDENCE_ITEMS = 1024
+_MAX_TOTAL_EVIDENCE_BYTES = 256 * 1024 * 1024
+
+
+def _validate_evidence_limits(
+    run: ExperimentRunModel,
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel],
+    evidence_records: Mapping[str, ExperimentEvidenceRecordModel],
+    artifact_readers: Mapping[str, BinaryIO],
+) -> None:
+    if (
+        max(
+            len(run.evidence_artifacts),
+            len(capture_specs),
+            len(evidence_records),
+            len(artifact_readers),
+            sum(len(spec.capture_requirements) for spec in capture_specs.values()),
+        )
+        > _MAX_EVIDENCE_ITEMS
+    ):
+        raise ValueError("evidence item count exceeds the bounded validation limit")
+    if sum(artifact.size_bytes for artifact in run.evidence_artifacts) > _MAX_TOTAL_EVIDENCE_BYTES:
+        raise ValueError("aggregate evidence bytes exceed the bounded validation limit")
+
+
+def _artifact_for_record(
+    run: ExperimentRunModel,
+    record: ExperimentEvidenceRecordModel,
+) -> ExperimentArtifactRefModel:
+    raw_content = record.raw_content
+    candidates = []
+    if raw_content.artifact_ref is not None:
+        candidates = [
+            artifact
+            for artifact in run.evidence_artifacts
+            if artifact.artifact_id == raw_content.artifact_ref.artifact_id
+        ]
+    elif raw_content.content_uri is not None and raw_content.content_checksum is not None:
+        candidates = [
+            artifact
+            for artifact in run.evidence_artifacts
+            if artifact.uri == raw_content.content_uri
+            and artifact.checksum.algorithm == raw_content.content_checksum.algorithm
+            and artifact.checksum.value.casefold() == raw_content.content_checksum.value.casefold()
+        ]
+    if len(candidates) != 1:
+        raise ValueError("evidence record must resolve to exactly one emitted run artifact")
+    if raw_content.artifact_ref is not None and raw_content.artifact_ref != candidates[0]:
+        raise ValueError("evidence record artifact_ref does not match the emitted run artifact")
+    return candidates[0]
+
+
+def _validate_record_binding(
+    *,
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    capture_spec: ExperimentCaptureSpecModel,
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+) -> None:
+    _validate_record_capture_identity(capture_spec, requirement, record)
+    _validate_record_execution_identity(task, run, record)
+    _validate_record_window(run, capture_spec, requirement, record)
+    _validate_record_disclosure(requirement, record)
+    _validate_record_source(run, requirement, record)
+
+
+def _validate_record_capture_identity(
+    capture_spec: ExperimentCaptureSpecModel,
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+) -> None:
+    capture_reference = ExperimentReferenceModel(
+        ref_kind="capture-spec", ref_id=capture_spec.capture_spec_id, ref_version=capture_spec.spec_version
+    )
+    if not reference_satisfies_requirement(capture_reference, record.capture_spec_ref):
+        raise ValueError("evidence record capture_spec_ref does not match the supplied capture spec")
+    if record.capture_requirement_ref != requirement.requirement_id:
+        raise ValueError("evidence record capture_requirement_ref does not match the capture requirement")
+    if record.output_contract != requirement.output_contract:
+        raise ValueError("evidence record output_contract does not match the admitted capture requirement")
+    if record.evidence_kind != requirement.capture_kind:
+        raise ValueError("evidence record kind does not match the capture requirement")
+
+
+def _validate_record_execution_identity(
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    record: ExperimentEvidenceRecordModel,
+) -> None:
+    run_reference = ExperimentReferenceModel(ref_kind="run", ref_id=run.run_id, ref_version=run.run_version)
+    if not reference_satisfies_requirement(run_reference, record.run_ref):
+        raise ValueError("evidence record run_ref does not match the experiment run")
+    if record.task_ref is not None and (
+        record.task_ref.ref_id != task.task_id or record.task_ref.ref_version != task.task_version
+    ):
+        raise ValueError("evidence record task_ref does not match the experiment task")
+    apparatus = run.apparatus_context
+    apparatus_reference = ExperimentReferenceModel(
+        ref_kind="apparatus-context", ref_id=apparatus.apparatus_context_id, ref_version=apparatus.context_version
+    )
+    if record.apparatus_context_ref is not None and not reference_satisfies_requirement(
+        apparatus_reference, record.apparatus_context_ref
+    ):
+        raise ValueError("evidence record apparatus_context_ref does not match the run apparatus")
+
+
+def _validate_augmentation_producers(run: ExperimentRunModel) -> None:
+    for disclosure in run.augmentation_disclosures:
+        producer = disclosure.augmented_by_ref
+        if not any(
+            component.component_kind == producer.ref_kind and identity_matches_reference(component.identity, producer)
+            for component in run.apparatus_context.components.values()
+        ):
+            raise ValueError("augmentation producer must resolve to the run apparatus")
+
+
+def _resolve_capture_window(
+    capture_spec: ExperimentCaptureSpecModel,
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+) -> ExperimentCaptureWindowModel:
+    if record.capture_window_ref not in requirement.window_refs:
+        raise ValueError("evidence record capture window does not match the capture requirement")
+    matching_windows = [
+        window for window in capture_spec.capture_windows if window.window_id == record.capture_window_ref
+    ]
+    if len(matching_windows) != 1:
+        raise ValueError("evidence record capture window must resolve exactly in the supplied capture spec")
+    return matching_windows[0]
+
+
+def _capture_window_bounds(
+    run: ExperimentRunModel,
+    window: ExperimentCaptureWindowModel,
+) -> tuple[datetime | None, datetime | None]:
+    starts_at, ends_at = _explicit_capture_window_bounds(window)
+    if window.window_kind in {"run", "task"}:
+        starts_at, ends_at = _run_bounded_capture_window(run, starts_at, ends_at)
+    elif window.window_kind == "interval" and (starts_at is None or ends_at is None):
+        raise ValueError("interval capture window timing cannot be proved without both bounds")
+    elif starts_at is None and ends_at is None:
+        raise ValueError("capture window timing cannot be proved from the supplied evidence")
+    return starts_at, ends_at
+
+
+def _run_bounded_capture_window(
+    run: ExperimentRunModel,
+    starts_at: datetime | None,
+    ends_at: datetime | None,
+) -> tuple[datetime, datetime]:
+    run_starts_at = parse_rfc3339_datetime("started_at", run.started_at)
+    run_ends_at = parse_rfc3339_datetime("ended_at", run.ended_at)
+    bounded_start = max(value for value in (starts_at, run_starts_at) if value is not None)
+    bounded_end = min(value for value in (ends_at, run_ends_at) if value is not None)
+    return bounded_start, bounded_end
+
+
+def _explicit_capture_window_bounds(
+    window: ExperimentCaptureWindowModel,
+) -> tuple[datetime | None, datetime | None]:
+    starts_at = parse_rfc3339_datetime("starts_at", window.starts_at) if window.starts_at is not None else None
+    ends_at = parse_rfc3339_datetime("ends_at", window.ends_at) if window.ends_at is not None else None
+    return starts_at, ends_at
+
+
+def _validate_record_window(
+    run: ExperimentRunModel,
+    capture_spec: ExperimentCaptureSpecModel,
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+) -> None:
+    window = _resolve_capture_window(capture_spec, requirement, record)
+    captured_at = parse_rfc3339_datetime("captured_at", record.captured_at)
+    starts_at, ends_at = _capture_window_bounds(run, window)
+    if starts_at is not None and captured_at < starts_at:
+        raise ValueError("evidence was captured before the admitted capture window")
+    if ends_at is not None and captured_at > ends_at:
+        raise ValueError("evidence was captured after the admitted capture window")
+
+
+def _validate_record_disclosure(
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+) -> None:
+    if record.sensitivity != requirement.sensitivity:
+        raise ValueError("evidence record sensitivity does not match the capture requirement")
+    _validate_redaction_state(requirement, record)
+    if record.redaction_policy != requirement.redaction_policy:
+        raise ValueError("evidence record redaction policy does not match the capture requirement")
+    if record.redaction_policy is not None:
+        raise ValueError("the governed redaction policy has no content verifier")
+    if record.raw_content.loss_disclosure is not None and record.redaction_state == "none":
+        raise ValueError("lossy evidence cannot satisfy a required complete capture")
+
+
+def _validate_redaction_state(
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+) -> None:
+    if record.redaction_state == "withheld":
+        raise ValueError("withheld evidence cannot satisfy a required capture")
+    requires_redaction = requirement.redaction_policy is not None or requirement.sensitivity == "redacted"
+    expected_redaction_state = "redacted" if requires_redaction else "none"
+    if record.redaction_state != expected_redaction_state:
+        if requires_redaction:
+            raise ValueError("required evidence redaction policy was not applied")
+        raise ValueError("redacted evidence is not permitted by the capture requirement")
+
+
+def _validate_record_source(
+    run: ExperimentRunModel,
+    requirement: ExperimentCaptureRequirementModel,
+    record: ExperimentEvidenceRecordModel,
+) -> None:
+    required_source = requirement.channel_ref
+    if not any(
+        source.ref_kind == required_source.ref_kind
+        and source.ref_id == required_source.ref_id
+        and (required_source.ref_version is None or source.ref_version == required_source.ref_version)
+        for source in record.source_refs
+    ):
+        raise ValueError("evidence record source does not match the admitted measurement channel")
+    if not any(
+        reference_satisfies_requirement(channel, required_source)
+        and any(reference_satisfies_requirement(channel, source) for source in record.source_refs)
+        for channel in run.apparatus_context.measurement_channels
+    ):
+        raise ValueError("evidence measurement channel must resolve to the run apparatus")
+
+
+def _validate_task_evidence_bindings(
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    proof: ValidatedRunEvidence,
+) -> None:
+    proof.require_context(task, run)
+    missing_observations = sorted(
+        reference.ref_id
+        for reference in task.evaluation_protocol.observation_requirements
+        if not proof.satisfies(run, reference)
+    )
+    if missing_observations:
+        raise ValueError(
+            "validated evidence bindings do not satisfy task observation requirements: "
+            + ", ".join(missing_observations)
+        )
+
+    missing_metric_evidence: list[str] = []
+    for result_id, result in run.result_summaries.items():
+        result_artifact_ids = {reference.ref_id for reference in result.evidence_refs}
+        metric = task.evaluation_protocol.metric_definitions[result.metric_id]
+        for reference in metric.evidence_requirements:
+            if not proof.satisfies(run, reference, artifact_ids=result_artifact_ids):
+                missing_metric_evidence.append(f"{result_id}:{reference.ref_id}")
+    if missing_metric_evidence:
+        raise ValueError(
+            "run result evidence_refs do not resolve to validated metric evidence bindings: "
+            + ", ".join(sorted(missing_metric_evidence))
+        )
+
+
+def task_claims_required_evidence(task: ExperimentTaskModel) -> bool:
+    """Return whether the task protocol requires content-backed evidence."""
+
+    return bool(task.evaluation_protocol.observation_requirements) or any(
+        metric.evidence_requirements for metric in task.evaluation_protocol.metric_definitions.values()
+    )
+
+
+def validate_run_without_evidence(task: ExperimentTaskModel, run: ExperimentRunModel) -> ValidatedRunEvidence:
+    """Return the empty proof for a valid run whose task claims no required evidence.
+
+    A task that claims required evidence is refused: only content validation proves it.
+    """
+
+    if task_claims_required_evidence(task):
+        raise ValueError("task/run validation requires content-backed evidence inputs")
+    validate_experiment_run_structure_against_task(task, run)
+    return _mint_validated_run_evidence(task, run, ())
+
+
+def validate_experiment_run_evidence(
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    *,
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel],
+    evidence_records: Mapping[str, ExperimentEvidenceRecordModel],
+    artifact_readers: Mapping[str, BinaryIO],
+) -> ValidatedRunEvidence:
+    """Prove task/run evidence claims against exact records and emitted bytes.
+
+    The caller acquires immutable byte streams.  This validator never fetches
+    artifact URIs, searches host paths, or treats adapter-authored reference
+    identifiers and summaries as evidence.
+    """
+
+    # Stabilize and revalidate the entire metadata cut before invoking caller
+    # readers. Their callbacks must not change already-checked facts or the
+    # context to which the resulting proof is bound. Readers themselves remain
+    # explicit streams, not copied or acquired through artifact locators.
+    _validate_evidence_limits(run, capture_specs, evidence_records, artifact_readers)
+    task = ExperimentTaskModel.model_validate(task.model_dump(mode="python"))
+    run = ExperimentRunModel.model_validate(run.model_dump(mode="python"))
+    capture_specs = {
+        key: ExperimentCaptureSpecModel.model_validate(spec.model_dump(mode="python"))
+        for key, spec in capture_specs.items()
+    }
+    evidence_records = {
+        key: ExperimentEvidenceRecordModel.model_validate(record.model_dump(mode="python"))
+        for key, record in evidence_records.items()
+    }
+    artifact_readers = dict(artifact_readers)
+    _validate_evidence_limits(run, capture_specs, evidence_records, artifact_readers)
+    validate_experiment_run_structure_against_task(task, run)
+    _validate_augmentation_producers(run)
+    _validate_supplied_evidence_sets(run, capture_specs, evidence_records)
+    requirements, records_by_requirement = _index_capture_evidence(capture_specs, evidence_records)
+    _validate_task_requirement_ids(task, requirements)
+    validated_bindings = _validate_evidence_bindings(
+        task,
+        run,
+        requirements,
+        records_by_requirement,
+        artifact_readers,
+    )
+    proof = _mint_validated_run_evidence(task, run, tuple(validated_bindings.values()))
+    _validate_task_evidence_bindings(task, run, proof)
+    return proof
+
+
+def _validate_supplied_evidence_sets(
+    run: ExperimentRunModel,
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel],
+    evidence_records: Mapping[str, ExperimentEvidenceRecordModel],
+) -> None:
+    referenced_specs = {(reference.ref_id, reference.ref_version) for reference in run.traceability.capture_spec_refs}
+    supplied_specs = {(spec.capture_spec_id, spec.spec_version) for spec in capture_specs.values()}
+    if referenced_specs != supplied_specs:
+        raise ValueError("run capture_spec_refs must resolve exactly to supplied capture specs")
+    referenced_records = {
+        (reference.ref_id, reference.ref_version) for reference in run.traceability.evidence_record_refs
+    }
+    supplied_records = {(record.evidence_record_id, record.record_version) for record in evidence_records.values()}
+    if referenced_records != supplied_records:
+        raise ValueError("run evidence_record_refs must resolve exactly to supplied evidence records")
+
+
+def _index_capture_evidence(
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel],
+    evidence_records: Mapping[str, ExperimentEvidenceRecordModel],
+) -> tuple[
+    dict[str, tuple[ExperimentCaptureSpecModel, ExperimentCaptureRequirementModel]],
+    dict[tuple[str, str], list[ExperimentEvidenceRecordModel]],
+]:
+    records_by_requirement: dict[tuple[str, str], list[ExperimentEvidenceRecordModel]] = {}
+    requirements: dict[str, tuple[ExperimentCaptureSpecModel, ExperimentCaptureRequirementModel]] = {}
+    for capture_spec in capture_specs.values():
+        for requirement_id, requirement in capture_spec.capture_requirements.items():
+            if requirement_id in requirements:
+                raise ValueError("capture requirement ids must be unambiguous across supplied capture specs")
+            requirements[requirement_id] = (capture_spec, requirement)
+    for record in evidence_records.values():
+        key = (record.capture_spec_ref.ref_id, record.capture_requirement_ref)
+        records_by_requirement.setdefault(key, []).append(record)
+    valid_requirement_keys = {
+        (capture_spec.capture_spec_id, requirement_id) for requirement_id, (capture_spec, _) in requirements.items()
+    }
+    if not set(records_by_requirement).issubset(valid_requirement_keys):
+        raise ValueError("evidence records must resolve to admitted capture requirements")
+    return requirements, records_by_requirement
+
+
+def _validate_task_requirement_ids(
+    task: ExperimentTaskModel,
+    requirements: Mapping[str, tuple[ExperimentCaptureSpecModel, ExperimentCaptureRequirementModel]],
+) -> None:
+    task_requirement_ids = {reference.ref_id for reference in task.evaluation_protocol.observation_requirements} | {
+        reference.ref_id
+        for metric in task.evaluation_protocol.metric_definitions.values()
+        for reference in metric.evidence_requirements
+    }
+    unresolved = sorted(task_requirement_ids - set(requirements))
+    if unresolved:
+        raise ValueError("task evidence requirements do not resolve to capture requirements: " + ", ".join(unresolved))
+
+
+def _validate_evidence_bindings(
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    requirements: Mapping[str, tuple[ExperimentCaptureSpecModel, ExperimentCaptureRequirementModel]],
+    records_by_requirement: Mapping[tuple[str, str], list[ExperimentEvidenceRecordModel]],
+    artifact_readers: Mapping[str, BinaryIO],
+) -> dict[str, ValidatedEvidenceBinding]:
+    validated_bindings: dict[str, ValidatedEvidenceBinding] = {}
+    content_cache = _EvidenceContentCache()
+    for requirement_id in sorted(requirements):
+        capture_spec, requirement = requirements[requirement_id]
+        records = records_by_requirement.get((capture_spec.capture_spec_id, requirement_id), [])
+        if len(records) != 1:
+            raise ValueError(f"capture requirement {requirement_id!r} must resolve to exactly one evidence record")
+        record = records[0]
+        _validate_record_binding(
+            task=task,
+            run=run,
+            capture_spec=capture_spec,
+            requirement=requirement,
+            record=record,
+        )
+        artifact = _artifact_for_record(run, record)
+        _validate_artifact_content(
+            requirement,
+            record,
+            artifact,
+            artifact_readers.get(artifact.artifact_id),
+            content_cache,
+        )
+        validated_bindings[requirement_id] = ValidatedEvidenceBinding(
+            requirement_id=requirement_id,
+            capture_spec_id=capture_spec.capture_spec_id,
+            capture_spec_version=capture_spec.spec_version,
+            record_id=record.evidence_record_id,
+            record_version=record.record_version,
+            output_contract=requirement.output_contract,
+            artifact_id=artifact.artifact_id,
+            artifact_digest=f"{artifact.checksum.algorithm}:{artifact.checksum.value}",
+            artifact_path_digest=canonical_json_digest(artifact.uri),
+            _validation_key=_EVIDENCE_VALIDATION_KEY,
+        )
+    return validated_bindings
+
+
+__all__ = [
+    "ValidatedEvidenceBinding",
+    "ValidatedRunEvidence",
+    "task_claims_required_evidence",
+    "validate_experiment_run_evidence",
+    "validate_run_without_evidence",
+]

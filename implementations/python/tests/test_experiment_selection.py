@@ -11,7 +11,8 @@ from pydantic import ValidationError
 from raes import SDLSelectionError, admit_scenario_family, parse_sdl, validate_experiment_selection_against_family
 from raes.scenario import ExpandedScenario, Scenario
 from raes.validator import SemanticValidator
-from raes_contracts.contracts import ExperimentSpecModel, schema_bundle
+from raes_contracts.contracts import ExperimentSpecModel
+from raes_schemas import schema_bundle
 
 _EXPERIMENT_FIXTURE = (
     REPO_ROOT

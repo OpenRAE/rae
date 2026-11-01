@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import json
 from typing import Literal
 
 from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler, model_serializer, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
-from .base import ContractModel, NonEmptyString, PositiveInteger, UnitIntervalFloat
+from ..json_serialization import sorted_json_text
+from .base import ContractModel, NonEmptyString, PositiveInteger, UnitIntervalFloat, casefold_digest
 from .experiment_artifacts import ExperimentConditionAssignmentReferenceModel
 from .experiment_bindings import ExperimentBindingDescriptorModel, ExperimentBindingDescriptorSetModel
 from .experiment_references import (
@@ -16,7 +18,7 @@ from .experiment_references import (
     ExperimentReferenceModel,
 )
 from .experiment_treatments import ExperimentScenarioSelectionDescriptorModel, validate_selection_descriptor_set
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 
 class ExperimentStudyMembershipModel(ContractModel):
@@ -222,6 +224,51 @@ def _validate_condition_factor_levels(
                 )
 
 
+def _condition_assignment_run_criteria_signature(
+    assignment: ExperimentConditionAssignmentModel,
+) -> tuple[object, ...]:
+    reference_signature = tuple(
+        sorted(
+            (
+                reference.ref_kind,
+                reference.ref_id,
+                reference.ref_version,
+                casefold_digest(reference.ref_digest),
+                reference.ref_path,
+            )
+            for reference in assignment.required_refs
+        )
+    )
+    parameter_signature = tuple(
+        sorted(
+            (
+                parameter.name,
+                parameter.value_kind,
+                type(parameter.value).__name__,
+                sorted_json_text(parameter.value),
+            )
+            for parameter in assignment.required_parameters
+        )
+    )
+    return (
+        reference_signature,
+        parameter_signature,
+        assignment.difficulty_condition,
+        assignment.difficulty_policy_id,
+        tuple(
+            sorted(
+                json.dumps(binding.realization_payload(), sort_keys=True) for binding in assignment.required_bindings
+            )
+        ),
+        tuple(
+            sorted(
+                json.dumps(selection.realization_payload(), sort_keys=True)
+                for selection in assignment.required_selections
+            )
+        ),
+    )
+
+
 class ExperimentRunAllocationPlanModel(ContractModel):
     """Structured run allocation, replication, and assignment plan."""
 
@@ -258,8 +305,6 @@ class ExperimentRunAllocationPlanModel(ContractModel):
         return self
 
     def _validate_distinct_condition_criteria(self) -> None:
-        from .experiment_conditions import _condition_assignment_run_criteria_signature
-
         factor_levels_by_signature: dict[tuple[tuple[str, str], ...], list[str]] = {}
         criteria_by_signature: dict[tuple[object, ...], list[str]] = {}
         for condition_id, assignment in self.condition_assignments.items():
@@ -298,7 +343,7 @@ class ExperimentRunAllocationPlanModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-allocation-condition-assignments-valid",
             "Run-allocation compared_conditions, condition_assignments keys, embedded condition ids, blocking "
@@ -369,7 +414,7 @@ class ExperimentAnalysisPlanModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "analysis-plan-substantive-methods-required",
             "Analysis plans must name metrics plus structured statistical, uncertainty, multiplicity, "

@@ -15,16 +15,15 @@ from enum import Enum
 from typing import Any
 
 from pydantic import Field, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, is_variable_ref, parse_int_or_var
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
     coerce_string_list,
     ip_address_or_var,
     parse_runtime_enum_or_var,
     require_symbol,
 )
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_int_or_var
 
 __all__ = [
     "RuntimeListenerAddressFamily",

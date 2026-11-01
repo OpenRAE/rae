@@ -4,9 +4,13 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from raes.participant_behavior import ParticipantEffectClass, ParticipantFailureClass, ParticipantPreconditionClass
 from raes_contracts.contracts.participant_resource_budgets import ParticipantResourceMeasurementModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalEvidenceModel
+from raes_contracts.participant_action_semantics import (
+    ParticipantEffectClass,
+    ParticipantFailureClass,
+    ParticipantPreconditionClass,
+)
 from raes_contracts.participant_behavior import ParticipantActionPreconditionStatus, ParticipantActionResultStatus
 
 from .behavior_resources import (

@@ -8,7 +8,7 @@ import json
 import pytest
 from jsonschema import Draft202012Validator
 from raes_contracts.contracts import ExperimentEvidenceRecordModel
-from raes_contracts.evidence_satisfaction import validate_experiment_run_evidence
+from raes_contracts.contracts.evidence_satisfaction import validate_experiment_run_evidence
 from test_issue_1112_capture_admission import FIXTURES, _evidence_bundle
 
 

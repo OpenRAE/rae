@@ -11,9 +11,14 @@ from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.json_pointer import pointer_tokens
-from raes_contracts.planning import ProvisioningPlan, RealizationAuthorityMode, ResolvedRealizationAuthority
+from raes_contracts.planning import (
+    BACKEND_PREPARATION_CONTRACT,
+    ProvisioningPlan,
+    RealizationAuthorityMode,
+    RealizationPreparationAuthority,
+    ResolvedRealizationAuthority,
+)
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
-from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT, RealizationPreparationAuthority
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
     evaluate_realization_constraint,

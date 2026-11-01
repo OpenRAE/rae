@@ -13,7 +13,7 @@ def test_authoring_adapter_delivery_owns_its_contract_and_tests():
     assert match_phase(load_policy(ROOT), "ASR-516").phase_id == "authoring-adapter-conformance"
     paths = [
         IMPLEMENTATION,
-        "implementations/python/packages/raes_contracts/contracts/bundle.py",
+        "implementations/python/packages/raes_contracts/schema_contributions.py",
         "implementations/python/tests/test_authoring_adapters.py",
         "contracts/schemas/authoring-adapters/authoring-adapter-vector-v1.json",
         "contracts/fixtures/authoring-adapters-v1/cases/strict-source.json",

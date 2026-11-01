@@ -7,8 +7,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypedDict
 
+from raes_contracts.identifiers import QualifiedName
+
 from ._errors import SDLImportError, SDLImportErrorCode
-from ._identifiers import QualifiedName
 from ._module_symbols import FORWARDING_AGENTS_SECTION, HASHMAP_SECTIONS
 from ._source_profile import SDLParserLimits
 from ._supplied_sources import SuppliedSources

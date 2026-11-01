@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.apparatus import (
     DECLARED_CAPABILITY_MATCH_REQUIREMENT_KIND,
     RealizationSupportDeclaration,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.realization_structure import RealizationCollection, RealizationRecord
 from raes_contracts.software_versions import has_version_constraints, version_relations_supported
 from raes_contracts.vocabulary import RealizationSupportMode

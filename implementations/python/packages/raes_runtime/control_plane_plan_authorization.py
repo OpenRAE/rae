@@ -6,10 +6,10 @@ from copy import deepcopy
 from dataclasses import replace
 from threading import RLock
 
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError
 from raes_contracts.plan_effects import plan_can_mutate
-from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
 from raes_processor.models import ExecutionPlan, RuntimeModel
