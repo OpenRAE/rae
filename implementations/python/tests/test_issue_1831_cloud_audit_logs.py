@@ -33,7 +33,8 @@ def test_audit_settings_survive_parse_compile_and_configuration_projection():
     projected = project_realization_concern(
         "runtime-identity-authorities", scenario.nodes["iam"].runtime.identity_authorities
     )
-    assert "secretmanager.googleapis.com" in json.dumps(projected)
+    projected_scope = next(scope for scope in projected[0]["resource_scopes"] if scope["scope_id"] == "project-a")
+    assert projected_scope["audit_logs"] == [rule.model_dump(mode="json") for rule in scopes[0].audit_logs]
     model = compile_runtime_model(scenario)
     assert any(item.requirement_kind == "runtime-identity-authorities" for item in model.realization_requirements)
 
@@ -97,7 +98,7 @@ def test_binding_rechecks_duplicate_service_type_pairs():
         instantiate_scenario(parsed, {"type": "DATA_READ"})
 
 
-def test_unsupported_backend_refuses_before_apply(monkeypatch):
+def test_runtime_admission_rejects_unsupported_audit_requirements_before_apply(monkeypatch):
     from raes_backend_stubs.stubs import create_stub_target
     from raes_runtime.manager import RuntimeManager
 
@@ -131,7 +132,7 @@ def test_weaker_readback_changes_configuration_projection():
 
 
 @pytest.mark.parametrize("submitted", [False, True])
-def test_identity_backend_can_refuse_audit_settings_before_effects(monkeypatch, submitted):
+def test_runtime_enforces_protocol_validation_rejection_before_effects(monkeypatch, submitted):
     from dataclasses import replace
 
     from raes_backend_stubs.stubs import create_stub_target
@@ -197,6 +198,10 @@ def test_identity_backend_can_refuse_audit_settings_before_effects(monkeypatch, 
         else:
             result = manager.apply(manager.plan(parse_sdl(json.dumps(raw))))
     assert validations, receipt.diagnostics if submitted else result
+    operation = next(op for op in validations[0].operations if op.address == "provision.node.iam")
+    submitted_scopes = operation.payload["spec"]["node"]["runtime"]["identity_authorities"][0]["resource_scopes"]
+    normalized_scope = Scenario.model_validate(raw).nodes["iam"].runtime.identity_authorities[0].resource_scopes[0]
+    assert submitted_scopes[0]["audit_logs"] == [rule.model_dump(mode="json") for rule in normalized_scope.audit_logs]
     assert not calls
     assert any(d.code == "backend.audit-unsupported" for d in result.diagnostics)
     assert calls == []
@@ -281,3 +286,93 @@ def test_scope_uniqueness_has_a_callable_portable_invariant():
     authority(raw)["resource_scopes"][0]["audit_logs"][1]["log_type"] = "DATA_READ"
     with pytest.raises(ValidationError):
         validator(raw)
+
+
+@pytest.mark.parametrize("mutation", ["none", "omitted-rule", "changed-exemption"])
+def test_raes_result_validation_detects_weakened_audit_configuration(mutation):
+    from dataclasses import replace
+
+    from raes_backend_stubs.stubs import create_stub_manifest
+    from raes_contracts.apparatus import RealizationObservationCapability
+    from raes_contracts.planning import RuntimeDomain
+    from raes_contracts.realization_observation import RealizationObservationDisclosure
+    from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
+    from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
+    from raes_processor.planner import plan, realization_disclosure
+
+    raw = audit_scenario()
+    raw = {"name": "audit-result-contract", "nodes": {"iam": raw["nodes"]["iam"]}}
+    for name in ("policies", "identity_uses", "access_observations"):
+        authority(raw).pop(name)
+    model = compile_runtime_model(parse_sdl(json.dumps(raw)))
+    manifest = create_stub_manifest()
+    declaration = manifest.realization_support[0]
+    manifest = replace(
+        manifest,
+        realization_support=(
+            replace(
+                declaration,
+                supported_exact_requirement_kinds=declaration.supported_exact_requirement_kinds
+                | {"runtime-identity-authorities"},
+                observation_capabilities={
+                    **declaration.observation_capabilities,
+                    "runtime-identity-authorities": RealizationObservationCapability(
+                        verification_scope=RealizationVerificationScope.CONFIGURATION,
+                        observation_strength=ObservationStrength.DAEMON_OBSERVED,
+                    ),
+                },
+            ),
+        ),
+    )
+    planned = plan(model, manifest)
+    assert planned.is_valid
+    requirement = next(
+        item for item in model.realization_requirements if item.requirement_kind == "runtime-identity-authorities"
+    )
+    operation = next(op for op in planned.provisioning.operations if op.address == "provision.node.iam")
+    returned_payload = deepcopy(operation.payload)
+    rules = returned_payload["spec"]["node"]["runtime"]["identity_authorities"][0]["resource_scopes"][0]["audit_logs"]
+    if mutation == "omitted-rule":
+        rules.pop()
+    elif mutation == "changed-exemption":
+        rules[0]["exempted_principal_refs"] = []
+    snapshot = RuntimeSnapshot(
+        entries={
+            operation.address: SnapshotEntry(
+                address=operation.address,
+                domain=RuntimeDomain.PROVISIONING,
+                resource_type=operation.resource_type,
+                payload=returned_payload,
+                ordering_dependencies=operation.ordering_dependencies,
+                refresh_dependencies=operation.refresh_dependencies,
+            )
+        },
+        realization_observations=(
+            RealizationObservationDisclosure(
+                address=requirement.address,
+                field_path=requirement.field_path,
+                domain=requirement.domain,
+                requirement_kind=requirement.requirement_kind,
+                verification_scope=RealizationVerificationScope.CONFIGURATION,
+                observation_strength=ObservationStrength.DAEMON_OBSERVED,
+            ),
+        ),
+    )
+    diagnostics, _ = realization_disclosure((requirement,), planned.provisioning, snapshot, manifest=manifest)
+    assert bool(diagnostics) == (mutation != "none"), diagnostics
+
+
+def test_provider_domain_names_do_not_select_a_backend_or_gcp_log_enum():
+    raw = audit_scenario()
+    for scope in authority(raw)["resource_scopes"]:
+        scope["provider"] = "example-cloud"
+    rule = authority(raw)["resource_scopes"][0]["audit_logs"][0]
+    rule.update(service="ExampleNativeService", log_type="native.audit.read")
+    scenario = parse_sdl(json.dumps(raw))
+    projected = project_realization_concern(
+        "runtime-identity-authorities", scenario.nodes["iam"].runtime.identity_authorities
+    )
+    scope = next(item for item in projected[0]["resource_scopes"] if item["scope_id"] == "project-a")
+    assert scope["provider"] == "example-cloud"
+    assert scope["audit_logs"][0]["service"] == "ExampleNativeService"
+    assert scope["audit_logs"][0]["log_type"] == "native.audit.read"

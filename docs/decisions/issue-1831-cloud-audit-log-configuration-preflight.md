@@ -5,6 +5,16 @@ The supplied GitHub issue is the delivery contract; no requirement UID applies.
 This is non-normative architecture guidance, not public syntax, an implementation
 plan, acceptance evidence or a claim of cloud interoperability.
 
+## Responsibility correction
+
+The user's responsibility clarification supersedes capability-based acceptance wording in this preflight.
+[Hub issue 3](https://github.com/OpenRAE/hub/issues/3) and ADR-115 assign RAES semantics, contracts, conformance, and portable runtime enforcement.
+RAES sets the contract; concrete backend distributions depend on and implement it.
+References below to support or refusal describe protocol conformance, not downstream delivery requirements.
+Provider documentation explains domain concepts; it is not a backend architecture to copy into RAES.
+The current issue and design define acceptance at RAES-owned boundaries.
+Native execution methods and live integration qualification remain outside this work.
+
 ## Direction and semantic boundaries
 
 Extend `RuntimeIdentityResourceScope` with optional, closed, typed audit logging
@@ -92,13 +102,11 @@ when its host and operations apply; this feature does not create a universal
 runtime profile bag. Native wildcards remain inert unless their exact semantics
 are supported. Core must not expand a wildcard by querying a service catalog.
 
-GCP stores audit settings alongside IAM bindings. Native mutation must preserve
-unrelated access bindings, existing audit configuration and concurrent changes,
-using the provider's concurrency controls. Logging configuration is not an IAM
-grant and must not reuse a whole-policy replacement that loses other fields.
-Reset/deletion responsibility grants no blanket authority over a shared scope.
-These are backend obligations, not an instruction to add cloud mutation code
-to this repository.
+GCP stores audit settings alongside IAM bindings. This is domain context only.
+RAES does not prescribe a provider mutation API, concurrency mechanism, or policy replacement strategy.
+Its contract preserves authored scope, logging, and access-policy distinctions.
+Scope ownership and reset responsibility do not grant blanket mutation authority.
+Concrete backend owners choose and qualify their implementation of those obligations.
 
 ## Publication, verification boundaries and non-goals
 
@@ -129,9 +137,9 @@ multiple types/services; omission and explicit closure; duplicate/blank/unknown
 shape refusal; exemptions and wrong-kind/dangling references when supported;
 repeated imports and post-binding collisions; all affected published schemas;
 compile/projection/codec/durable round trips; and materialized-result mismatch.
-Exercise both supported and unsupported admission, including a backend that
-supports older identity facts but refuses audit settings. Assert zero apply
-calls on refusal, including direct submitted plans and failed preparation.
+Exercise RAES admission with declared support and protocol rejection fixtures.
+Assert zero effectful calls when RAES rejects admission, including direct submitted plans.
+No concrete backend implementation or native logging behavior is required.
 An accepting fixture must preserve settings and use the existing configuration
 corroboration contract; echoing a plan is not proof of native realization.
 Synthetic sentinel tests should cover diagnostic/log/HTTP failure leakage.

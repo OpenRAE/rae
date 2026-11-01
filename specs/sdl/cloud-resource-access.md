@@ -193,7 +193,8 @@ Optional `exempted_principal_refs` names exact declared identity subjects.
 It contains at most 1024 distinct references.
 Each reference contains 1 to 2048 characters and MUST NOT be blank.
 Subject ownership need not equal the logging scope.
-Backend admission MUST retain and support each exemption or refuse before effects.
+RAES MUST retain each exemption in the binding runtime requirement.
+Runtime admission MUST honor protocol rejection before effectful invocation.
 The reference does not create a principal or an access grant.
 
 Omission or an empty collection contributes no recording requirement.
@@ -215,12 +216,20 @@ audit_logs:
 ```
 
 These records remain configuration in the `runtime-identity-authorities` concern.
-A backend MUST support the complete applicable native meaning or explicitly refuse before effects.
-Broad identity support does not permit a backend to ignore audit settings.
-A provider that needs undeclared destinations or selectors MUST refuse rather than approximate.
-Native changes MUST preserve unrelated policy and use provider concurrency controls.
+RAES defines the support, refusal, and result obligations at the backend protocol boundary.
+Runtime admission MUST reject unsupported exact requirements before effectful invocation.
+A protocol validation rejection MUST also prevent that invocation.
+A general identity support declaration MUST NOT remove or weaken an audit requirement.
+RAES result validation MUST detect missing rules and changed exemptions.
+Conforming results MUST preserve the binding configuration and its declared closure semantics.
+No destination, selector, or additional infrastructure is implied by these fields.
 Scope ownership alone grants no right to change a shared cloud policy.
-Accepted configuration readback MUST preserve the rules and exemptions.
+
+Provider identity identifies the described cloud domain, not a concrete backend implementation.
+Service names and log types MUST NOT select a backend, SDK, provider API, or credential source in core.
+Concrete implementations depend on this contract and own their native mappings and qualification.
+RAES acceptance does not depend on any concrete backend implementing this term.
+[ADR-115](../../docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md) governs that dependency direction.
 
 Recording configuration is separate from access policy, access observations, and experiment evidence.
 It grants no authority to retrieve, retain, export, or disclose logs.

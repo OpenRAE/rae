@@ -2,6 +2,17 @@
 
 Issue: #1831. The normative owner is `specs/sdl/cloud-resource-access.md`.
 
+## Responsibility and dependency direction
+
+[Hub issue 3](https://github.com/OpenRAE/hub/issues/3) assigns RAES semantics, contracts, and conformance.
+ADR-115 assigns concrete realization to backend distributions.
+This design sets the contract that those distributions must implement.
+RAES does not select its semantics from a concrete backend's current capabilities.
+Provider identity describes the scenario domain; it does not select a backend implementation.
+Native names are contract data, not provider API calls or backend imports.
+The field layout does not impose GCP log categories on other providers.
+Concrete mappings, credentials, resource changes, and live qualification remain outside RAES.
+
 ## Architecture and decision
 
 `RuntimeIdentityResourceScope.audit_logs` contains optional typed recording requirements.
@@ -24,13 +35,14 @@ The existing `runtime-identity-authorities` concern retains every setting.
 Compilation, plan transport, snapshot storage, and materialized descriptions use existing carriers.
 No new backend, persistence layer, credential resolver, or top-level section is needed.
 
-Backend manifests and validation admit supported configuration before effects.
-An older identity backend must refuse an audit setting it cannot implement.
-Support for the broad concern does not permit silent omission.
-Readback must retain the requested configuration and exemptions.
-Configuration readback does not require traffic generation or log retrieval.
-Provider mutations must preserve unrelated policy and use native concurrency controls.
-A provider that needs additional undeclared settings must refuse the request.
+RAES runtime admission checks contract support declarations before effectful invocation.
+It also consumes validation diagnostics through the existing protocol.
+A protocol rejection prevents invocation; a general support claim does not erase authored constraints.
+RAES result validation checks returned configuration against the binding requirements.
+Missing rules or changed exemptions must not pass as a matching result.
+This contract defines conformance obligations, not a concrete backend's current support.
+Readback checks do not request traffic generation or log retrieval.
+Native API choice, mutation strategy, and concurrency mechanisms remain backend implementation details.
 
 ## Data flows and security
 
@@ -56,8 +68,8 @@ Existing caller authorization and information-flow policy govern these boundarie
 | Invalid settings or conflicting rules enter a plan. | Closed bounded models and duplicate checks. | Invalid shapes and collisions after binding. |
 | An exemption names the wrong resource. | Exact subject references. | Dangling and wrong-kind reference rejection. |
 | Import rewriting changes provider meaning. | Rewrite reference fields only. | Repeated imports preserve native strings. |
-| An older backend ignores logging requirements. | Concern admission and backend validation before effects. | Refusal with zero apply calls. |
-| A backend reports success with weaker settings. | Existing typed configuration comparison. | Missing rules and altered exemptions fail comparison. |
+| Unsupported requirements reach an effectful invocation. | RAES concern admission and protocol validation. | RAES rejection with zero apply calls. |
+| A returned result weakens the requirement. | RAES typed result validation. | Missing rules and altered exemptions produce rejection diagnostics. |
 | Settings disclose credentials or authorize log export. | Metadata-only records and existing authorization. | Unknown-field rejection and safe parser diagnostics. |
 
 Audit configuration grants no access right or collection authority.
@@ -81,6 +93,7 @@ The invariant calls the public scenario model validator, which checks each scope
 The typed models and registry supply architecture as code.
 No new structural gate or requirement UID is introduced.
 ADRs 032, 105, 115, 117, and 121 retain their current meaning.
+The dependency direction in Hub issue 3 and ADR-115 applies to every acceptance criterion.
 No ADR change is needed because the existing owners cover this extension.
 
 ## Sources and document review
