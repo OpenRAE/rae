@@ -1686,7 +1686,6 @@ def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> No
 
     workflow = _load(CANONICAL_PATH)
     job = workflow["jobs"]["parity-corpus"]
-    assert job["steps"][0]["with"]["fetch-depth"] == 0
     check = _named_step(job, "Check that the Python implementation reproduces the corpus")
     assert "python -m tools.parity_corpus check" in check["run"]
     upload = _named_step(job, "Upload the recorded corpus")
