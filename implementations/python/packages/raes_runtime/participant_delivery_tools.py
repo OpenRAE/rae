@@ -6,6 +6,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import replace
 from threading import Lock
+from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 from pydantic import TypeAdapter
@@ -27,12 +28,10 @@ from raes_contracts.participant_tool_actions import (
 from raes_contracts.timestamps import isoformat_z
 from raes_processor.compiler import compile_participant_invocation_tools
 
-from .participant_crossing_action import combined_crossing_audit
-from .participant_crossing_commit import commit_prepared_crossing
 from .participant_delivery_tool_admission import action_admission, execution_offers, prepare_tool_crossing, tool_binding
+from .participant_delivery_tool_recovery import reconcile_delivery_tool
 from .participant_delivery_tool_settlement import settle_delivery_tool
-from .participant_execution_control import InvocationToolActionLedger
-from .participant_invocation_tool_actions import HostedActionRegistry, _detached_outcome, _ToolEntry
+from .participant_invocation_tool_actions import HostedActionRegistry, InvocationToolEntry, detached_tool_outcome
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.participant_crossing_evidence import ParticipantCrossingEvidence
@@ -62,6 +61,7 @@ class ParticipantDeliveryInvocationTools:
         self._scope = scope
         self._record = record
         self._identity = identity
+        self._current_request = None
         self._closed = False
         self.has_unresolved_effects = False
         self.ledger_failures = 0
@@ -69,25 +69,54 @@ class ParticipantDeliveryInvocationTools:
         self._entries, self._by_action = {}, {}
         self._decisions, self._offers = {}, {}
         self._registry = HostedActionRegistry()
-        self._capability = plane._target.manifest.participant_runtime
+        self._capability = plane.delivery_target.manifest.participant_runtime
         self._limits = self._capability.invocation_tool_actions
-        delivery = plane._inject_delivery.model.participant_inject_deliveries[
+        delivery = plane.delivery_inject_delivery.model.participant_inject_deliveries[
             invocation.delivery.application.delivery_address
         ]
         self._bindings, self._temporal = compile_participant_invocation_tools(
-            plane._inject_delivery.model,
+            plane.delivery_inject_delivery.model,
             delivery.behavior_specification_address,
             participant_implementation_ref=self.participant_implementation_ref,
             max_actions=self._limits.max_tool_actions_per_invocation,
             max_in_flight=self._limits.max_concurrent_tool_actions_per_invocation,
         )
-        self._ledger = InvocationToolActionLedger(
-            store=plane._store,
-            parent_operation_id=record.receipt.operation_id,
-            parent_context=record.receipt.context,
-            engine_admission=plane._tool_engine_admission,
-            wall_clock=plane.wall_clock,
+        self._ledger = plane.delivery_create_tool_ledger(record)
+
+    def delivery_tools_context(self):
+        """Give runtime handlers internal state only while they own the writer."""
+        self._plane.delivery_require_state_writer()
+        return SimpleNamespace(
+            plane=self._plane,
+            bindings=self._bindings,
+            temporal=self._temporal,
+            capability=self._capability,
+            current_request=self._current_request,
+            identity=self._identity,
+            scope=self._scope,
+            ledger=self._ledger,
+            registry=self._registry,
         )
+
+    @classmethod
+    def recovery_port(cls, plane, invocation, parent):
+        """Construct a settlement-only port; recovery never issues grants."""
+        plane.delivery_require_state_writer()
+        value = object.__new__(cls)
+        cls.initialize_recovery_port(value, plane, invocation, parent)
+        return value
+
+    def initialize_recovery_port(self, plane, invocation, parent):
+        plane.delivery_require_state_writer()
+        self._plane, self._invocation = plane, invocation
+        self._bindings, self._temporal = (), ()
+        self._capability = self._current_request = self._identity = self._scope = None
+        self._registry, self.has_unresolved_effects = HostedActionRegistry(), False
+        self._ledger = plane.delivery_create_tool_ledger(parent)
+
+    def settle_interrupted_tool(self, entry, settlement, failure_class):
+        self._plane.delivery_require_state_writer()
+        return self._settle_unknown(entry, settlement, failure_class)
 
     @property
     def invocation(self) -> ParticipantDeliveryInvocationContextModel:
@@ -145,16 +174,14 @@ class ParticipantDeliveryInvocationTools:
         # A claim may have committed before its acknowledgement was lost.
         # Close any retained child that never reached the in-memory port map.
         try:
-            from .participant_delivery_tool_recovery import reconcile_delivery_tool
-
-            self._plane._reload_derived_state()
-            for retained in tuple(self._plane._operations.values()):
+            self._plane.delivery_reload_derived_state()
+            for retained in tuple(self._plane.delivery_operations.values()):
                 if (
                     retained.status.context.parent_operation_id == self.invocation_action_instance_id
                     and retained.receipt.operation_id not in self._by_action
                     and retained.status.state.value in {"accepted", "running"}
                 ):
-                    reconcile_delivery_tool(self._plane, retained)
+                    reconcile_delivery_tool(self._plane, retained, port_type=type(self))
         except Exception as exc:
             self.ledger_failures += 1
             self.has_unresolved_effects = True
@@ -220,8 +247,8 @@ class ParticipantDeliveryInvocationTools:
         crossing, governed = prepare_tool_crossing(self, admission, evidence, stage="admit")
         if crossing is None:
             return ParticipantToolActionDecision(request.tool_call_id, False, refusal=_R.AUTHORITY_DENIED)
-        commit_prepared_crossing(self._plane, crossing)
-        self._plane._reload_derived_state()
+        self._plane.delivery_commit_prepared_crossing(crossing)
+        self._plane.delivery_reload_derived_state()
         self._scope.require_live()
         now = isoformat_z(self._plane.wall_clock())
         actual = replace(
@@ -249,18 +276,18 @@ class ParticipantDeliveryInvocationTools:
             },
         )
         try:
-            claimed = self._plane._claim_record(record)
+            claimed = self._plane.delivery_claim_record(record)
         except Exception:
-            self._plane._reload_derived_state()
-            if self._plane._operations.get(action_id) != record:
+            self._plane.delivery_reload_derived_state()
+            if self._plane.delivery_operations.get(action_id) != record:
                 self.ledger_failures += 1
                 self.has_unresolved_effects = True
                 raise
-            claimed = self._plane._operations[action_id]
+            claimed = self._plane.delivery_operations[action_id]
         if claimed != record:
             self.has_unresolved_effects = True
             raise ValueError("delivery tool claim conflicts with its original binding")
-        entry = _ToolEntry(
+        entry = InvocationToolEntry(
             request,
             action_id,
             len(self._entries),
@@ -334,7 +361,7 @@ class ParticipantDeliveryInvocationTools:
             context = temporal.shared_time
             if context is None:
                 continue
-            clock = self._plane._snapshot.time_model_state.clocks[context.binding.clock_address]
+            clock = self._plane.delivery_snapshot.time_model_state.clocks[context.binding.clock_address]
             invalid = clock.coordinate.segment != context.submitted_at.segment
             if context.binding.temporal_kind == "deadline":
                 invalid |= coordinate_key(clock.coordinate) > coordinate_key(context.bound_end)
@@ -380,11 +407,11 @@ class ParticipantDeliveryInvocationTools:
             result_history_heads=crossing.record.result_history_heads,
         )
         try:
-            self._plane._commit_participant_transition(
+            self._plane.delivery_commit_participant_transition(
                 expected_history_heads=crossing.expected_history_heads,
                 snapshot=crossing.next_snapshot,
                 record=record,
-                audit_event=combined_crossing_audit(
+                audit_event=self._plane.delivery_combined_crossing_audit(
                     replace(
                         crossing.audit_event,
                         operation_id=record.receipt.operation_id,
@@ -397,7 +424,7 @@ class ParticipantDeliveryInvocationTools:
             )
         except BaseException:
             # Retain the exact read-back proof binding, but never reissue a grant.
-            if self._plane._operations.get(entry.action_instance_id) == record:
+            if self._plane.delivery_operations.get(entry.action_instance_id) == record:
                 entry.record = record
             raise
         entry.record = record
@@ -412,7 +439,7 @@ class ParticipantDeliveryInvocationTools:
         entry = self._by_action.get(action_id)
         if entry is None:
             return ParticipantToolActionReceipt(action_id, False, refusal=_R.ACTION_UNKNOWN)
-        detached = _detached_outcome(outcome)
+        detached = detached_tool_outcome(outcome)
         if entry.state == "settled":
             return (
                 self._receipt(entry)

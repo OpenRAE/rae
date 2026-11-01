@@ -18,18 +18,14 @@ from raes_contracts.participant_tool_actions import (
 )
 from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_store import terminal_operation_audit
-from .participant_crossing_state_cut import expected_participant_history_heads
-from .participant_result_contracts import participant_runtime_state_contract_diagnostics
-
 
 def settle_delivery_tool(port, entry, settlement, outcome):
-    plane = port._plane
-    plane._require_state_writer()
-    plane._reload_derived_state()
+    plane = port.delivery_tools_context().plane
+    plane.delivery_require_state_writer()
+    plane.delivery_reload_derived_state()
     if settlement is ParticipantToolActionSettlement.INDETERMINATE:
         port.has_unresolved_effects = True
-        port._registry.mark_unresolved()
+        port.delivery_tools_context().registry.mark_unresolved()
     admission = entry.admission
     actual = replace(
         entry.request,
@@ -77,46 +73,50 @@ def settle_delivery_tool(port, entry, settlement, outcome):
                 shared,
                 evidence,
                 admission.observation_boundary_address,
-                plane._snapshot.time_model_state.clocks[shared.binding.clock_address],
+                plane.delivery_snapshot.time_model_state.clocks[shared.binding.clock_address],
                 native_execution="not_dispatched"
                 if settlement is ParticipantToolActionSettlement.WITHHELD
                 else "reported",
             )
         )
     events = (*events[:-1], events[-1].model_copy(update={"temporal_assessments": assessments}))
-    histories = dict(plane._snapshot.participant_behavior_history)
+    histories = dict(plane.delivery_snapshot.participant_behavior_history)
     histories[port.participant_address] = [
         *histories.get(port.participant_address, ()),
         *(participant_behavior_event_payload(event) for event in events),
     ]
-    snapshot = plane._snapshot.with_entries(dict(plane._snapshot.entries), participant_behavior_history=histories)
+    snapshot = plane.delivery_snapshot.with_entries(
+        dict(plane.delivery_snapshot.entries), participant_behavior_history=histories
+    )
     require_participant_temporal_history(snapshot)
-    if participant_runtime_state_contract_diagnostics(snapshot):
+    if plane.delivery_participant_runtime_state_contract_diagnostics(snapshot):
         raise ValueError("delivery tool settlement violates participant state contracts")
-    terminal = port._ledger.settlement_record(entry.record, settlement, outcome)
+    terminal = port.delivery_tools_context().ledger.settlement_record(entry.record, settlement, outcome)
     terminal = replace(
         terminal,
-        decision_history_heads=expected_participant_history_heads(plane._snapshot, port.participant_address),
-        result_history_heads=expected_participant_history_heads(snapshot, port.participant_address),
+        decision_history_heads=plane.delivery_expected_participant_history_heads(
+            plane.delivery_snapshot, port.participant_address
+        ),
+        result_history_heads=plane.delivery_expected_participant_history_heads(snapshot, port.participant_address),
     )
     try:
-        plane._commit_participant_transition(
+        plane.delivery_commit_participant_transition(
             expected_history_heads=terminal.decision_history_heads,
             snapshot=snapshot,
             record=terminal,
-            audit_event=terminal_operation_audit(terminal),
+            audit_event=plane.delivery_terminal_operation_audit(terminal),
         )
     except Exception:
         # The durability owner already read back the record, snapshot and actor audit.
         # Accept only the exact confirmed terminal cut; never repeat the write or effect.
         if (
             getattr(plane, "_durability_poisoned", False)
-            or plane._operations.get(entry.action_instance_id) != terminal
-            or expected_participant_history_heads(plane._snapshot, port.participant_address)
+            or plane.delivery_operations.get(entry.action_instance_id) != terminal
+            or plane.delivery_expected_participant_history_heads(plane.delivery_snapshot, port.participant_address)
             != terminal.result_history_heads
         ):
             raise
     entry.record, entry.state, entry.settlement = terminal, "settled", settlement
     entry.action_result, entry.settled_at = outcome, settled_at
     if settlement is not ParticipantToolActionSettlement.INDETERMINATE:
-        port._registry.release(entry.action_instance_id)
+        port.delivery_tools_context().registry.release(entry.action_instance_id)

@@ -13,36 +13,19 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.operation_lifecycle import OperationKind, OperationState
 from raes_contracts.participant_tool_actions import TOOL_ACTION_ID_PREFIX
 
-TOOL_ACTION_RECORD_KIND = "participant-invocation-tool-action/v1"
-TOOL_ADMISSION_PARENT_NOT_LIVE = "parent-not-live"
-TOOL_ADMISSION_STOPPED = "effect-admission-stopped"
-TOOL_ADMISSION_UNRESOLVED = "unresolved-indeterminate"
-TOOL_ACTION_IDEMPOTENCY_PREFIX = "invocation-tool-action:"
-_CLAIM_PAYLOAD_KEYS = frozenset(
-    {
-        "kind",
-        "tool_call_id",
-        "invocation_action_instance_id",
-        "participant_address",
-        "episode_id",
-        "participant_implementation_ref",
-        "tool_affordance_address",
-        "action_contract_address",
-        "observation_boundary_address",
-        "target_addresses",
-        "execution_scope_ref",
-        "execution_generation",
-    }
+from .participant_delivery_invocation_records import (
+    delivery_invocation_binding,
+    delivery_tool_binding,
+    delivery_tool_origin_matches,
 )
-
-
-def tool_action_claim_payload(payload: dict[str, object] | None) -> dict[str, object] | None:
-    """Return the claim-time binding fields of a tool-action payload, or ``None``."""
-
-    if not isinstance(payload, dict) or payload.get("kind") != TOOL_ACTION_RECORD_KIND:
-        return None
-    claim = {key: payload[key] for key in _CLAIM_PAYLOAD_KEYS if key in payload}
-    return claim if set(claim) == _CLAIM_PAYLOAD_KEYS else None
+from .participant_tool_claim_payloads import (
+    TOOL_ACTION_IDEMPOTENCY_PREFIX,
+    TOOL_ACTION_RECORD_KIND,
+    TOOL_ADMISSION_PARENT_NOT_LIVE,
+    TOOL_ADMISSION_STOPPED,
+    TOOL_ADMISSION_UNRESOLVED,
+    tool_action_claim_payload,
+)
 
 
 def invocation_tool_child_of(parent: object, child: object) -> bool:
@@ -52,12 +35,6 @@ def invocation_tool_child_of(parent: object, child: object) -> bool:
     parent_context = parent.status.context
     claim = tool_action_claim_payload(child.result_payload)
     operation_id = child.receipt.operation_id
-    from .participant_delivery_invocation_records import (
-        delivery_invocation_binding,
-        delivery_tool_binding,
-        delivery_tool_origin_matches,
-    )
-
     delivery = delivery_invocation_binding(parent)
     if delivery is not None and (
         not delivery_tool_origin_matches(delivery, claim) or delivery_tool_binding(child) is None

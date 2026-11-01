@@ -709,3 +709,11 @@ class ParticipantInvocationToolActions:
 
 
 __all__ = ("InvocationToolActionConfiguration", "ParticipantInvocationToolActions")
+
+
+InvocationToolEntry = _ToolEntry
+
+
+def detached_tool_outcome(outcome):
+    """Detach and validate the shared tool outcome carrier."""
+    return _detached_outcome(outcome)

@@ -87,6 +87,44 @@ class RuntimeMutationAuthority:
         self._depth = 0
         self._local = local()
 
+    def require_invocation_child_live(self, scope: InvocationChildScope) -> None:
+        with self._condition:
+            if not scope.active or self._effect_owner is not scope.effect_owner:
+                raise ConflictError("invocation child authority is closed")
+
+    def close_invocation_child(self, scope: InvocationChildScope) -> None:
+        with self._condition:
+            scope.active = False
+            self._condition.notify_all()
+
+    def run_invocation_child[T](self, scope: InvocationChildScope, handler: Callable[[], T]) -> T:
+        thread_id = get_ident()
+        self.require_invocation_child_live(scope)
+        with self._condition:
+            if self._owner_thread == thread_id or getattr(self._local, "child_scope", None) is not None:
+                raise RuntimeError("invocation child handlers cannot recursively acquire state authority")
+            ready = self._condition.wait_for(
+                lambda: not scope.active or self._permit_is_free(),
+                timeout=self._admission_seconds,
+            )
+            if not ready:
+                raise RuntimeBudgetExhaustedError("invocation child state admission budget exhausted")
+            if not scope.active or self._effect_owner is not scope.effect_owner:
+                raise ConflictError("invocation child authority is closed")
+            self._owner_thread, self._depth = thread_id, 1
+            self._local.child_scope = scope
+        try:
+            value = handler()
+            self.require_invocation_child_live(scope)
+            return value
+        finally:
+            with self._condition:
+                self._local.child_scope = None
+                if self._owner_thread == thread_id:
+                    self._owner_thread, self._depth = None, 0
+                self._local.abandoned_depth = 0
+                self._grant_next_waiter_locked()
+
     def invocation_child_scope(self) -> InvocationChildScope:
         """Bind private child handlers to the current invocation's effect reservation."""
 
@@ -302,56 +340,21 @@ class RuntimeMutationAuthority:
 
 
 class InvocationChildScope:
-    """Private writer handoff; ordinary extension mutation remains prohibited.
-
-    Runtime-owned handlers retain this object. Executable protocols receive
-    only the tool port, never this authority or an arbitrary callback runner.
-    """
+    """Revocable scope; writer state remains owned by RuntimeMutationAuthority."""
 
     def __init__(self, authority: RuntimeMutationAuthority, effect_owner: object) -> None:
         self._authority = authority
-        self._effect_owner = effect_owner
-        self._active = True
+        self.effect_owner = effect_owner
+        self.active = True
 
     def require_live(self) -> None:
-        authority = self._authority
-        with authority._condition:
-            if not self._active or authority._effect_owner is not self._effect_owner:
-                raise ConflictError("invocation child authority is closed")
+        self._authority.require_invocation_child_live(self)
 
     def close(self) -> None:
-        with self._authority._condition:
-            self._active = False
-            self._authority._condition.notify_all()
+        self._authority.close_invocation_child(self)
 
     def run[T](self, handler: Callable[[], T]) -> T:
-        authority = self._authority
-        thread_id = get_ident()
-        self.require_live()
-        with authority._condition:
-            if authority._owner_thread == thread_id or getattr(authority._local, "child_scope", None) is not None:
-                raise RuntimeError("invocation child handlers cannot recursively acquire state authority")
-            ready = authority._condition.wait_for(
-                lambda: not self._active or authority._permit_is_free(),
-                timeout=authority._admission_seconds,
-            )
-            if not ready:
-                raise RuntimeBudgetExhaustedError("invocation child state admission budget exhausted")
-            if not self._active or authority._effect_owner is not self._effect_owner:
-                raise ConflictError("invocation child authority is closed")
-            authority._owner_thread, authority._depth = thread_id, 1
-            authority._local.child_scope = self
-        try:
-            value = handler()
-            self.require_live()
-            return value
-        finally:
-            with authority._condition:
-                authority._local.child_scope = None
-                if authority._owner_thread == thread_id:
-                    authority._owner_thread, authority._depth = None, 0
-                authority._local.abandoned_depth = 0
-                authority._grant_next_waiter_locked()
+        return self._authority.run_invocation_child(self, handler)
 
 
 class SubordinateMutationGate:

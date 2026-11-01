@@ -1,8 +1,14 @@
 """Immutable durable identity of runtime-owned participant delivery invocations."""
 
-from raes_contracts.contracts.participant_delivery_invocation import ParticipantDeliveryInvocationContextModel
-from raes_contracts.operation_lifecycle import OperationKind
+from dataclasses import replace
 
+from pydantic import TypeAdapter
+from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_delivery_invocation import ParticipantDeliveryInvocationContextModel
+from raes_contracts.operation_lifecycle import OperationKind, OperationState
+
+from .participant_tool_claim_payloads import tool_action_claim_payload
 from .record_immutability import immutable_value_error
 
 DELIVERY_INVOCATION_KIND = "participant-delivery-invocation/v1"
@@ -49,11 +55,6 @@ def delivery_tool_origin_matches(delivery, claim):
 
 
 def delivery_tool_binding(record):
-    from pydantic import TypeAdapter
-    from raes_contracts.canonical import canonical_json_digest
-    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
-
-    from .participant_invocation_tool_claims import tool_action_claim_payload
 
     payload = record.result_payload or {}
     retained = payload.get("delivery_tool")
@@ -82,9 +83,6 @@ def delivery_tool_binding(record):
 
 
 def require_delivery_tool_transition(existing, replacement):
-    from dataclasses import replace
-
-    from raes_contracts.operation_lifecycle import OperationState
 
     original, updated = delivery_tool_binding(existing), delivery_tool_binding(replacement)
     if original is None and updated is None:

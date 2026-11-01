@@ -353,3 +353,8 @@ def require_delivery_policy_pin(
     policy = prepared.decision.occurrence.policy
     if (policy.policy_id, policy.policy_revision) != (delivery.policy_ref, delivery.policy_revision):
         raise ConflictError("inject delivery policy pin differs")
+
+
+def authorized_delivery_binding(plane, application, identity):
+    """Resolve an authorized source delivery for runtime composition."""
+    return _authorized_binding(plane, application, identity)

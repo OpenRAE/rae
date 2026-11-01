@@ -6,7 +6,7 @@ from raes_processor.compiler import compile_participant_invocation_tools
 
 def delivery_tool_driver_actions(plane, model):
     installed = getattr(plane, "_inject_delivery", None)
-    target = plane._target
+    target = plane.delivery_target
     capability = target.manifest.participant_runtime
     if (
         installed is None

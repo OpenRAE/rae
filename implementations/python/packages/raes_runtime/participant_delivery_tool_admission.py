@@ -4,17 +4,11 @@ from copy import deepcopy
 from dataclasses import replace
 
 from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_crossing_evidence import ParticipantCrossingEvidence
 from raes_contracts.errors import ConflictError
 from raes_contracts.participant_tool_actions import ParticipantToolActionRefusal
 
-from .participant_control_orchestration import admit_ingress_sinks
-from .participant_control_runtime import ParticipantControlLiveCut
-from .participant_crossing_intents import action_crossing_intent, action_subject
-from .participant_crossing_mediation import ParticipantCrossingEvidence, prepare_participant_crossing
-from .participant_crossing_transform import _governed_action_request, _require_governed_subject
 from .participant_delivery_driver import matching_delivery_tool_offers
-from .participant_flow_sink import ParticipantFlowSinkKind
-from .participant_inject_control import require_delivery_control
 from .participant_temporal_binding import bind_shared_time_context
 
 
@@ -39,7 +33,7 @@ def tool_binding(port, request):
         return None, ParticipantToolActionRefusal.INVOCATION_MISMATCH
     matches = [
         binding
-        for binding in port._bindings
+        for binding in port.delivery_tools_context().bindings
         if (
             binding.tool_affordance_address == request.tool_affordance_address
             and binding.action_contract_address == request.action_contract_address
@@ -71,20 +65,20 @@ def tool_binding(port, request):
 
 def execution_offers(port, request):
     return matching_delivery_tool_offers(
-        port._capability,
+        port.delivery_tools_context().capability,
         action_contract_address=request.action_contract_address,
         implementation_ref=port.participant_implementation_ref,
         target_addresses=request.target_addresses,
-        temporal_bindings=port._temporal,
+        temporal_bindings=port.delivery_tools_context().temporal,
     )
 
 
 def action_admission(port, request, binding, action_instance_id):
     contexts = []
-    for temporal in port._temporal:
+    for temporal in port.delivery_tools_context().temporal:
         if temporal.action_contract_address != request.action_contract_address:
             continue
-        clocks = getattr(port._plane._snapshot.time_model_state, "clocks", {})
+        clocks = getattr(port.delivery_tools_context().plane.delivery_snapshot.time_model_state, "clocks", {})
         clock = clocks.get(temporal.clock_address)
         if clock is None:
             raise ConflictError("tool action shared clock is unavailable")
@@ -118,54 +112,51 @@ def action_admission(port, request, binding, action_instance_id):
 
 
 def require_live_invocation(port):
-    plane = port._plane
-    plane._require_state_writer()
-    plane._reload_derived_state()
-    live = plane._snapshot.participant_episode_results.get(port.participant_address, {})
+    plane = port.delivery_tools_context().plane
+    plane.delivery_require_state_writer()
+    plane.delivery_reload_derived_state()
+    live = plane.delivery_snapshot.participant_episode_results.get(port.participant_address, {})
     if (live.get("episode_id"), live.get("status")) != (port.episode_id, "running"):
         raise ConflictError("tool invocation episode is no longer live")
-    if plane._execution_generation != port.execution_generation:
+    if plane.delivery_execution_generation != port.execution_generation:
         raise ConflictError("tool invocation execution generation changed")
-    if port._ledger.effect_admission_refusal() is not None:
+    if port.delivery_tools_context().ledger.effect_admission_refusal() is not None:
         raise ConflictError("tool invocation effect admission is closed")
 
 
 def prepare_tool_crossing(port, admission, evidence, *, stage):
-    plane = port._plane
+    plane = port.delivery_tools_context().plane
     require_live_invocation(port)
     if not isinstance(evidence, ParticipantCrossingEvidence):
         raise ConflictError("tool action crossing evidence is required")
     evidence = ParticipantCrossingEvidence.model_validate(evidence.model_dump(mode="json"))
-    revision = plane._snapshot_state.revision
-    with plane._mutation_authority.external_call():
-        raw = plane._execution_adapter.call(
+    revision = plane.delivery_snapshot_state.revision
+    with plane.delivery_mutation_authority.external_call():
+        raw = plane.delivery_execution_adapter.call(
             "control",
-            plane._inject_delivery.resolver.resolve_invocation_cut,
+            plane.delivery_inject_delivery.resolver.resolve_invocation_cut,
             port.invocation.model_copy(deep=True),
             deepcopy(admission),
-            deepcopy(plane._snapshot),
-            timeout_ms=plane._supervision.admission_ms,
+            deepcopy(plane.delivery_snapshot),
+            timeout_ms=plane.delivery_supervision.admission_ms,
         )
-    port._scope.require_live()
-    plane._reload_derived_state()
-    if plane._snapshot_state.revision != revision:
+    port.delivery_tools_context().scope.require_live()
+    plane.delivery_reload_derived_state()
+    if plane.delivery_snapshot_state.revision != revision:
         raise ConflictError("tool action authority cut changed")
-    if not isinstance(raw, ParticipantControlLiveCut):
-        raise ConflictError("tool action live cut is unavailable")
-    cut = ParticipantControlLiveCut.model_validate(raw.model_dump(mode="json"))
-    delivery = plane._inject_delivery.model.participant_inject_deliveries[
+    cut = plane.delivery_live_cut(raw)
+    delivery = plane.delivery_inject_delivery.model.participant_inject_deliveries[
         port.invocation.delivery.application.delivery_address
     ]
-    require_delivery_control(
-        plane,
+    plane.delivery_require_delivery_control(
         port.invocation.delivery.application,
         delivery,
         cut.effective_order,
-        port._identity,
+        port.delivery_tools_context().identity,
         live_cut=cut,
         request_ref=admission.action_instance_id,
     )
-    behavior = plane._inject_delivery.model.participant_behaviors[port.participant_address]
+    behavior = plane.delivery_inject_delivery.model.participant_behaviors[port.participant_address]
     anchors = set(behavior.authority_anchor_addresses or behavior.authority_anchor_refs)
     if (
         cut.request_ref != admission.action_instance_id
@@ -174,8 +165,12 @@ def prepare_tool_crossing(port, admission, evidence, *, stage):
         or not set(admission.target_addresses) <= set(cut.authorized_scope_refs)
     ):
         raise ConflictError("tool action authority is unavailable")
-    intent = action_crossing_intent(
-        plane, behavior, admission, evidence, port._identity, effective_order=cut.effective_order
+    intent = plane.delivery_action_crossing_intent(
+        behavior,
+        admission,
+        evidence,
+        port.delivery_tools_context().identity,
+        effective_order=cut.effective_order,
     )
     # Admission and dispatch authorize immutable carrier values, not a mutable
     # action-id alias. In particular, dispatch includes newly supplied dwell proof.
@@ -189,34 +184,32 @@ def prepare_tool_crossing(port, admission, evidence, *, stage):
             )
         }
     )
-    crossing = prepare_participant_crossing(
-        plane,
+    crossing = plane.delivery_prepare_participant_crossing(
         intent.model_copy(deep=True),
-        identity=port._identity,
+        identity=port.delivery_tools_context().identity,
         idempotency_key=f"{admission.action_instance_id}:{stage}",
         incumbent_carrier=deepcopy(admission),
     )
     if crossing.intent != intent:
         raise ConflictError("tool action crossing intent was changed")
-    crossing, _, refused = admit_ingress_sinks(
-        plane,
+    crossing, _, refused = plane.delivery_admit_ingress_sinks(
         crossing,
-        sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
+        sink_kind=plane.delivery_action_sink_kind,
         action="admit_participant_tool_action",
     )
     if refused is not None:
         return None, None
-    governed = replace(deepcopy(_governed_action_request(plane, crossing, deepcopy(admission))))
+    governed = replace(deepcopy(plane.delivery_governed_action_request(crossing, deepcopy(admission))))
     # The policy owns a transformed carrier's reference. Its exact digest, kind,
     # contract, participant and episode must still describe the returned carrier.
-    actual_subject = action_subject(plane, governed).model_copy(
+    actual_subject = plane.delivery_action_subject(governed).model_copy(
         update={
             "subject_ref": crossing.governed_subject.subject_ref,
         }
     )
-    _require_governed_subject(crossing, actual_subject)
+    plane.delivery_require_governed_subject(crossing, actual_subject)
     transformed = replace(
-        port._current_request,
+        port.delivery_tools_context().current_request,
         action_contract_address=governed.action_contract_address,
         observation_boundary_address=governed.observation_boundary_address,
         target_addresses=governed.target_addresses,
@@ -233,9 +226,9 @@ def prepare_tool_crossing(port, admission, evidence, *, stage):
         or governed.temporal_evidence != admission.temporal_evidence
     ):
         raise ConflictError("governed tool action binding differs")
-    port._scope.require_live()
+    port.delivery_tools_context().scope.require_live()
     if crossing.intent != intent:
         raise ConflictError("tool action crossing intent was changed")
-    if plane._snapshot_state.revision != revision:
+    if plane.delivery_snapshot_state.revision != revision:
         raise ConflictError("tool action policy cut changed")
     return crossing, governed

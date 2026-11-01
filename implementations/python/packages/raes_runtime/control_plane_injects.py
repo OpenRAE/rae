@@ -19,19 +19,42 @@ from raes_contracts.contracts import (
     inject_occurrence_correlation,
     require_inject_trigger_retry,
 )
+from raes_contracts.contracts.participant_delivery_invocation import ParticipantDeliveryInvocationRequestModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, NotFoundError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.runtime_state import OperationAdmissionContext, OperationKind, OperationReceipt, RuntimeDomain
+from raes_contracts.runtime_state import (
+    OperationAdmissionContext,
+    OperationKind,
+    OperationReceipt,
+    OperationState,
+    OperationStatus,
+    RuntimeDomain,
+)
 
 from .control_plane_execution import OperationExecutionRequest, execute_operation
 from .control_plane_lifecycle import runtime_owned, store_authoritative_state
 from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
-from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode, terminal_operation_audit
 from .inject_capture import InjectCaptureResult
 from .inject_execution import require_inject_plan
+from .participant_control_orchestration import admit_ingress_sinks
+from .participant_control_runtime import ParticipantControlLiveCut
+from .participant_crossing_action import combined_crossing_audit
+from .participant_crossing_commit import commit_prepared_crossing
+from .participant_crossing_intents import action_crossing_intent, action_subject
+from .participant_crossing_mediation import prepare_participant_crossing
+from .participant_crossing_state_cut import expected_participant_history_heads
+from .participant_crossing_transform import governed_action_request, require_governed_subject
+from .participant_delivery_invocation import invoke_delivery
+from .participant_delivery_tools import ParticipantDeliveryInvocationTools
+from .participant_execution_control import InvocationToolActionLedger
+from .participant_flow_sink import ParticipantFlowSinkKind
+from .participant_inject_application import authorized_delivery_binding
+from .participant_inject_control import require_delivery_control
+from .participant_result_contracts import participant_runtime_state_contract_diagnostics
 
 _LOGGER = get_logger(__name__)
 
@@ -58,6 +81,216 @@ def _inject_diagnostic() -> Diagnostic:
 
 
 class RuntimeInjectMixin:
+    def delivery_create_tool_ledger(self, parent):
+        self._require_state_writer()
+        return InvocationToolActionLedger(
+            store=self._store,
+            parent_operation_id=parent.receipt.operation_id,
+            parent_context=parent.receipt.context,
+            engine_admission=self._tool_engine_admission,
+            wall_clock=self.wall_clock,
+        )
+
+    def delivery_commit_invocation_terminal(self, record):
+        return self._commit_terminal_operation(self._snapshot, record, mode=TerminalCommitMode.OPERATION_ONLY)
+
+    def delivery_live_cut(self, raw):
+        if not isinstance(raw, ParticipantControlLiveCut):
+            raise ConflictError("tool action live cut is unavailable")
+        return ParticipantControlLiveCut.model_validate(raw.model_dump(mode="json"))
+
+    @property
+    def delivery_action_sink_kind(self):
+        return ParticipantFlowSinkKind.ACTION_ARGUMENT
+
+    def delivery_authorized_delivery_binding(self, *args, **kwargs):
+        self._require_state_writer()
+        return authorized_delivery_binding(self, *args, **kwargs)
+
+    def delivery_operation_admission_context(self, *args, **kwargs):
+        self._require_state_writer()
+        return operation_admission_context(self, *args, **kwargs)
+
+    def delivery_prepare_participant_crossing(self, *args, **kwargs):
+        self._require_state_writer()
+        return prepare_participant_crossing(self, *args, **kwargs)
+
+    def delivery_action_crossing_intent(self, *args, **kwargs):
+        self._require_state_writer()
+        return action_crossing_intent(self, *args, **kwargs)
+
+    def delivery_action_subject(self, *args, **kwargs):
+        self._require_state_writer()
+        return action_subject(self, *args, **kwargs)
+
+    def delivery_admit_ingress_sinks(self, *args, **kwargs):
+        self._require_state_writer()
+        return admit_ingress_sinks(self, *args, **kwargs)
+
+    def delivery_require_delivery_control(self, *args, **kwargs):
+        self._require_state_writer()
+        return require_delivery_control(self, *args, **kwargs)
+
+    def delivery_governed_action_request(self, *args, **kwargs):
+        self._require_state_writer()
+        return governed_action_request(self, *args, **kwargs)
+
+    def delivery_require_governed_subject(self, *args, **kwargs):
+        self._require_state_writer()
+        return require_governed_subject(*args, **kwargs)
+
+    def delivery_combined_crossing_audit(self, *args, **kwargs):
+        self._require_state_writer()
+        return combined_crossing_audit(*args, **kwargs)
+
+    def delivery_commit_prepared_crossing(self, *args, **kwargs):
+        self._require_state_writer()
+        return commit_prepared_crossing(self, *args, **kwargs)
+
+    def delivery_expected_participant_history_heads(self, *args, **kwargs):
+        self._require_state_writer()
+        return expected_participant_history_heads(*args, **kwargs)
+
+    def delivery_participant_runtime_state_contract_diagnostics(self, *args, **kwargs):
+        self._require_state_writer()
+        return participant_runtime_state_contract_diagnostics(*args, **kwargs)
+
+    def delivery_terminal_operation_audit(self, *args, **kwargs):
+        self._require_state_writer()
+        return terminal_operation_audit(*args, **kwargs)
+
+    def delivery_invocation_record(self, operation_id, now, context, key, invocation):
+        self._require_state_writer()
+        return ControlPlaneOperationRecord(
+            receipt=OperationReceipt(
+                operation_id=operation_id,
+                domain=RuntimeDomain.PARTICIPANT,
+                submitted_at=now,
+                accepted=True,
+                context=context,
+            ),
+            status=OperationStatus(
+                operation_id=operation_id,
+                domain=RuntimeDomain.PARTICIPANT,
+                state=OperationState.RUNNING,
+                submitted_at=now,
+                updated_at=now,
+                context=context,
+            ),
+            request_fingerprint=context.request_commitment,
+            idempotency_key=key,
+            result_payload={
+                "kind": "participant-delivery-invocation/v1",
+                "binding": invocation.model_dump(mode="json"),
+            },
+        )
+
+    @runtime_owned
+    @mutation_entry(OperationKind.COMPOSITION_PHASE)
+    def invoke_participant_delivery(
+        self,
+        request: ParticipantDeliveryInvocationRequestModel,
+        *,
+        identity: ControlPlaneIdentity | None,
+    ) -> OperationReceipt:
+        if not isinstance(request, ParticipantDeliveryInvocationRequestModel):
+            raise TypeError("delivery invocation requires a typed request")
+        request = ParticipantDeliveryInvocationRequestModel.model_validate(request.model_dump(mode="json"))
+        with control_plane_mutation(self, OperationKind.COMPOSITION_PHASE):
+            self._reload_derived_state()
+            return invoke_delivery(self, request, identity)
+
+    def delivery_claim_record(self, *args, **kwargs):
+        """Guarded runtime-owned delivery collaborator operation."""
+        self._require_state_writer()
+        return self._claim_record(*args, **kwargs)
+
+    def delivery_commit_participant_transition(self, *args, **kwargs):
+        """Guarded runtime-owned delivery collaborator operation."""
+        self._require_state_writer()
+        return self._commit_participant_transition(*args, **kwargs)
+
+    def delivery_commit_terminal_operation(self, *args, **kwargs):
+        """Guarded runtime-owned delivery collaborator operation."""
+        self._require_state_writer()
+        return self._commit_terminal_operation(*args, **kwargs)
+
+    @property
+    def delivery_execution_adapter(self):
+        """Read current state for runtime-owned delivery composition."""
+        return self._execution_adapter
+
+    @property
+    def delivery_execution_generation(self):
+        """Read current state for runtime-owned delivery composition."""
+        return self._execution_generation
+
+    @property
+    def delivery_inject_delivery(self):
+        """Read current state for runtime-owned delivery composition."""
+        return self._inject_delivery
+
+    @property
+    def delivery_mutation_authority(self):
+        """Read current state for runtime-owned delivery composition."""
+        self._require_state_writer()
+        return self._mutation_authority
+
+    def delivery_operation_read_allowed(self, *args, **kwargs):
+        """Guarded runtime-owned delivery collaborator operation."""
+        return self._operation_read_allowed(*args, **kwargs)
+
+    @property
+    def delivery_operations(self):
+        """Read current state for runtime-owned delivery composition."""
+        self._require_state_writer()
+        return self._operations
+
+    def delivery_reload_derived_state(self, *args, **kwargs):
+        """Guarded runtime-owned delivery collaborator operation."""
+        self._require_state_writer()
+        return self._reload_derived_state(*args, **kwargs)
+
+    def delivery_require_state_writer(self, *args, **kwargs):
+        """Guarded runtime-owned delivery collaborator operation."""
+        self._require_state_writer()
+        return self._require_state_writer(*args, **kwargs)
+
+    @property
+    def delivery_snapshot(self):
+        """Read current state for runtime-owned delivery composition."""
+        return self._snapshot
+
+    @property
+    def delivery_snapshot_state(self):
+        """Read current state for runtime-owned delivery composition."""
+        return self._snapshot_state
+
+    @property
+    def delivery_store(self):
+        """Read current state for runtime-owned delivery composition."""
+        self._require_state_writer()
+        return self._store
+
+    @property
+    def delivery_supervision(self):
+        """Read current state for runtime-owned delivery composition."""
+        return self._supervision
+
+    @property
+    def delivery_target(self):
+        """Read current state for runtime-owned delivery composition."""
+        return self._target
+
+    def delivery_tool_engine_admission(self, *args, **kwargs):
+        """Guarded runtime-owned delivery collaborator operation."""
+        self._require_state_writer()
+        return self._tool_engine_admission(*args, **kwargs)
+
+    @property
+    def delivery_tool_port_type(self):
+        return ParticipantDeliveryInvocationTools
+
     @runtime_owned
     @mutation_entry(OperationKind.PARTICIPANT_CROSSING)
     def deliver_participant_inject(
