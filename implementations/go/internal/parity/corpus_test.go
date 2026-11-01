@@ -14,13 +14,12 @@ import (
 // skips each command without a runner, so its output reports the commands
 // that the Go implementation does not cover yet.
 func TestCorpus(t *testing.T) {
-	corpus, err := Load(os.DirFS("testdata"))
+	cases, err := Load(os.DirFS("testdata"))
 	if err != nil {
 		t.Fatalf("Load(testdata) error = %v", err)
 	}
-	t.Logf("The corpus has %d cases from Python commit %s.", len(corpus.Cases), corpus.PythonCommit)
 	byKey := map[string][]Case{}
-	for _, c := range corpus.Cases {
+	for _, c := range cases {
 		byKey[c.Key()] = append(byKey[c.Key()], c)
 	}
 	registered := runners()

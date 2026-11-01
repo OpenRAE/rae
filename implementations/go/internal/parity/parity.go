@@ -50,27 +50,19 @@ func (c Case) Key() string {
 // Runner runs a case and returns its result in the recorded JSON form.
 type Runner func(ctx context.Context, c Case) (json.RawMessage, error)
 
-// Corpus is the golden corpus.
-type Corpus struct {
-	// PythonCommit is the last commit that changed the recorded Python implementation.
-	PythonCommit string
-	Cases        []Case
-}
-
-// Load reads the corpus in fsys. It rejects an unknown schema, unknown fields,
-// and an input file whose content does not match its digest.
-func Load(fsys fs.FS) (Corpus, error) {
+// Load returns the cases of the corpus in fsys. It rejects an unknown schema,
+// unknown fields, and an input file whose content does not match its digest.
+func Load(fsys fs.FS) ([]Case, error) {
 	var manifest struct {
-		Schema       string `json:"schema"`
-		PythonCommit string `json:"python_commit"`
+		Schema string `json:"schema"`
 	}
 	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
-		return Corpus{}, err
+		return nil, err
 	}
 	if manifest.Schema != Schema {
-		return Corpus{}, fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
+		return nil, fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
 	}
-	corpus := Corpus{PythonCommit: manifest.PythonCommit}
+	var cases []Case
 	err := fs.WalkDir(fsys, "cases", func(name string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -82,13 +74,13 @@ func Load(fsys fs.FS) (Corpus, error) {
 		if err != nil {
 			return err
 		}
-		corpus.Cases = append(corpus.Cases, c)
+		cases = append(cases, c)
 		return nil
 	})
 	if err != nil {
-		return Corpus{}, err
+		return nil, err
 	}
-	return corpus, nil
+	return cases, nil
 }
 
 func loadCase(fsys fs.FS, name string) (Case, error) {

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	manifest = `{"schema": "raes-parity-corpus/v1", "python_commit": "abc123"}`
+	manifest = `{"schema": "raes-parity-corpus/v1"}`
 	input    = "name: a\n"
 	caseName = "cases/cli/semantic-validate/examples/a.json"
 )
@@ -37,21 +37,18 @@ func TestLoadReadsEachCaseWithItsInputs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	want := Corpus{
-		PythonCommit: "abc123",
-		Cases: []Case{{
-			Name:    "examples/a",
-			Surface: "cli",
-			Command: "semantic validate",
-			Args:    []string{"semantic", "validate", "input.yaml"},
-			Files:   map[string][]byte{"input.yaml": []byte("name: a\n")},
-			Result:  json.RawMessage(`{"exit_code": 0}`),
-		}},
-	}
+	want := []Case{{
+		Name:    "examples/a",
+		Surface: "cli",
+		Command: "semantic validate",
+		Args:    []string{"semantic", "validate", "input.yaml"},
+		Files:   map[string][]byte{"input.yaml": []byte("name: a\n")},
+		Result:  json.RawMessage(`{"exit_code": 0}`),
+	}}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("Load() mismatch (-want +got):\n%s", diff)
 	}
-	if key := got.Cases[0].Key(); key != "cli semantic validate" {
+	if key := got[0].Key(); key != "cli semantic validate" {
 		t.Errorf("Key() = %q, want %q", key, "cli semantic validate")
 	}
 }
