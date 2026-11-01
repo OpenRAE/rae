@@ -1346,7 +1346,7 @@ shipping spine that the SIEM/security-monitoring *manager* half
 (`runtime.network_detection_engines`) cannot shape. Each entry is a
 `RuntimeForwardingAgent` with a stable `forwarding_agent_id`, an open
 `agent_kind` spine discriminator (`log_forwarder`, `content_sync`, `unknown`,
-`other`), and typed children: `sources` (tailed path, API pull, or queue inputs),
+`other`), and typed children: `sources` (tailed path, API pull, queue, or listening-socket inputs),
 `transforms` (`passthrough`/`parse`/`ioc_to_rule`), `ship_targets` (downstream
 event-ingest and/or enrollment endpoints), an optional `buffer_policy`
 (queue/back-pressure posture), `reload_channels` (downstream rule-reload sockets),
