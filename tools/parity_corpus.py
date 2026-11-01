@@ -6,8 +6,7 @@ implementation with it, and after the cutover it stays as a regression suite.
 
 The corpus lives in ``implementations/go/internal/parity/testdata``:
 
-- ``manifest.json`` names the corpus schema and the last commit that changed
-  the Python implementation.
+- ``manifest.json`` names the corpus schema.
 - ``inputs/<sha256>`` holds the bytes of each input file once.
 - ``cases/<surface>/<command>/<sha256 of the name>.json`` holds one recorded
   invocation: its name, surface, command, arguments, input files by digest, and
@@ -29,7 +28,6 @@ import argparse
 import hashlib
 import json
 import shutil
-import subprocess
 import sys
 from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
@@ -49,7 +47,6 @@ from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
-PYTHON_DIR = "implementations/python"
 SCHEMA = "raes-parity-corpus/v1"
 SDL_CONTRACT = "sdl-yaml/v1"
 SDL_COMMANDS = (
@@ -257,28 +254,15 @@ def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]
     }
 
 
-def build_corpus(repo: Path, cases: Iterable[Case], commit: str) -> dict[Path, bytes]:
+def build_corpus(repo: Path, cases: Iterable[Case]) -> dict[Path, bytes]:
     """Record each case and return the corpus files by path."""
 
-    files = {MANIFEST: encode({"schema": SCHEMA, "python_commit": commit})}
+    files = {MANIFEST: encode({"schema": SCHEMA})}
     for case in cases:
         files[case.path] = encode(case_document(case, run(repo, case)))
         for content in case.files.values():
             files[Path("inputs", digest(content))] = content
     return files
-
-
-def python_commit(repo: Path) -> str:
-    """Return the last commit that changed the Python implementation."""
-
-    completed = subprocess.run(
-        ["git", "log", "-1", "--format=%H", "--", PYTHON_DIR],
-        cwd=repo,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return completed.stdout.strip()
 
 
 def read_corpus(root: Path) -> dict[Path, bytes]:
@@ -301,7 +285,7 @@ def write_corpus(root: Path, files: Mapping[Path, bytes]) -> None:
 
 
 def corpus_differences(recorded: Mapping[Path, bytes], committed: Mapping[Path, bytes]) -> list[str]:
-    """Describe each corpus file that differs. The recorded Python commit is provenance, not data."""
+    """Describe each corpus file that differs."""
 
     differences = []
     for path in sorted(set(recorded) | set(committed)):
@@ -309,9 +293,6 @@ def corpus_differences(recorded: Mapping[Path, bytes], committed: Mapping[Path, 
             differences.append(f"missing: {path}")
         elif path not in recorded:
             differences.append(f"unexpected: {path}")
-        elif path == MANIFEST:
-            if json.loads(recorded[path])["schema"] != json.loads(committed[path]).get("schema"):
-                differences.append(f"changed: {path}")
         elif recorded[path] != committed[path]:
             differences.append(f"changed: {path}")
     return differences
@@ -332,7 +313,7 @@ def parse_args(argv: Iterable[str] | None) -> argparse.Namespace:
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv)
     repo = args.repo_root.resolve()
-    recorded = build_corpus(repo, all_cases(repo), python_commit(repo))
+    recorded = build_corpus(repo, all_cases(repo))
     if args.mode == "record":
         write_corpus(repo / CORPUS_DIR, recorded)
         print(f"parity corpus: recorded {len(recorded)} files")
