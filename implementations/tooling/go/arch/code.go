@@ -136,12 +136,13 @@ func (m *Model) addPackage(found map[string]Imports, module Module, pkg *package
 }
 
 // dirOf returns the repository directory of a first-party import path. The
-// longest module path that contains the import path selects the module.
+// innermost module whose path contains the import path owns it.
 func (m *Model) dirOf(importPath string) (string, bool) {
 	var owner *Module
-	for i, module := range m.Modules {
-		if within(importPath, module.Path) && (owner == nil || len(module.Path) > len(owner.Path)) {
-			owner = &m.Modules[i]
+	for i := range m.Modules {
+		module := &m.Modules[i]
+		if within(importPath, module.Path) && (owner == nil || within(module.Path, owner.Path)) {
+			owner = module
 		}
 	}
 	if owner == nil {
