@@ -93,7 +93,7 @@ func TestCheckCodeReportsEachBrokenRule(t *testing.T) {
 	}
 }
 
-func TestDirOfSelectsTheLongestModulePath(t *testing.T) {
+func TestDirOfSelectsTheInnermostModule(t *testing.T) {
 	model := &Model{Modules: []Module{
 		{Dir: "a/b", Path: "example.com/a/b"},
 		{Dir: "a", Path: "example.com/a"},
