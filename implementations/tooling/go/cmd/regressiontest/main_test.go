@@ -139,6 +139,41 @@ func TestRunRefusesARegressionTestInANewPackage(t *testing.T) {
 	}
 }
 
+// A head fixture must reach the base run: a missing fixture would fail the
+// test there and so give false evidence.
+func TestRunReplaysTheTestdataOfTheHead(t *testing.T) {
+	repo := fixtureRepo(t)
+	commit(t, repo, map[string]string{
+		"testdata/two.txt": "2\n",
+		"fixture_test.go": "package m\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc TestRegressionFixture(t *testing.T) {\n" +
+			"\tif _, err := os.ReadFile(\"testdata/two.txt\"); err != nil {\n\t\tt.Fatal(err)\n\t}\n" +
+			"\tif Add(0, 0) != 0 {\n\t\tt.Fatal(\"Add(0, 0) != 0\")\n\t}\n}\n",
+	})
+
+	_, stderr, status := runIn(t, repo)
+
+	if status != 1 || !strings.Contains(stderr, "TestRegressionFixture: passes on the base revision") {
+		t.Errorf("run() = %d with stderr %q, want 1 and a pass on the base revision", status, stderr)
+	}
+}
+
+// Only the files that declare new regression tests reach the base run, so a
+// new test of a new function does not break the base build.
+func TestRunReplaysOnlyTheFilesOfTheRegressionTests(t *testing.T) {
+	repo := fixtureRepo(t)
+	commit(t, repo, map[string]string{
+		"add.go":             fixedAdd + "\nfunc Sub(a, b int) int { return a - b }\n",
+		"sub_test.go":        "package m\n\nimport \"testing\"\n" + regressionTest("TestSub", "Sub(3, 1) != 2"),
+		"regression_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+	})
+
+	stdout, stderr, status := runIn(t, repo)
+
+	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
+		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
+	}
+}
+
 func TestRunAcceptsAChangeWithoutRegressionTests(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{"add.go": fixedAdd})
@@ -209,38 +244,4 @@ func runIn(t *testing.T, repo string) (stdout, stderr string, status int) {
 	var out, errs bytes.Buffer
 	status = run(t.Context(), []string{"-base", "main"}, &out, &errs)
 	return out.String(), errs.String(), status
-}
-
-func TestCopyTestFilesCopiesOnlyTestFiles(t *testing.T) {
-	from, to := t.TempDir(), t.TempDir()
-	for name, content := range map[string]string{"a_test.go": "test", "a.go": "code"} {
-		if err := os.WriteFile(filepath.Join(from, name), []byte(content), 0o600); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := os.Mkdir(filepath.Join(from, "sub_test.go"), 0o750); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := copyTestFiles(from, to); err != nil {
-		t.Fatalf("copyTestFiles() error = %v", err)
-	}
-
-	entries, err := os.ReadDir(to)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(entries) != 1 || entries[0].Name() != "a_test.go" {
-		t.Errorf("copyTestFiles() copied %v, want only a_test.go", entries)
-	}
-}
-
-func TestCopyTestFilesReportsAMissingDirectory(t *testing.T) {
-	existing, missing := t.TempDir(), filepath.Join(t.TempDir(), "missing")
-	if err := copyTestFiles(missing, existing); err == nil {
-		t.Error("copyTestFiles(missing source) error = nil, want an error")
-	}
-	if err := copyTestFiles(existing, missing); err == nil {
-		t.Error("copyTestFiles(missing target) error = nil, want an error")
-	}
 }
