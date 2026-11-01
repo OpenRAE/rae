@@ -129,13 +129,13 @@ The Go code uses these idiomatic forms of contract-based development:
 - A condition goes in an `if` statement, not in the expression of a `case`
   clause. The coverage profile records no block for a `case` expression, so
   gremlins cannot test its mutants.
-- A regression test is a test function whose name starts with `TestRegression`.
-  It must build and fail at the merge base. The `regressiontest` command checks
-  each new regression test. In the base run, the package loses its base test
-  files and testdata. It gets the head test files, pruned to the declarations
-  that the new regression tests need, and the head testdata. Thus a regression
-  test keeps its inputs in testdata, and the code that it needs must build at
-  the merge base.
+- A regression test is a test function whose name starts with `TestRegression`,
+  in a file whose name ends with `_regression_test.go`. That file holds the
+  helpers that its tests need, and its fixtures are in testdata. Each new
+  regression test must build and fail at the merge base, and the
+  `regressiontest` command checks it. In the base run, the package keeps none of
+  its base test files or testdata. It gets the regression test files and the
+  testdata of the head commit.
 - Full test, mutation, and fuzz suites run in CI only. Local runs stay targeted.
 
 ### 8. Dependencies

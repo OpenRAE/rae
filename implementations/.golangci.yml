@@ -48,8 +48,6 @@ linters:
             - golang.org/x/tools/go/analysis
             - golang.org/x/tools/go/ast/inspector
             - golang.org/x/tools/go/types/typeutil
-            # The import pruning of the regressiontest replay.
-            - golang.org/x/tools/go/ast/astutil
           deny:
             - pkg: math/rand
               desc: use crypto/rand, or the governed random streams for reproducible values

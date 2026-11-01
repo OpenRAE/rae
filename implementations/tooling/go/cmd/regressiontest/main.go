@@ -1,16 +1,18 @@
 // Command regressiontest checks that each new regression test fails on the base
 // revision.
 //
-// A regression test is a test function whose name starts with TestRegression.
-// For each such test that the current commit adds to a Go module, the command
-// runs the test against the module at the merge base with the base revision.
-// The test must build there and fail. The ordinary test lane shows that it
-// passes on the current commit.
+// A regression test is a test function whose name starts with TestRegression,
+// in a file whose name ends with _regression_test.go. That file holds the
+// helpers that its tests need, and its fixtures are in testdata. For each
+// regression test that the current commit adds to a package, the command runs
+// the test against the package at the merge base with the base revision. The
+// test must build there and fail. The ordinary test lane shows that it passes
+// on the current commit.
 //
-// In the base checkout, the package of the tests loses its base test files and
-// testdata. It gets the head test files, pruned to the declarations that the
-// new regression tests need, and the head testdata. Thus base and head test
-// code never mix, and another new test cannot change the outcome.
+// In the base run, the package keeps none of its base test files or testdata.
+// It gets the regression test files and the testdata of the head commit. Thus
+// base and head test code never mix, and another new test cannot change the
+// outcome.
 //
 // Run the command from the root directory of a Go module:
 //
@@ -31,13 +33,24 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
 )
 
-const testPrefix = "TestRegression"
+const (
+	testPrefix = "TestRegression"
+	fileSuffix = "_regression_test.go"
+)
+
+// replay holds the new regression tests of one package and the regression
+// test files of the package at the head commit.
+type replay struct {
+	names []string
+	files []string
+}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -74,7 +87,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-// check counts the new regression tests and returns one message for each that does not fail on the base revision.
+// check counts the new regression tests and returns one message for each that
+// is misplaced or does not fail on the base revision.
 func check(ctx context.Context, base string) (int, []string, error) {
 	root, err := git(ctx, ".", "rev-parse", "--show-toplevel")
 	if err != nil {
@@ -88,17 +102,17 @@ func check(ctx context.Context, base string) (int, []string, error) {
 	if err != nil {
 		return 0, nil, err
 	}
-	added, err := addedTests(ctx, root, mergeBase, module)
+	added, misplaced, err := addedTests(ctx, root, mergeBase, module)
 	if err != nil || len(added) == 0 {
-		return 0, nil, err
+		return 0, misplaced, err
 	}
 	head, err := git(ctx, root, "rev-parse", "HEAD")
 	if err != nil {
 		return 0, nil, err
 	}
 	count := 0
-	for _, names := range added {
-		count += len(names)
+	for _, tests := range added {
+		count += len(tests.names)
 	}
 	worktree, err := os.MkdirTemp("", "regressiontest-")
 	if err != nil {
@@ -113,7 +127,7 @@ func check(ctx context.Context, base string) (int, []string, error) {
 		return 0, nil, err
 	}
 	failures, err := runOnBase(ctx, worktree, head, added)
-	return count, failures, err
+	return count, slices.Concat(misplaced, failures), err
 }
 
 // moduleDir returns the module directory, the working directory, relative to the repository root.
@@ -132,11 +146,12 @@ func moduleDir(root string) (string, error) {
 // addedTests maps each package directory with a changed test file to the
 // regression tests that the package declares at the head commit and not at
 // the merge base. A test that moves between files of its package is thus not
-// new, and a renamed file keeps its new tests.
-func addedTests(ctx context.Context, root, mergeBase, module string) (map[string][]string, error) {
+// new, and a renamed file keeps its new tests. It also describes each head
+// regression test outside a regression test file.
+func addedTests(ctx context.Context, root, mergeBase, module string) (map[string]*replay, []string, error) {
 	changed, err := git(ctx, root, "diff", "--name-only", "--no-renames", mergeBase, "HEAD", "--", module)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	dirs := map[string]bool{}
 	for file := range strings.SplitSeq(changed, "\n") {
@@ -144,55 +159,78 @@ func addedTests(ctx context.Context, root, mergeBase, module string) (map[string
 			dirs[filepath.Dir(file)] = true
 		}
 	}
-	added := make(map[string][]string)
-	for dir := range dirs {
-		existing, err := regressionTests(ctx, root, mergeBase, dir)
+	added := map[string]*replay{}
+	var misplaced []string
+	for _, dir := range slices.Sorted(maps.Keys(dirs)) {
+		tests, wrong, err := packageReplay(ctx, root, mergeBase, dir)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		current, err := regressionTests(ctx, root, "HEAD", dir)
-		if err != nil {
-			return nil, err
-		}
-		for _, name := range slices.Sorted(maps.Keys(current)) {
-			if !existing[name] {
-				added[dir] = append(added[dir], name)
-			}
+		misplaced = append(misplaced, wrong...)
+		if len(tests.names) > 0 {
+			added[dir] = tests
 		}
 	}
-	return added, nil
+	return added, misplaced, nil
 }
 
-// regressionTests returns the set of regression tests that the test files of
-// the package in dir declare at rev. A file that does not parse declares no
-// test: the build of its package fails anyway.
-func regressionTests(ctx context.Context, root, rev, dir string) (map[string]bool, error) {
+// packageReplay returns the replay of the package in dir, and describes each
+// head regression test outside a regression test file.
+func packageReplay(ctx context.Context, root, mergeBase, dir string) (*replay, []string, error) {
+	existing, _, err := regressionTests(ctx, root, mergeBase, dir)
+	if err != nil {
+		return nil, nil, err
+	}
+	current, files, err := regressionTests(ctx, root, "HEAD", dir)
+	if err != nil {
+		return nil, nil, err
+	}
+	tests := &replay{files: files}
+	var misplaced []string
+	for _, name := range slices.Sorted(maps.Keys(current)) {
+		if !strings.HasSuffix(current[name], fileSuffix) {
+			misplaced = append(misplaced, fmt.Sprintf("%s: %s declares it; a regression test belongs in a file whose name ends with %s", name, current[name], fileSuffix))
+			continue
+		}
+		if _, old := existing[name]; !old {
+			tests.names = append(tests.names, name)
+		}
+	}
+	return tests, misplaced, nil
+}
+
+// regressionTests maps each regression test that the test files of the package
+// in dir declare at rev to its file, and lists the regression test files. A
+// file that does not parse declares no test: the build of its package fails
+// anyway.
+func regressionTests(ctx context.Context, root, rev, dir string) (map[string]string, []string, error) {
 	listed, err := git(ctx, root, "ls-tree", "--name-only", rev, "--", filepath.ToSlash(dir)+"/")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	tests := map[string]bool{}
+	tests := map[string]string{}
+	var files []string
 	for file := range strings.SplitSeq(listed, "\n") {
 		if !strings.HasSuffix(file, "_test.go") {
 			continue
 		}
+		if strings.HasSuffix(file, fileSuffix) {
+			files = append(files, file)
+		}
 		source, err := git(ctx, root, "show", rev+":"+file)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		names, _ := findRegressionTests(file, []byte(source))
 		for _, name := range names {
-			tests[name] = true
+			tests[name] = file
 		}
 	}
-	return tests, nil
+	return tests, files, nil
 }
 
 // findRegressionTests returns the names of the top-level regression test functions in a Go source file.
 func findRegressionTests(path string, source []byte) ([]string, error) {
-	if len(source) == 0 {
-		return nil, nil
-	}
 	file, err := parser.ParseFile(token.NewFileSet(), path, source, parser.SkipObjectResolution)
 	if err != nil {
 		return nil, err
@@ -209,25 +247,53 @@ func findRegressionTests(path string, source []byte) ([]string, error) {
 
 // runOnBase prepares the replay of the new regression tests of each package in
 // the base checkout, and runs each test there.
-func runOnBase(ctx context.Context, worktree, head string, added map[string][]string) ([]string, error) {
+func runOnBase(ctx context.Context, worktree, head string, added map[string]*replay) ([]string, error) {
 	var failures []string
 	for _, dir := range slices.Sorted(maps.Keys(added)) {
-		if _, err := os.Stat(filepath.Join(worktree, dir)); err != nil {
-			for _, name := range added[dir] {
+		target := filepath.Join(worktree, dir)
+		if _, err := os.Stat(target); err != nil {
+			for _, name := range added[dir].names {
 				failures = append(failures, fmt.Sprintf("%s: package %s does not exist on the base revision", name, dir))
 			}
 			continue
 		}
-		if err := restoreReplay(ctx, worktree, head, dir, added[dir]); err != nil {
+		if err := restoreReplay(ctx, worktree, head, dir, added[dir].files); err != nil {
 			return nil, err
 		}
-		for _, name := range added[dir] {
-			if failure := baseOutcome(ctx, filepath.Join(worktree, dir), name); failure != "" {
+		for _, name := range added[dir].names {
+			if failure := baseOutcome(ctx, target, name); failure != "" {
 				failures = append(failures, failure)
 			}
 		}
 	}
 	return failures, nil
+}
+
+// restoreReplay removes the test files and the testdata of the base package in
+// dir. It then restores the regression test files and the testdata of the head
+// commit.
+func restoreReplay(ctx context.Context, worktree, head, dir string, files []string) error {
+	target := filepath.Join(worktree, dir)
+	baseFiles, err := filepath.Glob(filepath.Join(target, "*_test.go"))
+	if err != nil {
+		return err
+	}
+	for _, file := range append(baseFiles, filepath.Join(target, "testdata")) {
+		if err = os.RemoveAll(file); err != nil {
+			return err
+		}
+	}
+	testdata := path.Join(filepath.ToSlash(dir), "testdata")
+	listed, err := git(ctx, worktree, "ls-tree", "--name-only", head, "--", testdata)
+	if err != nil {
+		return err
+	}
+	paths := slices.Clone(files)
+	if listed != "" {
+		paths = append(paths, testdata)
+	}
+	_, err = git(ctx, worktree, append([]string{"restore", "--source=" + head, "--worktree", "--"}, paths...)...)
+	return err
 }
 
 // baseOutcome runs one test in a base package directory and describes a wrong outcome.
