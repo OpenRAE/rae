@@ -17,6 +17,7 @@ from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.gitleaks_tool import ensure_gitleaks
 from tools.nox_support.config import (
+    CHANGED_MODULE_PYTEST_CODES,
     COVERAGE_JSON_PATH,
     COVERAGE_XML_PATH,
     EXCLUDED_PREFIXES,
@@ -173,6 +174,32 @@ def _run_ruff(session: nox.Session, *args: str, project_relative: bool = False) 
     _run(session, *command, "--config", str(RUFF_CONFIG), *args)
 
 
+_PYTEST_COMMAND = ("uv", "run", "--frozen", "python", "-m", "pytest")
+
+
+def _project_test_args(args: Sequence[str]) -> list[str]:
+    """Make repository-relative test paths relative to the Python project."""
+
+    return [
+        str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
+        for arg in args
+    ]
+
+
+def _run_changed_test_modules(session: nox.Session, modules: Sequence[str]) -> None:
+    """Run directly changed test modules, accepting a module whose tests all belong to another lane."""
+
+    _sync_project(session)
+    with session.chdir(PROJECT_ROOT):
+        _run(
+            session,
+            *_PYTEST_COMMAND,
+            *_project_test_args(modules),
+            "-q",
+            success_codes=CHANGED_MODULE_PYTEST_CODES,
+        )
+
+
 def _run_pytest(
     session: nox.Session,
     *args: str,
@@ -181,16 +208,12 @@ def _run_pytest(
     finalize_coverage: bool = False,
     xdist: str | None = None,
     extra_env: dict[str, str] | None = None,
-    success_codes: Sequence[int] | None = None,
 ) -> None:
     """Run pytest in the project; `xdist` names the worker distribution, None runs one process."""
 
     _sync_project(session)
-    normalized_args = [
-        str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
-        for arg in args
-    ]
-    command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
+    normalized_args = _project_test_args(args)
+    command = list(_PYTEST_COMMAND)
     if xdist is not None:
         command.extend(["-n", "auto", "--maxprocesses=8", f"--dist={xdist}"])
     coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
@@ -201,7 +224,7 @@ def _run_pytest(
             command.append("--cov-append")
     command.extend(normalized_args)
     with session.chdir(PROJECT_ROOT):
-        _run(session, *command, env=coverage_env, success_codes=success_codes)
+        _run(session, *command, env=coverage_env)
         if finalize_coverage:
             _write_and_check_coverage(session, coverage_env)
 

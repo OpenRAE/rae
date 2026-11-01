@@ -31,7 +31,6 @@ from raes_contracts.errors import InvalidInputError
 from tools.nox_support.compatibility_lanes import _run_python_compatibility
 from tools.nox_support.machine_check_lane import run_machine_check
 from tools.nox_support.config import (
-    CHANGED_MODULE_PYTEST_CODES,
     CONTRACT_TRIGGER_PREFIXES,
     COVERAGE_REDUCE_DIR_ENV,
     FULL_TEST_TRIGGER_PREFIXES,
@@ -60,6 +59,7 @@ from tools.nox_support.runner import (
     SessionReporter,
     _paths_trigger,
     _requirement_aware_policy_args,
+    _run_changed_test_modules,
     _run_pytest,
     _sync_project,
 )
@@ -276,7 +276,7 @@ def hook_pre_commit(session: nox.Session) -> None:
         if changed_tests:
             reporter.run(
                 "tests / directly changed pytest modules",
-                lambda: _run_pytest(session, *changed_tests, "-q", success_codes=CHANGED_MODULE_PYTEST_CODES),
+                lambda: _run_changed_test_modules(session, changed_tests),
                 detail=" ".join(changed_tests),
             )
         elif _paths_trigger(changed, FULL_TEST_TRIGGER_PREFIXES):
