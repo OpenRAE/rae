@@ -204,7 +204,7 @@ func packageReplay(ctx context.Context, root, mergeBase, dir string) (*replay, [
 // file that does not parse declares no test: the build of its package fails
 // anyway.
 func regressionTests(ctx context.Context, root, rev, dir string) (map[string]string, []string, error) {
-	listed, err := git(ctx, root, "ls-tree", "--name-only", rev, "--", filepath.ToSlash(dir)+"/")
+	listed, err := listTree(ctx, root, rev, filepath.ToSlash(dir)+"/")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -284,7 +284,7 @@ func restoreReplay(ctx context.Context, worktree, head, dir string, files []stri
 		}
 	}
 	testdata := path.Join(filepath.ToSlash(dir), "testdata")
-	listed, err := git(ctx, worktree, "ls-tree", "--name-only", head, "--", testdata)
+	listed, err := listTree(ctx, worktree, head, testdata)
 	if err != nil {
 		return err
 	}
@@ -310,6 +310,11 @@ func baseOutcome(ctx context.Context, dir, name string) string {
 		return ""
 	}
 	return name + ": does not build or run on the base revision; a regression test must fail there\n" + string(output)
+}
+
+// listTree returns the names of the entries of rev under name, one on each line.
+func listTree(ctx context.Context, dir, rev, name string) (string, error) {
+	return git(ctx, dir, "ls-tree", "--name-only", rev, "--", name)
 }
 
 // git runs a git command in dir and returns its trimmed standard output.
