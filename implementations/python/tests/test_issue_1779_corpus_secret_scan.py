@@ -18,7 +18,7 @@ def test_corpus_vector_exception_preserves_secret_detection(tmp_path: Path) -> N
     vector = '"stream_key_hex": "' + "0123456789abcdef" * 4 + '"\n'
     generic_canary = "Ab9x" + "Q7mR" + "4vN2" + "kL8p" + "W6zT"
     corpus_input.write_text(vector + f'"api_key": "{generic_canary}"\n', encoding="utf-8")
-    elsewhere = scan / "implementations/go/internal/parity/testdata/other.json"
+    elsewhere = scan / "implementations/go/internal/parity/other.json"
     elsewhere.write_text(vector, encoding="utf-8")
     report = tmp_path / "report.json"
     # The installer belongs to the frozen tooling closure, not the runtime's
