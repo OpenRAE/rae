@@ -2,7 +2,9 @@ package arch
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"go/build"
 	"io/fs"
 	"maps"
 	"os"
@@ -12,7 +14,6 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
-	"golang.org/x/tools/go/packages"
 )
 
 // Code is the Go code in the repository.
@@ -34,8 +35,10 @@ type Imports struct {
 	External []string
 }
 
-// LoadCode finds the Go modules of the repository at root and loads the
-// packages of each module that the model declares.
+// LoadCode finds the Go modules of the repository at root and reads the
+// imports of each package of each module that the model declares. It reads
+// each Go file whatever its build constraints, so the code of each platform
+// and build tag meets the model.
 func LoadCode(ctx context.Context, root string, model *Model) (Code, error) {
 	modules, err := findModules(os.DirFS(root))
 	if err != nil {
@@ -46,20 +49,8 @@ func LoadCode(ctx context.Context, root string, model *Model) (Code, error) {
 		if modules[module.Dir] != module.Path {
 			continue // CheckCode reports the missing or different module.
 		}
-		config := &packages.Config{
-			Context: ctx,
-			Dir:     filepath.Join(root, filepath.FromSlash(module.Dir)),
-			Mode:    packages.NeedName | packages.NeedImports,
-			Tests:   true,
-		}
-		loaded, err := packages.Load(config, "./...")
-		if err != nil {
-			return Code{}, fmt.Errorf("load %s: %w", module.Dir, err)
-		}
-		for _, pkg := range loaded {
-			if err := model.addPackage(code.Packages, module, pkg); err != nil {
-				return Code{}, err
-			}
+		if err := model.readModule(ctx, root, module.Dir, modules, code.Packages); err != nil {
+			return Code{}, err
 		}
 	}
 	for dir, imports := range code.Packages {
@@ -69,6 +60,33 @@ func LoadCode(ctx context.Context, root string, model *Model) (Code, error) {
 		code.Packages[dir] = imports
 	}
 	return code, nil
+}
+
+// readModule records the imports of each package of the module in dir. It
+// leaves out the directories that the go command ignores and nested modules.
+func (m *Model) readModule(ctx context.Context, root, dir string, modules map[string]string, found map[string]Imports) error {
+	reader := build.Default
+	reader.UseAllFiles = true
+	return fs.WalkDir(os.DirFS(root), dir, func(name string, entry fs.DirEntry, err error) error {
+		if err != nil || !entry.IsDir() {
+			return err
+		}
+		if _, nested := modules[name]; name != dir && (nested || ignoredDir(entry.Name())) {
+			return fs.SkipDir
+		}
+		if err = ctx.Err(); err != nil {
+			return err
+		}
+		pkg, err := reader.ImportDir(filepath.Join(root, filepath.FromSlash(name)), 0)
+		if _, empty := errors.AsType[*build.NoGoError](err); empty {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("load %s: %w", name, err)
+		}
+		m.addPackage(found, name, pkg)
+		return nil
+	})
 }
 
 // findModules maps the directory of each go.mod file in the repository to the
@@ -82,7 +100,7 @@ func findModules(repo fs.FS) (map[string]string, error) {
 			return err
 		}
 		if entry.IsDir() {
-			if name != "." && (entry.Name() == "testdata" || strings.ContainsAny(entry.Name()[:1], "._")) {
+			if name != "." && ignoredDir(entry.Name()) {
 				return fs.SkipDir
 			}
 			return nil
@@ -100,39 +118,31 @@ func findModules(repo fs.FS) (map[string]string, error) {
 	return modules, err
 }
 
-// addPackage records the imports of a package of module, or of a test variant
-// of the package. It skips the generated test main packages and the packages
-// that a test recompiles, because their files belong to other packages.
-func (m *Model) addPackage(found map[string]Imports, module Module, pkg *packages.Package) error {
-	if len(pkg.Errors) > 0 {
-		return fmt.Errorf("load %s: %w", pkg.ID, pkg.Errors[0])
-	}
-	owner := strings.TrimSuffix(pkg.PkgPath, "_test")
-	isTest := pkg.ID != pkg.PkgPath
-	if strings.HasSuffix(pkg.ID, ".test") || isTest && !strings.HasSuffix(pkg.ID, " ["+owner+".test]") {
-		return nil
-	}
-	dir := module.Dir + strings.TrimPrefix(owner, module.Path)
+// ignoredDir reports whether the go command ignores a directory with this
+// name: testdata, and each name that starts with a dot or an underscore.
+func ignoredDir(name string) bool {
+	return name == "testdata" || strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_")
+}
+
+// addPackage records the imports of the package in dir and of its tests.
+func (m *Model) addPackage(found map[string]Imports, dir string, pkg *build.Package) {
 	imports := found[dir]
-	for importPath := range pkg.Imports {
-		target, firstParty := m.dirOf(importPath)
-		if !firstParty {
-			if !isStandard(importPath) {
+	add := func(list *[]string, importPaths []string) {
+		for _, importPath := range importPaths {
+			target, firstParty := m.dirOf(importPath)
+			if !firstParty && !isStandard(importPath) {
 				imports.External = append(imports.External, importPath)
 			}
-			continue
-		}
-		if target == dir {
-			continue // An external test imports the package under test.
-		}
-		if isTest {
-			imports.Test = append(imports.Test, target)
-		} else {
-			imports.Code = append(imports.Code, target)
+			// An external test imports the package under test.
+			if firstParty && target != dir {
+				*list = append(*list, target)
+			}
 		}
 	}
+	add(&imports.Code, pkg.Imports)
+	add(&imports.Test, pkg.TestImports)
+	add(&imports.Test, pkg.XTestImports)
 	found[dir] = imports
-	return nil
 }
 
 // dirOf returns the repository directory of a first-party import path. The

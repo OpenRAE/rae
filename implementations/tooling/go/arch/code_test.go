@@ -178,6 +178,33 @@ func TestLoadCodeRecordsTheImportsOfEachPackageAndItsTests(t *testing.T) {
 	}
 }
 
+// The check reads the files of each platform and build tag, and leaves out a
+// nested module and a directory without Go files.
+func TestLoadCodeReadsEachBuildConfiguration(t *testing.T) {
+	root := writeTree(t, map[string]string{
+		"m/go.mod":          "module example.com/m\n\ngo 1.27\n",
+		"m/a/a.go":          "package a\n",
+		"m/a/a_windows.go":  "package a\n\nimport _ \"example.com/m/b\"\n",
+		"m/a/tagged.go":     "//go:build integration\n\npackage a\n\nimport _ \"example.com/m/c\"\n",
+		"m/b/b.go":          "package b\n",
+		"m/c/c.go":          "package c\n",
+		"m/docs/readme.md":  "no Go files\n",
+		"m/nested/go.mod":   "module example.com/nested\n\ngo 1.27\n",
+		"m/nested/n/n.go":   "package n\n\nimport _ \"example.com/m/b\"\n",
+		"m/_skip/s.go":      "package s\n",
+		"m/a/testdata/t.go": "package t\n",
+	})
+	model := &Model{Modules: []Module{{Dir: "m", Path: "example.com/m"}}}
+	got, err := LoadCode(t.Context(), root, model)
+	if err != nil {
+		t.Fatalf("LoadCode() error = %v", err)
+	}
+	want := map[string]Imports{"m/a": {Code: []string{"m/b", "m/c"}}, "m/b": {}, "m/c": {}}
+	if diff := cmp.Diff(want, got.Packages); diff != "" {
+		t.Errorf("LoadCode() packages mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestLoadCodeReportsAFailure(t *testing.T) {
 	model := &Model{Modules: []Module{{Dir: "m", Path: "example.com/m"}}}
 	tests := map[string]struct {

@@ -106,8 +106,9 @@ declared modules. A standard library path has no dot in its first element.
 `archcheck` runs from the repository root. It reads the model and checks the
 rules that need only the model: ARCH-001 to ARCH-004 and the entries of
 ARCH-008. With `-design`, it stops after these rules. Without `-design`, it also
-checks the rule table of this ADR and the code. It loads each declared module
-with `golang.org/x/tools/go/packages`, test files included.
+checks the rule table of this ADR and the code. It reads the imports of each Go
+file of each declared module with `go/build`, test files included. It ignores
+build constraints, so the code of each platform and build tag meets the model.
 
 Each finding names the rule and the location, and it states the change that
 fixes it. For example:
