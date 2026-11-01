@@ -66,6 +66,9 @@ from typer.testing import CliRunner  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
 SCHEMA = "raes-parity-corpus/v1"
+JSON_FILES = "*.json"
+# The input file of each canonical case.
+CANONICAL_VALUE = "value.json"
 SDL_CONTRACT = "sdl-yaml/v1"
 SDL_COMMANDS = (
     "parse",
@@ -192,7 +195,7 @@ def contract_fixtures(repo: Path, contracts: Iterable[str]) -> Iterator[tuple[st
     for contract in sorted(contracts):
         for directory in sorted(path for path in root.rglob(contract) if path.is_dir()):
             for kind in ("valid", "invalid"):
-                for fixture in sorted((directory / kind).glob("*.json")):
+                for fixture in sorted((directory / kind).glob(JSON_FILES)):
                     yield contract, fixture
 
 
@@ -221,7 +224,7 @@ def supported_contracts() -> list[str]:
 def schema_cases(repo: Path) -> Iterator[Case]:
     """Yield the schema verdict for each fixture of each published contract."""
 
-    contracts = sorted(path.stem for path in (repo / PUBLICATION_ENTRIES).glob("*.json"))
+    contracts = sorted(path.stem for path in (repo / PUBLICATION_ENTRIES).glob(JSON_FILES))
     for contract, fixture in contract_fixtures(repo, contracts):
         yield Case(
             surface="schema",
@@ -235,14 +238,14 @@ def schema_cases(repo: Path) -> Iterator[Case]:
 def canonical_cases(repo: Path) -> Iterator[Case]:
     """Yield the canonical encodings of each JSON fixture and each edge input."""
 
-    for fixture in sorted((repo / "contracts" / "fixtures").rglob("*.json")):
+    for fixture in sorted((repo / "contracts" / "fixtures").rglob(JSON_FILES)):
         name = fixture.relative_to(repo).with_suffix("").as_posix()
         yield Case(
             surface="canonical",
             command="encode",
             name=name,
             args=(),
-            files={"value.json": fixture.read_bytes()},
+            files={CANONICAL_VALUE: fixture.read_bytes()},
         )
     for index, text in enumerate(CANONICAL_EDGE_TEXTS):
         yield Case(
@@ -250,7 +253,7 @@ def canonical_cases(repo: Path) -> Iterator[Case]:
             command="encode",
             name=f"edge/{index:02d}",
             args=(),
-            files={"value.json": (text + "\n").encode()},
+            files={CANONICAL_VALUE: (text + "\n").encode()},
         )
 
 
@@ -322,20 +325,20 @@ def _reject_constant(constant: str) -> object:
 def run_canonical(case: Case) -> dict[str, object]:
     """Return the digest of each canonical encoding of a JSON value, or ``None`` when it refuses."""
 
-    try:
-        value = json.loads(case.files["value.json"], parse_constant=_reject_constant)
-    except ValueError:
-        value = ValueError
     encoders = {
         "jcs": canonical_json_bytes,
         "sorted_ascii": lambda value: sorted_json_text_finite(value).encode(),
         "sorted_unicode": lambda value: sorted_json_text_unicode_finite(value).encode(),
     }
+    try:
+        value = json.loads(case.files[CANONICAL_VALUE], parse_constant=_reject_constant)
+    except ValueError:
+        return dict.fromkeys(encoders)
     result: dict[str, object] = {}
     for form, encode_value in encoders.items():
         try:
-            result[form] = None if value is ValueError else sha256_digest(encode_value(value))
-        except ValueError, TypeError, UnicodeError:
+            result[form] = sha256_digest(encode_value(value))
+        except ValueError, TypeError:
             result[form] = None
     return result
 
