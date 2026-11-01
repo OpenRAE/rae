@@ -109,7 +109,12 @@ jobs:
             proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
             --locator-ref official-isabelle-release
       - name: Save the verified proof archive
-        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        # Only a protected-branch push of the checked-out commit writes the
+        # cache. Pull request and dispatched runs only restore a verified copy.
+        if: >-
+          steps.isabelle-cache.outputs.cache-hit != 'true'
+          && github.event_name == 'push'
+          && inputs.ref == github.sha
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .canonical-tool-inputs/archives/isabelle
