@@ -122,8 +122,10 @@ The Go code uses these idiomatic forms of contract-based development:
 - CI runs the tests with the race detector.
 - The statement coverage of each module is at least 90%, the ADR-103 floor.
 - CI runs gremlins on the lines changed since the merge base with the base
-  revision. Test efficacy and mutant coverage must each be above 90%. A change
-  without mutants passes. Mutation testing runs in CI only.
+  revision. Each mutant must be killed or time out, so test efficacy and mutant
+  coverage are each 100%. `implementations/.gremlins.yaml` holds the
+  thresholds, because gremlins ignores a threshold flag of its command line. A
+  change without mutants passes. Mutation testing runs in CI only.
 - A condition goes in an `if` statement, not in the expression of a `case`
   clause. The coverage profile records no block for a `case` expression, so
   gremlins cannot test its mutants.

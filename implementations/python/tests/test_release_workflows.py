@@ -1648,10 +1648,13 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         'go vet -vettool="$(command -v raesvet)" ./...',
         "go test -race -covermode=atomic -coverprofile=cover.out ./...",
         "exit !(total >= 90)",
-        'gremlins unleash --diff "${MERGE_BASE}" --threshold-efficacy 90 --threshold-mcover 90',
+        'gremlins unleash --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"',
         'regressiontest -base "${MERGE_BASE}"',
     ):
         assert command in scripts, command
     mutation = next(step for step in go["steps"] if "gremlins unleash" in step.get("run", ""))
     assert mutation["env"]["GIT_CONFIG_KEY_0"] == "diff.relative"
     assert mutation["env"]["GIT_CONFIG_VALUE_0"] == "true"
+    # Gremlins ignores a threshold flag, so the thresholds are numbers in its configuration file.
+    gremlins = yaml.safe_load((REPO_ROOT / "implementations" / ".gremlins.yaml").read_text(encoding="utf-8"))
+    assert gremlins == {"unleash": {"threshold": {"efficacy": 99.99, "mutant-coverage": 99.99}}}
