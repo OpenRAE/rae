@@ -57,7 +57,10 @@ class RuntimeIdentityResourceScope(SDLModel):
             "x-raes-invariants": [
                 {
                     "id": "cloud-audit-scope-uniqueness",
-                    "description": "Audit log IDs and native service/log-type pairs must each be unique within their resource scope.",
+                    "description": (
+                        "Audit log IDs and native service/log-type pairs must each be unique "
+                        "within their resource scope."
+                    ),
                     "level": "error",
                     "validator": "raes.scenario.Scenario.model_validate",
                     "inputs": [

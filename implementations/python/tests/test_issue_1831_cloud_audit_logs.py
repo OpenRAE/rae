@@ -63,8 +63,9 @@ def test_exemptions_require_exact_subjects(ref):
 
     raw = audit_scenario()
     authority(raw)["resource_scopes"][0]["audit_logs"][0]["exempted_principal_refs"] = [ref]
+    serialized = json.dumps(raw)
     with pytest.raises(SDLValidationError, match="audit exemption"):
-        parse_sdl(json.dumps(raw))
+        parse_sdl(serialized)
 
 
 def test_repeated_imports_preserve_native_names_and_rewrite_exemptions(tmp_path):
@@ -264,8 +265,9 @@ def test_portable_audit_record_rejects_invalid_values(invalid):
         rule["exempted_principal_refs"] = [" "]
     else:
         rule["service" if invalid == "blank-service" else "log_type"] = " \t"
+    validator = Draft202012Validator(RuntimeIdentityAuditLog.model_json_schema())
     with pytest.raises(SchemaError):
-        Draft202012Validator(RuntimeIdentityAuditLog.model_json_schema()).validate(rule)
+        validator.validate(rule)
 
 
 def test_scope_uniqueness_has_a_callable_portable_invariant():
