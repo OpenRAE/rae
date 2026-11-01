@@ -1,5 +1,6 @@
 """Integrated regression anchors for progressive specification (issue #1211)."""
 
+import re
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
@@ -173,7 +174,8 @@ def test_private_five_linux_authoring_survives_the_semantic_lifecycle() -> None:
         for item in compiled.realization_requirements
         if item.address == "provision.node.private" and item.requirement_kind == "runtime-applications"
     )
-    methods = requirement.constraint_document.root.items[0].fields["routes"].items[0].fields["methods"]
+    application = requirement.constraint_document.root.members[0].constraint
+    methods = application.fields["routes"].members[0].constraint.fields["methods"]
     assert [item.value for item in methods.items] == ["PROPFIND", "PrivateQuery", "privateQuery"]
     assert compiled.observation_demands == ()
 
@@ -194,9 +196,13 @@ def test_open_parents_keep_exact_siblings_and_do_not_invent_observation() -> Non
 
     applications = by_key[("provision.node.private", "runtime-applications")]
     assert applications.explicitness is ExplicitnessClass.OPEN
-    route_scope = next(
-        scope for scope in applications.constraint_document.scopes if scope.field_pointer == "/0/routes/0"
-    )
+    route_scopes = [
+        scope
+        for scope in applications.constraint_document.scopes
+        if re.fullmatch(r"/@sha256:[0-9a-f]{64}/routes/@sha256:[0-9a-f]{64}", scope.field_pointer)
+    ]
+    assert len(route_scopes) == 1
+    route_scope = route_scopes[0]
     assert route_scope.closure.posture.value == "open"
     assert compiled.observation_demands == ()
     assert compiled.action_contracts == {}

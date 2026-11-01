@@ -22151,6 +22151,71 @@
       "title": "RuntimeIdentityAttribute",
       "type": "object"
     },
+    "RuntimeIdentityAuditLog": {
+      "additionalProperties": false,
+      "description": "Required native recording for one service and log type on a scope.",
+      "properties": {
+        "audit_log_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Audit Log Id",
+          "type": "string"
+        },
+        "exempted_principal_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Exempted Principal Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "log_type": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Log Type",
+          "type": "string"
+        },
+        "service": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_log_id",
+        "service",
+        "log_type"
+      ],
+      "title": "RuntimeIdentityAuditLog",
+      "type": "object"
+    },
     "RuntimeIdentityAuthority": {
       "additionalProperties": false,
       "description": "A node-scoped identity authority inventory.",
@@ -22827,6 +22892,14 @@
       "additionalProperties": false,
       "description": "A provider-qualified ownership scope, independent of node placement.",
       "properties": {
+        "audit_logs": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityAuditLog"
+          },
+          "maxItems": 1024,
+          "title": "Audit Logs",
+          "type": "array"
+        },
         "description": {
           "default": "",
           "not": {
@@ -22909,7 +22982,21 @@
         "scope_kind"
       ],
       "title": "RuntimeIdentityResourceScope",
-      "type": "object"
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Audit log IDs and native service/log-type pairs must each be unique within their resource scope.",
+          "id": "cloud-audit-scope-uniqueness",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
     },
     "RuntimeIdentitySubject": {
       "additionalProperties": false,

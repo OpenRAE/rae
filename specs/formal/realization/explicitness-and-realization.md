@@ -226,8 +226,11 @@ projections. Their owning profiles supply semantic identities, not backend
 payload heuristics. Capability and mount-option sets use comparison-only keyed
 scalar records; bounded scalar choices use collision-free aliases while their
 actual value remains separately constrained. Compound process-limit identities
-retain the canonical selector and scope. Native persistence shapes remain
-unchanged. Ordered sequences remain ordered. Unsafe domains or ambiguous
+retain the canonical selector and scope. Every registered runtime service
+family and its registered child collections compare members by semantic
+identity, so member order has no effect. Application routes compare by
+`route_id`. Native persistence shapes remain unchanged. Ordered sequences
+remain ordered. Unsafe domains or ambiguous
 identities MUST produce an actionable `realization.authority-bound-unavailable`
 diagnostic before execution.
 This supported fragment includes an inherited open package scope with an exact
@@ -439,17 +442,22 @@ persistence.
 
 An open concern that the author leaves empty has no authored structure or
 constraint document. Planning MUST NOT require observation capability for
-that concern. Planning admission does not establish successful execution.
-When the concern has a verification floor, a successful runtime result MUST
-include an explicit report and sufficient corroboration. An explicit empty
-collection is a report and remains subject to its concern contract.
-Missing data MUST NOT establish an empty concern, even when observation
-metadata is present. The runtime gate MUST reject missing, malformed, or
-uncorroborated reports before accepting the snapshot. A backend unable to
-establish the report MUST refuse the success claim. Failed apply inventory
-remains subject to authority and sanitization checks without claiming
-successful readback. The typed process-resource-limit admission rule below
-still applies to open process limits.
+that concern. The selected manifest then decides the runtime contract.
+
+- A backend that declares the capability MUST include an explicit report and
+  sufficient corroboration when the concern has a verification floor. Missing
+  data from that backend MUST NOT establish an empty concern, even when
+  observation metadata is present.
+- A backend without the capability cannot corroborate a member, so it MUST
+  add no member to the concern. Its omission or explicit empty report
+  establishes that no member exists and produces no provenance.
+- The runtime gate MUST reject a malformed report, a reported member without
+  sufficient corroboration, and a readback disclosure that the manifest cannot
+  support.
+
+Failed apply inventory remains subject to authority and sanitization checks
+without claiming successful readback. The typed process-resource-limit
+admission rule below still applies to open process limits.
 
 Evidence-source provenance, in-world versus out-of-world visibility, and the
 effect of collection on the realized world are independent coordinates. A
@@ -538,8 +546,7 @@ When a registered concern requires corroboration, the same declaration MUST
 also carry a concern-keyed observation capability containing its closed
 verification scope and non-`none` observation strength. For an open concern
 that the author leaves empty, planning admission does not require this
-capability. Successful runtime acceptance requires the explicit report and
-corroboration specified by I2.
+capability. I2 states the runtime contract with and without the capability.
 Processor manifests MUST NOT carry `realization_support`: in RAES the
 processor layer does not realize underspecified author concerns — its
 manifest discloses processing features (compilation, planning,

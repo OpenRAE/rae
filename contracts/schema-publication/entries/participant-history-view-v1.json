@@ -2,9 +2,9 @@
   "contract_id": "participant-history-view-v1",
   "schema_path": "contracts/schemas/control-plane/participant-history-view-v1.json",
   "stability": "draft",
-  "content_hash": "4223340724a762c31bb66de98ed2fb853d2b75e4169ec7e48faaa47ab95deed7",
+  "content_hash": "9111fad3f903d50bc2c4e5f4e612085ee4d75ce73f72212efd66a1e470870335",
   "last_change": {
-    "summary": "Project the optional invocation_tool_context of hosted tool actions into participant history views; issue #1740.",
-    "content_hash": "4223340724a762c31bb66de98ed2fb853d2b75e4169ec7e48faaa47ab95deed7"
+    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
+    "content_hash": "9111fad3f903d50bc2c4e5f4e612085ee4d75ce73f72212efd66a1e470870335"
   }
 }

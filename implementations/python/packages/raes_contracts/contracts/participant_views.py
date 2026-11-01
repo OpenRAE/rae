@@ -26,6 +26,7 @@ from .participant_runtime import (
     ParticipantActionResultModel,
     ParticipantActivityOccurrenceProvenanceModel,
     ParticipantAttributionEdgeModel,
+    ParticipantDeliveryToolContextModel,
     ParticipantInvocationToolContextModel,
     ParticipantObservationDetailsModel,
     ParticipantOutcomeInterpretationRecordModel,
@@ -123,7 +124,7 @@ class ParticipantHistoryViewBehaviorEventModel(ContractModel):
         default_factory=list, exclude_if=lambda value: not value
     )
     activity_provenance: ParticipantActivityOccurrenceProvenanceModel | None = None
-    invocation_tool_context: ParticipantInvocationToolContextModel | None = Field(
+    invocation_tool_context: ParticipantInvocationToolContextModel | ParticipantDeliveryToolContextModel | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
     details: ParticipantObservationDetailsModel = Field(default_factory=ParticipantObservationDetailsModel)

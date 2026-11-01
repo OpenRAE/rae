@@ -1,0 +1,17 @@
+{
+  "audience_scope_ref": "audience.participant.red-agent",
+  "required_evidence_refs": [
+    "evidence-requirement:crossing-decision"
+  ],
+  "provenance_refs": [
+    "provenance:crossing-1"
+  ],
+  "evidence_refs": [],
+  "object_marking_refs": [
+    "marking:participant-control"
+  ],
+  "authorization_scope": "scope:red-team",
+  "loss_and_limitations": [
+    "limitation:bounded-reference-runtime"
+  ]
+}

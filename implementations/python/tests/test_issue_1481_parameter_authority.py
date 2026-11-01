@@ -130,9 +130,9 @@ def test_mailbox_interpolation_preserves_composed_addresses_and_authority(tmp_pa
     _, execution, _ = _planned(scenario)
     assert execution.is_valid, [(d.code, d.message) for d in execution.diagnostics]
     authority = next(a for a in execution.provisioning.realization_authority if a.requirement_kind == kind)
-    fields = authority.constraint_document.root.items[0].fields
-    assert fields["mailboxes"].items[0].fields["address"].kind == ("domain" if finite else "literal")
-    address = fields["mailboxes"].items[0].fields["address"]
+    fields = authority.constraint_document.root.members[0].constraint.fields
+    address = fields["mailboxes"].members[0].constraint.fields["address"]
+    assert address.kind == ("domain" if finite else "literal")
     if finite:
         assert set(address.domain.values) == {"operator@alternate.test", "operator@environment.test"}
     else:

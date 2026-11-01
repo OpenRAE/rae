@@ -124,10 +124,6 @@ def _observation_kind(requirement: CompiledRealizationRequirement) -> str:
     )
 
 
-def _left_empty(requirement: CompiledRealizationRequirement) -> bool:
-    return requirement.structure is None and requirement.constraint_document is None
-
-
 def _open_support_diagnostic(
     requirement: CompiledRealizationRequirement,
     declarations: list[RealizationSupportDeclaration],
@@ -144,7 +140,7 @@ def _open_support_diagnostic(
             # backend reports; the runtime gate rejects one that lacks corroboration (SEM-218 I2).
             sufficiently_observed = (
                 requirement.verification_scope is None
-                or _left_empty(requirement)
+                or requirement.authored_empty
                 or has_required_observation_support(
                     requirement,
                     supporting,

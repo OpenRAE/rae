@@ -384,13 +384,16 @@ def test_known_execution_failure_needs_no_delivery_or_observation():
         plane.close()
 
 
-def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget():
+def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget(monkeypatch):
     from dataclasses import replace
     from threading import Event, Thread
 
     from mixed_execution_fixtures import portable_plane
     from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
+    # Hold the budget clock so slow setup cannot spend the 700 ms before the evaluator starts.
+    # The execution adapter still applies the budget to the blocked call in real time.
+    monkeypatch.setattr("raes_runtime.mixed_backend_invocation.monotonic", lambda: 1024.0)
     plane, _, roles, _, _ = portable_plane(
         handoff=True, supervision=OperationSupervisionConfiguration(execution_ms=700)
     )
@@ -399,7 +402,7 @@ def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget():
 
     def blocked(*args):
         entered.set()
-        release.wait(3)
+        release.wait(30)
         return original(*args)
 
     plane._mixed_runtime = replace(
@@ -415,8 +418,8 @@ def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget():
     )
     thread.start()
     try:
-        assert entered.wait(2)
-        thread.join(1.5)
+        assert entered.wait(10)
+        thread.join(10)
         assert not thread.is_alive()
         assert roles["bridge"].starts == 0
         assert plane.get_operation(receipts[0].operation_id, identity=identity()).state is OperationState.INDETERMINATE

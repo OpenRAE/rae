@@ -33,6 +33,7 @@ from .manager_destroy import _DestroyPhaseMixin
 from .manager_inventory import RuntimeInventoryMixin
 from .manager_lifecycle import RuntimeManagerLifecycleMixin, manager_owned
 from .manager_plan_admission import reference_participant_driver_diagnostics, runtime_plan_precondition_diagnostics
+from .participant_delivery_driver import delivery_tool_driver_actions
 
 _RUNTIME_APPLY_ADDRESS, _APPLY_EVALUATOR_ADDRESS = "runtime.apply", "runtime.apply.evaluator"
 _APPLY_ORCHESTRATOR_ADDRESS = "runtime.apply.orchestrator"
@@ -105,7 +106,14 @@ class RuntimeInteractionMixin(
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
         )
         return replace(
-            execution_plan, diagnostics=[*execution_plan.diagnostics, *reference_participant_driver_diagnostics(model)]
+            execution_plan,
+            diagnostics=[
+                *execution_plan.diagnostics,
+                *reference_participant_driver_diagnostics(
+                    model,
+                    delivery_actions=delivery_tool_driver_actions(self, model),
+                ),
+            ],
         )
 
     @manager_owned
@@ -323,6 +331,7 @@ class RuntimeInteractionMixin(
             self._target,
             self._snapshot,
             durable_lifecycle_available=self._store_commits.crash_atomic,
+            delivery_actions=delivery_tool_driver_actions(self, execution_plan.model),
         )
         diagnostics.extend(precondition_diagnostics)
         failure = None

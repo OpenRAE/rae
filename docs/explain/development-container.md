@@ -2,7 +2,7 @@
 
 The repository ships an optional connected development container with locked
 Python/uv, frozen project and tooling environments, CLI tools and git hooks.
-The bootstrap workflow exercises an x86_64 Docker build and repeated lifecycle
+The manual bootstrap workflow exercises an x86_64 Docker build and repeated lifecycle
 setup. Each start route below is labelled verified or unverified. The verified
 entry points section records the host, client versions and results behind those
 labels. A route is never labelled verified because a client can read
@@ -10,6 +10,22 @@ labels. A route is never labelled verified because a client can read
 
 The container is optional. Native setup, described in
 [Contribute to RAES](../../CONTRIBUTING.md), stays fully supported.
+
+## Verification scope
+
+Pull requests run native bootstrap qualification only when bootstrap or installation inputs change.
+SDL, catalog, and unrelated tool edits do not trigger that workflow.
+The optional development-image job runs only through `workflow_dispatch`.
+It is not a pull-request gate.
+
+The image check builds a clean image and repeats setup to check safe reuse.
+It checks tools, hooks, project imports, and the targeted development-container tests.
+The canonical CI workflow owns repository-wide policy, lint, tests, and security checks.
+The image job does not repeat that full suite.
+Pinned artifacts, non-root execution, and credential restrictions still apply.
+The existing Nox workflow remains the verification owner under ADR-014.
+GitHub path filters and the job event condition select when this work runs.
+Their syntax is defined in the [GitHub workflow reference](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax).
 
 ## Open the repository in the container
 
@@ -79,7 +95,7 @@ what they observed.
 ## Supported platforms
 
 The container is a **Linux x86_64 (`linux/amd64`)** image, qualified by a clean
-native build in continuous integration. Every build stage pins the reviewed
+native build in a manually dispatched CI job. Every build stage pins the reviewed
 `linux/amd64` base manifest, so any client builds the same image.
 
 Native arm64 support and client/emulation behavior are not newly qualified by
@@ -212,7 +228,8 @@ repository.
 Update the reviewed base index/platform digest in `artifacts.lock.json` and its
 Dockerfile projection together. Update packages and account setup directly in
 the Dockerfile, and client settings in `devcontainer.json`. No qualification
-record hash needs renewal. Let the path-filtered/manual `development-image`
-job build from an empty cache and exercise setup twice, ordinary checks and
-the expected proof-capability refusal. Changes to supported entry points or
+record hash needs renewal. Run the **Bootstrap qualification** workflow manually
+on the candidate branch to qualify the image.
+The `development-image` job builds from an empty cache, repeats setup, runs focused environment checks,
+and checks the expected proof-capability refusal. Changes to supported entry points or
 architectures need their own actual verification evidence.

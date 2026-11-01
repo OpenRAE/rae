@@ -70,6 +70,24 @@ def matching_observation(
     )
 
 
+def _capability_kind(requirement: CompiledRealizationRequirement) -> str:
+    return (
+        "operating-system"
+        if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS
+        else requirement.requirement_kind
+    )
+
+
+def declares_readback(requirement: CompiledRealizationRequirement, manifest: BackendManifest | None) -> bool:
+    """Return whether the selected manifest can corroborate this concern."""
+
+    return manifest is not None and any(
+        declaration.domain == requirement.domain
+        and _capability_kind(requirement) in declaration.observation_capabilities
+        for declaration in manifest.realization_support
+    )
+
+
 def manifest_corroborates(
     requirement: CompiledRealizationRequirement,
     observation: RealizationObservationDisclosure,
@@ -77,11 +95,7 @@ def manifest_corroborates(
 ) -> bool:
     if manifest is None:
         return False
-    capability_kind = (
-        "operating-system"
-        if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS
-        else requirement.requirement_kind
-    )
+    capability_kind = _capability_kind(requirement)
     return any(
         (capability := declaration.observation_capabilities.get(capability_kind)) is not None
         and observation_posture_supported(requirement, declaration)
@@ -183,6 +197,7 @@ __all__ = [
     "MISSING_CONCERN_VALUE",
     "OPERATING_SYSTEM_REQUIREMENT_KINDS",
     "concern_value",
+    "declares_readback",
     "manifest_corroborates",
     "matching_observation",
     "observation_posture_supported",
