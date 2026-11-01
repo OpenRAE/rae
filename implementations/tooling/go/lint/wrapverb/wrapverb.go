@@ -10,7 +10,7 @@ import (
 	"go/ast"
 	"go/constant"
 	"go/types"
-	"strings"
+	"regexp"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/ast/inspector"
@@ -48,32 +48,17 @@ func isErrorf(pass *analysis.Pass, call *ast.CallExpr) bool {
 	return ok && fn.Pkg() != nil && fn.Pkg().Path() == "fmt" && fn.Name() == "Errorf"
 }
 
+// verb matches one fmt verb: a percent sign, then flags, argument indexes,
+// width, and precision, and then the verb character. A doubled percent sign is
+// a verb too.
+var verb = regexp.MustCompile(`%[-+# 0-9.*\[\]]*[^-+# 0-9.*\[\]]`)
+
 // wrapsInMiddle reports whether a %w verb in format is neither at its start nor at its end.
 func wrapsInMiddle(format string) bool {
-	for i := 0; i < len(format); i++ {
-		if format[i] != '%' {
-			continue
-		}
-		end := verbEnd(format, i+1)
-		if end > len(format) {
-			return false
-		}
-		if format[end-1] == 'w' && i != 0 && end != len(format) {
+	for _, loc := range verb.FindAllStringIndex(format, -1) {
+		if format[loc[1]-1] == 'w' && loc[0] != 0 && loc[1] != len(format) {
 			return true
 		}
-		i = end - 1
 	}
 	return false
-}
-
-// verbEnd returns the index just after the verb that begins at start, which
-// follows a percent sign. A doubled percent sign is its own verb.
-func verbEnd(format string, start int) int {
-	end := start + strings.IndexFunc(format[start:], func(r rune) bool {
-		return !strings.ContainsRune("+-# 0123456789.*[]", r)
-	})
-	if end < start {
-		return len(format) + 1
-	}
-	return end + 1
 }
