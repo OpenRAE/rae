@@ -62,9 +62,10 @@ engineering risk is concept conflation: treating "not specified yet",
   `SDLInstantiationError`, or `raes_processor.models.Diagnostic` paths,
   depending on the phase where support is known.
 - An authored-empty open concern can plan without observation capability.
-  Successful execution still requires an explicit report when the concern has a verification floor.
-  Missing data does not establish an empty concern.
-  An explicit empty collection requires the same closed validation and corroboration as other reports.
+  A backend that declares the capability must report the concern with corroboration.
+  For that backend, missing data does not establish an empty concern.
+  A backend without the capability adds no member, so its omission or empty report needs no corroboration.
+  A reported member or an unsupported readback disclosure fails the gate.
   Failed apply inventory remains available for cleanup under existing authority and sanitization checks.
 - Carry one complete, resolved, value-free authority collection on every
   backend-facing provisioning plan. It includes closed omissions and preserves
