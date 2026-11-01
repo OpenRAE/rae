@@ -1,0 +1,10 @@
+# Mutation testing thresholds of the Go modules (ADR-121).
+#
+# Gremlins v0.6.0 reads a threshold flag of its command line as text and then
+# ignores it. This file gives each threshold as a number. Gremlins fails when a
+# value is equal to or less than its threshold. Thus 99.99 fails a change of up
+# to 10,000 mutants when one mutant lives or no test covers it.
+unleash:
+  threshold:
+    efficacy: 99.99
+    mutant-coverage: 99.99
