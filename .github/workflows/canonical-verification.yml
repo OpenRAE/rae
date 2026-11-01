@@ -78,13 +78,42 @@ jobs:
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             public-ubuntu-24.04-x86_64 .canonical-tool-inputs \
             --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
+      - name: Read the locked proof archive identity
+        id: isabelle-lock
+        run: |
+          jq -r '.. | objects | select(.artifact_id? == "isabelle") | .platforms[]
+            | select(.platform_id == "linux-x86_64") | .raw_manifest[0]
+            | "sha256=\(.sha256)\npath=\(.path)"' implementations/tooling/artifacts.lock.json >> "$GITHUB_OUTPUT"
+      - name: Restore the verified proof archive
+        # The official host is not always reachable. A cached copy is keyed by
+        # the locked digest and is verified again before any job uses it.
+        id: isabelle-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .canonical-tool-inputs/archives/isabelle
+          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
+      - name: Verify the restored proof archive
+        if: steps.isabelle-cache.outputs.cache-hit == 'true'
+        env:
+          ARCHIVE_SHA256: ${{ steps.isabelle-lock.outputs.sha256 }}
+          ARCHIVE_PATH: ${{ steps.isabelle-lock.outputs.path }}
+        run: |
+          printf '%s  %s\n' "$ARCHIVE_SHA256" ".canonical-tool-inputs/archives/isabelle/$ARCHIVE_PATH" \
+            | sha256sum --check --strict
       - name: Fetch the locked proof archive with the qualified client
         # Ubuntu 22.04's native curl predates the qualified client floor, so the
         # proof host receives the exact reviewed archive as a verified local input.
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
             --locator-ref official-isabelle-release
+      - name: Save the verified proof archive
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .canonical-tool-inputs/archives/isabelle
+          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
       - name: Fetch the locked model checker
         run: >-
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs
