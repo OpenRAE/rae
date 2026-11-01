@@ -188,19 +188,19 @@ def contract_fixtures(repo: Path, contracts: Iterable[str]) -> Iterator[tuple[st
 
 
 def portable_cases(repo: Path, contracts: Iterable[str]) -> Iterator[Case]:
-    """Yield the semantic commands over each portable contract fixture."""
+    """Yield the semantic commands over each portable contract fixture.
 
-    first: tuple[str, Path] | None = None
-    for contract, fixture in contract_fixtures(repo, contracts):
-        first = first or (contract, fixture)
+    Over the first fixture, it also yields the refused commands and an unknown contract.
+    """
+
+    fixtures = list(contract_fixtures(repo, contracts))
+    for contract, fixture in fixtures:
         for command in PORTABLE_COMMANDS:
             yield semantic_case(command, contract, fixture, repo)
-    if first is None:
-        return
-    contract, fixture = first
-    for command in UNSUPPORTED_PORTABLE_COMMANDS:
-        yield semantic_case(command, contract, fixture, repo)
-    yield semantic_case("validate", "unknown-contract-v1", fixture, repo, name="unknown-contract")
+    for contract, fixture in fixtures[:1]:
+        for command in UNSUPPORTED_PORTABLE_COMMANDS:
+            yield semantic_case(command, contract, fixture, repo)
+        yield semantic_case("validate", "unknown-contract-v1", fixture, repo, name="unknown-contract")
 
 
 def supported_contracts() -> list[str]:
