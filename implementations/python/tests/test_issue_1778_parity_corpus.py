@@ -183,5 +183,11 @@ def test_canonical_results_record_each_form_or_its_refusal() -> None:
     }
     assert result("9007199254740992")["jcs"] is None
     assert result("9007199254740992")["sorted_ascii"] == digest(b"9007199254740992")
-    for refused in ("NaN", "1e400", "[1] 2"):
+    longest = "-" + "9" * 4300
+    assert result(longest) == {
+        "jcs": None,
+        "sorted_ascii": digest(longest.encode()),
+        "sorted_unicode": digest(longest.encode()),
+    }
+    for refused in ("NaN", "1e400", "[1] 2", "9" * 4301):
         assert result(refused) == {"jcs": None, "sorted_ascii": None, "sorted_unicode": None}

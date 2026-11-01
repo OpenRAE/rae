@@ -9,8 +9,10 @@
 //
 // Both functions take UTF-8 JSON text that holds one value. A later duplicate
 // member replaces an earlier one, as in Python. Both refuse a UTF-16
-// surrogate escape that is not part of a pair, because the Go decoder would
-// replace it and so give two different texts the same encoding.
+// surrogate escape that is not part of a pair. Valid UTF-8 cannot hold such a
+// surrogate, and I-JSON (RFC 7493) forbids it. Python's RFC 8785 form and its
+// form without ensure_ascii also refuse it, but its ensure_ascii form writes it
+// back as an escape.
 package canonjson
 
 import (
@@ -21,7 +23,6 @@ import (
 	"io"
 	"maps"
 	"math"
-	"math/big"
 	"regexp"
 	"slices"
 	"strconv"
@@ -35,44 +36,53 @@ import (
 // ErrInput reports JSON text that a canonical form cannot encode.
 var ErrInput = errors.New("canonjson: the input has no canonical encoding")
 
-// maxExact is 2^53 - 1, the largest magnitude of an integer that RFC 8785
-// encodes exactly.
-const maxExact = 9_007_199_254_740_991
+const (
+	// maxExact is 2^53 - 1, the largest magnitude of an integer that RFC 8785
+	// encodes exactly.
+	maxExact = 9_007_199_254_740_991
+	// maxDigits is the largest number of digits of an integer that Python
+	// converts to text (sys.int_info.default_max_str_digits).
+	maxDigits = 4300
+)
 
-// JCS returns the RFC 8785 form of the JSON value in data. It refuses an
-// integer with a magnitude above 2^53 - 1 and a number outside the finite
-// float64 range, as RFC 8785 requires.
+// JCS returns the RFC 8785 form of the JSON value in data. Like the Python
+// rfc8785 package, it refuses an integer with a magnitude above 2^53 - 1,
+// because RFC 8785 gives it no exact value. It also refuses a number outside
+// the finite float64 range.
 func JCS(data []byte) ([]byte, error) {
-	value, err := decode(data)
+	compact, err := encode(data, false, jcsNumber)
 	if err != nil {
 		return nil, err
 	}
-	if err = checkJCSNumbers(value); err != nil {
-		return nil, err
-	}
-	// Marshal keeps the last duplicate member, and the transform then
-	// canonicalizes the text.
-	compact, err := json.Marshal(value)
+	canonical, err := jcs.Transform(compact)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInput, err)
 	}
-	return jcs.Transform(compact)
+	return canonical, nil
 }
 
 // Sorted returns the JSON value in data as Python's json.dumps writes it with
 // sort_keys=True and separators=(",", ":"). With ascii, it escapes each
 // character outside printable ASCII, as ensure_ascii=True does. It refuses a
-// number outside the finite float64 range, as allow_nan=False does.
+// number outside the finite float64 range, as allow_nan=False does, and an
+// integer with more than 4,300 digits, as Python does.
 func Sorted(data []byte, ascii bool) ([]byte, error) {
+	return encode(data, ascii, pythonNumber)
+}
+
+// encode writes the JSON value in data with sorted keys, compact separators,
+// and the string escapes of Python's json module. The number function gives
+// the text of each number.
+func encode(data []byte, ascii bool, number func(json.Number) (string, error)) ([]byte, error) {
 	value, err := decode(data)
 	if err != nil {
 		return nil, err
 	}
-	var out bytes.Buffer
-	if err := writeSorted(&out, value, ascii); err != nil {
+	e := encoder{ascii: ascii, number: number}
+	if err := e.value(value); err != nil {
 		return nil, err
 	}
-	return out.Bytes(), nil
+	return e.out.Bytes(), nil
 }
 
 // decode returns the single JSON value in data, with numbers as their text.
@@ -98,7 +108,9 @@ var escapes = regexp.MustCompile(`\\(?:u([0-9a-fA-F]{4})|.)`)
 
 // hasLoneSurrogate reports whether a string escape in the JSON text data names
 // a UTF-16 surrogate that is not part of a pair. A pair is a \u escape of a
-// high surrogate directly followed by a \u escape of a low surrogate.
+// high surrogate directly followed by a \u escape of a low surrogate. The Go
+// decoder would replace a lone surrogate with U+FFFD, and so give two
+// different texts the same encoding.
 func hasLoneSurrogate(data []byte) bool {
 	found := escapes.FindAllSubmatchIndex(data, -1)
 	for i := 0; i < len(found); i++ {
@@ -126,129 +138,98 @@ func escapedUnit(data []byte, match []int) rune {
 	return rune(unit)
 }
 
-// checkJCSNumbers refuses each number in value that RFC 8785 cannot encode
-// exactly.
-func checkJCSNumbers(value any) error {
-	switch v := value.(type) {
-	case json.Number:
-		return checkJCSNumber(v)
-	case []any:
-		return checkEach(v)
-	case map[string]any:
-		return checkEach(slices.Collect(maps.Values(v)))
-	}
-	return nil
+// encoder writes a decoded JSON value with sorted keys and compact separators.
+type encoder struct {
+	out bytes.Buffer
+	// ascii selects the escape of each character outside printable ASCII.
+	ascii bool
+	// number returns the text of a number, or an error when the form has no
+	// text for it.
+	number func(json.Number) (string, error)
 }
 
-func checkEach(values []any) error {
-	for _, value := range values {
-		if err := checkJCSNumbers(value); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// checkJCSNumber refuses an integer with a magnitude above 2^53 - 1 and a
-// float outside the finite range.
-func checkJCSNumber(n json.Number) error {
-	if !isInteger(n) {
-		_, err := parseFloat(n)
-		return err
-	}
-	// The decoder checked the syntax, so the text always parses.
-	value, _ := new(big.Int).SetString(string(n), 10)
-	if value.CmpAbs(big.NewInt(maxExact)) > 0 {
-		return fmt.Errorf("%w: the integer %s is outside the exact range", ErrInput, n)
-	}
-	return nil
-}
-
-func writeSorted(out *bytes.Buffer, value any, ascii bool) error {
-	switch v := value.(type) {
+// value writes a decoded JSON value.
+func (e *encoder) value(decoded any) error {
+	switch v := decoded.(type) {
 	case nil:
-		out.WriteString("null")
+		e.out.WriteString("null")
 	case bool:
-		out.WriteString(strconv.FormatBool(v))
+		e.out.WriteString(strconv.FormatBool(v))
 	case string:
-		writeString(out, v, ascii)
+		e.quote(v)
 	case json.Number:
-		text, err := pythonNumber(v)
+		text, err := e.number(v)
 		if err != nil {
 			return err
 		}
-		out.WriteString(text)
+		e.out.WriteString(text)
 	case []any:
-		out.WriteByte('[')
+		e.out.WriteByte('[')
 		for i, item := range v {
 			if i > 0 {
-				out.WriteByte(',')
+				e.out.WriteByte(',')
 			}
-			if err := writeSorted(out, item, ascii); err != nil {
+			if err := e.value(item); err != nil {
 				return err
 			}
 		}
-		out.WriteByte(']')
+		e.out.WriteByte(']')
 	case map[string]any:
-		return writeObject(out, v, ascii)
+		return e.object(v)
 	}
 	return nil
 }
 
-// writeObject writes the members of an object in code point order of their
-// keys. The byte order of UTF-8 text is its code point order.
-func writeObject(out *bytes.Buffer, object map[string]any, ascii bool) error {
-	keys := make([]string, 0, len(object))
-	for key := range object {
-		keys = append(keys, key)
-	}
-	slices.Sort(keys)
-	out.WriteByte('{')
-	for i, key := range keys {
+// object writes the members of an object in code point order of their keys.
+// The byte order of UTF-8 text is its code point order.
+func (e *encoder) object(members map[string]any) error {
+	e.out.WriteByte('{')
+	for i, key := range slices.Sorted(maps.Keys(members)) {
 		if i > 0 {
-			out.WriteByte(',')
+			e.out.WriteByte(',')
 		}
-		writeString(out, key, ascii)
-		out.WriteByte(':')
-		if err := writeSorted(out, object[key], ascii); err != nil {
+		e.quote(key)
+		e.out.WriteByte(':')
+		if err := e.value(members[key]); err != nil {
 			return err
 		}
 	}
-	out.WriteByte('}')
+	e.out.WriteByte('}')
 	return nil
 }
 
-// writeString writes s with the escapes of Python's json module.
-func writeString(out *bytes.Buffer, s string, ascii bool) {
-	out.WriteByte('"')
+// quote writes s as a JSON string with the escapes of Python's json module.
+func (e *encoder) quote(s string) {
+	e.out.WriteByte('"')
 	for _, r := range s {
 		switch r {
 		case '"':
-			out.WriteString(`\"`)
+			e.out.WriteString(`\"`)
 		case '\\':
-			out.WriteString(`\\`)
+			e.out.WriteString(`\\`)
 		case '\n':
-			out.WriteString(`\n`)
+			e.out.WriteString(`\n`)
 		case '\r':
-			out.WriteString(`\r`)
+			e.out.WriteString(`\r`)
 		case '\t':
-			out.WriteString(`\t`)
+			e.out.WriteString(`\t`)
 		case '\b':
-			out.WriteString(`\b`)
+			e.out.WriteString(`\b`)
 		case '\f':
-			out.WriteString(`\f`)
+			e.out.WriteString(`\f`)
 		default:
-			writeRune(out, r, ascii)
+			e.char(r)
 		}
 	}
-	out.WriteByte('"')
+	e.out.WriteByte('"')
 }
 
-// writeRune writes a control character, and with ascii a character outside
-// printable ASCII, as \u escapes of its UTF-16 code units.
-func writeRune(out *bytes.Buffer, r rune, ascii bool) {
-	if r >= 0x20 && (!ascii || r <= 0x7e) {
-		out.WriteRune(r)
+// char writes a control character, and with ascii a character outside
+// printable ASCII, as \u escapes of its UTF-16 code units. It writes each other
+// character as it is.
+func (e *encoder) char(r rune) {
+	if r >= 0x20 && (!e.ascii || r <= 0x7e) {
+		e.out.WriteRune(r)
 		return
 	}
 	units := []rune{r}
@@ -257,23 +238,46 @@ func writeRune(out *bytes.Buffer, r rune, ascii bool) {
 		units = []rune{high, low}
 	}
 	for _, unit := range units {
-		fmt.Fprintf(out, `\u%04x`, unit)
+		fmt.Fprintf(&e.out, `\u%04x`, unit)
 	}
+}
+
+// jcsNumber returns the text of a JSON number that RFC 8785 encodes exactly:
+// an integer with a magnitude up to 2^53 - 1, or a finite float.
+func jcsNumber(n json.Number) (string, error) {
+	if !isInteger(n) {
+		if _, err := parseFloat(n); err != nil {
+			return "", err
+		}
+		return string(n), nil
+	}
+	value, err := strconv.ParseInt(string(n), 10, 64)
+	if err != nil || value > maxExact || value < -maxExact {
+		return "", fmt.Errorf("%w: an integer is outside the exact range of RFC 8785", ErrInput)
+	}
+	return string(n), nil
 }
 
 // pythonNumber returns a JSON number as Python's json module writes it: an
 // integer in decimal, and a float as repr(float) writes it.
 func pythonNumber(n json.Number) (string, error) {
-	if isInteger(n) {
-		// The decoder checked the syntax, so the text always parses.
-		value, _ := new(big.Int).SetString(string(n), 10)
-		return value.String(), nil
+	if !isInteger(n) {
+		f, err := parseFloat(n)
+		if err != nil {
+			return "", err
+		}
+		return pythonFloat(f), nil
 	}
-	f, err := parseFloat(n)
-	if err != nil {
-		return "", err
+	digits := strings.TrimPrefix(string(n), "-")
+	if len(digits) > maxDigits {
+		return "", fmt.Errorf("%w: an integer has more than %d digits", ErrInput, maxDigits)
 	}
-	return pythonFloat(f), nil
+	// JSON integer text has no plus sign and no leading zero, so it is the
+	// decimal form of Python, except -0, which Python reads as 0.
+	if digits == "0" {
+		return "0", nil
+	}
+	return string(n), nil
 }
 
 // isInteger reports whether Python reads the JSON number n as an int.
@@ -282,11 +286,12 @@ func isInteger(n json.Number) bool {
 }
 
 // parseFloat returns the float64 of a JSON number, or an error when the number
-// is outside the finite range.
+// is outside the finite range. The decoder checked the syntax, so a range error
+// is the only error.
 func parseFloat(n json.Number) (float64, error) {
 	f, err := strconv.ParseFloat(string(n), 64)
 	if err != nil {
-		return 0, fmt.Errorf("%w: %w", ErrInput, err)
+		return 0, fmt.Errorf("%w: a number is outside the finite float64 range", ErrInput)
 	}
 	return f, nil
 }
