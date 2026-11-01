@@ -37,34 +37,6 @@ func TestFindRegressionTestsRejectsInvalidSource(t *testing.T) {
 	}
 }
 
-func TestNewRegressionTestsKeepsOnlyTestsMissingFromBase(t *testing.T) {
-	base := []byte("package p\nfunc TestRegressionOld() {}\n")
-	head := []byte("package p\nfunc TestRegressionOld() {}\nfunc TestRegressionNew() {}\n")
-	got, err := newRegressionTests("p_test.go", base, head)
-	if err != nil {
-		t.Fatalf("newRegressionTests() error = %v", err)
-	}
-	if want := []string{"TestRegressionNew"}; !slices.Equal(got, want) {
-		t.Errorf("newRegressionTests() = %v, want %v", got, want)
-	}
-}
-
-func TestNewRegressionTestsTreatsUnparsableBaseAsEmpty(t *testing.T) {
-	got, err := newRegressionTests("p_test.go", []byte("package"), []byte("package p\nfunc TestRegressionNew() {}\n"))
-	if err != nil {
-		t.Fatalf("newRegressionTests() error = %v", err)
-	}
-	if want := []string{"TestRegressionNew"}; !slices.Equal(got, want) {
-		t.Errorf("newRegressionTests() = %v, want %v", got, want)
-	}
-}
-
-func TestNewRegressionTestsRejectsUnparsableHead(t *testing.T) {
-	if _, err := newRegressionTests("p_test.go", nil, []byte("package")); err == nil {
-		t.Error("newRegressionTests() error = nil, want a parse error")
-	}
-}
-
 func TestRunRejectsBadUsage(t *testing.T) {
 	for _, args := range [][]string{nil, {"-base", "main", "extra"}, {"-unknown"}, {"-base", "--output=x"}} {
 		var stdout, stderr bytes.Buffer
@@ -157,14 +129,100 @@ func TestRunReplaysTheTestdataOfTheHead(t *testing.T) {
 	}
 }
 
-// Only the files that declare new regression tests reach the base run, so a
-// new test of a new function does not break the base build.
-func TestRunReplaysOnlyTheFilesOfTheRegressionTests(t *testing.T) {
+// Only the declarations that the new regression tests need reach the base run,
+// so a new test of a new function does not break the base build.
+func TestRunLeavesOutAnUnrelatedNewTest(t *testing.T) {
 	repo := fixtureRepo(t)
 	commit(t, repo, map[string]string{
 		"add.go":             fixedAdd + "\nfunc Sub(a, b int) int { return a - b }\n",
 		"sub_test.go":        "package m\n\nimport \"testing\"\n" + regressionTest("TestSub", "Sub(3, 1) != 2"),
 		"regression_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+	})
+
+	stdout, stderr, status := runIn(t, repo)
+
+	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
+		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
+	}
+}
+
+func TestRunFindsANewRegressionTestInARenamedFile(t *testing.T) {
+	repo := fixtureRepo(t)
+	gitIn(t, repo, "mv", "add_test.go", "sum_test.go")
+	commit(t, repo, map[string]string{
+		"add.go":      fixedAdd,
+		"sum_test.go": baseTest + regressionTest("TestRegressionAdd", "Add(1, 2) != 3"),
+	})
+
+	stdout, stderr, status := runIn(t, repo)
+
+	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
+		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
+	}
+}
+
+// A regression test that the base already declares is not new when it moves
+// to another file of its package.
+func TestRunSkipsAnOldRegressionTestInAnotherFile(t *testing.T) {
+	repo := fixtureRepo(t)
+	gitIn(t, repo, "switch", "--quiet", "main")
+	commit(t, repo, map[string]string{"old_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionOld", "Add(0, 0) != 0")})
+	gitIn(t, repo, "switch", "--quiet", "--force-create", "change")
+	gitIn(t, repo, "mv", "old_test.go", "moved_test.go")
+	commit(t, repo, map[string]string{"add.go": fixedAdd})
+
+	stdout, stderr, status := runIn(t, repo)
+
+	if status != 0 || !strings.Contains(stdout, "0 new regression tests") {
+		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and no regression tests", status, stdout, stderr)
+	}
+}
+
+// The base testdata must not decide the base run when the head deletes it.
+func TestRunRemovesTheBaseTestdataThatTheHeadDeletes(t *testing.T) {
+	repo := fixtureRepo(t)
+	gitIn(t, repo, "switch", "--quiet", "main")
+	commit(t, repo, map[string]string{"testdata/stale.txt": "stale\n"})
+	gitIn(t, repo, "switch", "--quiet", "--force-create", "change")
+	gitIn(t, repo, "rm", "-r", "--quiet", "testdata")
+	commit(t, repo, map[string]string{
+		"stale_test.go": "package m\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc TestRegressionStale(t *testing.T) {\n" +
+			"\tif _, err := os.Stat(\"testdata/stale.txt\"); err == nil {\n\t\tt.Fatal(\"a stale fixture exists\")\n\t}\n}\n",
+	})
+
+	_, stderr, status := runIn(t, repo)
+
+	if status != 1 || !strings.Contains(stderr, "TestRegressionStale: passes on the base revision") {
+		t.Errorf("run() = %d with stderr %q, want 1 and a pass on the base revision", status, stderr)
+	}
+}
+
+// The replay keeps the head declarations that a regression test needs, from
+// any test file of its package.
+func TestRunKeepsTheHelpersThatARegressionTestNeeds(t *testing.T) {
+	repo := fixtureRepo(t)
+	commit(t, repo, map[string]string{
+		"add.go":             fixedAdd,
+		"helpers_test.go":    "package m\n\nfunc sum(a, b int) int { return Add(a, b) }\n",
+		"regression_test.go": "package m\n\nimport \"testing\"\n" + regressionTest("TestRegressionSum", "sum(1, 2) != 3"),
+	})
+
+	stdout, stderr, status := runIn(t, repo)
+
+	if status != 0 || !strings.Contains(stdout, "1 new regression tests fail on the base revision") {
+		t.Errorf("run() = %d with stdout %q and stderr %q, want 0 and one regression test", status, stdout, stderr)
+	}
+}
+
+// An external test package reaches the declarations of the internal test
+// package through the package import.
+func TestRunKeepsTheInternalHelpersOfAnExternalTest(t *testing.T) {
+	repo := fixtureRepo(t)
+	commit(t, repo, map[string]string{
+		"add.go":         fixedAdd,
+		"export_test.go": "package m\n\nvar AddForTest = Add\n",
+		"external_test.go": "package m_test\n\nimport (\n\t\"testing\"\n\n\t\"example.com/m\"\n)\n" +
+			regressionTest("TestRegressionExternal", "m.AddForTest(1, 2) != 3"),
 	})
 
 	stdout, stderr, status := runIn(t, repo)
