@@ -30,6 +30,8 @@ func TestFormsMatchThePythonReference(t *testing.T) {
 		{`"\u0000\u001f\u007f\"\\\/\b\f\n\r\t"`, `"\u0000\u001f` + "\x7f" + `\"\\/\b\f\n\r\t"`, `"\u0000\u001f\u007f\"\\/\b\f\n\r\t"`, `"\u0000\u001f` + "\x7f" + `\"\\/\b\f\n\r\t"`},
 		{`{"b": 1, "a": [true, null, false], "a": "last"}`, `{"a":"last","b":1}`, `{"a":"last","b":1}`, `{"a":"last","b":1}`},
 		{"{\"\ue000\": 1, \"😀\": 2}", "{\"😀\":2,\"\ue000\":1}", `{"\ue000":1,"\ud83d\ude00":2}`, "{\"\ue000\":1,\"😀\":2}"},
+		{`" ~\uffff"`, "\" ~\uffff\"", `" ~\uffff"`, "\" ~\uffff\""},
+		{`"\ud83d\ude00"`, `"😀"`, `"\ud83d\ude00"`, `"😀"`},
 	}
 	for _, test := range tests {
 		for _, form := range []struct {
@@ -77,6 +79,8 @@ func TestFormsRefuseInputWithoutAnEncoding(t *testing.T) {
 		"not JSON":               "NaN",
 		"empty":                  "",
 		"surrogate pair, broken": `"\ud83dA"`,
+		"surrogates apart":       `"\ud83d \ude00"`,
+		"high after an escape":   `"\n\ud83d"`,
 	}
 	for name, input := range tests {
 		for _, encode := range []func([]byte) ([]byte, error){JCS, func(data []byte) ([]byte, error) { return Sorted(data, true) }} {
