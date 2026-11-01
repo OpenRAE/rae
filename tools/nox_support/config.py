@@ -26,13 +26,14 @@ PUBLIC_DOCS_EXAMPLE_TESTS = (
     "implementations/python/tests/test_issue_938_landing_page.py::test_quickstart_prints_the_output_each_page_shows",
 )
 RUFF_CONFIG = PROJECT_ROOT / "pyproject.toml"
+UV_LOCK = "uv.lock"
 # The vulnerability gate scans every locked dependency closure that runs in CI: the project,
 # the Python tooling (for example the ADR-117 analyzers), and the Go tool module (ADR-106).
 OSV_SCAN_TARGETS = (
-    ("uv.lock", PROJECT_ROOT / "uv.lock", PROJECT_ROOT / "osv-scanner-report.json"),
+    (UV_LOCK, PROJECT_ROOT / UV_LOCK, PROJECT_ROOT / "osv-scanner-report.json"),
     (
         "tooling uv.lock",
-        REPO_ROOT / "implementations" / "tooling" / "python" / "uv.lock",
+        REPO_ROOT / "implementations" / "tooling" / "python" / UV_LOCK,
         PROJECT_ROOT / "osv-scanner-tooling-report.json",
     ),
     (
