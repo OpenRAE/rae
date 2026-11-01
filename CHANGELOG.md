@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.4.0](https://github.com/OpenRAE/rae/compare/v10.3.0...v10.4.0) (2026-11-01)
+
+
+### Features
+
+* deprecate the raes Python distribution before the Go cutover ([#1815](https://github.com/OpenRAE/rae/issues/1815)) ([effa1b0](https://github.com/OpenRAE/rae/commit/effa1b06e32f2c43abbe8175832e786032cbff34)), closes [#1777](https://github.com/OpenRAE/rae/issues/1777)
+* **runtime:** admit participant tools in delivery invocations ([#1834](https://github.com/OpenRAE/rae/issues/1834)) ([46345c4](https://github.com/OpenRAE/rae/commit/46345c452b6bbb7290f9b80f6371e90cbb61fe41))
+* **sdl:** declare cloud audit log configuration ([#1832](https://github.com/OpenRAE/rae/issues/1832)) ([6f3f6a4](https://github.com/OpenRAE/rae/commit/6f3f6a4df3ba99352094a940c6364ec174e936df))
+
+
+### Bug Fixes
+
+* align open concern runtime checks and identity-keyed comparison ([#1830](https://github.com/OpenRAE/rae/issues/1830)) ([927cfb7](https://github.com/OpenRAE/rae/commit/927cfb7935740f76f0dc13d60a054239cfa4de7c))
+
 ## [10.3.0](https://github.com/OpenRAE/rae/compare/v10.2.0...v10.3.0) (2026-11-01)
 
 
