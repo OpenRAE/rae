@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/netip"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -28,6 +29,13 @@ var (
 
 // ipvFuture matches an IPvFuture literal inside brackets.
 var ipvFuture = regexp.MustCompile(`^v[a-fA-F0-9]+\..+$`)
+
+// The characters that start a scheme and the characters of a scheme, as
+// urlsplit accepts them.
+const (
+	asciiLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	schemeChars  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-."
+)
 
 // Options select the optional checks of Check.
 type Options struct {
@@ -75,9 +83,9 @@ func split(uri string) (uriParts, error) {
 		"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f ")
 	uri = strings.NewReplacer("\t", "", "\r", "", "\n", "").Replace(uri)
 	var parts uriParts
-	if i := strings.IndexByte(uri, ':'); i > 0 && isASCIILetter(uri[0]) &&
-		strings.Trim(uri[:i], "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-.") == "" {
-		parts.scheme, uri = strings.ToLower(uri[:i]), uri[i+1:]
+	if scheme, rest, found := strings.Cut(uri, ":"); found && scheme != "" &&
+		strings.ContainsRune(asciiLetters, rune(scheme[0])) && strings.Trim(scheme, schemeChars) == "" {
+		parts.scheme, uri = strings.ToLower(scheme), rest
 	}
 	if strings.HasPrefix(uri, "//") {
 		end := len(uri)
@@ -95,10 +103,6 @@ func split(uri string) (uriParts, error) {
 		return uriParts{}, err
 	}
 	return parts, nil
-}
-
-func isASCIILetter(c byte) bool {
-	return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
 }
 
 // checkBrackets refuses an unbalanced bracket and a bracketed host that is
@@ -137,27 +141,16 @@ func checkBrackets(netloc string) error {
 	return nil
 }
 
-// checkNormalizedNetloc refuses a non-ASCII netloc whose NFKC form contains a
-// delimiter that the original text does not.
+// checkNormalizedNetloc refuses a netloc whose NFKC form contains a delimiter
+// that the original text does not, as urlsplit does. The netloc holds no
+// slash, question mark, or number sign, and the check removes the at signs and
+// colons first, so each delimiter in the result comes from the normalization.
 func checkNormalizedNetloc(netloc string) error {
-	if isASCII(netloc) {
-		return nil
-	}
-	stripped := strings.NewReplacer("@", "", ":", "", "#", "", "?", "").Replace(netloc)
-	normalized := norm.NFKC.String(stripped)
-	if normalized != stripped && strings.ContainsAny(normalized, "/?#@:") {
+	stripped := strings.NewReplacer("@", "", ":", "").Replace(netloc)
+	if strings.ContainsAny(norm.NFKC.String(stripped), "/?#@:") {
 		return ErrInvalid
 	}
 	return nil
-}
-
-func isASCII(s string) bool {
-	for i := range len(s) {
-		if s[i] >= 0x80 {
-			return false
-		}
-	}
-	return true
 }
 
 // hasSecretField reports whether a query field name, decoded and case-folded
@@ -189,52 +182,25 @@ func secretName(name string) bool {
 	return false
 }
 
-// unquote decodes the percent escapes of each ASCII run of s as UTF-8, as
-// Python's urllib.parse.unquote does. An invalid escape stays as it is, and an
-// invalid UTF-8 sequence becomes U+FFFD.
+// unquote decodes each %XX escape of s and replaces each run of invalid UTF-8
+// with U+FFFD. An invalid escape stays as it is. Python's unquote decodes each
+// ASCII run alone and replaces each invalid sequence. Decoded bytes cannot join
+// the multibyte text after them, because such text starts with a lead byte. So
+// the two decodings differ only in the number of replacement characters. The
+// field-name check gives the same verdict for both, because each secret name
+// and word is ASCII.
 func unquote(s string) string {
-	if !strings.Contains(s, "%") {
-		return s
-	}
-	var out strings.Builder
-	for s != "" {
-		end := strings.IndexFunc(s, func(r rune) bool { return r >= 0x80 })
-		if end < 0 {
-			end = len(s)
-		}
-		out.WriteString(strings.ToValidUTF8(decodePercents(s[:end]), "�"))
-		s = s[end:]
-		next := strings.IndexFunc(s, func(r rune) bool { return r < 0x80 })
-		if next < 0 {
-			next = len(s)
-		}
-		out.WriteString(s[:next])
-		s = s[next:]
-	}
-	return out.String()
-}
-
-// decodePercents replaces each %XX escape of an ASCII string with its byte.
-func decodePercents(s string) string {
 	var out []byte
 	for i := 0; i < len(s); i++ {
-		if s[i] == '%' && i+2 < len(s) && isHex(s[i+1]) && isHex(s[i+2]) {
-			out = append(out, unhex(s[i+1])<<4|unhex(s[i+2]))
-			i += 2
-			continue
+		if s[i] == '%' && i+2 < len(s) {
+			// ParseUint takes only hexadecimal digits: no sign and no underscore.
+			if b, err := strconv.ParseUint(s[i+1:i+3], 16, 8); err == nil {
+				out = append(out, byte(b))
+				i += 2
+				continue
+			}
 		}
 		out = append(out, s[i])
 	}
-	return string(out)
-}
-
-func isHex(c byte) bool {
-	return '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F'
-}
-
-func unhex(c byte) byte {
-	if c <= '9' {
-		return c - '0'
-	}
-	return c&^0x20 - 'A' + 10
+	return strings.ToValidUTF8(string(out), "\uFFFD")
 }

@@ -71,14 +71,20 @@ func TestCheckMatchesThePythonReference(t *testing.T) {
 	}
 }
 
-func TestUnquoteDecodesEachASCIIRun(t *testing.T) {
+func TestUnquoteDecodesPercentEscapes(t *testing.T) {
 	tests := map[string]string{
 		"plain":     "plain",
 		"a%41b":     "aAb",
+		"x%41":      "xA",
+		"x%4":       "x%4",
+		"%2b%2B":    "++",
+		"%+1%_1":    "%+1%_1",
 		"%e2%80%8b": "\u200b",
 		"%ZZ%4":     "%ZZ%4",
 		"%FFé%41":   "\ufffdéA",
 		"é%C3%A9":   "éé",
+		// One run of invalid bytes gives one replacement character.
+		"%af%AF": "\ufffd",
 	}
 	for input, want := range tests {
 		if got := unquote(input); got != want {
