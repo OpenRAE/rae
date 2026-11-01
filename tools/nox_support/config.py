@@ -7,6 +7,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = REPO_ROOT / "implementations" / "python"
+# A changed module whose tests all belong to another lane, for example
+# integration, collects nothing in a fast lane: pytest exits 5. That lane runs it.
+CHANGED_MODULE_PYTEST_CODES = (0, 5)
 PUBLIC_DOCS_ROOT = REPO_ROOT / "docs" / "public"
 DOCS_BUILD_ROOT = REPO_ROOT / "docs" / "_build"
 PUBLIC_DOCS_ENTRYPOINTS = (

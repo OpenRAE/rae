@@ -12,6 +12,7 @@ import nox
 from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.nox_support.config import (
+    CHANGED_MODULE_PYTEST_CODES,
     JSON_SCHEMA_WORKERS_ENV,
     REPO_ROOT,
     VERIFY_COVERAGE_FILE_ENV,
@@ -233,7 +234,7 @@ def _run_fast_feedback(
     if changed_tests:
         reporter.run(
             "fast-feedback / directly changed pytest modules",
-            lambda: _run_pytest(session, *changed_tests, "-q"),
+            lambda: _run_pytest(session, *changed_tests, "-q", success_codes=CHANGED_MODULE_PYTEST_CODES),
             detail=" ".join(changed_tests),
         )
     else:

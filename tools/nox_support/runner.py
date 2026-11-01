@@ -89,8 +89,9 @@ def _run(
     *args: str,
     silent: bool = False,
     env: dict[str, str] | None = None,
+    success_codes: Sequence[int] | None = None,
 ) -> None:
-    session.run(*args, external=True, silent=silent, env=env)
+    session.run(*args, external=True, silent=silent, env=env, success_codes=success_codes)
 
 
 def _git_lines(*args: str) -> list[str]:
@@ -180,6 +181,7 @@ def _run_pytest(
     finalize_coverage: bool = False,
     xdist: str | None = None,
     extra_env: dict[str, str] | None = None,
+    success_codes: Sequence[int] | None = None,
 ) -> None:
     """Run pytest in the project; `xdist` names the worker distribution, None runs one process."""
 
@@ -199,7 +201,7 @@ def _run_pytest(
             command.append("--cov-append")
     command.extend(normalized_args)
     with session.chdir(PROJECT_ROOT):
-        _run(session, *command, env=coverage_env)
+        _run(session, *command, env=coverage_env, success_codes=success_codes)
         if finalize_coverage:
             _write_and_check_coverage(session, coverage_env)
 
