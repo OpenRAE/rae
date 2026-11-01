@@ -197,9 +197,9 @@ def test_randstream_cases_reproduce_each_published_vector() -> None:
     repo = Path(__file__).resolve().parents[3]
     cases = list(pc.randstream_cases(repo))
 
-    assert len(cases) == len(list((repo / "contracts/fixtures/random-stream-vectors").rglob("*.json")))
+    assert len(cases) == len(list((repo / "contracts/fixtures/random-stream-vectors").rglob(pc.JSON_FILES)))
     for case in cases:
-        vector = json.loads(case.files["vector.json"])
+        vector = json.loads(case.files[pc.RANDSTREAM_VECTOR])
         result = pc.run_randstream(case)
         assert result["stream_key_hex"] == vector["stream_key_hex"]
         assert result["address_canonical_bytes_hex"] == vector["address_canonical_bytes_hex"]

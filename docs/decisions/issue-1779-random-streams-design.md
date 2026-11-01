@@ -21,6 +21,8 @@ The package `base/randstream` implements the profiles with pure functions.
 | `Block` | The keyed BLAKE3 output for the canonical address bytes, from the offset of the local coordinate |
 | `BoundedInt` | Rejection sampling over the smallest number of big-endian bytes that covers the range |
 
+The published profiles fix BLAKE3 and the derivation context.
+Another function needs a new profile with a new profile id, because recorded trials hold the values of these profiles.
 `github.com/zeebo/blake3` provides BLAKE3.
 The evaluation also tried `lukechampine.com/blake3` v1.4.1.
 Its output reader returns other bytes after a seek to 64 bytes or more.
