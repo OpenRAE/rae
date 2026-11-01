@@ -124,20 +124,20 @@ def test_cli_cases_record_the_exit_code_and_the_normalized_output(repo: Path) ->
     assert pc.run(repo, cases["examples/scenarios/broken.sdl"]) == rejected
 
 
-def test_check_reports_drift_and_ignores_the_recorded_python_commit(repo: Path) -> None:
+def test_check_reports_drift(repo: Path) -> None:
     cases = list(pc.schema_cases(repo))
-    recorded = pc.build_corpus(repo, cases, "commit-a")
+    recorded = pc.build_corpus(repo, cases)
     root = repo / pc.CORPUS_DIR
     pc.write_corpus(root, recorded)
 
     assert pc.read_corpus(root) == recorded
-    assert pc.corpus_differences(pc.build_corpus(repo, cases, "commit-b"), recorded) == []
+    assert pc.corpus_differences(pc.build_corpus(repo, cases), recorded) == []
 
     changed = dict(recorded)
     changed[cases[0].path] = b"{}\n"
     del changed[cases[1].path]
     changed[Path("cases/schema/validate/extra.json")] = b"{}\n"
-    changed[pc.MANIFEST] = pc.encode({"schema": "other/v1", "python_commit": "commit-a"})
+    changed[pc.MANIFEST] = pc.encode({"schema": "other/v1"})
     assert sorted(pc.corpus_differences(recorded, changed)) == sorted(
         [
             f"missing: {cases[1].path}",
@@ -150,12 +150,11 @@ def test_check_reports_drift_and_ignores_the_recorded_python_commit(repo: Path) 
 
 
 def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.MonkeyPatch, capsys) -> None:
-    monkeypatch.setattr(pc, "python_commit", lambda _repo: "commit-a")
     monkeypatch.setattr(pc, "supported_contracts", lambda: ["demo-v1"])
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err
-    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode({"schema": pc.SCHEMA, "python_commit": "commit-a"})
+    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode({"schema": pc.SCHEMA})
 
     assert pc.main(["record", "--repo-root", str(repo)]) == 0
     assert pc.main(["check", "--repo-root", str(repo)]) == 0
