@@ -162,11 +162,15 @@ async def _exercise(blocked, tmp_path, database):
         activities = None
         try:
             await _until(lambda: server.started)
+            # Worker calls reach the control plane over loopback HTTP. A loaded
+            # runner can exceed the 2-second default, so give each call room
+            # while it stays below the activity budget.
             rpc = RemoteAuthorityConfiguration(
                 base_url=f"http://127.0.0.1:{listener.getsockname()[1]}",
                 identity=worker(),
                 bearer_token=SecretStr("integration-worker"),
                 allow_insecure_loopback=True,
+                rpc_budget_ms=5000,
             )
             authorities = [RemoteOperationAuthority(rpc), RemoteOperationAuthority(rpc)]
             activities = TemporalOperationActivities(
