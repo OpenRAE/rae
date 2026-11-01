@@ -530,7 +530,7 @@ jobs:
           GIT_CONFIG_COUNT: "1"
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
-        run: gremlins unleash --diff "${MERGE_BASE}" --threshold-efficacy 90 --threshold-mcover 90
+        run: gremlins unleash --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
       - name: Check that each new regression test fails on the base
         working-directory: ${{ matrix.path }}
         env:
