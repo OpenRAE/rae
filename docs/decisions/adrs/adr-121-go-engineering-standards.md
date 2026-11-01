@@ -131,7 +131,10 @@ The Go code uses these idiomatic forms of contract-based development:
   gremlins cannot test its mutants.
 - A regression test is a test function whose name starts with `TestRegression`.
   It must build and fail at the merge base. The `regressiontest` command checks
-  each new regression test.
+  each new regression test. The base run gets the current content of each test
+  file that declares a new regression test, and of the testdata of its package.
+  Other test files keep their base content. Thus a regression test keeps its
+  inputs in testdata, and each test in its file must build at the merge base.
 - Full test, mutation, and fuzz suites run in CI only. Local runs stay targeted.
 
 ### 8. Dependencies
