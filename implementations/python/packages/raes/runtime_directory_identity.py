@@ -28,6 +28,7 @@ from raes.runtime_filesystem import redacted_raw_value_schema
 
 from .runtime_identity_resources import (
     RuntimeIdentityAccessObservation,
+    RuntimeIdentityAuditLog,
     RuntimeIdentityPermissionBinding,
     RuntimeIdentityPolicyCondition,
     RuntimeIdentityResourceAccess,
@@ -38,6 +39,7 @@ from .runtime_identity_resources import (
 
 __all__ = [
     "RuntimeIdentityAccessObservation",
+    "RuntimeIdentityAuditLog",
     "RuntimeIdentityPermissionBinding",
     "RuntimeIdentityPolicyCondition",
     "RuntimeIdentityResourceAccess",

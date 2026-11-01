@@ -70,6 +70,9 @@ class _CloudResourcesMixin:
     def _verify_cloud_scopes(self, scopes: _Scopes) -> None:
         for scope in scopes.values():
             self._verify_cloud_scope_parent(scope)
+            for audit_log in scope.audit_logs:
+                for principal_ref in audit_log.exempted_principal_refs:
+                    self._cloud_model(principal_ref, RuntimeIdentitySubject, "audit exemption principal reference")
         self._cloud_acyclic(
             {key: (value.parent_ref,) if value.parent_ref in scopes else () for key, value in scopes.items()}, "scope"
         )

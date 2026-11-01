@@ -5,13 +5,14 @@ linked from the existing [scope inventory](scope-inventory.md). Reviewed baselin
 `2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e`, 2026-09-16.
 
 The scope is every model reachable from the 17 registered runtime families,
-plus service-manager units: 126 model types and 975 fields, including inherited
+plus service-manager units: 127 model types and 980 fields, including inherited
 fields. The runtime registry remains authoritative. This ledger neither
 registers families nor changes model validation. Adjacent surfaces outside this
 field graph have separate dispositions in the audit.
 
 Issue #1653 adds cloud ownership, identity use, access reports and secret versions.
-The rows below include those extensions; the original reviewed baseline stays fixed.
+Issue #1831 adds scope-owned audit recording requirements.
+The rows below include these extensions; the original reviewed baseline stays fixed.
 
 Each field has one primary semantic owner:
 
@@ -114,6 +115,7 @@ supply those separate arguments.
 | `RuntimeForwardingSource` | [runtime_forwarding_agent.py](../../../implementations/python/packages/raes/runtime_forwarding_agent.py) | P: `source_id`, `kind`, `description`; C: `selector`; B: `location`; N: `parse_format` |
 | `RuntimeForwardingTransform` | [runtime_forwarding_agent.py](../../../implementations/python/packages/raes/runtime_forwarding_agent.py) | P: `transform_id`, `kind`, `description`; N: `sid_namespace` |
 | `RuntimeIdentityAccessObservation` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `observation_id`, `description`; B: `principal_ref`, `resource_ref`, `context_refs`; O: `action`, `outcome`, `evidence_refs` |
+| `RuntimeIdentityAuditLog` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `audit_log_id`; N: `service`, `log_type`; B: `exempted_principal_refs` |
 | `RuntimeIdentityAttribute` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `description`; A: `value_classification`; N: `name`, `values`; O: `origin`, `provenance` |
 | `RuntimeIdentityAuthorityService` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `service_id`, `description`; B: `service`, `protocol`, `address`, `port` |
 | `RuntimeIdentityAuthority` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `identity_authority_id`, `kind`, `name`, `description`, `resource_scopes`; C: `subjects`; B: `services`, `relationships`, `identity_uses`; A: `policies`; N: `namespace`, `domain_name`, `realm`, `issuer`, `tenant_id`, `base_dn`; O: `access_observations` |
@@ -122,7 +124,7 @@ supply those separate arguments.
 | `RuntimeIdentityPolicy` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `policy_id`, `name`, `description`; B: `applies_to_refs`; A: `policy_kind`, `settings`, `resource_access` |
 | `RuntimeIdentityRelationship` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `relationship_id`, `relationship_type`, `description`; B: `source_ref`, `target_ref`, `external_target` |
 | `RuntimeIdentityResourceAccess` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | B: `attachment_ref`, `inherited_from_ref`; A: `bindings` |
-| `RuntimeIdentityResourceScope` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `scope_id`, `description`; B: `parent_ref`; N: `provider`, `scope_kind`, `name`, `native_id`, `incarnation_id` |
+| `RuntimeIdentityResourceScope` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `scope_id`, `description`; C: `audit_logs`; B: `parent_ref`; N: `provider`, `scope_kind`, `name`, `native_id`, `incarnation_id` |
 | `RuntimeIdentitySubject` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `subject_id`, `kind`, `name`, `description`; C: `display_name`, `attributes`; B: `resource_scope_ref`; A: `enabled`; N: `principal_name`, `distinguished_name`, `domain`, `service_principal_names`; O: `origin` |
 | `RuntimeIdentityUse` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `use_id`, `description`; B: `workload_ref`, `principal_ref`, `mode`, `source_principal_ref` |
 | `RuntimeListenerReadiness` | [runtime_listeners.py](../../../implementations/python/packages/raes/runtime_listeners.py) | P: `description`; O: `probe`, `criteria`, `evidence_refs` |
