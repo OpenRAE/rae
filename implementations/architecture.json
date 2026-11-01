@@ -172,10 +172,6 @@
           "reason": "The go/analysis framework, its unitchecker, and its analysistest for the repository analyzers (ADR-121)."
         },
         {
-          "path": "golang.org/x/tools/go/ast/astutil",
-          "reason": "The import pruning of the regressiontest replay."
-        },
-        {
           "path": "golang.org/x/tools/go/ast/inspector",
           "reason": "AST traversal for the repository analyzers."
         },
