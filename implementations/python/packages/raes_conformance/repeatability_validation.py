@@ -18,10 +18,10 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from enum import Enum
 
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
-from raes_contracts.contracts import BehavioralClaimBindingModel
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic, Severity
-from raes_contracts.satisfiability import canonical_json_digest
 
 from .repeatability_types import (
     ProjectionOutcome,

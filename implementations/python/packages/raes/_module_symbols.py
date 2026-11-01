@@ -6,8 +6,9 @@ from collections.abc import Mapping
 from contextlib import suppress
 from typing import Any
 
-from ._base import is_variable_ref
-from ._identifiers import QualifiedName
+from raes_contracts.identifiers import QualifiedName
+from raes_contracts.variable_references import is_variable_ref
+
 from ._module_runtime_aliases import nested_node_runtime_aliases
 from .entities import flatten_entities
 from .scenario import ModuleDescriptor, ScenarioContent

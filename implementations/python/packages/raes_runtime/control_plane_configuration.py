@@ -7,8 +7,8 @@ from typing import Protocol, TypedDict
 from raes_backend_protocols.inject_execution import InjectExecutionResolver, require_inject_resolver
 from raes_contracts.contracts import ExperimentStochasticControlModel, ParticipantInformationStateContextResolver
 from raes_contracts.contracts.backend_operation import OperationGuarantee
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive
 from raes_contracts.contracts.trial_controls import OperationSupervisionCapabilitiesModel
-from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.planning import PlanScope
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.timestamps import WallClock, utc_now

@@ -7,10 +7,10 @@ from pathlib import PurePosixPath
 
 from pydantic import Field, field_validator, model_validator
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.sdl_model import SDLModel
 from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
 from .random_value import SECRET_MIN_ENTROPY_BITS, RandomValueRecipe
 
 

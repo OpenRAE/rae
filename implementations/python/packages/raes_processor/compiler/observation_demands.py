@@ -18,8 +18,8 @@ from raes_contracts.observation_demand import (
     ObservationLifecycleDecision,
     ObservationPurpose,
     ObservationSelector,
-    normalize_observation_demands,
 )
+from raes_contracts.observation_demand_resolution import normalize_observation_demands
 from raes_contracts.realization_structure import RealizationClosure, RealizationCollectionProfile
 
 from ..semantics.realization_concerns import registered_realization_concern_descriptors

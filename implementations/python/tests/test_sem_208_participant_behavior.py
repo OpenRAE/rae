@@ -10,8 +10,7 @@ from raes._declarations import build_declaration_index
 from raes._errors import SDLInstantiationError, SDLParseError, SDLValidationError
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, parse_sdl_file
-from raes.participant_behavior import ParticipantInteractionClass
-from raes_contracts.contracts import schema_bundle
+from raes_contracts.participant_action_semantics import ParticipantInteractionClass
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import (
     ParticipantBehaviorHistoryEvent,
@@ -21,6 +20,7 @@ from raes_processor.models import (
     ParticipantObservationStatus,
     iter_participant_behavior_history_violations,
 )
+from raes_schemas import schema_bundle
 
 T0 = "2026-05-18T18:30:00Z"
 T1 = "2026-05-18T18:30:05Z"

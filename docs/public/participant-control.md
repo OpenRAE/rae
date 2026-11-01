@@ -449,7 +449,7 @@ It keeps its `independent-reproduction` nonclaim, because the claim predates the
   "evidence_refs": [
     "sha256:5891bbc5b3da53c7345f383da7f935ee9f8f0e4dd56b50c6edc132bbbd33964b",
     "sha256:8d8ca9681c2893abf048a0988aa5efc76c22e1fe148c4c75be78780e9be09b39",
-    "sha256:8cfd29f2e46e18f145dc56981cb62232ad13c1a1708efd4c1c3549300091e525"
+    "sha256:40fbc2a4cce132b4214741d25fed3345bf79c5ab02048711010eba5511d6d2e6"
   ],
   "evidence_scope": "model-check",
   "explicit_non_claims": [
@@ -556,10 +556,10 @@ A repository test compares each value with the admitted machine-check and reprod
     "removed-delivery": false
   },
   "machine_check": {
-    "manifest_digest": "sha256:3240d46536489d8468d9a8c3dd8f23f2be3b92d40c02b81a4d60228aef8d3110",
-    "result_digest": "sha256:5b42b0f114c33842d3c9ae950c99a5783f5b950b0654913cf602e97b050fea7f",
-    "claim_digest": "sha256:578d67009eef8791e98c859024124c6a72b14cd73d245a93eed2e6f02f82ae54",
-    "corpus_manifest_digest": "sha256:5de4ae658bfe8265b83cf72eb46bf9cf72f3a69f69263da78f756c16e8285f8b",
+    "manifest_digest": "sha256:aa2cd2abc901a52bcf7e1a89fa847ba2b2f178df351323d994c14053fd364894",
+    "result_digest": "sha256:3d43e19e0dd2a64d69a0e9e8988774ca703c3fc2bd7f1841494f44bf395e0915",
+    "claim_digest": "sha256:b9352d55513f4ce036accb515251ec6836e7d36f97618655c2613560dd3e7cad",
+    "corpus_manifest_digest": "sha256:f6d7287d6ab121306dacd7474ebf3c3a8fe6800d6aa02cb5443c019eafbaede1",
     "mutation_review_subject_digest": "sha256:92803733e9aa6afc765af5e8f9d5b33c98c5824dbf62afd0b86a24a79ec29e95",
     "authenticity": "unsigned",
     "claim_non_claims": [
@@ -579,18 +579,18 @@ A repository test compares each value with the admitted machine-check and reprod
     ]
   },
   "reproduction": {
-    "manifest_digest": "sha256:35bef4e0fdbea4ea57fbde9166c9f2d2e5d9171a86a6bc9c2a28aa040d183cf0",
-    "measurement_digest": "sha256:cb71cb45b064ec3fca09b2407a36d5358bf73e3933b3bc6c993df7448a0a4f5f",
-    "execution_digest": "sha256:093be5249d8b40de3779202785525d42a71503e6204e72c1554abea303f153d9",
-    "review_digest": "sha256:0571524c26b72c620a3f63c64fc1017306c8a052acc76d9091a09e0ef0185768",
+    "manifest_digest": "sha256:5f688c94b865150ab01bb3f482da97f9ddf245a183b4f7132ffbc778525ff81a",
+    "measurement_digest": "sha256:93fae25559c6ba70c248b0dddab5776b6e02d29f6844d2ba332b77a466ac5d24",
+    "execution_digest": "sha256:62f93384e824531c42a8ff1f22e1d60dd0f5d7ba777e4cab50b6c94072206223",
+    "review_digest": "sha256:06ba0983b57b0328305d86f56869db6d01882162e87886f806bcd212dfa535b3",
     "decision": "accepted-bounded-reproduction",
     "reviewer_role": "implementation-agent",
-    "producer_ref": "https://github.com/OpenRAE/rae/issues/976#issuecomment-6544932861",
-    "reviewer_ref": "https://github.com/OpenRAE/rae/issues/976#issuecomment-6547519444",
-    "acceptance_record_ref": "https://github.com/OpenRAE/rae/issues/976#issuecomment-6547521916",
-    "qualified_run": "https://github.com/OpenRAE/rae/actions/runs/41229565420",
-    "qualified_artifact_digest": "sha256:551f763ca1ed1c7dd7a31187368ccea713ceb585787134756253b12f9d238df8",
-    "source_revision": "71e2a1389349c0a2a5ac9775fd710631af60652a",
+    "producer_ref": "https://github.com/OpenRAE/rae/issues/1711#issuecomment-6539708715",
+    "reviewer_ref": "https://github.com/OpenRAE/rae/issues/1711#issuecomment-6549380713",
+    "acceptance_record_ref": "https://github.com/OpenRAE/rae/issues/1711#issuecomment-6549385245",
+    "qualified_run": "https://github.com/OpenRAE/rae/actions/runs/41242963913",
+    "qualified_artifact_digest": "sha256:32629cc57b926646742f3f6eed88e218a7fef27773c36591501c191ddc763929",
+    "source_revision": "cbaaa07993f3feb6322d7bb11cc136e2817e2740",
     "authenticity": "unsigned",
     "nonclaims": [
       "runtime-realization",

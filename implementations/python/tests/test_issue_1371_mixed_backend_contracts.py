@@ -14,6 +14,7 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import seal_mixed_composition_profile
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel, TimeRuntimeStateModel
 from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS, MIXED_BACKEND_CONTRACT_IDS
+from raes_schemas import schema_bundle
 from test_issue_1014_mixed_composition_contracts import _context, _staged_profile, _time_model
 from test_issue_1016_mixed_runtime_coordination import _runtime_mixed_profile, _runtime_profile
 
@@ -889,7 +890,7 @@ def test_committed_transfer_without_owner_readback_cannot_settle() -> None:
 @pytest.mark.parametrize("contract_id", MIXED_BACKEND_CONTRACT_IDS)
 def test_published_schema_matches_the_bundle_and_classifies_the_example_corpus(contract_id: str) -> None:
     schema = json.loads((ROOT / f"contracts/schemas/control-plane/{contract_id}.json").read_text(encoding="utf-8"))
-    assert schema == contracts.schema_bundle()[contract_id]
+    assert schema == schema_bundle()[contract_id]
     model = (
         contracts.MixedBackendExecutionBindingModel
         if contract_id == BINDING

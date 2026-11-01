@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "6d3e75e7f589c9b713eaa0e4373a708a8c3ba8e3292dad5934f48c1da90d8719"
+      "content_sha256": "a5d0e34cc994dc6cf4f5ed47434ddbd802dc330f6430edd95ce190d2e2ad946c"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -215,7 +215,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 18,
-      "content_sha256": "80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9"
+      "content_sha256": "d56045dcedd9e7bb4a94d023326e725edc94651ac6ed7869f0b09dfa9962f895"
     },
     {
       "path": "docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008 and issue-1740 amendments, the PR-1752 ADR-117 amendment, the issue-976 ADR-100 amendment and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008 and issue-1740 amendments, the PR-1752 ADR-117 amendment, the issue-976 ADR-100 amendment, the issue-1711 ADR-036 and ADR-117 amendments and their pins.",
       "occurrences": 4,
-      "content_sha256": "d7e282c2c50dfdd7f9d6db179be03acc0c5640e8fa26f409c7b4c8765d09e4ff"
+      "content_sha256": "e668b656831ae7fb918b312631df982955443cca312c7c72bb5f2b8cb4c07b0f"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

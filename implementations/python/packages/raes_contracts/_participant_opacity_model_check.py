@@ -8,6 +8,10 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
+from raes_contracts._base import ContractModel, PrefixedDigestString
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
+from raes_contracts.source_identity import SourceArtifactIdentityModel
+
 from ._participant_opacity_common import (
     MAX_OPACITY_DIAGNOSTICS,
     MAX_OPACITY_MODEL_STATES,
@@ -21,13 +25,7 @@ from ._participant_opacity_model import (
     _validate_model_check_claim_scope,
 )
 from .canonical import canonical_json_digest
-from .contracts.base import (
-    BehavioralClaimBindingModel,
-    ContractModel,
-    PrefixedDigestString,
-)
 from .diagnostics import DiagnosticModel
-from .satisfiability import SourceArtifactIdentityModel
 from .versions import PARTICIPANT_OPACITY_MODEL_CHECK_EVIDENCE_SCHEMA_VERSION
 
 

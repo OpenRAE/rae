@@ -1266,6 +1266,7 @@ def setup_policy_repo(tmp_path: Path) -> Path:
         "raes_cli",
         "raes_mcp",
         "raes_contracts",
+        "raes_schemas",
     ):
         write_text(
             tmp_path / "implementations" / "python" / "packages" / package / "__init__.py",

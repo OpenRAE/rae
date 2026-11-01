@@ -8,6 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler,
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..concept_binding_scopes import BACKEND_CONCEPT_BINDING_SCOPES, PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES
 from ..execution_policy import ExecutionPolicyCapabilities
 from ..manifest_authority import (
     BACKEND_SUPPORTED_CONTRACT_IDS,
@@ -26,8 +27,6 @@ from ..versions import (
     PARTICIPANT_IMPLEMENTATION_PROVENANCE_V1_SCHEMA_VERSION,
 )
 from .base import (
-    _BACKEND_CONCEPT_BINDING_SCOPES,
-    _PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES,
     ContractModel,
     NonEmptyString,
     Sha256DigestString,
@@ -41,9 +40,9 @@ from .experiment_bindings import ConfigurationTargetRegistryModel
 from .manifests import BackendCapabilitiesV2Model, ConceptBindingEntryModel
 from .realization_plans import RealizationEnvelopeIdentityModel
 from .validators import (
-    _validate_canonical_concept_bindings,
-    _validate_controlled_vocabulary_terms,
-    _validate_unique_string_values,
+    validate_canonical_concept_bindings,
+    validate_controlled_vocabulary_terms,
+    validate_unique_string_values,
 )
 
 
@@ -157,7 +156,7 @@ class BackendManifestV2Model(ContractModel):
         scopes = [binding.scope for binding in self.concept_bindings]
         if len(scopes) != len(set(scopes)):
             raise ValueError("concept_bindings must not contain duplicate scopes")
-        _validate_canonical_concept_bindings(self, allowed_scopes=_BACKEND_CONCEPT_BINDING_SCOPES)
+        validate_canonical_concept_bindings(self, allowed_scopes=BACKEND_CONCEPT_BINDING_SCOPES)
 
     @model_serializer(mode="wrap")
     def _serialize_optional_configuration_registry(
@@ -252,9 +251,9 @@ class ParticipantImplementationCompatibilityModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_non_empty_compatibility(self) -> ParticipantImplementationCompatibilityModel:
-        _validate_unique_string_values("participant_runtimes", self.participant_runtimes)
-        _validate_unique_string_values("processors", self.processors)
-        _validate_unique_string_values("backends", self.backends)
+        validate_unique_string_values("participant_runtimes", self.participant_runtimes)
+        validate_unique_string_values("processors", self.processors)
+        validate_unique_string_values("backends", self.backends)
         if not (self.participant_runtimes or self.processors or self.backends):
             raise ValueError(
                 "compatibility must declare at least one participant runtime, processor, or backend surface"
@@ -282,24 +281,24 @@ class ParticipantImplementationCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_participant_implementation_capabilities(self) -> ParticipantImplementationCapabilitiesModel:
-        _validate_unique_string_values("supported_participant_contracts", self.supported_participant_contracts)
-        _validate_unique_string_values("supported_decision_surface_modes", self.supported_decision_surface_modes)
-        _validate_unique_string_values("tool_affordance_expectations", self.tool_affordance_expectations)
-        _validate_unique_string_values("exposure_policy_kinds", self.exposure_policy_kinds)
+        validate_unique_string_values("supported_participant_contracts", self.supported_participant_contracts)
+        validate_unique_string_values("supported_decision_surface_modes", self.supported_decision_surface_modes)
+        validate_unique_string_values("tool_affordance_expectations", self.tool_affordance_expectations)
+        validate_unique_string_values("exposure_policy_kinds", self.exposure_policy_kinds)
         validate_participant_supported_contract_versions(self.supported_participant_contracts)
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.supported_participant_contracts",
             self.supported_participant_contracts,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.supported_decision_surface_modes",
             self.supported_decision_surface_modes,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.tool_affordance_expectations",
             self.tool_affordance_expectations,
         )
-        _validate_controlled_vocabulary_terms("capabilities.exposure_policy_kinds", self.exposure_policy_kinds)
+        validate_controlled_vocabulary_terms("capabilities.exposure_policy_kinds", self.exposure_policy_kinds)
         return self
 
 
@@ -319,8 +318,8 @@ class ParticipantImplementationManifestModel(ContractModel):
     @model_validator(mode="after")
     def _validate_participant_implementation_manifest(self) -> ParticipantImplementationManifestModel:
         validate_participant_implementation_supported_contract_versions(self.supported_contract_versions)
-        _validate_unique_string_values("supported_contract_versions", self.supported_contract_versions)
-        _validate_controlled_vocabulary_terms("implementation_kind", [self.implementation_kind])
+        validate_unique_string_values("supported_contract_versions", self.supported_contract_versions)
+        validate_controlled_vocabulary_terms("implementation_kind", [self.implementation_kind])
         unsupported = sorted(
             set(self.capabilities.supported_participant_contracts) - set(self.supported_contract_versions)
         )
@@ -340,9 +339,9 @@ class ParticipantImplementationManifestModel(ContractModel):
         scopes = [binding.scope for binding in self.concept_bindings]
         if len(scopes) != len(set(scopes)):
             raise ValueError("concept_bindings must not contain duplicate scopes")
-        _validate_canonical_concept_bindings(
+        validate_canonical_concept_bindings(
             self,
-            allowed_scopes=_PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES,
+            allowed_scopes=PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES,
         )
         return self
 
@@ -389,12 +388,12 @@ class ParticipantExposurePolicyModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_exposure_policy(self) -> ParticipantExposurePolicyModel:
-        _validate_unique_string_values("exposure_policy_kinds", self.exposure_policy_kinds)
-        _validate_unique_string_values("disclosed_refs", self.disclosed_refs)
-        _validate_unique_string_values("withheld_refs", self.withheld_refs)
-        _validate_unique_string_values("tool_affordance_refs", self.tool_affordance_refs)
-        _validate_unique_string_values("visibility_scope_refs", self.visibility_scope_refs)
-        _validate_controlled_vocabulary_terms("capabilities.exposure_policy_kinds", self.exposure_policy_kinds)
+        validate_unique_string_values("exposure_policy_kinds", self.exposure_policy_kinds)
+        validate_unique_string_values("disclosed_refs", self.disclosed_refs)
+        validate_unique_string_values("withheld_refs", self.withheld_refs)
+        validate_unique_string_values("tool_affordance_refs", self.tool_affordance_refs)
+        validate_unique_string_values("visibility_scope_refs", self.visibility_scope_refs)
+        validate_controlled_vocabulary_terms("capabilities.exposure_policy_kinds", self.exposure_policy_kinds)
         if not (self.disclosed_refs or self.withheld_refs or self.tool_affordance_refs or self.visibility_scope_refs):
             raise ValueError(
                 "exposure policy must declare disclosed_refs, withheld_refs, "
@@ -421,9 +420,9 @@ class ParticipantImplementationSelectionModel(ContractModel):
     def _validate_participant_implementation_selection(self) -> ParticipantImplementationSelectionModel:
         if (self.configuration_ref is None) != (self.configuration_digest is None):
             raise ValueError("configuration_ref and configuration_digest must be supplied together")
-        _validate_unique_string_values("participant_contract_versions", self.participant_contract_versions)
+        validate_unique_string_values("participant_contract_versions", self.participant_contract_versions)
         validate_participant_supported_contract_versions(self.participant_contract_versions)
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.supported_decision_surface_modes",
             [self.selected_decision_surface_mode],
         )
@@ -470,5 +469,5 @@ class ParticipantImplementationProvenanceModel(ContractModel):
     @model_validator(mode="after")
     def _validate_unique_participant_addresses(self) -> ParticipantImplementationProvenanceModel:
         addresses = [selection.participant_address for selection in self.participant_implementations]
-        _validate_unique_string_values("participant_address", addresses)
+        validate_unique_string_values("participant_address", addresses)
         return self

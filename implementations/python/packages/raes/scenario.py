@@ -16,17 +16,15 @@ from typing import ClassVar, Literal
 from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
 from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetModel
+from raes_contracts.evidence_requirements import EvidenceRequirement
 from raes_contracts.execution_policy import OptionalExecutionPolicy
+from raes_contracts.identifiers import PortableIdentifier, QualifiedName, require_portable_identifier
 from raes_contracts.json_pointer import unescape_token
+from raes_contracts.participant_outcome_semantics import OutcomeInterpretationRule
 
 from ._classification_guard import LegacyClassificationGuard
 from ._declaration_sources import DeclarationSource
 from ._errors import SDLParseDiagnostic
-from ._identifiers import (
-    PortableIdentifier,
-    QualifiedName,
-    require_portable_identifier,
-)
 from ._mapping_scopes import HASHMAP_SECTIONS
 from ._module_declarations import ImportDecl as ImportDecl
 from ._module_declarations import ModuleDescriptor as ModuleDescriptor
@@ -42,7 +40,6 @@ from .content import Content
 from .deployment_tenancy import DeploymentCell, DeploymentTenant
 from .enterprise_identity import IdentityFacade, IdentityForest
 from .entities import Entity
-from .evidence_requirements import EvidenceRequirement
 from .explicitness import ExplicitnessRecord
 from .features import Feature
 from .identity_domains import IdentityDomain
@@ -55,7 +52,6 @@ from .participant_behavior import (
     ParticipantObservationBoundary,
 )
 from .participant_behavior_specification import ParticipantBehaviorSpecification
-from .participant_outcome_semantics import OutcomeInterpretationRule
 from .phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,

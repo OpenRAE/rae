@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingDirection,
     ParticipantCrossingInteractionKind,
@@ -12,7 +13,6 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingSubjectReferenceModel,
 )
 from raes_contracts.errors import AuthorizationError, ConflictError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_processor.models import ParticipantBehaviorRuntime
 
 from .control_plane_security import ControlPlaneIdentity

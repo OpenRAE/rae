@@ -8,17 +8,22 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, ValidationError, model_validator
 
+from raes_contracts._base import ContractModel, NonEmptyString
+from raes_contracts.behavioral_claims import (
+    BehavioralClaimBindingModel,
+    BehavioralRelationId,
+    BehavioralTaxonomyRevision,
+)
+
 from .behavioral_authority_errors import (
     BehavioralAuthorityArtifactError,
     BehavioralAuthorityUnsupportedError,
     unsupported_authority_as_value_error,
 )
-from .contracts import (
-    BehavioralClaimBindingModel,
-    BehavioralRelationId,
-    BehavioralTaxonomyRevision,
-    ContractModel,
-    NonEmptyString,
+from .behavioral_relation_profiles import (
+    MultiParticipantCrossingParametersModel,
+    ParticipantCrossingParametersModel,
+    load_behavioral_relation_profile_revision,
 )
 from .corpus import CONCEPT_AUTHORITY, corpus_family_root
 from .operational_logging import get_logger
@@ -410,11 +415,6 @@ def _validate_binding_profile(
 ) -> None:
     """Join a required profile to the exact catalog and claim coordinates."""
 
-    from .behavioral_relation_profiles import (
-        MultiParticipantCrossingParametersModel,
-        ParticipantCrossingParametersModel,
-    )
-
     if isinstance(profile.parameters, (ParticipantCrossingParametersModel, MultiParticipantCrossingParametersModel)):
         if binding.right_carrier_ref != profile.parameters.right.model_id:
             raise ValueError("behavioral claim binding right carrier does not match the resolved profile")
@@ -463,8 +463,6 @@ def validate_behavioral_claim_binding(
     _validate_binding_requirements(binding, relation)
     if relation.relation_parameter_profile_required:
         if profile is None:
-            from .behavioral_relation_profiles import load_behavioral_relation_profile_revision
-
             assert binding.relation_parameter_profile_ref is not None
             assert binding.relation_parameter_profile_revision is not None
             with unsupported_authority_as_value_error("behavioral claim binding names an unsupported profile revision"):

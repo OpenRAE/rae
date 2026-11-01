@@ -1,9 +1,9 @@
 {
-  "content_hash": "b415f87c7cd9489c3fb247e0baa03760680f696c12cf0ab90fd522e22a0039bc",
+  "content_hash": "df5ddcbbe41a8ef2637736a02ce5a3fa37fdb0bfdd8f950d72ea915ef80a6493",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "b415f87c7cd9489c3fb247e0baa03760680f696c12cf0ab90fd522e22a0039bc",
-    "summary": "Add the closed structural slot nodes.runtime.network_detection_engines.rule_sources; its owner is one network detection engine and its runtime-inventory member selects that engine's rule sources (issue #1747)."
+    "content_hash": "df5ddcbbe41a8ef2637736a02ce5a3fa37fdb0bfdd8f950d72ea915ef80a6493",
+    "summary": "Point the semantic-invariant validator locator at the module that now owns the validator (issue #1711, ADR-121). The schema shape and the invariant do not change."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

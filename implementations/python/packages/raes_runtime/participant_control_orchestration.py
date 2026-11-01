@@ -380,7 +380,7 @@ def _with_appended_evaluation(
     evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
 ) -> PreparedParticipantCrossing:
     participant_address = crossing.intent.participant_address
-    from raes_contracts.immutable_history import append_history
+    from raes_contracts.snapshot_histories import append_history
 
     next_snapshot = crossing.next_snapshot.with_entries(
         dict(crossing.next_snapshot.entries),

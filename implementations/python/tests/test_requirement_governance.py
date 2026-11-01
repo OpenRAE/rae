@@ -449,7 +449,7 @@ def test_observability_conformance_policy_bounds_artifact_ownership(
 @pytest.mark.parametrize(
     ("path", "expected_rules"),
     [
-        ("implementations/python/packages/raes_contracts/evidence_satisfaction.py", []),
+        ("implementations/python/packages/raes_contracts/contracts/evidence_satisfaction.py", []),
         ("implementations/python/tests/test_exp_732_evidence_provenance.py", []),
         ("docs/requirements/EXP-732/requirement.md", []),
         ("contracts/profiles/backend/provisioning-only.json", ["requirement-ownership-mismatch"]),

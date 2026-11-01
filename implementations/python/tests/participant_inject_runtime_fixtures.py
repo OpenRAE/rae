@@ -12,7 +12,7 @@ from raes_contracts.contracts.participant_inject_application import (
     ParticipantInjectApplicationModel,
     ParticipantInjectContentModel,
 )
-from raes_contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_runtime.control_plane import RuntimeControlPlane

@@ -4,9 +4,9 @@ from raes.materialization_provenance import MaterializationProvenance
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive, MaterializationArchiveRecord
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, RaesError
-from raes_contracts.materialization import MaterializationArchive, MaterializationSource, MaterializationSubmission
+from raes_contracts.materialization import MaterializationSource, MaterializationSubmission
 from raes_contracts.materialization_inventory import (
     InventoryInvariant,
     RuntimeDescendantBinding,

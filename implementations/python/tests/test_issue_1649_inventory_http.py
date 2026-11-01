@@ -2,7 +2,7 @@
 
 from dataclasses import replace
 
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_runtime import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from runtime_descendant_fixtures import descendant_runtime

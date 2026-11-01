@@ -11,7 +11,6 @@ from raes import (
     select_scenario_family,
 )
 from raes.realization_envelope import member
-from raes_contracts.admitted_trial_plan_ingress import AdmittedTrialPlanIngressError, revalidate_admitted_trial_plan
 from raes_contracts.contracts import (
     AdmittedMixedCompositionBindingModel,
     AdmittedTrialEntryModel,
@@ -20,6 +19,10 @@ from raes_contracts.contracts import (
     BackendManifestV2Model,
     ParticipantImplementationManifestModel,
     TrialCoordinateModel,
+)
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    revalidate_admitted_trial_plan,
 )
 from raes_contracts.contracts.mixed_composition import MixedParticipantCompositionProfileModel
 from raes_contracts.contracts.mixed_composition_resolution import (

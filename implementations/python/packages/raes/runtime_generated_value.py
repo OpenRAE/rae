@@ -10,9 +10,9 @@ both the environment surface and the stateful-resource reference validator reuse
 from __future__ import annotations
 
 from pydantic import Field
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
 from .stateful_resources import (
     GeneratedArtifact,
     GeneratedArtifactOutput,

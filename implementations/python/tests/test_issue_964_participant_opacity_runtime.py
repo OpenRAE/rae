@@ -16,6 +16,7 @@ from participant_crossing_fixtures import (
     identity,
     policy_capable_target,
 )
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relation_profiles import (
     load_behavioral_relation_profile,
 )
@@ -24,7 +25,6 @@ from raes_contracts.behavioral_relations import (
     load_behavioral_relation_catalog_revision,
 )
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts.base import BehavioralClaimBindingModel
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingGateDisposition,
     ParticipantOpacityObservationInventoryModel,

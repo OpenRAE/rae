@@ -18,7 +18,7 @@ from test_sce_002_trial_realization import _archival_run_and_receipt, _realizati
 
 
 def test_randomized_treatment_allocation_replays_after_reload_and_reverse_traversal():
-    from raes_contracts.admitted_trial_plan_ingress import parse_admitted_trial_plan_json
+    from raes_contracts.contracts.admitted_trial_plan_ingress import parse_admitted_trial_plan_json
     from raes_processor.trial_scheduler import plan_batch_schedule
 
     request = _treatment_request()

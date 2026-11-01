@@ -12,13 +12,14 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from . import participant_binding_validation as _binding_validation
-from .contracts import (
+from raes_contracts.contracts.participant_runtime import (
     ParticipantActionResultModel,
     ParticipantBehaviorHistoryEventModel,
     ParticipantInvocationToolContextModel,
     ParticipantObservationDetailsModel,
 )
+
+from .contracts import participant_binding_validation as _binding_validation
 from .contracts.participant_invocation_tools import INVOCATION_TOOL_ACTIONS_SEMANTICS
 from .digests import sha256_digest, sha256_hex
 from .participant_behavior import (
@@ -31,7 +32,7 @@ from .participant_behavior import (
 from .participant_binding_events import participant_implementation_actor_provenance
 
 if TYPE_CHECKING:
-    from .participant_binding import ParticipantActionAdmissionRequest
+    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 
 _TOOL_CALL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 TOOL_ACTION_ID_PREFIX = "participant-tool-action-"

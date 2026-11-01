@@ -5,21 +5,24 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Protocol, cast
 
-from ._host_isolation import isolated_host_call
-from .contracts import (
+from raes_contracts.contracts.participant_action_admission import (
+    ParticipantActionAdmissionRequest,
+    participant_action_admission_request_violations,
+)
+from raes_contracts.contracts.participant_decision_surface import (
     ParticipantDecisionSurfaceActionEntryModel,
     ParticipantDecisionSurfaceCandidateSetFormModel,
     ParticipantDecisionSurfaceConstrainedFormModel,
+)
+from raes_contracts.contracts.participant_decision_surface_v2 import (
     ParticipantDecisionSurfaceSelectionV2Model,
     ParticipantDecisionSurfaceV2Model,
-    ParticipantImplementationSelectionModel,
 )
+from raes_contracts.contracts.participant_manifests import ParticipantImplementationSelectionModel
+
+from ._host_isolation import isolated_host_call
 from .participant_action_arguments import ParticipantValidatedActionSelection
-from .participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantDecisionSurfaceArgumentShapeResolver,
-    participant_action_admission_request_violations,
-)
+from .participant_binding import ParticipantDecisionSurfaceArgumentShapeResolver
 from .participant_decision_surface_delivery import (
     ParticipantDecisionSurfaceDeliveryResolverV2,
     validate_participant_decision_surface_v2_delivery,

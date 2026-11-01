@@ -151,7 +151,7 @@ def _publish_continuation(
             result_payload=payload,
         )
     transition = committed_evaluation(transition, carrier)
-    from raes_contracts.immutable_history import append_history
+    from raes_contracts.snapshot_histories import append_history
 
     snapshot = plane._snapshot.with_entries(
         dict(plane._snapshot.entries),

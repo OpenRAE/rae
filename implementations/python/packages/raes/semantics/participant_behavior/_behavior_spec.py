@@ -4,6 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from raes_contracts.controlled_vocabularies import (
+    validate_controlled_vocabulary_scope_values,
+    validate_controlled_vocabulary_value,
+)
+from raes_contracts.manifest_authority import (
+    BACKEND_SUPPORTED_CONTRACT_IDS,
+    PARTICIPANT_IMPLEMENTATION_SUPPORTED_CONTRACT_IDS,
+    PROCESSOR_SUPPORTED_CONTRACT_IDS,
+)
+
 from ._types import (
     ParticipantBehaviorIssue,
     _BehaviorSpecificationReferenceContext,
@@ -21,8 +31,6 @@ def _behavior_mode_issue(*, spec_name: str, behavior_mode: object) -> Participan
     if not behavior_mode:
         return None
     try:
-        from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
-
         validate_controlled_vocabulary_scope_values("behavior_specifications.behavior_mode", [str(behavior_mode)])
     except ValueError:
         return ParticipantBehaviorIssue(
@@ -36,7 +44,6 @@ def _behavior_mode_issue(*, spec_name: str, behavior_mode: object) -> Participan
 
 
 def _backend_feature_support_issue(*, spec_name: str, feature_ref: object) -> ParticipantBehaviorIssue | None:
-    from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
 
     for vocabulary_id in (
         "participant-runtime-behavior-features",
@@ -57,11 +64,6 @@ def _backend_feature_support_issue(*, spec_name: str, feature_ref: object) -> Pa
 
 
 def _evidence_contract_issue(*, spec_name: str, evidence_contract_ref: object) -> ParticipantBehaviorIssue | None:
-    from raes_contracts.manifest_authority import (
-        BACKEND_SUPPORTED_CONTRACT_IDS,
-        PARTICIPANT_IMPLEMENTATION_SUPPORTED_CONTRACT_IDS,
-        PROCESSOR_SUPPORTED_CONTRACT_IDS,
-    )
 
     allowed_contract_ids = frozenset(
         [

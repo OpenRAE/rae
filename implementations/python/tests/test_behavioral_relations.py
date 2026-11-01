@@ -12,17 +12,15 @@ from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import (
     ExampleTransitionModel,
     ExampleTransitionSystemModel,
     load_behavioral_relation_catalog,
 )
-from raes_contracts.contracts import (
-    BehavioralClaimBindingModel,
-    ExperimentStudyModel,
-    schema_bundle,
-)
+from raes_contracts.contracts import ExperimentStudyModel
 from raes_contracts.scientific_completeness import load_scientific_completeness_taxonomy
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 REQUIRED_RELATION_IDS = {

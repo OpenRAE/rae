@@ -15,9 +15,8 @@ from raes.runtime_app_authorization import (
 from raes.runtime_configuration import RuntimeConfiguration
 from raes.runtime_database import RuntimeDatabaseService
 from raes.runtime_database_vocab import DatabaseEngine
-from raes.runtime_filesystem import RuntimeSensitivityClassification
-from raes.runtime_values import parse_runtime_enum_or_var
 from raes_contracts.realization_structure import evaluate_realization_constraint
+from raes_contracts.runtime_values import RuntimeSensitivityClassification, parse_runtime_enum_or_var
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.semantics.realization_concerns import project_realization_concern
 

@@ -6,12 +6,13 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from ..published_schemas import published_contract_ids
 from ..versions import CONCEPT_FAMILIES_SCHEMA_VERSION, SEMANTIC_PROFILE_SCHEMA_VERSION
 from ..vocabulary import ConceptFamilyId
 from .base import ContractModel, NonEmptyString, SemanticAssumptionId, SemanticProfileId
+from .catalogs import authoritative_concept_family_ids
 from .manifests import ConceptBindingEntryModel
 from .schema_constraints import _SEMANTIC_PROFILE_PHASE_ALLOWED_BINDING_SCOPES
-from .validators import _authoritative_concept_family_ids, _known_contract_ids
 
 
 class SemanticBehaviorAssumptionModel(ContractModel):
@@ -32,13 +33,13 @@ class SemanticProfilePhaseModel(ContractModel):
         if len(self.required_concept_families) != len(set(self.required_concept_families)):
             raise ValueError("semantic profile required_concept_families must not contain duplicates")
 
-        known_contracts = _known_contract_ids()
+        known_contracts = published_contract_ids()
         unknown_contracts = set(self.required_contracts) - known_contracts
         if unknown_contracts:
             unknown = ", ".join(sorted(unknown_contracts))
             raise ValueError(f"semantic profile required_contracts include unknown contract ids: {unknown}")
 
-        known_families = _authoritative_concept_family_ids()
+        known_families = authoritative_concept_family_ids()
         unknown_families = set(self.required_concept_families) - known_families
         if unknown_families:
             unknown = ", ".join(sorted(unknown_families))

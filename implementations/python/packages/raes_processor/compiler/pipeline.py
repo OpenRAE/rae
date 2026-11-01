@@ -10,10 +10,10 @@ from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 from raes.semantics.domain_topology import (
     analyze_domain_topology,
 )
-from raes.value_parsing import is_variable_ref
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.variable_references import is_variable_ref
 
 from ..capture_admission import compile_scenario_capture_demands
 from ..models import (

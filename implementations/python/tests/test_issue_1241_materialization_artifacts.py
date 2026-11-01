@@ -5,6 +5,7 @@ from io import BytesIO
 
 import pytest
 from raes import parse_sdl
+from raes.associated_artifacts import ScenarioArtifactParent
 from raes_contracts.associated_artifacts import associated_artifact_set_digest, validate_associated_artifact_manifest
 from raes_contracts.contracts import AssociatedArtifactManifestModel, ExperimentRunModel
 from raes_operations.run_artifacts import RunMaterializationArchive
@@ -32,14 +33,14 @@ def test_protected_archive_is_a_byte_bound_associated_artifact(tmp_path):
     assert (
         validate_associated_artifact_manifest(
             manifest,
-            parent=parent,
+            parent=ScenarioArtifactParent(parent),
             artifact_readers={record.artifact.artifact_id: BytesIO(data)},
         )
         == ()
     )
     assert validate_associated_artifact_manifest(
         manifest,
-        parent=parse_sdl("name: materialized"),
+        parent=ScenarioArtifactParent(parse_sdl("name: materialized")),
         artifact_readers={record.artifact.artifact_id: BytesIO(data)},
     )
 

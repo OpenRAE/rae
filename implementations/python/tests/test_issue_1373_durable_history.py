@@ -6,8 +6,9 @@ import sqlite3
 import pytest
 from participant_control_contract_fixtures import evaluation_payload
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError
-from raes_contracts.immutable_history import EventHistory, append_history
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.snapshot_histories import append_history
 from raes_runtime.control_plane_store import LocalControlPlaneStore
 
 

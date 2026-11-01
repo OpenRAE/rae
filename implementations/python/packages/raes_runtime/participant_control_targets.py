@@ -24,7 +24,6 @@ from raes_contracts.contracts.participant_control import (
     ParticipantApprovalOccurrenceModel,
     ParticipantControlDisposition,
     ParticipantControlTargetContextModel,
-    ParticipantControlTargetKind,
     ParticipantDenialOccurrenceModel,
     ParticipantProposalOccurrenceModel,
 )
@@ -37,6 +36,7 @@ from raes_contracts.contracts.participant_control_occurrence_v2 import (
 )
 from raes_contracts.contracts.participant_control_occurrence_v2_policy import ParticipantControlOccurrenceTarget
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError
+from raes_contracts.participant_mixed_control_vocabulary import ParticipantControlTargetKind
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 
 from .participant_control_intents import (

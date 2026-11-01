@@ -3,8 +3,7 @@
 import re
 
 from pydantic import ConfigDict
-
-from ._base import SDLModel
+from raes_contracts.sdl_model import SDLModel
 
 JSONScalar = str | int | float | bool
 JSON_POINTER_RE = re.compile(r"^(?:/(?:[^~/]|~[01])*)*$")

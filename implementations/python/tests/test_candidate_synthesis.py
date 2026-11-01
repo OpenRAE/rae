@@ -26,7 +26,6 @@ from raes_contracts.contracts import (
     ConceptSourceAssertionModel,
     ExternalConceptSchemeCoordinateModel,
     SynthesisContributionKind,
-    schema_bundle,
 )
 from raes_contracts.json_ingress import StrictJsonIngressError
 from raes_contracts.semantic_comparison import (
@@ -41,6 +40,7 @@ from raes_processor.semantic_comparison import (
     build_impact_scope,
     coordinate_for_artifact,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "candidate-synthesis" / "sdl-candidate-synthesis-input-v1"

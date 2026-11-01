@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from raes_contracts.augmentation_scope import AugmentationScopeRule
+from raes_contracts.evidence_requirements import ObservationDemandRule
 
 from raes._reference_targetability import ReferencePurpose
-from raes.evidence_requirements import ObservationDemandRule
 from raes.observation_scope import resolve_observation_scope, semantic_scope_namespace
 from raes.runtime_forwarding_agent import RuntimeForwardingAgentOwnershipRole
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario

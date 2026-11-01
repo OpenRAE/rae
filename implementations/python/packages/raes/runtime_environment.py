@@ -5,18 +5,18 @@ from enum import Enum
 from pydantic import ConfigDict, Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import enforce_observed_value_redaction
+from raes_contracts.runtime_values import parse_runtime_enum_or_var as _parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
 
 from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import SDLModel
 from .runtime_generated_value import (
     GeneratedArtifactValueSource,
     RuntimeEnvironmentFile,
     value_from_schema_exclusions,
 )
-from .runtime_values import enforce_observed_value_redaction
-from .runtime_values import parse_runtime_enum_or_var as _parse_runtime_enum_or_var
 
 
 class RuntimeEnvironmentValueClassification(str, Enum):

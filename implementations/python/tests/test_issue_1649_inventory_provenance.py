@@ -1,7 +1,7 @@
 """Concern value origins remain independent of author constraints."""
 
 import pytest
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_processor.semantics.realization_requirement import CompiledRealizationRequirement
 from raes_processor.semantics.realization_runtime_common import realization_provenance_entry
 from runtime_descendant_fixtures import ROOT, descendant_runtime

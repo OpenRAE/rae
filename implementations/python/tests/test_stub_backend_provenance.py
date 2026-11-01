@@ -5,8 +5,8 @@ from __future__ import annotations
 import textwrap
 
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_runtime.manager import RuntimeManager
 
 _EXACT_SCENARIO = """

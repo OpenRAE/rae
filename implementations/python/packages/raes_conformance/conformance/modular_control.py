@@ -9,10 +9,10 @@ from pathlib import Path
 from pydantic import TypeAdapter
 from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.participant_control_decisions_v2 import ControlExecutableEffectTargetV2
 from raes_contracts.errors import InvalidInputError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.published_schemas import published_schema
 from raes_runtime.registry import RuntimeTarget
 
 from .diagnostics import _diagnostic, sanitized_failure_message
@@ -294,7 +294,7 @@ def run_modular_control_conformance(
         diagnostics=tuple(diagnostics),
         probe_set_digest=digest,
         contract_versions={
-            key: canonical_json_digest(schema_bundle()[key])
+            key: canonical_json_digest(published_schema(key))
             for key in ("participant-control-selection-v2", "participant-control-evaluation-v2")
         },
     )

@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 from pydantic import Field, StrictInt, field_validator, model_validator
 from pydantic.fields import FieldInfo
 
+from raes_contracts._base import ContractModel, PrefixedDigestString
+
 from ._participant_crossing_profile import HIDDEN
 from ._participant_opacity_common import SafeRef
-from .contracts.base import ContractModel, PrefixedDigestString
 
 if TYPE_CHECKING:
     from .behavioral_relation_profiles import BehavioralRelationProfileModel

@@ -223,7 +223,7 @@ steps from this section and the machine-readable catalog alone:
    an invariant fails the suite immediately.
 3. **Keep observed values redaction-safe.** Values that can carry secrets must
    route through the runtime redaction helpers (ADR-056 / ADR-057,
-   `raes.runtime_values`); raw credential material is unrepresentable on the
+   `raes_contracts.runtime_values`); raw credential material is unrepresentable on the
    model surface.
 4. **Add controlled vocabulary, not free strings.** New enumerated terms belong
    in `contracts/concept-authority/controlled-vocabularies-v1.json` (GOV-922),

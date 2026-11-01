@@ -9,8 +9,9 @@ from typing import TYPE_CHECKING, Literal
 import rfc8785
 from pydantic import Field, field_validator
 from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetReferenceModel
-
-from ._base import SDLModel, is_variable_ref
+from raes_contracts.participant_control_context import control_context_asset_reference
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.experiment_bindings import (
@@ -78,7 +79,6 @@ def resolve_control_context_reference(
     allow_unresolved: bool = True,
 ) -> str:
     """Resolve through the existing index, then check immutable pin and scope."""
-    from raes_contracts.participant_control_context import control_context_asset_reference
 
     from .entities import flatten_entities
 
@@ -125,7 +125,6 @@ def resolve_authored_control_context(
     scenario: ScenarioContent, index: DeclarationIndex
 ) -> tuple[tuple[ResolvedControlContextSelection, ...], tuple[str, ...]]:
     """Collect bounded failures without disclosing descriptor or reference values."""
-    from raes_contracts.participant_control_context import control_context_asset_reference
 
     errors: list[str] = []
     versions: dict[tuple[str, str], ParticipantControlContextAssetReferenceModel] = {}

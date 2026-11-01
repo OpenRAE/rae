@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import OperationalError
@@ -25,6 +24,7 @@ from raes_conformance.conformance.report import (
     _bounded_conformance_claim,
     conformance_tool_version,
     contract_content_digests,
+    required_contract_schemas,
 )
 from raes_conformance.conformance.semantics import _fixture_case_diagnostics
 from raes_conformance.conformance.validators import _SCHEMA_INVALID_DIAGNOSTIC_CODE
@@ -94,7 +94,6 @@ def run_fixture_suite(
     """
 
     root = fixtures_root() if root is None else root
-    bundle = schema_bundle()
     profile_evidence: dict[str, object] = {}
     required, profile_diagnostics = _resolve_required_contracts(
         profile, profiles_root=profiles_root, evidence=profile_evidence
@@ -122,6 +121,7 @@ def run_fixture_suite(
 
     profile_id = _to_profile_id(profile)
     case_tuple = tuple(cases)
+    schemas = required_contract_schemas(sorted(required))
     return BackendConformanceReport(
         profile=profile_id,
         passed=not diagnostics and all(case.passed for case in cases),
@@ -131,14 +131,12 @@ def run_fixture_suite(
             left_carrier_ref=f"conformance-fixture-suite:{profile_id}",
         ),
         cases=case_tuple,
-        contract_versions={name: str(schema.get("title", name)) for name, schema in bundle.items() if name in required},
+        contract_versions={name: str(schema.get("title", name)) for name, schema in schemas.items()},
         diagnostics=tuple(diagnostics),
         profile_version=profile_evidence.get("version"),
         profile_digest=profile_evidence.get("digest"),
         tool_version=conformance_tool_version(),
-        contract_digests=contract_content_digests(
-            {name: schema for name, schema in bundle.items() if name in required}
-        ),
+        contract_digests=contract_content_digests(schemas),
         required_case_refs=tuple(f"conformance-case:{case.contract_name}:{case.name}" for case in case_tuple),
         provenance={
             "fixture_origin": "unknown",

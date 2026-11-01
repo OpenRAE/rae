@@ -6,7 +6,6 @@ from collections.abc import Iterable, Iterator
 from typing import Any
 
 from pydantic import ValidationError
-from raes.explicitness import ExplicitnessProvenance
 from raes.materialization import MaterializedScenario
 from raes.materialization_provenance import MaterializationOrigin
 from raes.nodes import Node
@@ -14,6 +13,7 @@ from raes.runtime_inventory import runtime_inventory_collection_identity
 from raes.scenario import InstantiatedScenario, ScenarioContent
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.explicitness import ExplicitnessProvenance
 from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.realization_structure import (
     RealizationClosure,
