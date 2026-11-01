@@ -28,8 +28,8 @@ var Analyzer = &analysis.Analyzer{
 }
 
 var (
-	gotWord  = regexp.MustCompile(`\bgot\b`)
-	wantWord = regexp.MustCompile(`\bwant\b`)
+	gotWord   = regexp.MustCompile(`\bgot\b`)
+	firstWord = regexp.MustCompile(`\b(?:got|want)\b`)
 )
 
 func run(pass *analysis.Pass) (any, error) {
@@ -56,9 +56,8 @@ func isTestingFailure(pass *analysis.Pass, call *ast.CallExpr) bool {
 		(method.Name() == "Errorf" || method.Name() == "Fatalf")
 }
 
+// wantsBeforeGot reports whether format names "want" first and "got" after it.
 func wantsBeforeGot(format string) bool {
 	format = strings.ReplaceAll(format, "-want +got", "")
-	got := gotWord.FindStringIndex(format)
-	want := wantWord.FindStringIndex(format)
-	return got != nil && want != nil && want[0] < got[0]
+	return firstWord.FindString(format) == "want" && gotWord.MatchString(format)
 }
