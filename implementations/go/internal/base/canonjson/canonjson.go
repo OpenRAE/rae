@@ -22,6 +22,7 @@ import (
 	"maps"
 	"math"
 	"math/big"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -34,8 +35,9 @@ import (
 // ErrInput reports JSON text that a canonical form cannot encode.
 var ErrInput = errors.New("canonjson: the input has no canonical encoding")
 
-// maxExact is the largest magnitude of an integer that RFC 8785 encodes exactly.
-const maxExact = 1<<53 - 1
+// maxExact is 2^53 - 1, the largest magnitude of an integer that RFC 8785
+// encodes exactly.
+const maxExact = 9_007_199_254_740_991
 
 // JCS returns the RFC 8785 form of the JSON value in data. It refuses an
 // integer with a magnitude above 2^53 - 1 and a number outside the finite
@@ -90,37 +92,38 @@ func decode(data []byte) (any, error) {
 	return value, nil
 }
 
+// escapes matches one escape of a JSON string. Group 1 holds the four
+// hexadecimal digits of a \u escape.
+var escapes = regexp.MustCompile(`\\(?:u([0-9a-fA-F]{4})|.)`)
+
 // hasLoneSurrogate reports whether a string escape in the JSON text data names
-// a UTF-16 surrogate that is not part of a pair.
+// a UTF-16 surrogate that is not part of a pair. A pair is a \u escape of a
+// high surrogate directly followed by a \u escape of a low surrogate.
 func hasLoneSurrogate(data []byte) bool {
-	wantLow := false
-	for i := 0; i < len(data); {
-		unit, size := escape(data[i:])
-		isLow := size == 6 && unit >= 0xdc00 && unit <= 0xdfff
-		if wantLow != isLow {
+	found := escapes.FindAllSubmatchIndex(data, -1)
+	for i := 0; i < len(found); i++ {
+		unit := escapedUnit(data, found[i])
+		if !utf16.IsSurrogate(unit) {
+			continue
+		}
+		if i+1 == len(found) || found[i+1][0] != found[i][1] ||
+			utf16.DecodeRune(unit, escapedUnit(data, found[i+1])) == utf8.RuneError {
 			return true
 		}
-		wantLow = size == 6 && unit >= 0xd800 && unit <= 0xdbff
-		i += max(size, 1)
+		i++ // The low surrogate of the pair.
 	}
-	return wantLow
+	return false
 }
 
-// escape returns the UTF-16 code unit of a \u escape at the start of data, and
-// the length of the escape. The length is zero when data does not start with
-// an escape.
-func escape(data []byte) (unit uint16, size int) {
-	if len(data) < 2 || data[0] != '\\' {
-		return 0, 0
+// escapedUnit returns the UTF-16 code unit of a \u escape that escapes found.
+// For another escape it returns zero, which is not a surrogate.
+func escapedUnit(data []byte, match []int) rune {
+	if match[2] == -1 {
+		return 0
 	}
-	if data[1] != 'u' || len(data) < 6 {
-		return 0, 2
-	}
-	value, err := strconv.ParseUint(string(data[2:6]), 16, 16)
-	if err != nil {
-		return 0, 2
-	}
-	return uint16(value), 6
+	// The pattern admits exactly four hexadecimal digits, so the text parses.
+	unit, _ := strconv.ParseUint(string(data[match[2]:match[3]]), 16, 16)
+	return rune(unit)
 }
 
 // checkJCSNumbers refuses each number in value that RFC 8785 cannot encode
@@ -292,19 +295,16 @@ func parseFloat(n json.Number) (float64, error) {
 // read back as f, in fixed notation for decimal exponents from -4 to 15 and in
 // scientific notation otherwise.
 func pythonFloat(f float64) string {
+	sign := ""
+	if math.Signbit(f) {
+		sign = "-"
+	}
 	if f == 0 {
-		if math.Signbit(f) {
-			return "-0.0"
-		}
-		return "0.0"
+		return sign + "0.0"
 	}
 	mantissa, exponentText, _ := strings.Cut(strconv.FormatFloat(math.Abs(f), 'e', -1, 64), "e")
 	exponent, _ := strconv.Atoi(exponentText)
 	digits := strings.Replace(mantissa, ".", "", 1)
-	sign := ""
-	if f < 0 {
-		sign = "-"
-	}
 	if exponent < -4 || exponent >= 16 {
 		if len(digits) > 1 {
 			digits = digits[:1] + "." + digits[1:]
