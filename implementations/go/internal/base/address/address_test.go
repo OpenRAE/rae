@@ -9,20 +9,22 @@ import (
 func TestValidAcceptsOnlyCanonicalCompiledAddresses(t *testing.T) {
 	segment := "a" + strings.Repeat("b", 63)
 	tests := map[string]bool{
-		"provision.node.web":              true,
-		"a.__private":                     true,
-		"x-1.y_2":                         true,
-		segment + "." + segment:           true,
-		"single":                          false,
-		"Upper.case":                      false,
-		"a..b":                            false,
-		".a.b":                            false,
-		"a.b.":                            false,
-		"_a.b":                            false,
-		"a.b" + segment + "c":             false,
-		"a.é":                             false,
-		"a.__privat":                      false,
-		strings.Repeat("a.", 1024) + "ab": false,
+		"provision.node.web":               true,
+		"a.__private":                      true,
+		"x-1.y_2":                          true,
+		segment + "." + segment:            true,
+		"single":                           false,
+		"Upper.case":                       false,
+		"a..b":                             false,
+		".a.b":                             false,
+		"a.b.":                             false,
+		"_a.b":                             false,
+		"a.b" + segment + "c":              false,
+		"a.é":                              false,
+		"a.__privat":                       false,
+		strings.Repeat("a.", 1023) + "ab":  true,
+		strings.Repeat("a.", 1023) + "abc": false,
+		strings.Repeat("a.", 1024) + "ab":  false,
 	}
 	for input, want := range tests {
 		if got := Valid(input); got != want {
