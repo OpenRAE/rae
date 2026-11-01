@@ -18,7 +18,7 @@ Each layer lists the layers that it uses and the external import paths that it m
 
 The `arch` package in the tooling module loads the model and checks it.
 `archcheck -design` checks only the model, so the design step runs it before the code exists.
-`archcheck` without the flag also loads the code through `golang.org/x/tools/go/packages`.
+`archcheck` without the flag also reads the imports of each Go file through `go/build`, whatever its build constraints.
 It then checks the code and the rule table of ADR-122.
 
 | Rule | Check |
@@ -37,7 +37,6 @@ The tool also has no package visibility, and its messages state no fix.
 The protected asset is the integrity of the architecture verdict.
 The model and the ADR rule table are reviewed repository files.
 The code of a pull request is untrusted until review.
-The Go module proxy is outside the trust boundary.
 
 ```mermaid
 flowchart LR
@@ -46,8 +45,7 @@ flowchart LR
         ADR[ADR-122 rule table]
         Code[Go modules and packages]
     end
-    Proxy[Go module proxy] -->|modules checked by go.sum| List[go list through x/tools/go/packages]
-    Code -->|go.mod files and imports| List
+    Code -->|go.mod files and the imports of each Go file| List[go/build reader]
     Model -->|strict decode| Check[archcheck]
     ADR -->|rule rows| Check
     List -->|package imports| Check
@@ -62,6 +60,7 @@ flowchart LR
 | A test file imports a package that the layers forbid | ARCH-007 | The `arch` tests |
 | The rule table and the checks disagree | ARCH-009 compares the table with the rule registry | The `arch` tests |
 | An ambiguous model passes | The loader rejects unknown fields, data after the model, and an unknown schema | The `arch` tests |
+| Code for another platform or build tag escapes the check | The reader ignores build constraints and reads each Go file | `TestLoadCodeReadsEachBuildConfiguration` |
 | The check changes `go.mod` or uses an unpinned toolchain | The job sets `GOFLAGS=-mod=readonly` and `GOTOOLCHAIN=local` | `test_go_architecture_check_runs_once_from_the_repository_root` |
 | Packages import each other in a cycle | The Go compiler rejects import cycles | `go build` in the `go` job |
 
@@ -76,5 +75,5 @@ flowchart LR
 ## References and document review
 
 - [go-arch-lint](https://github.com/fe3dback/go-arch-lint)
-- [golang.org/x/tools/go/packages](https://pkg.go.dev/golang.org/x/tools/go/packages)
+- [go/build](https://pkg.go.dev/go/build)
 - Issue #1775

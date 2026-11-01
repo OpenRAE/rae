@@ -740,7 +740,7 @@ adrs:
         summary: "Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials."
   - id: ADR-122
     path: docs/decisions/adrs/adr-122-go-architecture-model.md
-    pin: d3f95acd546c1c6cb307c41ac6d7f4c5cf029922f4eb5cd8b453a235ef72306c
+    pin: 34a90b3cf4c44e780298b9efd7a3d2c804d4c1ba79cd3488099f8371494864b5
     amendments:
       - date: 2026-10-31
         ref: "#1778"
