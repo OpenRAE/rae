@@ -202,7 +202,11 @@ async def _exercise(blocked, tmp_path, database):
                     assert store.load_records()[receipt.operation_id].invocation.reserved
                     provider.release.set()
                 else:
-                    await _until(lambda: plane.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED)
+                    # Wait as long as the execution budget allows, as the blocked branch does.
+                    await _until(
+                        lambda: plane.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED,
+                        timeout=execution_ms / 1000 + 5,
+                    )
                 original = plane.get_operation(receipt.operation_id)
                 # Real SDK duplicate workflow delivery retains the original reference.
                 assert (
