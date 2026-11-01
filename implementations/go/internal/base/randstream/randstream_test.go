@@ -3,6 +3,7 @@ package randstream
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math"
 	"testing"
 )
@@ -95,6 +96,41 @@ func TestBoundedIntDrawsWithinTheRangeAndRecordsExhaustion(t *testing.T) {
 	}
 	if !exhausted {
 		t.Error("BoundedInt(0, 128, one attempt) never exhausted in 64 coordinates")
+	}
+}
+
+// The draws come from draw_bounded_integer of the Python reference, for the
+// zero-heavy key and the address of each coordinate.
+func TestBoundedIntMatchesThePythonReferenceAtEachBoundary(t *testing.T) {
+	tests := []struct {
+		name        string
+		coordinate  int64
+		maximum     int64
+		maxAttempts int
+		want        Draw
+	}{
+		{"range of 256 values in one byte", 0, 255, 1, Draw{Value: 96}},
+		{"two-byte candidate rejected once", 3, 40000, 4, Draw{Value: 15446, Attempts: 1}},
+		{"candidate equal to the limit", 124, 128, 1, Draw{Attempts: 1, Exhausted: true}},
+	}
+	key := zeroHeavyKey(t)
+	for _, test := range tests {
+		address := fmt.Sprintf(`{"draw_purpose":"other","local_coordinate":%d,"namespace":"n",`+
+			`"selection_policy_id":"p","trial_coordinate":{},"variation_point_id":"v"}`, test.coordinate)
+		got, err := BoundedInt(key, []byte(address), test.coordinate, 0, test.maximum, test.maxAttempts)
+		if err != nil || got != test.want {
+			t.Errorf("%s: BoundedInt() = %+v, %v, want %+v", test.name, got, err, test.want)
+		}
+	}
+}
+
+func TestBlockReadsTheLastPosition(t *testing.T) {
+	key := zeroHeavyKey(t)
+	for _, offset := range []int64{0, BlockBytes - 1} {
+		coordinate := (math.MaxInt64 - offset) / BlockBytes
+		if block, err := Block(key, nil, coordinate, offset, 1); err != nil || len(block) != 1 {
+			t.Errorf("Block(coordinate %d, offset %d) = %x, %v, want one byte", coordinate, offset, block, err)
+		}
 	}
 }
 
