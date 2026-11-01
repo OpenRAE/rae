@@ -157,17 +157,25 @@ func references(pkg string, node ast.Node) []declKey {
 	return keys
 }
 
-// indexFile records each top-level declaration of file under its key.
+// indexFile records each top-level declaration of file under its key. A
+// constant block is one declaration, because its specs share iota and
+// implicit values.
 func indexFile(index map[declKey][]ast.Node, pkg string, file *ast.File) {
 	for _, decl := range file.Decls {
 		if fn, ok := decl.(*ast.FuncDecl); ok {
 			index[funcKey(pkg, fn)] = append(index[funcKey(pkg, fn)], fn)
 		}
-		if gen, ok := decl.(*ast.GenDecl); ok {
-			for _, spec := range gen.Specs {
-				for _, name := range specNames(spec) {
-					index[declKey{pkg, name}] = append(index[declKey{pkg, name}], spec)
-				}
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok {
+			continue
+		}
+		for _, spec := range gen.Specs {
+			node := ast.Node(spec)
+			if gen.Tok == token.CONST {
+				node = gen
+			}
+			for _, name := range specNames(spec) {
+				index[declKey{pkg, name}] = append(index[declKey{pkg, name}], node)
 			}
 		}
 	}
@@ -215,10 +223,11 @@ func receiverType(expr ast.Expr) string {
 }
 
 // keepDecl reports whether decl stays in a pruned file, and drops the specs
-// that no kept declaration needs. Imports stay until removeUnusedImports.
+// that no kept declaration needs. Imports stay until removeUnusedImports, and
+// a kept constant block stays whole.
 func keepDecl(decl ast.Decl, kept map[ast.Node]bool) bool {
 	gen, ok := decl.(*ast.GenDecl)
-	if !ok {
+	if !ok || kept[decl] {
 		return kept[decl]
 	}
 	if gen.Tok == token.IMPORT {
