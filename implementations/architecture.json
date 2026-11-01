@@ -141,10 +141,6 @@
           "reason": "AST traversal for the repository analyzers."
         },
         {
-          "path": "golang.org/x/tools/go/packages",
-          "reason": "The package loader of archcheck."
-        },
-        {
           "path": "golang.org/x/tools/go/types/typeutil",
           "reason": "Resolution of the called function for the repository analyzers."
         }
