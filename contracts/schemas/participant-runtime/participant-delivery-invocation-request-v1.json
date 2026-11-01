@@ -1,0 +1,725 @@
+{
+  "$defs": {
+    "ApparatusIdentityModel": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "ApparatusIdentityModel",
+      "type": "object"
+    },
+    "BindingOwnerModel": {
+      "additionalProperties": false,
+      "description": "Governed contract and validator profile that owns one binding.",
+      "properties": {
+        "contract_id": {
+          "minLength": 1,
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "validator_id": {
+          "minLength": 1,
+          "title": "Validator Id",
+          "type": "string"
+        },
+        "validator_version": {
+          "minLength": 1,
+          "title": "Validator Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "contract_version",
+        "validator_id",
+        "validator_version"
+      ],
+      "title": "BindingOwnerModel",
+      "type": "object"
+    },
+    "BindingScalarType": {
+      "description": "Exact JSON scalar type declared by a binding owner.",
+      "enum": [
+        "string",
+        "integer",
+        "number",
+        "boolean",
+        "null"
+      ],
+      "title": "BindingScalarType",
+      "type": "string"
+    },
+    "ConceptBindingEntryModel": {
+      "additionalProperties": false,
+      "description": "Binds a vocabulary surface in an artifact to a canonical concept family.",
+      "properties": {
+        "family": {
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "title": "Family",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "pattern": "^[a-z_][a-z0-9_.]*[a-z0-9_]$",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "family"
+      ],
+      "title": "ConceptBindingEntryModel",
+      "type": "object"
+    },
+    "ConfigurationTargetDeclarationModel": {
+      "additionalProperties": false,
+      "description": "One scalar target admitted by an owning portable manifest.",
+      "properties": {
+        "aliases": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "allowed_value_kinds": {
+          "items": {
+            "enum": [
+              "literal",
+              "secret-reference"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Value Kinds",
+          "type": "array"
+        },
+        "control_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlContextTargetModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sensitivity": {
+          "enum": [
+            "public",
+            "internal",
+            "restricted",
+            "secret"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "value_type": {
+          "$ref": "#/$defs/BindingScalarType"
+        }
+      },
+      "required": [
+        "target_id",
+        "value_type",
+        "allowed_value_kinds",
+        "sensitivity"
+      ],
+      "title": "ConfigurationTargetDeclarationModel",
+      "type": "object"
+    },
+    "ConfigurationTargetRegistryModel": {
+      "additionalProperties": false,
+      "description": "Collision-free target registry published by one manifest owner.",
+      "properties": {
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "targets": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfigurationTargetDeclarationModel"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Targets",
+          "type": "object"
+        }
+      },
+      "required": [
+        "owner",
+        "targets"
+      ],
+      "title": "ConfigurationTargetRegistryModel",
+      "type": "object"
+    },
+    "LiteralBindingValueModel": {
+      "additionalProperties": false,
+      "description": "Portable literal value; strict type validation occurs at its descriptor.",
+      "properties": {
+        "kind": {
+          "const": "literal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "LiteralBindingValueModel",
+      "type": "object"
+    },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextTargetModel": {
+      "additionalProperties": false,
+      "description": "Manifest-owned finite domain of exact public SDL asset references.",
+      "properties": {
+        "references": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "minProperties": 1,
+          "patternProperties": {
+            "^control_context_assets\\.[a-z0-9][a-z0-9_-]*(?:\\.[a-z0-9][a-z0-9_-]*)*$": {
+              "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            }
+          },
+          "title": "References",
+          "type": "object"
+        },
+        "slot_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "references"
+      ],
+      "title": "ParticipantControlContextTargetModel",
+      "type": "object"
+    },
+    "ParticipantExposurePolicyModel": {
+      "additionalProperties": false,
+      "properties": {
+        "constraints": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Constraints",
+          "type": "object"
+        },
+        "disclosed_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Disclosed Refs",
+          "type": "array"
+        },
+        "exposure_policy_kinds": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Exposure Policy Kinds",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "policy_digest": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Policy Digest"
+        },
+        "policy_id": {
+          "minLength": 1,
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Policy Version"
+        },
+        "tool_affordance_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Tool Affordance Refs",
+          "type": "array"
+        },
+        "visibility_scope_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Visibility Scope Refs",
+          "type": "array"
+        },
+        "withheld_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Withheld Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "policy_id",
+        "exposure_policy_kinds"
+      ],
+      "title": "ParticipantExposurePolicyModel",
+      "type": "object"
+    },
+    "ParticipantImplementationCapabilitiesModel": {
+      "additionalProperties": false,
+      "properties": {
+        "exposure_policy_kinds": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Exposure Policy Kinds",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "supported_decision_surface_modes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Supported Decision Surface Modes",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "supported_participant_contracts": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Supported Participant Contracts",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "tool_affordance_expectations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Tool Affordance Expectations",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "supported_participant_contracts",
+        "supported_decision_surface_modes",
+        "tool_affordance_expectations",
+        "exposure_policy_kinds"
+      ],
+      "title": "ParticipantImplementationCapabilitiesModel",
+      "type": "object"
+    },
+    "ParticipantImplementationCompatibilityModel": {
+      "additionalProperties": false,
+      "properties": {
+        "backends": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Backends",
+          "type": "array"
+        },
+        "participant_runtimes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Participant Runtimes",
+          "type": "array"
+        },
+        "processors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Processors",
+          "type": "array"
+        }
+      },
+      "title": "ParticipantImplementationCompatibilityModel",
+      "type": "object"
+    },
+    "ParticipantImplementationManifestModel": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "$ref": "#/$defs/ParticipantImplementationCapabilitiesModel"
+        },
+        "compatibility": {
+          "$ref": "#/$defs/ParticipantImplementationCompatibilityModel"
+        },
+        "concept_bindings": {
+          "items": {
+            "$ref": "#/$defs/ConceptBindingEntryModel"
+          },
+          "minItems": 1,
+          "title": "Concept Bindings",
+          "type": "array"
+        },
+        "configuration_registry": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfigurationTargetRegistryModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "constraints": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Constraints",
+          "type": "object"
+        },
+        "identity": {
+          "$ref": "#/$defs/ApparatusIdentityModel"
+        },
+        "implementation_kind": {
+          "minLength": 1,
+          "title": "Implementation Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "participant-implementation-manifest/v1",
+          "default": "participant-implementation-manifest/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supported_contract_versions": {
+          "items": {
+            "enum": [
+              "participant-implementation-manifest-v1",
+              "participant-implementation-provenance-v1",
+              "experiment-binding-descriptors-v1",
+              "participant-configuration-result-v1",
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Supported Contract Versions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "identity",
+        "implementation_kind",
+        "supported_contract_versions",
+        "compatibility",
+        "concept_bindings",
+        "capabilities"
+      ],
+      "title": "ParticipantImplementationManifestModel",
+      "type": "object"
+    },
+    "ParticipantImplementationSelectionModel": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "configuration_digest": {
+              "not": {
+                "type": "null"
+              }
+            },
+            "configuration_ref": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "configuration_ref",
+            "configuration_digest"
+          ]
+        },
+        {
+          "properties": {
+            "configuration_digest": {
+              "type": "null"
+            },
+            "configuration_ref": {
+              "type": "null"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "configuration_digest": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Configuration Digest"
+        },
+        "configuration_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Configuration Ref"
+        },
+        "exposure_policy": {
+          "$ref": "#/$defs/ParticipantExposurePolicyModel"
+        },
+        "implementation_identity": {
+          "$ref": "#/$defs/ApparatusIdentityModel"
+        },
+        "manifest_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Manifest Digest",
+          "type": "string"
+        },
+        "manifest_ref": {
+          "minLength": 1,
+          "title": "Manifest Ref",
+          "type": "string"
+        },
+        "participant_address": {
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "participant_contract_versions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Participant Contract Versions",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "selected_decision_surface_mode": {
+          "minLength": 1,
+          "title": "Selected Decision Surface Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant_address",
+        "implementation_identity",
+        "manifest_ref",
+        "manifest_digest",
+        "selected_decision_surface_mode",
+        "participant_contract_versions",
+        "exposure_policy"
+      ],
+      "title": "ParticipantImplementationSelectionModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/participant-delivery-invocation-request-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "delivery_operation_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Delivery Operation Id",
+      "type": "string"
+    },
+    "implementation_manifest": {
+      "$ref": "#/$defs/ParticipantImplementationManifestModel"
+    },
+    "implementation_selection": {
+      "$ref": "#/$defs/ParticipantImplementationSelectionModel"
+    },
+    "request_key": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Request Key",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "participant-delivery-invocation-request/v1",
+      "default": "participant-delivery-invocation-request/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_key",
+    "delivery_operation_id",
+    "implementation_manifest",
+    "implementation_selection"
+  ],
+  "title": "ParticipantDeliveryInvocationRequestModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate exact local delivery invocation coordinates and implementation selection; structural validity grants no execution authority.",
+      "id": "participant-delivery-invocation-request-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-delivery-invocation-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ParticipantDeliveryInvocationRequestModel.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "participant-delivery-invocation-request-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

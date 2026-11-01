@@ -33,6 +33,8 @@ from .observation_capture import ObservationCaptureOfferModel
 from .participant_execution import ParticipantExecutionBindingModel
 from .participant_invocation_tools import (
     ParticipantInvocationToolActionCapabilitiesModel,
+    delivery_tool_actions_enabled,
+    validate_delivery_tool_bindings,
     validate_invocation_tool_action_claim,
 )
 from .participant_resource_budgets import ParticipantResourceBudgetCapabilitiesModel
@@ -177,6 +179,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             supports_autonomous_execution=self.supports_autonomous_execution,
             supports_tool_affordances=self.tool_profiles is not None,
         )
+        validate_delivery_tool_bindings(self.invocation_tool_actions, self.execution_bindings)
         return self
 
     def _validate_supported_feature_levels(self) -> None:
@@ -265,7 +268,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
                 self.supported_autonomous_activity_features,
                 self.supported_autonomous_random_stream_profiles,
                 limits_configured,
-                self.execution_bindings,
+                self.execution_bindings and not delivery_tool_actions_enabled(self.invocation_tool_actions),
                 self.supports_execution_control,
                 self.supported_execution_control_actions,
                 self.supports_bounded_concurrency,
@@ -298,6 +301,8 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
         supported_targets = set(self.supported_autonomous_target_addresses)
         for binding in self.execution_bindings:
             if binding.action_contract_address not in supported_actions:
+                if delivery_tool_actions_enabled(self.invocation_tool_actions):
+                    continue
                 raise ValueError("execution binding action is not declared supported")
             if not set(binding.target_addresses).issubset(supported_targets):
                 raise ValueError("execution binding target is not declared supported")

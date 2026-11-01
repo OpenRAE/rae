@@ -154,6 +154,8 @@ class _ToolEntry:
     settlement: ParticipantToolActionSettlement | None = None
     action_result: ParticipantActionResultModel | None = None
     settled_at: str | None = None
+    admission: ParticipantActionAdmissionRequest | None = None
+    crossing_evidence: object | None = None
 
 
 def _detached_outcome(outcome: object) -> ParticipantActionResultModel | None:
@@ -707,3 +709,11 @@ class ParticipantInvocationToolActions:
 
 
 __all__ = ("InvocationToolActionConfiguration", "ParticipantInvocationToolActions")
+
+
+InvocationToolEntry = _ToolEntry
+
+
+def detached_tool_outcome(outcome: ParticipantActionResultModel) -> ParticipantActionResultModel | None:
+    """Detach and validate the shared tool outcome carrier."""
+    return _detached_outcome(outcome)

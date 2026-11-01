@@ -25,8 +25,14 @@ from .participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Mod
 from .participant_control_profiles import ParticipantControlTeachingProfileModel
 from .participant_control_selection import ParticipantControlSelectionModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
+from .participant_crossing_evidence import ParticipantCrossingEvidence
 from .participant_decision_surface import ParticipantDecisionSurfaceModel
 from .participant_decision_surface_v2 import ParticipantDecisionSurfaceV2Model
+from .participant_delivery_invocation import (
+    ParticipantDeliveryInvocationContextModel,
+    ParticipantDeliveryInvocationOutcomeModel,
+    ParticipantDeliveryInvocationRequestModel,
+)
 from .participant_envelopes import (
     ParticipantJointActionRecordModel,
     ParticipantLifecycleEventModel,
@@ -100,8 +106,31 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
     return schemas
 
 
+def _delivery_invocation_schema_bundle() -> dict[str, dict[str, Any]]:
+    models = {
+        "participant-crossing-evidence-v1": ParticipantCrossingEvidence,
+        "participant-delivery-invocation-request-v1": ParticipantDeliveryInvocationRequestModel,
+        "participant-delivery-invocation-context-v1": ParticipantDeliveryInvocationContextModel,
+        "participant-delivery-invocation-outcome-v1": ParticipantDeliveryInvocationOutcomeModel,
+    }
+    schemas = {}
+    for contract_id, model in models.items():
+        schema = model.model_json_schema()
+        add_raes_invariant(
+            schema,
+            contract_id.removesuffix("-v1") + "-local-consistency",
+            "Validate exact local delivery invocation coordinates and implementation selection; "
+            "structural validity grants no execution authority.",
+            validator=f"raes_contracts.contracts.{model.__name__}.model_validate",
+            inputs=[{"contract_id": contract_id, "instance_path": "#"}],
+        )
+        schemas[contract_id] = schema
+    return schemas
+
+
 def runtime_schema_bundle() -> dict[str, dict[str, Any]]:
     return {
+        **_delivery_invocation_schema_bundle(),
         "participant-control-context-asset-v1": ParticipantControlContextAssetModel.model_json_schema(),
         "participant-control-context-change-v1": ParticipantControlContextChangeModel.model_json_schema(),
         "participant-control-context-record-v1": ParticipantControlContextRecordModel.model_json_schema(),

@@ -1,169 +1,103 @@
-# Admit tool actions inside an autonomous invocation
+# Admit participant tool actions
 
-An autonomous participant invocation can call tools while it runs. RAES admits
-each tool call as a separate participant action before the tool has effects.
-Each tool action gets its own action identity, typed outcome and three-event
-behavior history. The composition is `participant-invocation-tool-actions/v1`.
-[ADR-092](https://github.com/OpenRAE/rae/blob/main/docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md)
-section 10 records the decision.
+RAES checks each tool call before it can have effects. Each child has its own
+ID, a grant to act once, a typed result, and a saved history.
 
-## Author the tool affordance
+Choose one of two ways to host tool calls:
 
-Declare an authored tool affordance under the behavior specification that owns
-the autonomous policy. The affordance names the action contracts and
-observation boundaries that a tool call can use. Classify the affordance
-reference in that observation boundary.
+| Composition | Enclosing execution | Required method |
+| --- | --- | --- |
+| `participant-invocation-tool-actions/v1` | Autonomous action invocation | `attach_invocation_tool_actions(port)` |
+| `participant-invocation-tool-actions/v2` | Runtime-owned delivery invocation | `invoke_delivery(invocation, tools)` |
 
-```yaml
-behavior_specifications:
-  participant-behavior:
-    tool_affordances:
-      portal-client:
-        action_contract_refs: [probe-customer-portal-login]
-        observation_boundary_refs: [participant-view]
-```
+V1 keeps its policy and outer action history. V2 starts from a saved delivery
+and has its own scope. V2 needs no autonomous policy or outer action contract. [ADR-092 section 10](https://github.com/OpenRAE/rae/blob/main/docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md)
+and the [delivery-tool contract](https://github.com/OpenRAE/rae/blob/main/specs/formal/participant-semantics/delivery-tool-actions.md)
+define the rules.
 
-The compiler joins each affordance with the policy participants. It also joins
-the targets that each action contract authors. An unscoped affordance uses the
-participants of its behavior specification.
+## Declare the relation and capability
 
-## Claim the composition
+Declare `tool_affordances` under the behavior specification. Name the permitted
+action contracts and observation boundaries, and classify each affordance in
+its boundary. The compiler joins the specification's participants and each
+action's authored targets.
 
-Declare the claim in the participant-runtime capabilities. The claim requires
-autonomous execution and positive `tool_affordances` support. Declare one
-execution-binding offer for each tool action contract and implementation.
+Declare positive `tool_affordances` support, an exact execution-binding offer
+for each action and implementation, and finite invocation limits:
 
 ```json
 "invocation_tool_actions": {
-  "semantic_versions": ["participant-invocation-tool-actions/v1"],
+  "semantic_versions": ["participant-invocation-tool-actions/v2"],
   "max_tool_actions_per_invocation": 16,
   "max_concurrent_tool_actions_per_invocation": 4
 }
 ```
 
-Registration refuses the claim when the participant runtime has no
-`attach_invocation_tool_actions` method. Without the claim, the runtime attaches
-no port, and ordinary autonomous execution does not change.
+Each offer must cover all shared-time contract digests for its action.
+RAES checks that the claimed method exists. V1 also needs support for
+autonomous execution.
 
-## Use the port
+## Invoke a retained delivery
 
-The runtime calls `attach_invocation_tool_actions(port)` before each matching
-`admit_action` call. The port is inactive until that dispatch begins, so calls
-made during attachment return `invocation_inactive`. Give the port only to the
-harness that runs that invocation. The port never calls the runtime manager, so the harness can use it
-from any thread while `admit_action` waits.
+First use `deliver_participant_inject` to admit and retain the delivery. Then
+call the runtime's public `invoke_participant_delivery(request, identity=...)`
+with a `ParticipantDeliveryInvocationRequestModel`. The request names the
+saved delivery, a stable request key, and the exact manifest and selection for
+the participant.
 
-```python
-from raes_contracts.contracts import ParticipantActionResultModel
-from raes_contracts.participant_tool_actions import ParticipantToolActionRequest
+Install the delivery resolver's `resolve_invocation_cut(invocation, request,
+snapshot)` method. It returns a typed `ParticipantControlLiveCut` for the
+child request and current order, grants, scopes, and evidence. RAES
+checks the cut against its authority and control rules.
 
+The participant runtime implements
+`ParticipantDeliveryInvocationRuntime.invoke_delivery`. RAES passes a detached
+typed context and a `ParticipantDeliveryToolActionPort`. Return a
+`ParticipantDeliveryInvocationOutcomeModel`; the outer result cannot replace
+runtime history or claim a child's success.
 
-class HarnessRuntime(MyAutonomousParticipantRuntime):
-    def attach_invocation_tool_actions(self, port) -> None:
-        self._ports[port.invocation_action_instance_id] = port
+## Use the child port
 
-    def _model_action(self, request, snapshot, *, episode_id):
-        port = self._ports.pop(request.action_instance_id, None)
-        outcome = self._harness.run(request, tool_port=port)
-        return self._native_execution(request, snapshot, episode_id, outcome)
+1. Build a `ParticipantToolActionRequest` using the port's invocation,
+   participant, episode, implementation, scope, and generation coordinates.
+2. Call `admit(request, crossing_evidence=...)`. Evidence is a typed
+   `ParticipantCrossingEvidence`. A refusal supplies no permission to act.
+3. Call `dispatch(action_id, temporal_evidence=...)`. Continuous dwell evidence
+   belongs here. Use the returned canonical `binding`, which includes any
+   child-specific temporal contexts. A transformation that replaces the child
+   identity is refused.
+4. Execute the bound action once, only after an accepted dispatch receipt.
+5. Call `complete(action_id, outcome)` with the exact typed action identity,
+   observation point, and authorized evidence. Deadline event evidence belongs
+   in the outcome. Call `report_unknown` when the effect cannot be established.
 
+Both admission and dispatch recheck current authority, source control, crossing
+policy, and the final sink. Dispatch also checks the clock segment, deadline,
+and dwell coverage. Missing proof cannot show that a timing rule was met.
 
-def call_tool(port, mcp_request_id: str, run_tool) -> None:
-    decision = port.admit(
-        ParticipantToolActionRequest(
-            tool_call_id=mcp_request_id,
-            invocation_action_instance_id=port.invocation_action_instance_id,
-            participant_address=port.participant_address,
-            episode_id=port.episode_id,
-            participant_implementation_ref=port.participant_implementation_ref,
-            tool_affordance_address="participant.behavior-specification.participant-behavior.tool-affordance.portal-client",
-            action_contract_address="participant.action-contract.probe-customer-portal-login",
-            observation_boundary_address="participant.observation-boundary.participant-view",
-            target_addresses=("provision.node.customer-portal.service.http",),
-            execution_scope_ref=port.execution_scope_ref,
-            execution_generation=port.execution_generation,
-        )
-    )
-    if not decision.admitted:
-        return  # decision.refusal is a fixed code; do not run the tool.
-    if not port.dispatch(decision.action_instance_id).accepted:
-        return
-    try:
-        succeeded = run_tool()
-    except TimeoutError:
-        port.report_unknown(decision.action_instance_id, "timeout")
-        return
-    port.complete(
-        decision.action_instance_id,
-        ParticipantActionResultModel(
-            status="succeeded" if succeeded else "failed",
-            participant_address=port.participant_address,
-            episode_id=port.episode_id,
-            action_instance_id=decision.action_instance_id,
-            action_contract_address="participant.action-contract.probe-customer-portal-login",
-            observation_point=port.observation_point,
-        ),
-    )
-```
+## Retries, closure, and history
 
-Start tool effects only after `dispatch` returns an accepted receipt. The
-consumer keeps its own MCP handler, argument validation, transport
-authentication, credentials, redaction and process cleanup. RAES does not
-receive or store tool arguments or results.
-
-## Admission rules
-
-The port admits a request only when all of these conditions are true:
-
-- The invocation is still open.
-- Participant, episode, implementation, invocation, scope and generation equal
-  the port values.
-- Exactly one compiled affordance binding matches the affordance, action and
-  participant.
-- The observation boundary and every target belong to that binding.
-- The action has no shared-time binding.
-- Exactly one manifest execution-binding offer covers the action, the
-  implementation and the targets.
-- The policy is not `participant-autonomous-execution/v3`, and no
-  participant-crossing policy is installed.
-- The control-plane store retains the claim. A failed write refuses with
-  `ledger_unavailable`.
-- The declared limits are not exhausted.
-
-A refusal returns a `ParticipantToolActionRefusal` code. It causes no native
-call and adds no history.
-
-## Failure behavior
-
-| Event | Result |
+| Event | Runtime result |
 | --- | --- |
-| Same `tool_call_id` and same request | The port returns the original decision. |
-| Same `tool_call_id` and a different request | `request_conflict`. The original record stays. |
-| `cancel` before dispatch | The action settles as `withheld`. |
-| `cancel` after dispatch | `state_conflict`. Complete the action or report unknown effects. |
-| `report_unknown` after dispatch | The action settles as `indeterminate`. |
-| An outcome with withheld or undeclared evidence, or a foreign observation point | `outcome_invalid`. Report unknown effects instead. |
-| The invocation returns with undispatched actions | They settle as `withheld`. |
-| The invocation returns with dispatched actions and no outcome | They settle as `indeterminate`. |
-| A call after the invocation returns | `invocation_closed`. |
-| The invocation raises or returns an invalid result | Tool history commits. The outer attempt is consumed. |
+| Exact repeated admission | Original decision; no new child |
+| Conflicting call identity | `request_conflict` |
+| Repeated dispatch | Refused; no second grant |
+| Exact repeated completion | Original receipt; no duplicate history |
+| `cancel` before dispatch | Withheld child |
+| Unknown dispatched effect | Indeterminate child and effect fence |
+| Invocation closure | Withhold pending children; classify unresolved dispatched children as indeterminate |
+| Call after closure | `invocation_closed` |
 
-An `indeterminate` action records status `unknown` and observation status
-`orphaned_action`. It also stops the participant scheduler. RAES never repeats
-a tool effect to recover history.
+V2 saves each child result, its three history events, and its audit in one
+write. The child's `invocation_tool_context` names its source call and delivery.
+It needs no outer action. If the outer call fails or is cancelled, the child
+history stays.
 
-## Read the history
+Read child state with `get_operation(action_id)` and history through the
+existing participant history views. After a restart, RAES uses saved bindings to settle
+children. It never repeats an effect. Use the existing recovery process to
+resolve unknown effects.
 
-Each settled tool action appends `action_attempted`,
-`state_transition_recorded` and `observation_emitted`. The triples follow
-admission order, immediately before the triple of the outer invocation. Every
-tool-action event carries `invocation_tool_context`. That context names the
-outer action instance and contract, the affordance, the tool call identity, the
-admission ordinal, the settlement, the scope and the generation. Participant
-history views project the same field.
-
-Tool history commits with the enclosing scheduler operation. Each tool action
-is also a child operation with its own id. Read its state with
-`get_operation(action_instance_id)`. After a restart, an admitted action that
-was never dispatched is `cancelled`. A dispatched action without an outcome is
-`indeterminate` and needs explicit resolution.
+V1 retains its original restrictions: no shared-time tool binding, no V3
+resource policy, and no installed participant-crossing policy. Its child
+history remains ordered before the enclosing autonomous action's history.

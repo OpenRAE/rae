@@ -250,6 +250,7 @@ from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRu
 from .observation_capture import ObservationCaptureOfferModel
 from .participant_context import ParticipantContextViewModel
 from .participant_control_context import *
+from .participant_crossing_evidence import ParticipantCrossingEvidence as ParticipantCrossingEvidence
 from .participant_decision_surface import (
     ParticipantDecisionSurfaceActionEntryModel,
     ParticipantDecisionSurfaceCandidateSetFormModel,
@@ -265,6 +266,15 @@ from .participant_decision_surface_exposure import (
 )
 from .participant_decision_surface_exposure_v2 import *
 from .participant_decision_surface_v2 import *
+from .participant_delivery_invocation import (
+    ParticipantDeliveryInvocationContextModel as ParticipantDeliveryInvocationContextModel,
+)
+from .participant_delivery_invocation import (
+    ParticipantDeliveryInvocationOutcomeModel as ParticipantDeliveryInvocationOutcomeModel,
+)
+from .participant_delivery_invocation import (
+    ParticipantDeliveryInvocationRequestModel as ParticipantDeliveryInvocationRequestModel,
+)
 from .participant_envelopes import (
     EventClassificationModel,
     ParticipantJointActionAccessSetModel,
@@ -354,6 +364,7 @@ from .participant_runtime import (
     ParticipantAttributionOrderingBasisModel,
     ParticipantAutonomousExecutionStateModel,
     ParticipantBehaviorHistoryEventModel,
+    ParticipantDeliveryToolContextModel,
     ParticipantEpisodeHistoryEventModel,
     ParticipantEpisodeStateModel,
     ParticipantInvocationToolContextModel,

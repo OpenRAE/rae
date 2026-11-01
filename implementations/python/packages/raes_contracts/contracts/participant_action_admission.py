@@ -166,10 +166,20 @@ def _temporal_evidence_violations(
 
 
 def _implementation_selection_violations(request: ParticipantActionAdmissionRequest) -> tuple[str, ...]:
+    return implementation_selection_violations(
+        request.participant_address, request.implementation_manifest, request.implementation_selection
+    )
+
+
+def implementation_selection_violations(
+    participant_address: str,
+    manifest: ParticipantImplementationManifestModel,
+    selection: ParticipantImplementationSelectionModel,
+) -> tuple[str, ...]:
+    """Validate the common implementation binding for an invocation or an action."""
+
     violations: list[str] = []
-    manifest = request.implementation_manifest
-    selection = request.implementation_selection
-    if selection.participant_address != request.participant_address:
+    if selection.participant_address != participant_address:
         violations.append(
             "implementation selection participant_address must match the compiled participant behavior address"
         )

@@ -2,9 +2,9 @@
   "contract_id": "participant-behavior-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/participant-behavior-history-event-stream-v1.json",
   "stability": "draft",
-  "content_hash": "5d1760c509c79a1e20238c0dcaf3747fa3774dda03007e5ac3d10157c4b0542a",
+  "content_hash": "7823ea543fc7618ce58a296c63e803485c00480da5adc906a363b7edbb2571f0",
   "last_change": {
-    "summary": "Add the optional invocation_tool_context that correlates a hosted tool action with its enclosing autonomous invocation; issue #1740.",
-    "content_hash": "5d1760c509c79a1e20238c0dcaf3747fa3774dda03007e5ac3d10157c4b0542a"
+    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
+    "content_hash": "7823ea543fc7618ce58a296c63e803485c00480da5adc906a363b7edbb2571f0"
   }
 }
