@@ -41,7 +41,11 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("archcheck", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	design := flags.Bool("design", false, "check only the model, before the code exists")
-	if err := flags.Parse(args); err != nil || flags.NArg() != 0 {
+	if err := flags.Parse(args); err != nil {
+		return 2
+	}
+	if flags.NArg() != 0 {
+		_, _ = fmt.Fprintln(stderr, "usage: archcheck [-design]")
 		return 2
 	}
 	findings, err := check(ctx, *design)

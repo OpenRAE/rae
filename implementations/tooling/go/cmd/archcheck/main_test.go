@@ -44,6 +44,9 @@ func TestRunRejectsBadUsage(t *testing.T) {
 		if status := run(t.Context(), args, &stdout, &stderr); status != 2 {
 			t.Errorf("run(%q) = %d, want 2", args, status)
 		}
+		if stderr.Len() == 0 {
+			t.Errorf("run(%q) wrote no usage message", args)
+		}
 	}
 }
 
