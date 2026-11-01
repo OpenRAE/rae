@@ -134,8 +134,9 @@ func checkBrackets(netloc string) error {
 		}
 		return nil
 	}
+	// Python's ipaddress also refuses a zone that contains a percent sign.
 	address, err := netip.ParseAddr(host)
-	if err != nil || address.Is4() {
+	if err != nil || address.Is4() || strings.Contains(address.Zone(), "%") {
 		return ErrInvalid
 	}
 	return nil

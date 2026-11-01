@@ -50,6 +50,8 @@ func TestCheckMatchesThePythonReference(t *testing.T) {
 		{"https://a[::1]/", ErrInvalid, ErrInvalid},
 		{"https://[::1]x/", ErrInvalid, ErrInvalid},
 		{"https://[fe80::1%25eth0]/", nil, nil},
+		{"https://[fe80::1%25a%25b]/", ErrInvalid, ErrInvalid},
+		{"https://[::1%25]/", nil, nil},
 		{"https://ex\u2100ample.org/", ErrInvalid, ErrInvalid},
 		{"https://ex\u00e4mple.org/", nil, nil},
 		{"\u0000 https://example.org/", nil, nil},
