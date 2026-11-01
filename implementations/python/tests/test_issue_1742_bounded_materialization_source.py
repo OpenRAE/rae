@@ -47,7 +47,10 @@ def _full_size_source(entities=400):
     return json.dumps(
         {
             "name": "full-size",
-            "realization": {"default": "open"},
+            "realization": {
+                "default": "open",
+                "scopes": [{"field_pointer": "/nodes/host/runtime", "posture": "closed"}],
+            },
             "nodes": {"host": {"type": "compute"}},
             "entities": members,
         }

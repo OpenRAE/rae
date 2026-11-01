@@ -42,7 +42,7 @@ def test_catalog_defines_one_sided_participant_predicate_opacity() -> None:
     catalog = load_behavioral_relation_catalog()
     relation = catalog.relations["participant-predicate-opacity"]
 
-    assert catalog.taxonomy_revision == "rev13"
+    assert catalog.taxonomy_revision == "rev14"
     assert relation.relation_class == "epistemic"
     assert relation.direction == "unary"
     assert relation.relation_parameter_profile_required is True

@@ -17,7 +17,7 @@ from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.errors import InvalidInputError
-from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.vocabulary import Closure, GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
@@ -39,6 +39,7 @@ from ..semantics.realization import (
     realization_support_diagnostics,
     resolve_apparatus_realization_defaults,
 )
+from .descriptor_profiles import descriptor_profile_diagnostics
 from .execution_policy import attach_execution_policies
 from .interaction_context import fresh_evaluation_actions, retained_planning_context
 from .manifest_validation import _validate_manifest
@@ -334,6 +335,23 @@ def _augment_provisioning(
     return provisioning, extra
 
 
+def _attach_phase_policies(
+    model: RuntimeModel,
+    manifest: BackendManifest,
+    phases: tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan],
+) -> tuple[tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan], list[Diagnostic]]:
+    """Attach the effective execution policies to each phase plan, in phase order."""
+
+    provisioning, provisioning_diagnostics = attach_execution_policies(model, manifest, phases[0])
+    orchestration, orchestration_diagnostics = attach_execution_policies(model, manifest, phases[1])
+    evaluation, evaluation_diagnostics = attach_execution_policies(model, manifest, phases[2])
+    return (provisioning, orchestration, evaluation), [
+        *provisioning_diagnostics,
+        *orchestration_diagnostics,
+        *evaluation_diagnostics,
+    ]
+
+
 class PlanningOptions(TypedDict, total=False):
     """Typed keyword-only planning controls, retaining the established call surface."""
 
@@ -383,6 +401,7 @@ def plan(
         *profile_diagnostics,
         *regeneration_diagnostics,
         *participant_tool_support_diagnostics(effective_model, manifest, processor_manifest),
+        *descriptor_profile_diagnostics(effective_model, manifest, profile_context),
         *_admission_diagnostics(
             effective_model,
             manifest,
@@ -430,11 +449,9 @@ def plan(
         ),
     )
 
-    provisioning, policy_diagnostics = attach_execution_policies(effective_model, manifest, provisioning)
-    diagnostics.extend(policy_diagnostics)
-    orchestration, policy_diagnostics = attach_execution_policies(effective_model, manifest, orchestration)
-    diagnostics.extend(policy_diagnostics)
-    evaluation, policy_diagnostics = attach_execution_policies(effective_model, manifest, evaluation)
+    (provisioning, orchestration, evaluation), policy_diagnostics = _attach_phase_policies(
+        effective_model, manifest, (provisioning, orchestration, evaluation)
+    )
     diagnostics.extend(policy_diagnostics)
 
     (provisioning, orchestration, evaluation), source_diagnostics = attach_materialization_sources(

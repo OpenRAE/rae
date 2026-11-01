@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-10-21T00:00:00Z
+updated_at: 2026-10-31T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -20,6 +20,10 @@ The ecosystem shall define semantics distinguishing binding author declarations 
 Current state: identified gap. Honest portability requires normative semantics for what is binding, what may be realized later, and when approximation is forbidden.
 
 ## Traceability
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Failed inventory keeps authority checks without claiming successful readback)
+- TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Omitted open reports fail through compiled, portable, and runtime boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1805-open-concern-disclosure-design.md` (Explicit open readback and failed inventory architecture)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/backend_node_provenance.py` (Shared backend-introduced node concern provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_provenance.py` (Prepared membership concern and dedicated realization disclosure)
@@ -379,3 +383,14 @@ Current state: identified gap. Honest portability requires normative semantics f
 - TESTS → TEST `implementations/python/tests/test_stub_backend_provenance.py` (Runtime-recorded realization provenance on the stub target)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/backend-realization-preparation-v1.json` (backend-realization-preparation-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/plan-realization-profiles-v1.json` (plan-realization-profiles-v1 published schema)
+- IMPLEMENTS → GITHUB_ISSUE `298` (Typed descriptor profiles are owned by their field and admitted by the target)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md` (Owned and admitted typed descriptor profiles)
+- IMPLEMENTS → SPEC `specs/sdl/profile-selections.md` (Descriptor ownership and admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/descriptor_profiles.py` (Descriptor host table, owner validation and target admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_sections.py` (Descriptor owner validation pass)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_profiles.py` (Descriptor owners renamed with their declaration on import)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/descriptor_profiles.py` (Planning refusal of unadmitted descriptor profiles)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Runtime refusal of unadmitted descriptor profiles)
+- TESTS → TEST `implementations/python/tests/test_issue_298_descriptor_profiles.py` (Descriptor owner, composition, planning and runtime admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_scope_index.py` (Budgeted evaluation-local scope lookup)
+- TESTS → TEST `implementations/python/tests/test_issue_1759_runtime_constraint_budget.py` (Default-budget application conformance and finite scope work)

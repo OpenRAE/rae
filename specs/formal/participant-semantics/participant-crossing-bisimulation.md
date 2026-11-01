@@ -12,8 +12,14 @@ Relation catalog: `raes-behavioral-relations@rev8`,
 
 Status: historical rev1 state/transition sketch. The relation clauses and
 projection remain applicable. ADR-100's #971 amendment selects executable
-profile/model rev2 as the downstream target. No equivalence, proof,
-runtime-realization, or backend-conformance result is claimed here.
+profile/model rev2 as the downstream target. This sketch claims no equivalence,
+proof, runtime-realization, or backend-conformance result.
+
+The finite rev2 result is in the
+[machine-check specification](participant-crossing-machine-check.md). Its
+separately reviewed reproduction is in the
+[reproduction specification](participant-crossing-reproduction.md). That result
+is a finite model check of the complete rev2 carrier only.
 
 The [executable rev2 refinement](participant-crossing-models.md) records #971's
 approved single-operation interpretation and independently generated models.

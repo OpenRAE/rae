@@ -264,7 +264,7 @@ def test_current_and_historical_authority_resolve_by_exact_revision() -> None:
         "sem-231/rev2",
     )
 
-    assert current_catalog.taxonomy_revision == "rev13"
+    assert current_catalog.taxonomy_revision == "rev14"
     assert semantic_catalog.taxonomy_revision == "rev11"
     assert proof_catalog.taxonomy_revision == "rev9"
     assert current_profile.profile_revision == "sem-231/rev3"

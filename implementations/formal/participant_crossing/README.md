@@ -17,17 +17,19 @@ RAES_REQUIREMENT_UID=SEM-232 uv run --offline --no-sync --project implementation
 
 The nox session never synchronizes dependencies or acquires missing tools.
 Missing inputs fail the check.
-The separately reviewed `machine-check/pin.json` selects the immutable result capture.
-The `record` CLI creates a new content-addressed capture after intentional source changes.
-It does not overwrite the pin or historical evidence.
+Routine verification runs the current graphs and fixed negative controls.
+It requires the expected positive baseline decision.
+It does not require a new publication after a source edit.
 
-The canonical CI job uses `-- --publish` with the same nox session.
-That operation requires fresh native replay.
-It also checks the evidence and hosted execution record.
-The job uploads only its fixed admitted inventory.
-Source revisions and host identities stay in a separate record.
-Public and scientific claims require the separate reproduction work.
-They also require the planned publication work.
+The separately reviewed `machine-check/pin.json` selects an immutable research result.
+Use `record` only when collecting a new source-bound research claim.
+It does not overwrite the pin or historical evidence.
+Explicit publication uses `-- --publish` with the same nox session.
+Publication requires exact native replay and a qualified hosted execution record.
+Public and scientific claims require their separate reproduction and publication work.
+The manifest binds only subject sources.
+Each run checks the apparatus sources for stability.
+Public and scientific claims cite only the admitted reproduction record.
 
 ## Fresh reproduction measurement
 
@@ -39,10 +41,11 @@ Every output byte must match the separately selected reviewed capture.
 After the existing tool acquisition and Python setup, run:
 
 ```sh
-PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest sha256:76422aebb1413e345677eeaa4bea67005e74aa3d9289d185f63f4c69dc838339
+PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest "$(jq -r .manifest_digest specs/formal/participant-semantics/machine-check/pin.json)"
 ```
 
-The expected result is an immutable `reproduction/capture-.../measurement.json` file.
+A local run writes its measurement under `.cache/raes-sdl/`.
+It is not a qualified record.
 A different digest, missing input, or unavailable sandbox fails the command.
 The command never downloads tools or dependencies.
 The `--qualified` option requires the existing hosted execution profile.
@@ -51,7 +54,15 @@ It stages measurement and allowlisted execution provenance for the canonical CI 
 A measurement does not authenticate a reviewer or establish independent acceptance.
 The reviewer must select and review its exact digest and corpus review subject.
 They must supply an attributable review record and state their separation from production.
-Missing review leaves issue 975 incomplete.
+Place the qualified `measurement.json`, `execution.json`, and the `review.json` in one repository-relative staging directory.
+Then retain the admitted capture:
+
+```sh
+PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction_record --expected-manifest "$(jq -r .manifest_digest specs/formal/participant-semantics/machine-check/pin.json)" --staging .cache/raes-sdl/reproduction-staging
+```
+
+The command refuses a self-approved, detached, or stale record.
+A reviewed change then moves `reproduction/pin.json`.
 The [reproduction design](../../../specs/formal/participant-semantics/participant-crossing-reproduction.md)
 defines the execution, review, and claim boundaries.
 

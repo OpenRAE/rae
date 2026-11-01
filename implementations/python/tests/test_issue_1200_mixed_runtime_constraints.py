@@ -6,6 +6,7 @@ from dataclasses import replace
 import pytest
 from raes import parse_sdl
 from raes.explicitness import ExplicitnessClass
+from raes.runtime_configuration import RuntimeConfiguration
 from raes_contracts.apparatus import RealizationObservationCapability
 from raes_contracts.contracts import ProvisioningPlanModel
 from raes_contracts.plan_projection import provisioning_plan_model
@@ -161,9 +162,7 @@ def _returned(plan_value, runtime):
                 observation_strength=(authority.required_observation_strength or ObservationStrength.GUEST_OBSERVED),
             )
             for authority in plan_value.realization_authority
-            if authority.requirement_kind
-            in {"runtime-database-services", "runtime-packages", "runtime-dns-services", "runtime-environment"}
-            and authority.mode.value != "closed"
+            if authority.verification_scope is not None and authority.mode.value != "closed"
         ),
     )
 
@@ -220,10 +219,21 @@ def test_direct_counterexample_retains_exact_negative_control():
 def test_inherited_open_packages_preserve_exact_nmap(version, accepted, scope):
     nmap = {"manager": "apt", "name": "nmap", "version": "7.95"}
     _, portable, manifest = _fixture({"packages": [nmap]}, scope=scope)
+    runtime = {}
+    if scope == "/nodes/host/runtime":
+        # A broad open scope must explicitly report its empty sibling concerns.
+        runtime = RuntimeConfiguration(
+            linux_capabilities={},
+            operational_policy={"resource_limits": {}},
+            container={},
+            local_identity={},
+            network={},
+        ).model_dump(mode="json")
+    runtime["packages"] = [{"manager": "apt", "name": "curl", "version": "8.0"}, {**nmap, "version": version}]
     result = _apply(
         portable,
         manifest,
-        {"packages": [{"manager": "apt", "name": "curl", "version": "8.0"}, {**nmap, "version": version}]},
+        runtime,
     )
     assert result.success is accepted, result.diagnostics
     if not accepted:
@@ -459,3 +469,25 @@ def test_missing_value_or_observation_does_not_establish_satisfaction(missing):
     result = _apply(portable, manifest, runtime, observe=missing != "observation")
     assert not result.success
     assert not result.snapshot.realization_provenance
+
+
+@pytest.mark.parametrize("changed", [False, True])
+def test_applications_runtime_gate_accepts_matching_fifteen_routes(changed):
+    applications = [
+        {
+            "application_id": "portal",
+            "framework": "flask",
+            "routes": [{"route_id": f"route-{i}", "path": f"/route-{i}", "methods": ["GET"]} for i in range(15)],
+        }
+    ]
+    _, portable, manifest = _fixture(
+        {"applications": applications},
+        scope="/nodes/host/runtime/applications",
+    )
+    observed = deepcopy(applications)
+    if changed:
+        observed[0]["routes"][0]["path"] = "/wrong"
+    result = _apply(portable, manifest, {"applications": observed})
+    assert result.success is not changed, result.diagnostics
+    if changed:
+        assert not result.snapshot.entries

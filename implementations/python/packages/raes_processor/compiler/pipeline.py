@@ -3,6 +3,7 @@
 from collections.abc import Mapping
 
 from raes import build_declaration_index
+from raes.descriptor_profiles import authored_descriptor_profiles
 from raes.instantiate import admit_instantiated_scenario, instantiate_scenario
 from raes.materialization import MaterializedScenario, admit_materialized_scenario
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
@@ -210,6 +211,7 @@ def compile_runtime_model(
         scenario_name=scenario.name,
         execution_policies=compile_execution_policies(scenario, {**structure, **behavior}),
         profile_authority=authority,
+        descriptor_profile_bindings=authored_descriptor_profiles(scenario),
         realization_instance=scenario if isinstance(scenario, InstantiatedScenario) else None,
         materialization_description=scenario if isinstance(scenario, MaterializedScenario) else None,
         diagnostics=diagnostics,

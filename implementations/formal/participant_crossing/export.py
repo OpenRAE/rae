@@ -57,6 +57,17 @@ SOURCE_PATHS = (
     "specs/formal/participant-semantics/information-flow-control.md",
     "implementations/python/uv.lock",
 )
+# Construction reads and stability-checks SOURCE_PATHS. The manifest binds only
+# the sources that define both graphs; replay detects any other effect on bytes.
+SUBJECT_SOURCE_PATHS = (
+    "implementations/formal/participant_crossing/abstract.py",
+    "implementations/formal/participant_crossing/concrete.py",
+    "implementations/formal/participant_crossing/graph.py",
+    "implementations/formal/participant_crossing/aut.py",
+    "implementations/formal/participant_crossing/export.py",
+    "specs/formal/participant-semantics/participant-crossing-models.md",
+    "specs/formal/participant-semantics/information-flow-control.md",
+)
 
 
 def digest(content: bytes) -> str:
@@ -171,8 +182,9 @@ def build_bundle(root: Path) -> dict[str, bytes]:
             "reachable_phases": sorted({state.phase for state in graph.states}),
         }
     catalog = _profile_catalog(profile.taxonomy_revision)
+    subject = {path: identities[path] for path in SUBJECT_SOURCE_PATHS}
     manifest = {
-        "schema": "participant-crossing-model-bundle/v1",
+        "schema": "participant-crossing-model-bundle/v2",
         "profile_id": profile.profile_id,
         "profile_revision": profile.profile_revision,
         "profile_digest": profile.canonical_digest,
@@ -180,8 +192,8 @@ def build_bundle(root: Path) -> dict[str, bytes]:
         "projection": "participant-crossing-projection@rev1",
         "catalog_revision": profile.taxonomy_revision,
         "catalog_digest": canonical_json_digest(catalog.model_dump(mode="json")),
-        "source_revision": canonical_json_digest(identities),
-        "source_digests": identities,
+        "source_revision": canonical_json_digest(subject),
+        "source_digests": subject,
         "domain_counts": {key: len(values) for key, values in profile.parameters.domains.model_dump().items()},
         "models": counts,
         "complete_reachable_fixed_point": True,

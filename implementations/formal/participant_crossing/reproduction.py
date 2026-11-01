@@ -1,7 +1,10 @@
-"""Measure a fresh finite replay without asserting independent reviewer acceptance."""
+"""Measure a fresh finite replay without asserting independent reviewer acceptance.
+
+A measurement records machine facts. A separate review record names the producer
+and the reviewer; ``reproduction_record`` admits the retained joined capture.
+"""
 
 import argparse
-import re
 from pathlib import Path
 
 from raes_contracts.canonical import canonical_json_digest
@@ -21,17 +24,27 @@ OUTPUT_ROOT = "specs/formal/participant-semantics/reproduction"
 SOURCE_PATHS = (
     *sandbox.EXTRA_SOURCE_PATHS,
     *tuple(
-        "implementations/formal/participant_crossing/" + name
-        for name in ("reproduction.py", "reproduction_sandbox.py")
+        "implementations/formal/participant_crossing/" + name for name in ("reproduction.py", "reproduction_sandbox.py")
     ),
+)
+
+
+# A measurement binds only the reproducer sources that define its comparisons.
+# The staged package tree is apparatus: each run checks it for stability.
+SUBJECT_SOURCE_PATHS = tuple(
+    "implementations/formal/participant_crossing/" + name
+    for name in ("reproduction.py", "reproduction_checks.py", "reproduction_sandbox.py")
 )
 
 
 def source_pins(root: Path) -> dict[str, str]:
     return {
-        name: digest(read_bytes(root, name))
-        for name in sorted({*SOURCE_PATHS, *sandbox.package_source_paths(root)})
+        name: digest(read_bytes(root, name)) for name in sorted({*SOURCE_PATHS, *sandbox.package_source_paths(root)})
     }
+
+
+def subject_pins(root: Path) -> dict[str, str]:
+    return {name: digest(read_bytes(root, name)) for name in SUBJECT_SOURCE_PATHS}
 
 
 def selected_bundle(root: Path, expected_manifest_digest: str) -> dict[str, bytes]:
@@ -43,27 +56,16 @@ def selected_bundle(root: Path, expected_manifest_digest: str) -> dict[str, byte
 
 
 def measurement_record(root: Path, bundle: dict[str, bytes]) -> dict:
-    return _measurement_record(bundle, source_pins(root))
-
-
-def _measurement_record(
-    bundle: dict[str, bytes], reproducer_sources: dict[str, str]
-) -> dict:
     manifest = decoded(bundle["manifest.json"])
     result = decoded(bundle["result.json"])
     return {
-        "schema": "participant-crossing-reproduction-measurement/v1",
-        "producer_run_ref": "https://github.com/OpenRAE/rae/issues/974",
-        "reproducer_run_ref": "https://github.com/OpenRAE/rae/issues/975#issuecomment-6539701555",
-        "reproducer_role": "implementation-agent",
+        "schema": "participant-crossing-reproduction-measurement/v2",
         "expected_manifest_digest": digest(bundle["manifest.json"]),
         "actual_manifest_digest": digest(bundle["manifest.json"]),
         "claim_digest": canonical_json_digest(result["claim"]),
-        "artifact_digests": {
-            name: digest(value) for name, value in sorted(bundle.items())
-        },
+        "artifact_digests": {name: digest(value) for name, value in sorted(bundle.items())},
         "producer_source_identity": manifest["source_identity"],
-        "reproducer_sources": reproducer_sources,
+        "reproducer_sources": subject_pins(root),
         "corpus_manifest_digest": manifest["corpus_manifest_digest"],
         "mutation_review_subject_digest": manifest["mutation_review_subject_digest"],
         "tool": manifest["tool"],
@@ -76,63 +78,11 @@ def _measurement_record(
     }
 
 
-def admit_measurement(
-    root: Path, payload: bytes, expected_manifest_digest: str
-) -> None:
+def admit_measurement(root: Path, payload: bytes, expected_manifest_digest: str) -> None:
     """Check measurement integrity; this does not execute or authenticate a review."""
     expected = selected_bundle(root, expected_manifest_digest)
     if payload != encoded(measurement_record(root, expected)):
         raise EvidenceIntegrityError("invalid reproduction measurement")
-
-
-def admit_retained_measurement(
-    root: Path, payload: bytes, expected_manifest_digest: str
-) -> None:
-    """Check pinned archival integrity without claiming current-source replay."""
-    pin = decoded(read_bytes(root, OUTPUT_ROOT + "/pin.json"))
-    capture_digest = pin.get("manifest_digest")
-    if (
-        set(pin) != {"schema", "manifest_digest"}
-        or pin["schema"] != "participant-crossing-reproduction-pin/v1"
-        or not isinstance(capture_digest, str)
-        or re.fullmatch(r"sha256:[0-9a-f]{64}", capture_digest) is None
-    ):
-        raise EvidenceIntegrityError("invalid retained reproduction pin")
-    capture = read_bytes(
-        root,
-        OUTPUT_ROOT + "/capture-" + capture_digest.split(":", 1)[1] + "/manifest.json",
-    )
-    if digest(capture) != capture_digest:
-        raise EvidenceIntegrityError("retained reproduction capture drift")
-    manifest = decoded(capture)
-    if (
-        set(manifest)
-        != {"schema", "target_manifest_digest", "artifact_digests", "authenticity"}
-        or manifest["schema"] != "participant-crossing-reproduction-capture/v1"
-        or manifest["target_manifest_digest"] != expected_manifest_digest
-        or not isinstance(manifest["artifact_digests"], dict)
-        or manifest["artifact_digests"].get("measurement.json") != digest(payload)
-    ):
-        raise EvidenceIntegrityError("retained reproduction measurement drift")
-    record = decoded(payload)
-    retained_sources = record.get("reproducer_sources")
-    if (
-        not isinstance(retained_sources, dict)
-        or not 1 <= len(retained_sources) <= 10000
-        or not set(SOURCE_PATHS).issubset(retained_sources)
-        or any(
-            not isinstance(name, str)
-            or not isinstance(value, str)
-            or re.fullmatch(r"sha256:[0-9a-f]{64}", value) is None
-            for name, value in retained_sources.items()
-        )
-    ):
-        raise EvidenceIntegrityError("invalid retained reproducer source pins")
-    expected = _measurement_record(
-        selected_bundle(root, expected_manifest_digest), retained_sources
-    )
-    if payload != encoded(expected):
-        raise EvidenceIntegrityError("invalid retained reproduction measurement")
 
 
 def measure(root: Path, expected_manifest_digest: str) -> bytes:
@@ -159,9 +109,7 @@ def publish_qualified(root: Path, expected_manifest_digest: str) -> str:
         "review_acceptance": "required",
     }
     path = ".cache/raes-sdl/crossing-reproduction-publication"
-    publish_bundle(
-        root, {"measurement.json": payload, "execution.json": encoded(execution)}, path
-    )
+    publish_bundle(root, {"measurement.json": payload, "execution.json": encoded(execution)}, path)
     return path
 
 
@@ -174,8 +122,9 @@ def main() -> int:
         if args.qualified:
             path = publish_qualified(ROOT, args.expected_manifest)
         else:
+            # A local measurement is not qualified provenance; keep it out of retained records.
             payload = measure(ROOT, args.expected_manifest)
-            path = OUTPUT_ROOT + "/capture-" + digest(payload).split(":", 1)[1]
+            path = ".cache/raes-sdl/crossing-reproduction-measurement-" + digest(payload).split(":", 1)[1]
             publish_bundle(ROOT, {"measurement.json": payload}, path)
     except OSError, RaesError:
         print("crossing reproduction: measurement refused")

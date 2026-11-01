@@ -3,7 +3,7 @@
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ExecutionPlan, RuntimeModel
-from raes_processor.planner import participant_tool_support_diagnostics
+from raes_processor.planner import descriptor_profile_diagnostics, participant_tool_support_diagnostics
 
 from .diagnostics import _failure_diagnostic
 from .mixed_control_admission import reference_mixed_control_diagnostics
@@ -25,6 +25,12 @@ def runtime_plan_precondition_diagnostics(
     context = execution_plan.planning_context
     processor = None if context is None else context.processor_manifest
     diagnostics.extend(participant_tool_support_diagnostics(execution_plan.model, target.manifest, processor))
+    # A submitted plan cannot supply the profile context; the target owns it (ADR-120).
+    diagnostics.extend(
+        descriptor_profile_diagnostics(
+            execution_plan.model, target.manifest, getattr(target.provisioner, "domain_profile_context", None)
+        )
+    )
     diagnostics.extend(
         diagnostic
         for diagnostic in reference_participant_driver_diagnostics(execution_plan.model)

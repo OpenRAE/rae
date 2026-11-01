@@ -456,7 +456,7 @@ def test_catalog_preserves_runtime_assurance_while_withdrawing_backend_axes() ->
     historical = load_behavioral_relation_catalog_revision("rev10").relations["participant-predicate-opacity"]
     withdrawn = load_behavioral_relation_catalog_revision("rev12").relations["participant-predicate-opacity"]
 
-    assert catalog.taxonomy_revision == "rev13"
+    assert catalog.taxonomy_revision == "rev14"
     assert relation.assurance.runtime_enforcement_status == "partial"
     assert relation.assurance.model_check_status == "model-checked"
     assert relation.assurance.proof_status == "proved"

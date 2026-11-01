@@ -109,9 +109,9 @@ boundary. Its normative design is
 [`participant-crossing-bisimulation.md`](participant-crossing-bisimulation.md).
 It selects a complete finite abstract crossing LTS and an independently
 derived formal API-423/RUN-319 crossing-kernel LTS under one closed
-participant/audience projection. It does not report the downstream
-model-check, runtime mapping, backend conformance, noninterference, or opacity
-result.
+participant/audience projection. Issues #974 through #976 add the finite
+model check, its reviewed reproduction, and their publication. No runtime
+mapping, backend conformance, noninterference, or opacity result follows.
 
 Issue #812 and ADR-101 add the SEM-233 boundary-flow and ASR-536
 intentional-subversion evaluation design. Issue #1001 publishes the exact
@@ -1514,14 +1514,18 @@ The authored interactive-access specialization satisfies:
 - **IA2 — stable identity:** every map key is a portable local identifier,
   cannot be a variable, and is preserved through composition and compilation.
 - **IA3 — closed target/channel:** every concrete `target_ref` resolves to one
-  member of `COMPUTE`, and every concrete channel is exactly `ssh` or `rdp`.
+  member of `COMPUTE`. Every concrete channel is `ssh`, `rdp`, or a typed
+  domain-profile binding that its field owns (ADR-120). No other string is a
+  channel. A typed channel enters a plan only when the target admits its exact
+  profile semantics.
 - **IA4 — account authority:** when `account_ref` is present, it resolves to an
   account on `resolve_N(target_ref)` and that account occurs in `p`'s concrete
   `starting_accounts` set.
 - **IA5 — endpoint uniqueness:** for distinct ids `i,j` in `IA(p)`, the pairs
   `(resolve_N(target_i), channel_i)` and
-  `(resolve_N(target_j), channel_j)` differ. The same pair may occur for
-  different participants.
+  `(resolve_N(target_j), channel_j)` differ. The identity of a typed channel
+  is its profile coordinate. The same pair may occur for different
+  participants.
 - **IA6 — explicit absence:** `IA(p) = {}` means no authored interactive access.
   OS, roles, images, services, listeners, ACLs, ports, accounts, credentials,
   actions, and apparatus capabilities cannot synthesize an entry.
@@ -1531,8 +1535,10 @@ The authored interactive-access specialization satisfies:
   evidence. No predicate is inferred from another.
 - **IA8 — no locator or secret carriage:** the closed record admits no host,
   address, URL, port, username, password, key, token, credential, provider
-  option, or portal session. A backend may add realization data only outside
-  SDL and must not rewrite the authored declaration.
+  option, or portal session. A typed channel value is public profile data that
+  its pinned definition checks at admission; it is not one of these carriers.
+  A backend may add realization data only outside SDL and must not rewrite the
+  authored declaration.
 
 Whole-field variables defer IA3-IA5 only until binding. Instantiation and direct
 artifact admission rerun the same predicates over concrete values; unresolved
@@ -1871,7 +1877,16 @@ family, mapping boundary, proof-tool contract, counterexample design, DRAFT
 SEM-232 authority, and child program. It does not run the model check. Issue
 #971 (PR #1397) delivered independent model construction. Issue #972 delivered
 [bounded runtime mapping](participant-crossing-runtime-mapping.md) against the single-operation rev2 carrier.
-Issues #973–#976 own negative mutations, finite equivalence checking, independent reproduction, and reproduced scientific documentation.
+Issue #973 delivered the [negative mutations](participant-crossing-counterexamples.md).
+Issue #974 delivered the [finite machine check](participant-crossing-machine-check.md).
+Issue #975 delivered the [isolated reproduction](participant-crossing-reproduction.md).
+Issue #976 retains a separately reviewed reproduction and publishes the result.
+
+The pinned `dpbranching-bisim` decision relates the declared initial states of
+the complete `participant-crossing-dpbb-finite-v1@rev2` carrier. Taxonomy
+revision `rev14` records this finite model-check axis only. The result is not
+an unbounded proof. It does not establish runtime realization, backend
+conformance, noninterference, opacity, or a multi-operation result.
 
 ## SEM-233 and ASR-536 - Adversarial Participant Flow Control
 
