@@ -1,9 +1,9 @@
 {
-  "content_hash": "df5ddcbbe41a8ef2637736a02ce5a3fa37fdb0bfdd8f950d72ea915ef80a6493",
+  "content_hash": "dbdcdabfef1d47248f0d59dc1ff5c36a49efeab8a2f21aa5f7e8b6d409659627",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "df5ddcbbe41a8ef2637736a02ce5a3fa37fdb0bfdd8f950d72ea915ef80a6493",
-    "summary": "Point the semantic-invariant validator locator at the module that now owns the validator (issue #1711, ADR-121). The schema shape and the invariant do not change."
+    "content_hash": "dbdcdabfef1d47248f0d59dc1ff5c36a49efeab8a2f21aa5f7e8b6d409659627",
+    "summary": "Add typed scope audit recording, exact exemptions, portable nonblank and uniqueness constraints, and the scope uniqueness semantic invariant (issue #1831)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

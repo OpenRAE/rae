@@ -177,3 +177,53 @@ Fixture conformance does not establish live GCP, AWS or Azure interoperability.
 
 The design rationale, alternatives, data flow and security controls are in
 [the issue design](../../docs/decisions/issue-1653-cloud-identity-secrets-design.md).
+
+## Audit log configuration
+
+`resource_scopes[].audit_logs` states required recording on the owning scope.
+Each record requires a scope-local `audit_log_id`, native `service`, and native `log_type`.
+The ID and the service/log-type pair MUST each be unique within the scope.
+The collection contains at most 1024 records.
+Native service and log-type strings contain 1 to 2048 characters and MUST NOT be blank.
+Their case and provider meaning remain unchanged.
+A service name is not a node service or endpoint reference.
+Core MUST NOT expand native wildcards or calculate effective inherited coverage.
+
+Optional `exempted_principal_refs` names exact declared identity subjects.
+It contains at most 1024 distinct references.
+Each reference contains 1 to 2048 characters and MUST NOT be blank.
+Subject ownership need not equal the logging scope.
+Backend admission MUST retain and support each exemption or refuse before effects.
+The reference does not create a principal or an access grant.
+
+Omission or an empty collection contributes no recording requirement.
+It MUST NOT become a command to disable existing logging.
+Existing explicitness and closure rules still govern supplied constraints.
+Positive declarations do not forbid other log types or claim complete organization coverage.
+Audit record IDs are addressable below their scope; they create no authority-wide alias.
+
+For example, a GCP project scope can declare:
+
+```yaml
+audit_logs:
+  - audit_log_id: secret-reads
+    service: secretmanager.googleapis.com
+    log_type: DATA_READ
+  - audit_log_id: secret-admin-reads
+    service: secretmanager.googleapis.com
+    log_type: ADMIN_READ
+```
+
+These records remain configuration in the `runtime-identity-authorities` concern.
+A backend MUST support the complete applicable native meaning or explicitly refuse before effects.
+Broad identity support does not permit a backend to ignore audit settings.
+A provider that needs undeclared destinations or selectors MUST refuse rather than approximate.
+Native changes MUST preserve unrelated policy and use provider concurrency controls.
+Scope ownership alone grants no right to change a shared cloud policy.
+Accepted configuration readback MUST preserve the rules and exemptions.
+
+Recording configuration is separate from access policy, access observations, and experiment evidence.
+It grants no authority to retrieve, retain, export, or disclose logs.
+It does not prove that any event was recorded.
+No live cloud backend support is claimed by the reference implementation.
+The [audit design](../../docs/decisions/issue-1831-cloud-audit-log-configuration-design.md) records the rationale and security boundaries.

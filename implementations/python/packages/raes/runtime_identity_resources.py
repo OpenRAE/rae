@@ -13,6 +13,7 @@ from raes_contracts.variable_references import WholeFieldVariableReference
 
 __all__ = [
     "RuntimeIdentityResourceScope",
+    "RuntimeIdentityAuditLog",
     "RuntimeIdentityUse",
     "RuntimeIdentityPolicyCondition",
     "RuntimeIdentityPermissionBinding",
@@ -32,8 +33,43 @@ NativeIdentity = Annotated[
 ]
 
 
+class RuntimeIdentityAuditLog(SDLModel):
+    """Required native recording for one service and log type on a scope."""
+
+    audit_log_id: PortableIdentifier
+    service: Annotated[NativeIdentity, Field(json_schema_extra={"pattern": r"\S"})]
+    log_type: Annotated[NativeIdentity, Field(json_schema_extra={"pattern": r"\S"})]
+    exempted_principal_refs: list[Annotated[ResourceReference, Field(json_schema_extra={"pattern": r"\S"})]] = Field(
+        default_factory=list, max_length=1024, json_schema_extra={"uniqueItems": True}
+    )
+
+    @model_validator(mode="after")
+    def validate_exemptions(self) -> RuntimeIdentityAuditLog:
+        reject_duplicates(self.exempted_principal_refs, label="principal reference", container_label="audit log")
+        return self
+
+
 class RuntimeIdentityResourceScope(SDLModel):
     """A provider-qualified ownership scope, independent of node placement."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "x-raes-invariants": [
+                {
+                    "id": "cloud-audit-scope-uniqueness",
+                    "description": "Audit log IDs and native service/log-type pairs must each be unique within their resource scope.",
+                    "level": "error",
+                    "validator": "raes.scenario.Scenario.model_validate",
+                    "inputs": [
+                        {
+                            "contract_id": "sdl-authoring-input-v1",
+                            "instance_path": "#",
+                        }
+                    ],
+                }
+            ]
+        }
+    )
 
     scope_id: PortableIdentifier
     provider: NativeIdentity
@@ -43,6 +79,19 @@ class RuntimeIdentityResourceScope(SDLModel):
     incarnation_id: str = ""
     parent_ref: str = ""
     description: str = ""
+    audit_logs: list[RuntimeIdentityAuditLog] = Field(default_factory=list, max_length=1024)
+
+    @model_validator(mode="after")
+    def validate_audit_logs(self) -> RuntimeIdentityResourceScope:
+        reject_duplicates(
+            (item.audit_log_id for item in self.audit_logs), label="audit log id", container_label="scope"
+        )
+        reject_duplicates(
+            ((item.service, item.log_type) for item in self.audit_logs),
+            label="service/log type pair",
+            container_label="scope",
+        )
+        return self
 
 
 class RuntimeIdentityUse(SDLModel):
