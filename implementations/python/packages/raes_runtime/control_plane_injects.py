@@ -82,7 +82,7 @@ def _inject_diagnostic() -> Diagnostic:
 
 class RuntimeInjectMixin:
     @runtime_owned
-    def delivery_create_tool_ledger(self, parent):
+    def delivery_create_tool_ledger(self, parent: object) -> InvocationToolActionLedger:
         self._require_state_writer()
         return InvocationToolActionLedger(
             store=self._store,
@@ -93,92 +93,94 @@ class RuntimeInjectMixin:
         )
 
     @runtime_owned
-    def delivery_commit_invocation_terminal(self, record):
+    def delivery_commit_invocation_terminal(self, record: object) -> object:
         return self._commit_terminal_operation(self._snapshot, record, mode=TerminalCommitMode.OPERATION_ONLY)
 
     @runtime_owned
-    def delivery_live_cut(self, raw):
+    def delivery_live_cut(self, raw: object) -> ParticipantControlLiveCut:
         if not isinstance(raw, ParticipantControlLiveCut):
             raise ConflictError("tool action live cut is unavailable")
         return ParticipantControlLiveCut.model_validate(raw.model_dump(mode="json"))
 
     @property
     @runtime_owned
-    def delivery_action_sink_kind(self):
+    def delivery_action_sink_kind(self) -> ParticipantFlowSinkKind:
         return ParticipantFlowSinkKind.ACTION_ARGUMENT
 
     @runtime_owned
-    def delivery_authorized_delivery_binding(self, *args, **kwargs):
+    def delivery_authorized_delivery_binding(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return authorized_delivery_binding(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_operation_admission_context(self, *args, **kwargs):
+    def delivery_operation_admission_context(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return operation_admission_context(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_prepare_participant_crossing(self, *args, **kwargs):
+    def delivery_prepare_participant_crossing(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return prepare_participant_crossing(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_action_crossing_intent(self, *args, **kwargs):
+    def delivery_action_crossing_intent(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return action_crossing_intent(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_action_subject(self, *args, **kwargs):
+    def delivery_action_subject(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return action_subject(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_admit_ingress_sinks(self, *args, **kwargs):
+    def delivery_admit_ingress_sinks(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return admit_ingress_sinks(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_require_delivery_control(self, *args, **kwargs):
+    def delivery_require_delivery_control(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return require_delivery_control(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_governed_action_request(self, *args, **kwargs):
+    def delivery_governed_action_request(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return governed_action_request(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_require_governed_subject(self, *args, **kwargs):
+    def delivery_require_governed_subject(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return require_governed_subject(*args, **kwargs)
 
     @runtime_owned
-    def delivery_combined_crossing_audit(self, *args, **kwargs):
+    def delivery_combined_crossing_audit(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return combined_crossing_audit(*args, **kwargs)
 
     @runtime_owned
-    def delivery_commit_prepared_crossing(self, *args, **kwargs):
+    def delivery_commit_prepared_crossing(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return commit_prepared_crossing(self, *args, **kwargs)
 
     @runtime_owned
-    def delivery_expected_participant_history_heads(self, *args, **kwargs):
+    def delivery_expected_participant_history_heads(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return expected_participant_history_heads(*args, **kwargs)
 
     @runtime_owned
-    def delivery_participant_runtime_state_contract_diagnostics(self, *args, **kwargs):
+    def delivery_participant_runtime_state_contract_diagnostics(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return participant_runtime_state_contract_diagnostics(*args, **kwargs)
 
     @runtime_owned
-    def delivery_terminal_operation_audit(self, *args, **kwargs):
+    def delivery_terminal_operation_audit(self, *args: object, **kwargs: object) -> object:
         self._require_state_writer()
         return terminal_operation_audit(*args, **kwargs)
 
     @runtime_owned
-    def delivery_invocation_record(self, operation_id, now, context, key, invocation):
+    def delivery_invocation_record(
+        self, operation_id: str, now: str, context: object, key: str, invocation: object
+    ) -> ControlPlaneOperationRecord:
         self._require_state_writer()
         return ControlPlaneOperationRecord(
             receipt=OperationReceipt(
@@ -220,112 +222,112 @@ class RuntimeInjectMixin:
             return invoke_delivery(self, request, identity)
 
     @runtime_owned
-    def delivery_claim_record(self, *args, **kwargs):
+    def delivery_claim_record(self, *args: object, **kwargs: object) -> object:
         """Guarded runtime-owned delivery collaborator operation."""
         self._require_state_writer()
         return self._claim_record(*args, **kwargs)
 
     @runtime_owned
-    def delivery_commit_participant_transition(self, *args, **kwargs):
+    def delivery_commit_participant_transition(self, *args: object, **kwargs: object) -> object:
         """Guarded runtime-owned delivery collaborator operation."""
         self._require_state_writer()
         return self._commit_participant_transition(*args, **kwargs)
 
     @runtime_owned
-    def delivery_commit_terminal_operation(self, *args, **kwargs):
+    def delivery_commit_terminal_operation(self, *args: object, **kwargs: object) -> object:
         """Guarded runtime-owned delivery collaborator operation."""
         self._require_state_writer()
         return self._commit_terminal_operation(*args, **kwargs)
 
     @property
     @runtime_owned
-    def delivery_execution_adapter(self):
+    def delivery_execution_adapter(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         return self._execution_adapter
 
     @property
     @runtime_owned
-    def delivery_execution_generation(self):
+    def delivery_execution_generation(self) -> int:
         """Read current state for runtime-owned delivery composition."""
         return self._execution_generation
 
     @property
     @runtime_owned
-    def delivery_inject_delivery(self):
+    def delivery_inject_delivery(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         return self._inject_delivery
 
     @property
     @runtime_owned
-    def delivery_mutation_authority(self):
+    def delivery_mutation_authority(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         self._require_state_writer()
         return self._mutation_authority
 
     @runtime_owned
-    def delivery_operation_read_allowed(self, *args, **kwargs):
+    def delivery_operation_read_allowed(self, *args: object, **kwargs: object) -> bool:
         """Guarded runtime-owned delivery collaborator operation."""
         return self._operation_read_allowed(*args, **kwargs)
 
     @property
     @runtime_owned
-    def delivery_operations(self):
+    def delivery_operations(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         self._require_state_writer()
         return self._operations
 
     @runtime_owned
-    def delivery_reload_derived_state(self, *args, **kwargs):
+    def delivery_reload_derived_state(self, *args: object, **kwargs: object) -> object:
         """Guarded runtime-owned delivery collaborator operation."""
         self._require_state_writer()
         return self._reload_derived_state(*args, **kwargs)
 
     @runtime_owned
-    def delivery_require_state_writer(self, *args, **kwargs):
+    def delivery_require_state_writer(self, *args: object, **kwargs: object) -> None:
         """Guarded runtime-owned delivery collaborator operation."""
         self._require_state_writer()
         return self._require_state_writer(*args, **kwargs)
 
     @property
     @runtime_owned
-    def delivery_snapshot(self):
+    def delivery_snapshot(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         return self._snapshot
 
     @property
     @runtime_owned
-    def delivery_snapshot_state(self):
+    def delivery_snapshot_state(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         return self._snapshot_state
 
     @property
     @runtime_owned
-    def delivery_store(self):
+    def delivery_store(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         self._require_state_writer()
         return self._store
 
     @property
     @runtime_owned
-    def delivery_supervision(self):
+    def delivery_supervision(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         return self._supervision
 
     @property
     @runtime_owned
-    def delivery_target(self):
+    def delivery_target(self) -> object:
         """Read current state for runtime-owned delivery composition."""
         return self._target
 
     @runtime_owned
-    def delivery_tool_engine_admission(self, *args, **kwargs):
+    def delivery_tool_engine_admission(self, *args: object, **kwargs: object) -> object:
         """Guarded runtime-owned delivery collaborator operation."""
         self._require_state_writer()
         return self._tool_engine_admission(*args, **kwargs)
 
     @property
     @runtime_owned
-    def delivery_tool_port_type(self):
+    def delivery_tool_port_type(self) -> type[ParticipantDeliveryInvocationTools]:
         return ParticipantDeliveryInvocationTools
 
     @runtime_owned

@@ -1,21 +1,16 @@
 """Execution admission for explicitly installed delivery-tool drivers."""
 
+from __future__ import annotations
+
 from raes_contracts.contracts.participant_invocation_tools import delivery_tool_actions_enabled
 from raes_processor.compiler import compile_participant_invocation_tools
 
 
-def delivery_tool_driver_actions(plane, model):
+def delivery_tool_driver_actions(plane: object, model: object) -> frozenset[str]:
     installed = getattr(plane, "_inject_delivery", None)
     target = plane.delivery_target
     capability = target.manifest.participant_runtime
-    if (
-        installed is None
-        or installed.model != model
-        or capability is None
-        or not delivery_tool_actions_enabled(capability.invocation_tool_actions)
-        or not callable(getattr(target.participant_runtime, "invoke_delivery", None))
-        or not callable(getattr(installed.resolver, "resolve_invocation_cut", None))
-    ):
+    if not _driver_available(installed, model, capability, target.participant_runtime):
         return frozenset()
     claim = capability.invocation_tool_actions
     driven = set()
@@ -30,28 +25,45 @@ def delivery_tool_driver_actions(plane, model):
                 max_in_flight=claim.max_concurrent_tool_actions_per_invocation,
             )
             for binding in bindings:
-                if delivery.participant_address not in binding.participant_addresses or not binding.target_addresses:
-                    continue
-                offers = matching_delivery_tool_offers(
-                    capability,
-                    action_contract_address=binding.action_contract_address,
-                    implementation_ref=implementation,
-                    target_addresses=binding.target_addresses,
-                    temporal_bindings=temporal,
-                )
-                if len(offers) == 1:
+                if _binding_executable(delivery, binding, capability, implementation, temporal):
                     driven.add(binding.action_contract_address)
     return frozenset(driven)
 
 
+def _driver_available(installed: object, model: object, capability: object, executor: object) -> bool:
+    return (
+        installed is not None
+        and installed.model == model
+        and capability is not None
+        and delivery_tool_actions_enabled(capability.invocation_tool_actions)
+        and callable(getattr(executor, "invoke_delivery", None))
+        and callable(getattr(installed.resolver, "resolve_invocation_cut", None))
+    )
+
+
+def _binding_executable(
+    delivery: object, binding: object, capability: object, implementation: str, temporal: object
+) -> bool:
+    if delivery.participant_address not in binding.participant_addresses or not binding.target_addresses:
+        return False
+    offers = matching_delivery_tool_offers(
+        capability,
+        action_contract_address=binding.action_contract_address,
+        implementation_ref=implementation,
+        target_addresses=binding.target_addresses,
+        temporal_bindings=temporal,
+    )
+    return len(offers) == 1
+
+
 def matching_delivery_tool_offers(
-    capability,
+    capability: object,
     *,
-    action_contract_address,
-    implementation_ref,
-    target_addresses,
-    temporal_bindings,
-):
+    action_contract_address: str,
+    implementation_ref: str,
+    target_addresses: object,
+    temporal_bindings: object,
+) -> list[object]:
     digests = {
         item.contract_digest for item in temporal_bindings if item.action_contract_address == action_contract_address
     }

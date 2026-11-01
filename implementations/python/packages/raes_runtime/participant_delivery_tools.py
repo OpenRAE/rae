@@ -55,7 +55,7 @@ class ParticipantDeliveryInvocationTools:
         scope: InvocationChildScope,
         record: ControlPlaneOperationRecord,
         identity: ControlPlaneIdentity,
-    ):
+    ) -> None:
         self._plane = plane
         self._invocation = invocation.model_copy(deep=True)
         self._scope = scope
@@ -83,7 +83,7 @@ class ParticipantDeliveryInvocationTools:
         )
         self._ledger = plane.delivery_create_tool_ledger(record)
 
-    def delivery_tools_context(self):
+    def delivery_tools_context(self) -> SimpleNamespace:
         """Give runtime handlers internal state only while they own the writer."""
         self._plane.delivery_require_state_writer()
         return SimpleNamespace(
@@ -99,14 +99,18 @@ class ParticipantDeliveryInvocationTools:
         )
 
     @classmethod
-    def recovery_port(cls, plane, invocation, parent):
+    def recovery_port(
+        cls, plane: object, invocation: ParticipantDeliveryInvocationContextModel, parent: object
+    ) -> ParticipantDeliveryInvocationTools:
         """Construct a settlement-only port; recovery never issues grants."""
         plane.delivery_require_state_writer()
         value = object.__new__(cls)
         cls.initialize_recovery_port(value, plane, invocation, parent)
         return value
 
-    def initialize_recovery_port(self, plane, invocation, parent):
+    def initialize_recovery_port(
+        self, plane: object, invocation: ParticipantDeliveryInvocationContextModel, parent: object
+    ) -> None:
         plane.delivery_require_state_writer()
         self._plane, self._invocation = plane, invocation
         self._bindings, self._temporal = (), ()
@@ -114,7 +118,9 @@ class ParticipantDeliveryInvocationTools:
         self._registry, self.has_unresolved_effects = HostedActionRegistry(), False
         self._ledger = plane.delivery_create_tool_ledger(parent)
 
-    def settle_interrupted_tool(self, entry, settlement, failure_class):
+    def settle_interrupted_tool(
+        self, entry: InvocationToolEntry, settlement: ParticipantToolActionSettlement, failure_class: str
+    ) -> None:
         self._plane.delivery_require_state_writer()
         return self._settle_unknown(entry, settlement, failure_class)
 
@@ -191,25 +197,24 @@ class ParticipantDeliveryInvocationTools:
 
     def _call[T](self, handler: Callable[[], T], refused: Callable[[ParticipantToolActionRefusal], T]) -> T:
         with self._lock:
-            if self._closed:
-                return refused(_R.INVOCATION_CLOSED)
-            if self._busy:
-                return refused(_R.STATE_CONFLICT)
+            if self._closed or self._busy:
+                return refused(_R.INVOCATION_CLOSED if self._closed else _R.STATE_CONFLICT)
             self._busy = True
         try:
-            return self._scope.run(handler)
+            result = self._scope.run(handler)
         except RaesError:
-            return refused(_R.AUTHORITY_DENIED)
+            result = refused(_R.AUTHORITY_DENIED)
         except TypeError, ValueError:
-            return refused(_R.OUTCOME_INVALID)
+            result = refused(_R.OUTCOME_INVALID)
         except Exception as exc:
             self.has_unresolved_effects = True
             self.ledger_failures += 1
             _LOGGER.exception("delivery tool operation did not complete", exc_info=foreign_failure_record(exc))
-            return refused(_R.LEDGER_UNAVAILABLE)
+            result = refused(_R.LEDGER_UNAVAILABLE)
         finally:
             with self._lock:
                 self._busy = False
+        return result
 
     def admit(
         self, request: ParticipantToolActionRequest, *, crossing_evidence: ParticipantCrossingEvidence | None = None
@@ -218,17 +223,17 @@ class ParticipantDeliveryInvocationTools:
             raise TypeError("request must be a ParticipantToolActionRequest")
         request = replace(request)
 
-        def refusal(reason):
+        def refusal(reason: object) -> ParticipantToolActionDecision:
             return ParticipantToolActionDecision(request.tool_call_id, False, refusal=reason)
 
         return self._call(lambda: self._admit(request, crossing_evidence), refusal)
 
-    def _admit(self, request, evidence):
+    def _admit(
+        self, request: ParticipantToolActionRequest, evidence: ParticipantCrossingEvidence | None
+    ) -> ParticipantToolActionDecision:
         prior = self._entries.get(request.tool_call_id)
         if prior is not None:
-            if prior.request != request or prior.crossing_evidence != evidence:
-                return ParticipantToolActionDecision(request.tool_call_id, False, refusal=_R.REQUEST_CONFLICT)
-            return deepcopy(self._decisions[request.tool_call_id])
+            return self._prior_decision(prior, request, evidence)
         binding, reason = tool_binding(self, request)
         if reason is None and len(self._entries) >= self._limits.max_tool_actions_per_invocation:
             reason = _R.ADMISSION_LIMIT_EXHAUSTED
@@ -236,6 +241,21 @@ class ParticipantDeliveryInvocationTools:
             reason = _R.UNRESOLVED_EFFECTS
         if reason is not None:
             return ParticipantToolActionDecision(request.tool_call_id, False, refusal=reason)
+        return self._admit_bound(request, evidence, binding)
+
+    def _prior_decision(
+        self,
+        prior: InvocationToolEntry,
+        request: ParticipantToolActionRequest,
+        evidence: ParticipantCrossingEvidence | None,
+    ) -> ParticipantToolActionDecision:
+        if prior.request != request or prior.crossing_evidence != evidence:
+            return ParticipantToolActionDecision(request.tool_call_id, False, refusal=_R.REQUEST_CONFLICT)
+        return deepcopy(self._decisions[request.tool_call_id])
+
+    def _admit_bound(
+        self, request: ParticipantToolActionRequest, evidence: ParticipantCrossingEvidence | None, binding: object
+    ) -> ParticipantToolActionDecision:
         action_id = tool_action_instance_id(
             self.invocation_action_instance_id,
             episode_id=self.episode_id,
@@ -247,6 +267,16 @@ class ParticipantDeliveryInvocationTools:
         crossing, governed = prepare_tool_crossing(self, admission, evidence, stage="admit")
         if crossing is None:
             return ParticipantToolActionDecision(request.tool_call_id, False, refusal=_R.AUTHORITY_DENIED)
+        return self._retain_admission(request, evidence, action_id, crossing, governed)
+
+    def _retain_admission(
+        self,
+        request: ParticipantToolActionRequest,
+        evidence: ParticipantCrossingEvidence | None,
+        action_id: str,
+        crossing: object,
+        governed: ParticipantActionAdmissionRequest,
+    ) -> ParticipantToolActionDecision:
         self._plane.delivery_commit_prepared_crossing(crossing)
         self._plane.delivery_reload_derived_state()
         self._scope.require_live()
@@ -303,12 +333,14 @@ class ParticipantDeliveryInvocationTools:
         self._decisions[request.tool_call_id] = deepcopy(decision)
         return decision
 
-    def _decision(self, entry):
+    @staticmethod
+    def _decision(entry: InvocationToolEntry) -> ParticipantToolActionDecision:
         return ParticipantToolActionDecision(
             entry.request.tool_call_id, True, entry.action_instance_id, binding=deepcopy(entry.admission)
         )
 
-    def _receipt(self, entry):
+    @staticmethod
+    def _receipt(entry: InvocationToolEntry) -> ParticipantToolActionReceipt:
         return ParticipantToolActionReceipt(
             entry.action_instance_id, True, settlement=entry.settlement, binding=deepcopy(entry.admission)
         )
@@ -321,28 +353,13 @@ class ParticipantDeliveryInvocationTools:
             lambda reason: ParticipantToolActionReceipt(action_instance_id, False, refusal=reason),
         )
 
-    def _dispatch(self, action_id, temporal_evidence):
+    def _dispatch(
+        self, action_id: str, temporal_evidence: tuple[ParticipantTemporalEvidenceModel, ...]
+    ) -> ParticipantToolActionReceipt:
         entry = self._by_action.get(action_id)
-        if entry is None:
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.ACTION_UNKNOWN)
-        if entry.state != "admitted":
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.STATE_CONFLICT)
-        if self.has_unresolved_effects:
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.UNRESOLVED_EFFECTS)
-        if (
-            sum(item.state == "dispatched" for item in self._entries.values())
-            >= self._limits.max_concurrent_tool_actions_per_invocation
-        ):
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.CONCURRENCY_LIMIT_EXHAUSTED)
-        offer = self._offers[action_id]
-        if (
-            sum(
-                item.state == "dispatched" and self._offers[item.action_instance_id].binding_id == offer.binding_id
-                for item in self._entries.values()
-            )
-            >= offer.max_in_flight
-        ):
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.CONCURRENCY_LIMIT_EXHAUSTED)
+        refusal = self._dispatch_refusal(entry)
+        if refusal is not None:
+            return ParticipantToolActionReceipt(action_id, False, refusal=refusal)
         if not isinstance(temporal_evidence, tuple) or any(
             not isinstance(item, ParticipantTemporalEvidenceModel) for item in temporal_evidence
         ):
@@ -353,33 +370,9 @@ class ParticipantDeliveryInvocationTools:
         admitted = replace(entry.admission, temporal_evidence=proofs)
         self._current_request = entry.request
         crossing, governed = prepare_tool_crossing(self, admitted, entry.crossing_evidence, stage="dispatch")
-        if crossing is None:
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.AUTHORITY_DENIED)
-        if governed != admitted:
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.STATE_CONFLICT)
-        for temporal in governed.temporal_contexts:
-            context = temporal.shared_time
-            if context is None:
-                continue
-            clock = self._plane.delivery_snapshot.time_model_state.clocks[context.binding.clock_address]
-            invalid = clock.coordinate.segment != context.submitted_at.segment
-            if context.binding.temporal_kind == "deadline":
-                invalid |= coordinate_key(clock.coordinate) > coordinate_key(context.bound_end)
-            else:
-                invalid |= (
-                    assess_temporal_guarantee(
-                        context,
-                        proofs,
-                        governed.observation_boundary_address,
-                        clock,
-                        native_execution="not_dispatched",
-                    ).status
-                    != "met"
-                )
-            if invalid:
-                return ParticipantToolActionReceipt(action_id, False, refusal=_R.TEMPORAL_GUARANTEE_UNSATISFIED)
-        if not self._registry.reserve(self.invocation_action_instance_id, action_id, entry.interaction):
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.SEMANTIC_CONFLICT)
+        refusal = self._dispatch_crossing_refusal(entry, crossing, governed, admitted, proofs)
+        if refusal is not None:
+            return ParticipantToolActionReceipt(action_id, False, refusal=refusal)
         entry.state, entry.admission = "dispatched", governed
         try:
             record = self._ledger.dispatched_record(entry.record)
@@ -400,7 +393,76 @@ class ParticipantDeliveryInvocationTools:
             raise
         return self._receipt(entry)
 
-    def _commit_crossing(self, entry, crossing, record, action):
+    def _dispatch_refusal(self, entry: InvocationToolEntry | None) -> ParticipantToolActionRefusal | None:
+        refusal = None
+        if entry is None:
+            refusal = _R.ACTION_UNKNOWN
+        elif entry.state != "admitted":
+            refusal = _R.STATE_CONFLICT
+        elif self.has_unresolved_effects:
+            refusal = _R.UNRESOLVED_EFFECTS
+        elif sum(
+            item.state == "dispatched" for item in self._entries.values()
+        ) >= self._limits.max_concurrent_tool_actions_per_invocation or self._offer_at_capacity(entry):
+            refusal = _R.CONCURRENCY_LIMIT_EXHAUSTED
+        return refusal
+
+    def _offer_at_capacity(self, entry: InvocationToolEntry) -> bool:
+        offer = self._offers[entry.action_instance_id]
+        count = sum(
+            item.state == "dispatched" and self._offers[item.action_instance_id].binding_id == offer.binding_id
+            for item in self._entries.values()
+        )
+        return count >= offer.max_in_flight
+
+    def _dispatch_crossing_refusal(
+        self,
+        entry: InvocationToolEntry,
+        crossing: object,
+        governed: object,
+        admitted: ParticipantActionAdmissionRequest,
+        proofs: tuple[ParticipantTemporalEvidenceModel, ...],
+    ) -> ParticipantToolActionRefusal | None:
+        refusal = None
+        if crossing is None:
+            refusal = _R.AUTHORITY_DENIED
+        elif governed != admitted:
+            refusal = _R.STATE_CONFLICT
+        elif self._invalid_dispatch_time(governed, proofs):
+            refusal = _R.TEMPORAL_GUARANTEE_UNSATISFIED
+        elif not self._registry.reserve(
+            self.invocation_action_instance_id, entry.action_instance_id, entry.interaction
+        ):
+            refusal = _R.SEMANTIC_CONFLICT
+        return refusal
+
+    def _invalid_dispatch_time(
+        self, governed: ParticipantActionAdmissionRequest, proofs: tuple[ParticipantTemporalEvidenceModel, ...]
+    ) -> bool:
+        for temporal in governed.temporal_contexts:
+            context = temporal.shared_time
+            if context is None:
+                continue
+            clock = self._plane.delivery_snapshot.time_model_state.clocks[context.binding.clock_address]
+            invalid = clock.coordinate.segment != context.submitted_at.segment
+            if context.binding.temporal_kind == "deadline":
+                invalid |= coordinate_key(clock.coordinate) > coordinate_key(context.bound_end)
+            else:
+                invalid |= (
+                    assess_temporal_guarantee(
+                        context,
+                        proofs,
+                        governed.observation_boundary_address,
+                        clock,
+                        native_execution="not_dispatched",
+                    ).status
+                    != "met"
+                )
+            if invalid:
+                return True
+        return False
+
+    def _commit_crossing(self, entry: InvocationToolEntry, crossing: object, record: object, action: str) -> None:
         record = replace(
             record,
             decision_history_heads=crossing.expected_history_heads,
@@ -435,7 +497,7 @@ class ParticipantDeliveryInvocationTools:
             lambda reason: ParticipantToolActionReceipt(action_instance_id, False, refusal=reason),
         )
 
-    def _complete(self, action_id, outcome):
+    def _complete(self, action_id: str, outcome: ParticipantActionResultModel) -> ParticipantToolActionReceipt:
         entry = self._by_action.get(action_id)
         if entry is None:
             return ParticipantToolActionReceipt(action_id, False, refusal=_R.ACTION_UNKNOWN)
@@ -446,8 +508,23 @@ class ParticipantDeliveryInvocationTools:
                 if entry.settlement is _S.COMPLETED and entry.action_result == detached
                 else ParticipantToolActionReceipt(action_id, False, refusal=_R.OUTCOME_CONFLICT)
             )
+        return self._settle_completion(entry, detached)
+
+    def _settle_completion(
+        self, entry: InvocationToolEntry, detached: ParticipantActionResultModel | None
+    ) -> ParticipantToolActionReceipt:
+        action_id = entry.action_instance_id
         if entry.state != "dispatched":
             return ParticipantToolActionReceipt(action_id, False, refusal=_R.STATE_CONFLICT)
+        if not self._valid_completion_outcome(entry, detached):
+            return ParticipantToolActionReceipt(action_id, False, refusal=_R.OUTCOME_INVALID)
+        replace(entry.admission, action_result=detached)
+        settle_delivery_tool(self, entry, _S.COMPLETED, detached)
+        return self._receipt(entry)
+
+    def _valid_completion_outcome(
+        self, entry: InvocationToolEntry, detached: ParticipantActionResultModel | None
+    ) -> bool:
         if detached is None or detached.status not in {
             "succeeded",
             "failed",
@@ -455,19 +532,15 @@ class ParticipantDeliveryInvocationTools:
             "rejected",
             "withheld",
         }:
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.OUTCOME_INVALID)
+            return False
         if detached.episode_id != self.episode_id or detached.resource_measurements:
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.OUTCOME_INVALID)
+            return False
         expected_point = (
             entry.admission.temporal_contexts[0].observation_point
             if entry.admission.temporal_contexts
             else self.observation_point
         )
-        if detached.observation_point != expected_point:
-            return ParticipantToolActionReceipt(action_id, False, refusal=_R.OUTCOME_INVALID)
-        replace(entry.admission, action_result=detached)
-        settle_delivery_tool(self, entry, _S.COMPLETED, detached)
-        return self._receipt(entry)
+        return detached.observation_point == expected_point
 
     def cancel(self, action_instance_id: str) -> ParticipantToolActionReceipt:
         return self._call(
@@ -475,7 +548,7 @@ class ParticipantDeliveryInvocationTools:
             lambda reason: ParticipantToolActionReceipt(action_instance_id, False, refusal=reason),
         )
 
-    def _cancel(self, action_id):
+    def _cancel(self, action_id: str) -> ParticipantToolActionReceipt:
         entry = self._by_action.get(action_id)
         if entry is None:
             return ParticipantToolActionReceipt(action_id, False, refusal=_R.ACTION_UNKNOWN)
@@ -493,7 +566,7 @@ class ParticipantDeliveryInvocationTools:
             lambda reason: ParticipantToolActionReceipt(action_instance_id, False, refusal=reason),
         )
 
-    def _unknown(self, action_id, failure_class):
+    def _unknown(self, action_id: str, failure_class: str) -> ParticipantToolActionReceipt:
         entry = self._by_action.get(action_id)
         if entry is None:
             return ParticipantToolActionReceipt(action_id, False, refusal=_R.ACTION_UNKNOWN)
@@ -501,11 +574,16 @@ class ParticipantDeliveryInvocationTools:
             return ParticipantToolActionReceipt(action_id, False, refusal=_R.OUTCOME_INVALID)
         if entry.state == "dispatched":
             self._settle_unknown(entry, _S.INDETERMINATE, failure_class)
-        if entry.settlement is _S.INDETERMINATE and entry.action_result.failure_class == failure_class:
-            return self._receipt(entry)
-        return ParticipantToolActionReceipt(action_id, False, refusal=_R.STATE_CONFLICT)
+        matched = entry.settlement is _S.INDETERMINATE and entry.action_result.failure_class == failure_class
+        return (
+            self._receipt(entry)
+            if matched
+            else ParticipantToolActionReceipt(action_id, False, refusal=_R.STATE_CONFLICT)
+        )
 
-    def _settle_unknown(self, entry, settlement, failure_class):
+    def _settle_unknown(
+        self, entry: InvocationToolEntry, settlement: ParticipantToolActionSettlement, failure_class: str
+    ) -> None:
         outcome = ParticipantActionResultModel(
             status="withheld" if settlement is _S.WITHHELD else "unknown",
             participant_address=self.participant_address,

@@ -55,11 +55,11 @@ def _require_governed_subject(
         raise EvidenceIntegrityError("trusted transformation result does not match the governed carrier identity")
 
 
-def governed_action_request(plane, crossing, incumbent):
+def governed_action_request(plane: object, crossing: object, incumbent: object) -> ParticipantActionAdmissionRequest:
     """Resolve the exact transformed carrier through its owner."""
     return _governed_action_request(plane, crossing, incumbent)
 
 
-def require_governed_subject(crossing, actual):
+def require_governed_subject(crossing: object, actual: object) -> None:
     """Validate the resolved carrier against its authorized subject."""
     return _require_governed_subject(crossing, actual)

@@ -1,5 +1,7 @@
 """Atomic child outcome, behavior history and audit publication."""
 
+from __future__ import annotations
+
 from dataclasses import replace
 
 from raes_contracts.contracts.participant_runtime import ParticipantDeliveryToolContextModel
@@ -19,7 +21,9 @@ from raes_contracts.participant_tool_actions import (
 from raes_contracts.timestamps import isoformat_z
 
 
-def settle_delivery_tool(port, entry, settlement, outcome):
+def settle_delivery_tool(
+    port: object, entry: object, settlement: ParticipantToolActionSettlement, outcome: object
+) -> None:
     plane = port.delivery_tools_context().plane
     plane.delivery_require_state_writer()
     plane.delivery_reload_derived_state()
@@ -60,25 +64,7 @@ def settle_delivery_tool(port, entry, settlement, outcome):
         list(admission.temporal_contexts),
         actor_provenance=participant_implementation_actor_provenance(port.invocation.implementation_selection),
     )
-    assessments = []
-    for temporal in admission.temporal_contexts:
-        shared = temporal.shared_time
-        if shared is None:
-            continue
-        evidence = (
-            admission.temporal_evidence if shared.binding.temporal_kind == "dwell" else tuple(outcome.temporal_evidence)
-        )
-        assessments.append(
-            assess_temporal_guarantee(
-                shared,
-                evidence,
-                admission.observation_boundary_address,
-                plane.delivery_snapshot.time_model_state.clocks[shared.binding.clock_address],
-                native_execution="not_dispatched"
-                if settlement is ParticipantToolActionSettlement.WITHHELD
-                else "reported",
-            )
-        )
+    assessments = _temporal_assessments(plane, admission, settlement, outcome)
     events = (*events[:-1], events[-1].model_copy(update={"temporal_assessments": assessments}))
     histories = dict(plane.delivery_snapshot.participant_behavior_history)
     histories[port.participant_address] = [
@@ -109,14 +95,40 @@ def settle_delivery_tool(port, entry, settlement, outcome):
     except Exception:
         # The durability owner already read back the record, snapshot and actor audit.
         # Accept only the exact confirmed terminal cut; never repeat the write or effect.
-        if (
-            getattr(plane, "_durability_poisoned", False)
-            or plane.delivery_operations.get(entry.action_instance_id) != terminal
-            or plane.delivery_expected_participant_history_heads(plane.delivery_snapshot, port.participant_address)
-            != terminal.result_history_heads
-        ):
+        confirmed = (
+            not getattr(plane, "_durability_poisoned", False)
+            and plane.delivery_operations.get(entry.action_instance_id) == terminal
+            and plane.delivery_expected_participant_history_heads(plane.delivery_snapshot, port.participant_address)
+            == terminal.result_history_heads
+        )
+        if not confirmed:
             raise
     entry.record, entry.state, entry.settlement = terminal, "settled", settlement
     entry.action_result, entry.settled_at = outcome, settled_at
     if settlement is not ParticipantToolActionSettlement.INDETERMINATE:
         port.delivery_tools_context().registry.release(entry.action_instance_id)
+
+
+def _temporal_assessments(
+    plane: object, admission: object, settlement: ParticipantToolActionSettlement, outcome: object
+) -> list[object]:
+    assessments = []
+    for temporal in admission.temporal_contexts:
+        shared = temporal.shared_time
+        if shared is None:
+            continue
+        evidence = (
+            admission.temporal_evidence if shared.binding.temporal_kind == "dwell" else tuple(outcome.temporal_evidence)
+        )
+        assessments.append(
+            assess_temporal_guarantee(
+                shared,
+                evidence,
+                admission.observation_boundary_address,
+                plane.delivery_snapshot.time_model_state.clocks[shared.binding.clock_address],
+                native_execution="not_dispatched"
+                if settlement is ParticipantToolActionSettlement.WITHHELD
+                else "reported",
+            )
+        )
+    return assessments

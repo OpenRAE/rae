@@ -319,7 +319,8 @@ def test_timeout_revokes_a_child_waiting_on_foreign_authority(tmp_path):
         finally:
             release.set()
             assert finished.wait(3)
-        assert len(answers) == 1 and not answers[0].admitted
+        assert len(answers) == 1
+        assert not answers[0].admitted
         assert not plane.snapshot.participant_behavior_history.get(PARTICIPANT)
         assert not plane._mutation_authority.owns_current_thread()
 

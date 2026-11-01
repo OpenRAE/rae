@@ -109,8 +109,7 @@ def _bound_temporal_contexts(
     action_instance_id = _bound_action_instance_id(action_instance_id, state, service, segment)
     clock = working.time_model_state.clocks[context.policy.clock_address]
     temporal_contexts = tuple(
-        _bound_temporal_context(context, state, service, binding, action_instance_id, segment, clock)
-        for binding in bindings
+        _bound_temporal_context(context, state, service, binding, action_instance_id, clock) for binding in bindings
     )
     return action_instance_id, temporal_contexts
 
@@ -131,7 +130,6 @@ def _bound_temporal_context(
     service: ParticipantExecutionServiceStateModel,
     binding: object,
     action_instance_id: str,
-    segment: int,
     clock: object,
 ) -> ParticipantTemporalRuntimeContextModel:
     return bind_shared_time_context(

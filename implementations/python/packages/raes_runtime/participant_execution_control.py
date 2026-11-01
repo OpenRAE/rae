@@ -238,7 +238,12 @@ class InvocationToolActionLedger:
             else:
                 return terminal
 
-    def settlement_record(self, record, settlement, action_result):
+    def settlement_record(
+        self,
+        record: ControlPlaneOperationRecord,
+        settlement: ParticipantToolActionSettlement,
+        action_result: ParticipantActionResultModel,
+    ) -> ControlPlaneOperationRecord:
         """Build a terminal child for the incumbent history and audit transaction."""
         return cast(
             ControlPlaneOperationRecord,

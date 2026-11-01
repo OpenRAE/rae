@@ -311,13 +311,11 @@ class ParticipantBehaviorHistoryEventModel(ContractModel):
         if messages:
             raise ValueError(messages[0])
         context = self.invocation_tool_context
-        parent_id = (
-            context.invocation_id
-            if isinstance(context, ParticipantDeliveryToolContextModel)
-            else context.invocation_action_instance_id
-            if context is not None
-            else None
-        )
+        parent_id = None
+        if isinstance(context, ParticipantDeliveryToolContextModel):
+            parent_id = context.invocation_id
+        elif context is not None:
+            parent_id = context.invocation_action_instance_id
         if parent_id == self.action_instance_id:
             raise ValueError("a tool action cannot share its enclosing invocation's action instance id")
         return self

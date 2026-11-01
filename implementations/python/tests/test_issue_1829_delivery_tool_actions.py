@@ -118,8 +118,9 @@ def test_delivery_tool_history_context_does_not_invent_an_outer_action():
         execution_generation=1,
     )
     assert "invocation_action_contract_address" not in context.model_dump()
+    invalid = {**context.model_dump(), "invocation_action_contract_address": "fabricated"}
     with pytest.raises(ValueError):
-        type(context).model_validate({**context.model_dump(), "invocation_action_contract_address": "fabricated"})
+        participant_runtime.ParticipantDeliveryToolContextModel.model_validate(invalid)
 
 
 def test_public_delivery_invocation_without_autonomous_policy(tmp_path):
@@ -215,7 +216,8 @@ def test_foreign_tool_bindings_receive_no_grant_or_behavior_history(tmp_path, ch
     with plane:
         receipt = plane.invoke_participant_delivery(invocation_request(delivered), identity=caller())
         assert plane.get_operation(receipt.operation_id).state.value == "succeeded"
-        assert len(decisions) == 1 and not decisions[0].admitted
+        assert len(decisions) == 1
+        assert not decisions[0].admitted
         assert not plane.snapshot.participant_behavior_history.get(PARTICIPANT)
 
 
@@ -335,8 +337,9 @@ def test_settled_child_survives_enclosing_invocation_failure(tmp_path, outer_fai
     plane, runtime, _, delivered, _ = delivery_plane(tmp_path, script)
     with plane:
         if outer_failure == "cancelled":
+            request, identity = invocation_request(delivered), caller()
             with pytest.raises(CancelledError):
-                plane.invoke_participant_delivery(invocation_request(delivered), identity=caller())
+                plane.invoke_participant_delivery(request, identity=identity)
         else:
             plane.invoke_participant_delivery(invocation_request(delivered), identity=caller())
         history = plane.snapshot.participant_behavior_history[PARTICIPANT]
@@ -365,7 +368,8 @@ def test_restart_settles_interrupted_children_without_repeating_effects(tmp_path
     def script(invocation, port):
         admitted = port.admit(tool_request(port, tool_call_id="pending"), crossing_evidence=tool_evidence())
         dispatched = port.admit(tool_request(port, tool_call_id="running"), crossing_evidence=tool_evidence())
-        assert admitted.admitted and dispatched.admitted
+        assert admitted.admitted
+        assert dispatched.admitted
         assert port.dispatch(dispatched.action_instance_id).accepted
         seen.update(admitted=admitted.action_instance_id, dispatched=dispatched.action_instance_id)
         shutil.copytree(durable, crashed)

@@ -714,6 +714,6 @@ __all__ = ("InvocationToolActionConfiguration", "ParticipantInvocationToolAction
 InvocationToolEntry = _ToolEntry
 
 
-def detached_tool_outcome(outcome):
+def detached_tool_outcome(outcome: ParticipantActionResultModel) -> ParticipantActionResultModel | None:
     """Detach and validate the shared tool outcome carrier."""
     return _detached_outcome(outcome)

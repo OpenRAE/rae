@@ -31,8 +31,9 @@ def test_published_delivery_examples(contract_id, model):
         validator.validate(payload)
         model.model_validate(payload)
     for path in (directory / "invalid").glob("*.json"):
+        payload = json.loads(path.read_text())
         with pytest.raises(ValueError):
-            model.model_validate(json.loads(path.read_text()))
+            model.model_validate(payload)
 
 
 def test_autonomous_and_delivery_claims_can_offer_distinct_actions():

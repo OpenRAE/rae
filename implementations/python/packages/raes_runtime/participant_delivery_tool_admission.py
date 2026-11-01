@@ -1,5 +1,7 @@
 """Exact binding and live-cut crossing checks for delivery tool actions."""
 
+from __future__ import annotations
+
 from copy import deepcopy
 from dataclasses import replace
 
@@ -12,7 +14,23 @@ from .participant_delivery_driver import matching_delivery_tool_offers
 from .participant_temporal_binding import bind_shared_time_context
 
 
-def tool_binding(port, request):
+def tool_binding(port: object, request: object) -> tuple[object, ParticipantToolActionRefusal | None]:
+    if not _invocation_matches(port, request):
+        return None, ParticipantToolActionRefusal.INVOCATION_MISMATCH
+    binding, refusal = _bound_relation(port, request)
+    if refusal is not None:
+        return None, refusal
+    offers = execution_offers(port, request)
+    if len(offers) != 1:
+        refusal = (
+            ParticipantToolActionRefusal.EXECUTION_OFFER_MISSING
+            if not offers
+            else ParticipantToolActionRefusal.EXECUTION_OFFER_AMBIGUOUS
+        )
+    return (binding, None) if refusal is None else (None, refusal)
+
+
+def _invocation_matches(port: object, request: object) -> bool:
     expected = (
         port.invocation_action_instance_id,
         port.participant_address,
@@ -29,8 +47,10 @@ def tool_binding(port, request):
         request.execution_scope_ref,
         request.execution_generation,
     )
-    if actual != expected:
-        return None, ParticipantToolActionRefusal.INVOCATION_MISMATCH
+    return actual == expected
+
+
+def _bound_relation(port: object, request: object) -> tuple[object, ParticipantToolActionRefusal | None]:
     matches = [
         binding
         for binding in port.delivery_tools_context().bindings
@@ -50,20 +70,15 @@ def tool_binding(port, request):
     binding = matches[0]
     if request.observation_boundary_address not in binding.observation_boundary_addresses:
         return None, ParticipantToolActionRefusal.OBSERVATION_BOUNDARY_UNBOUND
-    if not set(request.target_addresses) <= set(binding.target_addresses):
-        return None, ParticipantToolActionRefusal.TARGET_UNBOUND
-    offers = execution_offers(port, request)
-    if len(offers) != 1:
-        return (
-            None,
-            ParticipantToolActionRefusal.EXECUTION_OFFER_MISSING
-            if not offers
-            else ParticipantToolActionRefusal.EXECUTION_OFFER_AMBIGUOUS,
-        )
-    return binding, None
+    refusal = (
+        None
+        if set(request.target_addresses) <= set(binding.target_addresses)
+        else ParticipantToolActionRefusal.TARGET_UNBOUND
+    )
+    return binding, refusal
 
 
-def execution_offers(port, request):
+def execution_offers(port: object, request: object) -> list[object]:
     return matching_delivery_tool_offers(
         port.delivery_tools_context().capability,
         action_contract_address=request.action_contract_address,
@@ -73,7 +88,9 @@ def execution_offers(port, request):
     )
 
 
-def action_admission(port, request, binding, action_instance_id):
+def action_admission(
+    port: object, request: object, binding: object, action_instance_id: str
+) -> ParticipantActionAdmissionRequest:
     contexts = []
     for temporal in port.delivery_tools_context().temporal:
         if temporal.action_contract_address != request.action_contract_address:
@@ -111,7 +128,7 @@ def action_admission(port, request, binding, action_instance_id):
     )
 
 
-def require_live_invocation(port):
+def require_live_invocation(port: object) -> None:
     plane = port.delivery_tools_context().plane
     plane.delivery_require_state_writer()
     plane.delivery_reload_derived_state()
@@ -124,47 +141,14 @@ def require_live_invocation(port):
         raise ConflictError("tool invocation effect admission is closed")
 
 
-def prepare_tool_crossing(port, admission, evidence, *, stage):
+def prepare_tool_crossing(
+    port: object, admission: object, evidence: ParticipantCrossingEvidence | None, *, stage: str
+) -> tuple[object, object]:
     plane = port.delivery_tools_context().plane
-    require_live_invocation(port)
     if not isinstance(evidence, ParticipantCrossingEvidence):
         raise ConflictError("tool action crossing evidence is required")
     evidence = ParticipantCrossingEvidence.model_validate(evidence.model_dump(mode="json"))
-    revision = plane.delivery_snapshot_state.revision
-    with plane.delivery_mutation_authority.external_call():
-        raw = plane.delivery_execution_adapter.call(
-            "control",
-            plane.delivery_inject_delivery.resolver.resolve_invocation_cut,
-            port.invocation.model_copy(deep=True),
-            deepcopy(admission),
-            deepcopy(plane.delivery_snapshot),
-            timeout_ms=plane.delivery_supervision.admission_ms,
-        )
-    port.delivery_tools_context().scope.require_live()
-    plane.delivery_reload_derived_state()
-    if plane.delivery_snapshot_state.revision != revision:
-        raise ConflictError("tool action authority cut changed")
-    cut = plane.delivery_live_cut(raw)
-    delivery = plane.delivery_inject_delivery.model.participant_inject_deliveries[
-        port.invocation.delivery.application.delivery_address
-    ]
-    plane.delivery_require_delivery_control(
-        port.invocation.delivery.application,
-        delivery,
-        cut.effective_order,
-        port.delivery_tools_context().identity,
-        live_cut=cut,
-        request_ref=admission.action_instance_id,
-    )
-    behavior = plane.delivery_inject_delivery.model.participant_behaviors[port.participant_address]
-    anchors = set(behavior.authority_anchor_addresses or behavior.authority_anchor_refs)
-    if (
-        cut.request_ref != admission.action_instance_id
-        or not anchors
-        or not anchors <= set(cut.active_authority_basis_refs)
-        or not set(admission.target_addresses) <= set(cut.authorized_scope_refs)
-    ):
-        raise ConflictError("tool action authority is unavailable")
+    cut, behavior, revision = _live_tool_cut(port, admission)
     intent = plane.delivery_action_crossing_intent(
         behavior,
         admission,
@@ -215,20 +199,72 @@ def prepare_tool_crossing(port, admission, evidence, *, stage):
         target_addresses=governed.target_addresses,
     )
     _, refusal = tool_binding(port, transformed)
-    if refusal is not None or (
-        governed.action_instance_id != admission.action_instance_id
-        or governed.participant_address != admission.participant_address
-        or governed.execution_scope_ref != admission.execution_scope_ref
-        or governed.execution_generation != admission.execution_generation
-        or governed.implementation_manifest != admission.implementation_manifest
-        or governed.implementation_selection != admission.implementation_selection
-        or governed.temporal_contexts != admission.temporal_contexts
-        or governed.temporal_evidence != admission.temporal_evidence
-    ):
-        raise ConflictError("governed tool action binding differs")
+    _require_same_governed_binding(admission, governed, refusal)
     port.delivery_tools_context().scope.require_live()
     if crossing.intent != intent:
         raise ConflictError("tool action crossing intent was changed")
     if plane.delivery_snapshot_state.revision != revision:
         raise ConflictError("tool action policy cut changed")
     return crossing, governed
+
+
+def _live_tool_cut(port: object, admission: ParticipantActionAdmissionRequest) -> tuple[object, object, int]:
+    plane = port.delivery_tools_context().plane
+    require_live_invocation(port)
+    revision = plane.delivery_snapshot_state.revision
+    with plane.delivery_mutation_authority.external_call():
+        raw = plane.delivery_execution_adapter.call(
+            "control",
+            plane.delivery_inject_delivery.resolver.resolve_invocation_cut,
+            port.invocation.model_copy(deep=True),
+            deepcopy(admission),
+            deepcopy(plane.delivery_snapshot),
+            timeout_ms=plane.delivery_supervision.admission_ms,
+        )
+    port.delivery_tools_context().scope.require_live()
+    plane.delivery_reload_derived_state()
+    if plane.delivery_snapshot_state.revision != revision:
+        raise ConflictError("tool action authority cut changed")
+    cut = plane.delivery_live_cut(raw)
+    delivery = plane.delivery_inject_delivery.model.participant_inject_deliveries[
+        port.invocation.delivery.application.delivery_address
+    ]
+    plane.delivery_require_delivery_control(
+        port.invocation.delivery.application,
+        delivery,
+        cut.effective_order,
+        port.delivery_tools_context().identity,
+        live_cut=cut,
+        request_ref=admission.action_instance_id,
+    )
+    behavior = plane.delivery_inject_delivery.model.participant_behaviors[port.participant_address]
+    anchors = set(behavior.authority_anchor_addresses or behavior.authority_anchor_refs)
+    if (
+        cut.request_ref != admission.action_instance_id
+        or not anchors
+        or not anchors <= set(cut.active_authority_basis_refs)
+        or not set(admission.target_addresses) <= set(cut.authorized_scope_refs)
+    ):
+        raise ConflictError("tool action authority is unavailable")
+    return cut, behavior, revision
+
+
+def _require_same_governed_binding(
+    admission: ParticipantActionAdmissionRequest,
+    governed: ParticipantActionAdmissionRequest,
+    refusal: ParticipantToolActionRefusal | None,
+) -> None:
+    coordinates = (
+        "action_instance_id",
+        "participant_address",
+        "execution_scope_ref",
+        "execution_generation",
+        "implementation_manifest",
+        "implementation_selection",
+        "temporal_contexts",
+        "temporal_evidence",
+    )
+    original = tuple(getattr(admission, name) for name in coordinates)
+    updated = tuple(getattr(governed, name) for name in coordinates)
+    if refusal is not None or original != updated:
+        raise ConflictError("governed tool action binding differs")

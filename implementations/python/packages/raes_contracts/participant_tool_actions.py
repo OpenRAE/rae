@@ -212,7 +212,9 @@ def participant_tool_action_events(
     )
 
 
-def participant_tool_history_events(record, context, temporal_contexts, *, actor_provenance):
+def participant_tool_history_events(
+    record: object, context: object, temporal_contexts: object, *, actor_provenance: object
+) -> object:
     """Construct the shared three-event action history for an explicit invocation origin."""
 
     request = record.request

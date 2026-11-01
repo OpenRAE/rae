@@ -34,12 +34,16 @@ def invocation_tool_child_of(parent: object, child: object) -> bool:
     context = child.status.context
     parent_context = parent.status.context
     claim = tool_action_claim_payload(child.result_payload)
-    operation_id = child.receipt.operation_id
     delivery = delivery_invocation_binding(parent)
     if delivery is not None and (
         not delivery_tool_origin_matches(delivery, claim) or delivery_tool_binding(child) is None
     ):
         return False
+    return _valid_child_claim(child, claim) and _valid_parent_context(parent, context, parent_context)
+
+
+def _valid_child_claim(child: object, claim: object) -> bool:
+    context, operation_id = child.status.context, child.receipt.operation_id
     return bool(
         claim is not None
         and child.invocation is None
@@ -47,16 +51,15 @@ def invocation_tool_child_of(parent: object, child: object) -> bool:
         and child.idempotency_key == TOOL_ACTION_IDEMPOTENCY_PREFIX + operation_id
         and context.operation_kind is OperationKind.PARTICIPANT_ACTION
         and context.request_commitment == canonical_json_digest(claim)
-        and context.parent_operation_id == parent.receipt.operation_id
+    )
+
+
+def _valid_parent_context(parent: object, context: object, parent_context: object) -> bool:
+    return bool(
+        context.parent_operation_id == parent.receipt.operation_id
         and parent.status.state is OperationState.RUNNING
         and parent_context.operation_kind is OperationKind.COMPOSITION_PHASE
-        and (context.actor_id, context.authorization_scope, context.target_scope, context.run_scope)
-        == (
-            parent_context.actor_id,
-            parent_context.authorization_scope,
-            parent_context.target_scope,
-            parent_context.run_scope,
-        )
+        and _same_parent_authority(context, parent_context)
     )
 
 
@@ -69,3 +72,12 @@ __all__ = (
     "invocation_tool_child_of",
     "tool_action_claim_payload",
 )
+
+
+def _same_parent_authority(context: object, parent_context: object) -> bool:
+    return (context.actor_id, context.authorization_scope, context.target_scope, context.run_scope) == (
+        parent_context.actor_id,
+        parent_context.authorization_scope,
+        parent_context.target_scope,
+        parent_context.run_scope,
+    )

@@ -1,5 +1,7 @@
 """Classify interrupted delivery tools from retained core bindings, without replay."""
 
+from __future__ import annotations
+
 from pydantic import TypeAdapter
 from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.operation_lifecycle import OperationState
@@ -10,7 +12,7 @@ from .participant_invocation_tool_actions import InvocationToolEntry
 from .participant_invocation_tool_claims import tool_action_claim_payload
 
 
-def reconcile_delivery_tool(plane, record, *, port_type):
+def reconcile_delivery_tool(plane: object, record: object, *, port_type: object) -> bool:
     payload = record.result_payload or {}
     retained = payload.get("delivery_tool")
     if retained is None:

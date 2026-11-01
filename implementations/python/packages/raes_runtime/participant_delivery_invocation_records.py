@@ -1,5 +1,7 @@
 """Immutable durable identity of runtime-owned participant delivery invocations."""
 
+from __future__ import annotations
+
 from dataclasses import replace
 
 from pydantic import TypeAdapter
@@ -14,7 +16,7 @@ from .record_immutability import immutable_value_error
 DELIVERY_INVOCATION_KIND = "participant-delivery-invocation/v1"
 
 
-def delivery_invocation_binding(record):
+def delivery_invocation_binding(record: object) -> ParticipantDeliveryInvocationContextModel | None:
     payload = getattr(record, "result_payload", None)
     if not isinstance(payload, dict) or payload.get("kind") != DELIVERY_INVOCATION_KIND:
         return None
@@ -29,14 +31,14 @@ def delivery_invocation_binding(record):
     return binding
 
 
-def require_delivery_invocation_transition(existing, replacement):
+def require_delivery_invocation_transition(existing: object, replacement: object) -> None:
     original = delivery_invocation_binding(existing)
     updated = delivery_invocation_binding(replacement)
     if original != updated:
         raise immutable_value_error("delivery invocation binding is immutable")
 
 
-def delivery_tool_origin_matches(delivery, claim):
+def delivery_tool_origin_matches(delivery: object, claim: object) -> bool:
     return claim is not None and (
         claim["invocation_action_instance_id"],
         claim["participant_address"],
@@ -54,35 +56,43 @@ def delivery_tool_origin_matches(delivery, claim):
     )
 
 
-def delivery_tool_binding(record):
+def delivery_tool_binding(record: object) -> ParticipantActionAdmissionRequest | None:
 
     payload = record.result_payload or {}
     retained = payload.get("delivery_tool")
     if retained is None:
         return None
     claim = tool_action_claim_payload(payload)
-    if (
+    if _invalid_tool_claim(record, retained, claim):
+        raise ValueError("delivery tool claim identity differs")
+    admission = TypeAdapter(ParticipantActionAdmissionRequest).validate_python(retained.get("admission"))
+    if _invalid_tool_binding(record, admission, claim):
+        raise ValueError("delivery tool execution binding differs")
+    return admission
+
+
+def _invalid_tool_claim(record: object, retained: dict, claim: object) -> bool:
+    return (
         claim is None
         or record.status.context.operation_kind is not OperationKind.PARTICIPANT_ACTION
         or record.status.context.request_commitment != canonical_json_digest(claim)
         or type(retained.get("admission_ordinal")) is not int
         or retained["admission_ordinal"] < 0
-    ):
-        raise ValueError("delivery tool claim identity differs")
-    admission = TypeAdapter(ParticipantActionAdmissionRequest).validate_python(retained.get("admission"))
-    if (
+    )
+
+
+def _invalid_tool_binding(record: object, admission: ParticipantActionAdmissionRequest, claim: dict) -> bool:
+    return (
         admission.action_instance_id != record.receipt.operation_id
         or admission.participant_address != claim["participant_address"]
         or admission.execution_scope_ref != claim["execution_scope_ref"]
         or admission.execution_generation != claim["execution_generation"]
         or admission.implementation_selection.manifest_ref != claim["participant_implementation_ref"]
         or admission.action_result is not None
-    ):
-        raise ValueError("delivery tool execution binding differs")
-    return admission
+    )
 
 
-def require_delivery_tool_transition(existing, replacement):
+def require_delivery_tool_transition(existing: object, replacement: object) -> None:
 
     original, updated = delivery_tool_binding(existing), delivery_tool_binding(replacement)
     if original is None and updated is None:
