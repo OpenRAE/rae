@@ -52,6 +52,17 @@ def invocation_tool_child_of(parent: object, child: object) -> bool:
     parent_context = parent.status.context
     claim = tool_action_claim_payload(child.result_payload)
     operation_id = child.receipt.operation_id
+    from .participant_delivery_invocation_records import (
+        delivery_invocation_binding,
+        delivery_tool_binding,
+        delivery_tool_origin_matches,
+    )
+
+    delivery = delivery_invocation_binding(parent)
+    if delivery is not None and (
+        not delivery_tool_origin_matches(delivery, claim) or delivery_tool_binding(child) is None
+    ):
+        return False
     return bool(
         claim is not None
         and child.invocation is None

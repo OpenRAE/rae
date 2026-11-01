@@ -1,9 +1,9 @@
 {
-  "content_hash": "68e8c473a027486a81aea5fb24be982f2f1d0c06603c41e95f01e1b625b14eb9",
+  "content_hash": "b0149ceb1e9fdf6d31882f06ff31a4fb762afb6961512a162e27d8a1809cb5f4",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "68e8c473a027486a81aea5fb24be982f2f1d0c06603c41e95f01e1b625b14eb9",
-    "summary": "Point the semantic-invariant validator locator at the module that now owns the validator (issue #1711, ADR-121). The schema shape and the invariant do not change."
+    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
+    "content_hash": "b0149ceb1e9fdf6d31882f06ff31a4fb762afb6961512a162e27d8a1809cb5f4"
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

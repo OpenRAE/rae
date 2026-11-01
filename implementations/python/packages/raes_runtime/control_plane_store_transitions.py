@@ -36,6 +36,10 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
     require_record_invocation(record)
     require_inject_record(record)
     require_delivery_record(record)
+    from .participant_delivery_invocation_records import delivery_invocation_binding, delivery_tool_binding
+
+    delivery_invocation_binding(record)
+    delivery_tool_binding(record)
     from .participant_control_effect_evidence import require_effect_claim_payload
 
     require_effect_claim_payload(record)
@@ -54,6 +58,13 @@ def _require_same_operation_identity(
     _require_operation_record_identity(existing)
     _require_operation_record_identity(replacement)
     require_inject_transition(existing, replacement)
+    from .participant_delivery_invocation_records import (
+        require_delivery_invocation_transition,
+        require_delivery_tool_transition,
+    )
+
+    require_delivery_invocation_transition(existing, replacement)
+    require_delivery_tool_transition(existing, replacement)
     if (
         existing.inject_delivery != replacement.inject_delivery
         or existing.inject_delivery_control != replacement.inject_delivery_control

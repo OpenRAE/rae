@@ -109,6 +109,10 @@ def reconcile_startup_operations(control_plane: object) -> None:
 
 
 def _reconcile_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
+    from .participant_delivery_tool_recovery import reconcile_delivery_tool
+
+    if reconcile_delivery_tool(control_plane, record):
+        return
     if record.status.state is OperationState.ACCEPTED:
         _reconcile_accepted_record(control_plane, record)
     else:
@@ -131,7 +135,9 @@ def _reconcile_accepted_record(control_plane: object, record: ControlPlaneOperat
 
 
 def _reconcile_running_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
-    if record.invocation is not None:
+    from .participant_delivery_invocation_records import delivery_invocation_binding
+
+    if record.invocation is not None or delivery_invocation_binding(record) is not None:
         _commit_recovery_terminal(
             control_plane,
             record,

@@ -19,6 +19,7 @@ def runtime_plan_precondition_diagnostics(
     snapshot: RuntimeSnapshot,
     *,
     durable_lifecycle_available: bool = False,
+    delivery_actions: frozenset[str] = frozenset(),
 ) -> list[Diagnostic]:
     """Return every deterministic plan-admission failure for a manager apply."""
     diagnostics = _provenance_diagnostics(execution_plan, target, snapshot)
@@ -33,7 +34,9 @@ def runtime_plan_precondition_diagnostics(
     )
     diagnostics.extend(
         diagnostic
-        for diagnostic in reference_participant_driver_diagnostics(execution_plan.model)
+        for diagnostic in reference_participant_driver_diagnostics(
+            execution_plan.model, delivery_actions=delivery_actions
+        )
         if diagnostic not in execution_plan.diagnostics
     )
     phase_plans = {
@@ -52,13 +55,17 @@ def runtime_plan_precondition_diagnostics(
     return diagnostics
 
 
-def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagnostic]:
+def reference_participant_driver_diagnostics(
+    model: RuntimeModel,
+    *,
+    delivery_actions: frozenset[str] = frozenset(),
+) -> list[Diagnostic]:
     """Reference-driver limits are execution admission, never SDL validity."""
 
     clocks = {clock.address: clock for clock in model.time_model.clocks}
     progressions = {policy.address: policy for policy in model.time_model.progression_policies}
     diagnostics = []
-    driven_actions = set()
+    driven_actions = set(delivery_actions)
     for specification in model.behavior_specifications.values():
         policy = specification.autonomous_execution
         if policy is None:
@@ -89,11 +96,7 @@ def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagno
                     code="runtime.participant-temporal-driver-unsupported",
                     domain="participant",
                     address=action.address,
-                    message=(
-                        "The reference runtime enforces explicit shared-time action bindings through autonomous "
-                        "policies; "
-                        "this manual action requires another execution driver."
-                    ),
+                    message=("This shared-time action requires an installed execution driver with its exact binding."),
                 )
             )
     diagnostics.extend(reference_mixed_control_diagnostics(model))

@@ -12,7 +12,6 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
-from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
 from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
@@ -22,6 +21,7 @@ from .participant_activity_support import activity_attempt_id
 from .participant_scheduler_resources import measurement_requirements
 from .participant_scheduler_time import clock_coordinate, participant_time_domain
 from .participant_scheduler_types import _DueActionContext
+from .participant_temporal_binding import bind_shared_time_context
 
 _BINDING_INVALID = "backend autonomous action binding does not satisfy its contract"
 _BINDING_FAILED = "backend autonomous action binding did not complete"
@@ -134,30 +134,14 @@ def _bound_temporal_context(
     segment: int,
     clock: object,
 ) -> ParticipantTemporalRuntimeContextModel:
-    return ParticipantTemporalRuntimeContextModel(
-        temporal_contract_id=binding.temporal_id,
-        time_domain=binding.time_domain,
-        clock_authority=binding.clock_authority,
-        event_points=list(binding.event_points),
-        observation_point=(
-            f"shared-time:{action_instance_id}:{context.policy.clock_address}:segment={segment},"
-            f"tick={clock.coordinate.tick},microstep={clock.coordinate.microstep}"
-        ),
-        backend_disclosure_refs=list(binding.backend_disclosure_refs),
-        reset_boundary=binding.reset_boundary,
-        replay_boundary=binding.replay_boundary,
-        shared_time=ParticipantTemporalExecutionContextModel(
-            binding=binding,
-            participant_address=context.participant_address,
-            episode_id=state.episode_id,
-            action_instance_id=action_instance_id,
-            execution_scope_ref=context.policy.address,
-            execution_generation=service.generation,
-            submitted_at=clock.coordinate,
-            clock_sequence=clock.sequence,
-            bound_start=binding.start.model_copy(update={"segment": segment}) if binding.start is not None else None,
-            bound_end=binding.end.model_copy(update={"segment": segment}),
-        ),
+    return bind_shared_time_context(
+        binding,
+        participant_address=context.participant_address,
+        episode_id=state.episode_id,
+        action_instance_id=action_instance_id,
+        execution_scope_ref=context.policy.address,
+        execution_generation=service.generation,
+        clock=clock,
     )
 
 

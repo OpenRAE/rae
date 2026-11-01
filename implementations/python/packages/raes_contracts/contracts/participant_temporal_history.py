@@ -12,7 +12,7 @@ from raes_contracts.contracts.participant_temporal_assessment import (
 
 from ..immutable_history import EventHistory
 from ..participant_temporal_history_index import explicit_temporal_record
-from .participant_runtime import ParticipantBehaviorHistoryEventModel
+from .participant_runtime import ParticipantBehaviorHistoryEventModel, ParticipantDeliveryToolContextModel
 from .participant_temporal import (
     ParticipantTemporalAssessmentModel,
     ParticipantTemporalEvidenceModel,
@@ -170,7 +170,11 @@ def _require_terminal_assessments(
     violations = temporal_evidence_scope_violations(contexts, proofs, event.observation_boundary_address)
     if violations:
         raise ValueError(violations[0])
-    disposition: NativeExecution = "not_dispatched" if attempt.admission_disposition == "rejected" else "reported"
+    tool = event.invocation_tool_context
+    withheld_tool = isinstance(tool, ParticipantDeliveryToolContextModel) and tool.settlement == "withheld"
+    disposition: NativeExecution = (
+        "not_dispatched" if attempt.admission_disposition == "rejected" or withheld_tool else "reported"
+    )
     for context, assessment in zip(contexts, event.temporal_assessments, strict=True):
         _require_temporal_assessment(event, context, assessment, clocks[context.binding.clock_address], disposition)
 

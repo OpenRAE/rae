@@ -76,6 +76,7 @@ from .operation_reconciliation import RuntimeInvocationReconciliationMixin
 from .operation_worker_authority import RuntimeWorkerAuthorityMixin
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
+from .participant_delivery_invocation import ParticipantDeliveryInvocationMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
@@ -130,6 +131,7 @@ class RuntimeRunContext(
     RuntimeAdmissionMixin,
     WorkflowControlMixin,
     ParticipantControlMixin,
+    ParticipantDeliveryInvocationMixin,
     ParticipantRetrievalMixin,
     MixedRuntimeMixin,
 ):

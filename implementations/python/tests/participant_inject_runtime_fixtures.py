@@ -102,6 +102,9 @@ def configured_plane(
     world_identity=None,
     participants=True,
     participant_control=None,
+    payload_transform=None,
+    target_transform=None,
+    owner_type=DisclosureOwner,
 ):
     from mixed_control_rev1_scenarios import rev1_delivery_scenario
 
@@ -172,6 +175,8 @@ def configured_plane(
         optional["observation_demand"].update(rule_id="optional-diagnostics", required=False)
         optional["observation_demand"]["selector"]["names"] = ["optional-diagnostics"]
         payload["evidence_requirements"]["optional-diagnostics"] = optional
+    if payload_transform is not None:
+        payload_transform(payload)
     scenario = parse_sdl(yaml.safe_dump(payload))
     model = compile_runtime_model(scenario)
 
@@ -250,8 +255,10 @@ def configured_plane(
         integrity_providers={"checksum": lambda key, values: canonical_json_digest(values)},
     )
     selected = replace(selected, observation_runtime=capture if capture_available else None)
+    if target_transform is not None:
+        selected = target_transform(selected, model)
     backend.plan, backend.scenario = plan(model, selected.manifest), scenario
-    owner = DisclosureOwner()
+    owner = owner_type()
     initial = TimeCoordinator(model.time_model).initialize()
     if tick:
         initial = TimeCoordinator(model.time_model).advance(initial, "time.clock.exercise-clock", ticks=tick)

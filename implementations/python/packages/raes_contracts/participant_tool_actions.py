@@ -64,6 +64,8 @@ class ParticipantToolActionRefusal(StrEnum):
     STATE_CONFLICT = "state_conflict"
     OUTCOME_INVALID = "outcome_invalid"
     OUTCOME_CONFLICT = "outcome_conflict"
+    AUTHORITY_DENIED = "authority_denied"
+    TEMPORAL_GUARANTEE_UNSATISFIED = "temporal_guarantee_unsatisfied"
 
 
 class ParticipantToolActionSettlement(StrEnum):
@@ -137,6 +139,7 @@ class ParticipantToolActionDecision:
     admitted: bool
     action_instance_id: str | None = None
     refusal: ParticipantToolActionRefusal | None = None
+    binding: ParticipantActionAdmissionRequest | None = None
 
 
 @dataclass(frozen=True)
@@ -147,6 +150,7 @@ class ParticipantToolActionReceipt:
     accepted: bool
     refusal: ParticipantToolActionRefusal | None = None
     settlement: ParticipantToolActionSettlement | None = None
+    binding: ParticipantActionAdmissionRequest | None = None
 
 
 def tool_action_instance_id(
@@ -200,6 +204,18 @@ def participant_tool_action_events(
     temporal_contexts = [
         context_model for context_model in outer.temporal_contexts if context_model.shared_time is None
     ]
+    return participant_tool_history_events(
+        record,
+        context,
+        temporal_contexts,
+        actor_provenance=participant_implementation_actor_provenance(outer.implementation_selection),
+    )
+
+
+def participant_tool_history_events(record, context, temporal_contexts, *, actor_provenance):
+    """Construct the shared three-event action history for an explicit invocation origin."""
+
+    request = record.request
     post_state_digest = sha256_digest(
         f"{record.action_instance_id}\0{record.settlement.value}\0{record.action_result.status}".encode()
     )
@@ -221,7 +237,7 @@ def participant_tool_action_events(
         ParticipantBehaviorHistoryEventModel(
             event_type=ParticipantBehaviorHistoryEventType.ACTION_ATTEMPTED,
             timestamp=record.admitted_at,
-            actor_provenance=participant_implementation_actor_provenance(outer.implementation_selection),
+            actor_provenance=actor_provenance,
             lifecycle_phase=ParticipantRuntimeLifecyclePhase.SELECTION_OR_ADMISSION,
             admission_disposition=ParticipantAdmissionDisposition.ADMITTED,
             **common,

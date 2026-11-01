@@ -3430,10 +3430,14 @@
               "$ref": "#/$defs/ParticipantInvocationToolContextModel"
             },
             {
+              "$ref": "#/$defs/ParticipantDeliveryToolContextModel"
+            },
+            {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Invocation Tool Context"
         },
         "joint_action_set_id": {
           "anyOf": [
@@ -7091,6 +7095,76 @@
         "history_prefix_length"
       ],
       "title": "ParticipantDecisionSurfaceSequenceCutModel",
+      "type": "object"
+    },
+    "ParticipantDeliveryToolContextModel": {
+      "additionalProperties": false,
+      "description": "Tool correlation with an invocation of a retained delivery, not an outer action.",
+      "properties": {
+        "admission_ordinal": {
+          "minimum": 0,
+          "title": "Admission Ordinal",
+          "type": "integer"
+        },
+        "delivery_operation_ref": {
+          "minLength": 1,
+          "title": "Delivery Operation Ref",
+          "type": "string"
+        },
+        "execution_generation": {
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "execution_scope_ref": {
+          "minLength": 1,
+          "title": "Execution Scope Ref",
+          "type": "string"
+        },
+        "invocation_id": {
+          "minLength": 1,
+          "title": "Invocation Id",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "participant-invocation-tool-actions/v2",
+          "title": "Semantics",
+          "type": "string"
+        },
+        "settlement": {
+          "enum": [
+            "completed",
+            "withheld",
+            "indeterminate"
+          ],
+          "title": "Settlement",
+          "type": "string"
+        },
+        "tool_affordance_address": {
+          "minLength": 1,
+          "title": "Tool Affordance Address",
+          "type": "string"
+        },
+        "tool_call_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Tool Call Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "invocation_id",
+        "delivery_operation_ref",
+        "tool_affordance_address",
+        "tool_call_id",
+        "admission_ordinal",
+        "settlement",
+        "execution_scope_ref",
+        "execution_generation"
+      ],
+      "title": "ParticipantDeliveryToolContextModel",
       "type": "object"
     },
     "ParticipantDenialOccurrenceModel": {

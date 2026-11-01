@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from threading import Condition, Lock, get_ident, local
 from typing import Concatenate
 
-from raes_contracts.errors import OperationalError, RaesError
+from raes_contracts.errors import ConflictError, OperationalError, RaesError
 from raes_contracts.runtime_state import OperationKind
 
 from .errors import RuntimeBudgetExhaustedError
@@ -86,6 +86,23 @@ class RuntimeMutationAuthority:
         self._async_waiters: deque[_AsyncWaiter] = deque()
         self._depth = 0
         self._local = local()
+
+    def invocation_child_scope(self) -> InvocationChildScope:
+        """Bind private child handlers to the current invocation's effect reservation."""
+
+        if _IN_EXTENSION.get() or getattr(self._local, "child_scope", None) is not None:
+            raise RuntimeError(_BACKEND_REENTRY_ERROR)
+        if not self.owns_current_thread():
+            raise RuntimeError("invocation child scope requires the live state writer")
+        with self._condition:
+            return InvocationChildScope(self, self._effect_owner)
+
+    def require_live_child_scope(self) -> None:
+        """Fence a late handler before it publishes state after closure."""
+
+        scope = getattr(self._local, "child_scope", None)
+        if scope is not None:
+            scope.require_live()
 
     @contextmanager
     def mutation(self, kind: OperationKind) -> Iterator[None]:
@@ -282,6 +299,59 @@ class RuntimeMutationAuthority:
             waiter.loop.call_soon_threadsafe(_complete_waiter, waiter.future)
             return
         self._condition.notify_all()
+
+
+class InvocationChildScope:
+    """Private writer handoff; ordinary extension mutation remains prohibited.
+
+    Runtime-owned handlers retain this object. Executable protocols receive
+    only the tool port, never this authority or an arbitrary callback runner.
+    """
+
+    def __init__(self, authority: RuntimeMutationAuthority, effect_owner: object) -> None:
+        self._authority = authority
+        self._effect_owner = effect_owner
+        self._active = True
+
+    def require_live(self) -> None:
+        authority = self._authority
+        with authority._condition:
+            if not self._active or authority._effect_owner is not self._effect_owner:
+                raise ConflictError("invocation child authority is closed")
+
+    def close(self) -> None:
+        with self._authority._condition:
+            self._active = False
+            self._authority._condition.notify_all()
+
+    def run[T](self, handler: Callable[[], T]) -> T:
+        authority = self._authority
+        thread_id = get_ident()
+        self.require_live()
+        with authority._condition:
+            if authority._owner_thread == thread_id or getattr(authority._local, "child_scope", None) is not None:
+                raise RuntimeError("invocation child handlers cannot recursively acquire state authority")
+            ready = authority._condition.wait_for(
+                lambda: not self._active or authority._permit_is_free(),
+                timeout=authority._admission_seconds,
+            )
+            if not ready:
+                raise RuntimeBudgetExhaustedError("invocation child state admission budget exhausted")
+            if not self._active or authority._effect_owner is not self._effect_owner:
+                raise ConflictError("invocation child authority is closed")
+            authority._owner_thread, authority._depth = thread_id, 1
+            authority._local.child_scope = self
+        try:
+            value = handler()
+            self.require_live()
+            return value
+        finally:
+            with authority._condition:
+                authority._local.child_scope = None
+                if authority._owner_thread == thread_id:
+                    authority._owner_thread, authority._depth = None, 0
+                authority._local.abandoned_depth = 0
+                authority._grant_next_waiter_locked()
 
 
 class SubordinateMutationGate:
