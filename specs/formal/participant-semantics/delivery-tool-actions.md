@@ -1,5 +1,7 @@
 # Participant delivery invocation and tool actions
 
+Requirements: DSL-142, API-423, ACT-614.
+
 `participant-invocation-tool-actions/v2` composes an admitted participant
 inject delivery with independently admitted participant tool actions. The
 composition requires positive tool-affordance support and finite invocation
