@@ -1,12 +1,12 @@
 // Package parity checks the Go implementation against the golden corpus that
 // the Python implementation recorded (issue #1778).
 //
-// The corpus is in testdata. manifest.json names the corpus schema and the
-// commit of the recorded Python implementation. Each file under cases/ records
-// one invocation of a surface command: its name, its surface, its command, its
-// arguments, its input files by SHA-256 digest, and its result. inputs/ holds
-// each input file once, under its digest. tools/parity_corpus.py records the
-// corpus and documents the surfaces and their results.
+// The corpus is in testdata. manifest.json names the corpus schema. Each file
+// under cases/ records one invocation of a surface command: its name, its
+// surface, its command, its arguments, its input files by SHA-256 digest, and
+// its result. inputs/ holds each input file once, under its digest.
+// tools/parity_corpus.py records the corpus and documents the surfaces and
+// their results.
 //
 // Each Go port adds a [Runner] for the commands that it implements to the
 // registry in runners.go. TestCorpus runs each case that has a runner, and it
