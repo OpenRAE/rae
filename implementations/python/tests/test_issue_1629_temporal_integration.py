@@ -6,10 +6,19 @@ import socket
 from contextlib import ExitStack
 from pathlib import Path
 from threading import Thread
+from time import monotonic
 
 import pytest
 
 pytestmark = pytest.mark.integration
+
+
+async def _until(predicate, *, timeout=15):
+    deadline = monotonic() + timeout
+    while not await asyncio.to_thread(predicate):
+        if monotonic() >= deadline:
+            raise TimeoutError("integration witness did not arrive")
+        await asyncio.sleep(0.02)
 
 
 @pytest.mark.parametrize("kind", ["run", "experiment"])
@@ -41,7 +50,6 @@ async def exercise(kind, tmp_path, databases):
     from temporalio.client import Client
     from temporalio.testing import WorkflowEnvironment
     from temporalio.worker import Worker
-    from test_issue_1362_distributed_integration import _until
     from test_issue_1629_temporal_runtime import worker
     from test_runtime_manager import _full_scenario
 
