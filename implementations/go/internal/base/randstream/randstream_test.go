@@ -164,6 +164,15 @@ func TestFunctionsRefuseInvalidInput(t *testing.T) {
 	}
 }
 
+func TestPublicSeedExplainsTheRequiredWidth(t *testing.T) {
+	for _, value := range []string{"", "00", zeroSeed + "00"} {
+		_, err := PublicSeed("hex-fixed-width", value)
+		if err == nil || !strings.Contains(err.Error(), "64 hexadecimal digits") {
+			t.Errorf("PublicSeed(%d digits) error = %v, want the required width of 64 hexadecimal digits", len(value), err)
+		}
+	}
+}
+
 func TestBoundedIntPreservesExactBoundsAndDoesNotAliasInputs(t *testing.T) {
 	key := zeroHeavyKey(t)
 	for _, text := range []string{"9223372036854775808", "-9223372036854775809", "1234567890123456789012345678901234567890"} {
