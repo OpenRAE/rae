@@ -619,7 +619,12 @@ def test_release_pr_uses_tested_ancestry_adapter_and_matching_engine() -> None:
     adapter = _named_step(release_job, "Maintain release PR from the complete ancestry range")
     assert adapter["if"] == "steps.rp.outputs.release_created != 'true'"
     assert adapter["run"] == "node implementations/tooling/release-please/run.cjs"
-    checks = jobs["release-classification"]
+    assert jobs["release-classification"]["uses"] == "./.github/workflows/release-classification.yml"
+    classification = _load(WORKFLOWS / "release-classification.yml")
+    assert classification["permissions"] == {"contents": "read"}
+    assert "pull_request" in classification["on"]
+    assert "pull_request" not in workflow["on"]
+    checks = classification["jobs"]["release-classification"]
     assert workflow["permissions"] == {"contents": "read"}
     assert "permissions" not in checks
     assert checks["steps"][-1]["run"] == "npm test --prefix implementations/tooling/release-please"
@@ -1119,7 +1124,7 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
         ("post-merge-closing-issue-audit.yml", "pull_request"),
         ("pr-body-policy.yml", "pull_request"),
         ("pr-title-lint.yml", "pull_request"),
-        ("release-please.yml", "pull_request"),
+        ("release-classification.yml", "pull_request"),
         ("scorecard.yml", "push"),
     }
 
