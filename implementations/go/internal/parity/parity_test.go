@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"io/fs"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -11,7 +13,7 @@ import (
 )
 
 const (
-	manifest = `{"schema": "raes-parity-corpus/v1"}`
+	manifest = `{"schema": "raes-parity-corpus/v1", "provenance": {"python_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "python_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "recorder_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "lock_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "python_version": "3.14.7"}}`
 	input    = "name: a\n"
 	caseName = "cases/cli/semantic-validate/examples/a.json"
 )
@@ -79,5 +81,74 @@ func TestLoadRejectsAnInvalidCorpus(t *testing.T) {
 				t.Error("Load() error = nil, want an error")
 			}
 		})
+	}
+}
+
+func TestLoadRejectsMissingProvenanceAndUnsafeCases(t *testing.T) {
+	for _, test := range []struct{ name, old, replacement string }{
+		{"missing commit", strings.Repeat("a", 40), ""},
+		{"invalid tree", strings.Repeat("b", 40), strings.Repeat("z", 40)},
+		{"missing recorder", strings.Repeat("c", 64), ""},
+		{"missing lock", strings.Repeat("d", 64), ""},
+		{"missing version", "3.14.7", ""},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fsys := corpus([]byte(input))
+			fsys["manifest.json"].Data = []byte(strings.Replace(manifest, test.old, test.replacement, 1))
+			if _, err := Load(fsys); err == nil {
+				t.Error("Load() error = nil, want error")
+			}
+		})
+	}
+	for _, test := range []struct{ name, old, replacement string }{
+		{"empty identity", `"examples/a"`, `""`},
+		{"empty surface", `"cli"`, `""`},
+		{"empty command", `"semantic validate"`, `" "`},
+		{"absent result", `, "result": {"exit_code": 0}`, ``},
+		{"missing result", `{"exit_code": 0}`, `null`},
+		{"parent traversal", `"input.yaml"`, `"../escape"`},
+		{"absolute file", `"input.yaml"`, `"/escape"`},
+		{"windows traversal", `"input.yaml"`, `"C:\\escape"`},
+		{"backslash traversal", `"input.yaml"`, `"a\\escape"`},
+		{"drive file", `"input.yaml"`, `"C:escape"`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fsys := corpus([]byte(input))
+			fsys[caseName].Data = []byte(strings.Replace(string(fsys[caseName].Data), test.old, test.replacement, 1))
+			if _, err := Load(fsys); err == nil {
+				t.Error("Load() error = nil, want error")
+			}
+		})
+	}
+	fsys := corpus([]byte(input))
+	sum := sha256.Sum256([]byte(input))
+	fsys[caseName].Data = []byte(strings.ReplaceAll(string(fsys[caseName].Data), hex.EncodeToString(sum[:]), "../escape"))
+	if _, err := Load(fsys); err == nil {
+		t.Error("Load(bad digest) error = nil, want error")
+	}
+	fsys = corpus([]byte(input))
+	fsys["cases/duplicate.json"] = fsys[caseName]
+	if _, err := Load(fsys); err == nil {
+		t.Error("Load(duplicate) error = nil, want error")
+	}
+	fsys = corpus([]byte(input))
+	delete(fsys, caseName)
+	fsys["cases"] = &fstest.MapFile{Mode: 0o755 | fs.ModeDir}
+	if _, err := Load(fsys); err == nil {
+		t.Error("Load(empty) error = nil, want error")
+	}
+}
+
+func TestHexDigestRequiresLowercaseHexOfTheExactLength(t *testing.T) {
+	for _, test := range []struct {
+		value  string
+		length int
+		valid  bool
+	}{
+		{"09af", 4, true}, {"09AF", 4, false}, {"09az", 4, false}, {"09a", 4, false}, {"09af0", 4, false},
+	} {
+		if got := hexDigest(test.value, test.length); got != test.valid {
+			t.Errorf("hexDigest(%q, %d) = %t, want %t", test.value, test.length, got, test.valid)
+		}
 	}
 }

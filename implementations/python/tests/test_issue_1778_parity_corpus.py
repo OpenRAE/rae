@@ -8,6 +8,22 @@ from pathlib import Path
 import pytest
 from tools import parity_corpus as pc
 
+REAL_PROVENANCE = pc.provenance
+
+PROVENANCE = {
+    "python_commit": "a" * 40,
+    "python_tree": "b" * 40,
+    "recorder_sha256": "c" * 64,
+    "python_version": "3.14.7",
+    "lock_sha256": "d" * 64,
+}
+
+
+@pytest.fixture(autouse=True)
+def fixed_provenance(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(pc, "provenance", lambda repo: PROVENANCE)
+
+
 SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -154,8 +170,32 @@ def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.Monk
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err
-    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode({"schema": pc.SCHEMA})
+    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode({"schema": pc.SCHEMA, "provenance": PROVENANCE})
 
     assert pc.main(["record", "--repo-root", str(repo)]) == 0
     assert pc.main(["check", "--repo-root", str(repo)]) == 0
     assert "files match" in capsys.readouterr().out
+
+
+def test_duplicate_case_cannot_overwrite_a_recording(repo: Path) -> None:
+    case = next(pc.schema_cases(repo))
+    with pytest.raises(ValueError, match="duplicate corpus case"):
+        pc.build_corpus(repo, [case, case])
+
+
+def test_provenance_identifies_the_python_source_and_locked_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write(tmp_path, {"implementations/python/uv.lock": "locked environment"})
+    values = iter(["a" * 40, "b" * 40, "b" * 40])
+    monkeypatch.setattr(pc.subprocess, "check_output", lambda *args, **kwargs: next(values))
+    result = REAL_PROVENANCE(tmp_path)
+    assert result["python_commit"] == "a" * 40
+    assert result["python_tree"] == "b" * 40
+    assert result["recorder_sha256"] == pc.digest(Path(pc.__file__).read_bytes())
+    assert result["lock_sha256"] == pc.digest(b"locked environment")
+    assert result["python_version"] == ".".join(map(str, pc.sys.version_info[:3]))
+
+    values = iter(["a" * 40, "b" * 40, "c" * 40])
+    with pytest.raises(ValueError, match="does not identify the current Python tree"):
+        REAL_PROVENANCE(tmp_path)

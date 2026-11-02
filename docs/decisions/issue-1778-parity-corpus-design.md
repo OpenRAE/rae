@@ -19,7 +19,7 @@ Mutation testing copies only the module, so the Go tests read no file outside it
 
 | Part | Content |
 | --- | --- |
-| `manifest.json` | The corpus schema `raes-parity-corpus/v1` |
+| `manifest.json` | The corpus schema, Python source commit and tree, recorder digest, and locked environment digests |
 | `inputs/<sha256>` | Each input file once, under the SHA-256 digest of its content |
 | `cases/<surface>/<command>/<sha256 of the name>.json` | One recorded invocation: name, surface, command, arguments, input digests, and result |
 
@@ -78,3 +78,32 @@ flowchart LR
 ## References and document review
 
 - Issue #1778
+
+## Review remediation design
+
+The parity package owns exact JSON comparison. JSON numbers compare by decimal
+value, including equivalent fractional and exponent spellings, without conversion
+to floating point. Normalization keeps a decimal coefficient and an arbitrary-size
+exponent rather than expanding attacker-controlled exponents into huge integers.
+Malformed or concatenated JSON results fail before comparison.
+
+`coverage.json`, outside the generated corpus, records implemented runner keys.
+Removing a registered runner for an implemented key fails, as does a runner without
+cases. `RAES_PARITY_REQUIRE_COMPLETE=1` rejects all uncovered keys at cutover and
+requires the inventory to declare full corpus coverage. `corpus_complete` stays
+false until issue #1778 is fully delivered, including surfaces with no cases yet.
+The inventory starts empty because this PR implements no product surface.
+Port issues must add both their runner and its required key in the same change.
+
+The manifest records the last commit changing the Python packages, their Git tree
+identity, the recorder SHA-256, Python version, and the SHA-256 of the Python
+lockfile. Reproduction checks preserve the recorded source commit when its tree
+still matches; unrelated commits must not invalidate unchanged behavior. Source,
+recorder or lock changes require a new CI recording. CI fetches history so the
+recorded commit can be verified. Provenance is checked before runners execute.
+The loader rejects missing provenance, unsafe input names, missing results,
+empty or duplicate cases, and malformed input digests.
+
+Coverage inventory must distinguish observed cases from complete surface coverage.
+The parent issue remains incomplete until every exposed surface, published contract,
+fixture, example and exposed Python regression input has recorded behavior.

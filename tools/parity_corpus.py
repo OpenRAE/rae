@@ -28,6 +28,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import subprocess
 import sys
 from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
@@ -254,11 +255,37 @@ def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]
     }
 
 
+def provenance(repo: Path) -> dict[str, str]:
+    """Identify the reference source and the locked recording environment."""
+
+    source = "implementations/python/packages"
+    commit = subprocess.check_output(
+        ["git", "-C", str(repo), "log", "-1", "--format=%H", "--", source], text=True
+    ).strip()
+    tree = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", f"{commit}:{source}"], text=True
+    ).strip()
+    current_tree = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", f"HEAD:{source}"], text=True
+    ).strip()
+    if tree != current_tree:
+        raise ValueError("Python source commit does not identify the current Python tree")
+    return {
+        "python_commit": commit,
+        "python_tree": tree,
+        "recorder_sha256": digest(Path(__file__).read_bytes()),
+        "python_version": ".".join(map(str, sys.version_info[:3])),
+        "lock_sha256": digest((repo / "implementations/python/uv.lock").read_bytes()),
+    }
+
+
 def build_corpus(repo: Path, cases: Iterable[Case]) -> dict[Path, bytes]:
     """Record each case and return the corpus files by path."""
 
-    files = {MANIFEST: encode({"schema": SCHEMA})}
+    files = {MANIFEST: encode({"schema": SCHEMA, "provenance": provenance(repo)})}
     for case in cases:
+        if case.path in files:
+            raise ValueError(f"duplicate corpus case: {case.path}")
         files[case.path] = encode(case_document(case, run(repo, case)))
         for content in case.files.values():
             files[Path("inputs", digest(content))] = content

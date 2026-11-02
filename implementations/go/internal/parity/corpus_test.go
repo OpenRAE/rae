@@ -1,13 +1,11 @@
 package parity
 
 import (
-	"encoding/json"
 	"maps"
 	"os"
 	"slices"
+	"strconv"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 // TestCorpus checks each command that has a runner against the corpus. It
@@ -23,10 +21,25 @@ func TestCorpus(t *testing.T) {
 		byKey[c.Key()] = append(byKey[c.Key()], c)
 	}
 	registered := runners()
-	for key := range registered {
-		if len(byKey[key]) == 0 {
-			t.Errorf("runner %q has no case in the corpus", key)
+	var inventory struct {
+		Implemented    []string `json:"implemented"`
+		CorpusComplete bool     `json:"corpus_complete"`
+	}
+	if err = decodeFile(os.DirFS("."), "coverage.json", &inventory); err != nil {
+		t.Fatalf("read implemented inventory: %v", err)
+	}
+	complete := false
+	if value, ok := os.LookupEnv("RAES_PARITY_REQUIRE_COMPLETE"); ok {
+		complete, err = strconv.ParseBool(value)
+		if err != nil {
+			t.Fatalf("RAES_PARITY_REQUIRE_COMPLETE: %v", err)
 		}
+	}
+	if complete && !inventory.CorpusComplete {
+		t.Fatal("corpus does not yet cover the full scope of issue #1778")
+	}
+	if err := checkCoverage(cases, registered, inventory.Implemented, complete); err != nil {
+		t.Fatal(err)
 	}
 	for _, key := range slices.Sorted(maps.Keys(byKey)) {
 		t.Run(key, func(t *testing.T) {
@@ -48,19 +61,13 @@ func checkCases(t *testing.T, run Runner, cases []Case) {
 			if err != nil {
 				t.Fatalf("run(%s) error = %v", c.Name, err)
 			}
-			if diff := cmp.Diff(decode(t, c.Result), decode(t, got)); diff != "" {
+			diff, err := compareResults(c.Result, got)
+			if err != nil {
+				t.Fatalf("compareResults() error = %v", err)
+			}
+			if diff != "" {
 				t.Errorf("run(%s) result mismatch (-want +got):\n%s", c.Name, diff)
 			}
 		})
 	}
-}
-
-// decode returns the JSON value of a result, so that results compare by value.
-func decode(t *testing.T, result json.RawMessage) any {
-	t.Helper()
-	var value any
-	if err := json.Unmarshal(result, &value); err != nil {
-		t.Fatalf("json.Unmarshal(%s) error = %v", result, err)
-	}
-	return value
 }

@@ -24,6 +24,8 @@ import (
 	"io"
 	"io/fs"
 	"path"
+	"regexp"
+	"strings"
 )
 
 // Schema is the schema identifier of the corpus manifest.
@@ -53,16 +55,11 @@ type Runner func(ctx context.Context, c Case) (json.RawMessage, error)
 // Load returns the cases of the corpus in fsys. It rejects an unknown schema,
 // unknown fields, and an input file whose content does not match its digest.
 func Load(fsys fs.FS) ([]Case, error) {
-	var manifest struct {
-		Schema string `json:"schema"`
-	}
-	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
+	if err := validateManifest(fsys); err != nil {
 		return nil, err
 	}
-	if manifest.Schema != Schema {
-		return nil, fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
-	}
 	var cases []Case
+	seen := map[string]bool{}
 	err := fs.WalkDir(fsys, "cases", func(name string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -74,11 +71,19 @@ func Load(fsys fs.FS) ([]Case, error) {
 		if err != nil {
 			return err
 		}
+		identity := c.Key() + "/" + c.Name
+		if seen[identity] {
+			return fmt.Errorf("%s: duplicate case %q", name, identity)
+		}
+		seen[identity] = true
 		cases = append(cases, c)
 		return nil
 	})
 	if err != nil {
 		return nil, err
+	}
+	if len(cases) == 0 {
+		return nil, errors.New("corpus contains no cases")
 	}
 	return cases, nil
 }
@@ -95,8 +100,20 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 	if err := decodeFile(fsys, name, &record); err != nil {
 		return Case{}, err
 	}
+	if strings.TrimSpace(record.Name) == "" || strings.TrimSpace(record.Surface) == "" || strings.TrimSpace(record.Command) == "" {
+		return Case{}, fmt.Errorf("%s: missing case identity", name)
+	}
+	if len(record.Result) == 0 || bytes.Equal(record.Result, []byte("null")) {
+		return Case{}, fmt.Errorf("%s: missing result", name)
+	}
 	files := make(map[string][]byte, len(record.Files))
 	for fileName, digest := range record.Files {
+		if !fs.ValidPath(fileName) || strings.Contains(fileName, "\\") || strings.Contains(fileName, ":") {
+			return Case{}, fmt.Errorf("%s: unsafe input name %q", name, fileName)
+		}
+		if !hexDigest(digest, 64) {
+			return Case{}, fmt.Errorf("%s: invalid input digest", name)
+		}
 		content, err := fs.ReadFile(fsys, path.Join("inputs", digest))
 		if err != nil {
 			return Case{}, fmt.Errorf("%s: input %s: %w", name, fileName, err)
@@ -129,6 +146,58 @@ func decodeFile(fsys fs.FS, name string, v any) error {
 	}
 	if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
 		return fmt.Errorf("decode %s: data follows the value", name)
+	}
+	return nil
+}
+
+// hexDigest accepts only a lowercase hexadecimal digest of the given length.
+func hexDigest(value string, length int) bool {
+	if len(value) != length {
+		return false
+	}
+	for _, digit := range value {
+		if (digit < '0' || digit > '9') && (digit < 'a' || digit > 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+func validateManifest(fsys fs.FS) error {
+	var manifest struct {
+		Schema     string `json:"schema"`
+		Provenance struct {
+			PythonCommit   string `json:"python_commit"`
+			PythonTree     string `json:"python_tree"`
+			RecorderSHA256 string `json:"recorder_sha256"`
+			PythonVersion  string `json:"python_version"`
+			LockSHA256     string `json:"lock_sha256"`
+		} `json:"provenance"`
+	}
+	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
+		return err
+	}
+	if manifest.Schema != Schema {
+		return fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
+	}
+	for name, value := range map[string]string{
+		"python_commit": manifest.Provenance.PythonCommit,
+		"python_tree":   manifest.Provenance.PythonTree,
+	} {
+		if !hexDigest(value, 40) {
+			return fmt.Errorf("manifest.json: invalid %s", name)
+		}
+	}
+	for name, value := range map[string]string{
+		"recorder_sha256": manifest.Provenance.RecorderSHA256,
+		"lock_sha256":     manifest.Provenance.LockSHA256,
+	} {
+		if !hexDigest(value, 64) {
+			return fmt.Errorf("manifest.json: invalid %s", name)
+		}
+	}
+	if !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`).MatchString(manifest.Provenance.PythonVersion) {
+		return errors.New("manifest.json: invalid python_version")
 	}
 	return nil
 }
