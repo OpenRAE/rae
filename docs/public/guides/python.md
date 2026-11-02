@@ -108,8 +108,8 @@ key must name a node. The rename therefore refuses a node that has an
 `infrastructure` entry, such as `web` in `first-scenario.sdl.yaml`, with
 `artifact-transformation.target-invalid`.
 
-Loss is rejected by default. Removal therefore requires a policy naming the
-exact accepted loss kind:
+Loss is rejected by default. Remove the unreferenced `index-page` content
+declaration with a policy that permits that loss:
 
 ```python
 from raes import (
@@ -121,13 +121,18 @@ from raes_contracts.contracts import ArtifactTransformationLossKind
 
 result = remove_sdl_declaration(
     scenario,
-    RemoveSDLDeclarationRequest(target_address="nodes.obsolete"),
+    RemoveSDLDeclarationRequest(target_address="content.index-page"),
     policy=ArtifactTransformationPolicy(
         allowed_loss_kinds=(
             ArtifactTransformationLossKind.DECLARATION_REMOVED,
         )
     ),
 )
+if result.succeeded:
+    print("index-page" in result.output.content)  # False
+else:
+    for diagnostic in result.report.diagnostics:
+        print(diagnostic.code)
 ```
 
 Use `canonicalize_portable_contract()` to reconstruct an isolated portable

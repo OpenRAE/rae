@@ -60,6 +60,10 @@ authority. Use it to build a proxy allowlist for your host's outbound calls.
 
 ## Configure service identities
 
+This fragment requires your host's `control_plane` and `secret_store` objects.
+It does not create a standalone server.
+
+<!-- example-skip: Requires a host-owned control plane and deployment secret channel. -->
 ```python
 from raes_runtime import ControlPlaneProfile
 from raes_runtime.control_plane_api import create_control_plane_app
