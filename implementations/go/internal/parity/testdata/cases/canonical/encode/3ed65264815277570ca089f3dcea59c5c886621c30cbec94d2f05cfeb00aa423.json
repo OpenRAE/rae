@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "e9c103118334615e75ccc136547c7d62c57a84c4c800b7b162eeef9170abf0ce"
+  },
+  "name": "contracts/fixtures/control-plane/participant-inject-delivery-v1/invalid/unknown-field",
+  "result": {
+    "jcs": "sha256:de5f0ef52c5f7c636cff22aa82be90bba8e1fd54fb4cdcc8614e9525fb7a29b8",
+    "sorted_ascii": "sha256:de5f0ef52c5f7c636cff22aa82be90bba8e1fd54fb4cdcc8614e9525fb7a29b8",
+    "sorted_unicode": "sha256:de5f0ef52c5f7c636cff22aa82be90bba8e1fd54fb4cdcc8614e9525fb7a29b8"
+  },
+  "surface": "canonical"
+}

@@ -1,0 +1,60 @@
+{
+  "policy_id": "adaptive-unsupported",
+  "policy_version": "1.0.0",
+  "policy_digest": "sha256:1161d5e7f05b0a3a04b8dcef3263e002eb74f0aee6cda5ffde485fd9bc6e19b6",
+  "condition": "adaptive",
+  "baseline_variant_id": "standard",
+  "evaluator_ref": {
+    "ref_kind": "profile",
+    "ref_id": "adaptive-bayesian-v1",
+    "ref_version": "1.0.0",
+    "ref_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "observation_sources": {
+    "progress": {
+      "source_id": "progress",
+      "source_kind": "derived-measure",
+      "source_ref": {
+        "ref_kind": "metric-definition",
+        "ref_id": "objective-progress",
+        "ref_version": "1.0.0",
+        "ref_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "visibility": "operator-only",
+      "maximum_age": 1
+    }
+  },
+  "threshold_rules": {
+    "progress-high": {
+      "rule_id": "progress-high",
+      "observation_source_id": "progress",
+      "operator": "gte",
+      "threshold": 0.75,
+      "action_id": "harder-follow-up",
+      "priority": 1
+    }
+  },
+  "actions": {
+    "harder-follow-up": {
+      "action_id": "harder-follow-up",
+      "action_kind": "follow-up-trial",
+      "target_variant_id": "hard",
+      "affected_refs": [
+        {
+          "ref_kind": "scenario-variant",
+          "ref_id": "scenario-family.challenge-level"
+        }
+      ]
+    }
+  },
+  "bounds": {
+    "maximum_interventions": 1,
+    "minimum_decision_interval": 1,
+    "cooldown": 1,
+    "terminal_disposition": "unsupported"
+  },
+  "guardrails": [
+    "Unsupported evaluator profiles never fall back."
+  ],
+  "validity_effect": "Unsupported adaptation remains explicit."
+}

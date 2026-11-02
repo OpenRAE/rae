@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "4dd26cdf29b2bb559f2c407611db57699d28114bae4df8c3a35e1c538eaeb647"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/positive-int64-singleton",
+  "result": {
+    "jcs": null,
+    "sorted_ascii": "sha256:05edb3f0cea1247b98db89605eeec6a47cdf7ef93c43867e513d646bc7cf4166",
+    "sorted_unicode": "sha256:05edb3f0cea1247b98db89605eeec6a47cdf7ef93c43867e513d646bc7cf4166"
+  },
+  "surface": "canonical"
+}

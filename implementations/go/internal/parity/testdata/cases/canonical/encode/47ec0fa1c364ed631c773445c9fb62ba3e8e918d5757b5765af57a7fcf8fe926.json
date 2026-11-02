@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "a1bc8b776c4d1bb21b17dd1886cf33f02871ba76c53d1a3d9a586d0b14c58126"
+  },
+  "name": "contracts/fixtures/processor-manifest/processor-manifest-v2/invalid/unknown-sdl-version",
+  "result": {
+    "jcs": "sha256:0bcd1d0b0570e35ba27d605de5d6b6614bef7300b4ded8f46a01cc61345e7a28",
+    "sorted_ascii": "sha256:0bcd1d0b0570e35ba27d605de5d6b6614bef7300b4ded8f46a01cc61345e7a28",
+    "sorted_unicode": "sha256:0bcd1d0b0570e35ba27d605de5d6b6614bef7300b4ded8f46a01cc61345e7a28"
+  },
+  "surface": "canonical"
+}

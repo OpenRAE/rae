@@ -41,7 +41,16 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 from jsonschema import Draft202012Validator  # noqa: E402
 from raes_cli.main import app  # noqa: E402
 from raes_conformance.conformance import contract_payload_root  # noqa: E402
+from raes_contracts import random_stream_engine  # noqa: E402
+from raes_contracts.canonical import canonical_json_bytes  # noqa: E402
 from raes_contracts.contracts import schema_bundle  # noqa: E402
+from raes_contracts.contracts.random_stream import (  # noqa: E402
+    ParticipantStreamAddressModel,
+    PublicSeedModel,
+    StreamAddressModel,
+)
+from raes_contracts.digests import sha256_digest  # noqa: E402
+from raes_contracts.json_serialization import sorted_json_text_finite, sorted_json_text_unicode_finite  # noqa: E402
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
 
@@ -49,6 +58,47 @@ from tools.parity_support import Case, digest, encode, json_output  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
 SCHEMA = "raes-parity-corpus/v1"
+JSON_FILES = "*.json"
+
+CANONICAL_VALUE = "value.json"
+
+RANDSTREAM_VECTOR = "vector.json"
+
+CANONICAL_EDGE_TEXTS = (
+    "1.0",
+    "1e16",
+    "1e15",
+    "0.0001",
+    "0.00001",
+    "-0.0",
+    "1e-7",
+    "123456789.123",
+    "1.5e300",
+    "5e-324",
+    "1.7976931348623157e308",
+    "1e400",
+    "-1e400",
+    "9007199254740991",
+    "9007199254740992",
+    "-9007199254740991",
+    "-9007199254740992",
+    "123456789012345678901234567890",
+    "-0",
+    r'"é   😀 \u007f"',
+    r'"\u0000\u001f\"\\\/\b\f\n\r\t</script>&"',
+    '"é\U0001f600"',
+    r'{"": 1, "😀": 2, "a": 3}',
+    '{"b": [1, 2.5, {"d": null, "c": true}], "a": ""}',
+    '{"a": 1, "a": 2}',
+    '  { "a" : [ ] }',
+    "true",
+    "null",
+    "[1, 2] 3",
+    "NaN",
+    "-" + "9" * 4300,
+    "9" * 4301,
+)
+
 SDL_CONTRACT = "sdl-yaml/v1"
 SDL_COMMANDS = (
     "parse",
@@ -161,12 +211,107 @@ def schema_cases(repo: Path) -> Iterator[Case]:
         )
 
 
+def canonical_cases(repo: Path) -> Iterator[Case]:
+    """Yield the canonical encodings of each JSON fixture and each edge input."""
+
+    for fixture in sorted((repo / "contracts" / "fixtures").rglob(JSON_FILES)):
+        name = fixture.relative_to(repo).with_suffix("").as_posix()
+        yield Case(
+            surface="canonical",
+            command="encode",
+            name=name,
+            args=(),
+            files={CANONICAL_VALUE: fixture.read_bytes()},
+        )
+    for index, text in enumerate(CANONICAL_EDGE_TEXTS):
+        yield Case(
+            surface="canonical",
+            command="encode",
+            name=f"edge/{index:02d}",
+            args=(),
+            files={CANONICAL_VALUE: (text + "\n").encode()},
+        )
+
+
+def randstream_cases(repo: Path) -> Iterator[Case]:
+    """Yield each published random-stream vector."""
+
+    for vector in sorted((repo / "contracts" / "fixtures" / "random-stream-vectors").rglob(JSON_FILES)):
+        name = vector.relative_to(repo).with_suffix("").as_posix()
+        yield Case(
+            surface="randstream", command="vector", name=name, args=(), files={RANDSTREAM_VECTOR: vector.read_bytes()}
+        )
+
+
+def _reject_constant(constant: str) -> object:
+    raise ValueError(constant)
+
+
+def run_canonical(case: Case) -> dict[str, object]:
+    """Return the digest of each canonical encoding of a JSON value, or ``None`` when it refuses."""
+
+    encoders = {
+        "jcs": canonical_json_bytes,
+        "sorted_ascii": lambda value: sorted_json_text_finite(value).encode(),
+        "sorted_unicode": lambda value: sorted_json_text_unicode_finite(value).encode(),
+    }
+    try:
+        value = json.loads(case.files[CANONICAL_VALUE], parse_constant=_reject_constant)
+    except ValueError:
+        return dict.fromkeys(encoders)
+    result: dict[str, object] = {}
+    for form, encode_value in encoders.items():
+        try:
+            result[form] = sha256_digest(encode_value(value))
+        except ValueError, TypeError:
+            result[form] = None
+    return result
+
+
+def run_randstream(case: Case) -> dict[str, object]:
+    """Run the random-stream engine on the inputs of a published vector."""
+
+    vector = json.loads(case.files[RANDSTREAM_VECTOR])
+    profile = vector["profile_id"]
+    seed = random_stream_engine.decode_public_seed(PublicSeedModel.model_validate(vector["root_entropy"]))
+    key = random_stream_engine.derive_stream_key(profile_id=profile, root_entropy=seed)
+    model = ParticipantStreamAddressModel if profile == "blake3-xof-participant-v1" else StreamAddressModel
+    address = model.model_validate(vector["address"])
+    result: dict[str, object] = {
+        "stream_key_hex": key.hex(),
+        "address_canonical_bytes_hex": random_stream_engine.canonical_stream_address_bytes(address).hex(),
+        "raw_block_hex": random_stream_engine.raw_block(profile_id=profile, stream_key=key, address=address).hex(),
+    }
+    transform = vector.get("transform")
+    if transform is not None:
+        draw = random_stream_engine.draw_bounded_integer(
+            profile_id=profile,
+            stream_key=key,
+            address=address,
+            minimum=transform["minimum"],
+            maximum=transform["maximum"],
+            max_rejection_attempts=transform["max_rejection_attempts"],
+        )
+        result["draw"] = {
+            "value": None if draw.value is None else str(draw.value),
+            "rejection_attempts": draw.rejection_attempts,
+            "rejection_exhausted": draw.rejection_exhausted,
+        }
+    return result
+
+
 def all_cases(repo: Path) -> list[Case]:
     """Enumerate the exposed registries, examples, fixtures and regressions."""
     from tools import parity_surfaces as surfaces
 
     sources = [path for path in surfaces.data_inputs(repo) if path.suffix in {".yaml", ".yml"}]
-    cases = [*sdl_cases(repo), *portable_cases(repo, supported_contracts()), *schema_cases(repo)]
+    cases = [
+        *sdl_cases(repo),
+        *portable_cases(repo, supported_contracts()),
+        *schema_cases(repo),
+        *canonical_cases(repo),
+        *randstream_cases(repo),
+    ]
     existing_sdl = {case.name for case in cases if case.command == "semantic parse"}
     for source in sources:
         if source.relative_to(repo).with_suffix("").as_posix() not in existing_sdl:
@@ -265,6 +410,10 @@ def run(repo: Path, case: Case) -> dict[str, object]:
     from tools import parity_surfaces as surfaces
 
     with surfaces.recording_context(case.surface + "/" + case.command + "/" + case.name):
+        if case.surface == "canonical":
+            return run_canonical(case)
+        if case.surface == "randstream":
+            return run_randstream(case)
         if case.surface == "cli":
             return run_cli(case)
         if case.surface == "schema":

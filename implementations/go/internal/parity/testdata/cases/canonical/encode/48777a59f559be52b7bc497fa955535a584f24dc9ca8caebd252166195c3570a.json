@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "d48e7e3590abbc4a3b8edebbea72a3f15417ba9435dde874d8248a1930606430"
+  },
+  "name": "contracts/fixtures/asset-trust/reusable-asset-trust-policy-v1/invalid/authenticity-without-threshold",
+  "result": {
+    "jcs": "sha256:b41adf8806f7a0762eb2cdb487d80e4b1cb36cc0b45ff27ad7447588ec85c881",
+    "sorted_ascii": "sha256:b41adf8806f7a0762eb2cdb487d80e4b1cb36cc0b45ff27ad7447588ec85c881",
+    "sorted_unicode": "sha256:b41adf8806f7a0762eb2cdb487d80e4b1cb36cc0b45ff27ad7447588ec85c881"
+  },
+  "surface": "canonical"
+}

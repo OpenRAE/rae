@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "63ac7637305a2adabb0ecaf532920ee557c1e7eafad2f496aacf5ea6a890d53e"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-exhaustion",
+  "result": {
+    "jcs": "sha256:1703df04b680d5f3c52ce24b4366dd439319b3cc6a350cbb94cd5fef9ff8b924",
+    "sorted_ascii": "sha256:1703df04b680d5f3c52ce24b4366dd439319b3cc6a350cbb94cd5fef9ff8b924",
+    "sorted_unicode": "sha256:1703df04b680d5f3c52ce24b4366dd439319b3cc6a350cbb94cd5fef9ff8b924"
+  },
+  "surface": "canonical"
+}

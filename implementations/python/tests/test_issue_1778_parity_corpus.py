@@ -220,3 +220,54 @@ def test_provenance_identifies_the_python_source_and_locked_environment(
     values = iter(["a" * 40, "b" * 40, "c" * 40])
     with pytest.raises(ValueError, match="does not identify the current Python tree"):
         REAL_PROVENANCE(tmp_path)
+
+
+def test_canonical_cases_cover_each_json_fixture_and_each_edge_input(repo: Path) -> None:
+    names = {case.name for case in pc.canonical_cases(repo)}
+
+    assert "contracts/fixtures/family/demo-v1/valid/one" in names
+    assert sum(name.startswith("edge/") for name in names) == len(pc.CANONICAL_EDGE_TEXTS)
+
+
+def test_canonical_results_record_each_form_or_its_refusal() -> None:
+    def result(text: str) -> dict[str, object]:
+        return pc.run_canonical(pc.Case("canonical", "encode", "x", (), {"value.json": text.encode()}))
+
+    def digest(text: bytes) -> str:
+        return "sha256:" + pc.digest(text)
+
+    assert result("1.0") == {"jcs": digest(b"1"), "sorted_ascii": digest(b"1.0"), "sorted_unicode": digest(b"1.0")}
+    assert result('"é"') == {
+        "jcs": digest('"é"'.encode()),
+        "sorted_ascii": digest(b'"\\u00e9"'),
+        "sorted_unicode": digest('"é"'.encode()),
+    }
+    assert result("9007199254740992")["jcs"] is None
+    assert result("9007199254740992")["sorted_ascii"] == digest(b"9007199254740992")
+    longest = "-" + "9" * 4300
+    assert result(longest) == {
+        "jcs": None,
+        "sorted_ascii": digest(longest.encode()),
+        "sorted_unicode": digest(longest.encode()),
+    }
+    for refused in ("NaN", "1e400", "[1] 2", "9" * 4301):
+        assert result(refused) == {"jcs": None, "sorted_ascii": None, "sorted_unicode": None}
+
+
+def test_randstream_cases_reproduce_each_published_vector() -> None:
+    repo = Path(__file__).resolve().parents[3]
+    cases = list(pc.randstream_cases(repo))
+
+    assert len(cases) == len(list((repo / "contracts/fixtures/random-stream-vectors").rglob(pc.JSON_FILES)))
+    for case in cases:
+        vector = json.loads(case.files[pc.RANDSTREAM_VECTOR])
+        result = pc.run_randstream(case)
+        assert result["stream_key_hex"] == vector["stream_key_hex"]
+        assert result["address_canonical_bytes_hex"] == vector["address_canonical_bytes_hex"]
+        assert result["raw_block_hex"] == vector["raw_block_hex"]
+        transform = vector.get("transform")
+        if transform is not None:
+            assert result["draw"]["rejection_attempts"] == transform["expected_rejection_attempts"]
+            assert result["draw"]["rejection_exhausted"] == transform["expected_rejection_exhausted"]
+            expected_value = None if transform["expected_rejection_exhausted"] else transform["outcome"]["value"]
+            assert result["draw"]["value"] == expected_value

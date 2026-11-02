@@ -1,0 +1,48 @@
+{
+  "policy_id": "adaptive-invalid",
+  "policy_version": "1.0.0",
+  "policy_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "condition": "adaptive",
+  "baseline_variant_id": "standard",
+  "evaluator_ref": {
+    "ref_kind": "profile",
+    "ref_id": "adaptive-threshold-v1",
+    "ref_version": "1.0.0",
+    "ref_digest": "sha256:727da7fd8a5bc39aac13bd40051c62223f8dc839a8080a213fc1f8225ddb467f"
+  },
+  "observation_sources": {
+    "progress": {
+      "source_id": "progress",
+      "source_kind": "derived-measure",
+      "source_ref": {
+        "ref_kind": "metric-definition",
+        "ref_id": "objective-progress",
+        "ref_version": "1.0.0",
+        "ref_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "visibility": "participant-visible",
+      "maximum_age": 1
+    }
+  },
+  "threshold_rules": {
+    "progress-high": {
+      "rule_id": "progress-high",
+      "observation_source_id": "progress",
+      "operator": "gte",
+      "threshold": 0.75,
+      "action_id": "undeclared-action",
+      "priority": 1
+    }
+  },
+  "actions": {},
+  "bounds": {
+    "maximum_interventions": 1,
+    "minimum_decision_interval": 1,
+    "cooldown": 1,
+    "terminal_disposition": "deny"
+  },
+  "guardrails": [
+    "Undeclared actions fail closed."
+  ],
+  "validity_effect": "Invalid policy must not resolve."
+}

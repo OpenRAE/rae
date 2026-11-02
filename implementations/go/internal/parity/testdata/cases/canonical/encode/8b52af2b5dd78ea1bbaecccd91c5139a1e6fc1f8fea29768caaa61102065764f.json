@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "8298105e2196323c989074e8c40a0fa60993e3df725fb2b5668606b872f16fb0"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-shared-state-record-v1/invalid/unknown-access-kind",
+  "result": {
+    "jcs": "sha256:381168ca1c09dd269aa8ee6c9b699c12018d55c16b54ac9742a7b144154971c6",
+    "sorted_ascii": "sha256:e3cf0f5b6ca5c220ca2a37b3c6ec08367b402488c84417d8c6959edd3b1bc5ad",
+    "sorted_unicode": "sha256:e3cf0f5b6ca5c220ca2a37b3c6ec08367b402488c84417d8c6959edd3b1bc5ad"
+  },
+  "surface": "canonical"
+}

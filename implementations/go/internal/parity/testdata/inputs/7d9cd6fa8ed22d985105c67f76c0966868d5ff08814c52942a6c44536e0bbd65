@@ -1,0 +1,39 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "optional-null-dimensions",
+  "description": "Review boundary vector, independently computed with direct BLAKE3 and RFC 8785 library calls.",
+  "profile_id": "blake3-xof-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "stream_key_hex": "39a7b17cae76d0fc6cb1570061a75120f2b674895df48587c4d82853906866fd",
+  "address": {
+    "namespace": "n",
+    "trial_coordinate": {
+      "condition_id": null,
+      "block_id": null,
+      "replicate_id": null
+    },
+    "selection_policy_id": "p",
+    "variation_point_id": "v",
+    "draw_purpose": "other",
+    "local_coordinate": 0
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226f74686572222c226c6f63616c5f636f6f7264696e617465223a302c226e616d657370616365223a226e222c2273656c656374696f6e5f706f6c6963795f6964223a2270222c22747269616c5f636f6f7264696e617465223a7b7d2c22766172696174696f6e5f706f696e745f6964223a2276227d",
+  "raw_block_hex": "603c8a2cc1ba9d29bd28d13e4fe8e0cf315b326ea231d26537c6348e22e23d94",
+  "transform": {
+    "transform_id": "bounded-integer",
+    "transform_version": "1",
+    "minimum": 0,
+    "maximum": 9,
+    "max_rejection_attempts": 32,
+    "expected_rejection_attempts": 0,
+    "expected_rejection_exhausted": false,
+    "outcome": {
+      "kind": "public-value",
+      "value": "6"
+    }
+  }
+}

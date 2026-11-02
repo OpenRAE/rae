@@ -1,0 +1,14 @@
+{
+  "case_id": "canonicalize-portable-contract",
+  "operation": "canonicalize-portable-contract/v1",
+  "source_contract": "external-concept-bindings/v1",
+  "source_path": "concept-authority/external-concept-bindings-v1/valid/attack-enterprise.json",
+  "request": {},
+  "policy": {
+    "allowed_loss_kinds": []
+  },
+  "expected": {
+    "status": "success",
+    "identity_map": []
+  }
+}

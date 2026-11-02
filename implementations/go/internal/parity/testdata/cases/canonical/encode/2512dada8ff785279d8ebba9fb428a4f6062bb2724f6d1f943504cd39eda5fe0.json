@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "e2c695a61609794e730ab346c5f7cfecdd41d8b0f59a837ac2ef8a321f79c595"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/zero-heavy-seed-and-address",
+  "result": {
+    "jcs": "sha256:5f6f4ff20dbcf975b7e63201677b33a7c149282a97eb5e7ac8acd0f4ad02d38c",
+    "sorted_ascii": "sha256:5f6f4ff20dbcf975b7e63201677b33a7c149282a97eb5e7ac8acd0f4ad02d38c",
+    "sorted_unicode": "sha256:5f6f4ff20dbcf975b7e63201677b33a7c149282a97eb5e7ac8acd0f4ad02d38c"
+  },
+  "surface": "canonical"
+}

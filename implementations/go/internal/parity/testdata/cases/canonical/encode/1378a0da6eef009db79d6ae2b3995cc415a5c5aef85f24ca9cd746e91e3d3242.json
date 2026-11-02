@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "36a55ab96f211b084de18065f73215f5975ffda618123f81dab4b2e0bb01b5a1"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-v1/invalid/missing-schedule-kind",
+  "result": {
+    "jcs": "sha256:4923403205ea812731f937579feaaedeac2bf53e8f538d88e946fcc7eee49474",
+    "sorted_ascii": "sha256:4923403205ea812731f937579feaaedeac2bf53e8f538d88e946fcc7eee49474",
+    "sorted_unicode": "sha256:4923403205ea812731f937579feaaedeac2bf53e8f538d88e946fcc7eee49474"
+  },
+  "surface": "canonical"
+}

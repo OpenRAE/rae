@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "595d2ee7aebdfa82638d306f240e46edabf843cd92e1a93da68d704b9cb3f3c3"
+  },
+  "name": "contracts/fixtures/control-plane/scheduler-isolation-proof-v1/invalid/missing-secret-scope",
+  "result": {
+    "jcs": "sha256:ce6d265efad8ec8440f5a37b94d3af52cbf0ab4e7eebb8316a73d7aa09021070",
+    "sorted_ascii": "sha256:ce6d265efad8ec8440f5a37b94d3af52cbf0ab4e7eebb8316a73d7aa09021070",
+    "sorted_unicode": "sha256:ce6d265efad8ec8440f5a37b94d3af52cbf0ab4e7eebb8316a73d7aa09021070"
+  },
+  "surface": "canonical"
+}

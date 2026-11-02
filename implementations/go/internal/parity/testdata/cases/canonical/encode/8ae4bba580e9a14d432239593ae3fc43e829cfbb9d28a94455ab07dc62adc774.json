@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "e9f8c5082eaebe78ae2fdd0def64c0a559841dbbbb8ed0da8872f09cee410a88"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/invalid/content-uri-without-checksum",
+  "result": {
+    "jcs": "sha256:70e008c12bb8194fece4a9e95112b856aead64b816b81a80687ededb13b23f4e",
+    "sorted_ascii": "sha256:70e008c12bb8194fece4a9e95112b856aead64b816b81a80687ededb13b23f4e",
+    "sorted_unicode": "sha256:70e008c12bb8194fece4a9e95112b856aead64b816b81a80687ededb13b23f4e"
+  },
+  "surface": "canonical"
+}

@@ -1,0 +1,18 @@
+{
+  "case_id": "remove-with-explicit-loss",
+  "operation": "remove-sdl-declaration/v1",
+  "source_contract": "sdl-authoring-input/v1",
+  "source_path": "artifact-transformations-v1/sources/references.sdl.yaml",
+  "request": {
+    "target_address": "nodes.peer"
+  },
+  "policy": {
+    "allowed_loss_kinds": [
+      "declaration-removed"
+    ]
+  },
+  "expected": {
+    "status": "success",
+    "identity_map": []
+  }
+}

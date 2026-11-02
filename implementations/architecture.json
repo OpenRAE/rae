@@ -16,7 +16,16 @@
       "dir": "implementations/go/internal/base",
       "doc": "Shared primitives: canonical JSON, digests, random streams, input limits, errors, logging, and the clock.",
       "uses": [],
-      "external": []
+      "external": [
+        {
+          "path": "github.com/gowebpki/jcs",
+          "reason": "The RFC 8785 canonicalizer, packaged from the reference implementation of the RFC author."
+        },
+        {
+          "path": "github.com/zeebo/blake3",
+          "reason": "BLAKE3 key derivation and keyed extendable output with a correct seek, for the published random-stream profiles."
+        }
+      ]
     },
     {
       "name": "contract",
@@ -126,7 +135,9 @@
       "name": "parity",
       "dir": "implementations/go/internal/parity",
       "doc": "The checker of the Go implementation against the golden corpus that the Python implementation recorded (issue #1778).",
-      "uses": [],
+      "uses": [
+        "base"
+      ],
       "external": [
         {
           "path": "github.com/google/go-cmp/cmp",
@@ -165,11 +176,36 @@
   ],
   "packages": [
     {
+      "dir": "implementations/go/internal/base/canonjson",
+      "layer": "base",
+      "public": true,
+      "doc": "The RFC 8785 form and the sorted json.dumps form of JSON values.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/base/digest",
+      "layer": "base",
+      "public": true,
+      "doc": "Rendered SHA-256 digests.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/base/randstream",
+      "layer": "base",
+      "public": true,
+      "doc": "The blake3-xof-v1 and blake3-xof-participant-v1 random-stream profiles.",
+      "imports": []
+    },
+    {
       "dir": "implementations/go/internal/parity",
       "layer": "parity",
       "public": false,
       "doc": "The golden corpus loader, the runner registry, and the corpus test.",
-      "imports": []
+      "imports": [
+        "implementations/go/internal/base/canonjson",
+        "implementations/go/internal/base/digest",
+        "implementations/go/internal/base/randstream"
+      ]
     },
     {
       "dir": "implementations/tooling/go/arch",

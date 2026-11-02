@@ -1,0 +1,33 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "bounded-integer-exhaustion",
+  "description": "bounded-integer transform, range [0, 199] (width 200, one-byte limit = 200), with a deliberately tiny max_rejection_attempts=2 budget: both attempts' raw bytes fall in the rejected [200,255] band, so the draw is deterministically exhausted with no accepted value. Independently computed via the blake3 library directly (not the reference engine), by searching local_coordinate values for two consecutive rejecting bytes.",
+  "profile_id": "blake3-xof-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "stream_key_hex": "f3d133b83db4c97454bd75188af34ea0617285a0e77c8693b52884addf97838d",
+  "address": {
+    "namespace": "study-namespace",
+    "trial_coordinate": {
+      "condition_id": "condition-e"
+    },
+    "selection_policy_id": "policy-e",
+    "variation_point_id": "point-e",
+    "draw_purpose": "observation-noise",
+    "local_coordinate": 0
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226f62736572766174696f6e2d6e6f697365222c226c6f63616c5f636f6f7264696e617465223a302c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d65222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d65227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d65227d",
+  "raw_block_hex": "ede867fc0ed9f3f1df4c503451aa6d5ba1d76805e0d42772394b53e47deb5a45",
+  "transform": {
+    "transform_id": "bounded-integer",
+    "transform_version": "1",
+    "minimum": 0,
+    "maximum": 199,
+    "max_rejection_attempts": 2,
+    "expected_rejection_attempts": 2,
+    "expected_rejection_exhausted": true
+  }
+}

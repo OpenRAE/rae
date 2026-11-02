@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "a6d640ab28fa290896404aea611c341975d306632827c1b8f9b19267a7c86606"
+  },
+  "name": "contracts/fixtures/control-plane/batch-execution-receipt-v1/invalid/unknown-field",
+  "result": {
+    "jcs": "sha256:48dcb4256318834aa457bc6a988ea2fdf1c4dd513960eb9471971cfdf895fa67",
+    "sorted_ascii": "sha256:48dcb4256318834aa457bc6a988ea2fdf1c4dd513960eb9471971cfdf895fa67",
+    "sorted_unicode": "sha256:48dcb4256318834aa457bc6a988ea2fdf1c4dd513960eb9471971cfdf895fa67"
+  },
+  "surface": "canonical"
+}

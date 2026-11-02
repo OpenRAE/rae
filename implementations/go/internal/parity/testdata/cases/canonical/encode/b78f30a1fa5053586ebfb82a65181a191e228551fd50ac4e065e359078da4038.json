@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "2538947cf9ed3f958f3bc4dc30bf925f99fc7181b7c35c3e8babcad341ed179b"
+  },
+  "name": "contracts/fixtures/control-plane/operation-receipt-v1/invalid/missing-id",
+  "result": {
+    "jcs": "sha256:0a374c1f7a145daa922e6bc0bbbed7c94226efbb46fad0f9537ebc5aa8bc55ae",
+    "sorted_ascii": "sha256:0a374c1f7a145daa922e6bc0bbbed7c94226efbb46fad0f9537ebc5aa8bc55ae",
+    "sorted_unicode": "sha256:0a374c1f7a145daa922e6bc0bbbed7c94226efbb46fad0f9537ebc5aa8bc55ae"
+  },
+  "surface": "canonical"
+}
