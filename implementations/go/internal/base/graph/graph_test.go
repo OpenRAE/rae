@@ -75,3 +75,29 @@ func TestEqualOrderingKeysUseNodeIdentity(t *testing.T) {
 		}
 	}
 }
+
+func TestCustomOrderingAcrossManyIndependentNodes(t *testing.T) {
+	input := map[string][]string{}
+	want := make([]string, 20)
+	for i := range want {
+		node := fmt.Sprintf("node-%02d", i)
+		input[node] = []string{}
+		want[len(want)-1-i] = node
+	}
+	for range 3 {
+		got, err := Order(input, func(a, b string) bool { return a > b })
+		if err != nil || !slices.Equal(got, want) {
+			t.Errorf("Order(reverse independent nodes) = %v, %v, want %v", got, err, want)
+		}
+	}
+}
+
+func TestOrderingAdapterPreservesStrictComparisonSigns(t *testing.T) {
+	for _, less := range []Less{func(a, b string) bool { return a > b }, func(string, string) bool { return false }} {
+		compare := comparator(less)
+		if compare("a", "a") != 0 || compare("a", "b") == 0 ||
+			(compare("a", "b") < 0) == (compare("b", "a") < 0) {
+			t.Error("ordering adapter broke equality or antisymmetry")
+		}
+	}
+}
