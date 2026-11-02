@@ -34,6 +34,8 @@ func TestFormsMatchThePythonReference(t *testing.T) {
 		{"{\"\ue000\": 1, \"😀\": 2}", "{\"😀\":2,\"\ue000\":1}", `{"\ue000":1,"\ud83d\ude00":2}`, "{\"\ue000\":1,\"😀\":2}"},
 		{`" ~\uffff"`, "\" ~\uffff\"", `" ~\uffff"`, "\" ~\uffff\""},
 		{`"\ud83d\ude00"`, `"😀"`, `"\ud83d\ude00"`, `"😀"`},
+		{`"\ud800\udc00"`, "\"\U00010000\"", `"\ud800\udc00"`, "\"\U00010000\""},
+		{`"\udbff\udfff"`, "\"\U0010ffff\"", `"\udbff\udfff"`, "\"\U0010ffff\""},
 	}
 	for _, test := range tests {
 		for _, form := range []struct {

@@ -183,9 +183,10 @@ func decodeUnit(raw []byte, start int) (r rune, end int) {
 	unit, _ := strconv.ParseUint(string(raw[start+1:start+5]), 16, 16)
 	r = rune(unit)
 	end = start + 4
-	if r < 0xd800 || r > 0xdbff || end+6 >= len(raw) || raw[end+1] != '\\' || raw[end+2] != 'u' {
+	if r < 0xd800 || r > 0xdbff || raw[end+1] != '\\' || raw[end+2] != 'u' {
 		return r, end
 	}
+	// Validated JSON guarantees that a following \u escape has four digits.
 	low, _ := strconv.ParseUint(string(raw[end+3:end+7]), 16, 16)
 	if pair := utf16.DecodeRune(r, rune(low)); pair != utf8.RuneError {
 		return pair, end + 6

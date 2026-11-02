@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from tools import parity_corpus as pc
 
 SCHEMA = {
@@ -199,12 +198,16 @@ def test_canonical_results_record_each_form_or_its_refusal() -> None:
 
 
 def test_ascii_surrogate_compatibility_is_recorded() -> None:
-    for text in (r'"\ud800"', r'"\udfff"', r'{"\ud800":1,"\ufffd":2}'):
+    for text in (
+        r'"\ud800"',
+        r'"\uDFFF"',
+        r'{"\ud800":1,"\ufffd":2,"\ud800":3,"😀":4,"\ue000":5}',
+    ):
         case = pc.Case("canonical", "encode", "surrogate", (), {"value.json": text.encode()})
         result = pc.run_canonical(case)
         expected = json.dumps(json.loads(text), sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
         assert result == {"jcs": None, "sorted_ascii": "sha256:" + pc.digest(expected), "sorted_unicode": None}
-        assert text in pc.CANONICAL_EDGE_TEXTS or text.startswith("{")
+        assert text in pc.CANONICAL_EDGE_TEXTS
 
 
 def test_manifest_binds_reference_recorder_and_environment(repo: Path) -> None:

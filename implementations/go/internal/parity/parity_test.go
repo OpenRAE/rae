@@ -115,8 +115,12 @@ func TestImplementedCommandsCannotBecomeSkipped(t *testing.T) {
 	if err := checkRunners(cases, runners(), false); err != nil {
 		t.Fatalf("checkRunners() error = %v, want nil", err)
 	}
-	if err := checkRunners(cases, map[string]Runner{}, false); err == nil {
-		t.Error("checkRunners(no runner) error = nil, want an error")
+	for _, key := range []string{"canonical encode", "randstream vector"} {
+		registered := runners()
+		delete(registered, key)
+		if err := checkRunners(cases, registered, false); err == nil {
+			t.Errorf("checkRunners(without %q) error = nil, want an error", key)
+		}
 	}
 	if err := checkRunners(map[string][]Case{}, runners(), false); err == nil {
 		t.Error("checkRunners(no cases) error = nil, want an error")
