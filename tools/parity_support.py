@@ -113,4 +113,12 @@ def deterministic_ids(seed: str) -> Iterator[None]:
                 if value is original:
                     patches.enter_context(patch.object(module, attribute, next_uuid))
         patches.enter_context(patch.object(uuid, "uuid4", next_uuid))
-        yield
+        try:
+            yield
+        finally:
+            # Lazy imports can retain a patched function after its context ends.
+            for name, module in tuple(sys.modules.items()):
+                if module is not None and name.startswith(("raes", "raes_")):
+                    for attribute, value in tuple(vars(module).items()):
+                        if value is next_uuid:
+                            setattr(module, attribute, original)

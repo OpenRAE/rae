@@ -41,6 +41,7 @@ class InputCollector:
         self.id_counts: dict[str, int] = {}
         self.key_counts: dict[str, int] = {}
         self.key_seeds: dict[bytes, str] = {}
+        self.aliases_to_restore: list[tuple[object, object]] = []
 
     def add(self, case: Case) -> None:
         if self.nodeid == "collection":
@@ -177,6 +178,12 @@ class InputCollector:
         from hypothesis import settings
 
         self.patches.undo()
+        for name, module in tuple(sys.modules.items()):
+            if module is not None and name.startswith(("raes", "raes_")):
+                for attribute, value in tuple(vars(module).items()):
+                    for replacement, original in self.aliases_to_restore:
+                        if value is replacement:
+                            setattr(module, attribute, original)
         settings.load_profile(self.previous_profile)
 
     def _install(self) -> None:
@@ -443,6 +450,12 @@ class InputCollector:
                         self.patches.setattr(module, attribute, analyze_scenario)
                     elif value is analyze_exploit_path_file:
                         self.patches.setattr(module, attribute, analyze_exploit)
+        self.aliases_to_restore = [
+            (parse, original_parse),
+            (fixture_uuid, original_uuid),
+            (analyze_scenario, analyze_scenario_file),
+            (analyze_exploit, analyze_exploit_path_file),
+        ]
         self.patches.setattr(BaseModel, "__init__", initialize)
         self.patches.setattr(Draft202012Validator, "iter_errors", iter_errors)
         self.patches.setattr(BaseModel, "model_validate", classmethod(validate))

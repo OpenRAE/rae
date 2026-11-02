@@ -141,9 +141,11 @@ def test_input_collector_leaves_invalid_host_paths_to_the_original_call(tmp_path
     assert collector.candidate_input(tmp_path / name) == (None, None)
 
 
-def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path) -> None:
+def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path, monkeypatch) -> None:
     import asyncio
     import logging
+    import sys
+    from types import ModuleType
 
     from hypothesis import settings
     from jsonschema import Draft202012Validator
@@ -159,7 +161,11 @@ def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path) ->
     root = logging.root
     handlers, level = root.handlers[:], root.level
     profile = settings.get_current_profile_name()
+    original_uuid = uuid.uuid4
     collector.install()
+    late_module = ModuleType("raes_parity_collector_lazy")
+    monkeypatch.setitem(sys.modules, late_module.__name__, late_module)
+    late_module.uuid4 = uuid.uuid4
     try:
         assert root.handlers == handlers
         assert root.level == level
@@ -190,6 +196,7 @@ def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path) ->
     finally:
         collector.close()
     assert settings.get_current_profile_name() == profile
+    assert late_module.uuid4 is original_uuid
 
 
 def test_regression_identity_binds_product_data_and_environment(tmp_path: Path, monkeypatch) -> None:
@@ -220,3 +227,16 @@ def test_regression_identity_binds_product_data_and_environment(tmp_path: Path, 
     assert len(identity["collector_sha256"]) == len(identity["environment_sha256"]) == 64
     (environment / "uv.lock").write_text("updated dependencies")
     assert regressions.source_identity(tmp_path)["environment_sha256"] != identity["environment_sha256"]
+
+
+def test_deterministic_ids_restore_aliases_created_by_lazy_imports(monkeypatch) -> None:
+    import sys
+    from types import ModuleType
+
+    module = ModuleType("raes_parity_lazy_fixture")
+    original_uuid = uuid.uuid4
+    with deterministic_ids("lazy-import"):
+        monkeypatch.setitem(sys.modules, module.__name__, module)
+        module.uuid4 = uuid.uuid4
+        assert module.uuid4 is not original_uuid
+    assert module.uuid4 is original_uuid
