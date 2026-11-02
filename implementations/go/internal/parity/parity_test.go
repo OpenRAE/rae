@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	manifest = `{"schema": "raes-parity-corpus/v1"}`
-	input    = "name: a\n"
-	caseName = "cases/cli/semantic-validate/examples/a.json"
+	manifest   = `{"schema": "raes-parity-corpus/v1", "reference":{"source_sha256":"` + testDigest + `","recorder_sha256":"` + testDigest + `","python":"cpython-314","unicode":"16.0.0"}}`
+	testDigest = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	input      = "name: a\n"
+	caseName   = "cases/cli/semantic-validate/examples/a.json"
 )
 
 // corpus returns a corpus with one case that reads input as input.yaml. The
@@ -59,9 +60,14 @@ func TestLoadRejectsAnInvalidCorpus(t *testing.T) {
 		"input that does not match its digest": corpus([]byte("changed")),
 	}
 	for name, content := range map[string]string{
-		"unknown schema":       `{"schema": "other/v1"}`,
-		"unknown field":        `{"schema": "raes-parity-corpus/v1", "x": 1}`,
-		"data after the value": manifest + " {}",
+		"missing reference":        `{"schema":"raes-parity-corpus/v1"}`,
+		"invalid reference digest": `{"schema":"raes-parity-corpus/v1","reference":{"source_sha256":"x","recorder_sha256":"y","python":"cpython-314","unicode":"16.0.0"}}`,
+		"short reference digest":   `{"schema":"raes-parity-corpus/v1","reference":{"source_sha256":"ab","recorder_sha256":"ab","python":"cpython-314","unicode":"16.0.0"}}`,
+		"missing Unicode identity": `{"schema":"raes-parity-corpus/v1","reference":{"source_sha256":"ab","recorder_sha256":"ab","python":"cpython-314"}}`,
+		"missing Python identity":  `{"schema":"raes-parity-corpus/v1","reference":{"unicode":"16.0.0"}}`,
+		"unknown schema":           `{"schema": "other/v1"}`,
+		"unknown field":            `{"schema": "raes-parity-corpus/v1", "x": 1}`,
+		"data after the value":     manifest + " {}",
 	} {
 		fsys := corpus([]byte(input))
 		fsys["manifest.json"] = &fstest.MapFile{Data: []byte(content)}

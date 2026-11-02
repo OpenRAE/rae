@@ -1,0 +1,18 @@
+{
+  "args": [],
+  "command": "ingress-exception",
+  "files": {
+    "request.json": "40371d22e525c6a1c3040cabd204847dccecd83f5288131a134f0cadca0d2bb3"
+  },
+  "name": "compatibility/broken-pair",
+  "result": {
+    "decision": "maintainer-1822-2026-11-02",
+    "go": {
+      "code": "invalid-json"
+    },
+    "reference": {
+      "sorted": "[\"\\ud83dA\"]"
+    }
+  },
+  "surface": "primitive"
+}

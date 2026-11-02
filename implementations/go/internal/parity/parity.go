@@ -54,13 +54,27 @@ type Runner func(ctx context.Context, c Case) (json.RawMessage, error)
 // unknown fields, and an input file whose content does not match its digest.
 func Load(fsys fs.FS) ([]Case, error) {
 	var manifest struct {
-		Schema string `json:"schema"`
+		Schema    string `json:"schema"`
+		Reference *struct {
+			Source   string `json:"source_sha256"`
+			Recorder string `json:"recorder_sha256"`
+			Python   string `json:"python"`
+			Unicode  string `json:"unicode"`
+		} `json:"reference"`
 	}
 	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
 		return nil, err
 	}
 	if manifest.Schema != Schema {
 		return nil, fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
+	}
+	if manifest.Reference == nil || manifest.Reference.Python == "" || manifest.Reference.Unicode == "" {
+		return nil, errors.New("manifest.json: missing reference identity")
+	}
+	for _, sum := range []string{manifest.Reference.Source, manifest.Reference.Recorder} {
+		if decoded, err := hex.DecodeString(sum); err != nil || len(decoded) != sha256.Size {
+			return nil, errors.New("manifest.json: invalid reference digest")
+		}
 	}
 	var cases []Case
 	err := fs.WalkDir(fsys, "cases", func(name string, entry fs.DirEntry, err error) error {

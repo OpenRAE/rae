@@ -1,0 +1,12 @@
+{
+  "args": [],
+  "command": "ingress",
+  "files": {
+    "request.json": "32d5e4f6ea3a3e6446d023a9e9be88395852be492c5cff6f6edaecdb972713b9"
+  },
+  "name": "encoding/utf-32/[\"é😀\"]",
+  "result": {
+    "sorted": "[\"\\u00e9\\ud83d\\ude00\"]"
+  },
+  "surface": "primitive"
+}

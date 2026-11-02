@@ -1,0 +1,12 @@
+{
+  "args": [],
+  "command": "ingress",
+  "files": {
+    "request.json": "c97c37e416da3a890e66c1c1fefa3f3bb08f479f6d4687fa6afd57002d5c0b53"
+  },
+  "name": "encoding/utf-16/{\"a\":1,\"a\":2}",
+  "result": {
+    "code": "duplicate-member"
+  },
+  "surface": "primitive"
+}

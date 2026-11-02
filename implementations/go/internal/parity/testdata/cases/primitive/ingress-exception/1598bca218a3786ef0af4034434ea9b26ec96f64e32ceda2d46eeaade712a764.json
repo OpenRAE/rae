@@ -1,0 +1,18 @@
+{
+  "args": [],
+  "command": "ingress-exception",
+  "files": {
+    "request.json": "5f47654fdb84ca32fae659aed08ad3abfde8bfe6818f28445b8b0d209f9d0a51"
+  },
+  "name": "compatibility/escaped-low",
+  "result": {
+    "decision": "maintainer-1822-2026-11-02",
+    "go": {
+      "code": "invalid-json"
+    },
+    "reference": {
+      "sorted": "[\"\\udc00\"]"
+    }
+  },
+  "surface": "primitive"
+}
