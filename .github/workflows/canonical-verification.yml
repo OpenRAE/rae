@@ -474,9 +474,9 @@ jobs:
           if-no-files-found: error
 
   # Prove the shards form a complete, disjoint partition of a fresh collection,
-  # then combine shard + integration coverage once and enforce the 90% floor. Runs
-  # only when both coverage producers succeed, so partial coverage is never
-  # reported.
+  # then combine shard, integration and recorder coverage once and enforce the
+  # 90% floor. Test producers must succeed and recorder data must be present;
+  # a corpus difference remains an independent gate failure.
   coverage-reduce:
     needs: [test-shard, integration, parity-corpus]
     # A corpus difference still fails the gate, but its completed recording can
@@ -874,7 +874,10 @@ jobs:
     needs: [coverage-reduce, go]
     runs-on: ubuntu-24.04
     if: >-
-      inputs.sonar-enabled
+      always() && !cancelled()
+      && needs.coverage-reduce.result == 'success'
+      && needs.go.result == 'success'
+      && inputs.sonar-enabled
       && ((github.event_name == 'push'
       && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
       || (github.event_name == 'pull_request'

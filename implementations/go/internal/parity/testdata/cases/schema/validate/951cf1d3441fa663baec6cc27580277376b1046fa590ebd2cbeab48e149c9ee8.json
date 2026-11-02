@@ -1,0 +1,14 @@
+{
+  "args": [
+    "runtime-snapshot-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:a59257151331c09713c1fd4895ffe361126ea74391f1b658c3d09b6dfc260486"
+  },
+  "name": "regression/83c1fdb1115ca43737757887226e4c477139c2440184d167925add96390d0859",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
