@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import statistics
 import subprocess
@@ -19,6 +20,24 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PACKAGES_ROOT = PROJECT_ROOT / "packages"
 _FAST_PATH_CPU_BUDGET_SECONDS = 0.25
 _PROBE_SAMPLES = 5
+
+
+@pytest.fixture(autouse=True)
+def restore_root_logging():
+    """Remove the application handler that a delegated run installs on the root logger.
+
+    The handler writes to the stderr stream of the test that created it, so a
+    leaked handler would send later tests' records to a closed capture stream.
+    """
+
+    root = logging.getLogger()
+    handlers = list(root.handlers)
+    level = root.level
+    yield
+    for handler in list(root.handlers):
+        if handler not in handlers:
+            root.removeHandler(handler)
+    root.setLevel(level)
 
 
 @pytest.mark.parametrize("flag", ["--version", "-V"])
@@ -66,7 +85,7 @@ def test_every_non_exact_argument_shape_delegates_without_rewriting_argv(
     monkeypatch: pytest.MonkeyPatch,
     arguments: list[str],
 ) -> None:
-    delegated = Mock()
+    delegated = Mock(return_value=None)
     fake_main = types.ModuleType("raes_cli.main")
     fake_main.__dict__["app"] = delegated
     original_argv = ["raes", *arguments]

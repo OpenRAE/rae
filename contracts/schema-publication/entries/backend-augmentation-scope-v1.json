@@ -1,9 +1,9 @@
 {
-  "content_hash": "844b3ecfb3b8f9e68d6e8e5a141ec1769f88e11dd0c21d1dc3fa9cfb8e73b085",
+  "content_hash": "fa060c5cd8cd3214f6a5e35f10286621b0e8e6315a5957058451f5d33b76812f",
   "contract_id": "backend-augmentation-scope-v1",
   "last_change": {
-    "content_hash": "844b3ecfb3b8f9e68d6e8e5a141ec1769f88e11dd0c21d1dc3fa9cfb8e73b085",
-    "summary": "Publish bounded, execution-bound read-only prospective SDL effects and requirement/affected-scope references for admission before mutation (#1242)."
+    "content_hash": "fa060c5cd8cd3214f6a5e35f10286621b0e8e6315a5957058451f5d33b76812f",
+    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
   },
   "schema_path": "contracts/schemas/plans/backend-augmentation-scope-v1.json",
   "stability": "draft"

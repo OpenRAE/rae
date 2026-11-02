@@ -9,7 +9,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from paths import EXPERIMENTS_DIR, REPO_ROOT
 from raes_conformance.conformance import _validate_payload
-from raes_contracts.contracts import ExperimentSpecModel, schema_bundle
+from raes_contracts.contracts import ExperimentSpecModel
 from raes_contracts.experiment_spec import (
     ExperimentSpecValidationError,
     find_experiment_specs,
@@ -22,6 +22,7 @@ from raes_mcp.tools.experiment_authoring import (
     _run_experiment_scaffold,
     _run_experiment_validate,
 )
+from raes_schemas import schema_bundle
 
 _VALID_FIXTURE = (
     REPO_ROOT

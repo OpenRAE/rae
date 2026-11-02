@@ -12,8 +12,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 from tools.policy.common import (  # noqa: E402
     PolicyFailure,
@@ -112,7 +117,7 @@ def _load_historical_records(
             MANIFEST_PATH,
             max_bytes=MAX_MANIFEST_BYTES,
         )
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         return {}, {}, {}, [_manifest_failure(str(exc))]
 
     failures: list[PolicyFailure] = []
@@ -162,7 +167,8 @@ def _load_historical_records(
         if safe_repo_path(repo_root, path) is None:
             failures.append(PolicyFailure(RULE_MANIFEST_PATH, "historical path is unsafe", path))
             continue
-        if record_class not in RECORD_CLASSES:
+        # A class that is not text, such as an unhashable list, cannot be a member of the set.
+        if not isinstance(record_class, str) or record_class not in RECORD_CLASSES:
             failures.append(
                 _manifest_failure(f"records[{index}].record_class must be one of {sorted(RECORD_CLASSES)!r}")
             )
@@ -215,7 +221,7 @@ def _load_historical_records(
         if safe_repo_path(repo_root, path) is None:
             failures.append(PolicyFailure(RULE_MANIFEST_PATH, "operational binding path is unsafe", path))
             continue
-        if binding_class not in OPERATIONAL_BINDING_CLASSES:
+        if not isinstance(binding_class, str) or binding_class not in OPERATIONAL_BINDING_CLASSES:
             failures.append(
                 _manifest_failure(
                     f"operational_bindings[{index}].binding_class must be one of "
@@ -275,7 +281,7 @@ def _load_historical_records(
         if safe_repo_path(repo_root, path) is None:
             failures.append(PolicyFailure(RULE_MANIFEST_PATH, "generated history path is unsafe", path))
             continue
-        if record_class not in GENERATED_HISTORY_CLASSES:
+        if not isinstance(record_class, str) or record_class not in GENERATED_HISTORY_CLASSES:
             failures.append(
                 _manifest_failure(
                     f"generated_history_records[{index}].record_class must be one of "
@@ -522,4 +528,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

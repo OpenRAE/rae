@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from raes.explicitness import ExplicitnessClass
+from raes_contracts.explicitness import ExplicitnessClass
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import RealizationAuthorityMode
 from raes_contracts.vocabulary import Closure
 
@@ -35,7 +36,7 @@ def _concern_pointer(concern: object) -> str:
     """Name the authored pointer one registered concern lowers from."""
 
     descriptor = concern.descriptor
-    declaration = concern.declaration_name.replace("~", "~0").replace("/", "~1")
+    declaration = escape_token(concern.declaration_name)
     return f"/{descriptor.section}/{declaration}/{'/'.join(descriptor.authored_path)}"
 
 

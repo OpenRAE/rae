@@ -1,6 +1,7 @@
 """Fresh evaluation preserves the interaction's compiled context and authority."""
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.planning import PlanScope
 from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
 from raes_contracts.vocabulary import Closure
@@ -26,9 +27,9 @@ class RuntimeInteractionEvaluationMixin:
         """
         execution = execution_plan or self._interaction_plan
         if execution is None or not execution.is_valid:
-            raise ValueError("evaluation requires a valid composite execution plan")
+            raise ConflictError("evaluation requires a valid composite execution plan")
         if execution.target_name != self._target.name or execution.manifest != self._target.manifest:
-            raise ValueError("evaluation plan does not match the runtime target")
+            raise ConflictError("evaluation plan does not match the runtime target")
         # Bind the logical request to its immutable original planning input.
         # Current state controls the command only after durable replay resolution.
         original = self._plan_evaluation_refresh(execution, execution.base_snapshot)
@@ -45,7 +46,7 @@ class RuntimeInteractionEvaluationMixin:
     def _plan_evaluation_refresh(self, execution: ExecutionPlan, snapshot: RuntimeSnapshot) -> ExecutionPlan:
         context = execution.planning_context
         if context is None:
-            raise ValueError("evaluation requires its original planning context")
+            raise InvalidInputError("evaluation requires its original planning context")
 
         def apparatus_default(requirement: CompiledRealizationRequirement, _manifest: BackendManifest) -> Closure:
             key = (requirement.address, requirement.field_path, requirement.requirement_kind)
@@ -72,5 +73,5 @@ class RuntimeInteractionEvaluationMixin:
             refresh_evaluation=True,
         )
         if not refreshed.is_valid:
-            raise ValueError("evaluation refresh could not be planned")
+            raise ConflictError("evaluation refresh could not be planned")
         return refreshed

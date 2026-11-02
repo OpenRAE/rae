@@ -230,6 +230,8 @@ The model that owns the semantics thus keeps target authorization.
 For node and runtime inventory targets, see the
 [issue #1625 preflight](../../decisions/issue-1625-structural-variation-preflight.md).
 It covers deployment ownership, stable IDs, write conflicts and shared checks.
+For declaration presence and resource consumer targets, see the
+[issue #1733 preflight](../../decisions/issue-1733-dependent-declaration-variation-preflight.md).
 The supported slots are defined in `specs/sdl/variation-points.md`.
 
 Implementations reuse or extract ADR-070's `DomainDescriptor` primitives when their value semantics fit.

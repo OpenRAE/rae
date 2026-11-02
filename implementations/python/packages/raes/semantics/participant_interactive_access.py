@@ -12,10 +12,14 @@ from ._domain_topology_types import resolve_section_ref
 
 @dataclass(frozen=True)
 class ParticipantInteractiveAccessIssue:
-    """One fail-closed authored interactive-access invariant violation."""
+    """One fail-closed authored interactive-access invariant violation.
+
+    ``owner`` is the ``(section, name)`` pair of the declaration that the message names first.
+    """
 
     code: str
     message: str
+    owner: tuple[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -60,6 +64,7 @@ def _starting_account_context(
 def _analyze_target(
     *,
     label: str,
+    owner: tuple[str, str],
     target_ref: object,
     nodes: Mapping[str, object],
     is_vm_node: Callable[[str], bool],
@@ -75,11 +80,13 @@ def _analyze_target(
         issue = ParticipantInteractiveAccessIssue(
             code="participant.interactive-access-target-unbound",
             message=f"{label} target_ref '{target_ref}' does not reference a declared compute node",
+            owner=owner,
         )
     elif not is_vm_node(target_name):
         issue = ParticipantInteractiveAccessIssue(
             code="participant.interactive-access-target-not-vm",
             message=f"{label} target_ref '{target_ref}' must reference a compute node",
+            owner=owner,
         )
     return target_name, () if issue is None else (issue,)
 
@@ -99,6 +106,7 @@ def _resolved_account_node(
 def _analyze_account(
     *,
     label: str,
+    owner: tuple[str, str],
     access: object,
     target_name: str | None,
     context: _ParticipantAccountContext,
@@ -116,6 +124,7 @@ def _analyze_account(
             ParticipantInteractiveAccessIssue(
                 code="participant.interactive-access-account-unbound",
                 message=f"{label} account_ref '{account_ref}' does not reference a declared account",
+                owner=owner,
             )
         )
         return tuple(issues)
@@ -132,6 +141,7 @@ def _analyze_account(
                 message=(
                     f"{label} account_ref '{account_ref}' belongs to node '{account_node}', not target '{target_name}'"
                 ),
+                owner=owner,
             )
         )
     if account_name not in context.starting_accounts and not context.unresolved_starting_ref:
@@ -139,6 +149,7 @@ def _analyze_account(
             ParticipantInteractiveAccessIssue(
                 code="participant.interactive-access-account-not-starting",
                 message=f"{label} account_ref '{account_ref}' is not in starting_accounts",
+                owner=owner,
             )
         )
     return tuple(issues)
@@ -147,6 +158,7 @@ def _analyze_account(
 def _duplicate_endpoint_issue(
     *,
     label: str,
+    owner: tuple[str, str],
     access_id: str,
     target_name: str | None,
     channel: str | None,
@@ -168,6 +180,7 @@ def _duplicate_endpoint_issue(
             f"{label} duplicates interactive_access target/channel "
             f"'{target_name}'/'{channel}' declared by '{first_access_id}'"
         ),
+        owner=owner,
     )
 
 
@@ -196,10 +209,12 @@ def analyze_participant_interactive_access(
             unresolved_starting_ref=unresolved_starting_ref,
             is_unresolved=is_unresolved,
         )
+        owner = ("agents", participant_name)
         for access_id, access in getattr(agent, "interactive_access", {}).items():
             label = f"Agent '{participant_name}' interactive_access '{access_id}'"
             target_name, target_issues = _analyze_target(
                 label=label,
+                owner=owner,
                 target_ref=getattr(access, "target_ref", ""),
                 nodes=nodes,
                 is_vm_node=is_vm_node,
@@ -209,6 +224,7 @@ def analyze_participant_interactive_access(
             issues.extend(
                 _analyze_account(
                     label=label,
+                    owner=owner,
                     access=access,
                     target_name=target_name,
                     context=account_context,
@@ -217,6 +233,7 @@ def analyze_participant_interactive_access(
             channel = _concrete_channel(getattr(access, "channel", None), is_unresolved=is_unresolved)
             duplicate_issue = _duplicate_endpoint_issue(
                 label=label,
+                owner=owner,
                 access_id=access_id,
                 target_name=target_name,
                 channel=channel,

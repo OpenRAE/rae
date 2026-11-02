@@ -32,8 +32,9 @@ from raes_conformance.necessity_validation import (
     NecessityWorldRef,
     compare_bounded_but_for,
 )
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts import (
-    BehavioralClaimBindingModel,
     ExperimentCaptureSpecModel,
     ExperimentEvidenceRecordModel,
     ExperimentRunEvidenceInputs,
@@ -41,7 +42,6 @@ from raes_contracts.contracts import (
     ExperimentTaskModel,
     PropositionTruthResultModel,
 )
-from raes_contracts.satisfiability import canonical_contract_digest
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DIGEST_A = "sha256:" + "a" * 64

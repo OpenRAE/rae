@@ -120,8 +120,9 @@ def _permission_failures(
     merged_issue_boundary: bool = False,
 ) -> list[PolicyFailure]:
     failures = []
+    # Tuple membership compares without hashing, so a level that is a list or a mapping is not scoped.
     if not isinstance(permissions, Mapping) or any(
-        level not in {"read", "write", "none"} for level in as_mapping(permissions).values()
+        level not in ("read", "write", "none") for level in as_mapping(permissions).values()
     ):
         failures.append(
             failure(
@@ -213,7 +214,9 @@ def action_failures(
     workflows, failures = workflow_documents(repo_root, tracked_paths)
     for path, workflow in workflows.items():
         triggers = workflow.get("on", workflow.get(True, {}))
-        events = set(triggers) if isinstance(triggers, (Mapping, list)) else {triggers}
+        # Only event names decide the boundary; an entry that is a list, a set or a mapping names no event.
+        trigger_names = triggers if isinstance(triggers, (Mapping, list)) else [triggers]
+        events = {name for name in trigger_names if isinstance(name, str)}
         untrusted = bool(events & {"pull_request", "pull_request_target", "workflow_call"})
         if not isinstance(workflow.get("permissions"), Mapping):
             failures.append(

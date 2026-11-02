@@ -3,7 +3,7 @@
 import pytest
 from raes import instantiate_scenario, parse_sdl
 from raes_contracts.contracts import ProvisioningPlanModel
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_runtime.control_plane_api_models import _provisioning_plan

@@ -21418,7 +21418,7 @@
     },
     "RuntimeForwardingSource": {
       "additionalProperties": false,
-      "description": "An observed forwarder input source (tailed path, API pull, or queue).",
+      "description": "An observed forwarder input source (tailed path, API pull, queue, or listening socket).",
       "properties": {
         "description": {
           "default": "",
@@ -21437,7 +21437,7 @@
               "not": {
                 "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
               },
-              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
+              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[sS][oO][cC][kK][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -21505,6 +21505,7 @@
         "tailed_path",
         "api_pull",
         "queue",
+        "socket",
         "unknown",
         "other"
       ],
@@ -21823,6 +21824,70 @@
         }
       },
       "title": "RuntimeIdentityAttribute",
+      "type": "object"
+    },
+    "RuntimeIdentityAuditLog": {
+      "additionalProperties": false,
+      "description": "Required native recording for one service and log type on a scope.",
+      "properties": {
+        "audit_log_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "exempted_principal_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Exempted Principal Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "log_type": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Log Type",
+          "type": "string"
+        },
+        "service": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_log_id",
+        "service",
+        "log_type"
+      ],
+      "title": "RuntimeIdentityAuditLog",
       "type": "object"
     },
     "RuntimeIdentityAuthority": {
@@ -22537,6 +22602,14 @@
       "additionalProperties": false,
       "description": "A provider-qualified ownership scope, independent of node placement.",
       "properties": {
+        "audit_logs": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityAuditLog"
+          },
+          "maxItems": 1024,
+          "title": "Audit Logs",
+          "type": "array"
+        },
         "description": {
           "default": "",
           "not": {
@@ -22618,7 +22691,21 @@
         "scope_kind"
       ],
       "title": "RuntimeIdentityResourceScope",
-      "type": "object"
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Audit log IDs and native service/log-type pairs must each be unique within their resource scope.",
+          "id": "cloud-audit-scope-uniqueness",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
     },
     "RuntimeIdentitySubject": {
       "additionalProperties": false,
@@ -28583,6 +28670,152 @@
       "title": "RuntimeSecretConsumer",
       "type": "object"
     },
+    "RuntimeSecretReplica": {
+      "additionalProperties": false,
+      "description": "One GCP Secret Manager replica with optional native encryption key identity.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "location": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^\\S+$",
+          "title": "Location",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location"
+      ],
+      "title": "RuntimeSecretReplica",
+      "type": "object"
+    },
+    "RuntimeSecretReplication": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "automatic"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replicas": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "user-managed"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kms_key_name": {
+                "type": "null"
+              },
+              "replicas": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "replicas"
+            ]
+          }
+        }
+      ],
+      "description": "Provider-qualified replication intent; never inferred from missing locations.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "mode": {
+          "enum": [
+            "automatic",
+            "user-managed"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "provider": {
+          "const": "gcp-secret-manager",
+          "title": "Provider",
+          "type": "string"
+        },
+        "replicas": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretReplica"
+          },
+          "maxItems": 1024,
+          "title": "Replicas",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider",
+        "mode"
+      ],
+      "title": "RuntimeSecretReplication",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replica locations must be unique and encryption keys must match their location; automatic encryption requires global. Typed replication excludes legacy placement fields.",
+          "id": "secret-replication-location-agreement",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
+    },
     "RuntimeSecretSelector": {
       "additionalProperties": false,
       "description": "Inert provider selector identity, kept separate from its resolution.",
@@ -30423,6 +30656,33 @@
     },
     "RuntimeServiceSecret": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "replication": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "replication"
+            ]
+          },
+          "then": {
+            "properties": {
+              "encryption_key_ref": {
+                "const": ""
+              },
+              "location": {
+                "const": ""
+              },
+              "replica_locations": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
       "description": "A service-owned secret resource; payload bytes belong to content.",
       "properties": {
         "consumers": {
@@ -30483,6 +30743,17 @@
           },
           "title": "Replica Locations",
           "type": "array"
+        },
+        "replication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSecretReplication"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "reset_owner_ref": {
           "default": "",

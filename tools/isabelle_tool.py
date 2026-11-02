@@ -9,16 +9,23 @@ import resource
 import subprocess
 import sys
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import OperationalError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 from tools import isabelle_sandbox  # noqa: E402
 from tools.tool_versions import ISABELLE_VERSION  # noqa: E402
+from tools.verified_tool_installation import ToolInstallationError  # noqa: E402
 
 if TYPE_CHECKING:
     from tools.tooling_policy_gate import LockedArtifactSelection
@@ -56,7 +63,7 @@ PROOF_PREREQUISITE_IDS = (
 )
 
 
-class IsabelleToolError(RuntimeError):
+class IsabelleToolError(OperationalError):
     """A bounded operational failure from the pinned proof tool."""
 
 
@@ -133,6 +140,7 @@ def acquire_isabelle(
     from tools import verified_tree_installation as tree_installation
     from tools.maintained_client_acquisition import (
         LARGE_OBJECT_TRANSFER_BUDGET,
+        ArtifactAcquisitionError,
         acquire_locked_file,
     )
 
@@ -165,9 +173,9 @@ def acquire_isabelle(
             legacy=legacy,
             installation_root=installation_root,
         )
-    except IsabelleToolError:
-        raise
-    except RuntimeError as exc:
+    except (ArtifactAcquisitionError, ToolInstallationError) as exc:
+        # Both families carry one fixed, value-free reason; the cause chain can
+        # name filesystem details, so it stays out of the tool error.
         raise IsabelleToolError(str(exc)) from None
     return tree / ISABELLE_DISTRIBUTION_ROOT
 
@@ -181,11 +189,9 @@ def require_isabelle(repo_root: Path = REPO_ROOT, *, installation_root: Path | N
     _require_supported_platform()
     try:
         tree = tree_installation.require_verified_tree_installation(
-            repo_root,
-            selection,
-            installation_root=installation_root,
+            repo_root, selection, installation_root=installation_root
         )
-    except RuntimeError as exc:
+    except ToolInstallationError as exc:
         if str(exc) == "tool-installation: installation-missing":
             raise IsabelleToolError("pinned Isabelle is not acquired; run the acquire command first") from None
         raise IsabelleToolError(f"pinned Isabelle installation is invalid ({exc})") from None
@@ -200,7 +206,7 @@ def describe_isabelle_tree(local_input: Path) -> dict[str, object]:
     selection = _load_selection(require_installed_tree=False)
     try:
         return tree_installation.describe_archive_tree(local_input, selection.raw_manifest[0])
-    except RuntimeError as exc:
+    except ToolInstallationError as exc:
         raise IsabelleToolError(str(exc)) from None
 
 
@@ -217,8 +223,11 @@ def _proof_process_limits() -> None:
 
 
 def _read_bounded_output(path: Path) -> str:
-    with path.open("rb") as stream:
-        payload = stream.read(ISABELLE_OUTPUT_LIMIT_BYTES + 1)
+    try:
+        with path.open("rb") as stream:
+            payload = stream.read(ISABELLE_OUTPUT_LIMIT_BYTES + 1)
+    except OSError as exc:
+        raise IsabelleToolError("Isabelle build output could not be read") from exc
     if len(payload) > ISABELLE_OUTPUT_LIMIT_BYTES:
         raise IsabelleToolError("Isabelle build output exceeded the verification bound")
     return payload.decode("utf-8", errors="replace")
@@ -362,6 +371,38 @@ def _require_bubblewrap(bwrap: Path = ISABELLE_BUBBLEWRAP_PATH) -> Path:
     return bwrap
 
 
+@contextmanager
+def _private_proof_state() -> Iterator[Path]:
+    """Hold the private proof state directory; a host failure is a proof tool failure."""
+
+    try:
+        stage = tempfile.TemporaryDirectory(prefix="isabelle-proof-")
+    except OSError as exc:
+        raise IsabelleToolError("the private proof state could not be prepared") from exc
+    try:
+        yield Path(stage.name).resolve()
+    finally:
+        try:
+            stage.cleanup()
+        except OSError as exc:
+            raise IsabelleToolError("the private proof state could not be removed") from exc
+
+
+def _prepare_proof_state(state_root: Path) -> None:
+    isabelle_user = state_root / "isabelle-user"
+    try:
+        (state_root / "user").mkdir()
+        isabelle_user.mkdir()
+        (isabelle_user / "etc").mkdir()
+        (isabelle_user / "etc" / "settings").write_text(
+            f'ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms256m -Xmx{ISABELLE_JAVA_MAX_HEAP_MIB}m -Xss8m"\n'
+            f'ML_OPTIONS="--minheap 256 --maxheap {ISABELLE_ML_MAX_HEAP_MIB}"\n',
+            encoding="ascii",
+        )
+    except OSError as exc:
+        raise IsabelleToolError("the private proof state could not be prepared") from exc
+
+
 def run_isabelle_build(repo_root: Path = REPO_ROOT, *, bwrap: Path = ISABELLE_BUBBLEWRAP_PATH) -> dict[str, object]:
     """Kernel-check the fixed session in a network-isolated, bounded process."""
 
@@ -376,19 +417,9 @@ def run_isabelle_build(repo_root: Path = REPO_ROOT, *, bwrap: Path = ISABELLE_BU
     if not session_root.is_dir() or repo_root.resolve() not in session_root.parents:
         raise IsabelleToolError("the fixed Isabelle session root is unavailable")
 
-    with tempfile.TemporaryDirectory(prefix="isabelle-proof-") as temporary:
-        state_root = Path(temporary).resolve()
+    with _private_proof_state() as state_root:
         output_path = state_root / "build-output.log"
-        user_home = state_root / "user"
-        isabelle_user = state_root / "isabelle-user"
-        user_home.mkdir()
-        isabelle_user.mkdir()
-        (isabelle_user / "etc").mkdir()
-        (isabelle_user / "etc" / "settings").write_text(
-            f'ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms256m -Xmx{ISABELLE_JAVA_MAX_HEAP_MIB}m -Xss8m"\n'
-            f'ML_OPTIONS="--minheap 256 --maxheap {ISABELLE_ML_MAX_HEAP_MIB}"\n',
-            encoding="ascii",
-        )
+        _prepare_proof_state(state_root)
         command = _proof_sandbox_command(
             bwrap=bwrap,
             home=home,
@@ -411,6 +442,9 @@ def run_isabelle_build(repo_root: Path = REPO_ROOT, *, bwrap: Path = ISABELLE_BU
                 )
         except subprocess.TimeoutExpired as exc:
             raise IsabelleToolError("Isabelle proof replay exceeded its wall-time bound") from exc
+        except (OSError, subprocess.SubprocessError) as exc:
+            # The host could not start the sandbox or apply the process limits before the prover ran.
+            raise IsabelleToolError("the offline proof sandbox could not start") from exc
         output = _read_bounded_output(output_path)
         if completed.returncode != 0:
             if _bubblewrap_setup_failed(output):
@@ -428,18 +462,11 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Acquire or replay the pinned participant-opacity proof tool.")
     commands = parser.add_subparsers(dest="command", required=True)
     acquire = commands.add_parser("acquire", help="admit the pinned distribution into a verified private tree")
-    acquire.add_argument(
-        "--local-input",
-        type=Path,
-        help="explicit pre-seeded archive admitted by exact identity",
-    )
+    acquire.add_argument("--local-input", type=Path, help="explicit pre-seeded archive admitted by exact identity")
     acquire.add_argument("--locator-ref", help="approved same-byte locator selected for this invocation")
     describe = commands.add_parser("describe-tree", help="print the reviewable installed-tree identity")
     describe.add_argument("--local-input", type=Path, required=True)
-    commands.add_parser(
-        "preflight",
-        help="list missing proof prerequisites without network or execution",
-    )
+    commands.add_parser("preflight", help="list missing proof prerequisites without network or execution")
     commands.add_parser("verify", help="kernel-check the fixed session offline")
     return parser.parse_args()
 
@@ -458,11 +485,12 @@ def main() -> int:
             return 0 if result["outcome"] == "passed" else 1
         else:
             print(json.dumps(run_isabelle_build(), ensure_ascii=False, sort_keys=True))
-    except RuntimeError as exc:
+    except OperationalError as exc:
+        # IsabelleToolError and the artifact policy gate's ArtifactPolicyError.
         print(f"isabelle-tool: {exc}", file=sys.stderr)
         return 1
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

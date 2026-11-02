@@ -4,8 +4,10 @@ from copy import deepcopy
 from dataclasses import replace
 
 import pytest
+from raes import SDLSelectionError
 from raes.canonical import canonical_sdl_digest
 from raes_contracts.contracts import AdmittedTrialPlanModel, seal_admitted_trial_entry, seal_admitted_trial_plan
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_processor.trial_compiler import compile_admitted_trial_plan
 from raes_processor.trial_realization import instantiate_admitted_trial_entry
 from test_issue_1625_structural_variation import _family
@@ -125,7 +127,7 @@ def test_resealed_changed_target_is_rejected_by_public_family_readmission():
     )
     typed.treatment = changed
     altered = _reseal(plan, entry, selections=selections)
-    with pytest.raises(ValueError, match="selection treatment"):
+    with pytest.raises(SDLSelectionError, match="selection treatment"):
         instantiate_admitted_trial_entry(plan=altered, plan_entry_id=entry.plan_entry_id, family=request.family)
 
 
@@ -144,7 +146,7 @@ def test_source_aware_readmission_rejects_self_consistent_omission():
     ]
     altered = _reseal(plan, entry, selections=selections)
     AdmittedTrialPlanModel.model_validate_json(altered.model_dump_json())
-    with pytest.raises(ValueError, match="original compilation inputs"):
+    with pytest.raises(EvidenceIntegrityError, match="original compilation inputs"):
         readmit_admitted_trial_plan(altered, request=request)
 
 

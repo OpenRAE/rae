@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_resource_limits import process_resource_limit_identity_digest
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.bounded_domains import EnumDomain, scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
+from raes_contracts.json_pointer import array_index, pointer_from_tokens, pointer_tokens
 from raes_contracts.planning import (
     ChangeAction,
     ProvisioningPlan,
@@ -36,11 +37,6 @@ from ..semantics.realization_node_defaults import defaulted_node_payload
 from ..semantics.realization_runtime_evaluation import evaluate_registered_realization
 from .realization_authority_materialization import materialize_realization_authority
 from .realization_constraint_views import planned_constraint_admission, planned_constraint_disclosure
-
-
-def _payload_pointer(path: tuple[str, ...]) -> str:
-    return "/" + "/".join(token.replace("~", "~0").replace("/", "~1") for token in path)
-
 
 _MISSING = object()
 
@@ -75,12 +71,12 @@ def _expected_realization_authority(plan: ProvisioningPlan) -> dict[tuple[str, s
             continue
         for descriptor in realization_concern_descriptors():
             if _applicable_descriptor(operation, descriptor):
-                expected[(operation.address, descriptor.concern_kind)] = _payload_pointer(descriptor.payload_path)
+                expected[(operation.address, descriptor.concern_kind)] = pointer_from_tokens(descriptor.payload_path)
         for concern_kind in processor_derived_provisioning_concern_kinds(
             operation.resource_type,
             operation.payload,
         ):
-            expected[(operation.address, concern_kind)] = _payload_pointer(CONCERN_PAYLOAD_PATH[concern_kind])
+            expected[(operation.address, concern_kind)] = pointer_from_tokens(CONCERN_PAYLOAD_PATH[concern_kind])
     return expected
 
 
@@ -92,7 +88,7 @@ def _authority_payload_pointer_diagnostic(
     for identity, pointer in expected.items():
         entry = planned_realization_authority(plan, *identity)
         if entry is None:
-            raise AssertionError("realization authority identity disappeared after completeness validation")
+            raise RuntimeError("realization authority identity disappeared after completeness validation")
         if entry.payload_pointer != pointer:
             diagnostic = Diagnostic(
                 code="realization.authority-payload-pointer-invalid",
@@ -161,7 +157,7 @@ def _manifest_authority_diagnostic(
     else:
         try:
             requirements = plan_realization_requirements(plan)
-        except TypeError, ValueError:
+        except ValueError:
             diagnostic = _invalid_runtime_view_diagnostic(plan)
         else:
             support_diagnostics = [
@@ -196,14 +192,15 @@ def _recursive_binding_diagnostic(plan: ProvisioningPlan) -> Diagnostic | None:
         if authority.constraint_document is None:
             continue
         operation = operations.get(authority.address)
+        selected = _pointer_value(getattr(operation, "payload", None), authority.payload_pointer)
         try:
-            selected = _pointer_value(getattr(operation, "payload", None), authority.payload_pointer)
+            # The projection and binding owners refuse a malformed submitted value (E3).
             projected = project_realization_concern(authority.requirement_kind, selected, recursive=True)
             binding = realization_constraint_binding(authority.constraint_document, projected)
             valid = binding == authority.constraint_binding
             if valid and authority.mode is not RealizationAuthorityMode.OPEN:
                 valid = evaluate_realization_constraint(authority.constraint_document, projected).conformant
-        except TypeError, ValueError, AttributeError:
+        except TypeError, ValueError:
             valid = False
         if not valid:
             return Diagnostic(
@@ -343,12 +340,11 @@ def _closed_materialization_diagnostic(
 
 def _pointer_value(value: object, pointer: str) -> object:
     current = value
-    for raw_token in pointer.split("/")[1:]:
-        token = raw_token.replace("~1", "/").replace("~0", "~")
+    for token in pointer_tokens(pointer):
         if isinstance(current, dict) and token in current:
             current = current[token]
-        elif isinstance(current, list) and token.isdigit() and int(token) < len(current):
-            current = current[int(token)]
+        elif isinstance(current, list) and (index := array_index(token, len(current))) is not None:
+            current = current[index]
         else:
             return _MISSING
     return current
@@ -379,7 +375,7 @@ def _bound_value(value: object, bound: RealizationAuthorityBound) -> object:
 def _safe_process_limit_identity(value: object) -> str | None:
     try:
         return process_resource_limit_identity_digest(value)
-    except TypeError, ValueError:
+    except ValueError:
         return None
 
 
@@ -395,7 +391,7 @@ def _constraint_diagnostic(
     if realized is not _MISSING:
         try:
             projection = project_realization_concern(authority.requirement_kind, realized, observed=True)
-        except TypeError, ValueError:
+        except ValueError:
             diagnostic = _runtime_authority_diagnostic(authority)
         else:
             outside_bounds = any(
@@ -450,7 +446,7 @@ def realization_authority_disclosure(
             for authority in declared_plan.realization_authority
             if authority.mode is not RealizationAuthorityMode.CLOSED
         }
-    except TypeError, ValueError:
+    except ValueError:
         return [_invalid_runtime_view_diagnostic(declared_plan)], ()
     diagnostics: list[Diagnostic] = []
     provenance: list[RealizationProvenanceEntry] = []

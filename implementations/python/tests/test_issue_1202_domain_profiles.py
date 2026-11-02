@@ -11,7 +11,6 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.domain_profiles import (
     SAFE_DOMAIN_PROFILE_SCHEMA_KEYWORDS,
     AdmittedDomainProfileDefinitionModel,
@@ -38,6 +37,8 @@ from raes_contracts.domain_profiles import (
     resolve_domain_profile_definition,
     seal_domain_profile_definition,
 )
+from raes_contracts.json_ingress import StrictJsonIngressError
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _PUBLISHED_DOMAIN_PROFILE_FIXTURES = (
@@ -726,7 +727,7 @@ def test_duplicate_json_members_and_executable_handler_fields_are_rejected() -> 
         '"value": {"name": "one", "name": "two"}',
     )
 
-    with pytest.raises(ValueError, match="duplicate JSON member"):
+    with pytest.raises(StrictJsonIngressError, match="duplicate JSON member"):
         parse_domain_profile_binding(encoded)
     support_payload = {
         **_support(definition, DomainProfileOperation.EXECUTION).model_dump(mode="json"),

@@ -17,8 +17,9 @@ from raes_contracts.evaluation import (
 from raes_contracts.immutable_history import EventHistory, HistoryMap
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
+from raes_contracts.timestamps import parse_timestamp_assuming_utc
 
-from .diagnostics import _failure_diagnostic, _parse_timestamp
+from .diagnostics import _failure_diagnostic
 
 _BACKEND_CONTRACT_INVALID = "runtime.backend-contract-invalid"
 _EVALUATION_RESULTS_ADDRESS = "runtime.apply.evaluation-results"
@@ -218,8 +219,9 @@ def _compiled_result_contract(
     diagnostics: list[Diagnostic] = []
     try:
         contract = EvaluationResultContract.from_mapping(payload)
-    except (TypeError, ValueError) as exc:
-        diagnostics.append(_contract_diagnostic(evaluation_address, f"Evaluation result_contract is invalid: {exc}"))
+    except TypeError, ValueError:
+        # The validator text can echo backend values; the diagnostic stays value-free (E7).
+        diagnostics.append(_contract_diagnostic(evaluation_address, "Evaluation result_contract is invalid."))
     return contract, diagnostics
 
 
@@ -231,8 +233,8 @@ def _compiled_execution_contract(
     diagnostics: list[Diagnostic] = []
     try:
         contract = EvaluationExecutionContract.from_mapping(payload)
-    except (TypeError, ValueError) as exc:
-        diagnostics.append(_contract_diagnostic(evaluation_address, f"Evaluation execution_contract is invalid: {exc}"))
+    except TypeError, ValueError:
+        diagnostics.append(_contract_diagnostic(evaluation_address, "Evaluation execution_contract is invalid."))
     return contract, diagnostics
 
 
@@ -242,8 +244,8 @@ def _normalized_evaluation_result(
 ) -> tuple[EvaluationExecutionState | None, list[Diagnostic]]:
     try:
         return EvaluationExecutionState.from_payload(evaluation_result), []
-    except (TypeError, ValueError) as exc:
-        return None, [_contract_diagnostic(evaluation_address, f"Evaluation result payload is invalid: {exc}")]
+    except TypeError, ValueError:
+        return None, [_contract_diagnostic(evaluation_address, "Evaluation result payload is invalid.")]
 
 
 def _normalized_evaluation_history(
@@ -274,10 +276,8 @@ def _normalize_evaluation_history_payload(
     for event_payload in history_payload:
         try:
             normalized_history.append(EvaluationHistoryEvent.from_payload(event_payload))
-        except (TypeError, ValueError) as exc:
-            diagnostics.append(
-                _contract_diagnostic(evaluation_address, f"Evaluation history payload is invalid: {exc}")
-            )
+        except TypeError, ValueError:
+            diagnostics.append(_contract_diagnostic(evaluation_address, "Evaluation history payload is invalid."))
     diagnostics.extend(_timestamp_diagnostics(evaluation_address, normalized_history))
     return normalized_history, diagnostics
 
@@ -290,10 +290,10 @@ def _timestamp_diagnostics(
     previous_timestamp = None
     for event in normalized_history:
         try:
-            current_timestamp = _parse_timestamp(event.timestamp)
-        except ValueError as exc:
+            current_timestamp = parse_timestamp_assuming_utc(event.timestamp)
+        except ValueError:
             diagnostics.append(
-                _contract_diagnostic(evaluation_address, f"Evaluation history event timestamp is invalid: {exc}")
+                _contract_diagnostic(evaluation_address, "Evaluation history event timestamp is invalid.")
             )
             continue
         if previous_timestamp is not None and current_timestamp < previous_timestamp:

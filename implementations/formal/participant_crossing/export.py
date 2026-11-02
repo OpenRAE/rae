@@ -7,6 +7,8 @@ import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
+from pydantic import ValidationError
+from raes_contracts.behavioral_authority_errors import BehavioralAuthorityUnsupportedError
 from raes_contracts.behavioral_relation_profiles import (
     BehavioralRelationProfileModel,
     ParticipantCrossingParametersModel,
@@ -15,6 +17,7 @@ from raes_contracts.behavioral_relations import (
     load_behavioral_relation_catalog_revision,
 )
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 
 from . import abstract, concrete
@@ -36,7 +39,6 @@ SOURCE_PATHS = (
     "implementations/formal/participant_crossing/export.py",
     _PACKAGE + "raes_contracts/_participant_crossing_profile.py",
     _PACKAGE + "raes_contracts/behavioral_relation_profiles.py",
-    _PACKAGE + "raes_contracts/_behavioral_profile_loader.py",
     _PACKAGE + "raes_contracts/canonical.py",
     _PACKAGE + "raes_contracts/_canonical.py",
     _PACKAGE + "raes_contracts/json_ingress.py",
@@ -53,6 +55,17 @@ SOURCE_PATHS = (
     "specs/formal/participant-semantics/participant-crossing-models.md",
     "specs/formal/participant-semantics/information-flow-control.md",
     "implementations/python/uv.lock",
+)
+# Construction reads and stability-checks SOURCE_PATHS. The manifest binds only
+# the sources that define both graphs; replay detects any other effect on bytes.
+SUBJECT_SOURCE_PATHS = (
+    "implementations/formal/participant_crossing/abstract.py",
+    "implementations/formal/participant_crossing/concrete.py",
+    "implementations/formal/participant_crossing/graph.py",
+    "implementations/formal/participant_crossing/aut.py",
+    "implementations/formal/participant_crossing/export.py",
+    "specs/formal/participant-semantics/participant-crossing-models.md",
+    "specs/formal/participant-semantics/information-flow-control.md",
 )
 
 
@@ -76,36 +89,36 @@ def _independence(sources: dict[str, bytes]) -> None:
     }
     for module in (abstract, concrete):
         if module.successors.__module__ != module.__name__:
-            raise ValueError("models must use independent transition authorities")
+            raise InvalidInputError("models must use independent transition authorities")
         path = f"implementations/formal/participant_crossing/{module.__name__.rsplit('.', 1)[1]}.py"
         tree = ast.parse(sources[path])
         for node in ast.walk(tree):
             if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom) and node.module not in allowed:
-                raise ValueError("models must use independent transition dependencies")
+                raise InvalidInputError("models must use independent transition dependencies")
             if (
                 isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Name)
                 and node.func.id in {"eval", "exec", "__import__"}
             ):
-                raise ValueError("models must use independent static transition dependencies")
+                raise InvalidInputError("models must use independent static transition dependencies")
     if abstract.successors is concrete.successors or abstract.build is concrete.build:
-        raise ValueError("models must use independent transition authorities")
+        raise InvalidInputError("models must use independent transition authorities")
 
 
 def _validate_graph(graph, module) -> None:
     if not graph.states or graph.states[graph.initial] != module.INITIAL:
-        raise ValueError("invalid model initial state")
+        raise InvalidInputError("invalid model initial state")
     index = {state: ordinal for ordinal, state in enumerate(graph.states)}
     if len(index) != len(graph.states):
-        raise ValueError("duplicate model states")
+        raise InvalidInputError("duplicate model states")
     expected = set()
     for ordinal, state in enumerate(graph.states):
         for label, target in module.successors(state):
             if target not in index:
-                raise ValueError("incomplete model transition closure")
+                raise InvalidInputError("incomplete model transition closure")
             expected.add((ordinal, label, index[target]))
     if expected != set(graph.edges) or len(graph.edges) != len(expected):
-        raise ValueError("incomplete model transition closure")
+        raise InvalidInputError("incomplete model transition closure")
     reachable = {graph.initial}
     while True:
         expanded = reachable | {target for source, _, target in graph.edges if source in reachable}
@@ -113,24 +126,36 @@ def _validate_graph(graph, module) -> None:
             break
         reachable = expanded
     if len(reachable) != len(graph.states):
-        raise ValueError("unreachable model states")
+        raise InvalidInputError("unreachable model states")
+
+
+def _profile_catalog(taxonomy_revision: str):
+    """Resolve the catalog revision that a crossing profile names."""
+    try:
+        return load_behavioral_relation_catalog_revision(taxonomy_revision)
+    except BehavioralAuthorityUnsupportedError as exc:
+        # A damaged packaged catalog is an OperationalError and propagates unchanged.
+        raise InvalidInputError("crossing profile catalog revision does not resolve") from exc
 
 
 def build_bundle(root: Path) -> dict[str, bytes]:
     payload = parse_bounded_json_object(read_bytes(root, PROFILE_PATH), max_bytes=256 * 1024, max_depth=32)
-    profile = BehavioralRelationProfileModel.model_validate(payload)
+    try:
+        profile = BehavioralRelationProfileModel.model_validate(payload)
+    except ValidationError as exc:
+        raise InvalidInputError("crossing profile does not satisfy its contract") from exc
     if not isinstance(profile.parameters, ParticipantCrossingParametersModel):
-        raise ValueError("expected crossing profile")
+        raise InvalidInputError("expected crossing profile")
     sources = {path: read_bytes(root, path) for path in SOURCE_PATHS}
     identities = {path: digest(content) for path, content in sources.items()}
     for carrier in (profile.parameters.left, profile.parameters.right):
         if identities[carrier.source_path] != carrier.source_digest:
-            raise ValueError("model source digest drift")
+            raise EvidenceIntegrityError("model source digest drift")
     for source in profile.source_refs:
         if identities.get(source.source_ref) != source.source_digest:
-            raise ValueError("profile source digest drift")
+            raise EvidenceIntegrityError("profile source digest drift")
     if any(identities[path] != value for path, value in _EXECUTING_SOURCE_DIGESTS.items()):
-        raise ValueError("executing source identity drift")
+        raise EvidenceIntegrityError("executing source identity drift")
     _independence(sources)
     result = {}
     counts = {}
@@ -155,9 +180,10 @@ def build_bundle(root: Path) -> dict[str, bytes]:
             "initial_state": asdict(graph.states[graph.initial]),
             "reachable_phases": sorted({state.phase for state in graph.states}),
         }
-    catalog = load_behavioral_relation_catalog_revision(profile.taxonomy_revision)
+    catalog = _profile_catalog(profile.taxonomy_revision)
+    subject = {path: identities[path] for path in SUBJECT_SOURCE_PATHS}
     manifest = {
-        "schema": "participant-crossing-model-bundle/v1",
+        "schema": "participant-crossing-model-bundle/v2",
         "profile_id": profile.profile_id,
         "profile_revision": profile.profile_revision,
         "profile_digest": profile.canonical_digest,
@@ -165,8 +191,8 @@ def build_bundle(root: Path) -> dict[str, bytes]:
         "projection": "participant-crossing-projection@rev1",
         "catalog_revision": profile.taxonomy_revision,
         "catalog_digest": canonical_json_digest(catalog.model_dump(mode="json")),
-        "source_revision": canonical_json_digest(identities),
-        "source_digests": identities,
+        "source_revision": canonical_json_digest(subject),
+        "source_digests": subject,
         "domain_counts": {key: len(values) for key, values in profile.parameters.domains.model_dump().items()},
         "models": counts,
         "complete_reachable_fixed_point": True,
@@ -178,7 +204,7 @@ def build_bundle(root: Path) -> dict[str, bytes]:
     }
     result["manifest.json"] = canonical_json_bytes(manifest) + b"\n"
     if any(len(content) > MAX_BYTES for content in result.values()):
-        raise ValueError("model bundle exceeds resource limit")
+        raise InvalidInputError("model bundle exceeds resource limit")
     return result
 
 
@@ -187,10 +213,10 @@ def _check_expected(
 ) -> None:
     target = safe_path(root, output_path)
     if not target.is_dir() or {path.name for path in target.iterdir()} != set(expected):
-        raise ValueError("model bundle artifact drift")
+        raise EvidenceIntegrityError("model bundle artifact drift")
     for name, content in expected.items():
         if read_bytes(root, output_path + "/" + name, max_bytes=max_bytes) != content:
-            raise ValueError("model bundle digest or count drift")
+            raise EvidenceIntegrityError("model bundle digest or count drift")
 
 
 def check(root: Path) -> None:

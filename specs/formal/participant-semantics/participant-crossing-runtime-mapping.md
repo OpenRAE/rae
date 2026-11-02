@@ -193,6 +193,8 @@ Each source identity selects a separate capture.
 The original `runtime-mapping/rev1` bundle and earlier captures remain unchanged.
 Its manifest binds the source inventory, profile, historical model artifacts, and observed cases.
 The source inventory includes runtime packages, contracts, test drivers, formal code, configuration, and the Python lockfile.
+The test drivers are the mapping test modules and the local test modules that they import.
+Other tests do not produce the observed cases.
 It excludes historical schema tombstones, which the live mapping does not consume.
 The manifest reports that exclusion; the active schema publication manifest remains pinned.
 The read-only command rejects source or artifact drift.

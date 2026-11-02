@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import sqlite3
 
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.runtime_state import OperationAdmissionContext
 
 from .control_plane_store import (
+    IDEMPOTENCY_CLAIM_CONFLICT,
     ControlPlaneOperationRecord,
     NewClaimBlock,
     _raise_new_claim_block,
@@ -16,11 +18,12 @@ from .control_plane_store import (
     require_idempotency_key,
 )
 from .control_plane_store_changes import OperationChanges
-from .control_plane_store_local_codec import decode_payload as _decode_payload
+from .control_plane_store_local_codec import decode_contract as _decode_contract
 from .control_plane_store_local_codec import encode_payload as _encode_payload
 from .control_plane_store_local_codec import transaction as _transaction
 from .control_plane_store_records import _record_from_payload, _record_payload
-from .inject_claims import require_inject_claim, require_inject_history
+from .errors import IdempotencyClaimConflictError
+from .inject_claims import require_inject_claim, require_stored_inject_history
 from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
 
 _OPERATION_RECORD_KIND = "operation record"
@@ -46,11 +49,11 @@ class LocalOperationRecordStoreMixin:
         ).fetchall()
         records: dict[str, ControlPlaneOperationRecord] = {}
         for operation_id, payload, digest in rows:
-            record = _record_from_payload(_decode_payload(payload, digest, kind=_OPERATION_RECORD_KIND))
+            record = _decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
             if record.receipt.operation_id != operation_id:
-                raise ValueError("operation record identity does not match its durable key")
+                raise EvidenceIntegrityError("operation record identity does not match its durable key")
             records[operation_id] = record
-        require_inject_history(records.values())
+        require_stored_inject_history(records.values())
         return records
 
     def save_record(self, record: ControlPlaneOperationRecord) -> None:
@@ -128,9 +131,9 @@ class LocalOperationRecordStoreMixin:
         ).fetchone()
         if row is None:
             return None
-        record = _record_from_payload(_decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
+        record = _decode_contract(row[0], row[1], kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
         if record.receipt.operation_id != operation_id:
-            raise ValueError("operation record identity does not match its durable key")
+            raise EvidenceIntegrityError("operation record identity does not match its durable key")
         return record
 
     @staticmethod
@@ -146,7 +149,7 @@ class LocalOperationRecordStoreMixin:
                 (context.actor_id, context.operation_kind.value),
             ).fetchone()
             if opaque_conflict is not None and opaque_conflict[0] != record.receipt.operation_id:
-                raise ValueError("idempotency claim conflicts with the original request")
+                raise IdempotencyClaimConflictError(IDEMPOTENCY_CLAIM_CONFLICT)
             conflict = connection.execute(
                 """
                 SELECT operation_id FROM operations
@@ -155,7 +158,7 @@ class LocalOperationRecordStoreMixin:
                 (context.actor_id, context.operation_kind.value, record.idempotency_key),
             ).fetchone()
             if conflict is not None and conflict[0] != record.receipt.operation_id:
-                raise ValueError("idempotency key already belongs to another operation")
+                raise ConflictError("idempotency key already belongs to another operation")
         payload, digest = _encode_payload(_record_payload(record))
         connection.execute(
             """
@@ -226,7 +229,7 @@ class LocalOperationRecordStoreMixin:
             ).fetchone()
         if row is None:
             return None
-        return _record_from_payload(_decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
+        return _decode_contract(row[0], row[1], kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
 
 
 __all__ = ("LocalOperationRecordStoreMixin",)

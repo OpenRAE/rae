@@ -30,6 +30,9 @@ requirement.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Original authority is validated before cleanup comparison)
+- TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Reject unsupported success and preserve trusted or recoverable inventory)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_scheduler_initialization.py` (Autonomous initialization uses participant-scoped result admission)
 - TESTS → TEST `implementations/python/tests/test_issue_1439_participant_initialization.py` (Reject initialization metadata mutation and accepted resource deletion)
 
@@ -92,21 +95,21 @@ requirement.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_identity.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_registry.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_validation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_planning_validation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/compute_substrate.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/base.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_manifests.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_constraints.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/snapshot_entry.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_effects.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/plan_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_collections.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_profiles.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/__init__.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_binding.py`

@@ -26,76 +26,12 @@ from ..semantics.participant_outcome import (
     analyze_participant_outcome_interpretations,
 )
 from ..semantics.participant_temporal_bindings import participant_temporal_binding_errors
-from ._core import eligible_element
+from ._issue_owners import objective_issue_owner, participant_behavior_issue_owner, participant_outcome_issue_owner
+from ._objective_issue_renderers import OBJECTIVE_ISSUE_RENDERERS
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
 from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
 from ._participant_tool_affordance_renderers import PARTICIPANT_TOOL_AFFORDANCE_ISSUE_RENDERERS
-
-# Renders an objective-semantics issue (machine-readable code from
-# ``raes.semantics.objective_semantics``) into the authoring-error string
-# the SDL surface has always used. Keyed by issue code so a new code is a new
-# line here rather than a new branch in a growing conditional.
-_OBJECTIVE_ISSUE_RENDERERS = {
-    "objective.assignment-undeclared": (
-        lambda i: f"Objective '{i.objective_name}' references undefined agent '{i.ref}'"
-    ),
-    "objective.owner-undeclared": (lambda i: f"Objective '{i.objective_name}' references undefined entity '{i.ref}'"),
-    "objective.action-not-declared": (
-        lambda i: f"Objective '{i.objective_name}' action '{i.ref}' is not declared by agent '{i.actor_name}'"
-    ),
-    "objective.action-contract-undeclared": (
-        lambda i: f"Objective '{i.objective_name}' action '{i.ref}' must reference a declared action_contract"
-    ),
-    "objective.target-unresolvable": (
-        lambda i: (
-            f"Objective '{i.objective_name}' target '{i.ref}' does not reference any defined "
-            f"{eligible_element(ReferencePurpose.OBJECTIVE_SUBJECT)}"
-        )
-    ),
-    "objective.success-assertion-undeclared": (
-        lambda i: f"Objective '{i.objective_name}' references undefined assertion '{i.ref}' in success criteria"
-    ),
-    "objective.window.story-unbound": (
-        lambda i: f"Objective '{i.objective_name}' references undefined story '{i.ref}' in window"
-    ),
-    "objective.window.script-unbound": (
-        lambda i: f"Objective '{i.objective_name}' references undefined script '{i.ref}' in window"
-    ),
-    "objective.window.script-outside-window-stories": (
-        lambda i: f"Objective '{i.objective_name}' window script '{i.ref}' is not included by the referenced stories"
-    ),
-    "objective.window.event-unbound": (
-        lambda i: f"Objective '{i.objective_name}' references undefined event '{i.ref}' in window"
-    ),
-    "objective.window.event-outside-window-scripts": (
-        lambda i: f"Objective '{i.objective_name}' window event '{i.ref}' is not included by the referenced scripts"
-    ),
-    "objective.window.workflow-unbound": (
-        lambda i: f"Objective '{i.objective_name}' references undefined workflow '{i.ref}' in window"
-    ),
-    "objective.window.step-requires-workflow-window": (
-        lambda i: f"Objective '{i.objective_name}' window steps require at least one referenced workflow"
-    ),
-    "objective.window.step-invalid-format": (
-        lambda i: f"Objective '{i.objective_name}' window step '{i.ref}' must use '<workflow>.<step>' syntax"
-    ),
-    "objective.window.step-workflow-unbound": (
-        lambda i: (
-            f"Objective '{i.objective_name}' window step '{i.ref}' references undefined workflow '{i.workflow_name}'"
-        )
-    ),
-    "objective.window.step-workflow-outside-window": (
-        lambda i: f"Objective '{i.objective_name}' window step '{i.ref}' is not part of the referenced workflows"
-    ),
-    "objective.window.step-unbound": (
-        lambda i: f"Objective '{i.objective_name}' window step '{i.ref}' references undefined step '{i.step_name}'"
-    ),
-    "objective.dependency-undeclared": (
-        lambda i: f"Objective '{i.objective_name}' depends on undefined objective '{i.ref}'"
-    ),
-    "objective.dependency-cycle": lambda _i: "Objective dependency graph contains a cycle",
-}
 
 _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS = {
     **AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS,
@@ -246,37 +182,43 @@ _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS = {
 class _ContentObjectivesMixin:
     def _verify_content(self) -> None:
         for name, item in self._s.content.items():
-            if item.target and not self._is_unresolved_var(item.target) and item.target not in self._s.nodes:
-                self._err(f"Content '{name}' targets undefined node '{item.target}'")
-            elif item.target and not self._is_unresolved_var(item.target) and not self._is_compute_node(item.target):
-                self._err(f"Content '{name}' target '{item.target}' must be a compute node")
-            if item.service_materialization is not None:
-                self._verify_service_materialization(name, item)
+            with self._owner(("content", name)):
+                if item.target and not self._is_unresolved_var(item.target) and item.target not in self._s.nodes:
+                    self._err(f"Content '{name}' targets undefined node '{item.target}'")
+                elif (
+                    item.target and not self._is_unresolved_var(item.target) and not self._is_compute_node(item.target)
+                ):
+                    self._err(f"Content '{name}' target '{item.target}' must be a compute node")
+                if item.service_materialization is not None:
+                    self._verify_service_materialization(name, item)
 
     def _verify_relationships(self) -> None:
         for name, rel in self._s.relationships.items():
-            if rel.participant is not None:
-                self._verify_participant_relationship(name, rel)
-                continue
-            for field in ("source", "target"):
-                ref = getattr(rel, field)
-                if not self._is_unresolved_var(ref):
-                    self._validate_named_ref(
-                        ref,
-                        owner_label=f"Relationship '{name}'",
-                        ref_label=field,
-                        purpose=relationship_endpoint_purposes(rel, field),
-                    )
+            with self._owner(("relationships", name)):
+                if rel.participant is not None:
+                    self._verify_participant_relationship(name, rel)
+                    continue
+                for field in ("source", "target"):
+                    ref = getattr(rel, field)
+                    if not self._is_unresolved_var(ref):
+                        self._validate_named_ref(
+                            ref,
+                            owner_label=f"Relationship '{name}'",
+                            ref_label=field,
+                            purpose=relationship_endpoint_purposes(rel, field),
+                        )
 
     def _verify_agents(self) -> None:
         flat_entity_names = self._all_entity_names()
         for issue in analyze_participant_affiliations(
             agents_by_name=self._s.agents, entity_names=flat_entity_names, is_unresolved=self._is_unresolved_var
         ).issues:
-            self._err(issue.message)
+            with self._owner(participant_behavior_issue_owner(issue)):
+                self._err(issue.message)
         service_names = {service.name for node in self._s.nodes.values() for service in node.services if service.name}
         for name, agent in self._s.agents.items():
-            self._verify_agent(name, agent, service_names)
+            with self._owner(("agents", name)):
+                self._verify_agent(name, agent, service_names)
         for issue in analyze_participant_interactive_access(
             agents_by_name=self._s.agents,
             nodes=self._s.nodes,
@@ -284,7 +226,8 @@ class _ContentObjectivesMixin:
             is_vm_node=self._is_compute_node,
             is_unresolved=self._is_unresolved_var,
         ):
-            self._err(issue.message)
+            with self._owner(issue.owner):
+                self._err(issue.message)
 
     def _verify_agent(self, name: str, agent: object, service_names: set[str]) -> None:
         label = f"Agent '{name}'"
@@ -359,8 +302,9 @@ class _ContentObjectivesMixin:
         _, errors = resolve_authored_control_context(self._s, self._declaration_index)
         for error in errors:
             self._err(error)
-        for error in participant_temporal_binding_errors(self._s):
-            self._err(error)
+        for finding in participant_temporal_binding_errors(self._s):
+            with self._owner(finding.owner):
+                self._err(finding.message)
         analysis = analyze_participant_behavior(
             agents_by_name=self._s.agents,
             action_contracts=self._s.action_contracts,
@@ -375,8 +319,9 @@ class _ContentObjectivesMixin:
             is_unresolved=self._is_unresolved_var,
         )
         for issue in analysis.issues:
-            self._err(self._format_participant_behavior_issue(issue))
-        for error in participant_resource_budget_owner_errors(
+            with self._owner(participant_behavior_issue_owner(issue)):
+                self._err(self._format_participant_behavior_issue(issue))
+        for finding in participant_resource_budget_owner_errors(
             self._s.behavior_specifications,
             self._s.action_contracts,
             self._s.deployment_tenants,
@@ -384,7 +329,8 @@ class _ContentObjectivesMixin:
             self._s.relationships,
             self._split_node_service_ref,
         ):
-            self._err(error)
+            with self._owner(finding.owner):
+                self._err(finding.message)
         self._verify_tool_affordance_tool_refs()
         self._verify_participant_inject_deliveries()
         self._verify_participant_interaction_refs()
@@ -407,19 +353,26 @@ class _ContentObjectivesMixin:
             for ref in behavior_spec.authority_scope_refs:
                 if self._is_unresolved_var(ref):
                     continue
-                self._validate_named_ref(
-                    ref, owner_label=label, ref_label="authority_scope_ref", purpose=ReferencePurpose.AUTHORITY_SCOPE
-                )
+                with self._owner(("behavior_specifications", spec_name)):
+                    self._validate_named_ref(
+                        ref,
+                        owner_label=label,
+                        ref_label="authority_scope_ref",
+                        purpose=ReferencePurpose.AUTHORITY_SCOPE,
+                    )
 
     def _verify_participant_interaction_refs(self) -> None:
         self._verify_effect_target_refs()
         for action_name, action_contract in self._s.action_contracts.items():
             for index, interaction in enumerate(action_contract.interactions):
                 owner_label = f"Action contract '{action_name}' interaction[{index}]"
-                self._verify_purpose_refs(owner_label, "target", [interaction.target], ReferencePurpose.ACTION_TARGET)
-                self._verify_purpose_refs(
-                    owner_label, "shared_state_ref", interaction.shared_state_refs, ReferencePurpose.SHARED_STATE
-                )
+                with self._owner(("action_contracts", action_name)):
+                    self._verify_purpose_refs(
+                        owner_label, "target", [interaction.target], ReferencePurpose.ACTION_TARGET
+                    )
+                    self._verify_purpose_refs(
+                        owner_label, "shared_state_ref", interaction.shared_state_refs, ReferencePurpose.SHARED_STATE
+                    )
 
     def _verify_purpose_refs(
         self, owner_label: str, ref_label: str, refs: list[str], purpose: ReferencePurpose
@@ -437,7 +390,8 @@ class _ContentObjectivesMixin:
             is_unresolved=self._is_unresolved_var,
         )
         for issue in analysis.issues:
-            self._err(self._format_participant_outcome_issue(issue))
+            with self._owner(participant_outcome_issue_owner(issue)):
+                self._err(self._format_participant_outcome_issue(issue))
 
     def _verify_objectives(self) -> None:
         # The shared analyzer owns relations and dependency semantics (SEM-207).
@@ -461,7 +415,8 @@ class _ContentObjectivesMixin:
             is_unresolved=self._is_unresolved_var,
         )
         for issue in analysis.issues:
-            self._err(self._objective_issue_message(issue))
+            with self._owner(objective_issue_owner(issue)):
+                self._err(self._objective_issue_message(issue))
 
     def _objective_issue_message(self, issue: ObjectiveIssue) -> str:
         """Render an objective issue, naming what the objective-subject purpose refuses."""
@@ -475,21 +430,21 @@ class _ContentObjectivesMixin:
 
     @staticmethod
     def _format_objective_issue(issue: ObjectiveIssue) -> str:
-        renderer = _OBJECTIVE_ISSUE_RENDERERS.get(issue.code)
+        renderer = OBJECTIVE_ISSUE_RENDERERS.get(issue.code)
         if renderer is None:
-            raise AssertionError(f"unhandled objective-semantics issue code: {issue.code}")
+            raise RuntimeError(f"unhandled objective-semantics issue code: {issue.code}")
         return renderer(issue)
 
     @staticmethod
     def _format_participant_behavior_issue(issue: ParticipantBehaviorIssue) -> str:
         renderer = _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS.get(issue.code)
         if renderer is None:
-            raise AssertionError(f"unhandled participant-behavior issue code: {issue.code}")
+            raise RuntimeError(f"unhandled participant-behavior issue code: {issue.code}")
         return renderer(issue)
 
     @staticmethod
     def _format_participant_outcome_issue(issue: ParticipantOutcomeIssue) -> str:
         renderer = PARTICIPANT_OUTCOME_ISSUE_RENDERERS.get(issue.code)
         if renderer is None:
-            raise AssertionError(f"unhandled participant-outcome issue code: {issue.code}")
+            raise RuntimeError(f"unhandled participant-outcome issue code: {issue.code}")
         return renderer(issue)

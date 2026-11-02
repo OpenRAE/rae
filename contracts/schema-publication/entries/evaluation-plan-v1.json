@@ -1,9 +1,9 @@
 {
-  "content_hash": "784091c242a813913ebfcb13dadad076d5f2b4fc241a0b83763b73b04eebfc6e",
+  "content_hash": "8261e48fa8361a14f11bf4b119d5865fcd037b4731d027d0fb83023a06b27baa",
   "contract_id": "evaluation-plan-v1",
   "last_change": {
-    "content_hash": "784091c242a813913ebfcb13dadad076d5f2b4fc241a0b83763b73b04eebfc6e",
-    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
+    "content_hash": "8261e48fa8361a14f11bf4b119d5865fcd037b4731d027d0fb83023a06b27baa",
+    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
   },
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft"

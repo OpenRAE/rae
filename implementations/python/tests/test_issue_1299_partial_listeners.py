@@ -12,19 +12,19 @@ from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes import instantiate_scenario, parse_sdl, render_sdl_source
 from raes._errors import SDLValidationError
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.runtime_configuration import RuntimeConfiguration
 from raes.runtime_listeners import RuntimeListenerProtocol
 from raes.runtime_ssh_server import RuntimeSshServer
 from raes.scenario import InstantiatedScenario
 from raes.validator import SemanticValidator
-from raes_contracts.contracts import schema_bundle
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.realization_structure import evaluate_realization_constraint
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_processor.planner.realization_preparation import prepared_realization_violation
 from raes_processor.semantics.realization import CompiledRealizationRequirement, realization_disclosure
 from raes_processor.semantics.realization_concerns import project_realization_concern
+from raes_schemas import schema_bundle
 from test_issue_1200_mixed_runtime_constraints import _fixture
 
 PARTIAL_LISTENERS = [

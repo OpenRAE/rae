@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable, Sequence
 from enum import Enum
 from functools import partial
 
 from anyio import CapacityLimiter, to_thread
 from fastapi.responses import JSONResponse
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import get_logger
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .control_plane import RuntimeControlPlane
@@ -16,7 +17,7 @@ from .control_plane import RuntimeControlPlane
 NO_STORE_CACHE_CONTROL = "no-store"
 _REQUEST_TOO_LARGE_DETAIL = "request too large"
 _INVALID_CONTENT_LENGTH_DETAIL = "invalid content-length"
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 class _UnadmittedBody(Enum):
@@ -179,7 +180,7 @@ class RequestSizeLimitMiddleware:
     async def _handle_http(self, scope: Scope, receive: Receive, send: Send) -> None:
         try:
             content_length = _declared_content_length(scope.get("headers", ()))
-        except ValueError:
+        except InvalidInputError:
             await self._reject(scope, receive, send, status_code=400, detail=_INVALID_CONTENT_LENGTH_DETAIL)
             return
         if content_length is not None and content_length > self._max_request_bytes:
@@ -237,11 +238,11 @@ class RequestSizeLimitMiddleware:
                 reason=detail,
             )
         except Exception:
-            # Admission already failed closed. An unavailable audit store must
-            # neither dispatch the body nor replace the stable rejection. Log only a
-            # stable, bounded label: a traceback or exception chain here could carry
-            # provider/store internals (ADR-104 §7; issue-1188 preflight).
-            _LOGGER.error("control-plane rejection audit persistence failed")
+            # Isolation: admission already failed closed. An unavailable audit store
+            # must neither dispatch the body nor replace the stable rejection. The
+            # shared logger keeps the record value-free: the traceback names only
+            # exception types and code locations (ADR-104 §7; ADR-116).
+            _LOGGER.exception("control-plane rejection audit persistence failed")
         response = JSONResponse(status_code=status_code, content={"detail": detail})
         await response(scope, receive, send)
 
@@ -251,12 +252,12 @@ def _declared_content_length(headers: Sequence[tuple[bytes, bytes]]) -> int | No
     if not values:
         return None
     if len(values) != 1:
-        raise ValueError("content-length must appear at most once")
+        raise InvalidInputError("content-length must appear at most once")
     raw_value = values[0]
     if not raw_value.isdigit():
-        raise ValueError("content-length must be a non-negative integer")
+        raise InvalidInputError("content-length must be a non-negative integer")
     try:
         value = int(raw_value)
     except ValueError as exc:
-        raise ValueError("content-length must be a non-negative integer") from exc
+        raise InvalidInputError("content-length must be a non-negative integer") from exc
     return value

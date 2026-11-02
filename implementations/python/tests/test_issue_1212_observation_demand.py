@@ -9,13 +9,18 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 from raes import SDLValidationError
-from raes.evidence_requirements import EvidenceRequirement
 from raes.parser import parse_sdl
 from raes_backend_stubs.manifest import create_stub_manifest
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.contracts import ExperimentCaptureSpecModel, ExperimentSpecModel, ExperimentTaskModel, schema_bundle
+from raes_contracts.contracts import ExperimentCaptureSpecModel, ExperimentSpecModel, ExperimentTaskModel
+from raes_contracts.contracts.plan_projection import (
+    provisioning_plan_digest,
+    provisioning_plan_model,
+    runtime_plan_digest,
+)
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.evidence_requirements import EvidenceRequirement
 from raes_contracts.observation_demand import (
-    AchievedObservationValue,
     EffectiveObservationDemand,
     ObservationBasis,
     ObservationDemandDocument,
@@ -27,13 +32,12 @@ from raes_contracts.observation_demand import (
     ObservationLifecycleStage,
     ObservationPurpose,
     ObservationSelector,
-    execute_observation_lifecycle,
-    normalize_observation_demands,
-    realization_description_report,
 )
-from raes_contracts.plan_projection import provisioning_plan_digest, provisioning_plan_model, runtime_plan_digest
+from raes_contracts.observation_demand_resolution import normalize_observation_demands
+from raes_contracts.observation_lifecycle import execute_observation_lifecycle
+from raes_contracts.observation_reporting import AchievedObservationValue, realization_description_report
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
-from raes_contracts.realization_observation import compute_substrate_readback_addresses
+from raes_contracts.realization_operational_observation import compute_substrate_readback_addresses
 from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.planner import plan
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -46,6 +50,7 @@ from raes_runtime.observation_execution import (
     ObservationSelectorPattern,
 )
 from raes_runtime.registry import RuntimeTarget
+from raes_schemas import schema_bundle
 from runtime_plan_fixtures import plan_for_target
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -747,7 +752,7 @@ def test_compiler_rejects_invalid_observation_resolution_instead_of_carrying_a_w
         """
     )
 
-    with pytest.raises(ValueError, match="observation demand normalization failed"):
+    with pytest.raises(InvalidInputError, match="observation demand normalization failed"):
         compile_scenario_runtime_model(scenario)
 
 
@@ -782,7 +787,7 @@ def test_sdl_cannot_impersonate_an_independent_observation_policy_authority() ->
         """
     )
 
-    with pytest.raises(ValueError, match="cannot assert a non-author policy authority"):
+    with pytest.raises(InvalidInputError, match="cannot assert a non-author policy authority"):
         compile_scenario_runtime_model(scenario)
 
 

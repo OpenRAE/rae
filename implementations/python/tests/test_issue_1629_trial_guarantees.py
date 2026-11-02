@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 from issue_1629_provider_fixture import install_command_owner
 from issue_1629_trial_fixture import TrialServices, factorial_inputs
+from raes_contracts.errors import ConflictError
 from raes_runtime import RuntimeControlPlane
 from test_issue_1362_distributed_authority import Dispatcher, worker
 from test_issue_1629_experiment_recovery import retry_request
@@ -17,7 +18,7 @@ def test_run_guarantees_cannot_bypass_a_missing_operation_provider():
     with RuntimeControlPlane(create_stub_target()) as engine:
         run = engine.open_run(run_scope="run:requires-provider", required_operation_guarantees=("cessation-evidence",))
         request = ProvisioningPlan()
-        with pytest.raises(ValueError, match="installed provider"):
+        with pytest.raises(ConflictError, match="installed provider"):
             run.submit_provisioning(request)
         assert not run._store.load_records()
 
@@ -85,7 +86,7 @@ def test_temporal_worker_rechecks_the_same_authored_trial_guarantees(monkeypatch
         assert engine.get_backend_invocation(request.binding.operation_id, identity=identity) == request
         provider.refuse = True
         capabilities, admission = provider.operation_capabilities(), provider.check_operation(request)
-        with pytest.raises(ValueError):
+        with pytest.raises(ConflictError):
             engine.claim_backend_invocation(request.binding, capabilities, admission, identity=identity)
         run = engine.get_run(request.binding.context.run_scope)
         assert not run._store.load_records()[request.binding.operation_id].invocation.consumed

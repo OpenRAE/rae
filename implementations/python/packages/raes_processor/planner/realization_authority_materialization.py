@@ -5,6 +5,7 @@ from __future__ import annotations
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.json_pointer import pointer_from_tokens
 from raes_contracts.planning import (
     RealizationAuthorityBound,
     RealizationAuthorityMode,
@@ -32,10 +33,6 @@ _PUBLICATION_SAFE_CAPABILITY_CONCERN_BY_KIND = {
 }
 
 
-def _payload_pointer(path: tuple[str, ...]) -> str:
-    return "/" + "/".join(token.replace("~", "~0").replace("/", "~1") for token in path)
-
-
 def _matching_requirement(
     requirements: tuple[CompiledRealizationRequirement, ...],
     authority: CompiledRealizationAuthority,
@@ -57,20 +54,30 @@ def _resolved_mode(
     manifest: BackendManifest,
     apparatus_default: ApparatusRealizationDefaultResolver | None,
     apparatus_decisions: ApparatusRealizationDecisions | None,
-) -> RealizationAuthorityMode:
+) -> RealizationAuthorityMode | None:
+    """Return the effective mode, or ``None`` when delegated authority has no demand or decision."""
+
     if not authority.delegated:
         return authority.mode
-    if requirement is None:
-        raise ValueError("delegated realization authority requires a matching compiled demand")
-    if apparatus_decisions is not None:
-        identity = (requirement.address, requirement.field_path, requirement.requirement_kind)
-        try:
-            closure = apparatus_decisions[identity]
-        except KeyError as exc:
-            raise ValueError("delegated realization authority has no resolved apparatus decision") from exc
-    else:
-        closure = apparatus_default(requirement, manifest) if apparatus_default is not None else Closure.CLOSED_WORLD
+    closure = _delegated_closure(requirement, manifest, apparatus_default, apparatus_decisions)
+    if closure is None:
+        return None
     return RealizationAuthorityMode.OPEN if closure is Closure.OPEN_WORLD else RealizationAuthorityMode.CLOSED
+
+
+def _delegated_closure(
+    requirement: CompiledRealizationRequirement | None,
+    manifest: BackendManifest,
+    apparatus_default: ApparatusRealizationDefaultResolver | None,
+    apparatus_decisions: ApparatusRealizationDecisions | None,
+) -> Closure | None:
+    """Return the apparatus closure for a delegated demand, or ``None`` without a demand or decision."""
+
+    if requirement is None:
+        return None
+    if apparatus_decisions is not None:
+        return apparatus_decisions.get((requirement.address, requirement.field_path, requirement.requirement_kind))
+    return apparatus_default(requirement, manifest) if apparatus_default is not None else Closure.CLOSED_WORLD
 
 
 def _publication_safe_enum_domain(values: tuple[object, ...]) -> EnumDomain | None:
@@ -166,7 +173,7 @@ def _resolved_authority(
         field_path=authority.field_path,
         domain=authority.domain,
         requirement_kind=authority.requirement_kind,
-        payload_pointer=_payload_pointer(authority.payload_path),
+        payload_pointer=pointer_from_tokens(authority.payload_path),
         mode=mode,
         source=authority.source,
         provenance=authority.provenance,
@@ -193,9 +200,8 @@ def _materialized_authority(
     requirement = _matching_requirement(model.realization_requirements, authority)
     if requirement is not None and (requirement.structure_error or requirement.recursive_pending):
         return _unsafe_bound_diagnostic(authority)
-    try:
-        mode = _resolved_mode(authority, requirement, manifest, apparatus_default, apparatus_decisions)
-    except ValueError:
+    mode = _resolved_mode(authority, requirement, manifest, apparatus_default, apparatus_decisions)
+    if mode is None:
         return _unresolved_authority_diagnostic(authority)
     bounds = (
         _authority_bounds(model, authority, requirement, manifest)

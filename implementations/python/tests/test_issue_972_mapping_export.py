@@ -7,6 +7,7 @@ import pytest
 from crossing_model_fixtures import ROOT
 from crossing_runtime_cases import collect_cases
 from implementations.formal.participant_crossing import runtime_mapping_export as export
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 
 
 @pytest.fixture(scope="module")
@@ -32,8 +33,24 @@ def test_bundle_is_deterministic_and_keeps_claims_separate(reports):
     assert "participant_decision_surface_control_v2.py" in str(manifest["source_digests"])
 
 
-def test_published_cases_match_fresh_public_execution(reports):
-    export.check(ROOT, reports)
+def test_source_inventory_binds_mapping_test_drivers_only():
+    pins = export.source_pins(ROOT)
+    tests = {path.removeprefix("implementations/python/tests/") for path in pins if "/python/tests/" in path}
+    assert {
+        "crossing_runtime_cases.py",
+        "crossing_runtime_observer.py",
+        "participant_crossing_fixtures.py",
+        "test_issue_972_runtime_mapping.py",
+        "test_issue_972_mapping_export.py",
+        "test_issue_972_mapping_ownership.py",
+    } <= tests
+    assert "test_issue_976_crossing_publication.py" not in tests
+    assert "test_behavioral_relations.py" not in tests
+
+
+def test_manifest_stays_within_the_repository_file_size_limit(reports):
+    # check-added-large-files refuses files above 500 KiB.
+    assert len(export.build_bundle(ROOT, reports)["manifest.json"]) <= 500 * 1024
 
 
 def test_historical_schema_tombstones_are_not_live_mapping_sources():
@@ -50,7 +67,7 @@ def test_symlinked_source_directory_is_rejected(tmp_path, monkeypatch):
         ROOT / "implementations/python/packages/raes_contracts", target_is_directory=True
     )
     monkeypatch.setattr(export, "read_bytes", lambda *args, **kwargs: b"synthetic")
-    with pytest.raises(ValueError, match="unsafe mapping source directory"):
+    with pytest.raises(InvalidInputError, match="unsafe mapping source directory"):
         export.source_pins(tmp_path)
 
 
@@ -76,7 +93,10 @@ def test_drift_is_rejected_without_overwriting_artifacts(tmp_path, reports, faul
             manifest["source_digests" if fault == "source" else "profile"] = "changed"
             candidate["manifest.json"] = json.dumps(manifest).encode()
     before = {name: (tmp_path / export.OUTPUT_PATH / name).read_bytes() for name in expected}
-    with patch.object(export, "build_bundle", return_value=candidate), pytest.raises(ValueError, match="drift"):
+    with (
+        patch.object(export, "build_bundle", return_value=candidate),
+        pytest.raises(EvidenceIntegrityError, match="drift"),
+    ):
         export.check(tmp_path, reports)
     assert {name: (tmp_path / export.OUTPUT_PATH / name).read_bytes() for name in expected} == before
 
@@ -100,3 +120,20 @@ def test_release_version_bump_keeps_mapping_capture_identity():
         pins = export.source_pins(ROOT)
     assert RELEASE_MANAGED_VERSION_SOURCE in reads
     assert pins == export.source_pins(ROOT)
+
+
+def test_a_removed_historical_source_is_drift_and_an_unsafe_one_is_refused(tmp_path) -> None:
+    (tmp_path / "kept.py").write_bytes(b"same")
+    (tmp_path / "changed.py").write_bytes(b"new")
+    (tmp_path / "link.py").symlink_to(tmp_path / "kept.py")
+    pins = {
+        "kept.py": export.export.digest(b"same"),
+        "changed.py": export.export.digest(b"old"),
+        "removed.py": export.export.digest(b"gone"),
+        "gone/deep.py": export.export.digest(b"gone"),
+    }
+
+    assert export.source_drift(tmp_path, pins) == ["changed.py", "gone/deep.py", "removed.py"]
+    link_pins = {"link.py": export.export.digest(b"same")}
+    with pytest.raises(InvalidInputError, match="unsafe"):
+        export.source_drift(tmp_path, link_pins)

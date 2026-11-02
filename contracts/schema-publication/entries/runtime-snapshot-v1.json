@@ -1,9 +1,9 @@
 {
-  "content_hash": "00a4a9ba99f593c3c95be9b0882a302a87cd605f6038529e4487c5cef40a4c64",
+  "content_hash": "b0149ceb1e9fdf6d31882f06ff31a4fb762afb6961512a162e27d8a1809cb5f4",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "00a4a9ba99f593c3c95be9b0882a302a87cd605f6038529e4487c5cef40a4c64",
-    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
+    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
+    "content_hash": "b0149ceb1e9fdf6d31882f06ff31a4fb762afb6961512a162e27d8a1809cb5f4"
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

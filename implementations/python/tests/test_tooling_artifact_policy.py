@@ -13,6 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from tools import (
     check_atlas_tactic_vocabulary,
     check_attack_tactic_vocabulary,
@@ -37,8 +38,14 @@ from tools.check_tooling_artifact_policy import (
     select_tooling_artifact,
     select_tooling_host_profile,
 )
+from tools.maintained_client_acquisition import ArtifactAcquisitionError
 from tools.policy import conftest_tool
-from tools.tooling_policy_gate import LockedArtifactSelection, LockedInstalledTree, LockedManifestEntry
+from tools.tooling_policy_gate import (
+    ArtifactPolicyError,
+    LockedArtifactSelection,
+    LockedInstalledTree,
+    LockedManifestEntry,
+)
 
 ACTIONS_POLICY_PATH = "implementations/tooling/actions-policy.json"
 INVENTORY_COVERAGE_PATH = "implementations/tooling/inventory-coverage.json"
@@ -317,7 +324,7 @@ def test_python_selection_needs_only_its_own_authorities(tmp_path: Path, monkeyp
     manifest = json.loads(selected.wheelhouse_manifest.read_text())
     manifest["lock_sha256"] = "0" * 64
     _write_json(tmp_path, str(selected.wheelhouse_manifest.relative_to(tmp_path)), manifest)
-    with pytest.raises(ValueError, match="projection"):
+    with pytest.raises(InvalidInputError, match="projection"):
         load_python_closure_profile(tmp_path, selected.profile_id)
 
 
@@ -350,7 +357,7 @@ def test_selected_tool_rejects_corrupt_input_before_acquisition(tmp_path: Path, 
         admission["denied_digests"] = [_SHA_A]
         _write_json(tmp_path, admission_path, admission)
     _write_json(tmp_path, ARTIFACT_LOCK_PATH, lock)
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(InvalidInputError) as error:
         select_tooling_artifact(
             tmp_path,
             artifact_id="tool-a",
@@ -468,24 +475,24 @@ def test_python_wheelhouse_admission_rejects_missing_unexpected_wrong_hash_and_s
     wheelhouse = tmp_path / "wheelhouse"
     wheelhouse.mkdir()
 
-    with pytest.raises(ValueError, match="missing"):
+    with pytest.raises(InvalidInputError, match="missing"):
         verify_wheelhouse(wheelhouse, manifest)
 
     artifact = wheelhouse / "fixture-1.0-py3-none-any.whl"
     artifact.write_bytes(b"wrong")
-    with pytest.raises(ValueError, match="digest|size"):
+    with pytest.raises(InvalidInputError, match="digest|size"):
         verify_wheelhouse(wheelhouse, manifest)
 
     artifact.write_bytes(payload)
     unexpected = wheelhouse / "unexpected.whl"
     unexpected.write_bytes(payload)
-    with pytest.raises(ValueError, match="unexpected"):
+    with pytest.raises(InvalidInputError, match="unexpected"):
         verify_wheelhouse(wheelhouse, manifest)
 
     unexpected.unlink()
     artifact.unlink()
     artifact.symlink_to(tmp_path / "outside.whl")
-    with pytest.raises(ValueError, match="regular"):
+    with pytest.raises(InvalidInputError, match="regular"):
         verify_wheelhouse(wheelhouse, manifest)
 
 
@@ -673,7 +680,7 @@ def test_host_selection_launcher_rejects_an_unbound_validator_response(monkeypat
     monkeypatch.setattr(tooling_policy_gate, "_validator_host_stdout", lambda *_args, **_kwargs: json.dumps(response))
     assert tooling_policy_gate.load_tooling_host_profile_selection("host-a") == response
     response["artifacts"].append({"artifact_id": "uv"})
-    with pytest.raises(RuntimeError, match="invalid host selection response"):
+    with pytest.raises(ArtifactPolicyError, match="invalid host selection response"):
         tooling_policy_gate.load_tooling_host_profile_selection("host-a")
 
 
@@ -963,6 +970,47 @@ def test_duplicate_selector_binding_id_is_rejected(tmp_path: Path) -> None:
     assert "tooling-selector-binding-duplicate" in _failures(root, tracked_paths=["noxfile.py"])
 
 
+def test_projection_generation_reports_invalid_locks_but_not_generator_defects(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from tools import tooling_artifact_policy_python as python_policy
+
+    def invalid_lock(**_kwargs: object) -> bool:
+        raise InvalidInputError("uv.lock is not valid UTF-8 TOML")
+
+    monkeypatch.setattr(python_policy, "generate_python_closures", invalid_lock)
+    assert [item.rule_id for item in python_policy._projection_generation_failures(tmp_path)] == [
+        "tooling-python-projection-generation"
+    ]
+
+    def defective(**_kwargs: object) -> bool:
+        raise ValueError("generator defect")
+
+    monkeypatch.setattr(python_policy, "generate_python_closures", defective)
+    with pytest.raises(ValueError, match="generator defect"):
+        python_policy._projection_generation_failures(tmp_path)
+
+
+def test_selection_cli_reports_refusals_but_not_defects(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    arguments = ["--select-artifact", "tool", "--version", "1", "--platform-id", "linux-x86_64", "--profile-id", "p"]
+
+    def refused(*_args: object, **_kwargs: object) -> dict[str, object]:
+        raise InvalidInputError("requested artifact version, platform, and profile must resolve")
+
+    monkeypatch.setattr(check_tooling_artifact_policy, "select_tooling_artifact", refused)
+    assert check_tooling_artifact_policy.main(arguments) == 1
+    assert "must resolve" in capsys.readouterr().err
+
+    def defective(*_args: object, **_kwargs: object) -> dict[str, object]:
+        raise ValueError("selector defect")
+
+    monkeypatch.setattr(check_tooling_artifact_policy, "select_tooling_artifact", defective)
+    with pytest.raises(ValueError, match="selector defect"):
+        check_tooling_artifact_policy.main(arguments)
+
+
 @pytest.mark.integration
 def test_exact_lock_selection_normalizes_platform_alias_and_rejects_wrong_version() -> None:
     selection = select_tooling_artifact(
@@ -973,7 +1021,7 @@ def test_exact_lock_selection_normalizes_platform_alias_and_rejects_wrong_versio
         profile_id="public-linux-x86_64",
     )
     assert selection["platform"]["platform_id"] == "linux-x86_64"
-    with pytest.raises(ValueError, match="exactly one reviewed lock entry"):
+    with pytest.raises(InvalidInputError, match="exactly one reviewed lock entry"):
         select_tooling_artifact(
             REPO_ROOT,
             artifact_id="conftest",
@@ -1050,10 +1098,10 @@ def test_local_tool_acquisition_checks_policy_before_cache_or_network(
     acquire,
 ) -> None:
     def reject_policy(**_kwargs: object) -> None:
-        raise RuntimeError("policy-sentinel")
+        raise ArtifactPolicyError("policy-sentinel")
 
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_policy)
-    with pytest.raises(RuntimeError, match="policy-sentinel"):
+    with pytest.raises(ArtifactPolicyError, match="policy-sentinel"):
         acquire(tmp_path)
 
 
@@ -1188,7 +1236,7 @@ def test_archive_tool_rejects_a_symlink_selected_by_the_installed_manifest(
     monkeypatch.setattr(module, "acquire_locked_bytes", lambda **_kwargs: archive_bytes)
     monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
-    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="unsafe-archive-member"):
         acquire(tmp_path, version=version)
 
 
@@ -1251,10 +1299,10 @@ def test_archive_tool_never_accepts_a_symlink_cache_entry(
     monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
     def reject_acquisition(**_kwargs: object) -> bytes:
-        raise RuntimeError("acquisition-sentinel")
+        raise ArtifactAcquisitionError("acquisition-sentinel")
 
     monkeypatch.setattr(module, "acquire_locked_bytes", reject_acquisition)
-    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="legacy-integrity-failure"):
         acquire(tmp_path, version=version)
     assert not cached.is_symlink()
     assert outside.read_bytes() == binary_bytes
@@ -1285,7 +1333,7 @@ def test_archive_tool_rejects_a_symlink_in_its_fixed_cache_parent(
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
-    with pytest.raises(RuntimeError, match="unsafe-private-root"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="unsafe-private-root"):
         conftest_tool.ensure_conftest(repo_root)
 
 
@@ -1371,10 +1419,10 @@ def test_remote_vocabulary_checks_enforce_policy_before_network(
     remote_check,
 ) -> None:
     def reject_policy(**_kwargs: object) -> None:
-        raise RuntimeError("policy-sentinel")
+        raise ArtifactPolicyError("policy-sentinel")
 
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_policy)
-    with pytest.raises(RuntimeError, match="policy-sentinel"):
+    with pytest.raises(ArtifactPolicyError, match="policy-sentinel"):
         remote_check()
 
 

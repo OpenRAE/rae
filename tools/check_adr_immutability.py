@@ -29,7 +29,10 @@ Ground Control, so it cannot become flaky in CI):
   same change (``adr-amendment-unrecorded``) — this is what stops a bare pin bump
   from blessing an undocumented edit. (Status transitions to
   superseded/deprecated and superseding ADRs naturally leave the accepted set, so
-  they are not flagged.)
+  they are not flagged.) The base copy is read at the path the base revision's
+  manifest records for the same ADR id, so renaming the file does not hide an
+  edit, and a ``--base-rev`` that names no commit fails
+  (``adr-base-rev-unresolved``) instead of comparing nothing.
 
 Failures use ``tools.policy.common.PolicyFailure``; the CLI honours ``--json`` and
 the shared ``tools/policy/exceptions.yaml`` waiver mechanism like the other
@@ -40,17 +43,25 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import posixpath
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.adr import parse_adr_file
 from tools.policy.common import (
+    YAML_CONTENT_FAILURES,
     PolicyFailure,
     apply_exceptions,
     failures_to_json,
@@ -75,6 +86,7 @@ RULE_PIN_MISSING = "adr-pin-missing"
 RULE_PIN_ORPHAN = "adr-pin-orphan"
 RULE_AMENDMENT_MISMATCH = "adr-amendment-record-mismatch"
 RULE_AMENDMENT_UNRECORDED = "adr-amendment-unrecorded"
+RULE_BASE_UNRESOLVED = "adr-base-rev-unresolved"
 
 
 def _amendments_section_bounds(text: str) -> tuple[int, int] | None:
@@ -133,7 +145,8 @@ def canonical_content(text: str) -> str:
 
 
 def content_hash(text: str) -> str:
-    return hashlib.sha256(canonical_content(text).encode("utf-8")).hexdigest()
+    # surrogateescape gives text that was read with it its exact bytes back; other text encodes unchanged.
+    return hashlib.sha256(canonical_content(text).encode("utf-8", "surrogateescape")).hexdigest()
 
 
 def amendment_refs(text: str) -> list[str]:
@@ -239,25 +252,105 @@ def _accepted_adrs(repo_root: Path) -> dict[str, Path]:
             continue
         try:
             number, _title, status, _date = parse_adr_file(adr_file)
-        except ValueError:
+        except InvalidInputError:
             continue
         if status == "accepted":
             accepted[f"ADR-{number}"] = adr_file
     return accepted
 
 
-def _git_show(repo_root: Path, gitref: str) -> str | None:
-    """Content of a path at a git ref (``<rev>:<path>`` or ``:<path>`` for the
-    index). Returns None when the path does not exist at that ref."""
+def _git_base_blob(repo_root: Path, gitref: str) -> str | None:
+    """Read a validated tree expression, resolving symlinks within that tree."""
     proc = subprocess.run(
-        ["git", "show", gitref],
+        ["git", "cat-file", "--batch", "--follow-symlinks"],
+        input=f"{gitref}\n".encode(),
+        cwd=repo_root,
+        capture_output=True,
+    )
+    if proc.returncode != 0:
+        return None
+    header, _, payload = proc.stdout.partition(b"\n")
+    fields = header.split()
+    # Missing/dangling/looping links, directories and links outside the tree
+    # have no blob response. In particular, an outside link is never read.
+    if len(fields) != 3 or fields[1] != b"blob":
+        return None
+    return payload[: int(fields[2])].decode("utf-8", errors="surrogateescape")
+
+
+def _git_show(repo_root: Path, gitref: str, *, follow_symlinks: bool = False) -> str | None:
+    """Content of a path at a git ref (``<rev>:<path>`` or ``:<path>`` for the
+    index). Returns None when the path does not exist at that ref.
+
+    Content that is not UTF-8 is read again with surrogate escapes. They keep
+    every byte distinct, so content_hash and the amendment check compare the
+    exact revision."""
+    # Only a revision that starts with a letter, digit or underscore, an optional repository path, or an
+    # index path can reach git; git would read a value that starts with "-" as an option.
+    if not re.match(r"^(?:\w[\w./@^~{}-]*(?::[\w./-]+)?|:[\w./-]+)\Z", gitref, re.ASCII):
+        raise InvalidInputError("a git revision must not start with '-' or contain other characters")
+    if follow_symlinks:
+        # Git resolves links in the historical tree, never against the checkout.
+        # Index reads keep using show: cat-file cannot follow index symlinks.
+        return _git_base_blob(repo_root, gitref)
+    command = ["git", "show", "--end-of-options", gitref]
+    try:
+        proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True)
+    except UnicodeDecodeError:
+        proc = subprocess.run(command, cwd=repo_root, capture_output=True, text=True, errors="surrogateescape")
+    if proc.returncode != 0:
+        return None
+    return proc.stdout
+
+
+def _resolve_commit(repo_root: Path, rev: str) -> str | None:
+    """Full SHA of the commit ``rev`` names, or None when it names no commit.
+    ``--end-of-options`` keeps a ``rev`` that starts with ``-`` from being read
+    as a git option."""
+    # Validate API callers as well as CLI input before constructing an argument.
+    if not re.match(r"^\w[\w./@^~{}-]*\Z", rev, re.ASCII):
+        return None
+    proc = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", "--end-of-options", f"{rev}^{{commit}}"],
         cwd=repo_root,
         capture_output=True,
         text=True,
     )
     if proc.returncode != 0:
         return None
-    return proc.stdout
+    return proc.stdout.strip()
+
+
+def _base_manifest_paths(repo_root: Path, base: str) -> dict[str, str]:
+    """``ADR-NNN`` → path recorded in the base revision's manifest, normalized
+    (``./`` and ``//`` segments removed) because ``git show`` needs the literal
+    tree path. Empty when the base has no readable manifest (for example a
+    revision before ADR-059)."""
+    text = _git_show(repo_root, f"{base}:{MANIFEST_PATH}", follow_symlinks=True)
+    try:
+        raw = yaml.safe_load(text) if text is not None else None
+    except (yaml.YAMLError, *YAML_CONTENT_FAILURES):
+        raw = None
+    entries = raw.get("adrs") if isinstance(raw, dict) else None
+    if not isinstance(entries, list):
+        return {}
+    return {
+        entry["id"]: posixpath.normpath(entry["path"])
+        for entry in entries
+        if isinstance(entry, dict) and isinstance(entry.get("id"), str) and isinstance(entry.get("path"), str)
+    }
+
+
+def _base_copy(repo_root: Path, base: str, recorded: str | None, rel: str) -> str | None:
+    """The ADR's text at ``base``: at the base manifest's ``recorded`` path, else
+    at its current path ``rel``. Resolve symlinks in that revision so a renamed
+    file remains comparable even when its old manifest path used a link.
+    None only when neither path resolves to a blob at ``base``."""
+    for path in dict.fromkeys((recorded or rel, rel)):
+        text = _git_show(repo_root, f"{base}:{path}", follow_symlinks=True)
+        if text is not None:
+            return text
+    return None
 
 
 def _check_unrecorded_edits(
@@ -269,12 +362,28 @@ def _check_unrecorded_edits(
 ) -> list[PolicyFailure]:
     """A pin bump alone must not bless an edit: when an accepted ADR's canonical
     content changed versus the base, the same change must also have added a
-    ``## Amendments`` record."""
+    ``## Amendments`` record. The base copy is the file at the path the base
+    manifest records for the same ADR id, or at the current path when the base
+    manifest has none or git stores nothing there, so a rename cannot hide an
+    edit."""
+    if staged:
+        base = "HEAD"
+    else:
+        resolved = _resolve_commit(repo_root, str(base_rev))
+        if resolved is None:
+            return [
+                PolicyFailure(
+                    RULE_BASE_UNRESOLVED,
+                    f"--base-rev {base_rev!r} does not name a commit in this repository, so no "
+                    "accepted ADR can be compared against its base; fetch the base or pass a valid revision",
+                )
+            ]
+        base = resolved
+    base_paths = _base_manifest_paths(repo_root, base)
     failures: list[PolicyFailure] = []
     for adr_id, disk_path in accepted.items():
         rel = _rel(repo_root, disk_path)
-        base_ref = f"HEAD:{rel}" if staged else f"{base_rev}:{rel}"
-        base_text = _git_show(repo_root, base_ref)
+        base_text = _base_copy(repo_root, base, base_paths.get(adr_id), rel)
         if base_text is None:
             continue  # not present at base (newly added) — nothing to compare
         head_text = _git_show(repo_root, f":{rel}") if staged else disk_path.read_text(encoding="utf-8")
@@ -306,7 +415,9 @@ def evaluate_adr_immutability(
         return [PolicyFailure(RULE_MALFORMED, "ADR pin manifest is missing", manifest_rel)]
     try:
         raw = load_yaml(manifest_file)
-    except Exception:  # noqa: BLE001 — surface a parse error as a clean failure, not a traceback
+    except OSError, UnicodeDecodeError, yaml.YAMLError, RecursionError, InvalidInputError:
+        # An unreadable or malformed manifest, including a scalar that the safe
+        # constructor cannot build, is a clean failure, not a traceback.
         return [PolicyFailure(RULE_MALFORMED, "ADR pin manifest is not valid YAML", manifest_rel)]
 
     entries, failures = _coerce_manifest(raw, manifest_rel)
@@ -393,10 +504,17 @@ def evaluate_adr_immutability(
     return failures
 
 
+def _git_revision(value: str) -> str:
+    """Accept a revision argument that git cannot read as an option."""
+    if not re.match(r"^\w[\w./@^~{}-]*\Z", value, re.ASCII):
+        raise argparse.ArgumentTypeError("a git revision must not be empty, start with '-' or contain other characters")
+    return value
+
+
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Enforce ADR-059 acceptance-content pins for accepted ADRs.")
     parser.add_argument("--staged", action="store_true", help="Compare staged content against HEAD.")
-    parser.add_argument("--base-rev", help="Compare against a specific git revision.")
+    parser.add_argument("--base-rev", type=_git_revision, help="Compare against a specific git revision.")
     parser.add_argument("--json", action="store_true", help="Emit JSON failures.")
     # Accepted for CLI parity with the other policy entry points. The pin gate
     # always evaluates the whole accepted-ADR corpus — a partial path list could
@@ -408,7 +526,11 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     failures = evaluate_adr_immutability(REPO_ROOT, base_rev=args.base_rev, staged=args.staged)
-    failures = apply_exceptions(failures, load_exceptions(REPO_ROOT))
+    try:
+        failures = apply_exceptions(failures, load_exceptions(REPO_ROOT))
+    except InvalidInputError as exc:
+        print(f"adr-immutability: {exc}", file=sys.stderr)
+        return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -420,4 +542,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

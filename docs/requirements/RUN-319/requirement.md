@@ -80,3 +80,9 @@ Current admission, retrieval, lifecycle, and persistence surfaces do not yet for
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_state_cut.py` (Shared state-cut head rendering for both final-sink owners)
 - TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_orchestration.py` (Zero backend call and zero disclosure for every non-eligible composition)
 - TESTS → TEST `implementations/python/tests/participant_crossing_fixtures.py` (Crossing fixtures binding a modular participant-control configuration)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)

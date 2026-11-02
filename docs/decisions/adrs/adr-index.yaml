@@ -92,11 +92,14 @@ adrs:
         summary: Narrowed standard interpreter support to CPython 3.14; the required python-compatibility check runs one time in smoke-only mode because the canonical graph runs the hermetic suite on the same interpreter.
   - id: ADR-015
     path: docs/decisions/adrs/adr-015-sdl-processor-layering-and-source-file-size-cap.md
-    pin: bc5038164e535c4d506962e27cee07e720f5c8a77cb17d018dedb3dba927936f
+    pin: 01086226bb28500056f45629a35875c8516c65f1f84cbaf77356990c9beae3a3
     amendments:
       - date: 2026-07-12
         ref: "#561"
         summary: "Lowered the non-test source-file cap from 600 to 500 lines to align with SonarCloud S104; re-baselined _ADR015_INITIAL_OVERSIZED_FILES and the oversized allowlist to the files over 500 lines at amendment time."
+      - date: 2026-10-30
+        ref: "#1734"
+        summary: "Raised the cap from 500 to 1,000 lines as a backstop to the ADR-117 structural checks; set the SonarCloud S104 maximum to 1001 in a project profile; re-baselined _ADR015_INITIAL_OVERSIZED_FILES to the files over 1,000 lines: none."
   - id: ADR-016
     path: docs/decisions/adrs/adr-016-semantic-layer-scope-and-coverage-model.md
     pin: ff9a71be7f6d427b88ff26317da36e14b6cc5943418cd941df88dca29033449b
@@ -227,6 +230,10 @@ adrs:
   - id: ADR-036
     path: docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md
     pin: 80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9
+    amendments:
+      - date: 2026-10-31
+        ref: "#1711"
+        summary: "ADR-121 makes raes_contracts the lowest package. It imports no first-party package and owns the shared authored types."
   - id: ADR-037
     path: docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md
     pin: d58c39b1132fe59dedb53fa389fc9c9bee063c37fca4d30aecff056683550baa
@@ -382,7 +389,11 @@ adrs:
     pin: 8bd179ba5c14c82b5998f9269d96a0c981cccb870c5b42bd27eb4b636b9c908b
   - id: ADR-065
     path: docs/decisions/adrs/adr-065-experiment-run-provenance-contract-boundary.md
-    pin: 69f90581b2bcedc12bfb7ed8aa688787d7a0d9aa4cc49a90f8c631ecbae8a356
+    pin: b3dec3a9d16706d0f722ff6713bc1645b3ce3b11966a3883fed1b0ee2d6cbad8
+    amendments:
+      - date: 2026-10-29
+        ref: "#1630"
+        summary: "Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630)."
   - id: ADR-066
     path: docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md
     pin: 98945754dae6d7df7eb21dd2a8d9dc938838d514e79fc42af7874dea8b63d764
@@ -398,11 +409,14 @@ adrs:
         summary: "Added binding open-by-default augmentation scope, explicit author restrictions, pre-materialization refusal, and the author-burden rationale."
   - id: ADR-068
     path: docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md
-    pin: 12e6d644f7a90d50956964d8f0608737f9b4d8c7627819419a69974184c2781f
+    pin: 631dfc59bf7f221786a147cfe7c56dadabf5e95548c7fea8798f7fa95cda79ab
     amendments:
       - date: 2026-07-15
         ref: "#652"
         summary: "Clarified that an admitted plan entry preallocates the existing archival run identity and preserves experiment-owned selection without becoming a second trial/run record."
+      - date: 2026-10-29
+        ref: "#1630"
+        summary: "Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630)."
   - id: ADR-069
     path: docs/decisions/adrs/adr-069-cage-2-replication-architecture.md
     pin: 305334e5558fb88d1f84317209f0e64d182714ba8e99cdeb5f6781bf3ee384f5
@@ -512,8 +526,14 @@ adrs:
     pin: c2a0e6ac9fb87aa10fbb571b0f70efe0b99520b806f6ffe706f1556b0ec7e84b
   - id: ADR-092
     path: docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md
-    pin: 53c3e77d830859eaf873454da7177cdcc94d302a9456d8a5568eebc33dc6329e
+    pin: fd1225e2d16c651b76b2dda7682fe1507e78eff3c8a20710b44904d8cfe7a465
     amendments:
+      - date: 2026-11-01
+        ref: "#1829"
+        summary: "Added runtime-owned delivery invocations with independently governed tool actions, shared-time evidence, and durable child settlement."
+      - date: 2026-10-30
+        ref: "#1740"
+        summary: "Added versioned participant tool actions hosted inside an active autonomous invocation."
       - date: 2026-09-21
         ref: "#216"
         summary: "Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules."
@@ -563,7 +583,7 @@ adrs:
     pin: 61a5ea9d72a0afa1033d46131913f45b140286b6ddddcb59e0e1f6914b721cb9
   - id: ADR-100
     path: docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md
-    pin: 8a406230189370e90c5fcab4e29459f3bcb7dc71321a7b4da007e7011bf6f4fb
+    pin: 4003729e08f84ab3a2db51c546482880f103ee27152d74d5e02372020d811524
     amendments:
       - date: 2026-09-27
         ref: "#971"
@@ -571,10 +591,16 @@ adrs:
       - date: 2026-10-13
         ref: "#1395"
         summary: "Add the separate two-operation construction profile and projection, history-sensitive retries and bounded completed-result response loss; preserve single-operation evidence and separate equivalence and realization."
+      - date: 2026-10-31
+        ref: "#976"
+        summary: "Record completion of the ordered #971-#976 work and the SEM-232 ACTIVE transition; retained records bind subject-source digests and execution records bind the source revision."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
-    pin: 7a579c1f66ee66285465e261f5e740414986c393fd57fbde3c490be3653711b9
+    pin: 52e6089fddc86a2f3361d678687db4823f5c06cdad74a97d99cd7c97a9b94acc
     amendments:
+      - date: 2026-10-29
+        ref: "#1008"
+        summary: Separate backend-neutral RAE harness evaluation from concrete backend realization claims.
       - date: 2026-09-06
         ref: "#1068"
         summary: "Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal."
@@ -651,8 +677,11 @@ adrs:
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
-    pin: a104a1150d612fa04c10847d36390d54fd99ce821d96c044b88c32404f7471f5
+    pin: 5484ae5d8d76613c975c2efb8295ae2c45ac9e7889c26c255ae82b09206b3f4f
     amendments:
+      - date: 2026-10-29
+        ref: "#1008"
+        summary: Separate backend-neutral RAE harness evaluation from concrete backend realization claims.
       - date: 2026-09-22
         ref: "#1352"
         summary: "Clarify applicability, dependency invocation, support and phase-independent parent decisions through ADR-111."
@@ -687,3 +716,28 @@ adrs:
   - id: ADR-115
     path: docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md
     pin: d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558
+  - id: ADR-116
+    path: docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md
+    pin: a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa
+  - id: ADR-117
+    path: docs/decisions/adrs/adr-117-ratcheted-structural-checks.md
+    pin: caf8ad4b7c042e07c33a2f4f6d31e09e8d88117e819bf5e531a1e7dd183c1ce3
+    amendments:
+      - date: 2026-10-30
+        ref: "#1752"
+        summary: "I6: the adoption commit bounds a baseline that is absent at the base revision. Thus a dev to main promotion can pass."
+      - date: 2026-10-31
+        ref: "#1711"
+        summary: "Checks 4 to 6: private members, imports inside functions and hidden imports. Check 6 applies the layer and module-boundary rules to each dynamic edge. I10 adopts a new counted family."
+  - id: ADR-118
+    path: docs/decisions/adrs/adr-118-shared-primitives-and-injected-wall-clock.md
+    pin: 820039e194f03289ac345a469cd9e5105b285812b8d51612c8014146424da226
+  - id: ADR-119
+    path: docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md
+    pin: b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442
+  - id: ADR-120
+    path: docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md
+    pin: 31c03fcaa4a342db746f1e62c41777aa718b191a81fdc2e62b13e24320f8647d
+  - id: ADR-121
+    path: docs/decisions/adrs/adr-121-strict-package-layers.md
+    pin: 1d0b035cd73a04e43af631dea33ceefbb5e62250587e09dcd5e818e16a6b4e69

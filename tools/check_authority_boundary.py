@@ -30,12 +30,17 @@ from collections.abc import Iterable
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import (
+    YAML_CONTENT_FAILURES,
     PolicyFailure,
     apply_exceptions,
     failures_to_json,
@@ -1414,6 +1419,14 @@ def evaluate_authority_boundary(repo_root: Path) -> list[PolicyFailure]:
                 AUTHORITY_BOUNDARY_RELATIVE_PATH,
             )
         ]
+    except YAML_CONTENT_FAILURES:
+        return [
+            _fail(
+                "authority-boundary-parse",
+                f"failed to parse {AUTHORITY_BOUNDARY_RELATIVE_PATH}",
+                AUTHORITY_BOUNDARY_RELATIVE_PATH,
+            )
+        ]
 
     if not isinstance(raw, dict):
         return [
@@ -1527,7 +1540,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     failures = evaluate_authority_boundary(args.repo_root)
     exceptions_file = args.repo_root / "tools" / "policy" / "exceptions.yaml"
     if exceptions_file.is_file():
-        failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        try:
+            failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        except InvalidInputError as exc:
+            print(f"authority-boundary: {exc}", file=sys.stderr)
+            return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -1539,4 +1556,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

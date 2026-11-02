@@ -26,6 +26,7 @@ from ._legacy import (
 from ._models import (
     DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     DEFAULT_UNDEFINED_REALIZATION_CLOSURE,
+    DOCUMENT_SCALAR,
     RealizationAllOf,
     RealizationClosure,
     RealizationClosurePosture,
@@ -54,6 +55,7 @@ from ._semantic_addresses import canonical_semantic_address, semantic_address_co
 
 __all__ = [
     "DEFAULT_REALIZATION_CONSTRAINT_LIMITS",
+    "DOCUMENT_SCALAR",
     "DEFAULT_UNDEFINED_REALIZATION_CLOSURE",
     "ExactRealizationValue",
     "OpenRealizationValue",

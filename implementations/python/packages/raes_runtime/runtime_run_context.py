@@ -92,7 +92,7 @@ if TYPE_CHECKING:
 
 
 def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
-    raise AssertionError("an unavailable backend cannot be invoked")
+    raise RuntimeError("an unavailable backend cannot be invoked")
 
 
 def _prepare_control_plane_store(
@@ -143,6 +143,7 @@ class RuntimeRunContext(
         engine: object,
     ) -> None:
         self._engine = engine
+        self.wall_clock = config.wall_clock
         self._required_operation_guarantees = config.required_operation_guarantees
         self._retired = False
         self._initialize_interaction(target, config)

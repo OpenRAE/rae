@@ -99,11 +99,12 @@ def corpus_root() -> Path:
     source = _source_checkout_corpus_root()
     if source is not None:
         return source
+    # A packaging defect, not a domain failure (E2). The message names no host path (E7).
     raise RuntimeError(
         "RAES contract corpus is unavailable: the installed distribution does "
         f"not bundle '{_CORPUS_PACKAGE}/{_BUNDLED_DIRNAME}' and no source "
         f"checkout ('{_REPO_MARKER}' + '{_CONTRACTS_DIRNAME}/') was found above "
-        f"{__file__}. Reinstall a wheel built with the corpus force-include, or "
+        f"the '{_CORPUS_PACKAGE}' package. Reinstall a wheel built with the corpus force-include, or "
         "run from a source checkout."
     )
 

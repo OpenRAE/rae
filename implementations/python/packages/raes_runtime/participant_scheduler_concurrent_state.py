@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
+from raes_contracts.errors import ConflictError, InvalidInputError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ParticipantAutonomousExecutionRuntime
 
@@ -18,6 +20,7 @@ if TYPE_CHECKING:
     from .participant_scheduler_types import SchedulerRunState, _DueActionContext
 
 
+_LOGGER = get_logger(__name__)
 _MISSING = object()
 
 # Native participant execution receives the complete portable snapshot, and the
@@ -115,7 +118,7 @@ def _merge_mapping_revision_checked(
             # apparently identical value. Treating identical writes as a
             # successful merge would assert commutativity without a governed
             # action-contract merge rule (ADR-054 section 8).
-            raise ValueError(f"concurrent participant commit conflict in {field_name}")
+            raise ConflictError(f"concurrent participant commit conflict in {field_name}")
         if value is _MISSING:
             merged.pop(key, None)
         else:
@@ -133,7 +136,7 @@ def _merge_value_revision_checked(
     if incoming == base:
         return deepcopy(current)
     if current != base:
-        raise ValueError(f"concurrent participant commit conflict in {field_name}")
+        raise ConflictError(f"concurrent participant commit conflict in {field_name}")
     return deepcopy(incoming)
 
 
@@ -143,7 +146,7 @@ def _require_protected_fields_unchanged(
 ) -> None:
     for field_name in sorted(_PROTECTED_SCHEDULER_FIELDS):
         if getattr(incoming, field_name) != getattr(base, field_name):
-            raise ValueError(f"concurrent participant result changed protected field {field_name}")
+            raise InvalidInputError(f"concurrent participant result changed protected field {field_name}")
 
 
 def _merge_concurrent_action_snapshot(
@@ -247,7 +250,12 @@ def _freeze_concurrent_results(
             frozen_results.append(frozen)
             freeze_invalid.append(False)
             frozen_by_identity[id(result)] = (result, frozen)
-        except Exception:  # NOSONAR - reject only the unfreezable paired result
+        except Exception as exc:  # NOSONAR - reject only the unfreezable paired result
+            # Isolation: the copier runs the backend result's own copy hooks; log only RAES frames.
+            _LOGGER.exception(
+                "concurrent participant result could not be detached from the backend",
+                exc_info=foreign_failure_record(exc),
+            )
             frozen_results.append(None)
             freeze_invalid.append(True)
     return frozen_results, freeze_invalid
@@ -275,7 +283,7 @@ def _reserve_concurrent_actions(
         count = sum(1 for context in contexts if context.policy.address == policy_address)
         available = service.capacity - service.reserved - service.in_flight
         if count > available:
-            raise ValueError("concurrent participant batch exceeds available execution-service capacity")
+            raise ConflictError("concurrent participant batch exceeds available execution-service capacity")
         services[policy_address] = service.model_copy(
             update={
                 "in_flight": service.in_flight + count,
@@ -300,7 +308,7 @@ def _finish_concurrent_service_state(
         return
     service = ParticipantExecutionServiceStateModel.model_validate(payload)
     if completed_count > service.in_flight:
-        raise ValueError("concurrent participant completion exceeds execution-service in-flight work")
+        raise ConflictError("concurrent participant completion exceeds execution-service in-flight work")
     remaining = service.in_flight - completed_count
     services[policy_address] = service.model_copy(
         update={

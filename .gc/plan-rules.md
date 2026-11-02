@@ -14,6 +14,9 @@ These encode the hard rules previously in `AGENTS.md` prose.
   already contain a UID such as `GOV-918`.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,
   `contracts/`, `docs/`, and `implementations/`.
+- Plans MUST name the module that owns each piece of new code. Plans MUST also
+  name the public interface that other modules use to reach that code
+  (ADR-117).
 - Plans that change a published schema under `contracts/schemas/` (the
   hand-governed normative authority per ADR-009 §7) MUST record a
   contract-facing change-ledger entry (`last_change`: summary + content hash)
@@ -41,7 +44,9 @@ These encode the hard rules previously in `AGENTS.md` prose.
   release-please actually cuts a release. The PR title MUST still pass the
   `title-guard` gate (`tools/check_pr_title.py`).
 
-- Source-bound formal and specification research evidence MUST use immutable,
+- Routine source edits do not require new research captures. Live behavioral
+  checks remain required. When a task deliberately records source-bound formal
+  or specification research evidence, it MUST use immutable,
   content-addressed branch captures via `python -m tools.research_capture record`.
   Feature branches MUST NOT allocate the next numbered research release, extend
   hard-coded revision lists, rewrite published history, or append a capture to

@@ -11,6 +11,7 @@ from raes_backend_protocols.recovery_observation import RecoveryEffectClassifica
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts import seal_mixed_composition_profile
 from raes_contracts.contracts.time_model import ClockTransitionEventModel, RuntimeClockStateModel, TimeRuntimeStateModel
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -141,7 +142,7 @@ def test_unbound_mixed_edge_refuses_before_bridge_or_provider_call() -> None:
     plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
 
     action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
-    with pytest.raises(ValueError, match="executable edge binding"):
+    with pytest.raises(ConflictError, match="executable edge binding"):
         plane.admit_participant_action(
             action,
             admission,
@@ -367,7 +368,7 @@ def test_handoff_order_grant_rejects_reversed_microsteps() -> None:
         installed.coordinate("operation:microsteps", transition, state)
     )
 
-    with pytest.raises(ValueError, match="handoff time coordination is unsupported"):
+    with pytest.raises(ConflictError, match="handoff time coordination is unsupported"):
         _require_handoff_time_grant(installed, grant, "operation:microsteps", declaration, state, transition)
 
 
@@ -444,7 +445,7 @@ def test_edge_authority_must_match_the_authorized_crossing_before_effect(field, 
 
     plane, _, runtimes, calls, _ = _executable_edge_plane(profile_factory=changed_edge_profile)
     action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
-    with pytest.raises(ValueError, match="mixed edge differs from the authorized crossing"):
+    with pytest.raises(ConflictError, match="mixed edge differs from the authorized crossing"):
         plane.admit_participant_action(
             action,
             admission,
@@ -751,7 +752,7 @@ def test_interrupted_mixed_edge_cannot_recover_from_provider_observation_alone(m
     assert restarted.snapshot.mixed_composition_history[run_id][-1]["event_kind"] == "attempt"
     assert control_plane_readiness(restarted).to_payload()["status"] == "unready"
     actor = identity()
-    with pytest.raises(ValueError, match="mixed stage reconciliation is required"):
+    with pytest.raises(ConflictError, match="mixed stage reconciliation is required"):
         restarted.resolve_indeterminate_operation(
             pending.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
@@ -786,7 +787,7 @@ def test_valid_mixed_crossing_cannot_clear_missing_stages_by_generic_resolution(
     validate_persisted_crossing_history(plane.snapshot, plane._crossing_policy_resolver)
 
     actor = identity()
-    with pytest.raises(ValueError, match="mixed stage reconciliation is required"):
+    with pytest.raises(ConflictError, match="mixed stage reconciliation is required"):
         plane.resolve_indeterminate_operation(
             receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
@@ -826,7 +827,7 @@ def test_valid_mixed_crossing_cannot_clear_missing_stages_by_generic_resolution(
     }
     target = create_stub_target(with_participant_runtime=False)
     resolver = permit_resolver()
-    with pytest.raises(ValueError, match="crossing result head differs"):
+    with pytest.raises(EvidenceIntegrityError, match="crossing result head differs"):
         RuntimeControlPlane(
             target,
             mixed_runtime=plane._mixed_runtime,
@@ -967,7 +968,7 @@ def test_interrupted_native_handoff_retains_uncertain_owner_on_restart() -> None
     assert restarted.snapshot.mixed_composition_states[run_id]["phase_id"] == "phase.sim"
     assert control_plane_readiness(restarted).to_payload()["status"] == "unready"
     actor = identity()
-    with pytest.raises(ValueError, match="mixed stage reconciliation is required"):
+    with pytest.raises(ConflictError, match="mixed stage reconciliation is required"):
         restarted.resolve_indeterminate_operation(
             pending.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
@@ -975,7 +976,7 @@ def test_interrupted_native_handoff_retains_uncertain_owner_on_restart() -> None
             identity=actor,
         )
     action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
-    with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+    with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
         restarted.admit_participant_action(
             action,
             admission,
@@ -1024,7 +1025,7 @@ def test_translated_action_outside_the_admitted_policy_cut_refuses_before_provid
     )
 
     action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
-    with pytest.raises(ValueError, match="destination action differs from admitted policy"):
+    with pytest.raises(ConflictError, match="destination action differs from admitted policy"):
         plane.admit_participant_action(
             action,
             admission,
@@ -1193,7 +1194,7 @@ def test_uncommitted_handoff_retains_prior_phase_and_classifies_outcome(handoff_
     )
     if terminal_state == "indeterminate":
         action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
-        with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+        with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
             plane.admit_participant_action(
                 action,
                 admission,

@@ -9,12 +9,33 @@ from typing import cast
 import yaml
 from yaml.error import Mark
 from yaml.nodes import MappingNode, Node, SequenceNode
-from yaml.tokens import AliasToken, DirectiveToken, ScalarToken, TagToken, Token
+from yaml.tokens import (
+    AliasToken,
+    BlockEndToken,
+    BlockMappingStartToken,
+    BlockSequenceStartToken,
+    DirectiveToken,
+    FlowMappingEndToken,
+    FlowMappingStartToken,
+    FlowSequenceEndToken,
+    FlowSequenceStartToken,
+    ScalarToken,
+    TagToken,
+    Token,
+)
 
 from ._errors import SDLParseDiagnostic, SDLParseError, SDLSourcePosition, SDLSourceRange
 from ._source_profile import SDL_SOURCE_FORMAT, SDLMigrationPolicy, SDLParserLimits
 
 EMPTY_CONTENT_MESSAGE = "SDL content is empty"
+_UTF8_MESSAGE = "SDL source must be valid UTF-8 without unpaired surrogate code points."
+_COLLECTION_START_TOKENS = (
+    BlockMappingStartToken,
+    BlockSequenceStartToken,
+    FlowMappingStartToken,
+    FlowSequenceStartToken,
+)
+_COLLECTION_END_TOKENS = (BlockEndToken, FlowMappingEndToken, FlowSequenceEndToken)
 
 
 def prepare_content(content: str, *, path: Path | None) -> str:
@@ -24,11 +45,7 @@ def prepare_content(content: str, *, path: Path | None) -> str:
     try:
         content.encode("utf-8")
     except UnicodeEncodeError as exc:
-        diagnostic = _diagnostic_at_start(
-            code="sdl.utf8",
-            message="SDL source must be valid UTF-8 without unpaired surrogate code points.",
-            path=path,
-        )
+        diagnostic = _diagnostic_at_start(code="sdl.utf8", message=_UTF8_MESSAGE, path=path)
         raise SDLParseError(diagnostic.message, path=path, diagnostics=(diagnostic,)) from exc
     return content
 
@@ -73,8 +90,10 @@ def validate_source_tokens(content: str, *, path: Path | None, limits: SDLParser
         )
 
     aliases = 0
+    depth = 0
     try:
         for token in yaml.scan(content, Loader=yaml.SafeLoader):
+            depth = _nesting_depth(token, depth, path=path, limits=limits)
             if isinstance(token, AliasToken):
                 aliases += 1
                 if aliases > limits.max_aliases:
@@ -84,7 +103,7 @@ def validate_source_tokens(content: str, *, path: Path | None, limits: SDLParser
                         token=token,
                     )
             elif isinstance(token, ScalarToken):
-                scalar_bytes = len(token.value.encode("utf-8"))
+                scalar_bytes = _scalar_bytes(token, path=path)
                 if scalar_bytes > limits.max_scalar_bytes:
                     _raise_source_limit(
                         f"SDL scalar is {scalar_bytes} bytes; limit is {limits.max_scalar_bytes} bytes.",
@@ -109,6 +128,29 @@ def validate_source_tokens(content: str, *, path: Path | None, limits: SDLParser
         raise
     except yaml.YAMLError as exc:
         raise yaml_parse_error(exc, path=path) from exc
+
+
+def _nesting_depth(token: Token, depth: int, *, path: Path | None, limits: SDLParserLimits) -> int:
+    """Bound collection nesting before the recursive composer builds nodes.
+
+    Each counted collection is a node at that depth or deeper, so this check refuses
+    only source that the graph depth check refuses after composition.
+    """
+    if isinstance(token, _COLLECTION_END_TOKENS):
+        return depth - 1
+    if not isinstance(token, _COLLECTION_START_TOKENS):
+        return depth
+    if depth >= limits.max_depth:
+        _raise_source_limit(f"SDL node depth exceeds {limits.max_depth}.", path=path, token=token)
+    return depth + 1
+
+
+def _scalar_bytes(token: ScalarToken, *, path: Path | None) -> int:
+    try:
+        return len(token.value.encode("utf-8"))
+    except UnicodeEncodeError as exc:
+        # A double-quoted escape can produce an unpaired surrogate, which has no UTF-8 form.
+        raise _token_error(code="sdl.utf8", message=_UTF8_MESSAGE, path=path, token=token) from exc
 
 
 def validate_source_graph(root: Node, *, path: Path | None, limits: SDLParserLimits) -> None:
@@ -290,6 +332,10 @@ def _raise_source_limit(
 
 
 def _raise_token_diagnostic(*, code: str, message: str, path: Path | None, token: Token) -> None:
+    raise _token_error(code=code, message=message, path=path, token=token)
+
+
+def _token_error(*, code: str, message: str, path: Path | None, token: Token) -> SDLParseError:
     diagnostic = SDLParseDiagnostic(
         code=code,
         message=message,
@@ -297,7 +343,7 @@ def _raise_token_diagnostic(*, code: str, message: str, path: Path | None, token
         primary_range=_range_from_marks(token.start_mark, token.end_mark),
         source=str(path) if path is not None else None,
     )
-    raise SDLParseError(message, path=path, diagnostics=(diagnostic,))
+    return SDLParseError(message, path=path, diagnostics=(diagnostic,))
 
 
 def _diagnostic_at_start(*, code: str, message: str, path: Path | None) -> SDLParseDiagnostic:

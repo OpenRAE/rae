@@ -25,6 +25,7 @@ from pydantic import Field
 from raes_contracts.contracts.base import ContractModel
 from raes_contracts.contracts.participant_control import ParticipantCancellationEffect
 from raes_contracts.contracts.participant_control_coordinates import ControlRef
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, NotFoundError
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_lifecycle import runtime_owned, store_authoritative_state
@@ -132,14 +133,14 @@ def _link(
 ) -> tuple[ControlPlaneOperationRecord, dict[str, Any]]:
     record = plane._operations.get(operation_id)
     if record is None or identity is None or not plane._operation_read_allowed(record, identity):
-        raise KeyError(_CONTROL_NOT_FOUND)
+        raise NotFoundError(_CONTROL_NOT_FOUND)
     link = (record.result_payload or {}).get("participant_control_cancellation")
     if link is None:
-        raise KeyError(_CONTROL_NOT_FOUND)
+        raise NotFoundError(_CONTROL_NOT_FOUND)
     if not any(
         item.participant_address == link["participant_address"] for item in identity.participant_control_subjects
     ):
-        raise KeyError(_CONTROL_NOT_FOUND)
+        raise NotFoundError(_CONTROL_NOT_FOUND)
     _require_committed_link(plane, record, link)
     return record, link
 
@@ -158,7 +159,7 @@ def _require_committed_link(
         or len(committed) != 1
         or committed[0]["occurrence"]["disposition"] != link["disposition"]
     ):
-        raise ValueError("cancellation control occurrence is not committed")
+        raise ConflictError("cancellation control occurrence is not committed")
 
 
 def _target_parent(plane: RuntimeControlPlane, link: dict[str, Any]) -> ControlPlaneOperationRecord:
@@ -168,7 +169,7 @@ def _target_parent(plane: RuntimeControlPlane, link: dict[str, Any]) -> ControlP
         or parent.invocation is None
         or parent.invocation.request.binding.model_dump(mode="json") != link["binding"]
     ):
-        raise ValueError("cancellation target binding is unverifiable")
+        raise EvidenceIntegrityError("cancellation target binding is unverifiable")
     return parent
 
 
@@ -265,7 +266,7 @@ def _project_prevention(status: ParticipantCancellationStatus, link: dict[str, A
         or any(witness[key] != link[key] for key in ("occurrence_ref", "target_kind", "target_ref", "target_revision"))
         or witness["evidence_refs"] != [link["occurrence_ref"]]
     ):
-        raise ValueError("cancellation prevention witness does not bind its committed target")
+        raise EvidenceIntegrityError("cancellation prevention witness does not bind its committed target")
     status.cancellation_effect = ParticipantCancellationEffect.PREVENTED
     status.evidence_refs = list(witness["evidence_refs"])
 
@@ -278,7 +279,7 @@ def _project_parent_status(
 ) -> None:
     parent = _target_parent(plane, link)
     if not plane._operation_read_allowed(parent, identity):
-        raise KeyError(_CONTROL_NOT_FOUND)
+        raise NotFoundError(_CONTROL_NOT_FOUND)
     invocation = parent.invocation
     for response in reversed(invocation.responses):
         if getattr(response.message, "control_id", None) == link["control_id"]:

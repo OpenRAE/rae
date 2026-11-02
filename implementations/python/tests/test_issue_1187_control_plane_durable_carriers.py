@@ -7,6 +7,7 @@ import sqlite3
 
 import pytest
 from control_plane_conformance_fixtures import DURABLE_PROFILES, profile_harness, witness_events
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_runtime.control_plane_store_local_codec import encode_payload
 
 pytestmark = pytest.mark.control_plane_conformance
@@ -55,7 +56,8 @@ def test_malformed_durable_carrier_blocks_reopen_without_backend_replay(profile,
             "UPDATE operations SET payload=?, digest=? WHERE operation_id=?", (content, digest, operation_id)
         )
     effects = witness_events(tmp_path / "effects.jsonl")
-    with pytest.raises((ValueError, RuntimeError)), profile_harness(profile, tmp_path):
+    # The store refuses a stored carrier that fails its digest or its contract as damaged durable state.
+    with pytest.raises(EvidenceIntegrityError), profile_harness(profile, tmp_path):
         pytest.fail("malformed persisted operation reached readiness")
     assert witness_events(tmp_path / "effects.jsonl") == effects
     # Rejection does not silently repair, drop, or replace the invalid history.

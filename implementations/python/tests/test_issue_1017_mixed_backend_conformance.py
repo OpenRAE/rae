@@ -14,6 +14,7 @@ from raes_conformance.conformance import (
     run_mixed_backend_conformance,
 )
 from raes_conformance.conformance.report import _bounded_conformance_claim, validate_backend_conformance_report
+from raes_contracts.errors import InvalidInputError
 from test_issue_1371_mixed_backend_contracts import _binding, _time_model, _time_state
 
 
@@ -175,7 +176,7 @@ def test_harness_environment_digest_is_required(tmp_path):
     harness = PortableHarness(tmp_path)
     harness.environment_digest = "environment:unbound"
 
-    with pytest.raises(ValueError, match="environment digest"):
+    with pytest.raises(InvalidInputError, match="environment digest"):
         run_mixed_backend_conformance(harness, cases=["edge-executes"])
 
 

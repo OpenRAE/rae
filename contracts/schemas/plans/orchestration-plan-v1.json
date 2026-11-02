@@ -1099,7 +1099,7 @@
           "type": "string"
         },
         "snapshot": {
-          "maxLength": 1048576,
+          "maxLength": 4194304,
           "minLength": 1,
           "title": "Snapshot",
           "type": "string"

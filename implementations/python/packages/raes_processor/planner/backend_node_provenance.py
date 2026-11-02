@@ -1,6 +1,6 @@
 """Shared value-free concern records for backend-introduced portable nodes."""
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.runtime_state import RealizationProvenanceEntry
 
 from ..compiler.realization_value_domains import nested_authored_value

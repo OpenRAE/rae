@@ -9,9 +9,11 @@ policy revision, schema publication hash and store version.
 This publication establishes the design contract. The SDL and compiler accept
 both the earlier fixed-coordinate form and this form, and API-409
 `participant-control-occurrence-v2` publishes the occurrence carrier. API-409
-v1 and the runtime implement only the fixed-coordinate form; planning and
-runtime admission refuse this form, and v1 schemas acquire nothing by
-publication.
+v1 implements only the fixed-coordinate form, and v1 schemas acquire nothing by
+publication. Only the explicitly installed RUN-310 control path of issue #1364
+executes this form; planning without that path's admission, the runtime
+manager, and control-plane construction without the installed binding refuse
+it.
 The [migration contract](../../../docs/migration/reusable-mixed-control.md)
 defines the required producer/reader boundary. The
 [worked cases](../../../docs/research/reusable-mixed-control/cases.md) distinguish

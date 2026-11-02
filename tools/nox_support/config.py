@@ -7,6 +7,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = REPO_ROOT / "implementations" / "python"
+# A changed module whose tests all belong to another lane, for example
+# integration, collects nothing in a fast lane: pytest exits 5. That lane runs it.
+CHANGED_MODULE_PYTEST_CODES = (0, 5)
 PUBLIC_DOCS_ROOT = REPO_ROOT / "docs" / "public"
 DOCS_BUILD_ROOT = REPO_ROOT / "docs" / "_build"
 PUBLIC_DOCS_ENTRYPOINTS = (
@@ -20,6 +23,7 @@ PUBLIC_DOCS_ENTRYPOINTS = (
 )
 PUBLIC_DOCS_EXAMPLE_TESTS = (
     "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses",
+    "implementations/python/tests/test_sdl_reference_quick_example.py::test_quick_example_passes_semantic_validation",
     "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario",
     "implementations/python/tests/test_public_docs_policy.py::test_first_scenario_tutorial_shows_real_format_results",
     "implementations/python/tests/test_public_docs_policy.py::test_participant_control_claim_example_is_bounded",
@@ -28,6 +32,10 @@ PUBLIC_DOCS_EXAMPLE_TESTS = (
 RUFF_CONFIG = PROJECT_ROOT / "pyproject.toml"
 OSV_LOCKFILE_PATH = PROJECT_ROOT / "uv.lock"
 OSV_REPORT_PATH = PROJECT_ROOT / "osv-scanner-report.json"
+# The locked tooling closure also runs in CI (for example the ADR-117 analyzers), so the
+# vulnerability gate scans it too.
+OSV_TOOLING_LOCKFILE_PATH = REPO_ROOT / "implementations" / "tooling" / "python" / "uv.lock"
+OSV_TOOLING_REPORT_PATH = PROJECT_ROOT / "osv-scanner-tooling-report.json"
 COVERAGE_XML_PATH = PROJECT_ROOT / "coverage.xml"
 COVERAGE_JSON_PATH = PROJECT_ROOT / "coverage.json"
 MINIMUM_LINE_COVERAGE_PERCENT = 90.0
@@ -46,6 +54,11 @@ TARGETED_POLICY_TESTS = [
     "implementations/python/tests/test_public_project_readiness.py",
     "implementations/python/tests/test_vale_tool.py",
     "implementations/python/tests/test_verification_plan.py",
+    "implementations/python/tests/test_issue_1734_private_imports.py",
+    "implementations/python/tests/test_issue_1734_class_ancestry.py",
+    "implementations/python/tests/test_issue_1734_import_cycles.py",
+    "implementations/python/tests/test_issue_1734_structural_ratchet.py",
+    "implementations/python/tests/test_issue_1734_import_graph.py",
 ]
 CONTRACT_TRIGGER_PREFIXES = (
     "contracts/",

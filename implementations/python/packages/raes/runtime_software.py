@@ -3,22 +3,21 @@
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.realization_structure import RealizationPresence
-from raes_contracts.software_versions import VersionDomain, version_membership
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
-from .runtime_packages import RuntimePackage
-from .runtime_software_profiles import RuntimeSoftwareComponentRefinement, RuntimeSoftwarePackageReference
-from .runtime_values import (
+from raes_contracts.runtime_values import (
     absolute_path_or_var,
     coerce_string_list,
     parse_runtime_enum_or_var,
     require_symbol,
     validate_absolute_paths,
 )
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.software_versions import VersionDomain, version_membership
+
+from .runtime_packages import RuntimePackage
+from .runtime_software_profiles import RuntimeSoftwareComponentRefinement, RuntimeSoftwarePackageReference
 
 
 class RuntimeSoftwareComponentType(str, Enum):

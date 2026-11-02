@@ -1,9 +1,9 @@
 {
-  "content_hash": "a6880d7d74145d2d9ccb5bdc4106cd692257944060bfd13a0d1773dea230cb64",
+  "content_hash": "33043f480a4d125b22868a52bcd84b0c90bcdc0259517507d8fa0e259aba8f1d",
   "contract_id": "backend-materialization-attestation-v1",
   "last_change": {
-    "content_hash": "a6880d7d74145d2d9ccb5bdc4106cd692257944060bfd13a0d1773dea230cb64",
-    "summary": "Publish closed descriptive SDL, negotiated backend submission and protected archive record contracts with separate identity and contextual admission invariants (#1241)."
+    "content_hash": "33043f480a4d125b22868a52bcd84b0c90bcdc0259517507d8fa0e259aba8f1d",
+    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
   },
   "schema_path": "contracts/schemas/plans/backend-materialization-attestation-v1.json",
   "stability": "draft"

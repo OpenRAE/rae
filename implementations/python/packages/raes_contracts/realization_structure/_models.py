@@ -342,7 +342,29 @@ class RealizationConstraintLimits(StructureModel):
     max_scalar_bytes: int = Field(default=4096, ge=1, le=8 * 1024 * 1024)
     max_total_scalar_bytes: int = Field(default=1024 * 1024, ge=1, le=64 * 1024 * 1024)
     max_diagnostics: int = Field(default=16, ge=1, le=256)
+    # A field that declares ``DOCUMENT_SCALAR`` uses this ceiling; every other scalar keeps ``max_scalar_bytes``.
+    max_document_scalar_bytes: int | None = Field(default=None, ge=1, le=8 * 1024 * 1024)
+
+    @model_validator(mode="after")
+    def _validate_document_ceiling(self) -> RealizationConstraintLimits:
+        ceiling = self.max_document_scalar_bytes
+        if ceiling is not None and not self.max_scalar_bytes <= ceiling <= self.max_total_scalar_bytes:
+            raise ValueError("max_document_scalar_bytes must lie between max_scalar_bytes and max_total_scalar_bytes")
+        return self
 
 
+class DocumentScalarAllowance:
+    """Field metadata that admits one declared document body under ``max_document_scalar_bytes``.
+
+    Only a contract field annotation grants the allowance. A string value elsewhere keeps the ordinary scalar ceiling.
+    """
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "DOCUMENT_SCALAR"
+
+
+DOCUMENT_SCALAR = DocumentScalarAllowance()
 DEFAULT_REALIZATION_CONSTRAINT_LIMITS = RealizationConstraintLimits()
 DEFAULT_UNDEFINED_REALIZATION_CLOSURE = RealizationClosure()

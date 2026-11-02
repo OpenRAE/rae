@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relation_profiles import (
     BehavioralRelationProfileModel,
     load_behavioral_relation_profile_revision,
@@ -18,8 +19,6 @@ from raes_contracts.behavioral_relations import (
     load_behavioral_relation_catalog_revision,
 )
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts.base import BehavioralClaimBindingModel
-from raes_contracts.contracts.bundle import schema_bundle
 from raes_contracts.participant_opacity import (
     MODEL_CHECK_PROVENANCE_NONCLAIM,
     NORMALIZED_INPUT_PROVENANCE_NONCLAIM,
@@ -34,15 +33,17 @@ from raes_contracts.participant_opacity import (
     ParticipantOpacityModelStateModel,
     ParticipantOpacityModelTransitionModel,
 )
-from raes_contracts.satisfiability import SourceArtifactIdentityModel
+from raes_contracts.source_identity import SourceArtifactIdentityModel
 from raes_processor.participant_opacity import (
     ParticipantOpacityEvidenceError,
+    ParticipantOpacityInputError,
     ParticipantOpacityOperationalError,
     analyze_participant_opacity_input,
     model_check_participant_opacity_file,
     model_check_participant_opacity_input,
     replay_participant_opacity_model_check_evidence,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PROFILE_ID = "participant-opacity-baseline-v1"
@@ -769,7 +770,7 @@ def test_model_check_file_ingress_rejects_duplicate_and_open_json_without_leaks(
         encoding="utf-8",
     )
     with pytest.raises(
-        ParticipantOpacityOperationalError,
+        ParticipantOpacityInputError,
         match="bounded closed-world admission",
     ) as duplicate_error:
         model_check_participant_opacity_file(duplicate)
@@ -781,7 +782,7 @@ def test_model_check_file_ingress_rejects_duplicate_and_open_json_without_leaks(
     open_input = tmp_path / "open.json"
     open_input.write_text(json.dumps(open_payload), encoding="utf-8")
     with pytest.raises(
-        ParticipantOpacityOperationalError,
+        ParticipantOpacityInputError,
         match="bounded closed-world admission",
     ) as open_error:
         model_check_participant_opacity_file(open_input)

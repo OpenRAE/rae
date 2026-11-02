@@ -14,12 +14,6 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
-from raes_contracts.admitted_trial_plan_ingress import (
-    MAX_ADMITTED_TRIAL_PLAN_BYTES,
-    AdmittedTrialPlanIngressError,
-    parse_admitted_trial_plan_json,
-)
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.admitted_trial_plan import (
     AdmittedApparatusBindingModel,
     AdmittedBindingModel,
@@ -34,6 +28,11 @@ from raes_contracts.contracts.admitted_trial_plan import (
     ExperimentScenarioFamilyReferenceModel,
     seal_admitted_trial_entry,
     seal_admitted_trial_plan,
+)
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    MAX_ADMITTED_TRIAL_PLAN_BYTES,
+    AdmittedTrialPlanIngressError,
+    parse_admitted_trial_plan_json,
 )
 from raes_contracts.contracts.experiment_apparatus import ExperimentStochasticControlModel
 from raes_contracts.contracts.experiment_bindings import (
@@ -69,6 +68,7 @@ from raes_contracts.contracts.trial_cleanup import (
     SchedulerIsolationProofModel,
     TrialCleanupPlanModel,
 )
+from raes_schemas import schema_bundle
 
 _REQUIRED_ISOLATION_DIMENSIONS = (
     "range-instance",

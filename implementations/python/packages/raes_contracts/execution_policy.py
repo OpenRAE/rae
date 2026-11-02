@@ -6,7 +6,8 @@ from collections.abc import Mapping
 from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
-from raes.evidence_requirements import EvidenceRequirement
+
+from raes_contracts.evidence_requirements import EvidenceRequirement
 
 from ._base import ContractModel
 from .execution_policy_schema import execution_policy_schema

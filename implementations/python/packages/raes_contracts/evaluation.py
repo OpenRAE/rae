@@ -384,7 +384,9 @@ class EvaluationExecutionState:
             max_score=self.max_score,
             context="evaluation results",
         )
-        if self.score is not None and self.max_score is not None and float(self.score) > float(self.max_score):
+        # The checks above make score an int or a float and max_score an int. Python compares those exactly,
+        # so the check needs no float conversion, which overflows for an int beyond the float range.
+        if self.score is not None and self.max_score is not None and self.score > self.max_score:
             raise ValueError("evaluation result score may not exceed max_score")
 
 

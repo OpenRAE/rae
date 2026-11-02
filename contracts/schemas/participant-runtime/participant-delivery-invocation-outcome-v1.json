@@ -1,0 +1,50 @@
+{
+  "$id": "https://openrae.github.io/rae/schemas/participant-delivery-invocation-outcome-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "participant-delivery-invocation-outcome/v1",
+      "default": "participant-delivery-invocation-outcome/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "succeeded",
+        "failed",
+        "indeterminate"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "title": "ParticipantDeliveryInvocationOutcomeModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate exact local delivery invocation coordinates and implementation selection; structural validity grants no execution authority.",
+      "id": "participant-delivery-invocation-outcome-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-delivery-invocation-outcome-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ParticipantDeliveryInvocationOutcomeModel.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "participant-delivery-invocation-outcome-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable, Mapping
 
+from ._errors import SDLValidationFinding
 from .content import Content
 from .nodes import Node, OSFamily
 from .propositions import Proposition, PropositionBasis, StringPredicate
@@ -14,7 +15,9 @@ from .stateful_resources import GeneratedArtifact, PersistentVolume, ResourceSen
 _GENERATED_ARTIFACTS_PREFIX = "generated_artifacts."
 
 
-def _node_name(reference: str, nodes: Mapping[str, Node]) -> str | None:
+def consumer_node_name(reference: str, nodes: Mapping[str, object]) -> str | None:
+    """Resolve a bare or ``nodes.``-qualified consumer node reference to its node key."""
+
     name = reference.removeprefix("nodes.") if reference.startswith("nodes.") else reference
     return name if name in nodes else None
 
@@ -57,20 +60,26 @@ def _environment_binding_errors(
     nodes: Mapping[str, Node],
     generated_artifacts: Mapping[str, GeneratedArtifact],
     consumed_artifacts: set[str],
-) -> list[str]:
+) -> list[SDLValidationFinding]:
     """Validate node runtime env / env-file generated-artifact references.
 
     Records every referenced artifact in ``consumed_artifacts`` so an artifact
     consumed only through an environment binding is not flagged as an orphan.
     """
 
-    errors: list[str] = []
+    errors: list[SDLValidationFinding] = []
     for node_name, node in nodes.items():
+        declaration = ("nodes", node_name)
         for label, source, environment_classification in _node_environment_bindings(node):
             owner = f"node {node_name!r} {label}"
             artifact_name = _generated_artifact_ref_name(source.generated_artifact, generated_artifacts)
             if artifact_name is None:
-                errors.append(f"{owner} references generated artifact {source.generated_artifact!r} which is missing")
+                errors.append(
+                    SDLValidationFinding(
+                        f"{owner} references generated artifact {source.generated_artifact!r} which is missing",
+                        declaration,
+                    )
+                )
                 continue
             consumed_artifacts.add(artifact_name)
             try:
@@ -80,7 +89,9 @@ def _environment_binding_errors(
                     environment_classification=environment_classification,
                 )
             except ValueError as exc:
-                errors.append(f"{owner} {exc} on generated_artifacts.{artifact_name}")
+                errors.append(
+                    SDLValidationFinding(f"{owner} {exc} on generated_artifacts.{artifact_name}", declaration)
+                )
     return errors
 
 
@@ -89,31 +100,40 @@ def _content_binding_errors(
     content: Mapping[str, Content],
     generated_artifacts: Mapping[str, GeneratedArtifact],
     consumed_artifacts: set[str],
-) -> list[str]:
+) -> list[SDLValidationFinding]:
     """Validate content ``text_from`` generated-artifact references (issue #1276).
 
     Records each referenced artifact in ``consumed_artifacts`` so an artifact
     consumed only through a content binding is not flagged as an orphan.
     """
 
-    errors: list[str] = []
+    errors: list[SDLValidationFinding] = []
     for content_name, item in content.items():
         source = item.text_from
         if source is None:
             continue
         owner = f"content {content_name!r} text_from"
+        declaration = ("content", content_name)
         artifact_name = _generated_artifact_ref_name(source.generated_artifact, generated_artifacts)
         if artifact_name is None:
-            errors.append(f"{owner} references generated artifact {source.generated_artifact!r} which is missing")
+            errors.append(
+                SDLValidationFinding(
+                    f"{owner} references generated artifact {source.generated_artifact!r} which is missing", declaration
+                )
+            )
             continue
         consumed_artifacts.add(artifact_name)
         try:
             output = resolve_consumable_generated_artifact_output(generated_artifacts[artifact_name], source.output)
         except ValueError as exc:
-            errors.append(f"{owner} {exc} on generated_artifacts.{artifact_name}")
+            errors.append(SDLValidationFinding(f"{owner} {exc} on generated_artifacts.{artifact_name}", declaration))
             continue
         if output.sensitivity is ResourceSensitivity.SECRET and item.sensitive is False:
-            errors.append(f"{owner} binds a secret generated output; content must be marked sensitive")
+            errors.append(
+                SDLValidationFinding(
+                    f"{owner} binds a secret generated output; content must be marked sensitive", declaration
+                )
+            )
     return errors
 
 
@@ -122,38 +142,46 @@ def _proposition_expected_from_errors(
     propositions: Mapping[str, Proposition],
     generated_artifacts: Mapping[str, GeneratedArtifact],
     consumed_artifacts: set[str],
-) -> list[str]:
+) -> list[SDLValidationFinding]:
     """Validate proposition ``expected_from`` generated-artifact references (issue #1276)."""
 
-    errors: list[str] = []
+    errors: list[SDLValidationFinding] = []
     for proposition_name, proposition in propositions.items():
         predicate = proposition.predicate
         if not isinstance(predicate, StringPredicate) or predicate.expected_from is None:
             continue
         source = predicate.expected_from
         owner = f"proposition {proposition_name!r} expected_from"
+        declaration = ("propositions", proposition_name)
         if proposition.basis is not PropositionBasis.OBSERVED_STATE:
-            errors.append(f"{owner} requires an observed_state proposition basis")
+            errors.append(SDLValidationFinding(f"{owner} requires an observed_state proposition basis", declaration))
         artifact_name = _generated_artifact_ref_name(source.generated_artifact, generated_artifacts)
         if artifact_name is None:
-            errors.append(f"{owner} references generated artifact {source.generated_artifact!r} which is missing")
+            errors.append(
+                SDLValidationFinding(
+                    f"{owner} references generated artifact {source.generated_artifact!r} which is missing", declaration
+                )
+            )
             continue
         consumed_artifacts.add(artifact_name)
         try:
             resolve_consumable_generated_artifact_output(generated_artifacts[artifact_name], source.output)
         except ValueError as exc:
-            errors.append(f"{owner} {exc} on generated_artifacts.{artifact_name}")
+            errors.append(SDLValidationFinding(f"{owner} {exc} on generated_artifacts.{artifact_name}", declaration))
     return errors
 
 
 def _orphan_generated_artifact_errors(
     generated_artifacts: Mapping[str, GeneratedArtifact],
     consumed_artifacts: Iterable[str],
-) -> list[str]:
+) -> list[SDLValidationFinding]:
     consumed = set(consumed_artifacts)
     return [
-        f"generated_artifacts.{name} is declared but no file consumer, environment binding, "
-        f"or content binding consumes it"
+        SDLValidationFinding(
+            f"generated_artifacts.{name} is declared but no file consumer, environment binding, "
+            f"or content binding consumes it",
+            ("generated_artifacts", name),
+        )
         for name, artifact in generated_artifacts.items()
         if not artifact.consumers and name not in consumed
     ]
@@ -183,27 +211,37 @@ def _dependency_candidates(
 def _consumer_reference_errors(
     *,
     owner: str,
+    declaration: tuple[str, str],
     resource: GeneratedArtifact | PersistentVolume,
     nodes: Mapping[str, Node],
     occupied_destinations: dict[tuple[str, str], str],
-) -> list[str]:
-    errors: list[str] = []
+) -> list[SDLValidationFinding]:
+    errors: list[SDLValidationFinding] = []
     for consumer in resource.consumers:
-        node_name = _node_name(consumer.node, nodes)
+        node_name = consumer_node_name(consumer.node, nodes)
         if node_name is None:
-            errors.append(f"{owner} consumer node reference {consumer.node!r} is missing")
+            errors.append(
+                SDLValidationFinding(f"{owner} consumer node reference {consumer.node!r} is missing", declaration)
+            )
             continue
         node = nodes[node_name]
         if node.os is OSFamily.WINDOWS or node.os == OSFamily.WINDOWS.value:
-            errors.append(f"{owner} uses a POSIX mount_destination for Windows consumer node {node_name!r}")
+            errors.append(
+                SDLValidationFinding(
+                    f"{owner} uses a POSIX mount_destination for Windows consumer node {node_name!r}", declaration
+                )
+            )
         destination = (node_name, consumer.mount_destination)
         previous = occupied_destinations.get(destination)
         if previous is None:
             occupied_destinations[destination] = owner
         else:
             errors.append(
-                f"{owner} mount_destination {consumer.mount_destination!r} on node {node_name!r} "
-                f"is already consumed by {previous}"
+                SDLValidationFinding(
+                    f"{owner} mount_destination {consumer.mount_destination!r} on node {node_name!r} "
+                    f"is already consumed by {previous}",
+                    declaration,
+                )
             )
     return errors
 
@@ -211,11 +249,12 @@ def _consumer_reference_errors(
 def _dependency_reference_errors(
     *,
     owner: str,
+    declaration: tuple[str, str],
     resource: GeneratedArtifact | PersistentVolume,
     generated_artifacts: Mapping[str, GeneratedArtifact],
     persistent_volumes: Mapping[str, PersistentVolume],
-) -> list[str]:
-    errors: list[str] = []
+) -> list[SDLValidationFinding]:
+    errors: list[SDLValidationFinding] = []
     for dependency in (*resource.ordering_dependencies, *resource.refresh_dependencies):
         candidates = _dependency_candidates(
             dependency,
@@ -223,10 +262,14 @@ def _dependency_reference_errors(
             persistent_volumes=persistent_volumes,
         )
         if not candidates:
-            errors.append(f"{owner} dependency reference {dependency!r} is missing")
+            errors.append(SDLValidationFinding(f"{owner} dependency reference {dependency!r} is missing", declaration))
         elif len(candidates) > 1:
             choices = ", ".join(candidates)
-            errors.append(f"{owner} dependency reference {dependency!r} is ambiguous; use one of: {choices}")
+            errors.append(
+                SDLValidationFinding(
+                    f"{owner} dependency reference {dependency!r} is ambiguous; use one of: {choices}", declaration
+                )
+            )
     return errors
 
 
@@ -237,14 +280,14 @@ def _resource_reference_errors(
     persistent_volumes: Mapping[str, PersistentVolume],
     occupied_destinations: dict[tuple[str, str], str],
     consumed_artifacts: set[str],
-) -> list[str]:
+) -> list[SDLValidationFinding]:
     """Consumer/dependency errors for generated artifacts and persistent volumes.
 
     Populates ``occupied_destinations`` and ``consumed_artifacts`` in place so the
     caller can validate runtime mounts and orphaned artifacts against the same view.
     """
 
-    errors: list[str] = []
+    errors: list[SDLValidationFinding] = []
     for section, resources in (
         ("generated_artifacts", generated_artifacts),
         ("persistent_volumes", persistent_volumes),
@@ -256,6 +299,7 @@ def _resource_reference_errors(
             errors.extend(
                 _consumer_reference_errors(
                     owner=owner,
+                    declaration=(section, name),
                     resource=resource,
                     nodes=nodes,
                     occupied_destinations=occupied_destinations,
@@ -264,6 +308,7 @@ def _resource_reference_errors(
             errors.extend(
                 _dependency_reference_errors(
                     owner=owner,
+                    declaration=(section, name),
                     resource=resource,
                     generated_artifacts=generated_artifacts,
                     persistent_volumes=persistent_volumes,
@@ -274,10 +319,10 @@ def _resource_reference_errors(
 
 def _runtime_mount_conflict_errors(
     nodes: Mapping[str, Node], occupied_destinations: Mapping[tuple[str, str], str]
-) -> list[str]:
+) -> list[SDLValidationFinding]:
     """Report runtime mount targets already consumed by a declared stateful resource."""
 
-    errors: list[str] = []
+    errors: list[SDLValidationFinding] = []
     for node_name, node in nodes.items():
         runtime = node.runtime
         if runtime is None:
@@ -286,7 +331,11 @@ def _runtime_mount_conflict_errors(
             previous = occupied_destinations.get((node_name, mount.target))
             if previous is not None:
                 errors.append(
-                    f"runtime mount target {mount.target!r} on node {node_name!r} is already consumed by {previous}"
+                    SDLValidationFinding(
+                        f"runtime mount target {mount.target!r} on node {node_name!r} "
+                        f"is already consumed by {previous}",
+                        ("nodes", node_name),
+                    )
                 )
     return errors
 
@@ -298,8 +347,11 @@ def stateful_resource_reference_errors(
     persistent_volumes: Mapping[str, PersistentVolume],
     content: Mapping[str, Content] | None = None,
     propositions: Mapping[str, Proposition] | None = None,
-) -> list[str]:
-    """Return bounded semantic errors before compilation or dispatch."""
+) -> list[SDLValidationFinding]:
+    """Return bounded semantic errors before compilation or dispatch.
+
+    The declaration that each error names first owns that error.
+    """
 
     occupied_destinations: dict[tuple[str, str], str] = {}
     consumed_artifacts: set[str] = set()
@@ -336,4 +388,4 @@ def stateful_resource_reference_errors(
     return errors
 
 
-__all__ = ["stateful_resource_reference_errors"]
+__all__ = ["consumer_node_name", "stateful_resource_reference_errors"]

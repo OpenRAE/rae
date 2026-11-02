@@ -7,6 +7,14 @@ import json
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
 _EXACT_SCHEMA_DIRECTORIES = (
     {
         "participant-owner-flow-policy-v1": "profiles",
@@ -64,6 +72,10 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-control-context-asset-v1",
             "participant-control-context-change-v1",
             "participant-control-context-record-v1",
+            "participant-crossing-evidence-v1",
+            "participant-delivery-invocation-request-v1",
+            "participant-delivery-invocation-context-v1",
+            "participant-delivery-invocation-outcome-v1",
             "participant-control-occurrence-v2",
             "participant-control-selection-v1",
             "participant-control-evaluation-v1",
@@ -160,7 +172,7 @@ def write_schema_bundle(schemas_dir: Path) -> None:
     throwaway directory so it can compare the reference output against the
     published normative schemas without overwriting them.
     """
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     bundle = schema_bundle()
     for name, schema in bundle.items():
@@ -199,4 +211,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_application(main))

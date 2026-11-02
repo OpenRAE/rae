@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     ApplyResult,
@@ -301,7 +302,7 @@ def test_explicit_base_snapshot_must_equal_the_authoritative_observed_content(
     method = getattr(control_plane, method_name)
     caller_snapshot = RuntimeSnapshot(metadata={"cut": "caller"})
 
-    with pytest.raises(ValueError, match="explicit base snapshot does not match"):
+    with pytest.raises(ConflictError, match="explicit base snapshot does not match"):
         method(
             plan,
             base_snapshot=caller_snapshot,
@@ -429,7 +430,7 @@ def test_local_store_rejects_corrupt_provider_revision(tmp_path: Path) -> None:
     with sqlite3.connect(store_path / "control-plane.sqlite3") as connection:
         connection.execute("UPDATE state SET revision=-1 WHERE key='runtime-snapshot'")
 
-    with pytest.raises(ValueError, match="snapshot revision"):
+    with pytest.raises(EvidenceIntegrityError, match="snapshot revision"):
         store.load_snapshot_state()
     store.close()
     lease.close()

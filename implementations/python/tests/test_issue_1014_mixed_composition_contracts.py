@@ -14,7 +14,6 @@ from pydantic import ValidationError
 from raes_backend_protocols.capabilities import ParticipantFeatureSupport
 from raes_backend_protocols.participant_feature_admission import resolve_participant_feature_support
 from raes_conformance.conformance import contract_validation_strength, validate_contract_payload
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.mixed_composition import (
     MIXED_COMPOSITION_CONTRACT_ID,
     CompositionFeatureRequirementModel,
@@ -39,8 +38,10 @@ from raes_contracts.contracts.time_model import (
     TimeDomainMappingDeclarationModel,
     TimeModelDeclarationModel,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
+from raes_schemas import schema_bundle
 
 SHA_A = "sha256:" + "a" * 64
 SHA_B = "sha256:" + "b" * 64
@@ -542,20 +543,20 @@ def test_alternative_realizations_are_distinct_roots_without_trial_or_run_identi
 
 def test_bounded_ingress_rejects_duplicate_members_depth_nodes_and_unknown_revision() -> None:
     assert parse_bounded_json_object('{"value":"[[{{"}', max_bytes=64, max_depth=1) == {"value": "[[{{"}
-    with pytest.raises(ValueError, match="duplicate JSON member"):
+    with pytest.raises(InvalidInputError, match="duplicate JSON member"):
         parse_mixed_composition_profile('{"profile_id":"a","profile_id":"b"}')
 
     payload = _profile().model_dump(mode="json")
     encoded_payload = json.dumps(payload)
     depth_limits = MixedCompositionValidationLimits(max_json_depth=2)
-    with pytest.raises(ValueError, match="depth limit"):
+    with pytest.raises(InvalidInputError, match="depth limit"):
         parse_mixed_composition_profile(encoded_payload, limits=depth_limits)
     node_limits = MixedCompositionValidationLimits(max_json_nodes=10)
-    with pytest.raises(ValueError, match="node limit"):
+    with pytest.raises(InvalidInputError, match="node limit"):
         parse_mixed_composition_profile(encoded_payload, limits=node_limits)
     deeply_nested = '{"value":' + "[" * 2_000 + "0" + "]" * 2_000 + "}"
     nesting_limits = MixedCompositionValidationLimits(max_json_depth=64)
-    with pytest.raises(ValueError, match="depth limit"):
+    with pytest.raises(InvalidInputError, match="depth limit"):
         parse_mixed_composition_profile(deeply_nested, limits=nesting_limits)
 
     payload["schema_version"] = "mixed-participant-composition-profile/v2"

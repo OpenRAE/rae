@@ -13,7 +13,9 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field, replace
 
+from pydantic import ValidationError
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
@@ -114,7 +116,7 @@ def _validate_records(plane: RuntimeControlPlane) -> tuple[tuple[str, ...], str 
                 # The published model covers the whole event record, not just
                 # its nested occurrence, so validate the record as committed.
                 record = ParticipantCrossingOccurrenceModel.model_validate(entry)
-            except Exception as exc:
+            except ValidationError as exc:
                 return tuple(dispositions), sanitized_failure_message(exc)
             # ``occurrence`` is a union over crossing stages; only the decision
             # stage carries a disposition, and that is the stage an obligation's
@@ -243,10 +245,10 @@ def _prepared_plane(
             # the case's own backend invocations.
             counter.calls = 0
             counter.called_methods.clear()
-        return plane, counter
     except BaseException:
         plane.close()
         raise
+    return plane, counter
 
 
 def _run_case(case: ParticipantPolicyProbeCase, target: RuntimeTarget) -> _Outcome:
@@ -254,18 +256,19 @@ def _run_case(case: ParticipantPolicyProbeCase, target: RuntimeTarget) -> _Outco
 
     declared = _declared_level(target, case.feature)
     if declared is None:
-        raise ValueError("participant-policy probe names a feature the target does not declare")
+        raise InvalidInputError("participant-policy probe names a feature the target does not declare")
 
     plane, counter = _prepared_plane(case, target)
     with plane:
         before = _ledger(plane)
         try:
             released, refused = _drive(case, plane)
-        except PermissionError, ValueError:
-            # Both are the runtime's fail-closed signals: PermissionError for an
-            # identity/audience refusal, ValueError for a structural one such as a
-            # replay after the state cut advanced. Either way nothing was released,
-            # and the side-effect boundary below still has to hold.
+        except AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError:
+            # These are the fail-closed refusal categories of the runtime. AuthorizationError refuses
+            # an identity or an audience. ConflictError refuses a state, for example a replay after the
+            # state cut advanced. EvidenceIntegrityError refuses a history that does not replay.
+            # InvalidInputError refuses request content. Nothing was released, and the side-effect
+            # boundary below still has to hold.
             released, refused = False, True
         after = _ledger(plane)
 

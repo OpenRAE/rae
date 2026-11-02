@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+from raes_contracts.digests import sha256_digest
+from raes_contracts.identifiers import QualifiedName
+from raes_contracts.json_pointer import pointer_from_tokens
 
 from ._errors import SDLParseDiagnostic, SDLSourceRange, SDLValidationError
-from ._identifiers import QualifiedName
 
 if TYPE_CHECKING:
     from .scenario import ScenarioContent
@@ -27,10 +28,6 @@ class DeclarationSource:
     module_id: str | None
     namespace: tuple[str, ...]
     content_digest: str
-
-
-def model_pointer(tokens: tuple[str, ...]) -> str:
-    return "".join(f"/{token.replace('~', '~0').replace('/', '~1')}" for token in tokens)
 
 
 def _declaration_value(scenario: ScenarioContent, tokens: tuple[str, ...]) -> object:
@@ -56,10 +53,10 @@ def capture_declaration_sources(
 ) -> dict[str, DeclarationSource]:
     from ._declarations import build_declaration_index
 
-    digest = "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
+    digest = sha256_digest(content.encode("utf-8"))
     sources = {}
     for declaration in build_declaration_index(scenario, raise_on_collision=False).declarations:
-        pointer = model_pointer(declaration.model_tokens)
+        pointer = pointer_from_tokens(declaration.model_tokens)
         value = _declaration_value(scenario, declaration.model_tokens)
         source_range = key_ranges.get(pointer) if isinstance(value, Mapping | BaseModel) else value_ranges.get(pointer)
         if source_range is not None:
@@ -112,59 +109,14 @@ def namespace_declaration_sources(
     return result
 
 
-_OWNER_SECTIONS = {
-    "Node": "nodes",
-    "Infrastructure": "infrastructure",
-    "Relationship": "relationships",
-    "Behavior specification": "behavior_specifications",
-    "Action contract": "action_contracts",
-    "Agent": "agents",
-    "Participant": "agents",
-    "Objective": "objectives",
-    "Proposition": "propositions",
-    "Assertion": "assertions",
-    "Condition": "conditions",
-    "Feature": "features",
-    "Content": "content",
-    "Account": "accounts",
-    "Workflow": "workflows",
-    "Identity domain": "identity_domains",
-    "Identity forest": "identity_forests",
-    "Identity facade": "identity_facades",
-    "Deployment cell": "deployment_cells",
-    "Deployment tenant": "deployment_tenants",
-    "Evidence requirement": "evidence_requirements",
-    "Entity": "entities",
-    "Compute node": "nodes",
-    "Inject": "injects",
-    "Event": "events",
-    "Script": "scripts",
-    "Story": "stories",
-    "Generated artifact": "generated_artifacts",
-    "Persistent volume": "persistent_volumes",
-    "Observation boundary": "observation_boundaries",
-    "Outcome interpretation rule": "outcome_interpretation_rules",
-    "Time domain": "time_domains",
-    "Clock": "clocks",
-    "Time domain mapping": "time_domain_mappings",
-    "Time progression policy": "time_progression_policies",
-    "Temporal constraint": "temporal_constraints",
-    "Variable": "variables",
-    "Variation point": "variation_points",
-}
-
-
 def semantic_source_diagnostics(error: SDLValidationError, scenario: ScenarioContent) -> None:
-    """Anchor owner-labelled semantic errors at real declaration keys, retaining both paths."""
+    """Anchor each owned semantic error at its owner's real declaration key, retaining both paths."""
     from ._declarations import build_declaration_index
 
     index = build_declaration_index(scenario, raise_on_collision=False)
     diagnostics = []
-    for message in error.errors:
-        label, separator, remainder = message.partition(" '")
-        name, closing, _suffix = remainder.partition("'")
-        section = _OWNER_SECTIONS.get(label)
-        declaration = index.declaration_for(f"{section}.{name}") if section and separator and closing else None
+    for finding in error.findings:
+        declaration = index.declaration_for(".".join(finding.owner)) if finding.owner is not None else None
         location = declaration.source_location if declaration is not None else None
         if location is None or location.source is None:
             diagnostics.append(None)
@@ -172,8 +124,8 @@ def semantic_source_diagnostics(error: SDLValidationError, scenario: ScenarioCon
         diagnostics.append(
             SDLParseDiagnostic(
                 code="sdl.semantic",
-                message=message,
-                pointer=model_pointer(declaration.model_tokens),
+                message=finding.message,
+                pointer=pointer_from_tokens(declaration.model_tokens),
                 primary_range=location.source_range,
                 stage="semantic_validation",
                 source=location.source,

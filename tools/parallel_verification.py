@@ -74,8 +74,9 @@ def _run_lane(
         returncode = completed.returncode
         output = completed.stdout or ""
     except OSError as exc:
+        # A lane that cannot start is a typed result; the OS reason is bounded text without paths.
         returncode = 126
-        output = f"unable to start verification lane {lane.name}: {exc}\n"
+        output = f"unable to start verification lane {lane.name}: {exc.strerror or type(exc).__name__}\n"
     return VerificationLaneResult(
         name=lane.name,
         returncode=returncode,

@@ -350,6 +350,38 @@ def test_removed_schema_tombstone_not_in_manifest(tmp_path: Path) -> None:
     assert "deprecation-records-removal-tombstone" in _rule_ids(tmp_path)
 
 
+def _removed_schema_ledger() -> dict:
+    ledger = _good_ledger()
+    ledger["records"][0].update(
+        {
+            "surface_class": "published-json-schema",
+            "status": "removed",
+            "removal_record": "release note",
+            "removal_tombstone": "contracts/schemas/old/legacy-v1.json",
+        }
+    )
+    return ledger
+
+
+def test_removed_schema_tombstone_with_malformed_manifest_is_a_tombstone_failure(tmp_path: Path) -> None:
+    _write_repo(tmp_path, _removed_schema_ledger(), manifest={"schema_version": "unknown"})
+    assert "deprecation-records-removal-tombstone" in _rule_ids(tmp_path)
+
+
+def test_a_defect_while_loading_tombstones_is_not_reported_as_missing_tombstones(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.check_deprecation_lifecycle as gate
+
+    def defective(_repo_root: Path) -> dict:
+        raise ValueError("catalog loader defect")
+
+    _write_repo(tmp_path, _removed_schema_ledger())
+    monkeypatch.setattr(gate, "load_schema_publication_catalog", defective)
+    with pytest.raises(ValueError, match="catalog loader defect"):
+        evaluate_deprecation_records(tmp_path)
+
+
 # --------------------------------------------------------------------------- #
 # Retention floor — lifecycle history may not silently disappear.             #
 # --------------------------------------------------------------------------- #

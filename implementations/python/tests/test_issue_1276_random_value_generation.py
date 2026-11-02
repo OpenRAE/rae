@@ -24,6 +24,7 @@ from raes.stateful_resources import (
 )
 from raes_backend_protocols.provisioner_capabilities import ProvisionerCapabilities
 from raes_contracts.contracts import ProvisionerCapabilitiesModel
+from raes_contracts.errors import ConflictError
 from raes_contracts.vocabulary import GeneratedArtifactKind
 
 
@@ -930,7 +931,7 @@ class TestDirectPlanContentAdmission:
 
 # --- run-identity plumbing through published models + digest (finding #2) -----
 
-from raes_contracts.plan_projection import (  # noqa: E402
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     provisioning_plan_model,
     runtime_plan_digest,
@@ -995,7 +996,7 @@ class TestRuntimeApplyResume:
             # A changed plan identity cannot retarget an admitted runtime.
             new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
             assert _flag_action(new_run) == "update"
-            with pytest.raises(ValueError, match="run scope"):
+            with pytest.raises(ConflictError, match="run scope"):
                 manager.apply(new_run)
             assert manager.destroy().success
 

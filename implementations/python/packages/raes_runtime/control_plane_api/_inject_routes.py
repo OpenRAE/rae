@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from fastapi import FastAPI, HTTPException, Request, Response
+from pydantic import ValidationError
 from raes_contracts.contracts import (
     AssociatedArtifactManifestModel,
     InjectOccurrenceCorrelationModel,
@@ -18,6 +19,7 @@ from raes_contracts.contracts.participant_inject_application import (
     ParticipantInjectContentModel,
     ParticipantInjectDeliveryReceiptModel,
 )
+from raes_contracts.errors import AuthorizationError, RaesError
 from raes_contracts.json_ingress import StrictJsonIngressError, parse_bounded_json_object
 
 from ..control_plane import RuntimeControlPlane
@@ -26,7 +28,7 @@ from ..inject_capture import InjectCaptureResult
 from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity
 from ._offload import _control_plane_calls
 from ._operation_routes import _record_admission_denial_best_effort
-from ._responses import _conflict_detail, _receipt_response
+from ._responses import _receipt_response, _refusal
 
 _MAX_TRIGGER_BYTES = 256 * 1024
 _TRIGGER_SCHEMA = InjectTriggerRequestModel.model_json_schema()
@@ -56,7 +58,7 @@ def _register_delivery_route(app: FastAPI, control_plane: RuntimeControlPlane) -
         try:
             payload = parse_bounded_json_object(await request.body(), max_bytes=_MAX_TRIGGER_BYTES, max_depth=16)
             application = ParticipantInjectApplicationModel.model_validate(payload)
-        except ValueError as error:
+        except (StrictJsonIngressError, ValidationError) as error:
             await _record_admission_denial_best_effort(
                 request,
                 control_plane,
@@ -73,10 +75,10 @@ def _register_delivery_route(app: FastAPI, control_plane: RuntimeControlPlane) -
             return await _control_plane_calls(request).mutate(
                 control_plane.deliver_participant_inject, application, identity=identity
             )
-        except PermissionError:
+        except AuthorizationError:
             raise HTTPException(status_code=403, detail="delivery forbidden") from None
-        except ValueError:
-            raise HTTPException(status_code=409, detail="delivery conflict") from None
+        except RaesError as error:
+            raise _refusal(error, "delivery conflict") from None
 
 
 def _register_trigger_route(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
@@ -91,7 +93,7 @@ def _register_trigger_route(app: FastAPI, control_plane: RuntimeControlPlane) ->
         try:
             payload = parse_bounded_json_object(await request.body(), max_bytes=_MAX_TRIGGER_BYTES, max_depth=16)
             trigger = InjectTriggerRequestModel.model_validate(payload)
-        except ValueError as error:
+        except (StrictJsonIngressError, ValidationError) as error:
             await _record_admission_denial_best_effort(
                 request,
                 control_plane,
@@ -108,8 +110,8 @@ def _register_trigger_route(app: FastAPI, control_plane: RuntimeControlPlane) ->
             receipt = await _control_plane_calls(request).mutate(
                 control_plane.submit_inject, trigger, identity=identity
             )
-        except ValueError as error:
-            raise HTTPException(status_code=409, detail=_conflict_detail(error)) from None
+        except RaesError as error:
+            raise _refusal(error) from None
         return _receipt_response(receipt)
 
 

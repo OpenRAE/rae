@@ -1,10 +1,12 @@
 """Typed node defaults for comparison without changing supplied concern values."""
 
+from collections.abc import Mapping
 from dataclasses import replace
 from typing import cast
 
 from pydantic import TypeAdapter
 from raes.nodes import Node
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import PlannedResource, ProvisionOp
 from raes_contracts.runtime_state import SnapshotEntry
 
@@ -18,7 +20,7 @@ def defaulted_node_payload(resource: ProvisionOp, cache: dict[str, object]) -> o
     if resource.address not in cache:
         try:
             cache[resource.address] = with_node_defaults(resource).payload
-        except KeyError, TypeError, ValueError:
+        except InvalidInputError:
             cache[resource.address] = None
     return cache[resource.address]
 
@@ -26,11 +28,20 @@ def defaulted_node_payload(resource: ProvisionOp, cache: dict[str, object]) -> o
 def with_node_defaults(
     resource: SnapshotEntry | PlannedResource | ProvisionOp,
 ) -> SnapshotEntry | PlannedResource | ProvisionOp:
-    """Restore typed defaults while retaining validated value commitments."""
+    """Restore typed defaults while retaining validated value commitments.
 
-    spec = resource.payload["spec"]
+    A payload without a node specification, or one that the node contract refuses, raises ``InvalidInputError``.
+    """
+
+    spec = resource.payload.get("spec")
+    if not isinstance(spec, Mapping) or not isinstance(spec.get("node"), Mapping):
+        raise InvalidInputError("resource payload has no node specification")
     adapter = TypeAdapter(Node)
-    node = adapter.dump_python(typed_runtime_observation_shape(spec.get("node"), adapter=adapter), mode="json")
+    try:
+        node = adapter.dump_python(typed_runtime_observation_shape(spec["node"], adapter=adapter), mode="json")
+    # The shape helper and the node contract refuse a malformed specification with ValueError (E9).
+    except ValueError as exc:
+        raise InvalidInputError("node specification does not satisfy the node contract") from exc
     for descriptor in realization_concern_descriptors():
         if descriptor.section == "nodes":
             _restore_supplied_concern(spec["node"], node, descriptor.authored_path)

@@ -56,6 +56,15 @@ Other combinations return exit `3`; in particular, the CLI does not describe
 portable contract admission as parse-only behavior or SDL validation as a
 conformance report.
 
+## Logs and unexpected failures
+
+Each `raes` command writes its results to stdout and its error messages to
+stderr. Operational log records also go to stderr. They show exception types
+and code locations, but never exception messages. Use
+`raes --log-level DEBUG <command>` to see more records; the default level is
+`WARNING`. If a command fails unexpectedly, the CLI writes one log record and
+exits with status `70`.
+
 ## Existing compatibility surfaces
 
 Use `raes sdl format --check` to check the source format. The old `raes sdl
@@ -79,5 +88,11 @@ and malformed registry JSON is reported as a stable `SDLParseError` without
 including response bodies or decoder internals.
 
 Use `raes processor --help` and `raes conformance --help` for the processor and
-backend-contract surfaces. The [CLI API reference](../api/cli.rst) lists the
+backend-contract surfaces.
+`raes conformance processor` runs finite compilation and planning checks.
+`raes conformance backend --profile provisioning-only` checks the published fixtures.
+Both commands accept `--format text`; JSON remains the default.
+The report separates requested scope, achieved scope, support gaps, and evidence limits.
+Fixture success proves no native backend execution.
+The [CLI API reference](../api/cli.rst) lists the
 current command implementation.

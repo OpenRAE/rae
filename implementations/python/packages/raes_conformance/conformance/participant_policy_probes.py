@@ -30,6 +30,8 @@ from dataclasses import replace
 
 from raes_backend_protocols.capabilities import PARTICIPANT_RUNTIME_POLICY_FEATURES
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.registry import RuntimeTarget
 
@@ -50,6 +52,7 @@ from raes_conformance.conformance.participant_policy_types import (
 from raes_conformance.conformance.profiles import BackendProfileSelector, _to_profile_id
 from raes_conformance.conformance.report import ConformanceCaseResult
 
+_LOGGER = get_logger(__name__)
 _PROBE_MISSING_CODE = "conformance.participant-policy-probe-missing"
 _OVERCLAIM_CODE = "conformance.participant-policy-overclaim"
 _PROBE_FAILED_CODE = "conformance.participant-policy-probe-failed"
@@ -187,6 +190,9 @@ def _case_result(
     try:
         observed = _run_case(case, target)
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the target runtime and the harness resolver: a refusal category needs no record.
+            _LOGGER.exception("participant-policy probe failed", exc_info=foreign_failure_record(exc))
         return ConformanceCaseResult(
             name=f"participant-policy-{case.obligation}",
             contract_name=_CONTRACT_NAME,

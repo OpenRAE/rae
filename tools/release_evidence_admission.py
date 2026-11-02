@@ -17,10 +17,19 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError  # noqa: E402
 
 # Parsed JSON is an untyped document tree; naming it is clearer than `Any`.
 type JsonValue = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
@@ -47,12 +56,20 @@ SDIST_SUFFIX = ".tar.gz"
 _DERIVED_DIRECTORY = "from-sdist"
 
 
-class AdmissionError(Exception):
+class AdmissionError(EvidenceIntegrityError):
     """An admission failure carrying a stable, publishable failure code."""
 
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
         self.code = code
+
+
+class _DuplicateKeyError(InvalidInputError):
+    """A JSON object repeats a member name; it controls the flow of this module only."""
+
+
+class _IntegerDigitLimitError(InvalidInputError):
+    """A JSON integer exceeds the interpreter digit limit; it controls the flow of this module only."""
 
 
 @dataclass(frozen=True)
@@ -189,8 +206,12 @@ def _load_bounded_json(path: Path, declared_sha256: str) -> JsonValue:
             f"{path.name} exceeds the evidence size bound",
         )
     try:
-        return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_keys)
-    except (OSError, ValueError) as exc:
+        return json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=_reject_duplicate_keys,
+            parse_int=_bounded_integer,
+        )
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, _DuplicateKeyError, _IntegerDigitLimitError) as exc:
         raise AdmissionError("admission-evidence-unparsable", f"{path.name} could not be parsed") from exc
 
 
@@ -198,9 +219,17 @@ def _reject_duplicate_keys(pairs: Sequence[tuple[str, JsonValue]]) -> dict[str, 
     seen: dict[str, JsonValue] = {}
     for key, value in pairs:
         if key in seen:
-            raise ValueError(f"duplicate key {key!r}")
+            raise _DuplicateKeyError("JSON object repeats a member name")
         seen[key] = value
     return seen
+
+
+def _bounded_integer(literal: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(literal)
+    except ValueError as exc:
+        raise _IntegerDigitLimitError("JSON integer exceeds the interpreter digit limit") from exc
 
 
 def _sbom_subject_digest(document: JsonValue) -> str | None:

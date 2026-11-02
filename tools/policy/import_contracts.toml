@@ -1,0 +1,159 @@
+# ADR-117 / MOD-001: import-linter contracts for the RAES packages.
+#
+# tools/check_repo_policy.py runs these contracts through import-linter and grimp
+# from the locked tooling environment, and `lint-imports --config
+# tools/policy/import_contracts.toml` runs them by hand. The root packages are the
+# module_boundaries package coverage. Imports under TYPE_CHECKING do not run, so
+# they are excluded; imports inside functions are included.
+#
+# Each ignore_imports list is exact structural debt (ADR-117 section 2). It can
+# only shrink. When a change removes an import, remove its entry. Do not add an
+# entry: remove the new import or the new cycle instead.
+
+[tool.importlinter]
+root_packages = [
+    "raes",
+    "raes_backend_protocols",
+    "raes_backend_stubs",
+    "raes_cli",
+    "raes_conformance",
+    "raes_contracts",
+    "raes_mcp",
+    "raes_operations",
+    "raes_processor",
+    "raes_runtime",
+    "raes_schemas",
+]
+include_external_packages = false
+exclude_type_checking_imports = true
+
+# Package order, from high to low. It agrees with module_boundaries (ADR-036).
+# ADR-121: raes_contracts is the lowest package, so this contract has no
+# import debt. raes_schemas composes the published schemas above the processor.
+[[tool.importlinter.contracts]]
+id = "raes-package-layers"
+name = "RAES packages depend downward (ADR-036, ADR-117)"
+type = "layers"
+layers = [
+    "raes_cli",
+    "raes_conformance | raes_mcp",
+    "raes_backend_stubs",
+    "raes_runtime | raes_schemas",
+    "raes_processor | raes_operations",
+    "raes_backend_protocols",
+    "raes",
+    "raes_contracts",
+]
+unmatched_ignore_imports_alerting = "error"
+ignore_imports = []
+
+# No cycles between the children of a package, at each depth. The debt is the
+# cycle breakers that grimp nominated on the adoption commit and that are on a
+# cycle.
+[[tool.importlinter.contracts]]
+id = "raes-sibling-cycles"
+name = "No import cycles between sibling modules (ADR-117)"
+type = "acyclic_siblings"
+ancestors = [
+    "raes",
+    "raes_backend_protocols",
+    "raes_backend_stubs",
+    "raes_cli",
+    "raes_conformance",
+    "raes_contracts",
+    "raes_mcp",
+    "raes_operations",
+    "raes_processor",
+    "raes_runtime",
+    "raes_schemas",
+]
+depth = 10
+unmatched_ignore_imports_alerting = "error"
+ignore_imports = [
+    "raes._composition_provenance -> raes.module_registry",
+    "raes._declarations -> raes._declaration_adders",
+    "raes._declarations -> raes._declaration_index",
+    "raes._module_declarations -> raes.module_registry._digests",
+    "raes._realization_envelope_projection -> raes.realization_envelope",
+    "raes.composition._import_admission -> raes.validator",
+    "raes.instantiate -> raes.canonical",
+    "raes.instantiate -> raes.validator",
+    "raes.materialization -> raes.scenario",
+    "raes.materialization -> raes.validator",
+    "raes.parser -> raes.composition",
+    "raes.parser -> raes.validator",
+    "raes.participant_behavior_specification -> raes.participant_control_context",
+    "raes.participant_control_context -> raes.validator",
+    "raes.semantics.participant_temporal_bindings -> raes.scenario",
+    "raes_backend_protocols.capabilities -> raes_backend_protocols.backend_manifest",
+    "raes_backend_protocols.capabilities -> raes_backend_protocols.capability_admission",
+    "raes_cli.main -> raes_cli.entrypoint",
+    "raes_conformance.conformance.modular_control_policy -> raes_conformance.conformance.modular_control",
+    "raes_runtime.control_plane -> raes_runtime.control_plane_configuration",
+    "raes_runtime.control_plane -> raes_runtime.participant_control_effects",
+    "raes_runtime.control_plane -> raes_runtime.runtime_run_context",
+    "raes_runtime.control_plane_api_participant_retrieval -> raes_runtime.control_plane_api._auth",
+    "raes_runtime.control_plane_api_participant_retrieval -> raes_runtime.control_plane_api._offload",
+    "raes_runtime.control_plane_api_participant_retrieval -> raes_runtime.control_plane_api._responses",
+    "raes_runtime.control_plane_lifecycle -> raes_runtime.control_plane_recovery",
+    "raes_runtime.control_plane_local_execution -> raes_runtime.control_plane_supervised_execution",
+    "raes_runtime.control_plane_store -> raes_runtime.control_plane_store_local",
+    "raes_runtime.control_plane_store -> raes_runtime.control_plane_store_memory",
+    "raes_runtime.control_plane_store -> raes_runtime.control_plane_store_transitions",
+    "raes_runtime.control_plane_store_history_rows -> raes_runtime.control_plane_store_local_invocations",
+    "raes_runtime.control_plane_store_transitions -> raes_runtime.participant_control_effect_evidence",
+    "raes_runtime.control_plane_supervised_execution -> raes_runtime.control_plane_execution",
+    "raes_runtime.control_plane_supervised_execution -> raes_runtime.control_plane_supervision",
+    "raes_runtime.control_plane_supervised_execution -> raes_runtime.operation_provider_execution",
+    "raes_runtime.manager -> raes_runtime.control_plane",
+    "raes_runtime.manager -> raes_runtime.interaction",
+    "raes_runtime.manager_lifecycle -> raes_runtime.control_plane_lifecycle",
+    "raes_runtime.manager_lifecycle -> raes_runtime.participant_execution_control",
+    "raes_runtime.mixed_backend_invocation -> raes_runtime.control_plane_supervision",
+    "raes_runtime.mixed_backend_invocation -> raes_runtime.operation_provider_execution",
+    "raes_runtime.mixed_runtime -> raes_runtime.mixed_runtime_phase",
+    "raes_runtime.mixed_runtime_dispatch -> raes_runtime.participant_flow_sink",
+    "raes_runtime.mixed_runtime_handoff_execution -> raes_runtime.mixed_runtime",
+    "raes_runtime.mixed_runtime_recovery -> raes_runtime.mixed_runtime_dispatch",
+    "raes_runtime.operation_execution_adapter -> raes_runtime.control_plane_mutation",
+    "raes_runtime.operation_invocation_ledger -> raes_runtime.participant_control_effect_continuations",
+    "raes_runtime.operation_provider_control -> raes_runtime.control_plane_supervision",
+    "raes_runtime.operation_provider_control -> raes_runtime.operation_provider_execution",
+    "raes_runtime.operation_transcript_policy -> raes_runtime.operation_invocation_ledger",
+    "raes_runtime.participant_control -> raes_runtime.participant_crossing_boundary",
+    "raes_runtime.participant_control_application_mediation -> raes_runtime.participant_control_mediation",
+    "raes_runtime.participant_control_effect_drain -> raes_runtime.participant_control_effect_continuations",
+    "raes_runtime.participant_control_effect_drain -> raes_runtime.participant_control_effects",
+    "raes_runtime.participant_control_effect_owners -> raes_runtime.participant_control_effects",
+    "raes_runtime.participant_control_effect_owners -> raes_runtime.participant_control_evaluation_v2",
+    "raes_runtime.participant_control_effect_owners -> raes_runtime.participant_control_mediation",
+    "raes_runtime.participant_control_effect_owners -> raes_runtime.participant_inject_application",
+    "raes_runtime.participant_control_evaluation_v2 -> raes_runtime.participant_control_orchestration",
+    "raes_runtime.participant_control_operation_index -> raes_runtime.control_plane_resolution_records",
+    "raes_runtime.participant_control_operation_index -> raes_runtime.participant_control_effect_evidence",
+    "raes_runtime.participant_control_operation_index -> raes_runtime.participant_control_receipts",
+    "raes_runtime.participant_control_parent_outcomes -> raes_runtime.participant_control_effect_evidence",
+    "raes_runtime.participant_control_projection -> raes_runtime.participant_control_causal_state",
+    "raes_runtime.participant_control_projection -> raes_runtime.participant_control_effects",
+    "raes_runtime.participant_control_receipts -> raes_runtime.participant_control_effect_evidence",
+    "raes_runtime.participant_control_receipts -> raes_runtime.participant_control_effect_owners",
+    "raes_runtime.participant_crossing_egress -> raes_runtime.participant_control_orchestration",
+    "raes_runtime.participant_crossing_mediation -> raes_runtime.participant_crossing_records",
+    "raes_runtime.participant_crossing_policy -> raes_runtime.mixed_runtime_dispatch",
+    "raes_runtime.participant_crossing_policy -> raes_runtime.participant_crossing_mediation",
+    "raes_runtime.participant_inject_application -> raes_runtime.participant_crossing_egress",
+    "raes_runtime.participant_opacity_enforcement -> raes_runtime.participant_crossing_mediation",
+    "raes_runtime.participant_outcome_control -> raes_runtime.participant_control_mediation",
+    "raes_runtime.participant_resource_reservation -> raes_runtime.participant_resource_budgets",
+    "raes_runtime.participant_retrieval -> raes_runtime.participant_crossing_egress",
+    "raes_runtime.participant_scheduler_operations -> raes_runtime.participant_scheduler_concurrency",
+    "raes_runtime.participant_scheduler_operations -> raes_runtime.participant_scheduler_concurrent_commit",
+    "raes_runtime.participant_submission_options -> raes_runtime.participant_crossing_boundary",
+    "raes_runtime.participant_view_serialization -> raes_runtime.participant_crossing_mediation",
+    "raes_runtime.runtime_engine -> raes_runtime.control_plane_recovery",
+    "raes_runtime.runtime_engine -> raes_runtime.runtime_run_context",
+    "raes_runtime.runtime_experiment_progress -> raes_runtime.runtime_experiment",
+    "raes_runtime.runtime_module_step -> raes_runtime.control_plane_recovery",
+    "raes_runtime.runtime_run_driver -> raes_runtime.interaction",
+    "raes_runtime.runtime_sequence_authority -> raes_runtime.runtime_run_driver",
+]

@@ -9,6 +9,7 @@ and performs read-only GitHub API requests.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import re
@@ -61,6 +62,10 @@ _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 
 
 IssueLookup = Callable[[int], IssueFacts]
+# GitHubIssueLookup reports an HTTP status or malformed response (RuntimeError), a transport failure
+# (OSError), an undecodable response (ValueError) or a broken exchange (HTTPException); the fixture
+# lookup raises ValueError. Any other exception is a defect, not an unverifiable issue.
+_LOOKUP_FAILURES = (OSError, RuntimeError, ValueError, http.client.HTTPException)
 
 
 @dataclass(frozen=True)
@@ -138,7 +143,11 @@ def _issue_numbers(body: str, keyword: str) -> tuple[int, ...]:
             continue
         reference = parts[1].removeprefix("#")
         if reference.isascii() and reference.isdecimal() and not reference.startswith("0"):
-            numbers.append(int(reference))
+            try:
+                numbers.append(int(reference))
+            except ValueError:
+                # A reference beyond the interpreter integer digit limit cannot name an issue.
+                continue
     return tuple(dict.fromkeys(numbers))
 
 
@@ -206,24 +215,11 @@ def _validate_required_sections(sections: dict[str, list[str]]) -> list[BodyViol
         name = heading.casefold()
         contents = sections.get(name, [])
         if len(contents) != 1:
-            violations.append(
-                BodyViolation(
-                    RULE_SECTION,
-                    f"PR body must contain exactly one '## {heading}' section; found {len(contents)}.",
-                )
-            )
+            message = f"PR body must contain exactly one '## {heading}' section; found {len(contents)}."
+            violations.append(BodyViolation(RULE_SECTION, message))
         # Summary, Related Issues and Test Plan have their own content rules.
-        elif not contents[0] and name not in {
-            SUMMARY_SECTION,
-            TRACKING_SECTION,
-            VERIFICATION_SECTION,
-        }:
-            violations.append(
-                BodyViolation(
-                    RULE_SECTION,
-                    f"'## {heading}' must not be empty or placeholder-only.",
-                )
-            )
+        elif not contents[0] and name not in {SUMMARY_SECTION, TRACKING_SECTION, VERIFICATION_SECTION}:
+            violations.append(BodyViolation(RULE_SECTION, f"'## {heading}' must not be empty or placeholder-only."))
     return violations
 
 
@@ -238,7 +234,7 @@ def _inspect_issue(number: int, keyword: str, issue_lookup: IssueLookup) -> Body
     # Fail closed on API and configuration errors from the injected lookup.
     try:
         issue = issue_lookup(number)
-    except Exception as exc:
+    except _LOOKUP_FAILURES as exc:
         violation = BodyViolation(RULE_ISSUES, f"Could not verify issue #{number}: {exc}")
     else:
         violation = None
@@ -353,7 +349,12 @@ def _read_json_object(path: Path, description: str) -> dict[str, Any]:
     if not resolved.is_file():
         raise ValueError(f"{description} must be a regular file")
     with resolved.open(encoding="utf-8") as stream:
-        payload = json.load(stream)
+        try:
+            payload = json.load(stream)
+        except RecursionError as exc:
+            # The recursive decoder stops at the interpreter recursion limit. This module is
+            # standard-library only, so a configuration error is a ValueError, as above.
+            raise ValueError(f"{description} nests beyond the JSON decoder depth limit") from exc
     if not isinstance(payload, dict):
         raise ValueError(f"{description} must be a JSON object")
     return payload
@@ -387,7 +388,7 @@ def _open_issue_report(body: str, issue_lookup: IssueLookup, pr_number: int | st
         # A failed lookup must be visible in the audit without mutating issues.
         try:
             issue = issue_lookup(number)
-        except Exception as exc:
+        except _LOOKUP_FAILURES as exc:
             errors.append(f"- Could not inspect `#{number}`: {exc}")
             continue
         if not issue.exists:

@@ -6,7 +6,13 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import BinaryIO, Literal
 
-from .associated_artifacts import AssociatedArtifactValidationLimits, validate_associated_artifact_manifest
+from raes_contracts.canonical import canonical_contract_digest
+
+from .associated_artifacts import (
+    ArtifactParent,
+    AssociatedArtifactValidationLimits,
+    validate_associated_artifact_manifest,
+)
 from .contracts.associated_artifacts import AssociatedArtifactManifestModel
 from .contracts.participant_context import ParticipantContextViewModel
 from .contracts.participant_control_context import (
@@ -19,6 +25,7 @@ from .contracts.participant_decision_state_cut import ParticipantDecisionSurface
 from .contracts.participant_decision_surface_exposure_v2 import ParticipantDecisionSurfaceExposureBindingV2Model
 from .contracts.participant_decision_surface_v2 import ParticipantDecisionSurfaceV2Model
 from .diagnostics import Diagnostic, Severity
+from .errors import ConflictError
 from .json_ingress import parse_bounded_json_object
 
 AssetKey = tuple[str, str]
@@ -29,7 +36,7 @@ LifecycleState = Literal["unpublished", "active", "replaced", "withdrawn"]
 @dataclass(frozen=True)
 class ParticipantControlContextContentBinding:
     manifest: AssociatedArtifactManifestModel
-    parent: object
+    parent: ArtifactParent
     artifact_readers: Mapping[str, BinaryIO]
     limits: AssociatedArtifactValidationLimits | None = None
 
@@ -78,7 +85,6 @@ class ParticipantControlContextValidationContext:
 def control_context_asset_reference(
     asset: ParticipantControlContextAssetModel,
 ) -> ParticipantControlContextAssetReferenceModel:
-    from .satisfiability import canonical_contract_digest
 
     return ParticipantControlContextAssetReferenceModel(
         asset_id=asset.asset_id, asset_version=asset.asset_version, asset_digest=canonical_contract_digest(asset)
@@ -170,7 +176,7 @@ def validate_control_context_asset(
     *,
     context: ParticipantControlContextValidationContext,
     manifest: AssociatedArtifactManifestModel,
-    parent: object,
+    parent: ArtifactParent,
     artifact_readers: Mapping[str, BinaryIO],
     limits: AssociatedArtifactValidationLimits | None = None,
 ) -> tuple[Diagnostic, ...]:
@@ -199,8 +205,12 @@ _SELECTION_FIELDS = (
 )
 
 
-class _AgreementFailure(ValueError):
+class _AgreementFailure(ConflictError):
     """A refused agreement; host resolver exceptions remain distinct."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
 
 
 def _require(condition: bool, code: str) -> None:
@@ -218,7 +228,7 @@ def validate_control_context_record(
         _validate_selection_history(record, context)
         _validate_disposition(record, context)
     except _AgreementFailure as exc:
-        return _failure(str(exc))
+        return _failure(exc.code)
     return ()
 
 
@@ -463,5 +473,5 @@ def validate_control_context_change(
             "unauthorized-change",
         )
     except _AgreementFailure as exc:
-        return _failure(str(exc))
+        return _failure(exc.code)
     return ()

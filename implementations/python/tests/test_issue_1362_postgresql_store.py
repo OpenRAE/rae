@@ -1,6 +1,7 @@
 """PostgreSQL integration configuration fails closed before making a connection."""
 
 import pytest
+from raes_contracts.errors import ConflictError, OperationalError
 
 
 @pytest.mark.parametrize(
@@ -42,7 +43,7 @@ def test_postgresql_store_refuses_access_until_the_scoped_owner_is_admitted():
     store = PostgreSQLControlPlaneStore(
         PostgreSQLStoreConfiguration(host="ledger.example", database="rae_ledger", user="rae_ledger")
     )
-    with pytest.raises(RuntimeError, match="admission"):
+    with pytest.raises(OperationalError, match="admission"):
         store.load_records()
 
 
@@ -106,6 +107,6 @@ def test_postgresql_mutation_admits_exact_record_scope_before_writing(monkeypatc
         receipt=replace(record.receipt, context=foreign_context),
         status=replace(record.status, context=foreign_context),
     )
-    with pytest.raises(RuntimeError, match="scope"):
+    with pytest.raises(ConflictError, match="scope"):
         store.save_record(foreign)
     assert writes == [record]

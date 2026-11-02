@@ -9,7 +9,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 ParticipantContextAudienceScope = Literal[
     "participant_visible",
@@ -275,7 +275,7 @@ class ParticipantContextViewModel(ContractModel):
         # SEM-216 relational obligations that standard JSON Schema cannot express are published
         # as RAES semantic invariants so schema-only consumers see the full portable contract and
         # the validator that enforces it (mirrors the experiment-core x-raes-invariants pattern).
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "context-view-sem216-archival-source-mediated",
             "Participant-visible context views drawing on an archival evidence_record or derived_measure "
@@ -283,7 +283,7 @@ class ParticipantContextViewModel(ContractModel):
             validator="raes_contracts.contracts.ParticipantContextViewModel._validate_sem216_audience_boundary",
             inputs=[{"contract_id": "participant-context-view-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "context-view-sem216-payload-not-raw-archival",
             "Participant-visible context views must not set payload_ref to a raw archival evidence_record or "

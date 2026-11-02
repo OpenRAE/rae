@@ -48,11 +48,11 @@ jobs:
             bundle=$(mktemp -d "$RUNNER_TEMP/pr-body-policy.XXXXXX")
             mkdir "$bundle/tools"
             validator="$bundle/tools/check_pr_body.py"
-            gh api "repos/$GITHUB_REPOSITORY/git/blobs/713a80dd01d3c826e7382118c2ab919ab7c64cb2" \
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/8ed51fedcf61d92f662dbdb8a71bd0ff30f815f8" \
               --jq .content | base64 --decode > "$validator"
             gh api "repos/$GITHUB_REPOSITORY/git/blobs/2060ea8ea5bc8e3f9ee42d3707c1882f9990c052" \
               --jq .content | base64 --decode > "$bundle/tools/pr_body_issue_scope.py"
-            echo "c0afa580d737b34c3bcc666260b2f1d105e9a6b87cfb1765675a4bf8efa2b172  $validator" | sha256sum --check --strict
+            echo "0b8ec2a21b8004a4ed92019b06a02c92f305cc4e0f9f33df4dcf7888eb36dc88  $validator" | sha256sum --check --strict
             echo "271afe45e06d3d99a245f586ca0f797eae36de9ede7a6a6ee547d34e939af9a3  $bundle/tools/pr_body_issue_scope.py" | sha256sum --check --strict
           fi
           python -I -S "$validator"

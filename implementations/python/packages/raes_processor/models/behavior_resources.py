@@ -5,13 +5,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from raes.participant_control_context import ResolvedControlContextSelection
-from raes.semantics.workflow import WorkflowStepSemanticContract
 from raes_backend_protocols.capabilities import WorkflowFeature, WorkflowStatePredicateFeature
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalBindingModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.participant_behavior import ParticipantObservationStatus
 from raes_contracts.versions import WORKFLOW_STATE_SCHEMA_VERSION
 from raes_contracts.workflow import WorkflowExecutionContract, WorkflowResultContract, WorkflowStepOutcome
+from raes_contracts.workflow.semantics import WorkflowStepSemanticContract
 
 from .mixed_control_resources import MixedControlPolicyRuntime, ParticipantInjectDeliveryControlRuntime
 from .participant_resources import (
@@ -116,6 +116,21 @@ class ParticipantExecutionBindingRuntime:
 
 
 @dataclass(frozen=True)
+class ParticipantInvocationToolBindingRuntime:
+    """Compiled tool-action relation member that an autonomous invocation may host (issue #1740)."""
+
+    tool_affordance_address: str
+    tool_address: str
+    action_contract_address: str
+    observation_boundary_addresses: tuple[str, ...]
+    participant_addresses: tuple[str, ...]
+    target_addresses: tuple[str, ...]
+    shared_time_bound: bool = False
+    observation_boundary_evidence_refs: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    interaction: ParticipantExecutionBindingRuntime | None = None
+
+
+@dataclass(frozen=True)
 class ParticipantAutonomousExecutionRuntime(ResolvedResource):
     """Compiled deterministic execution policy for ordinary participants."""
 
@@ -159,6 +174,7 @@ class ParticipantAutonomousExecutionRuntime(ResolvedResource):
     resource_demands: tuple[ParticipantResourceDemandRuntime, ...] = ()
     resource_fairness: ParticipantResourceFairnessRuntime = field(default_factory=ParticipantResourceFairnessRuntime)
     temporal_bindings: tuple[ParticipantTemporalBindingModel, ...] = ()
+    invocation_tool_bindings: tuple[ParticipantInvocationToolBindingRuntime, ...] = ()
 
 
 @dataclass(frozen=True)

@@ -1,9 +1,9 @@
 {
-  "content_hash": "91991f7e658f91caca7139bdf8199e419cb980588bcc74a41914788c02b3b3d9",
+  "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
   "contract_id": "orchestration-plan-v1",
   "last_change": {
-    "content_hash": "91991f7e658f91caca7139bdf8199e419cb980588bcc74a41914788c02b3b3d9",
-    "summary": "Publish negotiated runtime descendant lineage, target and attempt binding, lifecycle and concern selection with committed refresh and durable archive joins; issue #1649."
+    "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
+    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
   },
   "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
   "stability": "draft"

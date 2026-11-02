@@ -23,7 +23,8 @@ or backend enforcement or a successful adversarial evaluation.
 - [Machine-readable program](implementation-program.json)
 - [Formal authority](../../../specs/formal/participant-semantics/adversarial-flow-control.md)
 
-SEM-233 and ASR-536 remain DRAFT. The #1001 semantic and #1002 portable-
-contract work is published; #1003, #1004, #1007, and #1008 retain the
-dependency-ordered runtime, backend/apparatus, evaluation, and documentation
-obligations.
+The original #812 design cut recorded SEM-233 and ASR-536 as DRAFT.
+The canonical requirement files now determine current status.
+Issue #1008 separates backend-neutral RAE harness publication from concrete backend realization.
+See the [executed evaluation guide](../../explain/reference/adversarial-control-evaluation.md)
+for source-bound results, reproduction, separate measures, and explicit limits.

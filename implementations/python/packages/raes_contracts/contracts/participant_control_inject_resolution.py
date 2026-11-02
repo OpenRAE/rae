@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from raes.participant_inject_delivery import ParticipantInjectDelivery
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
 from .participant_control_applicability import control_digest
 from .participant_control_coordinates import ParticipantControlContextModel

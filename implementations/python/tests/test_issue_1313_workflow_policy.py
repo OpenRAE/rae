@@ -134,11 +134,18 @@ def test_checkout_must_not_persist_credentials(tmp_path: Path, workflow: dict) -
         ("docs/explain/sdl/runtime.md", False),
         ("CHANGELOG.md", False),
         ("tools/verified_tool_installation.py", True),
+        ("tools/sdl_catalog_parity/_expectations_cloud.py", False),
+        ("tools/check_generated_schemas.py", False),
+        ("tools/devcontainer_setup.py", False),
+        ("tools/tooling_policy_gate.py", True),
+        ("tools/verified_tree_validation.py", True),
+        ("tools/python_closure.py", True),
+        ("tools/tool_versions.py", True),
         ("tools/bootstrap_profile.py", True),
         ("tools/maintained_client_acquisition.py", True),
         ("implementations/tooling/artifacts.lock.json", True),
         ("implementations/python/uv.lock", True),
-        (".devcontainer/Dockerfile", True),
+        (".devcontainer/Dockerfile", False),
         (".github/workflows/bootstrap-qualification.yml", True),
     ],
 )
@@ -269,7 +276,7 @@ def test_selection_launcher_sanitizes_environment_and_failure(monkeypatch: pytes
         if host
         else {"artifact_id": "tool", "version": "1", "platform_id": "linux-x86_64", "profile_id": "public-linux-x86_64"}
     )
-    with pytest.raises(RuntimeError) as caught:
+    with pytest.raises(tooling_policy_gate.ArtifactPolicyError) as caught:
         validator(["python", "validator"], **selection)
     assert "fixture-credential" not in str(caught.value)
     assert "candidate-url" not in str(caught.value)

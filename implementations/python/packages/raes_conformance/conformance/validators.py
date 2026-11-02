@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pydantic import ValidationError
 from raes.materialization import MaterializedScenario
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.authoring_adapters import (
@@ -63,6 +64,7 @@ from raes_contracts.contracts import (
     ParticipantOutcomeReportV2Model,
     ParticipantOwnerFlowPolicyProfileModel,
     ParticipantSharedStateRecordModel,
+    ProcessorManifestV2Model,
     ProvisioningPlanModel,
     RuntimeFactBindingPlaneModel,
     RuntimeSnapshotEnvelopeModel,
@@ -132,6 +134,7 @@ _MODEL_VALIDATORS = {
     "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_validate,
     "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_validate,
     "backend-manifest-v2": BackendManifestV2Model.model_validate,
+    "processor-manifest-v2": ProcessorManifestV2Model.model_validate,
     "participant-implementation-manifest-v1": ParticipantImplementationManifestModel.model_validate,
     "participant-implementation-provenance-v1": ParticipantImplementationProvenanceModel.model_validate,
     "provisioning-plan-v1": ProvisioningPlanModel.model_validate,
@@ -274,7 +277,7 @@ def _validate_event_stream(
     for index, event in enumerate(payload):
         try:
             model_cls.model_validate(event)
-        except Exception as exc:
+        except ValidationError as exc:
             diagnostics.append(
                 _diagnostic(
                     _SCHEMA_INVALID_DIAGNOSTIC_CODE,
@@ -291,7 +294,7 @@ def _validate_payload(contract_name: str, payload: object) -> list[Diagnostic]:
     if validator is not None:
         try:
             validator(payload)
-        except Exception as exc:
+        except ValidationError as exc:
             diagnostics.append(
                 _diagnostic(
                     _SCHEMA_INVALID_DIAGNOSTIC_CODE,

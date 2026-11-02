@@ -9,8 +9,13 @@ import subprocess
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, OperationalError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import (
     apply_exceptions,
@@ -19,6 +24,18 @@ from tools.policy.common import (
     load_exceptions,
 )
 from tools.policy.repo_policy import evaluate_repo_policy
+from tools.policy.structural_baseline import validate_git_revision
+
+# The policy gate needs these modules from the locked tooling environment: filelock for the
+# Conftest lock, and import-linter with grimp for the ADR-117 structural checks.
+_TOOLING_MODULES = ("filelock", "importlinter", "grimp")
+
+
+def _git_revision(value: str) -> str:
+    try:
+        return validate_git_revision(value)
+    except InvalidInputError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,7 +45,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Check staged changes instead of working tree changes.",
     )
-    parser.add_argument("--base-rev", help="Compare against a specific git revision.")
+    parser.add_argument("--base-rev", type=_git_revision, help="Compare against a specific git revision.")
     parser.add_argument("--json", action="store_true", help="Emit JSON failures.")
     parser.add_argument(
         "--check-set",
@@ -47,8 +64,14 @@ def main() -> int:
         if args.paths
         else changed_paths(REPO_ROOT, staged=args.staged, base_rev=args.base_rev)
     )
-    failures = evaluate_repo_policy(REPO_ROOT, paths, check_set=args.check_set)
-    failures = apply_exceptions(failures, load_exceptions(REPO_ROOT))
+    try:
+        failures = evaluate_repo_policy(REPO_ROOT, paths, check_set=args.check_set, base_rev=args.base_rev)
+        failures = apply_exceptions(failures, load_exceptions(REPO_ROOT))
+    except (InvalidInputError, OperationalError) as exc:
+        # An unparseable ADR, a malformed policy exception, or a conftest or tool
+        # provisioning failure is reported as a message, not a traceback.
+        print(f"repo-policy: {exc}", file=sys.stderr)
+        return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -60,7 +83,7 @@ def main() -> int:
 
 
 def _run_from_frozen_tooling_environment() -> int | None:
-    if importlib.util.find_spec("filelock") is not None:
+    if all(importlib.util.find_spec(name) is not None for name in _TOOLING_MODULES):
         return None
     tooling_python = REPO_ROOT / "implementations" / "tooling" / "python" / ".venv" / "bin" / "python"
     if not tooling_python.is_file():
@@ -73,6 +96,10 @@ def _run_from_frozen_tooling_environment() -> int | None:
     return completed.returncode
 
 
-if __name__ == "__main__":
+def _run() -> int:
     relaunched = _run_from_frozen_tooling_environment()
-    raise SystemExit(main() if relaunched is None else relaunched)
+    return main() if relaunched is None else relaunched
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_application(_run))

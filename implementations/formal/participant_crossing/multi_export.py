@@ -4,16 +4,17 @@ import ast
 from dataclasses import asdict, fields
 from pathlib import Path
 
+from pydantic import ValidationError
 from raes_contracts._participant_crossing_multi_profile import MultiParticipantCrossingParametersModel
 from raes_contracts.behavioral_relation_profiles import BehavioralRelationProfileModel
-from raes_contracts.behavioral_relations import load_behavioral_relation_catalog_revision
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 
 from . import multi_abstract, multi_concrete
 from .aut import parse_aut, render_aut
 from .export import SOURCE_PATHS as LEGACY_SOURCE_PATHS
-from .export import _check_expected, _validate_graph, digest, publish_bundle
+from .export import _check_expected, _profile_catalog, _validate_graph, digest, publish_bundle
 from .ingress import read_bytes
 
 PROFILE_PATH = "contracts/profiles/behavioral-relation/participant-crossing-multi-operation-dpbb-finite-v1.json"
@@ -66,19 +67,19 @@ def _independence(sources) -> None:
     allowed = {"collections", "dataclasses", "raes_contracts._participant_crossing_multi_profile", "graph"}
     for module in (multi_abstract, multi_concrete):
         if module.successors.__module__ != module.__name__:
-            raise ValueError("models must use independent transition authorities")
+            raise InvalidInputError("models must use independent transition authorities")
         path = "implementations/formal/participant_crossing/" + module.__name__.rsplit(".", 1)[1] + ".py"
         for node in ast.walk(ast.parse(sources[path])):
             if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom) and node.module not in allowed:
-                raise ValueError("models must use independent transition dependencies")
+                raise InvalidInputError("models must use independent transition dependencies")
             if (
                 isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Name)
                 and node.func.id in {"eval", "exec", "__import__"}
             ):
-                raise ValueError("models must use independent static dependencies")
+                raise InvalidInputError("models must use independent static dependencies")
     if multi_abstract.successors is multi_concrete.successors or multi_abstract.build is multi_concrete.build:
-        raise ValueError("models must use independent transition authorities")
+        raise InvalidInputError("models must use independent transition authorities")
 
 
 def _domains(graph, name, parameters) -> None:
@@ -96,13 +97,13 @@ def _domains(graph, name, parameters) -> None:
             or len(state.ledger) > 2
             or state.decision not in domains["decision"]
         ):
-            raise ValueError("model state outside complete declared domain")
+            raise InvalidInputError("model state outside complete declared domain")
         if name == "concrete" and (
             state.gate not in domains["gate"]
             or state.capability not in domains["capability"]
             or type(state.changed) is not bool
         ):
-            raise ValueError("model gate outside declared domain")
+            raise InvalidInputError("model gate outside declared domain")
         if state.intent is not None:
             slot, item, body, mode = state.intent
             if (
@@ -112,7 +113,7 @@ def _domains(graph, name, parameters) -> None:
                 or body not in domains["request_body"]
                 or mode not in domains["replay"]
             ):
-                raise ValueError("model intent outside declared domain")
+                raise InvalidInputError("model intent outside declared domain")
         for item, body, policy, before, after, outcome in state.ledger:
             if (
                 item not in domains["input_class"]
@@ -125,7 +126,7 @@ def _domains(graph, name, parameters) -> None:
                 or after - before != (outcome != "unresolved")
                 or (policy is None) != (outcome == "unresolved")
             ):
-                raise ValueError("model ledger outside declared domain")
+                raise InvalidInputError("model ledger outside declared domain")
 
 
 def _state_maps(result, name, graph) -> list[str]:
@@ -153,21 +154,23 @@ def _state_maps(result, name, graph) -> list[str]:
 
 def build_bundle(root: Path) -> dict[str, bytes]:
     profile_bytes = read_bytes(root, PROFILE_PATH)
-    profile = BehavioralRelationProfileModel.model_validate(
-        parse_bounded_json_object(profile_bytes, max_bytes=256 * 1024, max_depth=32)
-    )
+    payload = parse_bounded_json_object(profile_bytes, max_bytes=256 * 1024, max_depth=32)
+    try:
+        profile = BehavioralRelationProfileModel.model_validate(payload)
+    except ValidationError as exc:
+        raise InvalidInputError("multi-operation profile does not satisfy its contract") from exc
     if not isinstance(profile.parameters, MultiParticipantCrossingParametersModel):
-        raise ValueError("expected exact multi-operation profile")
+        raise InvalidInputError("expected exact multi-operation profile")
     sources = {path: read_bytes(root, path) for path in SOURCE_PATHS}
     identities = {path: digest(content) for path, content in sources.items()}
     for carrier in (profile.parameters.left, profile.parameters.right):
         if identities[carrier.source_path] != carrier.source_digest:
-            raise ValueError("model source digest drift")
+            raise EvidenceIntegrityError("model source digest drift")
     for ref in profile.source_refs:
         if identities.get(ref.source_ref) != ref.source_digest:
-            raise ValueError("profile source digest drift")
+            raise EvidenceIntegrityError("profile source digest drift")
     if any(identities[path] != expected for path, expected in _EXECUTING_SOURCE_DIGESTS.items()):
-        raise ValueError("executing source identity drift")
+        raise EvidenceIntegrityError("executing source identity drift")
     _independence(sources)
     result = {}
     counts = {}
@@ -211,7 +214,7 @@ def build_bundle(root: Path) -> dict[str, bytes]:
             "aut_bytes": len(aut),
             "edge_maps": edge_maps,
         }
-    catalog = load_behavioral_relation_catalog_revision(profile.taxonomy_revision)
+    catalog = _profile_catalog(profile.taxonomy_revision)
     manifest = {
         "schema": "participant-crossing-model-bundle/v1",
         "profile_id": profile.profile_id,
@@ -241,7 +244,7 @@ def build_bundle(root: Path) -> dict[str, bytes]:
         any(len(content) > MAX_ARTIFACT_BYTES for content in result.values())
         or sum(map(len, result.values())) > MAX_BUNDLE_BYTES
     ):
-        raise ValueError("model bundle exceeds resource limit")
+        raise InvalidInputError("model bundle exceeds resource limit")
     return result
 
 

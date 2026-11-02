@@ -2,9 +2,9 @@
   "contract_id": "participant-behavior-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/participant-behavior-history-event-stream-v1.json",
   "stability": "draft",
-  "content_hash": "6601d330f1dc4a7e11a1828bef9da515b64a40539827289a1c7deee4c90b003d",
+  "content_hash": "7823ea543fc7618ce58a296c63e803485c00480da5adc906a363b7edbb2571f0",
   "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "6601d330f1dc4a7e11a1828bef9da515b64a40539827289a1c7deee4c90b003d"
+    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
+    "content_hash": "7823ea543fc7618ce58a296c63e803485c00480da5adc906a363b7edbb2571f0"
   }
 }

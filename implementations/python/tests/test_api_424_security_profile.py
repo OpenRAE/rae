@@ -105,7 +105,9 @@ def test_incumbent_profile_file_read_is_bounded_before_decode(monkeypatch, tmp_p
     from io import BytesIO
     from pathlib import Path
 
-    from raes_contracts.participant_flow_policy_profiles import load_participant_boundary_flow_policy_profile_from_path
+    from raes_contracts.contracts.participant_flow_policy_profiles import (
+        load_participant_boundary_flow_policy_profile_from_path,
+    )
 
     class BoundedStream(BytesIO):
         def read(self, size=-1):

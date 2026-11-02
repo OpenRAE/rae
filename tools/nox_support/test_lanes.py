@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 import nox
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.nox_support.config import (
     DEFAULT_SUITE_EXPRESSION,
@@ -16,6 +17,8 @@ from tools.nox_support.config import (
     INSTALLATION_QUALIFICATION_HARNESSES,
     OSV_LOCKFILE_PATH,
     OSV_REPORT_PATH,
+    OSV_TOOLING_LOCKFILE_PATH,
+    OSV_TOOLING_REPORT_PATH,
     PROJECT_ROOT,
     PUBLIC_DOCS_ENTRYPOINTS,
     PUBLIC_DOCS_EXAMPLE_TESTS,
@@ -37,7 +40,7 @@ from tools.osv_scanner_tool import (
     ensure_osv_scanner,
     run_osv_scanner,
 )
-from tools.pytest_shard import read_manifest, verify_shard_partition
+from tools.pytest_shard import ShardManifestError, read_manifest, verify_shard_partition
 from tools.vale_tool import ensure_vale
 
 
@@ -163,7 +166,7 @@ def _collect_canonical_nodeids(session: nox.Session) -> list[str]:
         )
     nodeids = [line.strip() for line in (output or "").splitlines() if "::" in line]
     if not nodeids:
-        raise RuntimeError("canonical collection returned no node ids")
+        raise OperationalError("canonical collection returned no node ids")
     return nodeids
 
 
@@ -186,7 +189,7 @@ def _run_coverage_reduce(
     _sync_project(session)
     manifests = [read_manifest(path) for path in sorted(reduce_dir.glob("shard-*.json"))]
     if not manifests:
-        raise RuntimeError(f"no shard manifests found under {reduce_dir}")
+        raise ShardManifestError(f"no shard manifests found under {reduce_dir}")
     canonical = _collect_canonical_nodeids(session)
     reporter.run(
         "coverage / shard completeness proof",
@@ -232,26 +235,30 @@ def _finalize_parallel_coverage(session: nox.Session, coverage_dir: Path) -> Non
 
 
 def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
-    def _scan() -> None:
-        lockfile = OSV_LOCKFILE_PATH
+    def _scan(lockfile: Path, report: Path) -> None:
         if not lockfile.exists():
-            raise RuntimeError(f"osv-scan: tracked lockfile not found: {lockfile.relative_to(REPO_ROOT)}")
+            raise InvalidInputError(f"osv-scan: tracked lockfile not found: {lockfile.relative_to(REPO_ROOT)}")
         binary = ensure_osv_scanner(REPO_ROOT)
-        exit_code = run_osv_scanner(lockfile, OSV_REPORT_PATH, binary=binary)
-        report_rel = OSV_REPORT_PATH.relative_to(REPO_ROOT)
+        exit_code = run_osv_scanner(lockfile, report, binary=binary)
+        report_rel = report.relative_to(REPO_ROOT)
         outcome = classify_osv_exit_code(exit_code)
         if outcome is OSVScanOutcome.FINDINGS:
-            raise RuntimeError(f"osv-scanner reported vulnerabilities (exit code {exit_code}); see {report_rel}")
+            # The scanned lock does not satisfy the vulnerability gate; the caller must correct it.
+            raise InvalidInputError(f"osv-scanner reported vulnerabilities (exit code {exit_code}); see {report_rel}")
         if outcome is OSVScanOutcome.SCANNER_ERROR:
-            raise RuntimeError(
+            raise OperationalError(
                 f"osv-scanner failed with scanner/setup error exit code {exit_code}; report at {report_rel}"
             )
 
-    reporter.run(
-        "osv-scan / uv.lock",
-        _scan,
-        detail=str(OSV_LOCKFILE_PATH.relative_to(REPO_ROOT)),
-    )
+    for label, lockfile, report in (
+        ("uv.lock", OSV_LOCKFILE_PATH, OSV_REPORT_PATH),
+        ("tooling uv.lock", OSV_TOOLING_LOCKFILE_PATH, OSV_TOOLING_REPORT_PATH),
+    ):
+        reporter.run(
+            f"osv-scan / {label}",
+            lambda lockfile=lockfile, report=report: _scan(lockfile, report),
+            detail=str(lockfile.relative_to(REPO_ROOT)),
+        )
 
 
 def _run_docs(

@@ -4,6 +4,7 @@ from threading import Event
 from time import monotonic
 
 import pytest
+from raes_contracts.errors import OperationalError
 
 
 def test_foreign_process_owner_refuses_dispatch_before_accessing_inherited_portal(monkeypatch):
@@ -73,7 +74,7 @@ def test_blocked_effect_times_out_without_using_control_capacity_or_releasing_it
             adapter.call("effect", blocked, timeout_ms=100)
         assert entered.is_set()
         assert adapter.call("control", lambda: "recorded", timeout_ms=100) == "recorded"
-        with pytest.raises(RuntimeError, match="capacity"):
+        with pytest.raises(OperationalError, match="capacity"):
             adapter.call("effect", lambda: pytest.fail("another effect entered"), timeout_ms=100)
         assert adapter.close(timeout_ms=50) is False
     finally:
@@ -104,5 +105,5 @@ def test_abandoned_callback_return_value_cannot_publish_a_result():
     finally:
         release.set()
         assert adapter.close(timeout_ms=1000)
-    with pytest.raises(RuntimeError, match="closed"):
+    with pytest.raises(OperationalError, match="closed"):
         adapter.call("control", lambda: "late-success", timeout_ms=100)

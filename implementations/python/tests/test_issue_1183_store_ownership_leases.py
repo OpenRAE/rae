@@ -14,6 +14,7 @@ from types import SimpleNamespace
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 from raes_contracts.planning import EvaluationPlan
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_runtime import control_plane_store_local as local_store_module
@@ -32,7 +33,7 @@ def _competing_runtime_result(store_path: str, queue: object) -> None:
             create_stub_target(),
             store=LocalControlPlaneStore(Path(store_path)),
         )
-    except RuntimeError as exc:
+    except ConflictError as exc:
         queue.put(str(exc))  # type: ignore[attr-defined]
         return
     control_plane.close()
@@ -45,7 +46,7 @@ def test_local_store_constructor_is_inert_until_runtime_admission(tmp_path: Path
     store = LocalControlPlaneStore(store_path)
 
     assert not store_path.exists()
-    with pytest.raises(RuntimeError, match="runtime admission"):
+    with pytest.raises(OperationalError, match="runtime admission"):
         store.load_snapshot()
 
 
@@ -65,12 +66,12 @@ def test_runtime_admission_binds_and_reopens_one_immutable_scope(tmp_path: Path)
     reopened.close()
 
     second_run_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(RuntimeError, match="scope does not match"):
+    with pytest.raises(ConflictError, match="scope does not match"):
         RuntimeControlPlane(target, store=second_run_store, run_scope="run:second")
 
     other_target = replace(target, name="other")
     other_target_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(RuntimeError, match="scope does not match"):
+    with pytest.raises(ConflictError, match="scope does not match"):
         RuntimeControlPlane(other_target, store=other_target_store, run_scope="run:first")
 
 
@@ -93,7 +94,7 @@ def test_scope_mismatch_fails_before_schema_migration(
 
     target = create_stub_target()
     mismatched_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(RuntimeError, match="scope does not match"):
+    with pytest.raises(ConflictError, match="scope does not match"):
         RuntimeControlPlane(target, store=mismatched_store, run_scope="run:second")
 
 
@@ -128,7 +129,7 @@ def test_unscoped_store_is_adopted_once_and_partial_scope_fails_closed(tmp_path:
 
     target = create_stub_target()
     partial_store = LocalControlPlaneStore(partial_path)
-    with pytest.raises(RuntimeError, match="scope metadata is incomplete"):
+    with pytest.raises(EvidenceIntegrityError, match="scope metadata is incomplete"):
         RuntimeControlPlane(target, store=partial_store, run_scope="run:adopted")
 
 
@@ -151,7 +152,7 @@ def test_duplicate_scope_metadata_fails_closed_before_store_reads(tmp_path: Path
 
     target = create_stub_target()
     duplicate_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(RuntimeError, match="scope metadata contains duplicate keys"):
+    with pytest.raises(EvidenceIntegrityError, match="scope metadata contains duplicate keys"):
         RuntimeControlPlane(target, store=duplicate_store)
 
 
@@ -183,7 +184,7 @@ def test_request_run_scope_cannot_widen_the_admitted_store_scope(tmp_path: Path)
     request = EvaluationPlan(run_id="different")
 
     try:
-        with pytest.raises(ValueError, match="run scope does not match"):
+        with pytest.raises(ConflictError, match="run scope does not match"):
             control_plane.submit_evaluation(request)
     finally:
         control_plane.close()
@@ -233,7 +234,7 @@ def test_provider_close_failure_retains_lease_and_poison_runtime() -> None:
         control_plane.close()
 
     assert store.lease.closed is False
-    with pytest.raises(RuntimeError, match="requires restart"):
+    with pytest.raises(OperationalError, match="requires restart"):
         control_plane.get_snapshot()
 
 
@@ -296,7 +297,7 @@ def test_control_plane_api_lifespan_closes_the_owned_runtime() -> None:
     with TestClient(create_control_plane_app(control_plane)):
         assert control_plane.get_snapshot().snapshot == RuntimeSnapshot()
 
-    with pytest.raises(RuntimeError, match="closed"):
+    with pytest.raises(OperationalError, match="closed"):
         control_plane.get_snapshot()
 
 
@@ -306,7 +307,7 @@ def test_control_plane_api_rejects_multiple_workers(
     monkeypatch.setenv("WEB_CONCURRENCY", "2")
     control_plane = RuntimeControlPlane(create_stub_target())
 
-    with pytest.raises(RuntimeError, match="exactly one worker"):
+    with pytest.raises(OperationalError, match="exactly one worker"):
         create_control_plane_app(control_plane)
 
     control_plane.close()

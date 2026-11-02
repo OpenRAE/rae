@@ -8,10 +8,11 @@ from pydantic import Field, StrictBool, model_validator
 from pydantic_core import to_jsonable_python
 
 from raes_contracts.canonical import jsonable_fallback
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
+from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT
 
 from ..diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from ..planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain, require_plan_operation_identity
-from ..realization_preparation import BACKEND_PREPARATION_CONTRACT, RealizationPreparation
 from ..realization_structure import validate_realization_value
 from ..runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 from .base import ContractModel

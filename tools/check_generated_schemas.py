@@ -8,6 +8,13 @@ from hashlib import sha256
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
 SCHEMAS_ROOT = REPO_ROOT / "contracts" / "schemas"
 PYTHON_ROOT = REPO_ROOT / "implementations" / "python"
 
@@ -85,4 +92,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

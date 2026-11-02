@@ -8,12 +8,15 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.backend_operation import OperationGuarantee
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import RuntimeDomain
 
+from .runtime_record_decisions import ExperimentRecordPublicationDecision, ExperimentStudyDefinitionDecision
 from .runtime_sequence_reference import RuntimeSequenceDecision
 from .runtime_trial_decisions import (
     ExperimentCancellationDecision,
     ExperimentDecision,
+    TrialArchiveCandidateDecision,
     TrialArchiveDecision,
     TrialAttemptDecision,
     TrialInterruptionDecision,
@@ -117,8 +120,11 @@ RuntimeDecision = Annotated[
     | TrialTerminalDecision
     | TrialReplacementDecision
     | TrialArchiveDecision
+    | TrialArchiveCandidateDecision
     | RuntimeSequenceDecision
-    | TrialInterruptionDecision,
+    | TrialInterruptionDecision
+    | ExperimentStudyDefinitionDecision
+    | ExperimentRecordPublicationDecision,
     Field(discriminator="schema_version"),
 ]
 _DECISION = TypeAdapter(RuntimeDecision)
@@ -131,7 +137,7 @@ def validate_runtime_decision(value: object) -> RuntimeDecision:
 
 def require_identical_decision(existing: RuntimeDecision, candidate: RuntimeDecision) -> None:
     if existing.model_dump(mode="json") != candidate.model_dump(mode="json"):
-        raise ValueError("runtime decision identity conflicts with its committed value")
+        raise ConflictError("runtime decision identity conflicts with its committed value")
 
 
 def bind_run_operation_guarantees(

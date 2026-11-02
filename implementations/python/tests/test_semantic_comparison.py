@@ -24,8 +24,8 @@ from raes_contracts.contracts import (
     ExternalConceptBindingDocumentModel,
     PreservationOutcome,
     TransformationCheckOutcome,
-    schema_bundle,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import StrictJsonIngressError
 from raes_contracts.semantic_comparison import (
     ArtifactKind,
@@ -49,6 +49,7 @@ from raes_processor.semantic_comparison import (
     build_impact_scope,
     coordinate_for_artifact,
 )
+from raes_schemas import schema_bundle
 
 _ROOT = Path(__file__).resolve().parents[3]
 _PROFILE_PATH = _ROOT / "contracts/profiles/semantic-comparison/reference-v2.json"
@@ -357,7 +358,7 @@ def test_profile_digest_mismatch_is_rejected_before_analysis(
         update={"comparison_profile_digest": "sha256:" + "0" * 64}
     )
 
-    with pytest.raises(ValueError, match="comparison profile digest"):
+    with pytest.raises(InvalidInputError, match="comparison profile digest"):
         analyze_semantic_comparison(profile, request, scenario, scenario)
 
 

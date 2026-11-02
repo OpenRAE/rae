@@ -57,7 +57,58 @@ env:
   RAES_CI_SHARD_COUNT: "8"
 
 jobs:
+  proof-archive:
+    # The official proof archive host is not always reachable, so the Actions
+    # cache keeps a verified copy, keyed by the locked digest. This job checks
+    # out the triggering commit, never a caller-selected ref, so code under
+    # verification cannot write the cache.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Read the locked proof archive identity
+        id: isabelle-lock
+        run: |
+          jq -r '.. | objects | select(.artifact_id? == "isabelle") | .platforms[]
+            | select(.platform_id == "linux-x86_64") | .raw_manifest[0]
+            | "sha256=\(.sha256)"' implementations/tooling/artifacts.lock.json >> "$GITHUB_OUTPUT"
+      - name: Look up the verified proof archive
+        id: isabelle-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .canonical-tool-inputs/archives/isabelle
+          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
+          lookup-only: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Fetch the locked proof archive with the qualified client
+        # Ubuntu 22.04's native curl predates the qualified client floor, so the
+        # proof host receives the exact reviewed archive as a verified local input.
+        # The client verifies the size and the digest before the cache keeps it.
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir .canonical-tool-inputs
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
+            proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
+            --locator-ref official-isabelle-release
+      - name: Save the verified proof archive
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .canonical-tool-inputs/archives/isabelle
+          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
+
   generic-tool-local-inputs:
+    needs: proof-archive
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -68,7 +119,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
           version: "0.13.4"
@@ -78,13 +129,40 @@ jobs:
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             public-ubuntu-24.04-x86_64 .canonical-tool-inputs \
             --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
+      - name: Read the locked proof archive identity
+        id: isabelle-lock
+        run: |
+          jq -r '.. | objects | select(.artifact_id? == "isabelle") | .platforms[]
+            | select(.platform_id == "linux-x86_64") | .raw_manifest[0]
+            | "sha256=\(.sha256)\npath=\(.path)"' implementations/tooling/artifacts.lock.json >> "$GITHUB_OUTPUT"
+      - name: Restore the verified proof archive
+        # This job only reads the copy that the proof-archive job keeps. It
+        # verifies the copy against the digest that the verified ref locks.
+        id: isabelle-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .canonical-tool-inputs/archives/isabelle
+          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
+      - name: Verify the restored proof archive
+        if: steps.isabelle-cache.outputs.cache-hit == 'true'
+        env:
+          ARCHIVE_SHA256: ${{ steps.isabelle-lock.outputs.sha256 }}
+          ARCHIVE_PATH: ${{ steps.isabelle-lock.outputs.path }}
+        run: |
+          printf '%s  %s\n' "$ARCHIVE_SHA256" ".canonical-tool-inputs/archives/isabelle/$ARCHIVE_PATH" \
+            | sha256sum --check --strict
       - name: Fetch the locked proof archive with the qualified client
-        # Ubuntu 22.04's native curl predates the qualified client floor, so the
-        # proof host receives the exact reviewed archive as a verified local input.
+        # On a miss, for example when the verified ref locks a different archive,
+        # this job fetches the archive itself.
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
             --locator-ref official-isabelle-release
+      - name: Fetch the locked model checker
+        run: >-
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs
+          model-check-ubuntu-26.04-x86_64 .canonical-tool-inputs --artifact-id mcrl2
       - name: Carry locked generic-tool inputs to the dependent jobs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -93,6 +171,47 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 1
+
+  model-check:
+    needs: generic-tool-local-inputs
+    runs-on: ubuntu-26.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Receive locked inputs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+      - name: Install model-check host prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y bubblewrap dpkg util-linux libc6 libstdc++6 libgcc-s1
+      - name: Admit the locked model checker
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.mcrl2_tool acquire
+          --local-input .canonical-tool-inputs/archives/mcrl2/mcrl2-202607.0_x86_64.deb
+      - name: Prepare the locked Python verification environment
+        run: uv sync --project implementations/python --frozen --all-extras
+      - name: Check the current finite model and negative controls
+        env:
+          PYTHONPATH: implementations/python/packages:.
+          RAES_REQUIREMENT_UID: SEM-232
+        run: >-
+          uv run --offline --no-sync --project implementations/tooling/python --frozen --no-default-groups
+          nox -f noxfile.py -s participant-crossing-machine-check
 
   # Deterministic concurrent shards of the default-marker suite. Each shard owns a
   # SHA-256 partition of the collected node ids, runs xdist within its shard, and
@@ -113,7 +232,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
           version: "0.13.4"
@@ -170,7 +289,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
           version: "0.13.4"
@@ -254,7 +373,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
           version: "0.13.4"
@@ -311,7 +430,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
           version: "0.13.4"
@@ -370,7 +489,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
           version: "0.13.4"
@@ -435,7 +554,7 @@ jobs:
       - name: SonarCloud Scan
         id: scan
         continue-on-error: true
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8
+        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8
         env:
           SONAR_TOKEN: ${{ secrets.sonar_token }}
       - name: Record quality-gate outcome
@@ -446,7 +565,7 @@ jobs:
   # is distinguished from success, so a missing shard or a skipped reducer fails
   # the gate rather than silently passing.
   gate:
-    needs: [test-shard, integration, checks, proof, coverage-reduce]
+    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce]
     if: always()
     runs-on: ubuntu-24.04
     outputs:
@@ -459,6 +578,7 @@ jobs:
           INTEGRATION_RESULT: ${{ needs.integration.result }}
           CHECKS_RESULT: ${{ needs.checks.result }}
           PROOF_RESULT: ${{ needs.proof.result }}
+          MODEL_CHECK_RESULT: ${{ needs.model-check.result }}
           REDUCE_RESULT: ${{ needs.coverage-reduce.result }}
         run: |
           set -euo pipefail
@@ -468,6 +588,7 @@ jobs:
             "integration:${INTEGRATION_RESULT}" \
             "checks:${CHECKS_RESULT}" \
             "proof:${PROOF_RESULT}" \
+            "model-check:${MODEL_CHECK_RESULT}" \
             "coverage-reduce:${REDUCE_RESULT}"; do
             name="${pair%%:*}"
             result="${pair#*:}"

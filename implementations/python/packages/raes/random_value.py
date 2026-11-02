@@ -17,8 +17,7 @@ from enum import Enum
 
 from pydantic import Field, StrictInt, model_validator
 from raes_contracts.random_value_generation import NAMED_ALPHABET_CHARSETS
-
-from ._base import SDLModel
+from raes_contracts.sdl_model import SDLModel
 
 # Minimum effective entropy (bits) required for a ``secret`` random-value output.
 # 32 uniform hex characters carry exactly this budget; literal wrappers add none.

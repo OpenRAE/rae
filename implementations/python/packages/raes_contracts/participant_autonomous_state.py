@@ -5,8 +5,11 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator, Mapping
 
+from pydantic import ValidationError
+
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.contracts.participant_runtime import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_temporal_history import require_participant_temporal_history
 
 _SNAPSHOT_FIELD = "runtime.snapshot.participant-autonomous-execution-states"
 _SHA256_DIGEST = re.compile(r"sha256:[0-9a-f]{64}", re.ASCII)
@@ -19,8 +22,18 @@ def _validated_state(
         return None, "autonomous participant state must be a mapping"
     try:
         return ParticipantAutonomousExecutionStateModel.model_validate(raw_state), None
-    except ValueError as exc:
-        return None, f"autonomous participant state is invalid: {exc}"
+    except ValidationError as exc:
+        # The validation text echoes snapshot values (E7); name only declared fields.
+        declared = ParticipantAutonomousExecutionStateModel.model_fields
+        fields = sorted(
+            {
+                str(error["loc"][0])
+                for error in exc.errors(include_url=False, include_context=False, include_input=False)
+                if error["loc"] and error["loc"][0] in declared
+            }
+        )
+        detail = f": {', '.join(fields)}" if fields else ""
+        return None, f"autonomous participant state is invalid{detail}"
 
 
 def _state_identity_violations(
@@ -206,7 +219,6 @@ def require_participant_autonomous_runtime_snapshot(snapshot: object) -> None:
     if violation is not None:
         address, message = violation
         raise ValueError(f"{address}: {message}")
-    from .participant_temporal import require_participant_temporal_history
 
     require_participant_temporal_history(snapshot)
 

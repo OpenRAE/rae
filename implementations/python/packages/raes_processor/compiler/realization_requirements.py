@@ -3,12 +3,14 @@
 from collections.abc import Mapping
 from dataclasses import replace
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
+from raes.explicitness import ExplicitnessRecord
 from raes.nodes import NodeType
 from raes.profile_selections import profile_owned_mailbox_inventory
 from raes.scenario import InstantiatedScenario
 from raes.semantics.domain_topology import DomainTopologyAnalysis
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
@@ -276,7 +278,7 @@ def _compiled_registered_realization(
     descriptor = registered.descriptor
     section_name = descriptor.section
     declaration_name = registered.declaration_name
-    encoded_name = declaration_name.replace("~", "~0").replace("/", "~1")
+    encoded_name = escape_token(declaration_name)
     field_pointer = f"/{section_name}/{encoded_name}/{'/'.join(descriptor.authored_path)}"
     record = semantic_explicitness_record(
         explicitness,

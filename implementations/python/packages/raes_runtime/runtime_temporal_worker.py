@@ -6,9 +6,13 @@ from typing import TYPE_CHECKING, Any, Literal
 
 import anyio
 from pydantic import TypeAdapter
+from raes_contracts.errors import AuthorizationError, ConflictError, OperationalError, RaesError
+from raes_contracts.operational_logging import get_logger
 from temporalio import activity
 
 from .runtime_sequence_reference import RuntimeSequenceReference
+
+_LOGGER = get_logger(__name__)
 
 _STATE = TypeAdapter(
     Literal["progress", "pending", "succeeded", "failed", "cancelled", "indeterminate", "cleanup-failed", "completed"]
@@ -30,19 +34,24 @@ class TemporalRuntimeActivities:
     async def advance(self, payload: dict[str, Any]) -> str:
         reference = RuntimeSequenceReference.model_validate(payload)
         if reference.worker_id != self.authority.configuration.identity.identity:
-            raise PermissionError("runtime worker reference is forbidden")
+            raise AuthorizationError("runtime worker reference is forbidden")
         try:
             state = await anyio.to_thread.run_sync(
                 lambda: self.authority.advance_runtime(reference),
                 abandon_on_cancel=True,
             )
-        except RuntimeError:
+        except OperationalError:
             # Lost transport acknowledgement leaves the same RAE state cut to
             # reconcile. It cannot consume another backend invocation grant.
             return "unavailable"
-        except Exception:
-            raise ValueError("runtime state activity was refused") from None
-        return _STATE.validate_python(state)
+        except Exception as exc:
+            # Boundary of the activity: Temporal history records only the fixed refusal below.
+            if not isinstance(exc, RaesError):
+                _LOGGER.exception("runtime state activity failed before its outcome was established")
+        else:
+            return _STATE.validate_python(state)
+        # Raised after the handler, so the fixed refusal carries no exception as its context.
+        raise ConflictError("runtime state activity was refused")
 
 
 def create_runtime_state_worker(

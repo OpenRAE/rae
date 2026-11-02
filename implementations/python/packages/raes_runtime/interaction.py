@@ -11,6 +11,7 @@ from raes_contracts.contracts import (
     ArtifactAvailabilityContext,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.immutable_history import mutable_history_value
 from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.planning import PlanScope, RuntimeDomain
@@ -32,6 +33,7 @@ from .manager_destroy import _DestroyPhaseMixin
 from .manager_inventory import RuntimeInventoryMixin
 from .manager_lifecycle import RuntimeManagerLifecycleMixin, manager_owned
 from .manager_plan_admission import reference_participant_driver_diagnostics, runtime_plan_precondition_diagnostics
+from .participant_delivery_driver import delivery_tool_driver_actions
 
 _RUNTIME_APPLY_ADDRESS, _APPLY_EVALUATOR_ADDRESS = "runtime.apply", "runtime.apply.evaluator"
 _APPLY_ORCHESTRATOR_ADDRESS = "runtime.apply.orchestrator"
@@ -104,7 +106,14 @@ class RuntimeInteractionMixin(
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
         )
         return replace(
-            execution_plan, diagnostics=[*execution_plan.diagnostics, *reference_participant_driver_diagnostics(model)]
+            execution_plan,
+            diagnostics=[
+                *execution_plan.diagnostics,
+                *reference_participant_driver_diagnostics(
+                    model,
+                    delivery_actions=delivery_tool_driver_actions(self, model),
+                ),
+            ],
         )
 
     @manager_owned
@@ -299,6 +308,7 @@ class RuntimeInteractionMixin(
         from raes_contracts.runtime_state import OperationKind
 
         from .control_plane_operation_context import operation_admission_context
+        from .errors import RuntimeBudgetExhaustedError
         from .operation_policy_admission import execution_budget_ms
 
         for domain in (RuntimeDomain.PROVISIONING, RuntimeDomain.EVALUATION, RuntimeDomain.ORCHESTRATION):
@@ -306,7 +316,8 @@ class RuntimeInteractionMixin(
             operation_admission_context(self, kind=OperationKind(domain.value), request=phase)
             try:
                 execution_budget_ms(phase, self._supervision)
-            except ValueError:
+            except ConflictError, RuntimeBudgetExhaustedError:
+                # An unsupported policy and an exhausted authored attempt budget both refuse the apply.
                 diagnostics.append(
                     _failure_diagnostic(
                         "runtime.control-plane.execution-policy-unsupported",
@@ -320,6 +331,7 @@ class RuntimeInteractionMixin(
             self._target,
             self._snapshot,
             durable_lifecycle_available=self._store_commits.crash_atomic,
+            delivery_actions=delivery_tool_driver_actions(self, execution_plan.model),
         )
         diagnostics.extend(precondition_diagnostics)
         failure = None

@@ -15,6 +15,14 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
 MANIFEST_PATH = Path("contracts/schema-publication-manifest.json")
 SCHEMAS_PREFIX = "contracts/schemas/"
 SCHEMA_VERSION = "schema-publication-manifest/v2"
@@ -65,14 +73,34 @@ def _published_schema_paths(repo_root: Path) -> set[str]:
     return {path.relative_to(repo_root).as_posix() for path in sorted(schemas_root.rglob("*.json"))}
 
 
+def _json_integer(literal: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(literal)
+    except ValueError as exc:
+        raise InvalidInputError("schema publication JSON contains an integer beyond the digit limit") from exc
+
+
+def _parse_json(text: str) -> object:
+    """Decode JSON text; raise ``InvalidInputError`` for a value the decoder cannot build."""
+
+    try:
+        return json.loads(text, parse_int=_json_integer)
+    except RecursionError as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise InvalidInputError("schema publication JSON nests beyond the decoder depth") from exc
+
+
 def _load_manifest(repo_root: Path) -> tuple[dict[str, Any] | None, list[str]]:
     manifest_file = repo_root / MANIFEST_PATH
     if not manifest_file.exists():
         return None, [f"schema publication manifest is missing: {MANIFEST_PATH.as_posix()}"]
     try:
-        payload = json.loads(manifest_file.read_text(encoding="utf-8"))
+        payload = _parse_json(manifest_file.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return None, [f"schema publication manifest is not valid JSON: {exc.msg}"]
+    except InvalidInputError as exc:
+        return None, [f"schema publication manifest is not valid JSON: {exc}"]
     if not isinstance(payload, dict):
         return None, ["schema publication manifest must be a JSON object"]
     if payload.get("schema_version") == LEGACY_SCHEMA_VERSION:
@@ -127,29 +155,41 @@ def _load_record_directory(
     records: list[dict[str, Any]] = []
     failures: list[str] = []
     for path in paths:
-        relative = path.relative_to(repo_root).as_posix()
-        try:
-            record = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            failures.append(f"schema publication {record_kind} is not valid JSON: {relative}: {exc.msg}")
-            continue
-        if not isinstance(record, dict):
-            failures.append(f"schema publication {record_kind} must be a JSON object: {relative}")
-            continue
-        identity = record.get("contract_id" if record_kind == "entry" else "schema_path")
-        if not isinstance(identity, str) or path.stem != Path(identity).stem:
-            failures.append(f"schema publication {record_kind} filename does not match its identity: {relative}")
-            continue
-        records.append(record)
+        record, failure = _load_record(path, path.relative_to(repo_root).as_posix(), record_kind)
+        if failure is not None:
+            failures.append(failure)
+        else:
+            records.append(record)
     return records, failures
 
 
+def _load_record(path: Path, relative: str, record_kind: str) -> tuple[dict[str, Any], str | None]:
+    """Return one publication record, or a failure that names why it cannot be used."""
+    try:
+        record = _parse_json(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, InvalidInputError) as exc:
+        detail = exc.msg if isinstance(exc, json.JSONDecodeError) else exc
+        return {}, f"schema publication {record_kind} is not valid JSON: {relative}: {detail}"
+    if not isinstance(record, dict):
+        return {}, f"schema publication {record_kind} must be a JSON object: {relative}"
+    identity = record.get("contract_id" if record_kind == "entry" else "schema_path")
+    matches = isinstance(identity, str) and path.stem == Path(identity).stem
+    return (
+        record,
+        None if matches else f"schema publication {record_kind} filename does not match its identity: {relative}",
+    )
+
+
 def load_schema_publication_catalog(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
-    """Load the normalized publication catalog from legacy or sharded storage."""
+    """Load the normalized publication catalog from legacy or sharded storage.
+
+    Raise ``InvalidInputError`` when the manifest or one of its records is
+    missing or malformed.
+    """
 
     payload, failures = _load_manifest(repo_root)
     if payload is None:
-        raise ValueError("; ".join(failures))
+        raise InvalidInputError("; ".join(failures))
     return payload
 
 
@@ -158,20 +198,27 @@ def _canonical_json(value: Any) -> str:
 
 
 def _schema_content_digest(schema: Any) -> str:
-    return hashlib.sha256(_canonical_json(schema).encode("utf-8")).hexdigest()
+    try:
+        encoded = _canonical_json(schema).encode("utf-8")
+    except UnicodeEncodeError as exc:
+        # A JSON escape can decode to an unpaired surrogate, which has no UTF-8 form.
+        raise InvalidInputError("published schema text has no UTF-8 form") from exc
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def schema_content_hash(path: Path) -> str:
     """Return the canonical JSON sha256 for a published schema file."""
 
-    return _schema_content_digest(json.loads(path.read_text(encoding="utf-8")))
+    return _schema_content_digest(_parse_json(path.read_text(encoding="utf-8")))
 
 
 def _load_schema(path: Path, schema_path: str) -> tuple[Any | None, str | None]:
     try:
-        return json.loads(path.read_text(encoding="utf-8")), None
+        return _parse_json(path.read_text(encoding="utf-8")), None
     except json.JSONDecodeError as exc:
         return None, f"schema manifest path is not valid JSON: {schema_path}: {exc.msg}"
+    except InvalidInputError as exc:
+        return None, f"schema manifest path is not valid JSON: {schema_path}: {exc}"
 
 
 def _validate_last_change(
@@ -387,8 +434,8 @@ def _load_base_manifest(repo_root: Path, base_rev: str) -> tuple[dict[str, dict[
     if text is None:
         return None, f"base schema publication manifest is missing at {base_rev}"
     try:
-        payload = json.loads(text)
-    except json.JSONDecodeError:
+        payload = _parse_json(text)
+    except json.JSONDecodeError, InvalidInputError:
         return None, f"base schema publication manifest at {base_rev} is not valid JSON"
     if not isinstance(payload, dict):
         return None, f"base schema publication manifest at {base_rev} must be a JSON object"
@@ -403,8 +450,8 @@ def _load_base_manifest(repo_root: Path, base_rev: str) -> tuple[dict[str, dict[
         for path in paths:
             record_text = _git_show(repo_root, f"{base_rev}:{path}")
             try:
-                record = json.loads(record_text) if record_text is not None else None
-            except json.JSONDecodeError:
+                record = _parse_json(record_text) if record_text is not None else None
+            except json.JSONDecodeError, InvalidInputError:
                 record = None
             if not isinstance(record, dict):
                 return None, f"base schema publication record at {base_rev}:{path} is invalid"
@@ -444,13 +491,20 @@ def _check_stable_schema_changes(
             failures.append(f"base schema for {entry.contract_id} is missing at {base_rev}: {base_path}")
             continue
         try:
-            base_schema = json.loads(base_text)
-        except json.JSONDecodeError:
+            base_schema = _parse_json(base_text)
+        except json.JSONDecodeError, InvalidInputError:
             failures.append(f"base schema for {entry.contract_id} at {base_rev}:{base_path} is not valid JSON")
             continue
         if _schema_content_digest(base_schema) == entry.content_hash:
             continue
-        breaking_changes = _schema_breaking_changes(base_schema, entry.schema)
+        try:
+            breaking_changes = _schema_breaking_changes(base_schema, entry.schema)
+        except RecursionError:
+            # The comparison walks the schemas recursively; the JSON decoder accepts deeper documents.
+            failures.append(
+                f"stable schema {entry.contract_id} nests beyond the depth that the compatibility check can compare"
+            )
+            continue
         if breaking_changes:
             failures.append(
                 f"stable schema {entry.contract_id} changed incompatibly without a version bump: "
@@ -520,8 +574,8 @@ def _check_change_ledger(
         base_text = _git_show(repo_root, f"{base_rev}:{entry.schema_path}")
         if base_text is not None:
             try:
-                base_schema = json.loads(base_text)
-            except json.JSONDecodeError:
+                base_schema = _parse_json(base_text)
+            except json.JSONDecodeError, InvalidInputError:
                 base_schema = None
             if base_schema is not None and _schema_content_digest(base_schema) == entry.content_hash:
                 continue
@@ -736,7 +790,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    failures = validate_schema_publication_manifest(REPO_ROOT, base_rev=args.base_rev)
+    try:
+        failures = validate_schema_publication_manifest(REPO_ROOT, base_rev=args.base_rev)
+    except (OSError, UnicodeDecodeError, InvalidInputError) as exc:
+        print(f"[schema-publication] {exc}", file=sys.stderr)
+        return 1
     if failures:
         for failure in failures:
             print(f"[schema-publication] {failure}", file=sys.stderr)
@@ -745,4 +803,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

@@ -3,8 +3,8 @@
 from dataclasses import dataclass, replace
 
 from raes import ReferencePurpose
-from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes.scenario import InstantiatedScenario
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
 from ..models import Diagnostic, ParticipantInjectDeliveryRuntime
 from ._mixed_control_policy import _compile_delivery_policy_control

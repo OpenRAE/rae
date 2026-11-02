@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from raes import (
     ArtifactTransformationPolicy,
     RemoveSDLDeclarationRequest,
@@ -22,10 +22,13 @@ from raes_contracts.contracts import (
     ExternalConceptBindingDocumentModel,
 )
 from raes_contracts.corpus import FIXTURES, corpus_family_root
+from raes_contracts.errors import InvalidInputError, OperationalError
 from raes_contracts.json_ingress import parse_bounded_json_object
+from raes_contracts.operational_logging import get_logger
 
 from raes_conformance.conformance.diagnostics import sanitized_failure_message
 
+_LOGGER = get_logger(__name__)
 _MAX_CASE_BYTES = 32 * 1024
 _MAX_PORTABLE_CONTRACT_BYTES = 1024 * 1024
 
@@ -117,7 +120,7 @@ def _confined_fixture_path(fixtures: Path, relative: str) -> Path:
     try:
         candidate.relative_to(root)
     except ValueError as exc:
-        raise ValueError("transformation fixture source resolves outside the fixture corpus") from exc
+        raise InvalidInputError("transformation fixture source resolves outside the fixture corpus") from exc
     return candidate
 
 
@@ -182,6 +185,16 @@ def _execute_case(
     )
 
 
+def _failed_case(case_path: Path, exc: Exception) -> ArtifactTransformationConformanceCaseResult:
+    return ArtifactTransformationConformanceCaseResult(
+        case_id=case_path.stem,
+        passed=False,
+        status=None,
+        report_digest=None,
+        diagnostic=sanitized_failure_message(exc),
+    )
+
+
 def run_artifact_transformation_fixture_suite(
     *,
     root: Path | None = None,
@@ -195,16 +208,13 @@ def run_artifact_transformation_fixture_suite(
         try:
             case = _load_case(case_path)
             results.append(_execute_case(case, fixtures=fixtures))
+        # A missing or invalid case, source or module import fails only this case.
+        except (OSError, InvalidInputError, OperationalError, ValidationError) as exc:
+            results.append(_failed_case(case_path, exc))
         except Exception as exc:
-            results.append(
-                ArtifactTransformationConformanceCaseResult(
-                    case_id=case_path.stem,
-                    passed=False,
-                    status=None,
-                    report_digest=None,
-                    diagnostic=sanitized_failure_message(exc),
-                )
-            )
+            # Boundary of one fixture case: the case fails with a sanitized diagnostic; log the unexpected cause once.
+            _LOGGER.exception("artifact transformation conformance case failed unexpectedly")
+            results.append(_failed_case(case_path, exc))
     case_tuple = tuple(results)
     return ArtifactTransformationConformanceReport(
         profile="artifact-transformations/v1",

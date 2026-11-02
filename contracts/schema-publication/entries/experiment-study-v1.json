@@ -1,9 +1,9 @@
 {
-  "content_hash": "57ccfba7e5386019ef5368f772a9ea422301ce5bc3621e3c84b03c126c9b3885",
+  "content_hash": "466ae9b7d96ab9badab376422d9b645fe5bcda3ee8ad80722265d13022644894",
   "contract_id": "experiment-study-v1",
   "last_change": {
-    "content_hash": "57ccfba7e5386019ef5368f772a9ea422301ce5bc3621e3c84b03c126c9b3885",
-    "summary": "Publish factorial-treatments-v1 typed scenario selection criteria and exact source/owner provenance alongside unchanged scalar bindings (#1665)."
+    "content_hash": "466ae9b7d96ab9badab376422d9b645fe5bcda3ee8ad80722265d13022644894",
+    "summary": "Retain complete and partial run accounting and preserve authored study identity across immutable record snapshots (#1630)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-study-v1.json",
   "stability": "draft"

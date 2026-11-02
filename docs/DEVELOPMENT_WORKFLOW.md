@@ -52,6 +52,27 @@ Run the repository policy session after changing a cross-package import:
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s policy
 ```
 
+## Keep the structural ratchets
+
+The policy session also runs the structural checks of
+[ADR-117](decisions/adrs/adr-117-ratcheted-structural-checks.md) on the package
+source. They fail on a new import cycle, a new private import from another
+module and a new class with more than seven package ancestors. The current debt
+is in `tools/policy/import_contracts.toml` and
+`tools/policy/structural_baseline.json`. The debt can only decrease:
+
+- Do not add an entry to clear a failure. Remove the new import or the new
+  inheritance.
+- When a change removes debt, remove or lower its entry in the same change. The
+  failure message names the entry.
+
+To run only the import contracts, run this command from
+`implementations/python/packages`:
+
+```shell
+uv run --project ../../tooling/python --frozen --no-default-groups lint-imports --config ../../../tools/policy/import_contracts.toml --no-cache
+```
+
 ## Continuous integration graph
 
 The pull-request gate runs through `.github/workflows/ci.yml`, which calls the
