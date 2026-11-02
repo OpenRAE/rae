@@ -4562,3 +4562,36 @@ def test_oci_signature_binds_root_file():
     payload_b = module_registry._signable_payload(descriptor, content_digest=content_digest, root_file="other.yaml")
     assert payload_a != payload_b
     assert b"root_file" in payload_a
+
+
+def test_publish_preserves_the_authoring_descriptor_after_import_expansion(tmp_path: Path) -> None:
+    child = _local_module(tmp_path / "source" / "child.yaml")
+    root = _write(
+        child.parent / "root.yaml",
+        """
+        name: importing-root
+        module:
+          id: acme/root
+          version: 1.0.0
+        imports:
+          - source: local:child.yaml
+            namespace: child
+        """,
+    )
+    result = CliRunner().invoke(app, ["sdl", "publish", str(root), "--output-dir", str(tmp_path / "dist")])
+    assert result.exit_code == 0, result.output
+    publication = json.loads(result.stdout)
+    layout = Path(publication["layout_dir"])
+    assert _published_config(layout)["module"]["id"] == "acme/root"
+    bundle = _published_blob(layout, publication["content_digest"])
+    with tarfile.open(fileobj=io.BytesIO(bundle), mode="r:gz") as archive:
+        assert set(archive.getnames()) == {"root.yaml", "child.yaml"}
+
+
+def test_publish_refuses_an_importing_root_without_a_module_descriptor(tmp_path: Path) -> None:
+    child = _local_module(tmp_path / "source" / "child.yaml")
+    root = _root_import(child.parent / "root.yaml", "source: local:child.yaml\nnamespace: child")
+    result = CliRunner().invoke(app, ["sdl", "publish", str(root), "--output-dir", str(tmp_path / "dist")])
+    assert result.exit_code == 1
+    assert "SDLImportError" in result.stderr
+    assert not (tmp_path / "dist").exists()

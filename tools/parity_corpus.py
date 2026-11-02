@@ -430,7 +430,7 @@ def run_schema(repo: Path, case: Case) -> dict[str, object]:
     entry = json.loads((repo / PUBLICATION_ENTRIES / f"{contract}.json").read_text(encoding="utf-8"))
     schema = json.loads((repo / entry["schema_path"]).read_text(encoding="utf-8"))
     try:
-        payload = json.loads(case.files["payload.json"])
+        payload = json.loads(case.files["payload.json"].decode("utf-8"), parse_constant=_reject_constant)
     except ValueError:
         return {"valid": False}
     return {"valid": Draft202012Validator(schema).is_valid(payload)}
@@ -500,7 +500,11 @@ def build_corpus(
             print(f"parity corpus: recording case {index}", file=sys.stderr, flush=True)
         if case.path in files:
             raise ValueError(f"duplicate corpus case: {case.path}")
-        files[case.path] = encode(case_document(case, run(repo, case)))
+        try:
+            files[case.path] = encode(case_document(case, run(repo, case)))
+        except Exception:
+            print(f"parity corpus: failed {case.surface} {case.command} ({case.name})", file=sys.stderr, flush=True)
+            raise
         for content in case.files.values():
             files[Path("inputs", digest(content))] = content
     return files

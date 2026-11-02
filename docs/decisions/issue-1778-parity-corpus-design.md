@@ -240,3 +240,12 @@ full input collection in CI while avoiding a single long-running capture job.
 Two functional durability fixtures use an explicit ten-second store budget.
 They check recovery and readback semantics under CI filesystem contention;
 production defaults and tests of deadline enforcement remain unchanged.
+
+## Publishing phase repair found during recording
+
+An imported authoring source becomes `ExpandedScenario`; that phase deliberately
+has no module descriptor. Publishing must validate the expanded graph, then read
+the descriptor from the normalized authoring root using the existing parser and
+`Scenario` model. Missing descriptors retain the governed import refusal. Tests
+cover both publishing a local module graph and refusing a graph whose root has
+no descriptor. The corpus provenance binds this repaired Python reference.

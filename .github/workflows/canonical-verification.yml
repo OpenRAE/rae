@@ -720,7 +720,9 @@ jobs:
             tests/test_parity_surfaces.py tests/test_parity_storage.py tests/test_issue_1778_parity_corpus.py \
             tests/test_issue_1678_sweep_r1.py \
             tests/test_issue_1678_sweep_t.py::test_crossing_cli_reports_a_damaged_catalog_revision_as_failed_validation \
-            tests/test_issue_1678_operational_logging.py::test_application_handler_reports_a_failed_write_without_values
+            tests/test_issue_1678_operational_logging.py::test_application_handler_reports_a_failed_write_without_values \
+            tests/test_sdl_module_registry.py::test_publish_preserves_the_authoring_descriptor_after_import_expansion \
+            tests/test_sdl_module_registry.py::test_publish_refuses_an_importing_root_without_a_module_descriptor
           fi
           uv run --all-extras --frozen python -m pytest -q -n auto --maxprocesses=4 --dist=loadfile -o addopts= \
             --shard-count=8 --shard-index="${{ matrix.shard }}" tests

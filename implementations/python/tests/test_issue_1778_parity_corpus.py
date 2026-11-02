@@ -306,3 +306,31 @@ def test_primitive_corpus_records_reference_results_and_all_commands() -> None:
     }
     uri_codes = {pc.run_primitive(case)["code"] for case in cases if case.command == "uri"}
     assert uri_codes == {"", "absolute", "invalid", "scheme", "credentials", "fragment", "secret"}
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b'{"name":"valid","extra":NaN}',
+        b'{"name":"valid","extra":Infinity}',
+        b'{"name":"valid","extra":-Infinity}',
+        '{"name":"valid"}'.encode("utf-16"),
+    ],
+)
+def test_schema_recording_rejects_non_json_constants_and_non_utf8_wire_payloads(repo: Path, payload: bytes) -> None:
+    case = pc.Case("schema", "validate", "wire-format", ("demo-v1",), {"payload.json": payload})
+    assert pc.run_schema(repo, case) == {"valid": False}
+
+
+def test_recording_failure_identifies_the_case_without_printing_input_values(repo: Path, monkeypatch, capsys) -> None:
+    case = pc.Case("cli", "sdl publish", "reference-module", (), {})
+
+    def fail(*args):
+        raise RuntimeError("private input sentinel")
+
+    monkeypatch.setattr(pc, "run", fail)
+    with pytest.raises(RuntimeError):
+        pc.build_corpus(repo, [case])
+    error = capsys.readouterr().err
+    assert "cli sdl publish (reference-module)" in error
+    assert "private input sentinel" not in error
