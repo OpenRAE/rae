@@ -114,7 +114,7 @@ func TestLoadRejectsMissingProvenanceAndUnsafeCases(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			fsys := corpus([]byte(input))
-			fsys[caseName].Data = []byte(strings.Replace(string(fsys[caseName].Data), test.old, test.replacement, 1))
+			fsys[caseName].Data = []byte(strings.ReplaceAll(string(fsys[caseName].Data), test.old, test.replacement))
 			if _, err := Load(fsys); err == nil {
 				t.Error("Load() error = nil, want error")
 			}
