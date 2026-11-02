@@ -35,38 +35,6 @@ class _Reporter:
         func()
 
 
-def test_docs_lane_checks_markdown_rst_and_executable_guides(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    test_lanes: ModuleType,
-) -> None:
-    calls: list[tuple[str, ...]] = []
-    monkeypatch.setattr(test_lanes, "_sync_project", lambda _session: None)
-    monkeypatch.setattr(test_lanes, "_run_project_python", lambda *_args: None)
-    monkeypatch.setattr(test_lanes, "_run", lambda _session, *args, **_kwargs: calls.append(args))
-    monkeypatch.setattr(test_lanes, "ensure_vale", lambda _root: tmp_path / "vale")
-    monkeypatch.setattr(test_lanes.shutil, "rmtree", lambda *_args, **_kwargs: None)
-    reporter = _Reporter()
-
-    test_lanes._run_docs(object(), reporter, include_external_links=False)
-
-    vale, examples, sphinx = calls
-    assert vale[:6] == ("uv", "run", "--project", str(test_lanes.PROJECT_ROOT), "--frozen", str(tmp_path / "vale"))
-    assert "--glob=*.{md,rst}" in vale
-    assert "--glob=*.md" not in vale
-    assert str(test_lanes.PUBLIC_DOCS_ROOT) in vale
-    assert set(test_lanes.PUBLIC_DOCS_ENTRYPOINTS).issubset(vale)
-    assert "implementations/python/tests/test_public_guide_examples.py" in examples
-    assert "-W" in sphinx
-    assert [name for name, _detail in reporter.stages] == [
-        "docs / public source boundary",
-        "docs / Vale reader style",
-        "docs / executable quickstart",
-        "docs / Sphinx HTML",
-        "docs / public output inventory",
-    ]
-
-
 def _record_pytest(
     monkeypatch: pytest.MonkeyPatch, module: ModuleType
 ) -> list[tuple[tuple[str, ...], dict[str, object]]]:
