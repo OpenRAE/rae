@@ -8,11 +8,8 @@ from collections.abc import Iterator
 from raes_contracts import addressing, json_ingress, json_pointer, uri_safety
 
 
-def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
+def _ingress_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     """Record the four input primitives, including earlier ingress/pointer defects."""
-
-    def case(command: str, name: str, request: dict[str, object]) -> tuple[str, str, dict[str, object]]:
-        return command, name, request
 
     texts = [
         "[]",
@@ -49,7 +46,7 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for i, text in enumerate(texts):
         for root in ("array", "object"):
             for depth in (0, 1, 3):
-                yield case(
+                yield (
                     "ingress",
                     f"ingress/{i}/{root}/{depth}",
                     {
@@ -69,7 +66,7 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
         "utf-32-be",
     ):
         for text in ('["é😀"]', "[]", '{"a":1,"a":2}'):
-            yield case(
+            yield (
                 "ingress",
                 f"encoding/{encoding}/{text}",
                 {
@@ -80,7 +77,7 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
                 },
             )
     for i, data in enumerate((b'["\xff"]', b"\xff\xfe[\x00]", b"\x00\x00\xfe\xff\x00", b'["\x01"]')):
-        yield case(
+        yield (
             "ingress",
             f"invalid-encoding/{i}",
             {
@@ -91,7 +88,7 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
             },
         )
     for size in (1, 2, 3):
-        yield case(
+        yield (
             "ingress",
             f"byte-limit/{size}",
             {
@@ -101,6 +98,9 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
                 "max_depth": 0,
             },
         )
+
+
+def _uri_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     uris = [
         "https://example.org/a",
         "https:",
@@ -163,7 +163,10 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     uris.extend("https://example.org/?" + name + "=1" for name in names)
     for i, uri in enumerate(uris):
         for strict in (False, True):
-            yield case("uri", f"uri/{i}/{strict}", {"uri": uri, "strict": strict})
+            yield ("uri", f"uri/{i}/{strict}", {"uri": uri, "strict": strict})
+
+
+def _pointer_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     tokens = (
         "",
         "~",
@@ -191,9 +194,12 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     )
     for i, token in enumerate(tokens):
         for length in (-1, 0, 1, 10):
-            yield case("pointer", f"pointer/{i}/{length}", {"token": token, "length": length})
+            yield ("pointer", f"pointer/{i}/{length}", {"token": token, "length": length})
     for i, pointer in enumerate(("", "/", "//", "/a//b", "abc/def", "abc", "/a~1b/m~0n/~01")):
-        yield case("tokens", f"tokens/{i}", {"pointer": pointer})
+        yield ("tokens", f"tokens/{i}", {"pointer": pointer})
+
+
+def _address_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     addresses = (
         "a.b",
         "a",
@@ -216,11 +222,19 @@ def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
         "participant.behavior-specification..inject-delivery.y",
     )
     for i, value in enumerate(addresses):
-        yield case("address", f"address/{i}", {"value": value})
+        yield ("address", f"address/{i}", {"value": value})
     for i, parts in enumerate(([], ["a", "", "b"], ["a.b", "c"], ["A", "b"], [""], ["__private", "x"])):
-        yield case("render", f"render/{i}", {"parts": parts})
+        yield ("render", f"render/{i}", {"parts": parts})
     for domain in ("provisioning", "orchestration", "evaluation", "unknown", ""):
-        yield case("plan-root", f"plan-root/{domain}", {"domain": domain})
+        yield ("plan-root", f"plan-root/{domain}", {"domain": domain})
+
+
+def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
+    """Record each input primitive with its own boundary cases."""
+    yield from _ingress_requests()
+    yield from _uri_requests()
+    yield from _pointer_requests()
+    yield from _address_requests()
 
 
 def compatibility_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
@@ -264,39 +278,9 @@ def run_primitive(command: str, request: dict[str, object]) -> dict[str, object]
     if command == "ingress-exception":
         return {"reference": run_primitive("ingress", request), "go": request["go"], "decision": request["decision"]}
     if command == "ingress":
-        try:
-            value = json_ingress.parse_bounded_json(
-                bytes.fromhex(request["hex"]),
-                max_bytes=request["max_bytes"],
-                root=request["root"],
-                max_depth=request["max_depth"] or None,
-            )
-        except json_ingress.StrictJsonIngressError as exc:
-            return {"code": exc.code}
-        if request.get("verdict_only"):
-            return {"code": ""}
-        return {"sorted": json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)}
+        return _run_ingress(request)
     if command == "uri":
-        try:
-            uri_safety.validate_safe_absolute_uri(
-                request["uri"],
-                field_name="uri",
-                forbidden_schemes=("data", "FTP") if request["strict"] else (),
-                forbid_fragment=request["strict"],
-            )
-        except ValueError as exc:
-            message = str(exc)
-            for phrase, code in (
-                ("absolute URI", "absolute"),
-                ("forbidden URI scheme", "scheme"),
-                ("credential userinfo", "credentials"),
-                ("fragment", "fragment"),
-                ("secret-bearing", "secret"),
-            ):
-                if phrase in message:
-                    return {"code": code}
-            return {"code": "invalid"}
-        return {"code": ""}
+        return _run_uri(request)
     if command == "pointer":
         token = request["token"]
         return {
@@ -330,3 +314,41 @@ def run_primitive(command: str, request: dict[str, object]) -> dict[str, object]
     if command == "plan-root":
         return {"value": addressing.PLAN_ADDRESS_ROOT_BY_DOMAIN.get(request["domain"])}
     raise ValueError("unknown primitive command: " + command)
+
+
+def _run_ingress(request: dict[str, object]) -> dict[str, object]:
+    try:
+        value = json_ingress.parse_bounded_json(
+            bytes.fromhex(request["hex"]),
+            max_bytes=request["max_bytes"],
+            root=request["root"],
+            max_depth=request["max_depth"] or None,
+        )
+    except json_ingress.StrictJsonIngressError as exc:
+        return {"code": exc.code}
+    if request.get("verdict_only"):
+        return {"code": ""}
+    return {"sorted": json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)}
+
+
+def _run_uri(request: dict[str, object]) -> dict[str, object]:
+    try:
+        uri_safety.validate_safe_absolute_uri(
+            request["uri"],
+            field_name="uri",
+            forbidden_schemes=("data", "FTP") if request["strict"] else (),
+            forbid_fragment=request["strict"],
+        )
+    except ValueError as exc:
+        message = str(exc)
+        for phrase, code in (
+            ("absolute URI", "absolute"),
+            ("forbidden URI scheme", "scheme"),
+            ("credential userinfo", "credentials"),
+            ("fragment", "fragment"),
+            ("secret-bearing", "secret"),
+        ):
+            if phrase in message:
+                return {"code": code}
+        return {"code": "invalid"}
+    return {"code": ""}
