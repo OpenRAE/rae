@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2695c84e2c8363f78b2800b4e3850ad173041a7b864ce0e134034f7bb49b9190"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-v1/invalid/missing-independent-kind",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

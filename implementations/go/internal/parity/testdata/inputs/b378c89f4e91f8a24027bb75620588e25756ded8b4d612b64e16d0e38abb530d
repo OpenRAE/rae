@@ -1,0 +1,22 @@
+{
+  "schema_version": "experiment-capture-spec/v1",
+  "capture_spec_id": "capture-techvault-evidence-v1",
+  "spec_version": "1.0.0",
+  "title": "TechVault evidence capture specification",
+  "description": "Invalid capture spec without any capture requirements.",
+  "scope_refs": [
+    {
+      "ref_kind": "task",
+      "ref_id": "task-techvault-red-team-v1",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "capture_windows": [
+    {
+      "window_id": "run-window",
+      "window_kind": "run",
+      "starts_at": "2026-05-26T00:10:00Z"
+    }
+  ],
+  "capture_requirements": {}
+}

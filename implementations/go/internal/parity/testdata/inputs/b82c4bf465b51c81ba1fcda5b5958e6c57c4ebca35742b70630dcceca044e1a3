@@ -1,0 +1,50 @@
+{
+  "view_id": "views.history.participants.blue.rl.0001",
+  "participant_address": "participants.blue.rl",
+  "episode_id": "ep-blue-002",
+  "generated_at": "2026-05-26T10:21:00Z",
+  "source_snapshot_ref": "snapshots.run-778.tick42",
+  "episode_history": [
+    {
+      "event_type": "episode_initialized",
+      "timestamp": "2026-05-26T10:00:00Z",
+      "sequence_number": 1,
+      "terminal_reason": null,
+      "control_action": "initialize",
+      "details": {}
+    }
+  ],
+  "behavior_history": [
+    {
+      "event_type": "action_attempted",
+      "timestamp": "2026-05-26T10:20:09Z",
+      "action_instance_id": "act-blue-42",
+      "action_contract_address": "contracts.defense.isolate-host.v1",
+      "observation_boundary_address": null,
+      "observation_status": null,
+      "actor_provenance": "participant_observed",
+      "state_transition_kind": null,
+      "post_state_digest": null,
+      "details": {}
+    },
+    {
+      "event_type": "observation_emitted",
+      "timestamp": "2026-05-26T10:20:10Z",
+      "action_instance_id": "act-blue-42",
+      "action_contract_address": "contracts.defense.isolate-host.v1",
+      "observation_boundary_address": "projections.blue.local.telemetry.v1",
+      "observation_status": "terminal",
+      "actor_provenance": null,
+      "state_transition_kind": null,
+      "post_state_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "details": {}
+    }
+  ],
+  "visibility_projection_ref": "projections.blue.history.v1",
+  "redaction_policy_ref": "redaction.blue-observation.v1",
+  "completeness": "truncated",
+  "completeness_basis": "retention.window.30d",
+  "marking_definition_refs": [
+    "markings.participant_visible.v1"
+  ]
+}

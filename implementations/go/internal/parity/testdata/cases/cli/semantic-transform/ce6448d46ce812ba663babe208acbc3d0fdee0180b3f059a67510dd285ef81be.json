@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf"
+  },
+  "name": "examples/scenarios/participant-control-context/context-kit.sdl/transform-canonical",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"agents\":{\"blue\":{\"control_context\":{\"briefing\":{\"asset_ref\":{\"asset_digest\":\"sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a\",\"asset_id\":\"privacy-instruction\",\"asset_version\":\"one\"},\"declaration_ref\":\"shared\",\"disposition\":\"withheld\"},\"rules\":{\"asset_ref\":{\"asset_digest\":\"sha256:c2517111fa289e5c45be2c6cfa7e69efaa154f8e5389385ff0d687fded355ac1\",\"asset_id\":\"operating-policy\",\"asset_version\":\"one\"},\"declaration_ref\":\"policy\",\"disposition\":\"selected\"}},\"role\":\"blue\"},\"red\":{\"control_context\":{\"briefing\":{\"asset_ref\":{\"asset_digest\":\"sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a\",\"asset_id\":\"privacy-instruction\",\"asset_version\":\"one\"},\"declaration_ref\":\"shared\",\"disposition\":\"selected\"}},\"role\":\"red\"}},\"behavior_specifications\":{\"followup\":{\"control_context\":{\"followup\":{\"asset_ref\":{\"asset_digest\":\"sha256:59bd1d08df2416bd6a58e2038b21e3c311a7b01bddabccfe693ef87e2b418ba4\",\"asset_id\":\"privacy-instruction\",\"asset_version\":\"two\"},\"declaration_ref\":\"revised\",\"disposition\":\"selected\"}},\"participant_refs\":[\"red\"],\"semantic_version\":\"1\"}},\"control_context_assets\":{\"policy\":{\"asset_id\":\"operating-policy\",\"asset_version\":\"one\",\"content\":{\"artifact_id\":\"instruction-one\",\"checksum\":{\"algorithm\":\"sha256\",\"value\":\"8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"created_at\":\"2026-10-26T00:00:00Z\",\"description\":null,\"media_type\":\"text/plain\",\"role\":\"documentation\",\"satisfies_refs\":[],\"sensitivity\":\"restricted\",\"size_bytes\":34,\"source\":\"publisher-reference\",\"uri\":\"urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"kind\":\"policy\",\"participant_addresses\":[],\"provenance_refs\":[\"provenance.authoring\"],\"publication_authority_ref\":\"authorities.publisher\",\"retention_policy_ref\":\"retention.governed\",\"role_refs\":[\"red\",\"blue\"],\"schema_version\":\"participant-control-context-asset/v1\"},\"revised\":{\"asset_id\":\"privacy-instruction\",\"asset_version\":\"two\",\"content\":{\"artifact_id\":\"instruction-one\",\"checksum\":{\"algorithm\":\"sha256\",\"value\":\"8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"created_at\":\"2026-10-26T00:00:00Z\",\"description\":null,\"media_type\":\"text/plain\",\"role\":\"documentation\",\"satisfies_refs\":[],\"sensitivity\":\"restricted\",\"size_bytes\":34,\"source\":\"publisher-reference\",\"uri\":\"urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"kind\":\"directive\",\"participant_addresses\":[],\"provenance_refs\":[\"provenance.authoring\"],\"publication_authority_ref\":\"authorities.publisher\",\"retention_policy_ref\":\"retention.governed\",\"role_refs\":[\"red\",\"blue\"],\"schema_version\":\"participant-control-context-asset/v1\"},\"shared\":{\"asset_id\":\"privacy-instruction\",\"asset_version\":\"one\",\"content\":{\"artifact_id\":\"instruction-one\",\"checksum\":{\"algorithm\":\"sha256\",\"value\":\"8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"created_at\":\"2026-10-26T00:00:00Z\",\"description\":null,\"media_type\":\"text/plain\",\"role\":\"documentation\",\"satisfies_refs\":[],\"sensitivity\":\"restricted\",\"size_bytes\":34,\"source\":\"publisher-reference\",\"uri\":\"urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"kind\":\"instruction\",\"participant_addresses\":[],\"provenance_refs\":[\"provenance.authoring\"],\"publication_authority_ref\":\"authorities.publisher\",\"retention_policy_ref\":\"retention.governed\",\"role_refs\":[\"red\",\"blue\"],\"schema_version\":\"participant-control-context-asset/v1\"},\"unselected\":{\"asset_id\":\"unselected-guidance\",\"asset_version\":\"one\",\"content\":{\"artifact_id\":\"instruction-one\",\"checksum\":{\"algorithm\":\"sha256\",\"value\":\"8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"created_at\":\"2026-10-26T00:00:00Z\",\"description\":null,\"media_type\":\"text/plain\",\"role\":\"documentation\",\"satisfies_refs\":[],\"sensitivity\":\"restricted\",\"size_bytes\":34,\"source\":\"publisher-reference\",\"uri\":\"urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce\"},\"kind\":\"guidance\",\"participant_addresses\":[],\"provenance_refs\":[\"provenance.authoring\"],\"publication_authority_ref\":\"authorities.publisher\",\"retention_policy_ref\":\"retention.governed\",\"role_refs\":[\"red\",\"blue\"],\"schema_version\":\"participant-control-context-asset/v1\"}},\"module\":{\"exports\":{\"agents\":[\"red\",\"blue\"],\"behavior_specifications\":[\"followup\"],\"control_context_assets\":[\"shared\",\"revised\",\"policy\",\"unselected\"]},\"id\":\"examples/context-kit\",\"version\":\"1.0.0\"},\"name\":\"context-example\"}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:647d8e7d07b4e507d0470d301421dbadb02d9e848b1c28c7a9408609eed43b0d"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

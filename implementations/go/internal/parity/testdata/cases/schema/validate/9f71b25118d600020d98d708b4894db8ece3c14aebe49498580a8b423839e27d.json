@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "203e205f065f842d15e1982ec4192f857a46a5e9a347bb27caeab8f9e6e6fdcf"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/scanner-vulnerability-observation",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

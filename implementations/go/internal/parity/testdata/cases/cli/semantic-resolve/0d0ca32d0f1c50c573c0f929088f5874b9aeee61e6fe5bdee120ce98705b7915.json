@@ -1,0 +1,875 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f"
+  },
+  "name": "examples/scenarios/port-authority-surge-response.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 273,
+        "reference_bindings": {
+          "accounts.crane-operator": [
+            "accounts.crane-operator"
+          ],
+          "accounts.customs-officer": [
+            "accounts.customs-officer"
+          ],
+          "accounts.harbor-master": [
+            "accounts.harbor-master"
+          ],
+          "accounts.historian-svc": [
+            "accounts.historian-svc"
+          ],
+          "accounts.soc-analyst": [
+            "accounts.soc-analyst"
+          ],
+          "accounts.tos-service": [
+            "accounts.tos-service"
+          ],
+          "accounts.vendor-tech": [
+            "accounts.vendor-tech"
+          ],
+          "action_contracts.coordinate": [
+            "action_contracts.coordinate"
+          ],
+          "action_contracts.disable": [
+            "action_contracts.disable"
+          ],
+          "action_contracts.inspect": [
+            "action_contracts.inspect"
+          ],
+          "action_contracts.isolate": [
+            "action_contracts.isolate"
+          ],
+          "action_contracts.monitor": [
+            "action_contracts.monitor"
+          ],
+          "action_contracts.phish": [
+            "action_contracts.phish"
+          ],
+          "action_contracts.pivot": [
+            "action_contracts.pivot"
+          ],
+          "action_contracts.recover": [
+            "action_contracts.recover"
+          ],
+          "action_contracts.restore": [
+            "action_contracts.restore"
+          ],
+          "action_contracts.tamper": [
+            "action_contracts.tamper"
+          ],
+          "action_contracts.triage": [
+            "action_contracts.triage"
+          ],
+          "action_contracts.validate": [
+            "action_contracts.validate"
+          ],
+          "agents.blue-soc-agent": [
+            "agents.blue-soc-agent"
+          ],
+          "agents.blue-yard-agent": [
+            "agents.blue-yard-agent"
+          ],
+          "agents.red-yard-agent": [
+            "agents.red-yard-agent"
+          ],
+          "arrival-phase": [
+            "scripts.arrival-phase"
+          ],
+          "assertions.crane-safe-mode": [
+            "assertions.crane-safe-mode"
+          ],
+          "assertions.customs-link-healthy": [
+            "assertions.customs-link-healthy"
+          ],
+          "assertions.historian-replication-ok": [
+            "assertions.historian-replication-ok"
+          ],
+          "assertions.manifest-integrity-ok": [
+            "assertions.manifest-integrity-ok"
+          ],
+          "assertions.pre-tampered-manifest-observed": [
+            "assertions.pre-tampered-manifest-observed"
+          ],
+          "assertions.tampered-manifest-observed": [
+            "assertions.tampered-manifest-observed"
+          ],
+          "assertions.yard-telemetry-flowing": [
+            "assertions.yard-telemetry-flowing"
+          ],
+          "backup-net": [
+            "nodes.backup-net"
+          ],
+          "backup-vault": [
+            "nodes.backup-vault"
+          ],
+          "blackstart-runbook": [
+            "content.blackstart-runbook"
+          ],
+          "blackstart-runbook-ready": [
+            "conditions.blackstart-runbook-ready"
+          ],
+          "blue-blackstart-yard": [
+            "objectives.blue-blackstart-yard"
+          ],
+          "blue-maintain-customs-integrity": [
+            "objectives.blue-maintain-customs-integrity"
+          ],
+          "blue-soc-agent": [
+            "agents.blue-soc-agent"
+          ],
+          "blue-validate-yard-telemetry": [
+            "objectives.blue-validate-yard-telemetry"
+          ],
+          "blue-yard-agent": [
+            "agents.blue-yard-agent"
+          ],
+          "camera-ai": [
+            "features.camera-ai"
+          ],
+          "camera-analytics": [
+            "nodes.camera-analytics"
+          ],
+          "camera-analytics-healthy": [
+            "conditions.camera-analytics-healthy"
+          ],
+          "cargo-manifests": [
+            "content.cargo-manifests"
+          ],
+          "conditions.blackstart-runbook-ready": [
+            "conditions.blackstart-runbook-ready"
+          ],
+          "conditions.camera-analytics-healthy": [
+            "conditions.camera-analytics-healthy"
+          ],
+          "conditions.crane-plc-online": [
+            "conditions.crane-plc-online"
+          ],
+          "conditions.crane-safe-mode": [
+            "conditions.crane-safe-mode"
+          ],
+          "conditions.customs-link-healthy": [
+            "conditions.customs-link-healthy"
+          ],
+          "conditions.gate-processing-healthy": [
+            "conditions.gate-processing-healthy"
+          ],
+          "conditions.historian-replication-ok": [
+            "conditions.historian-replication-ok"
+          ],
+          "conditions.manifest-integrity-ok": [
+            "conditions.manifest-integrity-ok"
+          ],
+          "conditions.operator-visibility-healthy": [
+            "conditions.operator-visibility-healthy"
+          ],
+          "conditions.port-sso-healthy": [
+            "conditions.port-sso-healthy"
+          ],
+          "conditions.portal-healthy": [
+            "conditions.portal-healthy"
+          ],
+          "conditions.soc-feed-healthy": [
+            "conditions.soc-feed-healthy"
+          ],
+          "conditions.surge-incident-ticketed": [
+            "conditions.surge-incident-ticketed"
+          ],
+          "conditions.tampered-manifest-observed": [
+            "conditions.tampered-manifest-observed"
+          ],
+          "conditions.terminal-throughput-healthy": [
+            "conditions.terminal-throughput-healthy"
+          ],
+          "conditions.vendor-jump-healthy": [
+            "conditions.vendor-jump-healthy"
+          ],
+          "conditions.yard-telemetry-flowing": [
+            "conditions.yard-telemetry-flowing"
+          ],
+          "content.blackstart-runbook": [
+            "content.blackstart-runbook"
+          ],
+          "content.cargo-manifests": [
+            "content.cargo-manifests"
+          ],
+          "content.customs-holds": [
+            "content.customs-holds"
+          ],
+          "content.customs-holds.items.hold-hz-204": [
+            "content.customs-holds.items.hold-hz-204"
+          ],
+          "content.customs-holds.items.hold-hz-991": [
+            "content.customs-holds.items.hold-hz-991"
+          ],
+          "content.hazmat-list": [
+            "content.hazmat-list"
+          ],
+          "content.yard-camera-clips": [
+            "content.yard-camera-clips"
+          ],
+          "coordinate": [
+            "action_contracts.coordinate"
+          ],
+          "crane-control": [
+            "features.crane-control"
+          ],
+          "crane-operator": [
+            "accounts.crane-operator"
+          ],
+          "crane-plc": [
+            "nodes.crane-plc"
+          ],
+          "crane-plc-online": [
+            "conditions.crane-plc-online"
+          ],
+          "crane-safe-mode": [
+            "assertions.crane-safe-mode",
+            "conditions.crane-safe-mode",
+            "propositions.crane-safe-mode"
+          ],
+          "customs-agency": [
+            "entities.customs-agency"
+          ],
+          "customs-api": [
+            "features.customs-api"
+          ],
+          "customs-federates-port": [
+            "relationships.customs-federates-port"
+          ],
+          "customs-gateway": [
+            "nodes.customs-gateway"
+          ],
+          "customs-holds": [
+            "content.customs-holds"
+          ],
+          "customs-link": [
+            "nodes.customs-link"
+          ],
+          "customs-link-healthy": [
+            "assertions.customs-link-healthy",
+            "conditions.customs-link-healthy",
+            "propositions.customs-link-healthy"
+          ],
+          "customs-officer": [
+            "accounts.customs-officer"
+          ],
+          "customs-priority-ticket": [
+            "injects.customs-priority-ticket"
+          ],
+          "customs-surge-event": [
+            "events.customs-surge-event"
+          ],
+          "customs-surge-phase": [
+            "scripts.customs-surge-phase"
+          ],
+          "disable": [
+            "action_contracts.disable"
+          ],
+          "entities.customs-agency": [
+            "entities.customs-agency"
+          ],
+          "entities.port-blue": [
+            "entities.port-blue"
+          ],
+          "entities.port-blue.incident-command": [
+            "entities.port-blue.incident-command"
+          ],
+          "entities.port-blue.it": [
+            "entities.port-blue.it"
+          ],
+          "entities.port-blue.yard-ops": [
+            "entities.port-blue.yard-ops"
+          ],
+          "entities.red-cartel": [
+            "entities.red-cartel"
+          ],
+          "entities.vendor-maintenance": [
+            "entities.vendor-maintenance"
+          ],
+          "entities.white-cell": [
+            "entities.white-cell"
+          ],
+          "events.customs-surge-event": [
+            "events.customs-surge-event"
+          ],
+          "events.vessel-arrival": [
+            "events.vessel-arrival"
+          ],
+          "events.yard-standdown": [
+            "events.yard-standdown"
+          ],
+          "evidence_requirements.objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "features.camera-ai": [
+            "features.camera-ai"
+          ],
+          "features.crane-control": [
+            "features.crane-control"
+          ],
+          "features.customs-api": [
+            "features.customs-api"
+          ],
+          "features.historian-service": [
+            "features.historian-service"
+          ],
+          "features.manifest-store": [
+            "features.manifest-store"
+          ],
+          "features.port-siem": [
+            "features.port-siem"
+          ],
+          "features.port-sso": [
+            "features.port-sso"
+          ],
+          "features.shipping-portal-app": [
+            "features.shipping-portal-app"
+          ],
+          "features.terminal-service": [
+            "features.terminal-service"
+          ],
+          "features.yard-backup": [
+            "features.yard-backup"
+          ],
+          "features.yard-edr": [
+            "features.yard-edr"
+          ],
+          "features.yard-hmi-app": [
+            "features.yard-hmi-app"
+          ],
+          "gate-kiosk": [
+            "nodes.gate-kiosk"
+          ],
+          "gate-processing-healthy": [
+            "conditions.gate-processing-healthy"
+          ],
+          "harbor-master": [
+            "accounts.harbor-master"
+          ],
+          "hazmat-list": [
+            "content.hazmat-list"
+          ],
+          "historian-replicates-backup": [
+            "relationships.historian-replicates-backup"
+          ],
+          "historian-replication-ok": [
+            "assertions.historian-replication-ok",
+            "conditions.historian-replication-ok",
+            "propositions.historian-replication-ok"
+          ],
+          "historian-service": [
+            "features.historian-service"
+          ],
+          "historian-svc": [
+            "accounts.historian-svc"
+          ],
+          "historian01": [
+            "nodes.historian01"
+          ],
+          "hmi-manages-crane": [
+            "relationships.hmi-manages-crane"
+          ],
+          "hold-hz-204": [
+            "content.customs-holds.items.hold-hz-204"
+          ],
+          "hold-hz-991": [
+            "content.customs-holds.items.hold-hz-991"
+          ],
+          "infrastructure.backup-net": [
+            "infrastructure.backup-net"
+          ],
+          "infrastructure.backup-vault": [
+            "infrastructure.backup-vault"
+          ],
+          "infrastructure.camera-analytics": [
+            "infrastructure.camera-analytics"
+          ],
+          "infrastructure.crane-plc": [
+            "infrastructure.crane-plc"
+          ],
+          "infrastructure.customs-gateway": [
+            "infrastructure.customs-gateway"
+          ],
+          "infrastructure.customs-link": [
+            "infrastructure.customs-link"
+          ],
+          "infrastructure.gate-kiosk": [
+            "infrastructure.gate-kiosk"
+          ],
+          "infrastructure.historian01": [
+            "infrastructure.historian01"
+          ],
+          "infrastructure.manifest-db": [
+            "infrastructure.manifest-db"
+          ],
+          "infrastructure.port-idp": [
+            "infrastructure.port-idp"
+          ],
+          "infrastructure.public-edge": [
+            "infrastructure.public-edge"
+          ],
+          "infrastructure.safety-net": [
+            "infrastructure.safety-net"
+          ],
+          "infrastructure.security-net": [
+            "infrastructure.security-net"
+          ],
+          "infrastructure.shipping-portal": [
+            "infrastructure.shipping-portal"
+          ],
+          "infrastructure.soc01": [
+            "infrastructure.soc01"
+          ],
+          "infrastructure.terminal-it": [
+            "infrastructure.terminal-it"
+          ],
+          "infrastructure.terminal-ops": [
+            "infrastructure.terminal-ops"
+          ],
+          "infrastructure.vendor-jump": [
+            "infrastructure.vendor-jump"
+          ],
+          "infrastructure.vendor-net": [
+            "infrastructure.vendor-net"
+          ],
+          "infrastructure.yard-hmi": [
+            "infrastructure.yard-hmi"
+          ],
+          "infrastructure.yard-ot": [
+            "infrastructure.yard-ot"
+          ],
+          "infrastructure.yard-ot.acls.allow-yard-control": [
+            "infrastructure.yard-ot.acls.allow-yard-control"
+          ],
+          "infrastructure.yard-ot.acls.deny-public-yard": [
+            "infrastructure.yard-ot.acls.deny-public-yard"
+          ],
+          "injects.customs-priority-ticket": [
+            "injects.customs-priority-ticket"
+          ],
+          "injects.safety-standdown": [
+            "injects.safety-standdown"
+          ],
+          "injects.surge-brief": [
+            "injects.surge-brief"
+          ],
+          "inspect": [
+            "action_contracts.inspect"
+          ],
+          "isolate": [
+            "action_contracts.isolate"
+          ],
+          "manifest-db": [
+            "nodes.manifest-db"
+          ],
+          "manifest-integrity-ok": [
+            "assertions.manifest-integrity-ok",
+            "conditions.manifest-integrity-ok",
+            "propositions.manifest-integrity-ok"
+          ],
+          "manifest-store": [
+            "features.manifest-store"
+          ],
+          "monitor": [
+            "action_contracts.monitor"
+          ],
+          "nodes.backup-net": [
+            "nodes.backup-net"
+          ],
+          "nodes.backup-vault": [
+            "nodes.backup-vault"
+          ],
+          "nodes.backup-vault.services.yard-backup-ui": [
+            "nodes.backup-vault.services.yard-backup-ui"
+          ],
+          "nodes.camera-analytics": [
+            "nodes.camera-analytics"
+          ],
+          "nodes.camera-analytics.services.camera-analytics-ui": [
+            "nodes.camera-analytics.services.camera-analytics-ui"
+          ],
+          "nodes.crane-plc": [
+            "nodes.crane-plc"
+          ],
+          "nodes.crane-plc.services.crane-opcua": [
+            "nodes.crane-plc.services.crane-opcua"
+          ],
+          "nodes.customs-gateway": [
+            "nodes.customs-gateway"
+          ],
+          "nodes.customs-gateway.services.customs-api-https": [
+            "nodes.customs-gateway.services.customs-api-https"
+          ],
+          "nodes.customs-link": [
+            "nodes.customs-link"
+          ],
+          "nodes.gate-kiosk": [
+            "nodes.gate-kiosk"
+          ],
+          "nodes.gate-kiosk.services.gate-kiosk-https": [
+            "nodes.gate-kiosk.services.gate-kiosk-https"
+          ],
+          "nodes.historian01": [
+            "nodes.historian01"
+          ],
+          "nodes.historian01.services.historian-ui": [
+            "nodes.historian01.services.historian-ui"
+          ],
+          "nodes.manifest-db": [
+            "nodes.manifest-db"
+          ],
+          "nodes.manifest-db.services.manifest-postgres": [
+            "nodes.manifest-db.services.manifest-postgres"
+          ],
+          "nodes.port-idp": [
+            "nodes.port-idp"
+          ],
+          "nodes.port-idp.services.port-sso-https": [
+            "nodes.port-idp.services.port-sso-https"
+          ],
+          "nodes.public-edge": [
+            "nodes.public-edge"
+          ],
+          "nodes.safety-net": [
+            "nodes.safety-net"
+          ],
+          "nodes.security-net": [
+            "nodes.security-net"
+          ],
+          "nodes.shipping-portal": [
+            "nodes.shipping-portal"
+          ],
+          "nodes.shipping-portal.services.shipping-portal-https": [
+            "nodes.shipping-portal.services.shipping-portal-https"
+          ],
+          "nodes.soc01": [
+            "nodes.soc01"
+          ],
+          "nodes.soc01.services.port-soc-ui": [
+            "nodes.soc01.services.port-soc-ui"
+          ],
+          "nodes.terminal-it": [
+            "nodes.terminal-it"
+          ],
+          "nodes.terminal-ops": [
+            "nodes.terminal-ops"
+          ],
+          "nodes.terminal-ops.services.tos-https": [
+            "nodes.terminal-ops.services.tos-https"
+          ],
+          "nodes.vendor-jump": [
+            "nodes.vendor-jump"
+          ],
+          "nodes.vendor-jump.services.vendor-jump-ssh": [
+            "nodes.vendor-jump.services.vendor-jump-ssh"
+          ],
+          "nodes.vendor-net": [
+            "nodes.vendor-net"
+          ],
+          "nodes.yard-hmi": [
+            "nodes.yard-hmi"
+          ],
+          "nodes.yard-hmi.services.yard-hmi-rdp": [
+            "nodes.yard-hmi.services.yard-hmi-rdp"
+          ],
+          "nodes.yard-hmi.services.yard-hmi-web": [
+            "nodes.yard-hmi.services.yard-hmi-web"
+          ],
+          "nodes.yard-ot": [
+            "nodes.yard-ot"
+          ],
+          "objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "objectives.blue-blackstart-yard": [
+            "objectives.blue-blackstart-yard"
+          ],
+          "objectives.blue-maintain-customs-integrity": [
+            "objectives.blue-maintain-customs-integrity"
+          ],
+          "objectives.blue-validate-yard-telemetry": [
+            "objectives.blue-validate-yard-telemetry"
+          ],
+          "objectives.red-corrupt-manifests": [
+            "objectives.red-corrupt-manifests"
+          ],
+          "objectives.red-degrade-yard-ops": [
+            "objectives.red-degrade-yard-ops"
+          ],
+          "operator-visibility-healthy": [
+            "conditions.operator-visibility-healthy"
+          ],
+          "phish": [
+            "action_contracts.phish"
+          ],
+          "pivot": [
+            "action_contracts.pivot"
+          ],
+          "port-blue": [
+            "entities.port-blue"
+          ],
+          "port-blue.incident-command": [
+            "entities.port-blue.incident-command"
+          ],
+          "port-blue.it": [
+            "entities.port-blue.it"
+          ],
+          "port-blue.yard-ops": [
+            "entities.port-blue.yard-ops"
+          ],
+          "port-idp": [
+            "nodes.port-idp"
+          ],
+          "port-siem": [
+            "features.port-siem"
+          ],
+          "port-sso": [
+            "features.port-sso"
+          ],
+          "port-sso-healthy": [
+            "conditions.port-sso-healthy"
+          ],
+          "portal-healthy": [
+            "conditions.portal-healthy"
+          ],
+          "portal-to-manifest": [
+            "relationships.portal-to-manifest"
+          ],
+          "pre-tampered-manifest-observed": [
+            "assertions.pre-tampered-manifest-observed"
+          ],
+          "propositions.crane-safe-mode": [
+            "propositions.crane-safe-mode"
+          ],
+          "propositions.customs-link-healthy": [
+            "propositions.customs-link-healthy"
+          ],
+          "propositions.historian-replication-ok": [
+            "propositions.historian-replication-ok"
+          ],
+          "propositions.manifest-integrity-ok": [
+            "propositions.manifest-integrity-ok"
+          ],
+          "propositions.tampered-manifest-observed": [
+            "propositions.tampered-manifest-observed"
+          ],
+          "propositions.yard-telemetry-flowing": [
+            "propositions.yard-telemetry-flowing"
+          ],
+          "public-edge": [
+            "nodes.public-edge"
+          ],
+          "recover": [
+            "action_contracts.recover"
+          ],
+          "red-cartel": [
+            "entities.red-cartel"
+          ],
+          "red-corrupt-manifests": [
+            "objectives.red-corrupt-manifests"
+          ],
+          "red-degrade-yard-ops": [
+            "objectives.red-degrade-yard-ops"
+          ],
+          "red-yard-agent": [
+            "agents.red-yard-agent"
+          ],
+          "relationships.customs-federates-port": [
+            "relationships.customs-federates-port"
+          ],
+          "relationships.historian-replicates-backup": [
+            "relationships.historian-replicates-backup"
+          ],
+          "relationships.hmi-manages-crane": [
+            "relationships.hmi-manages-crane"
+          ],
+          "relationships.portal-to-manifest": [
+            "relationships.portal-to-manifest"
+          ],
+          "relationships.terminal-auth-portidp": [
+            "relationships.terminal-auth-portidp"
+          ],
+          "relationships.terminal-depends-customs": [
+            "relationships.terminal-depends-customs"
+          ],
+          "relationships.vendor-support-path": [
+            "relationships.vendor-support-path"
+          ],
+          "restore": [
+            "action_contracts.restore"
+          ],
+          "safety-net": [
+            "nodes.safety-net"
+          ],
+          "safety-standdown": [
+            "injects.safety-standdown"
+          ],
+          "scripts.arrival-phase": [
+            "scripts.arrival-phase"
+          ],
+          "scripts.customs-surge-phase": [
+            "scripts.customs-surge-phase"
+          ],
+          "scripts.yard-disruption-phase": [
+            "scripts.yard-disruption-phase"
+          ],
+          "security-net": [
+            "nodes.security-net"
+          ],
+          "shipping-portal": [
+            "nodes.shipping-portal"
+          ],
+          "shipping-portal-app": [
+            "features.shipping-portal-app"
+          ],
+          "soc-analyst": [
+            "accounts.soc-analyst"
+          ],
+          "soc-feed-healthy": [
+            "conditions.soc-feed-healthy"
+          ],
+          "soc01": [
+            "nodes.soc01"
+          ],
+          "stories.surge-day": [
+            "stories.surge-day"
+          ],
+          "surge-brief": [
+            "injects.surge-brief"
+          ],
+          "surge-day": [
+            "stories.surge-day"
+          ],
+          "surge-incident-ticketed": [
+            "conditions.surge-incident-ticketed"
+          ],
+          "tamper": [
+            "action_contracts.tamper"
+          ],
+          "tampered-manifest-observed": [
+            "assertions.tampered-manifest-observed",
+            "conditions.tampered-manifest-observed",
+            "propositions.tampered-manifest-observed"
+          ],
+          "terminal-auth-portidp": [
+            "relationships.terminal-auth-portidp"
+          ],
+          "terminal-depends-customs": [
+            "relationships.terminal-depends-customs"
+          ],
+          "terminal-it": [
+            "nodes.terminal-it"
+          ],
+          "terminal-ops": [
+            "nodes.terminal-ops"
+          ],
+          "terminal-service": [
+            "features.terminal-service"
+          ],
+          "terminal-throughput-healthy": [
+            "conditions.terminal-throughput-healthy"
+          ],
+          "tos-service": [
+            "accounts.tos-service"
+          ],
+          "triage": [
+            "action_contracts.triage"
+          ],
+          "validate": [
+            "action_contracts.validate"
+          ],
+          "vendor-jump": [
+            "nodes.vendor-jump"
+          ],
+          "vendor-jump-healthy": [
+            "conditions.vendor-jump-healthy"
+          ],
+          "vendor-maintenance": [
+            "entities.vendor-maintenance"
+          ],
+          "vendor-net": [
+            "nodes.vendor-net"
+          ],
+          "vendor-support-path": [
+            "relationships.vendor-support-path"
+          ],
+          "vendor-tech": [
+            "accounts.vendor-tech"
+          ],
+          "vessel-arrival": [
+            "events.vessel-arrival"
+          ],
+          "white-cell": [
+            "entities.white-cell"
+          ],
+          "workflows.yard-recovery": [
+            "workflows.yard-recovery"
+          ],
+          "yard-backup": [
+            "features.yard-backup"
+          ],
+          "yard-camera-clips": [
+            "content.yard-camera-clips"
+          ],
+          "yard-disruption-phase": [
+            "scripts.yard-disruption-phase"
+          ],
+          "yard-edr": [
+            "features.yard-edr"
+          ],
+          "yard-hmi": [
+            "nodes.yard-hmi"
+          ],
+          "yard-hmi-app": [
+            "features.yard-hmi-app"
+          ],
+          "yard-ot": [
+            "nodes.yard-ot"
+          ],
+          "yard-recovery": [
+            "workflows.yard-recovery"
+          ],
+          "yard-standdown": [
+            "events.yard-standdown"
+          ],
+          "yard-telemetry-flowing": [
+            "assertions.yard-telemetry-flowing",
+            "conditions.yard-telemetry-flowing",
+            "propositions.yard-telemetry-flowing"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "port-authority-surge-response"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

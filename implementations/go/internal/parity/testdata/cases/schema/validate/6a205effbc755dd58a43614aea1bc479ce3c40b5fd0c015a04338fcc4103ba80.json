@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-comparison-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9ef640f9e79919276ea6400cb9b9b3ea405a4f17b55c6feb4148eea28b850757"
+  },
+  "name": "contracts/fixtures/semantic-comparison/semantic-comparison-request-v1/valid/external-concept-bindings",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

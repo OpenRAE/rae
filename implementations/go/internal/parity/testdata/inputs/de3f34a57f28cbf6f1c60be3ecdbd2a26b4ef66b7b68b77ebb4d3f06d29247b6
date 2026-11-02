@@ -1,0 +1,23 @@
+{
+  "actor_ref": "runtime.coordinator",
+  "authorization_scope": "operators",
+  "backend_serialized": true,
+  "basis": "serialized_backend_order",
+  "claim_strength": "bounded",
+  "clock_authority": "clock.logical.runtime",
+  "clock_ref": "clock.logical.runtime",
+  "context_id": "tm-red-blue-0001",
+  "event_id": "tm-red-blue-0001",
+  "event_type": "time_management_context_recorded",
+  "extension_policy": "forbid_unknown_fields",
+  "ingested_at": "2026-06-20T08:00:00Z",
+  "logical_order_ref": "order.joint-red-blue-0001",
+  "mode": "backend_serialized",
+  "occurred_at": "2026-06-20T08:00:00Z",
+  "ordering_basis": "serialized_backend_order",
+  "producer_ref": "backend.stub",
+  "recorded_at": "2026-06-20T08:00:00Z",
+  "schema_name": "participant-time-management-context",
+  "schema_version": "participant-time-management-context/v1",
+  "unsupported_disclosure": false
+}

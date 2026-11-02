@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-execution-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "23fe38aa8ac6d40cac428b21e36fdb390aa6d5b4fbc00c24994130e13c460722"
+  },
+  "name": "contracts/fixtures/control-plane/mixed-backend-execution-binding-v1/invalid/ungoverned-order",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "concept-families-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "cd63c6c69a96b8736b7ca670b9fa2a44d0303796dcdeed2d405dfd22562673bc"
+  },
+  "name": "contracts/fixtures/concept-authority/concept-families-v1/invalid/missing-provenance",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

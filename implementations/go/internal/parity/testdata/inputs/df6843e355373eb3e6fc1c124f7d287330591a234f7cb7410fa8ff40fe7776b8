@@ -1,0 +1,70 @@
+{
+  "schema_version": "semantic-comparison-request/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "before": {
+    "canonical_identity": "task:task-techvault-red-team-v1",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:1ae8217f1cfda4e464e41773042e8b43bd43a3e37546c5024577136191d277a1",
+    "exact_representation": null,
+    "artifact_kind": "task",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-task/v1",
+    "task_id": "task-techvault-red-team-v1",
+    "task_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "task:task-techvault-red-team-v1",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:1ae8217f1cfda4e464e41773042e8b43bd43a3e37546c5024577136191d277a1",
+    "exact_representation": null,
+    "artifact_kind": "task",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-task/v1",
+    "task_id": "task-techvault-red-team-v1",
+    "task_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "task:task-techvault-red-team-v1"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "task:task-techvault-red-team-v1",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:1ae8217f1cfda4e464e41773042e8b43bd43a3e37546c5024577136191d277a1",
+        "exact_representation": null,
+        "artifact_kind": "task",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-task/v1",
+        "task_id": "task-techvault-red-team-v1",
+        "task_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "task:task-techvault-red-team-v1",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:1ae8217f1cfda4e464e41773042e8b43bd43a3e37546c5024577136191d277a1",
+        "exact_representation": null,
+        "artifact_kind": "task",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-task/v1",
+        "task_id": "task-techvault-red-team-v1",
+        "task_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:f405bbb5e928cfc980589c72a32036385c76e274cc7f7490f88863acb220cae2"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "validation-basis-disclosure/v1",
+  "disclosure": {
+    "profile_id": "raes-semantic-validation",
+    "profile_version": "v1",
+    "subject_kind": "scenario_snapshot",
+    "subject_ref": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "scenario-1"
+    },
+    "achieved_strength": "semantic",
+    "gate_results": [
+      {"gate_kind": "syntax_validation", "outcome": "passed"},
+      {"gate_kind": "schema_validation", "outcome": "passed"},
+      {"gate_kind": "vocabulary_validation", "outcome": "passed"},
+      {"gate_kind": "semantic_invariant_validation", "outcome": "passed"},
+      {"gate_kind": "reference_resolution", "outcome": "passed"},
+      {"gate_kind": "lifecycle_separation", "outcome": "passed"},
+      {"gate_kind": "cross_artifact_consistency", "outcome": "passed"}
+    ],
+    "recorded_at": "2026-07-24T00:00:00Z"
+  }
+}

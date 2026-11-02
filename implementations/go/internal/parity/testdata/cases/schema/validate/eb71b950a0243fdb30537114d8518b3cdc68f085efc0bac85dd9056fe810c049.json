@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-execution-control-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "afc9307871d61588c9b8ab831b22553e61e0bf8cbb91c8fc041d66b0ba5f4758"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-execution-control-v1/invalid/unknown-action",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "participant-resource-pool-capacity/v1",
+  "pool_ref": "inference-pool",
+  "owner_kind": "shared_service",
+  "owner_ref": "provision.node.inference.service.http",
+  "resource_kind": "inference_tokens",
+  "unit": "tokens",
+  "accounting_mode": "windowed_counter",
+  "meter_profile_ref": "tokenizer.example/v1",
+  "capacity": 20000,
+  "tenant_isolation": "tenant_partitioned",
+  "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "fairness_policy": "weighted_fair",
+  "priority_classes": [
+    "evaluated",
+    "standard",
+    "background"
+  ],
+  "borrowing": "lendable_only",
+  "reclaim": "yield",
+  "max_queue_ticks": 20,
+  "starvation_bound_ticks": 100,
+  "protected_capacity": 1000,
+  "evidence_contract_ids": [
+    "participant-resource-budget-event-v1"
+  ]
+}

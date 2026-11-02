@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "37b4e0f2155daf3e63710a6db54577d73b5193803d7ad9a0b4000cb6611b9216"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/cases/remove-with-explicit-loss",
+  "result": {
+    "jcs": "sha256:f016282c854908594459dc4ede2070eb403401d6d40ce2cab9a9a805d50334fc",
+    "sorted_ascii": "sha256:f016282c854908594459dc4ede2070eb403401d6d40ce2cab9a9a805d50334fc",
+    "sorted_unicode": "sha256:f016282c854908594459dc4ede2070eb403401d6d40ce2cab9a9a805d50334fc"
+  },
+  "surface": "canonical"
+}

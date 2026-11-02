@@ -1,0 +1,171 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 15,
+        "declarations": [
+          {
+            "address": "assertions.company-mail-visible",
+            "kind": "assertions",
+            "model_path": "assertions.company-mail-visible",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.job-index-schema-visible",
+            "kind": "assertions",
+            "model_path": "assertions.job-index-schema-visible",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.company-mail",
+            "kind": "content",
+            "model_path": "content.company-mail",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.company-mail.items.welcome-message",
+            "kind": "content-item",
+            "model_path": "content.company-mail.items.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.job-index-schema",
+            "kind": "content",
+            "model_path": "content.job-index-schema",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "evidence_requirements.company-mail-readback",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.company-mail-readback",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "evidence_requirements.job-index-schema-readback",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.job-index-schema-readback",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "nodes.mail",
+            "kind": "node",
+            "model_path": "nodes.mail",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.mail.services.imap",
+            "kind": "service",
+            "model_path": "nodes.mail.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.mail.services.search",
+            "kind": "service",
+            "model_path": "nodes.mail.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "observation_boundaries.participant-mail-view",
+            "kind": "observation_boundaries",
+            "model_path": "observation_boundaries.participant-mail-view",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "observation_boundaries.participant-search-view",
+            "kind": "observation_boundaries",
+            "model_path": "observation_boundaries.participant-search-view",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.company-mail-visible",
+            "kind": "propositions",
+            "model_path": "propositions.company-mail-visible",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.job-index-schema-visible",
+            "kind": "propositions",
+            "model_path": "propositions.job-index-schema-visible",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.initial-service-state",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "initial-service-state",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "assertions",
+              "content",
+              "nodes",
+              "observation_boundaries",
+              "propositions"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {
+            "company-mail-readback": {
+              "source": "legacy-evidence-requirement"
+            },
+            "job-index-schema-readback": {
+              "source": "legacy-evidence-requirement"
+            }
+          }
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

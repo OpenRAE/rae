@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-status-view-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2c6325fe6e43105e7cf190a38ab9619e1eb1774151a8d6f572d3b4a31380ce36"
+  },
+  "name": "contracts/fixtures/control-plane/participant-status-view-v1/invalid/episode-state-restates-scope",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

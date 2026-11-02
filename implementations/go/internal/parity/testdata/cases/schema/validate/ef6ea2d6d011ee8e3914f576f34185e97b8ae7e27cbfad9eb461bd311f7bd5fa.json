@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-decision-surface-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "ec6dcd1bff1b2d283edb609eff84acf5fe53ece6466674f7ced5429a2ce27121"
+  },
+  "name": "contracts/fixtures/control-plane/participant-decision-surface-v2/invalid/delivered-without-delivery",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

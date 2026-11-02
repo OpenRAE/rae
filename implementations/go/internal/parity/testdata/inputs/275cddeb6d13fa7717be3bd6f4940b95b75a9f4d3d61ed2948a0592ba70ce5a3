@@ -1,0 +1,405 @@
+{
+  "analysis_plan": {
+    "analysis_id": "baseline-proportion",
+    "description": "Estimate baseline success proportion with uncertainty.",
+    "metrics": [
+      "foothold-achieved"
+    ],
+    "missing_data_policy": {
+      "handling": "Runs without reported foothold-achieved values are retained with their declared value_status.",
+      "missingness_assumption": "Run value_status records distinguish missing, withheld, and not-applicable outcomes.",
+      "sensitivity_analysis": "Report the count of non-reported runs before drawing study claims."
+    },
+    "multiple_comparison_policy": {
+      "correction": "not applicable",
+      "family": "single primary metric",
+      "rationale": "No multiplicity adjustment is applied because this fixture declares one primary metric."
+    },
+    "primary_metric": "foothold-achieved",
+    "statistical_method": {
+      "assumptions": [
+        "Runs are treated as independent conditional on the declared task, apparatus context, and participant policy."
+      ],
+      "comparison_family": "single baseline condition for the foothold-achieved primary metric",
+      "estimand": "Baseline policy probability of foothold achievement under the fixed task protocol.",
+      "method": "binomial proportion estimate",
+      "unit_of_analysis": "run"
+    },
+    "uncertainty_method": {
+      "interval_level": 0.95,
+      "method": "Wilson score interval",
+      "procedure": "Report a Wilson interval for the baseline foothold-achieved proportion."
+    }
+  },
+  "behavioral_claims": [
+    {
+      "assurance_status": "deliberately-unproved",
+      "evidence_boundary": "The one predeclared baseline condition and included evaluation runs.",
+      "evidence_refs": [
+        "analysis-plan:baseline-proportion"
+      ],
+      "evidence_scope": "statistical",
+      "explicit_non_claims": [
+        "No behavioral equivalence or generalizability claim."
+      ],
+      "left_carrier_ref": "study-techvault-baseline@1.0.0",
+      "limitations": [
+        "The fixture has one run and cannot establish population adequacy."
+      ],
+      "observation_projection_ref": "analysis-plan:baseline-proportion",
+      "observation_projection_revision": "experiment-study/v1",
+      "quantifier_scope": "sampled-population",
+      "relation_id": "empirical-adequacy",
+      "subject": "TechVault baseline study",
+      "taxonomy_id": "raes-behavioral-relations",
+      "taxonomy_revision": "rev8"
+    }
+  ],
+  "description": "Archival baseline study for TechVault red-team runs.",
+  "factors": {
+    "agent": {
+      "factor_kind": "treatment",
+      "levels": [
+        "cold",
+        "warm"
+      ],
+      "name": "Agent temperature"
+    },
+    "path": {
+      "factor_kind": "treatment",
+      "levels": [
+        "a",
+        "b"
+      ],
+      "name": "Payload path"
+    }
+  },
+  "inclusion_criteria": [
+    "Runs must use the declared task version and reference apparatus context.",
+    "Runs with unresolved setup deviations are excluded from study estimates."
+  ],
+  "membership": {
+    "run-001": {
+      "grouping": "baseline",
+      "role": "evaluation-run",
+      "target_ref": {
+        "ref_id": "run-techvault-001",
+        "ref_kind": "run"
+      }
+    },
+    "task": {
+      "inclusion_rationale": "Reference task for the study.",
+      "role": "primary-task",
+      "target_ref": {
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_kind": "task",
+        "ref_version": "1.0.0"
+      }
+    }
+  },
+  "owner": "raes-experiment-core",
+  "purpose": "Estimate baseline participant policy outcomes for the fixed task protocol.",
+  "report_artifacts": [
+    {
+      "artifact_id": "study-report",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "created_at": "2026-05-26T01:00:00Z",
+      "media_type": "text/markdown",
+      "role": "report",
+      "sensitivity": "internal",
+      "size_bytes": 12288,
+      "source": "study analysis report",
+      "uri": "studies/techvault-baseline/report.md"
+    }
+  ],
+  "research_questions": [
+    "How often does the baseline participant policy achieve initial foothold under the fixed task protocol?"
+  ],
+  "run_allocation": {
+    "allocation_method": "factorial-treatments-v1",
+    "allocation_unit": "run",
+    "blocking_factors": [],
+    "compared_conditions": [
+      "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+      "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+      "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+      "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56"
+    ],
+    "condition_assignments": {
+      "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c": {
+        "condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+        "description": null,
+        "difficulty_condition": "fixed",
+        "difficulty_policy_id": null,
+        "factor_levels": {
+          "agent": "warm",
+          "path": "a"
+        },
+        "required_bindings": [
+          {
+            "binding_id": "binding-575699faa1114b8786bba5f4cb60f5eec52187e3d76c93325fdc48141d89bf6d",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "warm",
+            "target": {
+              "implementation_name": "reference-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "participant_address": "agents.red",
+              "plane": "participant-implementation",
+              "target_id": "policy.temperature"
+            },
+            "value": {
+              "kind": "literal",
+              "value": 1.0
+            },
+            "value_type": "number"
+          }
+        ],
+        "required_parameters": [],
+        "required_refs": [],
+        "required_selections": [
+          {
+            "outcome": {
+              "kind": "member",
+              "member_id": "absent"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            },
+            "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "selection_id": "selection-63a151af87ec3233549956ca21edbae01de381a0301fdb6ff0d504bf8bc8a8bc",
+            "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+            "source_factor_id": "path",
+            "source_factor_level_id": "a",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "target_id": "nodes.worker.presence",
+              "variation_point_id": "worker-presence"
+            }
+          }
+        ]
+      },
+      "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80": {
+        "condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+        "description": null,
+        "difficulty_condition": "fixed",
+        "difficulty_policy_id": null,
+        "factor_levels": {
+          "agent": "cold",
+          "path": "a"
+        },
+        "required_bindings": [
+          {
+            "binding_id": "binding-532d1191e47135d3c290e30e6ab7ca629fa4c66d532113d762f4e60873a31277",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "cold",
+            "target": {
+              "implementation_name": "reference-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "participant_address": "agents.red",
+              "plane": "participant-implementation",
+              "target_id": "policy.temperature"
+            },
+            "value": {
+              "kind": "literal",
+              "value": 0.0
+            },
+            "value_type": "number"
+          }
+        ],
+        "required_parameters": [],
+        "required_refs": [],
+        "required_selections": [
+          {
+            "outcome": {
+              "kind": "member",
+              "member_id": "absent"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            },
+            "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "selection_id": "selection-c5eb0b62b41fd17df0759ed0433bdf76cdcd06437683ffede7b2421cbd8f2851",
+            "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+            "source_factor_id": "path",
+            "source_factor_level_id": "a",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "target_id": "nodes.worker.presence",
+              "variation_point_id": "worker-presence"
+            }
+          }
+        ]
+      },
+      "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6": {
+        "condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+        "description": null,
+        "difficulty_condition": "fixed",
+        "difficulty_policy_id": null,
+        "factor_levels": {
+          "agent": "cold",
+          "path": "b"
+        },
+        "required_bindings": [
+          {
+            "binding_id": "binding-9ba38d23ca27a0009ace9ef8193b109838c13b652eb8f7466ba0d4aaa9825499",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "cold",
+            "target": {
+              "implementation_name": "reference-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "participant_address": "agents.red",
+              "plane": "participant-implementation",
+              "target_id": "policy.temperature"
+            },
+            "value": {
+              "kind": "literal",
+              "value": 0.0
+            },
+            "value_type": "number"
+          }
+        ],
+        "required_parameters": [],
+        "required_refs": [],
+        "required_selections": [
+          {
+            "outcome": {
+              "kind": "member",
+              "member_id": "with-jobs"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            },
+            "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "selection_id": "selection-0b66c41eb48ebbecf0ff30a64cb316afa07f92c356584cbfd63d93745ffc5102",
+            "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+            "source_factor_id": "path",
+            "source_factor_level_id": "b",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "target_id": "nodes.worker.presence",
+              "variation_point_id": "worker-presence"
+            }
+          }
+        ]
+      },
+      "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56": {
+        "condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+        "description": null,
+        "difficulty_condition": "fixed",
+        "difficulty_policy_id": null,
+        "factor_levels": {
+          "agent": "warm",
+          "path": "b"
+        },
+        "required_bindings": [
+          {
+            "binding_id": "binding-d92486910cc5324a32aff200641f347eafb212031061039a78d48f744c4bfd37",
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "participant-config",
+              "validator_version": "1"
+            },
+            "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+            "source_factor_id": "agent",
+            "source_factor_level_id": "warm",
+            "target": {
+              "implementation_name": "reference-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "participant_address": "agents.red",
+              "plane": "participant-implementation",
+              "target_id": "policy.temperature"
+            },
+            "value": {
+              "kind": "literal",
+              "value": 1.0
+            },
+            "value_type": "number"
+          }
+        ],
+        "required_parameters": [],
+        "required_refs": [],
+        "required_selections": [
+          {
+            "outcome": {
+              "kind": "member",
+              "member_id": "with-jobs"
+            },
+            "owner": {
+              "contract_id": "sdl-authoring-input-v1",
+              "contract_version": "1",
+              "validator_id": "raes-selected-scenario",
+              "validator_version": "1"
+            },
+            "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "selection_id": "selection-e0fae2ac6c2832956dbab72918fadc389b3a96c80de6c75bc728f8bce89aabdb",
+            "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+            "source_factor_id": "path",
+            "source_factor_level_id": "b",
+            "target": {
+              "plane": "scenario",
+              "scenario_family_id": "compiler-family",
+              "target_id": "nodes.worker.presence",
+              "variation_point_id": "worker-presence"
+            }
+          }
+        ]
+      }
+    },
+    "randomization_unit": null,
+    "replication_policy": "equal independent runs",
+    "stopping_rule": null,
+    "target_runs_per_condition": 2
+  },
+  "schema_version": "experiment-study/v1",
+  "study_id": "study-techvault-baseline",
+  "study_kind": "study",
+  "study_version": "1.0.0",
+  "title": "TechVault baseline study",
+  "validity_notes": [
+    {
+      "category": "conclusion",
+      "note": "Additional repeated runs are required before drawing participant-policy comparison claims."
+    }
+  ]
+}

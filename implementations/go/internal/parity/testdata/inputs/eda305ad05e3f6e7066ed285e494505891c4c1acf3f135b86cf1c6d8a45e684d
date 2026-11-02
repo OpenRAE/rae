@@ -1,0 +1,32 @@
+{
+  "accepting_new_work": true,
+  "binding_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "capacity": 4,
+  "desired_lifecycle": "running",
+  "draining": false,
+  "evidence_refs": [
+    "evidence/red-operator-service-state-v1"
+  ],
+  "execution_scope_ref": "execution-scopes/red-operator-v1",
+  "generation": 5,
+  "health": "healthy",
+  "in_flight": 2,
+  "last_transition_ref": "transitions/red-operator-start-v1",
+  "observed_generation": 7,
+  "observed_lifecycle": "running",
+  "pacing_deviation_refs": [],
+  "policy_address": "policies.participant.execution.red-operator",
+  "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "quiescent": false,
+  "readiness": "ready",
+  "reserved": 1,
+  "resource_budget_state_refs": [
+    "resource-budget-states/red-operator-v1"
+  ],
+  "resources_released": false,
+  "scheduler_state_refs": [
+    "scheduler-states/red-operator-v1"
+  ],
+  "schema_version": "participant-execution-service-state/v1",
+  "time_declaration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "behavioral-relation-profile-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "550e0e8d465ebb6088fe4dcf1b231f7b8372012af41e9668dbc5a657e472d9ce"
+  },
+  "name": "contracts/fixtures/profiles/behavioral-relation-profile-v1/invalid/shared-crossing-authority",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "behavioral-relation-profile-v1",
+      "diagnostics": [
+        {
+          "address": "behavioral-relation-profile-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 14,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

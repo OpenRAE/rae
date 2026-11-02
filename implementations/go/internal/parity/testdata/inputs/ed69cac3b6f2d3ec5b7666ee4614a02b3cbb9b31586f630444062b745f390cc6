@@ -1,0 +1,44 @@
+{
+  "schema_version": "experiment-derived-measure/v1",
+  "derived_measure_id": "measure-techvault-foothold-001",
+  "measure_version": "1.0.0",
+  "measure_kind": "metric",
+  "metric_ref": {
+    "ref_kind": "metric-definition",
+    "ref_id": "foothold-achieved",
+    "ref_version": "1.0.0"
+  },
+  "method": {
+    "method_id": "foothold-event-detector",
+    "method_version": "1.0.0",
+    "name": "Foothold event detector",
+    "description": "Derives the foothold-achieved boolean from raw evaluation history evidence.",
+    "parameters": [
+      {
+        "name": "success-event",
+        "value": "foothold-achieved",
+        "value_kind": "analysis"
+      }
+    ]
+  },
+  "source_evidence_refs": [
+    {
+      "ref_kind": "evidence-record",
+      "ref_id": "evidence-techvault-network-trace-001",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "generated_at": "2026-05-26T00:41:00Z",
+  "value_status": "reported",
+  "uncertainty": "Single-run boolean outcome; no across-run uncertainty is claimed.",
+  "limitations": [
+    "The measure depends on the evaluation history event taxonomy."
+  ],
+  "provenance_refs": [
+    {
+      "ref_kind": "processor",
+      "ref_id": "raes-reference-processor",
+      "ref_version": "0.1.0"
+    }
+  ]
+}

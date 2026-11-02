@@ -1,0 +1,70 @@
+{
+  "schema_version": "semantic-comparison-request/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "before": {
+    "canonical_identity": "run:run-techvault-001",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:e04fef938d3bb2b5c784a85568ead42cee22231b7412a52553d871a136e08974",
+    "exact_representation": null,
+    "artifact_kind": "run",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-run/v1",
+    "run_id": "run-techvault-001",
+    "run_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "run:run-techvault-001",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:e04fef938d3bb2b5c784a85568ead42cee22231b7412a52553d871a136e08974",
+    "exact_representation": null,
+    "artifact_kind": "run",
+    "lifecycle_phase": "portable-contract",
+    "schema_version": "experiment-run/v1",
+    "run_id": "run-techvault-001",
+    "run_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "run:run-techvault-001"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "run:run-techvault-001",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:e04fef938d3bb2b5c784a85568ead42cee22231b7412a52553d871a136e08974",
+        "exact_representation": null,
+        "artifact_kind": "run",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-run/v1",
+        "run_id": "run-techvault-001",
+        "run_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "run:run-techvault-001",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:e04fef938d3bb2b5c784a85568ead42cee22231b7412a52553d871a136e08974",
+        "exact_representation": null,
+        "artifact_kind": "run",
+        "lifecycle_phase": "portable-contract",
+        "schema_version": "experiment-run/v1",
+        "run_id": "run-techvault-001",
+        "run_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:2ff73c160a975d9df6991a24dbb56703a0e5ea3dc49b8aea823b372d86c74c31"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

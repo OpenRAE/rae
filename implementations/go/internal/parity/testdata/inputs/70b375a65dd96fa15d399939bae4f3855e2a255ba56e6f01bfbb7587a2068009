@@ -1,0 +1,161 @@
+{
+  "surface_id": "decision-surfaces.red.invalid-form.order-4",
+  "participant_address": "participant.behavior.red-agent",
+  "episode_id": "episode-1",
+  "observation_point": "behavior-history:4",
+  "observation_order": 4,
+  "behavior_specification_address": "participant.behavior-specification.red-surface",
+  "observation_boundary_address": "participant.observation-boundary.red-view",
+  "context_view_ref": "context-views.red.episode-1.order-4",
+  "implementation_selection_ref": "participant-selections.red.script.v1",
+  "decision_control_mode": "scripted",
+  "projection_policy_ref": "projection-policy.red.v1",
+  "projection_policy_revision": "1",
+  "exposure_policy_ref": "exposure-policy.red.v1",
+  "visibility_projection_ref": "visibility-projection.red.order-4",
+  "visible_context_refs": [
+    "context.public"
+  ],
+  "action_entries": [
+    {
+      "entry_id": "participant.action-contract.scan",
+      "action_contract_address": "participant.action-contract.scan",
+      "presentation_basis_ref": "projection-policy.red.v1",
+      "visibility": "observable",
+      "eligibility": "eligible",
+      "eligibility_reason_refs": [],
+      "constraint_refs": [
+        "participant.action-contract.scan.preconditions"
+      ],
+      "selection_shape_ref": "selection-shapes.scan.v1",
+      "support": "supported",
+      "support_refs": [
+        "participant-implementations.script.scan"
+      ],
+      "affordance_refs": [],
+      "realization_refs": [
+        "realizations.script.v1"
+      ]
+    }
+  ],
+  "affordance_refs": [],
+  "form": {
+    "surface_form": "constrained_form",
+    "selection_meaning_ref": "selection-meaning.form.v1",
+    "action_entry_id": "participant.action-contract.scan",
+    "argument_shape_ref": "selection-shapes.scan.v1",
+    "validation_policy_ref": "validation-policies.sem220.v1",
+    "constraint_refs": [
+      "forms.scan.constraints.v1"
+    ],
+    "default_disclosure_refs": [
+      "forms.scan.defaults.v1"
+    ],
+    "normalization_disclosure_refs": [
+      "forms.scan.normalization.v1"
+    ],
+    "omission_disclosure_refs": [
+      "forms.scan.omission.v1"
+    ]
+  },
+  "evidence_refs": [
+    "evidence.surface.red.order-4"
+  ],
+  "provenance_refs": [
+    "provenance.surface.red.script.order-4"
+  ],
+  "marking_definition_refs": [],
+  "redaction_policy_ref": null,
+  "semantic_limitations": [
+    "invalid fixture"
+  ],
+  "audience_scope_ref": "audience.participant.behavior.red-agent",
+  "exposure_bindings": [
+    {
+      "item_ref": "context.public",
+      "source_ref": "context.public",
+      "source_layer_ref": "source-layers.context.public",
+      "participant_address": "participant.behavior.red-agent",
+      "episode_id": "episode-1",
+      "audience_scope_ref": "audience.participant.behavior.red-agent",
+      "observation_point": "behavior-history:4",
+      "observation_order": 4,
+      "visibility_basis_ref": "visibility-bases.context.public",
+      "projection_policy_ref": "projection-policy.red.v1",
+      "projection_policy_revision": "1",
+      "exposure_policy_ref": "exposure-policy.red.v1",
+      "exposure_policy_version": "1",
+      "exposure_policy_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "operation": "disclosure",
+      "operation_basis_ref": "disclosures.context.public.v1",
+      "actor_ref": "actors.runtime-projector",
+      "controller_ref": "controllers.participant.behavior.red-agent",
+      "authority_basis_ref": "authorities.participant.behavior.red-agent.v1",
+      "source_marking_definition_refs": [],
+      "result_marking_definition_refs": [],
+      "source_provenance_refs": [
+        "provenance.surface.red.script.order-4"
+      ],
+      "result_provenance_refs": [
+        "provenance.surface.red.script.order-4"
+      ],
+      "declassification_basis_ref": null,
+      "redaction_policy_ref": null,
+      "transformation_rule_ref": null,
+      "evidence_refs": [
+        "evidence.surface.red.order-4"
+      ],
+      "provenance_refs": [
+        "provenance.surface.red.script.order-4"
+      ],
+      "loss_and_limitations": [
+        "No known projection loss"
+      ],
+      "realization": null,
+      "authorization_record_ref": "exposure-authorizations.context.public.v1"
+    },
+    {
+      "item_ref": "participant.action-contract.scan",
+      "source_ref": "participant.action-contract.scan",
+      "source_layer_ref": "source-layers.participant.action-contract.scan",
+      "participant_address": "participant.behavior.red-agent",
+      "episode_id": "episode-1",
+      "audience_scope_ref": "audience.participant.behavior.red-agent",
+      "observation_point": "behavior-history:4",
+      "observation_order": 4,
+      "visibility_basis_ref": "visibility-bases.participant.action-contract.scan",
+      "projection_policy_ref": "projection-policy.red.v1",
+      "projection_policy_revision": "1",
+      "exposure_policy_ref": "exposure-policy.red.v1",
+      "exposure_policy_version": "1",
+      "exposure_policy_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "operation": "disclosure",
+      "operation_basis_ref": "disclosures.participant.action-contract.scan.v1",
+      "actor_ref": "actors.runtime-projector",
+      "controller_ref": "controllers.participant.behavior.red-agent",
+      "authority_basis_ref": "authorities.participant.behavior.red-agent.v1",
+      "source_marking_definition_refs": [],
+      "result_marking_definition_refs": [],
+      "source_provenance_refs": [
+        "provenance.surface.red.script.order-4"
+      ],
+      "result_provenance_refs": [
+        "provenance.surface.red.script.order-4"
+      ],
+      "declassification_basis_ref": null,
+      "redaction_policy_ref": null,
+      "transformation_rule_ref": null,
+      "evidence_refs": [
+        "evidence.surface.red.order-4"
+      ],
+      "provenance_refs": [
+        "provenance.surface.red.script.order-4"
+      ],
+      "loss_and_limitations": [
+        "No known projection loss"
+      ],
+      "realization": null,
+      "authorization_record_ref": "exposure-authorizations.participant.action-contract.scan.v1"
+    }
+  ]
+}

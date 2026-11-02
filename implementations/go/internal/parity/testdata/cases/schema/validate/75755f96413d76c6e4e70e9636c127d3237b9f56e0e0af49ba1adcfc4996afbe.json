@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-outcome-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "07330151889ab20da20e9501bbf047e017deb9c08d9dec7410b4fbbe9780c14e"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-outcome-report-v1/valid/exfiltration-outcome",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

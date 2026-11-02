@@ -1,0 +1,70 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "mixed-participant-composition-profile-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "e958657f3d164ee01162902b4878d730c0ac3bc229abfc95f75b0f1cddb40866"
+  },
+  "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/open-metadata",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "diagnostics": [
+        {
+          "address": "mixed-participant-composition-profile-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 20,
+        "members": [
+          "allocations",
+          "components",
+          "composition_mode",
+          "contract_id",
+          "control_loop_posture",
+          "edges",
+          "federation_membership",
+          "initial_phase_id",
+          "metadata",
+          "nested_profile_refs",
+          "phase_order",
+          "phases",
+          "profile_digest",
+          "profile_id",
+          "profile_revision",
+          "scenario_snapshot_ref",
+          "schema_version",
+          "semantic_revision",
+          "transitions",
+          "world_assumption"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

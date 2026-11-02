@@ -1,0 +1,12 @@
+{
+  "schema_version": "trial-cleanup-receipt/v1",
+  "receipt_id": "receipt-timeout",
+  "cleanup_plan_ref": "cleanup-plan-a",
+  "plan_entry_id": "trial-entry-a",
+  "run_id": "run-a",
+  "execution_attempt_id": "attempt-timeout",
+  "trial_outcome": "timed-out",
+  "cleanup_status": "succeeded",
+  "obligation_results": {"destroy-range": {"obligation_id": "destroy-range", "status": "succeeded", "evidence_refs": ["evidence:timeout-cleanup"], "residual_state_refs": []}},
+  "clean_state_claim": {"disposition": "verified-clean", "boundary_refs": ["range-a"], "evidence_refs": ["evidence:timeout-cleanup"]}
+}

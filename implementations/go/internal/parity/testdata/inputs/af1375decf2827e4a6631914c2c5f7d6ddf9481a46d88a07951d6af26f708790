@@ -1,0 +1,189 @@
+{
+  "allocations": {
+    "allocation.action": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.action",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "sim",
+      "routing_ref": "route:portable",
+      "target_address": "actions.alice.inspect",
+      "target_kind": "action-family"
+    },
+    "allocation.crossing": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.crossing",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "sim",
+      "routing_ref": "route:portable",
+      "target_address": "crossings.alice.status",
+      "target_kind": "crossing"
+    },
+    "allocation.observation": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.observation",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "sim",
+      "routing_ref": "route:portable",
+      "target_address": "observations.target.status",
+      "target_kind": "observation-source"
+    },
+    "allocation.participant": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.participant",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "sim",
+      "routing_ref": "route:portable",
+      "target_address": "participants.alice",
+      "target_kind": "participant"
+    },
+    "allocation.scope": {
+      "action_authority_ref": "authority:action",
+      "allocation_id": "allocation.scope",
+      "controller_ref": "controller:operator",
+      "feature_requirements": [
+        {
+          "allowed_downgrade_level": null,
+          "downgrade_policy_ref": null,
+          "downgrade_provenance_ref": null,
+          "feature": "participant_ingress_admission",
+          "required_level": "exact"
+        }
+      ],
+      "participant_identity_ref": "participant:alice",
+      "phase_ids": [
+        "phase.main"
+      ],
+      "provider_component_id": "sim",
+      "routing_ref": "route:portable",
+      "target_address": "nodes.target",
+      "target_kind": "controlled-scope"
+    }
+  },
+  "components": {
+    "sim": {
+      "apparatus_identity_ref": "apparatus:sim",
+      "component_id": "sim",
+      "manifest_ref": {
+        "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ref_id": "sim",
+        "ref_kind": "manifest",
+        "ref_path": null,
+        "ref_version": "backend-manifest/v2",
+        "subject_ref": {
+          "ref_digest": null,
+          "ref_id": "sim",
+          "ref_kind": "backend",
+          "ref_path": null,
+          "ref_version": "1"
+        }
+      },
+      "native_ownership_ref": "native-ownership:sim",
+      "realization_envelope": {
+        "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "contract_id": "realization-envelope-v1",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "envelope_id": "envelope:sim",
+        "schema_version": "realization-envelope/v1"
+      },
+      "realization_form": "simulation"
+    }
+  },
+  "composition_mode": "alternative",
+  "contract_id": "mixed-participant-composition-profile-v1",
+  "control_loop_posture": "closed-loop",
+  "edges": {},
+  "federation_membership": "fixed",
+  "initial_phase_id": "phase.main",
+  "nested_profile_refs": {},
+  "phase_order": [
+    "phase.main"
+  ],
+  "phases": {
+    "phase.main": {
+      "active_allocation_ids": [
+        "allocation.participant",
+        "allocation.scope",
+        "allocation.action",
+        "allocation.observation",
+        "allocation.crossing"
+      ],
+      "active_component_ids": [
+        "sim"
+      ],
+      "active_edge_ids": [],
+      "evidence_bindings": [
+        {
+          "evidence_ref": "evidence:phase-realization",
+          "obligation_ref": "obligation:phase-realization"
+        }
+      ],
+      "phase_id": "phase.main"
+    }
+  },
+  "profile_digest": "sha256:dda8b7fafb4a2f1acd06265bf4c83d89ba9a1f349a76624a9188638a802f1df2",
+  "profile_id": "profile:mixed",
+  "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+  "scenario_snapshot_ref": {
+    "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "ref_id": "scenario:authored",
+    "ref_kind": "scenario-snapshot",
+    "ref_path": null,
+    "ref_version": "1"
+  },
+  "schema_version": "mixed-participant-composition-profile/v1",
+  "semantic_revision": "sem-234/rev1",
+  "transitions": {},
+  "world_assumption": "bounded-open-world"
+}

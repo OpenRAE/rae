@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-participant-composition-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "82c42ba41f67fe66e61fbbc16fc9b5e7b64847ba4acdfa202e08928fb14b88c8"
+  },
+  "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/duplicate-apparatus-identity",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

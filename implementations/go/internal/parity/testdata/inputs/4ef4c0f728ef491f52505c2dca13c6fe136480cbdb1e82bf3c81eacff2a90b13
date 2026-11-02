@@ -1,0 +1,20 @@
+{
+  "action_contract_address": "actions.shell.execute",
+  "binding_id": "binding-red-operator-shell-v1",
+  "constraint_refs": [
+    "constraints/red-operator-shell-scope-v1"
+  ],
+  "evidence_refs": [
+    "evidence/red-operator-shell-transcript-v1"
+  ],
+  "max_action_attempts": 3,
+  "max_in_flight": 2,
+  "max_retries": 1,
+  "participant_implementation_ref": "participant-implementations/red-operator-v1",
+  "schema_version": "participant-execution-binding/v1",
+  "target_addresses": [
+    "targets.red.workstation",
+    "targets.red.jumphost"
+  ],
+  "timeout_seconds": 120
+}

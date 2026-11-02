@@ -1,0 +1,14 @@
+{
+  "args": [
+    "materialization-archive-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6d33aed2c55e8134cbadb716954ec1d9d34521d09b15112ee5bd51251be44334"
+  },
+  "name": "contracts/fixtures/experiment-core/materialization-archive-record-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

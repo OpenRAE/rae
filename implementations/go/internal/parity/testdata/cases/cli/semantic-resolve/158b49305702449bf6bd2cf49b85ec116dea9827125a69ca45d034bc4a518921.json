@@ -1,0 +1,130 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "20d82be186fe2d1a2498690a2132579d3323ae5393c13d1f7f4550ce6eb51c93"
+  },
+  "name": "examples/scenarios/reconciliation-demo-v1.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 28,
+        "reference_bindings": {
+          "assertions.health": [
+            "assertions.health"
+          ],
+          "assertions.pre-health": [
+            "assertions.pre-health"
+          ],
+          "blue": [
+            "entities.blue"
+          ],
+          "conditions.health": [
+            "conditions.health"
+          ],
+          "database": [
+            "nodes.database"
+          ],
+          "entities.blue": [
+            "entities.blue"
+          ],
+          "events.kickoff": [
+            "events.kickoff"
+          ],
+          "flow": [
+            "workflows.flow"
+          ],
+          "health": [
+            "assertions.health",
+            "conditions.health",
+            "propositions.health"
+          ],
+          "infrastructure.database": [
+            "infrastructure.database"
+          ],
+          "infrastructure.lab": [
+            "infrastructure.lab"
+          ],
+          "infrastructure.retired": [
+            "infrastructure.retired"
+          ],
+          "infrastructure.web": [
+            "infrastructure.web"
+          ],
+          "initial": [
+            "objectives.initial"
+          ],
+          "kickoff": [
+            "events.kickoff"
+          ],
+          "lab": [
+            "nodes.lab"
+          ],
+          "nodes.database": [
+            "nodes.database"
+          ],
+          "nodes.lab": [
+            "nodes.lab"
+          ],
+          "nodes.retired": [
+            "nodes.retired"
+          ],
+          "nodes.web": [
+            "nodes.web"
+          ],
+          "objectives.initial": [
+            "objectives.initial"
+          ],
+          "pre-health": [
+            "assertions.pre-health"
+          ],
+          "propositions.health": [
+            "propositions.health"
+          ],
+          "retired": [
+            "nodes.retired"
+          ],
+          "scripts.timeline": [
+            "scripts.timeline"
+          ],
+          "timeline": [
+            "scripts.timeline"
+          ],
+          "web": [
+            "nodes.web"
+          ],
+          "workflows.flow": [
+            "workflows.flow"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "reconciliation-demo"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

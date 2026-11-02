@@ -1,0 +1,14 @@
+{
+  "args": [
+    "instantiated-scenario-snapshot-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "c6ccdbf625f8f022ff5aa12d6926d65748af25fd88709bdd892d165917b67234"
+  },
+  "name": "contracts/fixtures/sdl/instantiated-scenario-snapshot-v1/invalid/wrong-profile",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

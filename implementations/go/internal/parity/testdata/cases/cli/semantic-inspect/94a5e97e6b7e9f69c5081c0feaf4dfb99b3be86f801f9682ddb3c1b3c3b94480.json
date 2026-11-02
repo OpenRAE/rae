@@ -1,0 +1,61 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-evaluation-v2",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "3eca3533a23e7e8a0e535e74e1d22fbf735966b643e40fbc16f4902fb426f7db"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/dependency-chain",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-evaluation-v2",
+      "diagnostics": [
+        {
+          "address": "participant-control-evaluation-v2",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 11,
+        "members": [
+          "commit",
+          "composition",
+          "effect_plan",
+          "evaluation_id",
+          "invocations",
+          "lost_advice",
+          "request",
+          "results",
+          "schema_version",
+          "state_proposals",
+          "support"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

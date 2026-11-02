@@ -1,0 +1,40 @@
+{
+  "schema_version": "runtime-snapshot/v1",
+  "entries": {},
+  "orchestration_results": {},
+  "orchestration_history": {},
+  "evaluation_results": {},
+  "evaluation_history": {},
+  "participant_episode_results": {},
+  "participant_episode_history": {},
+  "participant_behavior_history": {},
+  "realization_provenance": [
+    {
+      "address": "node.web",
+      "field_path": "nodes.web.os",
+      "domain": "runtime-realization",
+      "requirement_kind": "os-family",
+      "explicitness": "exact",
+      "provenance": "author-declared"
+    },
+    {
+      "address": "node.web",
+      "field_path": "nodes.web.type",
+      "domain": "runtime-realization",
+      "requirement_kind": "node-type",
+      "explicitness": "exact",
+      "provenance": "author-declared"
+    }
+  ],
+  "realization_observations": [
+    {
+      "address": "provision.node.web",
+      "field_path": "nodes.web.runtime.forwarding_agents",
+      "domain": "runtime-realization",
+      "requirement_kind": "forwarding-agents",
+      "verification_scope": "configuration",
+      "observation_strength": "daemon-observed"
+    }
+  ],
+  "metadata": {}
+}

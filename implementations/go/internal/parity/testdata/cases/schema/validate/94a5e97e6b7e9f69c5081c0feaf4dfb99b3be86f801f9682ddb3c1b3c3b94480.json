@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-evaluation-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "3eca3533a23e7e8a0e535e74e1d22fbf735966b643e40fbc16f4902fb426f7db"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/dependency-chain",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

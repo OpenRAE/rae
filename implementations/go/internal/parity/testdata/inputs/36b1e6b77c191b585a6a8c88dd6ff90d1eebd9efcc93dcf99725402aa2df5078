@@ -1,0 +1,26 @@
+{
+  "view_id": "views.status.participants.blue.rl.0001",
+  "participant_address": "participants.blue.rl",
+  "episode_id": "ep-blue-002",
+  "generated_at": "2026-05-26T10:21:00Z",
+  "source_snapshot_ref": "snapshots.run-778.tick42",
+  "episode_state": {
+    "state_schema_version": "participant-episode-state/v1",
+    "sequence_number": 1,
+    "status": "running",
+    "terminal_reason": null,
+    "initialized_at": "2026-05-26T10:00:00Z",
+    "updated_at": "2026-05-26T10:20:10Z",
+    "terminated_at": null,
+    "last_control_action": "initialize",
+    "previous_episode_id": "ep-blue-001"
+  },
+  "open_operation_refs": [
+    "op-blue-12"
+  ],
+  "visibility_projection_ref": "projections.blue.status.v1",
+  "marking_definition_refs": [
+    "markings.participant_visible.v1"
+  ],
+  "redaction_policy_ref": "redaction.blue-observation.v1"
+}

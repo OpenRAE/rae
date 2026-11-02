@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "e2a1b408e481c54b035b1d5b0faa40f3d317352ad8427dfacb8c5abfd8a1ed38"
+  },
+  "name": "contracts/fixtures/realization-envelope/realization-envelope-v1/invalid/missing-digest",
+  "result": {
+    "jcs": "sha256:19fa12bba58e611db1b25a8db60e21a77fdb7b662c0ecad0e7425c036cd9592f",
+    "sorted_ascii": "sha256:19fa12bba58e611db1b25a8db60e21a77fdb7b662c0ecad0e7425c036cd9592f",
+    "sorted_unicode": "sha256:19fa12bba58e611db1b25a8db60e21a77fdb7b662c0ecad0e7425c036cd9592f"
+  },
+  "surface": "canonical"
+}

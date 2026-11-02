@@ -1,0 +1,14 @@
+{
+  "args": [
+    "observation-demand-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2058bf46c0e6546963f8e17bb9f6d4940f2b5a42575979cf637d9832d6d78400"
+  },
+  "name": "contracts/fixtures/control-plane/observation-demand-v1/invalid/unbounded-exhaustive",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

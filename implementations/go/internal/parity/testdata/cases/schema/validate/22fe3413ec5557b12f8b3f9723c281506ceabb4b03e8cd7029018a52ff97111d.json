@@ -1,0 +1,14 @@
+{
+  "args": [
+    "validation-basis-disclosure-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "587a2c949df1c5eb0175b8d11213bd3b6d079d969dedfffeebd5c45e2fb79df4"
+  },
+  "name": "contracts/fixtures/profiles/validation-basis-disclosure-v1/invalid/unknown-profile",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

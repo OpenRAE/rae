@@ -1,0 +1,26 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "spec-invalid-neither-run-count-v1",
+  "spec_version": "1.0.0",
+  "title": "Invalid: run plan declares neither allocation nor target_run_count",
+  "description": "A run plan must declare exactly one run-count source; this one declares neither, so it must fail schema and model validation.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-techvault-red-team-v1",
+    "ref_version": "1.0.0"
+  },
+  "run_plan": {
+    "stochastic_controls": [
+      {
+        "control_id": "episode-seed",
+        "role": "seed",
+        "value": 123456
+      }
+    ],
+    "episode_control": {
+      "turn_order": "sequential",
+      "max_steps": 100,
+      "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon)."
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "398f42b002b27d85195b750ea73e57f3ce520fcd6b79e267f2c4752e251a34d4"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: core-scalars\ndescription: 'yes'\nnodes:\n  'on':\n    type: switch\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:bb41f954078d69c3d20636803fa8841eb008c935ce97c951dc433f596ba7d24c"
+        },
+        "field_count": 3,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "core-scalars",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

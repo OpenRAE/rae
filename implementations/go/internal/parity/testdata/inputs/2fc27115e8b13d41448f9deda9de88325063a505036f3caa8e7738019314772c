@@ -1,0 +1,42 @@
+{
+  "schema_version": "experiment-task/v1",
+  "task_id": "bad-task",
+  "task_version": "1.0.0",
+  "title": "Bad task",
+  "description": "Invalid because the task scenario_ref points at a run.",
+  "scenario_ref": {
+    "ref_kind": "run",
+    "ref_id": "run-1"
+  },
+  "evaluation_protocol": {
+    "protocol_id": "protocol",
+    "protocol_version": "1.0.0",
+    "intent": "Invalid protocol.",
+    "unit_of_analysis": "run",
+    "metric_definitions": {
+      "metric": {
+        "metric_id": "metric",
+        "metric_version": "1.0.0",
+        "name": "Metric",
+        "measured_construct": "Construct",
+        "unit_of_analysis": "run",
+        "value_kind": "boolean",
+        "direction": "higher-is-better",
+        "evidence_requirements": [
+          {
+            "ref_kind": "evidence",
+            "ref_id": "metric-evidence"
+          }
+        ]
+      }
+    },
+    "observation_requirements": [
+      {
+        "ref_kind": "evidence",
+        "ref_id": "metric-evidence"
+      }
+    ]
+  },
+  "intended_use": "Invalid fixture.",
+  "population_or_construct": "Invalid construct."
+}

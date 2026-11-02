@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-run-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9ad75acb27d7f4296779a5d165571d4efe5340739d1408f546a80d4119ef2331"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-run-v1/invalid/invalidated-without-details",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

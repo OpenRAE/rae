@@ -1,0 +1,14 @@
+{
+  "args": [
+    "concept-families-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "7b6ad0cde13af5ff6156957b6710d4e96f99818721d3cf94a75ff935ef64a2ef"
+  },
+  "name": "contracts/fixtures/concept-authority/concept-families-v1/invalid/native-missing-non-ambiguity-constraints",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

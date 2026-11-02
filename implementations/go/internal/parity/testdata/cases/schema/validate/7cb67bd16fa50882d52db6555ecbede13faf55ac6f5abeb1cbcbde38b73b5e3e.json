@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scenario-satisfiability-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "fd702d8e818074bc2da88597917a3543c6e23d1beb0f5b6b6eeebf7c0fb04982"
+  },
+  "name": "contracts/fixtures/satisfiability/scenario-satisfiability-evidence-v1/valid/unsupported-target",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

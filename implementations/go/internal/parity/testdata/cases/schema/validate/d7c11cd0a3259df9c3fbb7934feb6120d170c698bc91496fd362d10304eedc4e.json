@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-requirement-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "889b1d8f400715cbd4467bc0252e6bd3c9b36071404c44a35d3bcff5db4ae11b"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/invalid/missing-artifact-requirement",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,183 @@
+{
+  "schema_version": "experiment-run/v1",
+  "run_id": "bad-run",
+  "run_version": "1.0.0",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task"
+  },
+  "scenario_snapshot_ref": {
+    "ref_kind": "scenario-snapshot",
+    "ref_id": "scenario"
+  },
+  "apparatus_context": {
+    "schema_version": "experiment-apparatus-context/v1",
+    "apparatus_context_id": "apparatus",
+    "context_version": "1.0.0",
+    "declared_at": "2026-05-26T00:00:00Z",
+    "components": {
+      "processor": {
+        "component_kind": "processor",
+        "identity": {
+          "name": "processor",
+          "version": "1.0.0"
+        },
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "processor-manifest",
+          "ref_version": "processor-manifest/v2",
+          "subject_ref": {
+            "ref_kind": "processor",
+            "ref_id": "processor",
+            "ref_version": "1.0.0"
+          }
+        }
+      },
+      "backend": {
+        "component_kind": "backend",
+        "identity": {
+          "name": "backend",
+          "version": "1.0.0"
+        },
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "backend-manifest",
+          "ref_version": "backend-manifest/v2",
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "backend",
+            "ref_version": "1.0.0"
+          }
+        }
+      }
+    },
+    "selected_manifests": [
+      {
+        "ref_kind": "manifest",
+        "ref_id": "processor-manifest",
+        "ref_version": "processor-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "processor",
+          "ref_id": "processor",
+          "ref_version": "1.0.0"
+        }
+      },
+      {
+        "ref_kind": "manifest",
+        "ref_id": "backend-manifest",
+        "ref_version": "backend-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "backend",
+          "ref_id": "backend",
+          "ref_version": "1.0.0"
+        }
+      }
+    ],
+    "compatibility_declarations": [
+      {
+        "ref_kind": "profile",
+        "ref_id": "reference-stack-v1"
+      }
+    ],
+    "configuration_parameters": [
+      {
+        "name": "worker-count",
+        "value": 1,
+        "value_kind": "apparatus"
+      }
+    ],
+    "stochastic_controls": [
+      {
+        "control_id": "task-seed",
+        "role": "seed",
+        "value": 12345
+      }
+    ],
+    "clocks": [
+      {
+        "clock_id": "range-wall-clock",
+        "authority": "backend wall clock",
+        "time_domain": "wall-clock"
+      }
+    ],
+    "measurement_channels": [
+      {
+        "ref_kind": "measurement-channel",
+        "ref_id": "evaluation-history-channel"
+      }
+    ],
+    "observed_setup_evidence": [
+      {
+        "artifact_id": "setup-attestation",
+        "role": "apparatus-evidence",
+        "media_type": "application/json",
+        "uri": "runs/bad/setup.json",
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "size_bytes": 2048,
+        "created_at": "2026-05-26T00:09:30Z",
+        "source": "stub-backend setup attestation",
+        "sensitivity": "internal"
+      }
+    ],
+    "known_limitations": [
+      {
+        "category": "apparatus",
+        "note": "Invalid fixture isolates missing invalidation details."
+      }
+    ]
+  },
+  "parameter_set": [
+    {
+      "name": "difficulty",
+      "value": "standard",
+      "value_kind": "protocol"
+    }
+  ],
+  "stochastic_controls": [
+    {
+      "control_id": "task-seed",
+      "role": "seed",
+      "value": 12345
+    }
+  ],
+  "started_at": "2026-05-26T00:10:00Z",
+  "ended_at": "2026-05-26T00:40:00Z",
+  "clock_context": {
+    "clock_id": "range-wall-clock",
+    "authority": "backend wall clock",
+    "time_domain": "wall-clock"
+  },
+  "run_status": "invalidated",
+  "outcome_status": "not-evaluated",
+  "evidence_artifacts": [
+    {
+      "artifact_id": "auth-log-evidence",
+      "role": "observation",
+      "media_type": "application/json",
+      "uri": "runs/bad/evaluation-history.json",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "size_bytes": 4096,
+      "created_at": "2026-05-26T00:40:00Z",
+      "source": "stub-backend evaluator history export",
+      "sensitivity": "internal"
+    }
+  ],
+  "result_summaries": {
+    "invalidated-result": {
+      "metric_id": "foothold-achieved",
+      "value_status": "not-applicable",
+      "evidence_refs": [
+        {
+          "ref_kind": "evidence",
+          "ref_id": "auth-log-evidence"
+        }
+      ]
+    }
+  }
+}

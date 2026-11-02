@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "bf495836469b0b169933de89e5b69936a4da25aac1ed21eb237377aff79ef6e5"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-outcome-v1/valid/refused",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

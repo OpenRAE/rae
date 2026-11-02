@@ -1,0 +1,14 @@
+{
+  "args": [
+    "domain-profile-support-declaration-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "12dec8153ed0db2acbe6ada2af4181562678eef59d326c5ae1590e63322ca130"
+  },
+  "name": "contracts/fixtures/profiles/domain-profile-support-declaration-v1/invalid/unknown-operation",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

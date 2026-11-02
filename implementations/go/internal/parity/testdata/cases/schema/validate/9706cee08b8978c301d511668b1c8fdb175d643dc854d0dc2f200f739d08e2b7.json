@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-lifecycle-event-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "10cf84a8ac995fe7201876bdd8f6d5f2d07174f2fc413892b4e473915342596f"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-lifecycle-event-v1/valid/opaque-llm-selection",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

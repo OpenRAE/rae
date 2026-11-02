@@ -1,0 +1,19 @@
+{
+  "schema_version": "proposition-truth-result/v1",
+  "result_id": "truth-run-42-service-unsupported",
+  "proposition_address": "evaluation.proposition.packet-loss-bounded",
+  "assertion_address": "evaluation.assertion.packet-loss-acceptable",
+  "assertion_polarity": "positive",
+  "proposition_outcome": "unsupported",
+  "assertion_outcome": "unsupported",
+  "evaluation_basis": "observed_state",
+  "indeterminacy_reason": null,
+  "probe_binding": null,
+  "evidence_refs": [],
+  "declared_artifact_digest": null,
+  "temporal_context": null,
+  "loss_disclosures": [],
+  "unsupported_capability_refs": [
+    "predicate.number.less_than_or_equal"
+  ]
+}

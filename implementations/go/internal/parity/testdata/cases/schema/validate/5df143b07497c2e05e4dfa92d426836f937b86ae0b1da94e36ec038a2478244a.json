@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9315cb95072e7fbf2f555c2ee9dd6b9468cc4a7b4bb30e4233016735b610f08a"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/runtime-health-observation",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

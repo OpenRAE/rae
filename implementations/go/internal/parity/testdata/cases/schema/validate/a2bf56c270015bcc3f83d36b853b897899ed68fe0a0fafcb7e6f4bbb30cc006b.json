@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-stage-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a4483d820d3f2726ef864cd240269dacbaa03c882db757fe5a32b51cd7e70056"
+  },
+  "name": "contracts/fixtures/control-plane/mixed-backend-stage-report-v1/valid/mixed-edge-02",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "evaluation-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "7453cbbd187471b47deddace3f558cbba69c2d7e6263c622efc1e2b3f3d18f2a"
+  },
+  "name": "contracts/fixtures/plans/evaluation-plan-v1/invalid/unknown-extra",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

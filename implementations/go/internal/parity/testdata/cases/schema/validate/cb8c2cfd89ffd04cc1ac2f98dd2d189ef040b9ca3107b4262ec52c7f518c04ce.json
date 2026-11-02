@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "90ca79c9400b28e903ac5febf6295ed43f8e30ebb7a96bfe077e57cd194115c1"
+  },
+  "name": "contracts/fixtures/control-plane/backend-operation-response-v1/valid/accepted-04",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

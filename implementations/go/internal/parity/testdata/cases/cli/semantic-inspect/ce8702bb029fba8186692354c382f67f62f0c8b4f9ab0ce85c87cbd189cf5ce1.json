@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-implementation-provenance-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "1763e1f928e0f6a6c45c3daf10252fd1c15e808b31729cb21f760989653b081d"
+  },
+  "name": "contracts/fixtures/participant-implementation-provenance/participant-implementation-provenance-v1/valid/reference",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "participant-implementation-provenance-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 6,
+        "members": [
+          "backend_manifest_ref",
+          "metadata",
+          "participant_implementations",
+          "processor_manifest_ref",
+          "run_id",
+          "schema_version"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

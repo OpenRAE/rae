@@ -1,0 +1,28 @@
+{
+  "schema_version": "sdl-lineage-ledger/v1",
+  "reviewed_on": "2026-07-12",
+  "citations": [
+    {
+      "citation_id": "unpinned",
+      "title": "Unpinned Source",
+      "authors_or_maintainer": ["Example Maintainer"],
+      "year": 2026,
+      "canonical_url": "https://example.org/source",
+      "verified_on": "2026-07-12",
+      "verification_evidence": "docs/example.md"
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "unpinned",
+      "kind": "git",
+      "title": "Unpinned Source",
+      "version_or_edition": "main",
+      "canonical_url": "https://example.org/source",
+      "repository_url": "https://example.org/source",
+      "citation_ref": "unpinned"
+    }
+  ],
+  "subjects": [],
+  "third_party_dispositions": []
+}

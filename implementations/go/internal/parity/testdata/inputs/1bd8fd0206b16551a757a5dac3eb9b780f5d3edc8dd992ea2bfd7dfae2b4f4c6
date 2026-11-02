@@ -1,0 +1,40 @@
+{
+  "schema_version": "proposition-truth-result/v1",
+  "result_id": "truth-run-42-service-ambiguous",
+  "proposition_address": "evaluation.proposition.service-available",
+  "assertion_address": "evaluation.assertion.service-ready",
+  "assertion_polarity": "positive",
+  "proposition_outcome": "unknown",
+  "assertion_outcome": "unknown",
+  "evaluation_basis": "observed_state",
+  "indeterminacy_reason": "conflicting_evidence",
+  "probe_binding": {
+    "binding_id": "http-probe-binding",
+    "implementation_id": "example/http-health-probe",
+    "implementation_version": "2.1.0",
+    "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "backend_manifest_ref": "backend-manifest:range-a",
+    "proposition_address": "evaluation.proposition.service-available",
+    "capability_refs": [
+      "predicate.string.equals",
+      "evidence.log"
+    ]
+  },
+  "evidence_refs": [
+    "experiment-evidence:run-42/http-health-a",
+    "experiment-evidence:run-42/http-health-b"
+  ],
+  "declared_artifact_digest": null,
+  "temporal_context": {
+    "boundary_ref": "objectives.restore-service:completion",
+    "time_domain": "scenario_time",
+    "clock_authority": "experiment-clock:run-42"
+  },
+  "loss_disclosures": [
+    {
+      "kind": "conflicting",
+      "within_admissible_bound": false
+    }
+  ],
+  "unsupported_capability_refs": []
+}

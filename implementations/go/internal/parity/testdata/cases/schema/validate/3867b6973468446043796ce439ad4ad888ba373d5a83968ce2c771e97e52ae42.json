@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scientific-completeness-assessment-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "75881e8379ae1396571f4917fae5d87ec487359752099219d4d86b9cefed78d9"
+  },
+  "name": "contracts/fixtures/profiles/scientific-completeness-assessment-v1/invalid/external-without-binding",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": "experiment-study/v1",
+  "study_id": "bad-study",
+  "study_version": "1.0.0",
+  "study_kind": "collection",
+  "title": "Bad study",
+  "owner": "raes-experiment-core",
+  "description": "Invalid because a study must contain at least one typed member.",
+  "purpose": "Invalid fixture.",
+  "membership": {},
+  "inclusion_criteria": [
+    "Any task."
+  ]
+}

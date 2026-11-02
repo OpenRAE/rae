@@ -1,0 +1,32 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "invalid-sample",
+  "spec_version": "1.0.0",
+  "title": "Unsupported sample policy",
+  "description": "Without-replacement semantics fail closed until profiled.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop."
+    },
+    "target_run_count": 1,
+    "selection_policies": {
+      "sample": {
+        "kind": "sample",
+        "policy_id": "sample",
+        "purpose": "nuisance-variation",
+        "point_ref": "payload-host",
+        "algorithm_profile": "uniform-index-v1",
+        "distribution": "uniform",
+        "replacement": "without-replacement",
+        "sample_count": 1,
+        "output_bound": 1,
+        "stochastic_control_ref": "sample-control"
+      }
+    }
+  }
+}

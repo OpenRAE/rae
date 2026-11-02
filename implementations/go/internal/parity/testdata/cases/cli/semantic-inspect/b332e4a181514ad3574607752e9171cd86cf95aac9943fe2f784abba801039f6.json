@@ -1,0 +1,55 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "backend-augmentation-scope-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "82888ba82eb7c4831c7caaa77eb53dda56f32f1600688b73867c33664a1ffe1c"
+  },
+  "name": "contracts/fixtures/plans/backend-augmentation-scope-v1/invalid/partial-coverage",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "backend-augmentation-scope-v1",
+      "diagnostics": [
+        {
+          "address": "backend-augmentation-scope-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 5,
+        "members": [
+          "binding_digest",
+          "content",
+          "contract_id",
+          "coverage_profile",
+          "effects"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

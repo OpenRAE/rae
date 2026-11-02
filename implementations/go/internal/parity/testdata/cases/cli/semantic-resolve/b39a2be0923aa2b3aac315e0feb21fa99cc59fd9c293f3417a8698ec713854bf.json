@@ -1,0 +1,56 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "9e541184d9dcd003db1c42ee8384aaef2dcd8810d908ead7b5d3ccd983fe26f5"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 4,
+        "reference_bindings": {
+          "monitor": [
+            "nodes.monitor"
+          ],
+          "nodes.monitor": [
+            "nodes.monitor"
+          ],
+          "nodes.monitor.runtime.service_listeners.telemetry": [
+            "nodes.monitor.runtime.service_listeners.telemetry"
+          ],
+          "nodes.monitor.services.http": [
+            "nodes.monitor.services.http"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "observability-plane-conformance"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

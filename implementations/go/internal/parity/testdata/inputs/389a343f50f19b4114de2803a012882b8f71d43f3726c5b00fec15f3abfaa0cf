@@ -1,0 +1,712 @@
+name: techvault-runtime-parity
+description: TechVault webapp runtime facts used to exercise RAES SDL runtime inventory
+  parity.
+nodes:
+  techvault-webapp:
+    type: compute
+    source:
+      name: techvault-webapp
+      version: local
+      build:
+        base_image: python:3.12-slim
+        base_image_digest: sha256:0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70819a2b3c4d5e6f70819a2b3c4d5e6f7
+        dockerfile_path: containers/webapp/Dockerfile
+        instructions:
+        - instruction: from
+          arguments:
+          - python:3.12-slim
+        - instruction: arg
+          arguments:
+          - APP_VERSION
+        - instruction: workdir
+          arguments:
+          - /app
+        - instruction: copy
+          arguments:
+          - webapp/requirements.txt
+          - /app/requirements.txt
+        - instruction: run
+          arguments:
+          - pip install --no-cache-dir -r /app/requirements.txt
+        - instruction: copy
+          arguments:
+          - webapp/
+          - /app/
+        - instruction: copy
+          arguments:
+          - supervisor/webapp.conf
+          - /etc/supervisor/conf.d/webapp.conf
+        - instruction: copy
+          arguments:
+          - docker/entrypoint.sh
+          - /entrypoint.sh
+        - instruction: expose
+          arguments:
+          - '8080'
+        - instruction: entrypoint
+          arguments:
+          - /entrypoint.sh
+        - instruction: cmd
+          arguments:
+          - supervisord
+          - -n
+          - -c
+          - /etc/supervisor/supervisord.conf
+        layers:
+        - digest: sha256:11ab22cd33ef44ab55cd66ef77ab88cd99ef00ab11cd22ef33ab44cd55ef66ab
+          created_by: FROM python:3.12-slim
+          size: 122683392
+        - digest: sha256:22bc33de44fa55bc66de77fa88bc99de00fa11bc22de33fa44bc55de66fa77bc
+          created_by: RUN pip install --no-cache-dir -r /app/requirements.txt
+          size: 18472960
+        - created_by: ENV APP_HOME=/app
+          empty: true
+        build_args:
+        - name: APP_VERSION
+          value: 2.4.0
+          value_classification: plain
+          description: Build-time application version stamped into the image.
+        - name: PIP_INDEX_TOKEN
+          value_classification: redacted
+          description: Private index credential supplied at build time and not retained
+            in the image.
+        copied_sources:
+        - source_path: webapp/requirements.txt
+          destination_path: /app/requirements.txt
+        - source_path: webapp/app.py
+          destination_path: /app/app.py
+        - source_path: webapp/static/style.css
+          destination_path: /app/static/style.css
+        - source_path: webapp/templates/index.html
+          destination_path: /app/templates/index.html
+        - source_path: supervisor/webapp.conf
+          destination_path: /etc/supervisor/conf.d/webapp.conf
+        - source_path: docker/entrypoint.sh
+          destination_path: /entrypoint.sh
+        config:
+          entrypoint:
+          - /entrypoint.sh
+          command:
+          - supervisord
+          - -n
+          - -c
+          - /etc/supervisor/supervisord.conf
+          working_directory: /app
+          exposed_ports:
+          - 8080/tcp
+          labels:
+            org.opencontainers.image.title: TechVault Webapp
+            org.opencontainers.image.source: https://example.test/techvault/webapp
+            com.techvault.tier: webapp
+          default_environment:
+          - name: APP_HOME
+            value: /app
+            value_classification: plain
+          - name: PYTHONUNBUFFERED
+            value: '1'
+            value_classification: plain
+        source_inputs:
+        - identifier: webapp-app
+          source_path: webapp/app.py
+          destination_path: /app/app.py
+          checksum: ${app_py_sha256}
+          checksum_algorithm: sha256
+        - identifier: webapp-requirements
+          source_path: webapp/requirements.txt
+          destination_path: /app/requirements.txt
+          checksum: ${requirements_sha256}
+          checksum_algorithm: sha256
+        - identifier: webapp-style
+          source_path: webapp/static/style.css
+          destination_path: /app/static/style.css
+          checksum: ${style_css_sha256}
+          checksum_algorithm: sha256
+        - identifier: supervisor-webapp-conf
+          source_path: supervisor/webapp.conf
+          destination_path: /etc/supervisor/conf.d/webapp.conf
+          checksum: ${webapp_conf_sha256}
+          checksum_algorithm: sha256
+        attestation:
+          status: absent
+          verification: not_applicable
+          attestation_type: none
+          description: The mutable local image tag has no registry-visible OCI, in-toto,
+            or SLSA attestation; absence of attestation is recorded as a distinct
+            fact from a failed verification.
+        description: Observed build recipe and provenance for the TechVault webapp
+          image.
+    resources:
+      ram: 1073741824
+      cpu: 1
+    os: linux
+    services:
+    - port: 8080
+      protocol: tcp
+      name: techvault-http
+      description: Gunicorn-served TechVault Flask application.
+    runtime:
+      mounts:
+      - target: /var/log/gunicorn
+        source: techvault_gunicorn_logs
+        source_kind: volume
+        filesystem_type: ext4
+        read_only: false
+        options:
+        - rw
+        - nosuid
+        propagation: rprivate
+        stability: volume_backed
+        backend_generated: true
+        description: Runtime volume state for Gunicorn logs.
+      filesystem_inventory:
+      - path: /app/app.py
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0644'
+        size: 14896
+        content_digest: ${app_py_sha256}
+        digest_algorithm: sha256
+        source_path: webapp/app.py
+        provenance: techvault-source-package
+        stability: stable
+        sensitivity: plain
+      - path: /app/requirements.txt
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0644'
+        size: 312
+        content_digest: ${requirements_sha256}
+        digest_algorithm: sha256
+        source_path: webapp/requirements.txt
+        provenance: techvault-source-package
+        stability: stable
+        sensitivity: plain
+      - path: /app/static/style.css
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0644'
+        size: 8192
+        content_digest: ${style_css_sha256}
+        digest_algorithm: sha256
+        source_path: webapp/static/style.css
+        provenance: techvault-source-package
+        stability: stable
+        sensitivity: plain
+      - path: /app/templates/index.html
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0644'
+        source_path: webapp/templates/index.html
+        provenance: techvault-source-package
+        stability: stable
+        sensitivity: plain
+      - path: /etc/supervisor/conf.d/webapp.conf
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0644'
+        content_digest: ${webapp_conf_sha256}
+        digest_algorithm: sha256
+        source_path: supervisor/webapp.conf
+        provenance: image-configuration
+        stability: stable
+        sensitivity: plain
+      - path: /etc/rsyslog.d/80-gunicorn.conf
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0644'
+        source_path: rsyslog/80-gunicorn.conf
+        provenance: image-configuration
+        stability: stable
+        sensitivity: plain
+      - path: /etc/rsyslog.d/90-forward.conf
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0644'
+        source_path: rsyslog/90-forward.conf
+        provenance: image-configuration
+        stability: stable
+        sensitivity: plain
+      - path: /entrypoint.sh
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0755'
+        source_path: docker/entrypoint.sh
+        provenance: image-configuration
+        stability: stable
+        sensitivity: plain
+      - path: /opt/aptl/wazuh
+        entry_type: directory
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0755'
+        provenance: image-configuration
+        stability: stable
+        sensitivity: plain
+      - path: /var/ossec/etc/ossec.conf
+        entry_type: file
+        owner_user: root
+        owner_group: root
+        uid: 0
+        gid: 0
+        mode: '0640'
+        content_digest: ${wazuh_conf_sha256}
+        digest_algorithm: sha256
+        source_path: wazuh/ossec.conf
+        provenance: image-configuration
+        stability: stable
+        sensitivity: plain
+      - path: /var/log/gunicorn/access.log
+        entry_type: file
+        owner_user: root
+        owner_group: adm
+        uid: 0
+        gid: 4
+        mode: '0640'
+        provenance: runtime
+        stability: log
+        sensitivity: operator_secret
+      processes:
+      - name: supervisord
+        pid: 1
+        command:
+        - supervisord -n -c /etc/supervisor/supervisord.conf
+        role: supervisor
+        user: root
+        group: root
+        working_directory: /
+      - name: gunicorn
+        parent_pid: 1
+        command:
+        - gunicorn
+        - app:app
+        - --bind
+        - 0.0.0.0:8080
+        role: worker
+        user: root
+        group: root
+      - name: wazuh-agentd
+        parent_pid: 1
+        command_redacted: true
+        role: agent
+        user: root
+        group: ossec
+      environment:
+      - name: TECHVAULT_ADMIN_PASSWORD
+        value_classification: redacted
+        provenance: operator
+      - name: SCENARIO_FIXTURE_TOKEN
+        value_classification: secret_fixture
+        provenance: compose
+      linux_capabilities:
+        required:
+        - CAP_NET_BIND_SERVICE
+        effective:
+        - CAP_CHOWN
+        - CAP_DAC_OVERRIDE
+        - CAP_NET_BIND_SERVICE
+        process_overrides:
+        - subject:
+            name: gunicorn
+            parent_pid: 1
+          scope: subtree
+          drop:
+          - CAP_CHOWN
+          description: gunicorn worker subtree cannot relabel log files
+      operational_policy:
+        restart: unless_stopped
+        resource_limits:
+          memory: 536870912
+          pids: 128
+      container:
+        entrypoint:
+        - /entrypoint.sh
+        command:
+        - supervisord
+        - -n
+        - -c
+        - /etc/supervisor/supervisord.conf
+        log_driver: json-file
+        log_options:
+          max-size: 10m
+          max-file: '3'
+        namespaces:
+          cgroup: private
+          ipc: private
+          pid: private
+          userns: host
+          uts: private
+        privileged: false
+        read_only_rootfs: false
+        publish_all_ports: false
+        autoremove: false
+        shm_size: 67108864
+        masked_paths:
+        - /proc/acpi
+        - /proc/kcore
+        read_only_paths:
+        - /proc/sys
+        - /proc/sysrq-trigger
+        cgroup_parent: /docker
+        runtime_name: runc
+        device_cgroup_rules:
+        - c 1:3 rwm
+        extra_hosts:
+        - hostname: wazuh-manager
+          address: 172.20.0.10
+        dns:
+        - 8.8.8.8
+        dns_options:
+        - ndots:0
+        dns_search:
+        - techvault.local
+        group_add:
+        - adm
+      local_identity:
+        users:
+        - username: root
+          uid: 0
+          primary_gid: 0
+          primary_group: root
+          gecos: root
+          home: /root
+          shell: /bin/bash
+          provenance: image
+          stability: stable
+        - username: www-data
+          uid: 33
+          primary_gid: 33
+          primary_group: www-data
+          gecos: www-data
+          home: /var/www
+          shell: /usr/sbin/nologin
+          no_login: true
+          provenance: image
+          stability: stable
+        - username: messagebus
+          uid: 100
+          primary_gid: 100
+          primary_group: messagebus
+          home: /nonexistent
+          shell: /usr/sbin/nologin
+          no_login: true
+          provenance: package
+          stability: stable
+        - username: Debian-exim
+          uid: 101
+          primary_gid: 101
+          primary_group: Debian-exim
+          home: /var/spool/exim4
+          shell: /usr/sbin/nologin
+          no_login: true
+          provenance: package
+          stability: stable
+        - username: wazuh
+          uid: 999
+          primary_gid: 999
+          primary_group: wazuh
+          gecos: Wazuh agent
+          home: /var/ossec
+          shell: /usr/sbin/nologin
+          supplemental_groups:
+          - adm
+          no_login: true
+          provenance: package
+          stability: stable
+        groups:
+        - name: root
+          gid: 0
+          members:
+          - root
+          provenance: image
+        - name: www-data
+          gid: 33
+          members:
+          - www-data
+          provenance: image
+        - name: adm
+          gid: 4
+          members:
+          - wazuh
+          provenance: image
+        - name: sudo
+          gid: 27
+          members: []
+          provenance: image
+        - name: messagebus
+          gid: 100
+          members: []
+          provenance: package
+        - name: Debian-exim
+          gid: 101
+          members: []
+          provenance: package
+        - name: wazuh
+          gid: 999
+          members:
+          - wazuh
+          provenance: package
+        sudo_rules:
+        - principal: sudo
+          principal_kind: group
+          run_as_users:
+          - ALL
+          run_as_groups:
+          - ALL
+          commands:
+          - ALL
+          host_scope: ALL
+          description: Default Debian sudo-group grant; no member accounts observed
+            in this capture.
+        - principal: wazuh
+          principal_kind: user
+          run_as_users:
+          - root
+          commands:
+          - /usr/bin/systemctl restart wazuh-agent
+          host_scope: ALL
+          nopasswd: true
+          description: NOPASSWD restart grant for the Wazuh agent service.
+        description: Local identity database observed via getent passwd/group inside
+          the webapp container.
+      network:
+        hostname: techvault-webapp
+        domainname: techvault.local
+        endpoints:
+        - network: aptl-dmz
+          ip_address: 172.20.0.20
+          ip_prefix_length: 24
+          gateway: 172.20.0.1
+          mac_address: 02:42:ac:14:00:14
+          aliases:
+          - aptl-webapp
+          - webapp
+          dns_names:
+          - aptl-webapp
+          - webapp
+          backend:
+            driver: bridge
+            ipam_driver: default
+            driver_options:
+              com.docker.network.bridge.name: br-aptl-dmz
+            ipam_options:
+              com.docker.network.driver.mtu: '1500'
+            description: Docker bridge network backing the TechVault DMZ.
+        - network: aptl-internal
+          ip_address: 172.21.0.20
+          ip_prefix_length: 24
+          gateway: 172.21.0.1
+          mac_address: 02:42:ac:15:00:14
+          aliases:
+          - aptl-webapp
+          - webapp
+          dns_names:
+          - aptl-webapp
+          - webapp
+          backend:
+            driver: bridge
+            ipam_driver: default
+            driver_options:
+              com.docker.network.bridge.name: br-aptl-internal
+        published_ports:
+        - container_port: 8080
+          protocol: tcp
+          host_ip: 0.0.0.0
+          host_port: 8080
+          description: Webapp HTTP port published from the container to the host.
+        description: Container network realization observed by harness inspection
+          of the webapp container.
+      applications:
+      - application_id: techvault-webapp
+        service: techvault-http
+        protocol: http
+        name: TechVault Webapp
+        base_path: /
+        framework: flask
+        description: Participant-observable Flask route surface of the TechVault webapp,
+          observed from containers/webapp/app/app.py, templates, and static assets.
+        routes:
+        - route_id: index
+          path: /
+          methods:
+          - GET
+          name: index
+          description: Landing page rendered from the index template.
+          auth_required: false
+          session_required: false
+          responses:
+          - status_code: 200
+            content_type: text/html
+          templates:
+          - /app/templates/index.html
+          static_assets:
+          - /app/static/style.css
+        - route_id: login
+          path: /login
+          methods:
+          - GET
+          - POST
+          name: login
+          description: Form-based login; establishes the session on success.
+          auth_required: false
+          auth_scheme: form_login
+          session_required: false
+          parameters:
+          - name: username
+            location: form
+            required: true
+            data_type: string
+          - name: password
+            location: form
+            required: true
+            data_type: string
+          responses:
+          - status_code: 200
+            content_type: text/html
+            description: Login form, or form re-rendered with an error.
+          - status_code: 302
+            content_type: text/html
+            description: Redirect to the dashboard on successful login.
+          templates:
+          - /app/templates/index.html
+          static_assets:
+          - /app/static/style.css
+          redirects:
+          - target: /dashboard
+            status_code: 302
+            condition: valid credentials accepted
+        - route_id: file-upload
+          path: /files/upload
+          methods:
+          - POST
+          name: file_upload
+          description: Accepts an uploaded document; the endpoint stores files without
+            restricting type or destination path.
+          auth_required: true
+          session_required: true
+          parameters:
+          - name: document
+            location: uploaded_file
+            required: true
+            data_type: file
+          responses:
+          - status_code: 302
+            content_type: text/html
+        - route_id: file-download
+          path: /files/<file_id>
+          methods:
+          - GET
+          name: file_download
+          description: Returns a previously uploaded file by identifier.
+          auth_required: true
+          session_required: true
+          parameters:
+          - name: file_id
+            location: path
+            required: true
+            data_type: string
+          responses:
+          - status_code: 200
+            content_type: application/octet-stream
+          - status_code: 404
+            content_type: text/html
+        - route_id: diagnostics
+          path: /debug/info
+          methods:
+          - GET
+          name: debug_info
+          description: Intentionally exposed diagnostic endpoint left enabled in the
+            range fixture image.
+          auth_required: false
+          session_required: false
+          responses:
+          - status_code: 200
+            content_type: application/json
+          disclosures:
+          - trigger: any request to the diagnostic endpoint
+            status_code: 200
+            disclosure: installed package versions, container hostname, and app root
+              path
+            sensitivity: plain
+          - trigger: unhandled application exception
+            status_code: 500
+            disclosure: Python traceback with internal file paths
+            sensitivity: plain
+          exposed_fields:
+          - name: build_token
+            sensitivity: secret_fixture
+            value: techvault-fixture-build-token
+            description: Fixture build token deliberately exposed for range exercises.
+          - name: operator_api_key
+            sensitivity: redacted
+            description: Operator API key referenced by the endpoint but withheld
+              from SDL.
+  aptl-dmz:
+    type: switch
+    description: TechVault DMZ container network (Docker bridge aptl_aptl-dmz).
+  aptl-internal:
+    type: switch
+    description: TechVault internal container network (Docker bridge aptl_aptl-internal).
+infrastructure:
+  techvault-webapp:
+    links:
+    - aptl-dmz
+    - aptl-internal
+  aptl-dmz:
+    properties:
+      cidr: 172.20.0.0/24
+      gateway: 172.20.0.1
+      internal: false
+  aptl-internal:
+    properties:
+      cidr: 172.21.0.0/24
+      gateway: 172.21.0.1
+      internal: true
+variables:
+  app_py_sha256:
+    type: string
+    description: SHA-256 digest observed for /app/app.py in the runtime capture.
+    required: true
+  requirements_sha256:
+    type: string
+    description: SHA-256 digest observed for /app/requirements.txt in the runtime
+      capture.
+    required: true
+  style_css_sha256:
+    type: string
+    description: SHA-256 digest observed for /app/static/style.css in the runtime
+      capture.
+    required: true
+  webapp_conf_sha256:
+    type: string
+    description: SHA-256 digest observed for /etc/supervisor/conf.d/webapp.conf.
+    required: true
+  wazuh_conf_sha256:
+    type: string
+    description: SHA-256 digest observed for /var/ossec/etc/ossec.conf.
+    required: true

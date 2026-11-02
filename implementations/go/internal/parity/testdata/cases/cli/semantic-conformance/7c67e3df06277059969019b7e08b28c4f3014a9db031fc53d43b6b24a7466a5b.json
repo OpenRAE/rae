@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "runtime-snapshot-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "411eddfa24978b045e5333762b67848367dbc888e26e3b8be06888b0c3cd37c6"
+  },
+  "name": "contracts/fixtures/snapshots/runtime-snapshot-v1/valid/realization-provenance",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "runtime-snapshot-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": true,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scenario-satisfiability-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2d54ecb4a7be4fa43f559504a87337a09165d0b78d2d566a9a8f45a918440689"
+  },
+  "name": "contracts/fixtures/satisfiability/scenario-satisfiability-evidence-v1/invalid/cross-outcome-payload",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

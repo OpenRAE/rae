@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "e198c6d4622178d2b14c4f666aff36547d002ea2621b228997340029b4f5638c"
+  },
+  "name": "contracts/fixtures/backend-manifest/backend-manifest-v2/invalid/empty-compatibility",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "db28ed06c93e6f3238bd688a1bc7b7345fea85f1d83f9ad380f47376eeb4a2a2"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/cases/rename-composed-reference",
+  "result": {
+    "jcs": "sha256:f3ed1579be4367116956527e743c983686cce58731a90e089a31bba6d7088d18",
+    "sorted_ascii": "sha256:f3ed1579be4367116956527e743c983686cce58731a90e089a31bba6d7088d18",
+    "sorted_unicode": "sha256:f3ed1579be4367116956527e743c983686cce58731a90e089a31bba6d7088d18"
+  },
+  "surface": "canonical"
+}

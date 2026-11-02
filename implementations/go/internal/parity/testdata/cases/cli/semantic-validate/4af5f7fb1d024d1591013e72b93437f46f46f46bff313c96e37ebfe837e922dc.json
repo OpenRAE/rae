@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "workflow-history-event-stream-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "6249f87ce06d5233fe21341dec43bfbbd4353523ffaeda8c1c9ceed303faba4e"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-history-event-stream-v1/valid/started",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "workflow-history-event-stream-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": true,
+        "member_count": 1,
+        "phase": "contract-admission",
+        "root_type": "array"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

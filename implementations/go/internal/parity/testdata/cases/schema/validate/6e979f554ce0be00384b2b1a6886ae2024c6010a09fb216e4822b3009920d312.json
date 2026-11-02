@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-candidate-synthesis-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "17cbc87785f899160f7d2e5d431e5a917f23392eb7572e2f794ced067ca06694"
+  },
+  "name": "contracts/fixtures/candidate-synthesis/sdl-candidate-synthesis-record-v1/valid/nist-csf",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

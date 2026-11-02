@@ -1,0 +1,45 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "validation-basis-disclosure-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "a3c1f17f282e305affa6bf9e6a2fd3e19556fa189cc184e15d8b9b58d30b6ae5"
+  },
+  "name": "contracts/fixtures/profiles/validation-basis-disclosure-v1/valid/evidence-backed-run",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "validation-basis-disclosure-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 2,
+        "members": [
+          "disclosure",
+          "schema_version"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

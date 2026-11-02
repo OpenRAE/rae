@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6c1c0dd010ab629d375f6200854ad1e5de5d715b91e0179366f9a5d3bca66b18"
+  },
+  "name": "contracts/fixtures/profiles/random-stream-profile-v1/valid/blake3-xof-v1",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

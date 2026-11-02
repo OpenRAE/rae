@@ -1,0 +1,30 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "invalid-stratified",
+  "spec_version": "1.0.0",
+  "title": "Invalid stratified policy",
+  "description": "Stratified selection needs declared outcomes.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop."
+    },
+    "target_run_count": 1,
+    "selection_policies": {
+      "stratified": {
+        "kind": "stratified",
+        "policy_id": "stratified",
+        "purpose": "nuisance-variation",
+        "point_ref": "payload-host",
+        "balance": "equal",
+        "outcomes": {},
+        "strata": {},
+        "output_bound": 1
+      }
+    }
+  }
+}

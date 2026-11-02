@@ -1,0 +1,46 @@
+{
+  "schema_version": "mixed-backend-stage-report/v1",
+  "binding": {
+    "operation_id": "operation:mixed-handoff-stale",
+    "invocation_id": "invocation:mixed-handoff-stale",
+    "attempt_id": "attempt:1",
+    "worker_id": "worker:effects-1",
+    "deployment_id": "deployment:reference",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "transfer:native-ownership",
+    "baseline_revision": "revision:7",
+    "context": {
+      "actor_id": "operator:mixed",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:mixed",
+      "run_scope": "run:mixed",
+      "operation_kind": "composition-phase",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "request_digest": "sha256:07730d4dac0ef09031fce515a014fd45252ee137a1c82c0718e17d667e1fca32",
+  "sequence": 3,
+  "stage": {
+    "stage": "owner-readback",
+    "producer": {
+      "service_ref": "reader:native-owner",
+      "version": "1",
+      "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "owner_component_id": "sim",
+    "owner_ref": "native-ownership:sim",
+    "phase_revision": 0,
+    "evidence_refs": [
+      "evidence:owner-readback:sim"
+    ]
+  }
+}

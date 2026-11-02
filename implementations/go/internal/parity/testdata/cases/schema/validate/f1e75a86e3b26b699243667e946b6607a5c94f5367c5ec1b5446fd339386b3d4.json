@@ -1,0 +1,14 @@
+{
+  "args": [
+    "proposition-truth-result-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2b1ae5cd49e28a8e1301a5d39e8302eb262f387e70c754904a7bc42f8a8bad0e"
+  },
+  "name": "contracts/fixtures/control-plane/proposition-truth-result-v1/valid/equivalent-range-b",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

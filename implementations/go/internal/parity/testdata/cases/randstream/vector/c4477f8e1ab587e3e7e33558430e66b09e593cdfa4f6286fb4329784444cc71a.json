@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "vector",
+  "files": {
+    "vector.json": "018b93fb59a5dfdaff11c00c4e36bd0002cac186b10133e217d32a6756233a6f"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/wide-exhaustion",
+  "result": {
+    "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226f74686572222c226c6f63616c5f636f6f7264696e617465223a332c226e616d657370616365223a226e222c2273656c656374696f6e5f706f6c6963795f6964223a2270222c22747269616c5f636f6f7264696e617465223a7b7d2c22766172696174696f6e5f706f696e745f6964223a2276227d",
+    "draw": {
+      "rejection_attempts": 1,
+      "rejection_exhausted": true,
+      "value": null
+    },
+    "raw_block_hex": "aa763c568aad2d967431fb76b8ff60b025138d406238518740b14f5206921b67",
+    "stream_key_hex": "39a7b17cae76d0fc6cb1570061a75120f2b674895df48587c4d82853906866fd"
+  },
+  "surface": "randstream"
+}

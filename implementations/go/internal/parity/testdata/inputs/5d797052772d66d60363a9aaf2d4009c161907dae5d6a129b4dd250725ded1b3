@@ -1,0 +1,45 @@
+[
+  {
+    "event_type": "action_attempted",
+    "timestamp": "2026-04-11T10:00:00Z",
+    "participant_address": "participant.alice",
+    "episode_id": "ep-0001",
+    "action_instance_id": "act-0001",
+    "action_contract_address": "participant.action-contract.submit-finding",
+    "observation_boundary_address": null,
+    "observation_status": null,
+    "actor_provenance": "participant.alice",
+    "state_transition_kind": null,
+    "post_state_digest": null,
+    "details": {}
+  },
+  {
+    "event_type": "state_transition_recorded",
+    "timestamp": "2026-04-11T10:00:01Z",
+    "participant_address": "participant.alice",
+    "episode_id": "ep-0001",
+    "action_instance_id": "act-0001",
+    "action_contract_address": "participant.action-contract.submit-finding",
+    "observation_boundary_address": null,
+    "observation_status": null,
+    "actor_provenance": null,
+    "state_transition_kind": "finding-recorded",
+    "post_state_digest": "sha256:0123456789abcdef",
+    "details": {}
+  },
+  {
+    "event_type": "observation_emitted",
+    "timestamp": "2026-04-11T10:00:02Z",
+    "participant_address": "participant.alice",
+    "episode_id": "ep-0001",
+    "action_instance_id": "act-0001",
+    "action_contract_address": "participant.action-contract.submit-finding",
+    "observation_boundary_address": "participant.observation-boundary.challenge-log",
+    "observation_status": "terminal",
+    "actor_provenance": null,
+    "state_transition_kind": null,
+    "post_state_digest": "sha256:0123456789abcdef",
+    "details": {},
+    "unknown_field": "rejected by closed-world schema"
+  }
+]

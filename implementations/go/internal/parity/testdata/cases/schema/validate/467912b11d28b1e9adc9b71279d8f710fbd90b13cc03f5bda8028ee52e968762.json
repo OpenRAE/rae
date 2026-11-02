@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "73c1bcd6adfc5220cda43bfce86751b6daf09b5f6633a2cbf6f24efb3d21df01"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/invalid/replacement-duplicate-triggers",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

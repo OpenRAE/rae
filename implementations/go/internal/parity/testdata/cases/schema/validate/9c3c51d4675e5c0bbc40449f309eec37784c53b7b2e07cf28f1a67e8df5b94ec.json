@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-participant-composition-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "a0544f780bab61731ba0f364caf4cecc92837587c435c05d5556e7f41f73be19"
+  },
+  "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/staged-unadmitted-member",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

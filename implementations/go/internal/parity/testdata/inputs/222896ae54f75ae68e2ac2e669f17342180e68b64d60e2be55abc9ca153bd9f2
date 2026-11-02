@@ -1,0 +1,580 @@
+{
+  "apparatus_intent": {
+    "allowed_backend_refs": [],
+    "allowed_processor_refs": [],
+    "notes": [
+      "Any backend that realizes evaluation-results may execute this design."
+    ],
+    "required_capabilities": [
+      "workflow-results",
+      "evaluation-results"
+    ],
+    "required_manifest_refs": []
+  },
+  "artifact_refs": [],
+  "binding_descriptors": {
+    "descriptors": [
+      {
+        "binding_id": "binding-532d1191e47135d3c290e30e6ab7ca629fa4c66d532113d762f4e60873a31277",
+        "owner": {
+          "contract_id": "participant-configuration-result-v1",
+          "contract_version": "1",
+          "validator_id": "participant-config",
+          "validator_version": "1"
+        },
+        "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+        "source_factor_id": "agent",
+        "source_factor_level_id": "cold",
+        "target": {
+          "implementation_name": "reference-agent",
+          "implementation_version": "1.0.0",
+          "manifest_version": "participant-implementation-manifest/v1",
+          "participant_address": "agents.red",
+          "plane": "participant-implementation",
+          "target_id": "policy.temperature"
+        },
+        "value": {
+          "kind": "literal",
+          "value": 0.0
+        },
+        "value_type": "number"
+      },
+      {
+        "binding_id": "binding-575699faa1114b8786bba5f4cb60f5eec52187e3d76c93325fdc48141d89bf6d",
+        "owner": {
+          "contract_id": "participant-configuration-result-v1",
+          "contract_version": "1",
+          "validator_id": "participant-config",
+          "validator_version": "1"
+        },
+        "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+        "source_factor_id": "agent",
+        "source_factor_level_id": "warm",
+        "target": {
+          "implementation_name": "reference-agent",
+          "implementation_version": "1.0.0",
+          "manifest_version": "participant-implementation-manifest/v1",
+          "participant_address": "agents.red",
+          "plane": "participant-implementation",
+          "target_id": "policy.temperature"
+        },
+        "value": {
+          "kind": "literal",
+          "value": 1.0
+        },
+        "value_type": "number"
+      },
+      {
+        "binding_id": "binding-9ba38d23ca27a0009ace9ef8193b109838c13b652eb8f7466ba0d4aaa9825499",
+        "owner": {
+          "contract_id": "participant-configuration-result-v1",
+          "contract_version": "1",
+          "validator_id": "participant-config",
+          "validator_version": "1"
+        },
+        "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+        "source_factor_id": "agent",
+        "source_factor_level_id": "cold",
+        "target": {
+          "implementation_name": "reference-agent",
+          "implementation_version": "1.0.0",
+          "manifest_version": "participant-implementation-manifest/v1",
+          "participant_address": "agents.red",
+          "plane": "participant-implementation",
+          "target_id": "policy.temperature"
+        },
+        "value": {
+          "kind": "literal",
+          "value": 0.0
+        },
+        "value_type": "number"
+      },
+      {
+        "binding_id": "binding-d92486910cc5324a32aff200641f347eafb212031061039a78d48f744c4bfd37",
+        "owner": {
+          "contract_id": "participant-configuration-result-v1",
+          "contract_version": "1",
+          "validator_id": "participant-config",
+          "validator_version": "1"
+        },
+        "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+        "source_factor_id": "agent",
+        "source_factor_level_id": "warm",
+        "target": {
+          "implementation_name": "reference-agent",
+          "implementation_version": "1.0.0",
+          "manifest_version": "participant-implementation-manifest/v1",
+          "participant_address": "agents.red",
+          "plane": "participant-implementation",
+          "target_id": "policy.temperature"
+        },
+        "value": {
+          "kind": "literal",
+          "value": 1.0
+        },
+        "value_type": "number"
+      }
+    ],
+    "schema_version": "experiment-binding-descriptors/v1"
+  },
+  "binding_semantics": "explicit-required",
+  "capture_spec_refs": [
+    {
+      "ref_id": "capture-techvault-evidence-v1",
+      "ref_kind": "capture-spec",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
+  "factorial_design": {
+    "condition_bound": 4,
+    "factor_ids": [
+      "agent",
+      "path"
+    ],
+    "level_effects": {
+      "agent": {
+        "cold": {
+          "bindings": [
+            {
+              "owner": {
+                "contract_id": "participant-configuration-result-v1",
+                "contract_version": "1",
+                "validator_id": "participant-config",
+                "validator_version": "1"
+              },
+              "target": {
+                "implementation_name": "reference-agent",
+                "implementation_version": "1.0.0",
+                "manifest_version": "participant-implementation-manifest/v1",
+                "participant_address": "agents.red",
+                "plane": "participant-implementation",
+                "target_id": "policy.temperature"
+              },
+              "value": {
+                "kind": "literal",
+                "value": 0.0
+              },
+              "value_type": "number"
+            }
+          ],
+          "selections": []
+        },
+        "warm": {
+          "bindings": [
+            {
+              "owner": {
+                "contract_id": "participant-configuration-result-v1",
+                "contract_version": "1",
+                "validator_id": "participant-config",
+                "validator_version": "1"
+              },
+              "target": {
+                "implementation_name": "reference-agent",
+                "implementation_version": "1.0.0",
+                "manifest_version": "participant-implementation-manifest/v1",
+                "participant_address": "agents.red",
+                "plane": "participant-implementation",
+                "target_id": "policy.temperature"
+              },
+              "value": {
+                "kind": "literal",
+                "value": 1.0
+              },
+              "value_type": "number"
+            }
+          ],
+          "selections": []
+        }
+      },
+      "path": {
+        "a": {
+          "bindings": [],
+          "selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "absent"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        },
+        "b": {
+          "bindings": [],
+          "selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "with-jobs"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "profile": "factorial-treatments-v1",
+    "target_runs_per_condition": 2
+  },
+  "factors": {
+    "agent": {
+      "factor_kind": "treatment",
+      "levels": [
+        "cold",
+        "warm"
+      ],
+      "name": "Agent temperature"
+    },
+    "path": {
+      "factor_kind": "treatment",
+      "levels": [
+        "a",
+        "b"
+      ],
+      "name": "Payload path"
+    }
+  },
+  "intended_scenario_ref": {
+    "ref_digest": null,
+    "ref_id": "compiler-family",
+    "ref_kind": "scenario",
+    "ref_path": null,
+    "ref_version": null
+  },
+  "run_plan": {
+    "allocation": {
+      "allocation_method": "factorial-treatments-v1",
+      "allocation_unit": "run",
+      "blocking_factors": [],
+      "compared_conditions": [
+        "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+        "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+        "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+        "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56"
+      ],
+      "condition_assignments": {
+        "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c": {
+          "condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+          "description": null,
+          "difficulty_condition": "fixed",
+          "difficulty_policy_id": null,
+          "factor_levels": {
+            "agent": "warm",
+            "path": "a"
+          },
+          "required_bindings": [
+            {
+              "binding_id": "binding-575699faa1114b8786bba5f4cb60f5eec52187e3d76c93325fdc48141d89bf6d",
+              "owner": {
+                "contract_id": "participant-configuration-result-v1",
+                "contract_version": "1",
+                "validator_id": "participant-config",
+                "validator_version": "1"
+              },
+              "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+              "source_factor_id": "agent",
+              "source_factor_level_id": "warm",
+              "target": {
+                "implementation_name": "reference-agent",
+                "implementation_version": "1.0.0",
+                "manifest_version": "participant-implementation-manifest/v1",
+                "participant_address": "agents.red",
+                "plane": "participant-implementation",
+                "target_id": "policy.temperature"
+              },
+              "value": {
+                "kind": "literal",
+                "value": 1.0
+              },
+              "value_type": "number"
+            }
+          ],
+          "required_parameters": [],
+          "required_refs": [],
+          "required_selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "absent"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "selection_id": "selection-63a151af87ec3233549956ca21edbae01de381a0301fdb6ff0d504bf8bc8a8bc",
+              "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+              "source_factor_id": "path",
+              "source_factor_level_id": "a",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        },
+        "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80": {
+          "condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+          "description": null,
+          "difficulty_condition": "fixed",
+          "difficulty_policy_id": null,
+          "factor_levels": {
+            "agent": "cold",
+            "path": "a"
+          },
+          "required_bindings": [
+            {
+              "binding_id": "binding-532d1191e47135d3c290e30e6ab7ca629fa4c66d532113d762f4e60873a31277",
+              "owner": {
+                "contract_id": "participant-configuration-result-v1",
+                "contract_version": "1",
+                "validator_id": "participant-config",
+                "validator_version": "1"
+              },
+              "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+              "source_factor_id": "agent",
+              "source_factor_level_id": "cold",
+              "target": {
+                "implementation_name": "reference-agent",
+                "implementation_version": "1.0.0",
+                "manifest_version": "participant-implementation-manifest/v1",
+                "participant_address": "agents.red",
+                "plane": "participant-implementation",
+                "target_id": "policy.temperature"
+              },
+              "value": {
+                "kind": "literal",
+                "value": 0.0
+              },
+              "value_type": "number"
+            }
+          ],
+          "required_parameters": [],
+          "required_refs": [],
+          "required_selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "absent"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "selection_id": "selection-c5eb0b62b41fd17df0759ed0433bdf76cdcd06437683ffede7b2421cbd8f2851",
+              "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+              "source_factor_id": "path",
+              "source_factor_level_id": "wrong-level",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        },
+        "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6": {
+          "condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+          "description": null,
+          "difficulty_condition": "fixed",
+          "difficulty_policy_id": null,
+          "factor_levels": {
+            "agent": "cold",
+            "path": "b"
+          },
+          "required_bindings": [
+            {
+              "binding_id": "binding-9ba38d23ca27a0009ace9ef8193b109838c13b652eb8f7466ba0d4aaa9825499",
+              "owner": {
+                "contract_id": "participant-configuration-result-v1",
+                "contract_version": "1",
+                "validator_id": "participant-config",
+                "validator_version": "1"
+              },
+              "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+              "source_factor_id": "agent",
+              "source_factor_level_id": "cold",
+              "target": {
+                "implementation_name": "reference-agent",
+                "implementation_version": "1.0.0",
+                "manifest_version": "participant-implementation-manifest/v1",
+                "participant_address": "agents.red",
+                "plane": "participant-implementation",
+                "target_id": "policy.temperature"
+              },
+              "value": {
+                "kind": "literal",
+                "value": 0.0
+              },
+              "value_type": "number"
+            }
+          ],
+          "required_parameters": [],
+          "required_refs": [],
+          "required_selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "with-jobs"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "selection_id": "selection-0b66c41eb48ebbecf0ff30a64cb316afa07f92c356584cbfd63d93745ffc5102",
+              "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+              "source_factor_id": "path",
+              "source_factor_level_id": "b",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        },
+        "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56": {
+          "condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+          "description": null,
+          "difficulty_condition": "fixed",
+          "difficulty_policy_id": null,
+          "factor_levels": {
+            "agent": "warm",
+            "path": "b"
+          },
+          "required_bindings": [
+            {
+              "binding_id": "binding-d92486910cc5324a32aff200641f347eafb212031061039a78d48f744c4bfd37",
+              "owner": {
+                "contract_id": "participant-configuration-result-v1",
+                "contract_version": "1",
+                "validator_id": "participant-config",
+                "validator_version": "1"
+              },
+              "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+              "source_factor_id": "agent",
+              "source_factor_level_id": "warm",
+              "target": {
+                "implementation_name": "reference-agent",
+                "implementation_version": "1.0.0",
+                "manifest_version": "participant-implementation-manifest/v1",
+                "participant_address": "agents.red",
+                "plane": "participant-implementation",
+                "target_id": "policy.temperature"
+              },
+              "value": {
+                "kind": "literal",
+                "value": 1.0
+              },
+              "value_type": "number"
+            }
+          ],
+          "required_parameters": [],
+          "required_refs": [],
+          "required_selections": [
+            {
+              "outcome": {
+                "kind": "member",
+                "member_id": "with-jobs"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "raes-selected-scenario",
+                "validator_version": "1"
+              },
+              "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "selection_id": "selection-e0fae2ac6c2832956dbab72918fadc389b3a96c80de6c75bc728f8bce89aabdb",
+              "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+              "source_factor_id": "path",
+              "source_factor_level_id": "b",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "compiler-family",
+                "target_id": "nodes.worker.presence",
+                "variation_point_id": "worker-presence"
+              }
+            }
+          ]
+        }
+      },
+      "randomization_unit": null,
+      "replication_policy": "equal independent runs",
+      "stopping_rule": null,
+      "target_runs_per_condition": 2
+    },
+    "clock_intent": {
+      "authority": "reference-backend",
+      "clock_id": "sim-clock",
+      "synchronization": null,
+      "time_domain": "simulated"
+    },
+    "difficulty_policy_registry": null,
+    "episode_control": {
+      "description": "Fixed-horizon episode with sequential turns.",
+      "max_steps": 100,
+      "termination_condition_refs": [],
+      "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+      "turn_order": "sequential"
+    },
+    "evidence_requirement_relations": [],
+    "observation_demands": null,
+    "red_variant_selections": {},
+    "selection_policies": {},
+    "stochastic_controls": [],
+    "target_run_count": null
+  },
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "spec-techvault-red-tactic-sweep-v1",
+  "spec_version": "1.0.0",
+  "task_ref": {
+    "ref_id": "task-techvault-red-team-v1",
+    "ref_kind": "task",
+    "ref_version": "1.0.0"
+  },
+  "title": "TechVault red-tactic sweep",
+  "validity_notes": [
+    {
+      "category": "internal",
+      "mitigation": "Record derived seeds in each run's stochastic controls.",
+      "note": "Per-run seeds derive deterministically from the base seed."
+    }
+  ]
+}

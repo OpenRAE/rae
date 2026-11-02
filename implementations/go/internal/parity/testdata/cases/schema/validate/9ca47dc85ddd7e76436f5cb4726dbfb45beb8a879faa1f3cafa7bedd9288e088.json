@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-context-view-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "b52ee4fad934a9c013d43087c1efa3ee5057c33ee0e11c2fea2b7e37653a9dc7"
+  },
+  "name": "contracts/fixtures/control-plane/participant-context-view-v1/invalid/future-state-source-layer",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

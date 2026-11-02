@@ -1,0 +1,5 @@
+name: alias-cycle
+nodes: &nodes
+  switch:
+    type: switch
+    roles: *nodes

@@ -1,0 +1,46 @@
+{
+  "schema_version": "backend-operation-request/v1",
+  "binding": {
+    "operation_id": "operation:mixed-handoff",
+    "invocation_id": "invocation:mixed-handoff",
+    "attempt_id": "attempt:1",
+    "worker_id": "worker:effects-1",
+    "deployment_id": "deployment:reference",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "transfer:native-ownership",
+    "baseline_revision": "revision:7",
+    "context": {
+      "actor_id": "operator:mixed",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:mixed",
+      "run_scope": "run:mixed",
+      "operation_kind": "composition-phase",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "command": {
+    "contract_id": "mixed-backend-execution-binding-v1",
+    "artifact_id": "binding:transition.sim-to-emu",
+    "digest": "sha256:9850e3cca45fb94fd7889d1f247991639daf2d50a49b2f38a897ac3b063f38e9"
+  },
+  "requirement_refs": [],
+  "required_guarantees": [
+    "effect-observation",
+    "cessation-evidence"
+  ],
+  "budget": {
+    "origin_id": "budget:mixed-handoff",
+    "started_at": "2026-10-09T00:00:00Z",
+    "limit_ms": 30000,
+    "remaining_ms": 30000
+  }
+}

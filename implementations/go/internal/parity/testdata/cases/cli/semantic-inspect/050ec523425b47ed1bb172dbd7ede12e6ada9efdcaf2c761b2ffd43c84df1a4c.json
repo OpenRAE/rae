@@ -1,0 +1,345 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "ad6b7716b393b23a64fa82700ef0d2b8d6d28c8347bee48e7f761c4c16791883"
+  },
+  "name": "examples/scenarios/techvault-enterprise-web.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 41,
+        "declarations": [
+          {
+            "address": "conditions.wazuh-manager-health",
+            "kind": "conditions",
+            "model_path": "conditions.wazuh-manager-health",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.techvault-webapp-service",
+            "kind": "features",
+            "model_path": "features.techvault-webapp-service",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.ad",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.ad",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-grafana-otel",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-otel-collector",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.aptl-tempo",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.db",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.dmz-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.dmz-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.internal-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.internal-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.security-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-indexer",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-indexer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.wazuh-manager",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.wazuh-manager",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.webapp",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.webapp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.workstation",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.workstation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad",
+            "kind": "node",
+            "model_path": "nodes.ad",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad.services.kerberos",
+            "kind": "service",
+            "model_path": "nodes.ad.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad.services.ldap",
+            "kind": "service",
+            "model_path": "nodes.ad.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad.services.smb",
+            "kind": "service",
+            "model_path": "nodes.ad.services.2.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel",
+            "kind": "node",
+            "model_path": "nodes.aptl-grafana-otel",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-grafana-otel.services.grafana",
+            "kind": "service",
+            "model_path": "nodes.aptl-grafana-otel.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector",
+            "kind": "node",
+            "model_path": "nodes.aptl-otel-collector",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-grpc",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-otel-collector.services.otlp-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-otel-collector.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo",
+            "kind": "node",
+            "model_path": "nodes.aptl-tempo",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.aptl-tempo.services.tempo-http",
+            "kind": "service",
+            "model_path": "nodes.aptl-tempo.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.db",
+            "kind": "node",
+            "model_path": "nodes.db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.db.services.postgres",
+            "kind": "service",
+            "model_path": "nodes.db.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.dmz-net",
+            "kind": "node",
+            "model_path": "nodes.dmz-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.internal-net",
+            "kind": "node",
+            "model_path": "nodes.internal-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.security-net",
+            "kind": "node",
+            "model_path": "nodes.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-indexer",
+            "kind": "node",
+            "model_path": "nodes.wazuh-indexer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-indexer.services.indexer-api",
+            "kind": "service",
+            "model_path": "nodes.wazuh-indexer.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager",
+            "kind": "node",
+            "model_path": "nodes.wazuh-manager",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.agent-events",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.syslog",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.2.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.wazuh-manager.services.wazuh-api",
+            "kind": "service",
+            "model_path": "nodes.wazuh-manager.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.webapp",
+            "kind": "node",
+            "model_path": "nodes.webapp",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.webapp.services.http",
+            "kind": "service",
+            "model_path": "nodes.webapp.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.workstation",
+            "kind": "node",
+            "model_path": "nodes.workstation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.workstation.services.ssh",
+            "kind": "service",
+            "model_path": "nodes.workstation.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.techvault-enterprise-web",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "techvault-enterprise-web",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "conditions",
+              "features",
+              "infrastructure",
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

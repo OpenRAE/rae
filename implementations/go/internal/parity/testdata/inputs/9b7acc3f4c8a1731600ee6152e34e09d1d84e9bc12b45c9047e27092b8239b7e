@@ -1,0 +1,145 @@
+name: guided-web-probe
+description: A red participant tries to stop one web service while a blue team keeps it online.
+
+nodes:
+  lab-network:
+    type: switch
+  web:
+    type: compute
+    resources:
+      ram: 1 GiB
+      cpu: 1
+    services:
+      - name: http
+        port: 80
+        protocol: tcp
+    conditions:
+      web-alive: operator
+    roles:
+      operator:
+        username: operator
+  workstation:
+    type: compute
+    resources:
+      ram: 1 GiB
+      cpu: 1
+
+infrastructure:
+  lab-network:
+    count: 1
+    properties:
+      cidr: 10.20.0.0/24
+      gateway: 10.20.0.1
+  web:
+    count: 1
+    links:
+      - lab-network
+  workstation:
+    count: 1
+    links:
+      - lab-network
+
+conditions:
+  web-alive:
+    command: curl -sf http://localhost/
+    interval: 15
+    timeout: 5
+
+evidence_requirements:
+  web-health-evidence:
+    description: Keep each result of the web-alive probe.
+    source_refs:
+      - nodes.web
+    scope_refs:
+      - nodes.web.services.http
+    trigger_ref: conditions.web-alive
+    channel: log
+    sensitivity: plain
+    redaction: none
+    integrity: checksum
+    retention: run_lifetime
+    loss_disclosure: required
+
+propositions:
+  web-alive:
+    description: The web service answers HTTP requests.
+    subjects:
+      - nodes.web.services.http
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: service-alive
+      semantic_ref: urn:raes:observable:service-alive
+      operator: equals
+      expected: true
+    evidence_requirements:
+      - web-health-evidence
+
+action_contracts:
+  stop-web:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Send one request that asks the web service to stop.
+    realization_profile: backend-declared
+    fidelity_claim: States intent and expected effect; a backend supplies the mechanism.
+    preconditions:
+      - precondition_id: web-reachable
+        precondition_class: target
+        description: The web service is reachable from the lab network.
+        support_refs:
+          - nodes.web.services.http
+    effects:
+      - effect_id: web-stopped
+        effect_class: intended_effect
+        description: The web service stops answering requests.
+        target_refs:
+          - nodes.web.services.http
+    failure_classes:
+      - target_unavailable
+      - authority_denied
+
+entities:
+  red-team:
+    role: red
+  blue-team:
+    role: blue
+
+agents:
+  red-agent:
+    affiliations:
+      - red-team
+    actions:
+      - stop-web
+    initial_knowledge:
+      hosts:
+        - workstation
+    allowed_subnets:
+      - lab-network
+
+assertions:
+  web-up-at-end:
+    proposition: web-alive
+    role: postcondition
+    polarity: positive
+  web-down-at-end:
+    proposition: web-alive
+    role: postcondition
+    polarity: negative
+
+objectives:
+  take-web-offline:
+    assigned_participant: red-agent
+    actions:
+      - stop-web
+    targets:
+      - nodes.web.services.http
+    success:
+      assertions:
+        - web-down-at-end
+  keep-web-online:
+    owner: blue-team
+    targets:
+      - nodes.web.services.http
+    success:
+      assertions:
+        - web-up-at-end

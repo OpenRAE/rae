@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-trigger-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "789761b4b533f957b285ca0fc390d50b0963f2839733261e9c44bfe332f8a369"
+  },
+  "name": "contracts/fixtures/control-plane/inject-trigger-request-v1/invalid/no-binding",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

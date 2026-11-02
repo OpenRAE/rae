@@ -1,0 +1,53 @@
+{
+  "schema_version": "experiment-authoring-input/v1",
+  "spec_id": "product-selection",
+  "spec_version": "1.0.0",
+  "title": "Cartesian selection",
+  "description": "Take a bounded product over two named deterministic policies.",
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-example",
+    "ref_version": "1.0.0"
+  },
+  "intended_scenario_ref": {
+    "ref_kind": "scenario",
+    "ref_id": "family-example"
+  },
+  "run_plan": {
+    "episode_control": {
+      "turn_order": "sequential",
+      "termination_rule": "Stop after one bounded episode."
+    },
+    "target_run_count": 2,
+    "selection_policies": {
+      "fixed-path": {
+        "kind": "fixed",
+        "policy_id": "fixed-path",
+        "purpose": "fixed-configuration",
+        "point_ref": "payload-path",
+        "outcome": {
+          "kind": "literal",
+          "value": "/opt/a"
+        },
+        "output_bound": 1
+      },
+      "enumerate-host": {
+        "kind": "enumerate",
+        "policy_id": "enumerate-host",
+        "purpose": "nuisance-variation",
+        "point_ref": "payload-host",
+        "output_bound": 2
+      },
+      "path-host-product": {
+        "kind": "product",
+        "policy_id": "path-host-product",
+        "purpose": "nuisance-variation",
+        "policy_refs": [
+          "fixed-path",
+          "enumerate-host"
+        ],
+        "output_bound": 2
+      }
+    }
+  }
+}

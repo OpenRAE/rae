@@ -1,0 +1,54 @@
+{
+  "schema_version": "backend-operation-response/v1",
+  "binding": {
+    "operation_id": "operation:mixed-edge-time-refused",
+    "invocation_id": "invocation:mixed-edge-time-refused",
+    "attempt_id": "attempt:1",
+    "worker_id": "worker:effects-1",
+    "deployment_id": "deployment:reference",
+    "owner_generation": 1,
+    "execution_generation": 1,
+    "backend_id": "route:portable",
+    "baseline_revision": "revision:7",
+    "context": {
+      "actor_id": "operator:mixed",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "target_scope": "target:mixed",
+      "run_scope": "run:mixed",
+      "operation_kind": "participant-crossing",
+      "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parent_operation_id": null
+    },
+    "effect_scope": {
+      "kind": "target-run",
+      "addresses": [],
+      "independence": null
+    }
+  },
+  "request_digest": "sha256:4c682409ce65cf3b1581458b9f18e43a84cadebc4b82753f9c986a70ff10a476",
+  "sequence": 2,
+  "message": {
+    "kind": "outcome",
+    "proposed_state": "failed",
+    "effects": {
+      "effect": "absent",
+      "cessation_established": true,
+      "evidence_refs": [
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "artifact_id": "stage:mixed-edge-time-refused:time-grant",
+          "digest": "sha256:dc2192edba5d414230956ff0882db05354c43e97e2b8f517ee5bd8e29ef22c01"
+        }
+      ],
+      "residual_scope": [],
+      "residual_state": null,
+      "external_fence": null
+    },
+    "satisfaction": "unsatisfied",
+    "release_gates_satisfied": false,
+    "cancellation_established": false,
+    "result": null
+  }
+}

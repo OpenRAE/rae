@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "39b18c5ec05975b3eea12a3b4c61dfae04745bf70507cd8c0cf5998f53c38326"
+  },
+  "name": "contracts/fixtures/processor-manifest/processor-manifest-v2/invalid/empty-compatibility",
+  "result": {
+    "jcs": "sha256:c8bdafcbc6b0f8548bc877688c012207807c5d3804ebc3c7339370092e278d0a",
+    "sorted_ascii": "sha256:c8bdafcbc6b0f8548bc877688c012207807c5d3804ebc3c7339370092e278d0a",
+    "sorted_unicode": "sha256:c8bdafcbc6b0f8548bc877688c012207807c5d3804ebc3c7339370092e278d0a"
+  },
+  "surface": "canonical"
+}

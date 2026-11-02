@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "participant-outcome-report-v2",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "f6493da8ac0fc8a98aec8f8267ca55a62272eacd8d06949f349c9dd5cb09279b"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-outcome-report-v2/valid/unknown-after-success",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "participant-outcome-report-v2",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": true,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

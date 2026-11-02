@@ -1,0 +1,218 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "20d82be186fe2d1a2498690a2132579d3323ae5393c13d1f7f4550ce6eb51c93"
+  },
+  "name": "examples/scenarios/reconciliation-demo-v1.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 22,
+        "declarations": [
+          {
+            "address": "assertions.health",
+            "kind": "assertions",
+            "model_path": "assertions.health",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.pre-health",
+            "kind": "assertions",
+            "model_path": "assertions.pre-health",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.health",
+            "kind": "conditions",
+            "model_path": "conditions.health",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.blue",
+            "kind": "entity",
+            "model_path": "entities.blue",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.kickoff",
+            "kind": "events",
+            "model_path": "events.kickoff",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.database",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.database",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.lab",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.lab",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.retired",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.retired",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.web",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.database",
+            "kind": "node",
+            "model_path": "nodes.database",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.database.roles.ops",
+            "kind": "node-role",
+            "model_path": "nodes.database.roles.ops",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.lab",
+            "kind": "node",
+            "model_path": "nodes.lab",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.retired",
+            "kind": "node",
+            "model_path": "nodes.retired",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.web",
+            "kind": "node",
+            "model_path": "nodes.web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.web.roles.ops",
+            "kind": "node-role",
+            "model_path": "nodes.web.roles.ops",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "objectives.initial",
+            "kind": "objectives",
+            "model_path": "objectives.initial",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "propositions.health",
+            "kind": "propositions",
+            "model_path": "propositions.health",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.reconciliation-demo",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "scripts.timeline",
+            "kind": "scripts",
+            "model_path": "scripts.timeline",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "workflows.flow",
+            "kind": "workflow",
+            "model_path": "workflows.flow",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "workflows.flow.steps.branch",
+            "kind": "workflow-step",
+            "model_path": "workflows.flow.steps.branch",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "workflows.flow.steps.finish",
+            "kind": "workflow-step",
+            "model_path": "workflows.flow.steps.finish",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "reconciliation-demo",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "assertions",
+              "conditions",
+              "entities",
+              "events",
+              "infrastructure",
+              "nodes",
+              "objectives",
+              "propositions",
+              "scripts",
+              "workflows"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

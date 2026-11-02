@@ -1,0 +1,14 @@
+{
+  "args": [
+    "instantiated-scenario-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "bac83b7e6b444c6d1306e11b2a54b727015bef9205b96256edf6a73e4056026f"
+  },
+  "name": "contracts/fixtures/sdl/instantiated-scenario-v1/invalid/variables-empty",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

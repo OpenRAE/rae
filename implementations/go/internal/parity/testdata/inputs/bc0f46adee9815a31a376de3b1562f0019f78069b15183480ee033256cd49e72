@@ -1,0 +1,52 @@
+{
+  "schema_version": "runtime-fact-binding-plane/v1",
+  "declarations": [
+    {
+      "fact_id": "fact.discovered-endpoint",
+      "value_type": "reference",
+      "source_kind": "derived",
+      "sensitivity": "internal",
+      "visibility": {
+        "participant_addresses": ["participant.behavior.red-agent"],
+        "workflow_addresses": ["workflow.main"],
+        "operator_visible": true
+      },
+      "authority_refs": ["policy.runtime-facts"]
+    }
+  ],
+  "sinks": [
+    {
+      "sink_id": "sink.endpoint",
+      "action_contract_address": "participant.action-contract.connect",
+      "target_field": "input.endpoint",
+      "value_type": "reference",
+      "allowed_source_kinds": ["derived"],
+      "allowed_scope_kinds": ["run"],
+      "allowed_sensitivities": ["internal"],
+      "authority_refs": ["policy.runtime-facts"],
+      "audience": "participant",
+      "absence_disposition": "block"
+    }
+  ],
+  "versions": [
+    {
+      "fact_id": "fact.discovered-endpoint",
+      "version_id": "fact-version.endpoint.1",
+      "sequence": 1,
+      "value_type": "reference",
+      "source_kind": "derived",
+      "sensitivity": "internal",
+      "scope": {
+        "kind": "run",
+        "run_id": "run-cross-backend"
+      },
+      "observed_at": "2026-07-20T03:00:00Z",
+      "value": "endpoint.target-1",
+      "confidence": 0.9,
+      "evidence_refs": ["evidence.backend-neutral-endpoint.1"],
+      "provenance_refs": ["backend-a.observation.1", "backend-b.replay.1"]
+    }
+  ],
+  "events": [],
+  "projections": []
+}

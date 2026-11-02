@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-status-view-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "36b1e6b77c191b585a6a8c88dd6ff90d1eebd9efcc93dcf99725402aa2df5078"
+  },
+  "name": "contracts/fixtures/control-plane/participant-status-view-v1/valid/running-episode",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

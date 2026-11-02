@@ -1,0 +1,23 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "linux-image",
+    "version": "*",
+    "artifact_requirement": {
+      "requirement_id": "empty-domain",
+      "explicitness": "constrained",
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "published-candidate",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "import",
+          "timing": "pack-ingestion"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "ff3781150ced67f5ce3f73826aff5e0129a655bee68bf0e1b152379f91f6bb83"
+  },
+  "name": "contracts/fixtures/semantic-profile/semantic-profile-v1/invalid/duplicate-required-contracts",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

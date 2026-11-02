@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-evidence-record-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "e0d020bfb7af30ba86aa9deeb9a3f90647c0e56c2ae2922761aaaf0d723396f7"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/invalid/empty-source-refs",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-evidence-record-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-evidence-record-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 16,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

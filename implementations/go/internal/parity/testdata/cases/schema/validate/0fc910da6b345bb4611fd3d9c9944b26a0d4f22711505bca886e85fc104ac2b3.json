@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "8d7ea638f6d2c2a008deb81839fc9a452aacc43b28a00275cba92a3d8aff17c4"
+  },
+  "name": "contracts/fixtures/profiles/random-stream-profile-v1/invalid/empty-transforms",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

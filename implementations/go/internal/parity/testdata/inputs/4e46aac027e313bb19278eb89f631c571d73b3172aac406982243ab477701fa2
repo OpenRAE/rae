@@ -1,0 +1,22 @@
+{
+  "schema_version": "domain-profile-support-declaration/v1",
+  "coordinate": {
+    "namespace": "org.openrae.standard",
+    "authority": "https://openrae.org/profiles",
+    "profile_id": "repository",
+    "revision": "1.0.0",
+    "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+  },
+  "semantic_contract": {
+    "authority": "https://openrae.org/profiles",
+    "contract_id": "repository-semantics",
+    "revision": "1.0.0",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "operations": [
+    "structural-validation"
+  ],
+  "supported_schema_dialects": [],
+  "supported_vocabularies": [],
+  "supported_schema_keywords": []
+}

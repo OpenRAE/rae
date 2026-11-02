@@ -1,0 +1,24 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "backend-selected",
+    "version": "*",
+    "artifact_requirement": {
+      "requirement_id": "unknown-field",
+      "explicitness": "open",
+      "provider_region": "eu-central-1",
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "backend-owned-artifact",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "local-lookup",
+          "timing": "backend-preparation"
+        }
+      ]
+    }
+  }
+}

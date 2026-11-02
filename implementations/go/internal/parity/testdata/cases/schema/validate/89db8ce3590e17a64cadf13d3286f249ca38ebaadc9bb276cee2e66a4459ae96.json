@@ -1,0 +1,14 @@
+{
+  "args": [
+    "runtime-fact-binding-plane-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "051fbb24758941cbf0998f61b0789a29536f52a76fd26ebbaee29df69df55fe8"
+  },
+  "name": "contracts/fixtures/participant-runtime/runtime-fact-binding-plane-v1/valid/observation-to-action",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

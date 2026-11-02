@@ -1,0 +1,127 @@
+name: techvault-enterprise-web
+description: >
+  Curated TechVault enterprise-web slice. Declares the enterprise tier, the
+  Wazuh monitoring core those hosts report to, and the OTEL observability core,
+  without the wider SOC or red-team apparatus.
+
+nodes:
+  dmz-net:
+    type: switch
+    description: TechVault DMZ network.
+  internal-net:
+    type: switch
+    description: Internal enterprise target network.
+  security-net:
+    type: switch
+    description: SOC and security tooling network.
+
+  webapp:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: http, port: 8080, protocol: tcp}
+  db:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: postgres, port: 5432, protocol: tcp}
+  ad:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: ldap, port: 389, protocol: tcp}
+      - {name: kerberos, port: 88, protocol: tcp}
+      - {name: smb, port: 445, protocol: tcp}
+  workstation:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: ssh, port: 22, protocol: tcp}
+
+  wazuh-manager:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: wazuh-api, port: 55000, protocol: tcp}
+      - {name: agent-events, port: 1514, protocol: tcp}
+      - {name: syslog, port: 514, protocol: udp}
+    conditions: {wazuh-manager-health: ""}
+  wazuh-indexer:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: indexer-api, port: 9200, protocol: tcp}
+
+  aptl-otel-collector:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: otlp-grpc, port: 4317, protocol: tcp}
+      - {name: otlp-http, port: 4318, protocol: tcp}
+  aptl-tempo:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: tempo-http, port: 3200, protocol: tcp}
+  aptl-grafana-otel:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: grafana, port: 3000, protocol: tcp}
+
+infrastructure:
+  dmz-net:
+    properties: {cidr: 172.20.1.0/24, gateway: 172.20.1.1, internal: true}
+  internal-net:
+    properties: {cidr: 172.20.2.0/24, gateway: 172.20.2.1, internal: true}
+  security-net:
+    properties: {cidr: 172.20.0.0/24, gateway: 172.20.0.1, internal: false}
+
+  webapp:
+    links: [dmz-net, internal-net]
+    dependencies: [db, wazuh-manager]
+  db:
+    links: [internal-net]
+  ad:
+    links: [internal-net]
+    dependencies: [wazuh-manager]
+  workstation:
+    links: [internal-net]
+    dependencies: [wazuh-manager]
+
+  wazuh-manager:
+    links: [security-net, internal-net]
+    dependencies: [wazuh-indexer]
+  wazuh-indexer:
+    links: [security-net]
+
+  aptl-otel-collector:
+    links: [security-net]
+  aptl-tempo:
+    links: [security-net]
+  aptl-grafana-otel:
+    links: [security-net]
+    dependencies: [aptl-tempo]
+
+features:
+  techvault-webapp-service:
+    type: service
+    source:
+      name: aptl-webapp
+      version: local
+    description: TechVault vulnerable customer portal service.
+
+conditions:
+  wazuh-manager-health:
+    command: /usr/local/bin/check-wazuh-manager
+    interval: 30
+    description: Declarative healthcheck required before public startup is ready.

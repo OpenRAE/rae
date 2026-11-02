@@ -1,0 +1,14 @@
+{
+  "args": [
+    "time-model-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6726e95fff1edb789836c0e202fc018ac7d9a9ee32a4676ea8ae0c6744d22b91"
+  },
+  "name": "contracts/fixtures/time/time-model-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

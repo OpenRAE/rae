@@ -1,0 +1,14 @@
+{
+  "args": [
+    "operation-status-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "8cb6fc9c28b9f67a3e6c9dbe440e9cdb10c6c8ca29940cba6d1e45c50f1a91b7"
+  },
+  "name": "contracts/fixtures/control-plane/operation-status-v1/valid/indeterminate",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

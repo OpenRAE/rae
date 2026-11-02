@@ -1,0 +1,43 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "format",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec"
+  },
+  "name": "examples/scenarios/participant-tools/tool-kit.sdl/transform-format",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "name: scanner-toolkit\nnodes:\n  lan:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    services:\n    - port: 80\n      name: http\n    - port: 22\n      name: ssh\nentities:\n  red-team:\n    role: red\ncontent:\n  scanner-package:\n    type: file\n    target: web\n    path: /opt/raes/tools/scanner\naccounts:\n  operator:\n    username: operator\n    node: web\nagents:\n  red-agent:\n    affiliations:\n    - red-team\n    actions:\n    - scan\n    starting_accounts:\n    - operator\n    observation_boundaries:\n    - red-view\n    interactive_access:\n      shell:\n        target_ref: web\n        channel: ssh\n        account_ref: operator\naction_contracts:\n  scan:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    behavioral_granularity: atomic\n    procedure_basis: service discovery against the web node\n    realization_profile: backend-declared\n    fidelity_claim: records participant discovery intent and terminal observation\n    arguments:\n      profile:\n        value_type: string\n        default: quick\n        allowed_values:\n        - quick\n        - full\n        normalization: identity\n        normalization_disclosure_ref: arguments.profile.normalization.identity\n        omission: use_default\n        omission_disclosure_ref: arguments.profile.omission.default\n        default_disclosure_ref: arguments.profile.default.quick\n        loss_disclosure_ref: arguments.profile.loss.none\n    preconditions:\n    - precondition_id: authority-in-scope\n      precondition_class: authority\n      description: the participant is authorized to scan the web service\n    effects:\n    - effect_id: terminal-scan-observation\n      effect_class: observation_effect\n      description: terminal scan observation\n      evidence_refs:\n      - evidence.scan-output\n    failure_classes:\n    - backend_error\n    - unknown\nobservation_boundaries:\n  red-view:\n    projection_basis: participant-local view of scan results\n    observable_refs:\n    - behavior_specifications.red-scan-behavior.tool_affordances.network-scanner\n    evidence_refs:\n    - evidence.scan-output\n    redaction_policy: no hidden refs are disclosed\n    latency_profile: immediate\n    view_rules:\n    - information_ref: behavior_specifications.red-scan-behavior.tool_affordances.network-scanner\n      boundary_class: observable_resource\n      disposition: observable\n      visibility_basis: authored participant-local affordance\nbehavior_specifications:\n  red-scan-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - red-agent\n    action_contract_refs:\n    - scan\n    observation_boundary_refs:\n    - red-view\n    authority_scope_refs:\n    - nodes.web.services.http\n    tool_affordances:\n      network-scanner:\n        tool_ref: scanner-package\n        action_contract_refs:\n        - scan\n        observation_boundary_refs:\n        - red-view\nmodule:\n  id: acme/scanner-toolkit\n  version: 2.1.0\n  exports:\n    nodes:\n    - lan\n    - web\n    content:\n    - scanner-package\n    accounts:\n    - operator\n    entities:\n    - red-team\n    agents:\n    - red-agent\n    action_contracts:\n    - scan\n    observation_boundaries:\n    - red-view\n    behavior_specifications:\n    - red-scan-behavior\n",
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "format",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

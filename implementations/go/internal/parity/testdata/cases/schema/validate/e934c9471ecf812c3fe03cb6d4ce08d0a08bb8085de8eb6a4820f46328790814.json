@@ -1,0 +1,14 @@
+{
+  "args": [
+    "behavioral-relation-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9e7e015e70670112b98dbbf9f317f53fae035e2521ac9065c47eea81a48883ac"
+  },
+  "name": "contracts/fixtures/profiles/behavioral-relation-profile-v1/invalid/incomplete-crossing-domain",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

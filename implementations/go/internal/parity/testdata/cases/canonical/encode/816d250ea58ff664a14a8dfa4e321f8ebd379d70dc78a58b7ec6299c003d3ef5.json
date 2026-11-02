@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "779b1585327e98fc070eb150e5fe4137f8e142b8797cd0f09186365479926b66"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/invalid/dangling-materialization-input",
+  "result": {
+    "jcs": "sha256:409d083a407f1772372bc0e98974cdbe19521fe76246f0c3005c6309b9ee7bb7",
+    "sorted_ascii": "sha256:409d083a407f1772372bc0e98974cdbe19521fe76246f0c3005c6309b9ee7bb7",
+    "sorted_unicode": "sha256:409d083a407f1772372bc0e98974cdbe19521fe76246f0c3005c6309b9ee7bb7"
+  },
+  "surface": "canonical"
+}

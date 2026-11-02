@@ -1,0 +1,68 @@
+{
+  "schema_version": "participant-implementation-manifest/v1",
+  "identity": {
+    "name": "reference-red-agent",
+    "version": "1.0.0"
+  },
+  "implementation_kind": "agent",
+  "supported_contract_versions": [
+    "participant-implementation-manifest-v1",
+    "participant-implementation-provenance-v1",
+    "participant-episode-state-envelope-v1",
+    "participant-episode-history-event-stream-v1",
+    "participant-behavior-history-event-stream-v1"
+  ],
+  "compatibility": {
+    "participant_runtimes": [
+      "stub-participant-runtime"
+    ],
+    "processors": [
+      "raes-reference-processor"
+    ],
+    "backends": [
+      "stub"
+    ]
+  },
+  "concept_bindings": [
+    {
+      "scope": "implementation_kind",
+      "family": "apparatus-declarations"
+    },
+    {
+      "scope": "capabilities.supported_participant_contracts",
+      "family": "apparatus-declarations"
+    },
+    {
+      "scope": "capabilities.supported_decision_surface_modes",
+      "family": "apparatus-declarations"
+    },
+    {
+      "scope": "capabilities.tool_affordance_expectations",
+      "family": "tools-and-artifacts"
+    },
+    {
+      "scope": "capabilities.exposure_policy_kinds",
+      "family": "provenance-and-evidence"
+    }
+  ],
+  "constraints": {},
+  "capabilities": {
+    "supported_participant_contracts": [
+      "participant-episode-state-envelope-v1",
+      "participant-episode-history-event-stream-v1",
+      "participant-behavior-history-event-stream-v1"
+    ],
+    "supported_decision_surface_modes": [
+      "autonomous",
+      "policy-directed"
+    ],
+    "tool_affordance_expectations": [
+      "shell",
+      "http-api"
+    ],
+    "exposure_policy_kinds": [
+      "task-statement",
+      "observation-stream"
+    ]
+  }
+}

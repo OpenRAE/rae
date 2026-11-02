@@ -1,0 +1,14 @@
+{
+  "args": [
+    "external-concept-bindings-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "51fd87846b1bbe74b552dfb33eeb75e3dd3aee7ef4c952456b34c0db0fce57bd"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/invalid/impermissible-participant-disclosure",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

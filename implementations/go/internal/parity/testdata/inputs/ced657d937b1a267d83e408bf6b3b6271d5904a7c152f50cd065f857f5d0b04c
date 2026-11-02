@@ -1,0 +1,32 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "backend-selected",
+    "version": "*",
+    "artifact_requirement": {
+      "requirement_id": "open-constraint",
+      "explicitness": "open",
+      "constraints": [
+        {
+          "constraint_id": "platform",
+          "kind": "artifact-class",
+          "allowed_values": [
+            "linux-vm-image"
+          ]
+        }
+      ],
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "dynamic-composition",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "none",
+          "timing": "realization"
+        }
+      ]
+    }
+  }
+}

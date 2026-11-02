@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-opacity-model-check-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "074a5a57b445426a37209bcc928a0dd1ba72a6b6709f3524aaef0e7b1bb692f7"
+  },
+  "name": "contracts/fixtures/formal-analysis/participant-opacity-model-check-evidence-v1/valid/opaque-transition-model",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

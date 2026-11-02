@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "runtime-fact-binding-plane-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "efbe1215c246da4d04c0d49b57b0b1d8a2ad65693d61133e2256129d49c137f8"
+  },
+  "name": "contracts/fixtures/participant-runtime/runtime-fact-binding-plane-v1/invalid/additional-property",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "runtime-fact-binding-plane-v1",
+      "diagnostics": [
+        {
+          "address": "runtime-fact-binding-plane-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "3129e2b4050a4704aed48e43f1f11dfe4842a620bb896c16186e3e63d40ad34c"
+  },
+  "name": "contracts/fixtures/plans/admitted-trial-plan-v1/invalid/missing-plan-digest",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

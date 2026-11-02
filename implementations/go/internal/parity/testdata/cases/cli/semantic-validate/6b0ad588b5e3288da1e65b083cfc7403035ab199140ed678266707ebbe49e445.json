@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "operation-status-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "21fd8947eafdf9ed224593924effd4f476bdfd7e7d93d96b52f7e294f307e26a"
+  },
+  "name": "contracts/fixtures/control-plane/operation-status-v1/invalid/duplicate-terminal-diagnostic",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "operation-status-v1",
+      "diagnostics": [
+        {
+          "address": "operation-status-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 9,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

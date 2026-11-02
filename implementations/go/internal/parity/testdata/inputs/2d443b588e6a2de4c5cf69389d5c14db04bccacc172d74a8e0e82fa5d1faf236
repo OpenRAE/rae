@@ -1,0 +1,55 @@
+{
+  "schema_version": "validation-profile-catalog/v1",
+  "profile_family": "raes-validation",
+  "catalog_version": "v1",
+  "strengths": [
+    {
+      "strength_id": "structural",
+      "rank": 1,
+      "definition": "Structural validation."
+    }
+  ],
+  "subject_kinds": [
+    {
+      "subject_kind": "scenario",
+      "definition": "An authored scenario."
+    }
+  ],
+  "gate_kinds": [
+    {
+      "gate_kind": "schema_validation",
+      "definition": "Published schema validation."
+    }
+  ],
+  "limitation_categories": [
+    {
+      "limitation_category": "structural_only",
+      "definition": "No stronger claim."
+    }
+  ],
+  "profiles": [
+    {
+      "profile_id": "raes-structural-validation",
+      "profile_version": "v1",
+      "title": "RAES structural validation",
+      "intended_subject_kinds": [
+        "scenario"
+      ],
+      "minimum_strength": "structural",
+      "required_gate_kinds": [
+        "missing_gate"
+      ],
+      "optional_gate_kinds": [],
+      "evidence_expectations": [
+        "Identify the published schema."
+      ],
+      "diagnostic_expectations": [
+        "Report bounded contract paths."
+      ],
+      "limitation_categories": [
+        "structural_only"
+      ],
+      "extension_terms_allowed": false
+    }
+  ]
+}

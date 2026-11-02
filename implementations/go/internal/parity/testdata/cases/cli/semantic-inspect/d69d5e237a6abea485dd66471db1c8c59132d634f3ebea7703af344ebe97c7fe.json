@@ -1,0 +1,90 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-information-state-record-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "112ae20feebcfdcebf86a50dd3533db92fb1d322e9b263a9e2e164032ccbe5e3"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-information-state-record-v1/valid/history-consistent-cut",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-information-state-record-v1",
+      "diagnostics": [
+        {
+          "address": "participant-information-state-record-v1",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 40,
+        "members": [
+          "actor_ref",
+          "audience_scope_ref",
+          "authorization_scope",
+          "clock_authority",
+          "episode_id",
+          "event_id",
+          "event_type",
+          "evidence_refs",
+          "extension_policy",
+          "information_guarantee",
+          "information_state_digest",
+          "information_state_ref",
+          "ingested_at",
+          "loss_disclosures",
+          "memory_reset_authority_ref",
+          "occurred_at",
+          "occurrence_history_ref",
+          "ordering_basis",
+          "participant_address",
+          "participant_memory_scope",
+          "payload_ref",
+          "predecessor_information_state_refs",
+          "producer_ref",
+          "projection_policy_revision",
+          "projection_version",
+          "provenance_refs",
+          "reconstructed_state_digest",
+          "reconstruction_algorithm_id",
+          "reconstruction_algorithm_version",
+          "reconstruction_profile_ref",
+          "reconstruction_proof_ref",
+          "recorded_at",
+          "redaction_policy_ref",
+          "redaction_policy_revision",
+          "schema_name",
+          "schema_version",
+          "sequence_number",
+          "source_refs",
+          "state_cut",
+          "visibility_projection_ref"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

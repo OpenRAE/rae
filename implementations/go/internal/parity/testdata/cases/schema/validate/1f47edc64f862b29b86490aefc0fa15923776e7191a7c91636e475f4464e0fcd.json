@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-episode-state-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "b357a7ea4cb7427253574e001856485efde874267c02a81c93b923672bfb8180"
+  },
+  "name": "contracts/fixtures/control-plane/participant-episode-state-envelope-v1/valid/initialized",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

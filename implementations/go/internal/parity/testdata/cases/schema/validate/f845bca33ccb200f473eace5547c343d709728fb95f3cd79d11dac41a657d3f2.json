@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-augmentation-scope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "e7959cc1c72f430236ff8f9913143326c8906e93565be9ce28e325c14963ac89"
+  },
+  "name": "contracts/fixtures/plans/backend-augmentation-scope-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

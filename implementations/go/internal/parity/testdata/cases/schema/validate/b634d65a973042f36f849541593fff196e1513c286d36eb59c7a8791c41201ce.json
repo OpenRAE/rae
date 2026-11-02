@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-occurrence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "fff39913e1ad0555ebfe61095d5630544f3294fd672a22fcb36ca0fd07592d3d"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-occurrence-v1/invalid/payload-smuggling",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

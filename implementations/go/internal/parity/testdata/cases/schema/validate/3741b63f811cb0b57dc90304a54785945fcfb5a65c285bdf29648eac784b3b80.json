@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-opacity-model-check-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "fb806c4c451d9626ee2f581f223c9791f9f2517441ebbacdb08856f5902cb2cb"
+  },
+  "name": "contracts/fixtures/formal-analysis/participant-opacity-model-check-evidence-v1/invalid/incomplete-positive-result",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

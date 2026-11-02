@@ -1,0 +1,216 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27"
+  },
+  "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 23,
+        "declarations": [
+          {
+            "address": "nodes.iam",
+            "kind": "node",
+            "model_path": "nodes.iam",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud",
+            "kind": "runtime-identity_authorities",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.identity_authority_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.access_observations.denied-version",
+            "kind": "runtime-access_observations",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.access_observations.1.observation_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.access_observations.metadata-read",
+            "kind": "runtime-access_observations",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.access_observations.0.observation_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.identity_uses.worker-use",
+            "kind": "runtime-identity_uses",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.identity_uses.0.use_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.policies.identity-use",
+            "kind": "runtime-policies",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.policies.1.policy_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.policies.inherited-secret",
+            "kind": "runtime-policies",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.policies.2.policy_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.policies.reader",
+            "kind": "runtime-policies",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.policies.0.policy_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-a",
+            "kind": "runtime-resource_scopes",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.resource_scopes.0.scope_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-b",
+            "kind": "runtime-resource_scopes",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.resource_scopes.1.scope_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.subjects.requester",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.subjects.1.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.iam.runtime.identity_authorities.cloud.subjects.worker",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.iam.runtime.identity_authorities.0.subjects.0.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets",
+            "kind": "node",
+            "model_path": "nodes.secrets",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.runtime.platform_applications.manager",
+            "kind": "runtime-platform_applications",
+            "model_path": "nodes.secrets.runtime.platform_applications.0.platform_application_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.runtime.platform_applications.manager.secrets.database",
+            "kind": "runtime-secrets",
+            "model_path": "nodes.secrets.runtime.platform_applications.0.secrets.0.secret_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.runtime.platform_applications.manager.secrets.database.consumers.alias-report",
+            "kind": "runtime-consumers",
+            "model_path": "nodes.secrets.runtime.platform_applications.0.secrets.0.consumers.1.selection_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.runtime.platform_applications.manager.secrets.database.consumers.exact-version",
+            "kind": "runtime-consumers",
+            "model_path": "nodes.secrets.runtime.platform_applications.0.secrets.0.consumers.0.selection_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v1",
+            "kind": "runtime-versions",
+            "model_path": "nodes.secrets.runtime.platform_applications.0.secrets.0.versions.0.version_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v2",
+            "kind": "runtime-versions",
+            "model_path": "nodes.secrets.runtime.platform_applications.0.secrets.0.versions.1.version_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v3",
+            "kind": "runtime-versions",
+            "model_path": "nodes.secrets.runtime.platform_applications.0.secrets.0.versions.2.version_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secrets.services.api",
+            "kind": "service",
+            "model_path": "nodes.secrets.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.worker",
+            "kind": "node",
+            "model_path": "nodes.worker",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.cloud-secret-cross-project",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "cloud-secret-cross-project",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

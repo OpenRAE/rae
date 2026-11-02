@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "c02bb661659c00aa7d46b745c2355d41b98eedc954ab00a800b572f83048b8b7"
+  },
+  "name": "contracts/fixtures/processor-manifest/processor-manifest-v2/invalid/missing-concept-bindings",
+  "result": {
+    "jcs": "sha256:564ecd41d2f3433fa0833b78d26a032186a95b60161941e385b48872fc2ef9eb",
+    "sorted_ascii": "sha256:564ecd41d2f3433fa0833b78d26a032186a95b60161941e385b48872fc2ef9eb",
+    "sorted_unicode": "sha256:564ecd41d2f3433fa0833b78d26a032186a95b60161941e385b48872fc2ef9eb"
+  },
+  "surface": "canonical"
+}

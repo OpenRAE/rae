@@ -1,0 +1,87 @@
+{
+  "schema_version": "semantic-comparison-result/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "request_digest": "sha256:dce2a0b3bafbb481768a96beea6083ef1066e5a77516001820b00b6ef64adda6",
+  "before": {
+    "canonical_identity": "scenario:arena",
+    "canonicalization_profile": "raes-canonical-sdl/v1",
+    "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+    "exact_representation": null,
+    "artifact_kind": "scenario",
+    "lifecycle_phase": "normalized-authoring",
+    "source_profile": "sdl-normalized-authoring/v1",
+    "scenario_id": "arena",
+    "scenario_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "scenario:arena",
+    "canonicalization_profile": "raes-canonical-sdl/v1",
+    "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+    "exact_representation": null,
+    "artifact_kind": "scenario",
+    "lifecycle_phase": "normalized-authoring",
+    "source_profile": "sdl-normalized-authoring/v1",
+    "scenario_id": "arena",
+    "scenario_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "scenario:arena"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "scenario:arena",
+        "canonicalization_profile": "raes-canonical-sdl/v1",
+        "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+        "exact_representation": null,
+        "artifact_kind": "scenario",
+        "lifecycle_phase": "normalized-authoring",
+        "source_profile": "sdl-normalized-authoring/v1",
+        "scenario_id": "arena",
+        "scenario_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "scenario:arena",
+        "canonicalization_profile": "raes-canonical-sdl/v1",
+        "canonical_digest": "sha256:33cfd8d5b6e6e41429a70b793fd41da75b3c201e9e514156922ce84c9351ced1",
+        "exact_representation": null,
+        "artifact_kind": "scenario",
+        "lifecycle_phase": "normalized-authoring",
+        "source_profile": "sdl-normalized-authoring/v1",
+        "scenario_id": "arena",
+        "scenario_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:8f8010ce87695090bed510a9e0808cd6321bd60e6cfc9b41aac8faf7ae17631c"
+  },
+  "impact_scope_digest": "sha256:8f8010ce87695090bed510a9e0808cd6321bd60e6cfc9b41aac8faf7ae17631c",
+  "changes": [
+    {
+      "identity": "scenario:arena",
+      "before_identity": "scenario:arena",
+      "after_identity": "scenario:arena",
+      "identity_relation": "same",
+      "textual_relation": "unknown",
+      "structural_relation": "unchanged",
+      "semantic_relation": "unchanged",
+      "reason_codes": [
+        "representation-evidence-missing"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "impact_paths": [],
+  "completeness": "indeterminate",
+  "reason_codes": [
+    "representation-evidence-missing"
+  ],
+  "context_digests": [],
+  "diagnostics": []
+}

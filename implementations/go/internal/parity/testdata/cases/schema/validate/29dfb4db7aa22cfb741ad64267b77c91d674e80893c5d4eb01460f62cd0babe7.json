@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "62568c35c69fdd6d3b9a6c4f59727ac5bab4003f9f2cc978ee6ab733c93b5559"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/invalid/run-plan-both-allocation-and-count",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

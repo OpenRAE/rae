@@ -370,6 +370,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "coverage-reduce",
         "go",
         "go-architecture",
+        "parity-corpus",
         "sonar",
         "gate",
     }
@@ -463,6 +464,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "coverage-reduce",
         "go",
         "go-architecture",
+        "parity-corpus",
     }
 
 
@@ -1656,7 +1658,10 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
 
     go = _load(CANONICAL_PATH)["jobs"]["go"]
     assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
-    assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == ["implementations/tooling/go"]
+    assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == [
+        "implementations/go",
+        "implementations/tooling/go",
+    ]
     scripts = "\n".join(step.get("run", "") for step in go["steps"])
     for command in (
         "install-go public-ubuntu-24.04-x86_64",
@@ -1666,6 +1671,8 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         'go vet -vettool="$(command -v raesvet)" ./...',
         "go test -race -covermode=atomic -coverprofile=cover.out ./...",
         "exit !(total >= 90)",
+        "go test -list '^Fuzz' ./...",
+        '-fuzztime 20s "${package}" || exit 1',
         'gremlins unleash --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"',
         'regressiontest -base "${MERGE_BASE}"',
     ):
@@ -1693,3 +1700,15 @@ def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
     install = _named_step(job, "Install the locked Go toolchain")
     assert install["run"] == _named_step(workflow["jobs"]["go"], "Install the locked Go toolchain")["run"]
     assert "go-architecture" in workflow["jobs"]["gate"]["needs"]
+
+
+def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> None:
+    """The Python implementation must reproduce the golden parity corpus (issue #1778)."""
+
+    workflow = _load(CANONICAL_PATH)
+    job = workflow["jobs"]["parity-corpus"]
+    check = _named_step(job, "Check that the Python implementation reproduces the corpus")
+    assert "python -m tools.parity_corpus check" in check["run"]
+    upload = _named_step(job, "Upload the recorded corpus")
+    assert upload["if"] == "failure()"
+    assert "parity-corpus" in workflow["jobs"]["gate"]["needs"]

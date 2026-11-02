@@ -1,0 +1,61 @@
+{
+  "schema_version": "sdl-lineage-ledger/v1",
+  "reviewed_on": "2026-07-12",
+  "citations": [
+    {
+      "citation_id": "example-publication",
+      "title": "Example Publication",
+      "authors_or_maintainer": [
+        "Example Author"
+      ],
+      "year": 2026,
+      "canonical_url": "https://example.org/publication",
+      "verified_on": "2026-07-12",
+      "verification_evidence": "docs/example.md"
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "example-publication",
+      "kind": "publication",
+      "title": "Example Publication",
+      "version_or_edition": "2026 edition",
+      "canonical_url": "https://example.org/publication",
+      "citation_ref": "example-publication"
+    }
+  ],
+  "subjects": [
+    {
+      "subject_id": "sdl-field:example",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/example.json",
+        "pointer": "#/properties/example",
+        "contract_id": "example-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/example.json",
+              "symbol_or_pointer": "#/properties/example"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "Defined by the example contract.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "ADR-000"
+          ],
+          "compatibility_direction": "not_applicable"
+        }
+      ]
+    }
+  ],
+  "third_party_dispositions": []
+}

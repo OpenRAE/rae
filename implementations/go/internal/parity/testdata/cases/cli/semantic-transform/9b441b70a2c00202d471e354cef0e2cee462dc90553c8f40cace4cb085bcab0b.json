@@ -1,0 +1,43 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "format",
+    "input.yaml"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input.yaml": "116003d8297639f1ce4673454d1b2befd801b6d4fe802aecd8162ccd6d8933cd"
+  },
+  "name": "examples/scenarios/techvault-defensive-min.sdl/transform-format",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "name: techvault-defensive-min\ndescription: 'Curated TechVault defensive-minimum slice. Declares the Wazuh manager,\n  indexer, and dashboard plus the OTEL core observability stack, without the wider\n  SOC, enterprise, target, or attacker surfaces.\n\n  '\nnodes:\n  security-net:\n    type: switch\n    description: SOC and security tooling network.\n  wazuh-manager:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    conditions:\n      wazuh-manager-health: ''\n    services:\n    - port: 55000\n      protocol: tcp\n      name: wazuh-api\n    - port: 1514\n      protocol: tcp\n      name: agent-events\n    - port: 514\n      protocol: udp\n      name: syslog\n  wazuh-indexer:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 9200\n      protocol: tcp\n      name: indexer-api\n  wazuh-dashboard:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 5601\n      protocol: tcp\n      name: dashboard\n    runtime:\n      environment:\n      - name: DASHBOARD_API_TOKEN\n        value_from:\n          generated_artifact: wazuh-dashboard-api-token\n          output: api-token\n        value_classification: redacted\n        provenance: runtime\n        description: Dashboard API token sourced from a generated artifact output.\n  aptl-otel-collector:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 4317\n      protocol: tcp\n      name: otlp-grpc\n    - port: 4318\n      protocol: tcp\n      name: otlp-http\n  aptl-tempo:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3200\n      protocol: tcp\n      name: tempo-http\n  aptl-grafana-otel:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3000\n      protocol: tcp\n      name: grafana\ninfrastructure:\n  security-net:\n    properties:\n      cidr: 172.20.0.0/24\n      gateway: 172.20.0.1\n      internal: false\n  wazuh-manager:\n    links:\n    - security-net\n    dependencies:\n    - wazuh-indexer\n  wazuh-indexer:\n    links:\n    - security-net\n  wazuh-dashboard:\n    links:\n    - security-net\n    dependencies:\n    - wazuh-indexer\n    - wazuh-manager\n  aptl-otel-collector:\n    links:\n    - security-net\n  aptl-tempo:\n    links:\n    - security-net\n  aptl-grafana-otel:\n    links:\n    - security-net\n    dependencies:\n    - aptl-tempo\nfeatures:\n  techvault-defensive-stack:\n    type: service\n    source:\n      name: aptl-soc-stack\n      version: local\n    description: Wazuh manager, indexer, and dashboard monitoring core.\nconditions:\n  wazuh-manager-health:\n    command: /usr/local/bin/check-wazuh-manager\n    interval: 30\n    description: Declarative healthcheck required before public startup is ready.\ngenerated_artifacts:\n  wazuh-indexer-certs:\n    generator: certificate_bundle\n    lifecycle: reuse_valid\n    provenance: config/certs.yml\n    outputs:\n    - name: root-ca\n      path: root-ca.pem\n      sensitivity: public\n    - name: indexer-key\n      path: wazuh.indexer-key.pem\n      sensitivity: secret\n    - name: indexer-cert\n      path: wazuh.indexer.pem\n      sensitivity: public\n    consumers:\n    - node: wazuh-indexer\n      mount_destination: /usr/share/wazuh-indexer/certs\n      access_mode: read_only\n  wazuh-dashboard-api-token:\n    generator: rendered_config\n    lifecycle: reuse_valid\n    provenance: config/dashboard-api-token.yml\n    outputs:\n    - name: api-token\n      path: dashboard-api-token.env\n      sensitivity: secret\npersistent_volumes:\n  wazuh-indexer-data:\n    lifecycle: retain\n    access_mode: read_write_once\n    consumers:\n    - node: wazuh-indexer\n      mount_destination: /var/lib/wazuh-indexer\n      access_mode: read_write\n    ordering_dependencies:\n    - generated_artifacts.wazuh-indexer-certs\n",
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "format",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

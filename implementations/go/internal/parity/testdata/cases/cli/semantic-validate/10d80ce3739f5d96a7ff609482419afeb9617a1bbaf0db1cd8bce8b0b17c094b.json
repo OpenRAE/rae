@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "domain-profile-binding-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "fe597f44e2990314b5831232546856e6765830f3aee1147ca028966964bb3cd0"
+  },
+  "name": "contracts/fixtures/profiles/domain-profile-binding-v1/invalid/unknown-use",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "domain-profile-binding-v1",
+      "diagnostics": [
+        {
+          "address": "domain-profile-binding-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 7,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

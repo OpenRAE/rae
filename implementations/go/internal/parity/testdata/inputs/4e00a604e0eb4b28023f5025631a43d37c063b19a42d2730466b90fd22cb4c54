@@ -1,0 +1,56 @@
+{
+  "actor_ref": "controller.human.red",
+  "authorization_scope": "scope:red-team",
+  "clock_authority": "clock.logical",
+  "episode_id": "episode-1",
+  "event_id": "control-occurrence.proposal.1",
+  "event_type": "participant-control-occurrence",
+  "evidence_refs": [
+    "evidence:proposal-1"
+  ],
+  "extension_policy": "closed",
+  "ingested_at": "2026-07-24T08:00:02Z",
+  "logical_order_ref": "order:10",
+  "object_marking_refs": [
+    "marking:participant-control"
+  ],
+  "occurred_at": "2026-07-24T08:00:00Z",
+  "occurrence": {
+    "action_contract_ref": "action-contract:contain-host",
+    "authority_basis_refs": [
+      "authority:red-team"
+    ],
+    "behavior_specification_ref": "behavior-spec:red",
+    "admission_status": "not-admitted",
+    "controlled_scope_refs": [
+      "scope:red-team"
+    ],
+    "controller_ref": "controller.human.red",
+    "controller_state_ref": "controller-state.human",
+    "declaration_ref": "control-transition.proposal",
+    "disposition": "recorded",
+    "effective_order": 10,
+    "expected_state_revision": 4,
+    "kind": "proposal",
+    "limitation_refs": [
+      "limitation:not-admitted"
+    ],
+    "mixed_control_policy_ref": "mixed-control:red",
+    "occurrence_revision": 1,
+    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy_revision": "policy-v3",
+    "proposal_id": "proposal.1",
+    "proposal_revision": 1,
+    "valid_from_order": 8,
+    "valid_until_order": 12
+  },
+  "ordering_basis": "logical_clock",
+  "participant_address": "participants.red.operator",
+  "producer_ref": "participant-runtime.red",
+  "provenance_refs": [
+    "provenance:proposal-1"
+  ],
+  "recorded_at": "2026-07-24T08:00:01Z",
+  "schema_name": "participant-control-occurrence",
+  "schema_version": "1.0.0"
+}

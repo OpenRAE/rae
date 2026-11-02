@@ -1,0 +1,21 @@
+{
+  "schema_version": "participant-control-teaching-profile/v1",
+  "profile_id": "teaching-influence",
+  "profile_revision": "rev1",
+  "semantic_revision": "sem-235/rev1",
+  "domain": "teaching-influence-domain/rev1",
+  "tokens": [
+    "coached-hint",
+    "worked-example"
+  ],
+  "order": "subset",
+  "join": "union",
+  "unknown_source": "unknown",
+  "memory": "retain-across-episodes",
+  "release": "teacher-authorized",
+  "sinks": [
+    "practice-action",
+    "teaching-observation"
+  ],
+  "trigger_rule": "hint-followup/1"
+}

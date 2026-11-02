@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "df223316e09555bfc301f20a927cbd03b0f6eaf68d3bf86271053f145a05dc86"
+  },
+  "name": "contracts/fixtures/semantic-profile/semantic-profile-v1/invalid/unknown-contract",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

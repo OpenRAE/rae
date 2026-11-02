@@ -1,0 +1,107 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "389a343f50f19b4114de2803a012882b8f71d43f3726c5b00fec15f3abfaa0cf"
+  },
+  "name": "examples/scenarios/techvault.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 21,
+        "reference_bindings": {
+          "app_py_sha256": [
+            "variables.app_py_sha256"
+          ],
+          "aptl-dmz": [
+            "nodes.aptl-dmz"
+          ],
+          "aptl-internal": [
+            "nodes.aptl-internal"
+          ],
+          "infrastructure.aptl-dmz": [
+            "infrastructure.aptl-dmz"
+          ],
+          "infrastructure.aptl-internal": [
+            "infrastructure.aptl-internal"
+          ],
+          "infrastructure.techvault-webapp": [
+            "infrastructure.techvault-webapp"
+          ],
+          "nodes.aptl-dmz": [
+            "nodes.aptl-dmz"
+          ],
+          "nodes.aptl-internal": [
+            "nodes.aptl-internal"
+          ],
+          "nodes.techvault-webapp": [
+            "nodes.techvault-webapp"
+          ],
+          "nodes.techvault-webapp.runtime.applications.techvault-webapp": [
+            "nodes.techvault-webapp.runtime.applications.techvault-webapp"
+          ],
+          "nodes.techvault-webapp.services.techvault-http": [
+            "nodes.techvault-webapp.services.techvault-http"
+          ],
+          "requirements_sha256": [
+            "variables.requirements_sha256"
+          ],
+          "style_css_sha256": [
+            "variables.style_css_sha256"
+          ],
+          "techvault-webapp": [
+            "nodes.techvault-webapp"
+          ],
+          "variables.app_py_sha256": [
+            "variables.app_py_sha256"
+          ],
+          "variables.requirements_sha256": [
+            "variables.requirements_sha256"
+          ],
+          "variables.style_css_sha256": [
+            "variables.style_css_sha256"
+          ],
+          "variables.wazuh_conf_sha256": [
+            "variables.wazuh_conf_sha256"
+          ],
+          "variables.webapp_conf_sha256": [
+            "variables.webapp_conf_sha256"
+          ],
+          "wazuh_conf_sha256": [
+            "variables.wazuh_conf_sha256"
+          ],
+          "webapp_conf_sha256": [
+            "variables.webapp_conf_sha256"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "techvault-runtime-parity"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

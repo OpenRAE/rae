@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-transformation-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "4e087ca3152e3f9d17514e3d893370b2b562da8b74b25bf7fabc53dd1ca1598f"
+  },
+  "name": "contracts/fixtures/artifact-transformations/artifact-transformation-report-v1/invalid/success-without-target",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

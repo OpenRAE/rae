@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-outcome-report-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "baeb2ebe83c277d8da810558f42a96502e18ec611b4fd8ecc923c254c065270d"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-outcome-report-v2/invalid/missing-participant",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

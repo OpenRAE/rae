@@ -1,0 +1,28 @@
+{
+  "schema_version": "experiment-binding-descriptors/v1",
+  "descriptors": [
+    {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+        "plane": "scenario",
+        "scenario_family_id": "family.techvault",
+        "variation_point_id": "variation.worker-count",
+        "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+        "kind": "literal",
+        "value": 4
+      },
+      "owner": {
+        "contract_id": "sdl-authoring-input-v1",
+        "contract_version": "1",
+        "validator_id": "raes-sdl-instantiation",
+        "validator_version": "1"
+      }
+    }
+  ]
+}

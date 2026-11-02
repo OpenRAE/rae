@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-participant-composition-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "16f24389aba3f696f826db9d61be900dd6b51112ae4d37b2afc987d818eafd8a"
+  },
+  "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/simultaneous-single-form",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "reference-models/v1",
+  "models": {
+    "scenario-node": {
+      "title": "Scenario Node",
+      "description": "Shared reference model for asset-bearing scenario nodes.",
+      "concept_family": "imaginary-family",
+      "authoritative_schema": {
+        "contract_id": "sdl-authoring-input-v1",
+        "schema_pointer": "#/$defs/Node",
+        "instance_path": "nodes.*"
+      },
+      "key_fields": [
+        "type",
+        "source"
+      ]
+    }
+  }
+}

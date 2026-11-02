@@ -1,0 +1,27 @@
+{
+  "reference": {
+    "ref_kind": "materialization-attestation",
+    "ref_id": "materialization-1",
+    "ref_version": "raes-sdl-materialized/v1",
+    "ref_digest": "sha256:d31ab0c07b725714197101f84422cc1fead1ef978d8096ec8ebd9563cf244319",
+    "ref_path": "runs/run-1/attestations/materialization-1.sdl"
+  },
+  "artifact": {
+    "artifact_id": "materialization-1",
+    "role": "materialization-attestation",
+    "media_type": "application/vnd.raes.sdl+yaml",
+    "uri": "urn:sha256:b25a3211895055e60030871adc1ded5694d1e33ab84f7c4c1d3f02528923ccc2",
+    "checksum": {
+      "algorithm": "sha256",
+      "value": "b25a3211895055e60030871adc1ded5694d1e33ab84f7c4c1d3f02528923ccc2"
+    },
+    "size_bytes": 1102,
+    "created_at": "2026-09-14T12:00:00+00:00",
+    "source": "test-backend",
+    "satisfies_refs": [],
+    "sensitivity": "restricted",
+    "description": null
+  },
+  "run_id": "run-1",
+  "operation_id": "operation-1"
+}

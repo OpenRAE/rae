@@ -1,0 +1,19 @@
+{
+  "schema_version": "trial-cleanup-plan/v1",
+  "plan_id": "cleanup-plan-invalid",
+  "plan_entry_id": "trial-entry-invalid",
+  "clean_state": {
+    "mode": "fresh-range-required",
+    "boundary_refs": ["range-a"],
+    "verification_probe_refs": [],
+    "reusable_state_claim_ref": null
+  },
+  "resource_boundaries": {},
+  "cleanup_obligations": {},
+  "retry_policy": {
+    "max_attempts": 1,
+    "after_effect_policy": "disallow",
+    "reset_obligation_refs": [],
+    "compensation_refs": []
+  }
+}

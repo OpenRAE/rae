@@ -1,0 +1,164 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "116003d8297639f1ce4673454d1b2befd801b6d4fe802aecd8162ccd6d8933cd"
+  },
+  "name": "examples/scenarios/techvault-defensive-min.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 40,
+        "reference_bindings": {
+          "aptl-grafana-otel": [
+            "nodes.aptl-grafana-otel"
+          ],
+          "aptl-otel-collector": [
+            "nodes.aptl-otel-collector"
+          ],
+          "aptl-tempo": [
+            "nodes.aptl-tempo"
+          ],
+          "conditions.wazuh-manager-health": [
+            "conditions.wazuh-manager-health"
+          ],
+          "features.techvault-defensive-stack": [
+            "features.techvault-defensive-stack"
+          ],
+          "generated_artifacts.wazuh-dashboard-api-token": [
+            "generated_artifacts.wazuh-dashboard-api-token"
+          ],
+          "generated_artifacts.wazuh-indexer-certs": [
+            "generated_artifacts.wazuh-indexer-certs"
+          ],
+          "infrastructure.aptl-grafana-otel": [
+            "infrastructure.aptl-grafana-otel"
+          ],
+          "infrastructure.aptl-otel-collector": [
+            "infrastructure.aptl-otel-collector"
+          ],
+          "infrastructure.aptl-tempo": [
+            "infrastructure.aptl-tempo"
+          ],
+          "infrastructure.security-net": [
+            "infrastructure.security-net"
+          ],
+          "infrastructure.wazuh-dashboard": [
+            "infrastructure.wazuh-dashboard"
+          ],
+          "infrastructure.wazuh-indexer": [
+            "infrastructure.wazuh-indexer"
+          ],
+          "infrastructure.wazuh-manager": [
+            "infrastructure.wazuh-manager"
+          ],
+          "nodes.aptl-grafana-otel": [
+            "nodes.aptl-grafana-otel"
+          ],
+          "nodes.aptl-grafana-otel.services.grafana": [
+            "nodes.aptl-grafana-otel.services.grafana"
+          ],
+          "nodes.aptl-otel-collector": [
+            "nodes.aptl-otel-collector"
+          ],
+          "nodes.aptl-otel-collector.services.otlp-grpc": [
+            "nodes.aptl-otel-collector.services.otlp-grpc"
+          ],
+          "nodes.aptl-otel-collector.services.otlp-http": [
+            "nodes.aptl-otel-collector.services.otlp-http"
+          ],
+          "nodes.aptl-tempo": [
+            "nodes.aptl-tempo"
+          ],
+          "nodes.aptl-tempo.services.tempo-http": [
+            "nodes.aptl-tempo.services.tempo-http"
+          ],
+          "nodes.security-net": [
+            "nodes.security-net"
+          ],
+          "nodes.wazuh-dashboard": [
+            "nodes.wazuh-dashboard"
+          ],
+          "nodes.wazuh-dashboard.services.dashboard": [
+            "nodes.wazuh-dashboard.services.dashboard"
+          ],
+          "nodes.wazuh-indexer": [
+            "nodes.wazuh-indexer"
+          ],
+          "nodes.wazuh-indexer.services.indexer-api": [
+            "nodes.wazuh-indexer.services.indexer-api"
+          ],
+          "nodes.wazuh-manager": [
+            "nodes.wazuh-manager"
+          ],
+          "nodes.wazuh-manager.services.agent-events": [
+            "nodes.wazuh-manager.services.agent-events"
+          ],
+          "nodes.wazuh-manager.services.syslog": [
+            "nodes.wazuh-manager.services.syslog"
+          ],
+          "nodes.wazuh-manager.services.wazuh-api": [
+            "nodes.wazuh-manager.services.wazuh-api"
+          ],
+          "persistent_volumes.wazuh-indexer-data": [
+            "persistent_volumes.wazuh-indexer-data"
+          ],
+          "security-net": [
+            "nodes.security-net"
+          ],
+          "techvault-defensive-stack": [
+            "features.techvault-defensive-stack"
+          ],
+          "wazuh-dashboard": [
+            "nodes.wazuh-dashboard"
+          ],
+          "wazuh-dashboard-api-token": [
+            "generated_artifacts.wazuh-dashboard-api-token"
+          ],
+          "wazuh-indexer": [
+            "nodes.wazuh-indexer"
+          ],
+          "wazuh-indexer-certs": [
+            "generated_artifacts.wazuh-indexer-certs"
+          ],
+          "wazuh-indexer-data": [
+            "persistent_volumes.wazuh-indexer-data"
+          ],
+          "wazuh-manager": [
+            "nodes.wazuh-manager"
+          ],
+          "wazuh-manager-health": [
+            "conditions.wazuh-manager-health"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "techvault-defensive-min"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

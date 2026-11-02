@@ -1,0 +1,161 @@
+{
+  "schema_version": "experiment-apparatus-context/v1",
+  "apparatus_context_id": "apparatus-techvault-reference",
+  "context_version": "1.0.0",
+  "declared_at": "2026-05-26T00:00:00Z",
+  "components": {
+    "processor": {
+      "component_kind": "processor",
+      "identity": {
+        "name": "raes-reference-processor",
+        "version": "0.1.0"
+      },
+      "manifest_ref": {
+        "ref_kind": "manifest",
+        "ref_id": "raes-reference-processor",
+        "ref_version": "processor-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "processor",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "0.1.0"
+        }
+      },
+      "observed": true
+    },
+      "backend": {
+        "component_kind": "backend",
+        "identity": {
+          "name": "stub-backend",
+          "version": "0.1.0"
+      },
+      "manifest_ref": {
+        "ref_kind": "manifest",
+        "ref_id": "stub-backend",
+        "ref_version": "backend-manifest/v2",
+        "subject_ref": {
+          "ref_kind": "backend",
+          "ref_id": "stub-backend",
+          "ref_version": "0.1.0"
+        }
+        },
+        "observed": true
+      },
+      "participant-policy": {
+        "component_kind": "participant-implementation",
+        "identity": {
+          "name": "reference-red-agent",
+          "version": "1.0.0"
+        },
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "reference-red-agent",
+          "ref_version": "participant-implementation-manifest/v1",
+          "subject_ref": {
+            "ref_kind": "participant-implementation",
+            "ref_id": "reference-red-agent",
+            "ref_version": "1.0.0"
+          }
+        },
+        "observed": true
+      }
+    },
+  "selected_manifests": [
+    {
+      "ref_kind": "manifest",
+      "ref_id": "raes-reference-processor",
+      "ref_version": "processor-manifest/v2",
+      "subject_ref": {
+        "ref_kind": "processor",
+        "ref_id": "raes-reference-processor",
+        "ref_version": "0.1.0"
+      }
+    },
+    {
+      "ref_kind": "manifest",
+      "ref_id": "stub-backend",
+      "ref_version": "backend-manifest/v2",
+      "subject_ref": {
+        "ref_kind": "backend",
+        "ref_id": "stub-backend",
+        "ref_version": "0.1.0"
+      }
+    },
+    {
+      "ref_kind": "manifest",
+      "ref_id": "reference-red-agent",
+      "ref_version": "participant-implementation-manifest/v1",
+      "subject_ref": {
+        "ref_kind": "participant-implementation",
+        "ref_id": "reference-red-agent",
+        "ref_version": "1.0.0"
+      }
+    }
+  ],
+    "compatibility_declarations": [
+      {
+        "ref_kind": "profile",
+        "ref_id": "reference-stack-v1",
+        "ref_version": "semantic-profile/v1"
+      },
+      {
+        "ref_kind": "capability",
+        "ref_id": "workflow-results"
+      },
+      {
+        "ref_kind": "capability",
+        "ref_id": "evaluation-results"
+      }
+    ],
+  "configuration_parameters": [
+    {
+      "name": "worker-count",
+      "value": 1,
+      "value_kind": "apparatus"
+    }
+  ],
+  "stochastic_controls": [
+    {
+      "control_id": "task-seed",
+      "role": "seed",
+      "value": 12345,
+      "description": "Seed supplied to task randomization."
+    }
+  ],
+  "clocks": [
+    {
+      "clock_id": "range-wall-clock",
+      "authority": "backend wall clock",
+      "time_domain": "wall-clock",
+      "synchronization": "NTP synchronized before run seal."
+    }
+  ],
+  "measurement_channels": [
+    {
+      "ref_kind": "measurement-channel",
+      "ref_id": "evaluation-history-channel",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "observed_setup_evidence": [
+    {
+      "artifact_id": "setup-attestation",
+      "role": "apparatus-evidence",
+      "media_type": "application/json",
+      "uri": "runs/run-techvault-001/setup.json",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "size_bytes": 2048,
+      "created_at": "2026-05-26T00:09:30Z",
+      "source": "stub-backend setup attestation",
+      "sensitivity": "internal"
+    }
+  ],
+  "known_limitations": [
+    {
+      "category": "apparatus",
+      "note": "The stub backend is a conformance apparatus, not a fidelity claim."
+    }
+  ]
+}

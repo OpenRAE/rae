@@ -1,0 +1,55 @@
+{
+  "args": [
+    "semantic",
+    "compile",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic compile",
+  "files": {
+    "input.yaml": "0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f"
+  },
+  "name": "examples/scenarios/port-authority-surge-response.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "compile",
+      "payload": {
+        "diagnostic_count": 0,
+        "phase": "compiled-runtime-summary",
+        "resource_counts": {
+          "assertions": 7,
+          "events": 3,
+          "feature_bindings": 12,
+          "injects": 3,
+          "networks": 8,
+          "node_deployments": 13,
+          "objectives": 5,
+          "propositions": 6,
+          "scripts": 3,
+          "stories": 1,
+          "workflows": 1
+        },
+        "root_type": "object",
+        "scenario_name": "port-authority-surge-response"
+      },
+      "processor_profile": "raes-compiler/default",
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "basic-address-and-block",
+  "description": "Seed decoding, address canonical bytes, key derivation, and raw block for a fully-populated trial coordinate. Independently computed via the blake3 library directly (not the reference engine).",
+  "profile_id": "blake3-xof-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f"
+  },
+  "stream_key_hex": "29379bbf1c7dbd133939723057b9a40b7d641b302c58c8d2258ad9ee69d047d3",
+  "address": {
+    "namespace": "study-namespace",
+    "trial_coordinate": {
+      "condition_id": "condition-a",
+      "block_id": "block-1",
+      "replicate_id": "replicate-1"
+    },
+    "selection_policy_id": "policy-a",
+    "variation_point_id": "point-a",
+    "draw_purpose": "condition-assignment",
+    "local_coordinate": 0
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a22636f6e646974696f6e2d61737369676e6d656e74222c226c6f63616c5f636f6f7264696e617465223a302c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d61222c22747269616c5f636f6f7264696e617465223a7b22626c6f636b5f6964223a22626c6f636b2d31222c22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d61222c227265706c69636174655f6964223a227265706c69636174652d31227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d61227d",
+  "raw_block_hex": "f854884d49362106f94d6c0fe8cc408abc1dcdafdf7db8db1587a95bff293197"
+}

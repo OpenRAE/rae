@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-outcome-report-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "f6493da8ac0fc8a98aec8f8267ca55a62272eacd8d06949f349c9dd5cb09279b"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-outcome-report-v2/valid/unknown-after-success",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

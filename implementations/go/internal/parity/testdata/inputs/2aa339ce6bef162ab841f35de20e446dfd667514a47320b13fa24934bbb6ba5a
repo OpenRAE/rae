@@ -1,0 +1,25 @@
+{
+  "schema_version": "time-runtime-state/v1",
+  "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+  "clocks": {
+    "time.clock.logical": {
+      "clock_address": "time.clock.logical",
+      "time_domain_address": "time.domain.logical",
+      "progression_policy_address": null,
+      "authority_kind": "runtime",
+      "authority_ref": "runtime.clock",
+      "state": "running",
+      "coordinate": {"segment": 0, "tick": 0, "microstep": 0},
+      "sequence": 0,
+      "history": [
+        {
+          "sequence": 0,
+          "kind": "initialize",
+          "previous": null,
+          "resulting": {"segment": 0, "tick": 0, "microstep": 0},
+          "resulting_state": "running"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "89a98491b63d0ca5d842288baeb8e9a2ddec66833d4b054bf408871838ecd121"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/invalid/withheld-description-value",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

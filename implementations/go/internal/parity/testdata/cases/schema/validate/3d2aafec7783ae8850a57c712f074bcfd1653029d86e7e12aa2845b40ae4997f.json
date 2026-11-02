@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "7ee5d6f89a4f05eea6019a70022c747b60024785f3974c0311959cf840a2e658"
+  },
+  "name": "contracts/fixtures/plans/admitted-trial-plan-v1/invalid/bad-admission-stage",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

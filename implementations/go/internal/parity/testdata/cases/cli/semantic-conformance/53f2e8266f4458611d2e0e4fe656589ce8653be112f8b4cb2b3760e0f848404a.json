@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-evaluation-v2",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "5f5d79bad4a371a4a243c38a7257e7b39c63260abb3cd5f9d3c96c950197977d"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/optional-failure",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-evaluation-v2",
+      "diagnostics": [
+        {
+          "address": "participant-control-evaluation-v2",
+          "code": "conformance.semantic-context-required",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-history-event-stream-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6249f87ce06d5233fe21341dec43bfbbd4353523ffaeda8c1c9ceed303faba4e"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-history-event-stream-v1/valid/started",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

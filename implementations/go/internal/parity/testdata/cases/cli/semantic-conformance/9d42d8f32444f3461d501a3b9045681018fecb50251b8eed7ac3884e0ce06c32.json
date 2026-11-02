@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-derived-measure-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "6ea00a1f0ddd25f080f95ba7efabf8bc575527f465002c7dd45c557a95c778d5"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-derived-measure-v1/invalid/non-reported-with-value",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-derived-measure-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-derived-measure-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

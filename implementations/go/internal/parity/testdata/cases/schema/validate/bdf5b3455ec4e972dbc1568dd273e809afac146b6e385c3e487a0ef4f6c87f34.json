@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "29d88b59d90d0c1e3f38b04a9f474543e1568f63a7c3d1683fac553a8f7e25dd"
+  },
+  "name": "contracts/fixtures/profiles/random-stream-profile-v1/invalid/unknown-field",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

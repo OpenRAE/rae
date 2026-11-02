@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-cleanup-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9c61f221cd8d1ac49541a7dc83a19647f104648b763f8f2958a439a70e708f97"
+  },
+  "name": "contracts/fixtures/control-plane/trial-cleanup-receipt-v1/valid/abort-cleanup-failed",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

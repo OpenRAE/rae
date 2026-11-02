@@ -1,0 +1,38 @@
+{
+  "schema_version": "experiment-evidence-record/v1",
+  "evidence_record_id": "evidence-vulnerability-scan-001",
+  "record_version": "1.0.0",
+  "capture_spec_ref": {
+    "ref_kind": "capture-spec",
+    "ref_id": "capture-runtime-inventory-v1",
+    "ref_version": "1.0.0"
+  },
+  "capture_requirement_ref": "vulnerability-scan-output",
+  "output_contract": "participant-behavior-history-event-stream-v1",
+  "run_ref": {
+    "ref_kind": "run",
+    "ref_id": "run-runtime-inventory-001",
+    "ref_version": "1.0.0"
+  },
+  "source_refs": [
+    {
+      "ref_kind": "measurement-channel",
+      "ref_id": "vulnerability-scanner",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "evidence_kind": "artifact",
+  "captured_at": "2026-07-13T00:01:00Z",
+  "capture_window_ref": "inventory-window",
+  "raw_content": {
+    "content_uri": "runs/run-runtime-inventory-001/vulnerability-scan.json",
+    "content_checksum": {
+      "algorithm": "sha256",
+      "value": "3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "payload_summary": "Machine-readable vulnerability findings with scanner version, advisory database version, scan time, and immutable image digest."
+  },
+  "sensitivity": "internal",
+  "redaction_state": "none",
+  "provenance_refs": []
+}

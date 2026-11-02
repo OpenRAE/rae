@@ -1,0 +1,12 @@
+{
+  "schema_version": "backend-operation-capabilities/v1",
+  "backend_id": "transfer:native-ownership",
+  "revision": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+  "supported_operation_kinds": [
+    "composition-phase"
+  ],
+  "guarantees": [
+    "effect-observation",
+    "cessation-evidence"
+  ]
+}

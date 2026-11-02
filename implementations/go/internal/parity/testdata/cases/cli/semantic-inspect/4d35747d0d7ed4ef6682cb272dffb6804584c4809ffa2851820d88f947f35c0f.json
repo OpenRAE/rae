@@ -1,0 +1,1596 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "144f39d33776b16b6057eb66038778d3446c8c6ae512b07774051abcb37e1e20"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 217,
+        "declarations": [
+          {
+            "address": "accounts.backup-operator",
+            "kind": "accounts",
+            "model_path": "accounts.backup-operator",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.domain-admin",
+            "kind": "accounts",
+            "model_path": "accounts.domain-admin",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.helpdesk-user",
+            "kind": "accounts",
+            "model_path": "accounts.helpdesk-user",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.nurse-user",
+            "kind": "accounts",
+            "model_path": "accounts.nurse-user",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.soc-analyst",
+            "kind": "accounts",
+            "model_path": "accounts.soc-analyst",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.surgeon-user",
+            "kind": "accounts",
+            "model_path": "accounts.surgeon-user",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.svc-ehr",
+            "kind": "accounts",
+            "model_path": "accounts.svc-ehr",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.svc-sql",
+            "kind": "accounts",
+            "model_path": "accounts.svc-sql",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "accounts.vendor-tech",
+            "kind": "accounts",
+            "model_path": "accounts.vendor-tech",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.abuse-vpn",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.abuse-vpn",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.contain",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.contain",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.disable",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.disable",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.discover",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.discover",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.encrypt",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.encrypt",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.escalate",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.escalate",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.exfiltrate",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.exfiltrate",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.inspect",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.inspect",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.isolate",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.isolate",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.phish",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.phish",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.pivot",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.pivot",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.reissue-creds",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.reissue-creds",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.restore",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.restore",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.steal-cred",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.steal-cred",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.triage",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.triage",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "action_contracts.validate",
+            "kind": "action_contracts",
+            "model_path": "action_contracts.validate",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.blue-ir-agent",
+            "kind": "agents",
+            "model_path": "agents.blue-ir-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.blue-soc-agent",
+            "kind": "agents",
+            "model_path": "agents.blue-soc-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.red-initial",
+            "kind": "agents",
+            "model_path": "agents.red-initial",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.red-operator",
+            "kind": "agents",
+            "model_path": "agents.red-operator",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.backup-catalog-intact",
+            "kind": "assertions",
+            "model_path": "assertions.backup-catalog-intact",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.clinical-disruption-observed",
+            "kind": "assertions",
+            "model_path": "assertions.clinical-disruption-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.ehr-api-healthy",
+            "kind": "assertions",
+            "model_path": "assertions.ehr-api-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.pacs-archive-healthy",
+            "kind": "assertions",
+            "model_path": "assertions.pacs-archive-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.phi-staging-observed",
+            "kind": "assertions",
+            "model_path": "assertions.phi-staging-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.pre-clinical-disruption-observed",
+            "kind": "assertions",
+            "model_path": "assertions.pre-clinical-disruption-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.pre-phish-mail-delivered",
+            "kind": "assertions",
+            "model_path": "assertions.pre-phish-mail-delivered",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.radiology-workflow-delayed",
+            "kind": "assertions",
+            "model_path": "assertions.radiology-workflow-delayed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.soc-pipeline-up",
+            "kind": "assertions",
+            "model_path": "assertions.soc-pipeline-up",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.triage-case-submitted",
+            "kind": "assertions",
+            "model_path": "assertions.triage-case-submitted",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.vendor-session-established",
+            "kind": "assertions",
+            "model_path": "assertions.vendor-session-established",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.backup-catalog-intact",
+            "kind": "conditions",
+            "model_path": "conditions.backup-catalog-intact",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.clinical-disruption-observed",
+            "kind": "conditions",
+            "model_path": "conditions.clinical-disruption-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.device-mesh-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.device-mesh-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.domain-auth-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.domain-auth-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.ehr-api-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.ehr-api-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.ehr-db-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.ehr-db-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.exchange-owa-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.exchange-owa-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.mail-queue-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.mail-queue-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.pacs-archive-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.pacs-archive-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.phi-staging-observed",
+            "kind": "conditions",
+            "model_path": "conditions.phi-staging-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.phish-mail-delivered",
+            "kind": "conditions",
+            "model_path": "conditions.phish-mail-delivered",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.radiology-workflow-delayed",
+            "kind": "conditions",
+            "model_path": "conditions.radiology-workflow-delayed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.restore-runbook-ready",
+            "kind": "conditions",
+            "model_path": "conditions.restore-runbook-ready",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.soc-pipeline-up",
+            "kind": "conditions",
+            "model_path": "conditions.soc-pipeline-up",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.sso-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.sso-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.triage-case-submitted",
+            "kind": "conditions",
+            "model_path": "conditions.triage-case-submitted",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.vendor-jump-online",
+            "kind": "conditions",
+            "model_path": "conditions.vendor-jump-online",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.vendor-session-established",
+            "kind": "conditions",
+            "model_path": "conditions.vendor-session-established",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "conditions.vpn-auth-healthy",
+            "kind": "conditions",
+            "model_path": "conditions.vpn-auth-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.backup-runbook",
+            "kind": "content",
+            "model_path": "content.backup-runbook",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.phi-records",
+            "kind": "content",
+            "model_path": "content.phi-records",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.phishing-mailbox",
+            "kind": "content",
+            "model_path": "content.phishing-mailbox",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.phishing-mailbox.items.payroll-adjustment",
+            "kind": "content-item",
+            "model_path": "content.phishing-mailbox.items.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.phishing-mailbox.items.vendor-followup",
+            "kind": "content-item",
+            "model_path": "content.phishing-mailbox.items.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.radiology-images",
+            "kind": "content",
+            "model_path": "content.radiology-images",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "content.vendor-session-profile",
+            "kind": "content",
+            "model_path": "content.vendor-session-profile",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.hospital-blue",
+            "kind": "entity",
+            "model_path": "entities.hospital-blue",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.hospital-blue.clinical-it",
+            "kind": "entity",
+            "model_path": "entities.hospital-blue.entities.clinical-it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.hospital-blue.identity",
+            "kind": "entity",
+            "model_path": "entities.hospital-blue.entities.identity",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.hospital-blue.recovery",
+            "kind": "entity",
+            "model_path": "entities.hospital-blue.entities.recovery",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.hospital-blue.soc",
+            "kind": "entity",
+            "model_path": "entities.hospital-blue.entities.soc",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.ransom-crew",
+            "kind": "entity",
+            "model_path": "entities.ransom-crew",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.vendor-support",
+            "kind": "entity",
+            "model_path": "entities.vendor-support",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.white-cell",
+            "kind": "entity",
+            "model_path": "entities.white-cell",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.morning-advisory",
+            "kind": "events",
+            "model_path": "events.morning-advisory",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.phishing-delivery",
+            "kind": "events",
+            "model_path": "events.phishing-delivery",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.surgery-pressure",
+            "kind": "events",
+            "model_path": "events.surgery-pressure",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.objective-truth-evidence",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "features.device-broker",
+            "kind": "features",
+            "model_path": "features.device-broker",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.edr-sensor",
+            "kind": "features",
+            "model_path": "features.edr-sensor",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.ehr-service",
+            "kind": "features",
+            "model_path": "features.ehr-service",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.exchange-mailbox",
+            "kind": "features",
+            "model_path": "features.exchange-mailbox",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.hospital-ad",
+            "kind": "features",
+            "model_path": "features.hospital-ad",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.hospital-adfs",
+            "kind": "features",
+            "model_path": "features.hospital-adfs",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.immutable-backup",
+            "kind": "features",
+            "model_path": "features.immutable-backup",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.mail-relay",
+            "kind": "features",
+            "model_path": "features.mail-relay",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.pacs-service",
+            "kind": "features",
+            "model_path": "features.pacs-service",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.siem-core",
+            "kind": "features",
+            "model_path": "features.siem-core",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.sql-cluster",
+            "kind": "features",
+            "model_path": "features.sql-cluster",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "features.vpn-concentrator",
+            "kind": "features",
+            "model_path": "features.vpn-concentrator",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "identity_domains.hospital",
+            "kind": "identity_domains",
+            "model_path": "identity_domains.hospital",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.ad01",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.ad01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.backup-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.backup-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.backup-vault",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.backup-vault",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.clinical-it",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.clinical-it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.clinical-it.acls.allow-corp-clinical-apps",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.clinical-it.acls.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.clinical-it.acls.allow-vendor-clinical-web",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.clinical-it.acls.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.clinical-it.acls.deny-public-clinical",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.clinical-it.acls.2.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.corp-it",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.corp-it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.corp-it.acls.allow-public-mail-web",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.corp-it.acls.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.corp-it.acls.allow-vendor-support",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.corp-it.acls.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.ehr-db",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.ehr-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.ehr-frontend",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.ehr-frontend",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.exchange01",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.exchange01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.identity-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.identity-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.identity-net.acls.allow-clinical-identity",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.identity-net.acls.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.identity-net.acls.allow-corp-identity",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.identity-net.acls.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.internet-edge",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.internet-edge",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.mail-gateway",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.mail-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.med-gateway",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.med-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.pacs01",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.pacs01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.security-net",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.siem01",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.siem01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.vendor-jump",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.vendor-jump",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.vendor-segment",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.vendor-segment",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.vendor-segment.acls.allow-public-vpn",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.vendor-segment.acls.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.vendor-segment.acls.deny-clinical-backflow",
+            "kind": "infrastructure-acl",
+            "model_path": "infrastructure.vendor-segment.acls.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.vpn-gateway",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.vpn-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "injects.phishing-wave",
+            "kind": "injects",
+            "model_path": "injects.phishing-wave",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "injects.surgery-escalation",
+            "kind": "injects",
+            "model_path": "injects.surgery-escalation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "injects.vendor-advisory",
+            "kind": "injects",
+            "model_path": "injects.vendor-advisory",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01",
+            "kind": "node",
+            "model_path": "nodes.ad01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.roles.domain-admin",
+            "kind": "node-role",
+            "model_path": "nodes.ad01.roles.domain-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.ad01.roles.federation-admin",
+            "kind": "node-role",
+            "model_path": "nodes.ad01.roles.federation-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-adfs",
+            "kind": "runtime-identity_authorities",
+            "model_path": "nodes.ad01.runtime.identity_authorities.1.identity_authority_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-adfs.relationships.adfs-federates-ehr",
+            "kind": "runtime-relationships",
+            "model_path": "nodes.ad01.runtime.identity_authorities.1.relationships.0.relationship_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-adfs.services.adfs-saml",
+            "kind": "runtime-services",
+            "model_path": "nodes.ad01.runtime.identity_authorities.1.services.0.service_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-adfs.subjects.ehr-application",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.ad01.runtime.identity_authorities.1.subjects.0.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain",
+            "kind": "runtime-identity_authorities",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.identity_authority_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.policies.default-domain-password-policy",
+            "kind": "runtime-policies",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.policies.0.policy_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.relationships.ehr-service-appservices-membership",
+            "kind": "runtime-relationships",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.relationships.1.relationship_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.relationships.nurse-clinical-membership",
+            "kind": "runtime-relationships",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.relationships.0.relationship_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.services.ldap-endpoint",
+            "kind": "runtime-services",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.services.0.service_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.appservices-group",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.subjects.3.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.clinical-group",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.subjects.1.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.ehr-service-principal",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.subjects.4.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.nurse-user",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.subjects.0.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.runtime.identity_authorities.hospital-domain.subjects.surgery-group",
+            "kind": "runtime-subjects",
+            "model_path": "nodes.ad01.runtime.identity_authorities.0.subjects.2.subject_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.services.ad-dns",
+            "kind": "service",
+            "model_path": "nodes.ad01.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.services.ad-ldap",
+            "kind": "service",
+            "model_path": "nodes.ad01.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ad01.services.adfs-https",
+            "kind": "service",
+            "model_path": "nodes.ad01.services.2.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.backup-net",
+            "kind": "node",
+            "model_path": "nodes.backup-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.backup-vault",
+            "kind": "node",
+            "model_path": "nodes.backup-vault",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.backup-vault.roles.backup-admin",
+            "kind": "node-role",
+            "model_path": "nodes.backup-vault.roles.backup-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.backup-vault.services.backup-api",
+            "kind": "service",
+            "model_path": "nodes.backup-vault.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.backup-vault.services.backup-nfs",
+            "kind": "service",
+            "model_path": "nodes.backup-vault.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.clinical-it",
+            "kind": "node",
+            "model_path": "nodes.clinical-it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.corp-it",
+            "kind": "node",
+            "model_path": "nodes.corp-it",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ehr-db",
+            "kind": "node",
+            "model_path": "nodes.ehr-db",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ehr-db.roles.dba",
+            "kind": "node-role",
+            "model_path": "nodes.ehr-db.roles.dba",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.ehr-db.services.ehr-postgres",
+            "kind": "service",
+            "model_path": "nodes.ehr-db.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ehr-frontend",
+            "kind": "node",
+            "model_path": "nodes.ehr-frontend",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ehr-frontend.roles.ehr-admin",
+            "kind": "node-role",
+            "model_path": "nodes.ehr-frontend.roles.ehr-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.ehr-frontend.services.ehr-admin-api",
+            "kind": "service",
+            "model_path": "nodes.ehr-frontend.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.ehr-frontend.services.ehr-https",
+            "kind": "service",
+            "model_path": "nodes.ehr-frontend.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.exchange01",
+            "kind": "node",
+            "model_path": "nodes.exchange01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.exchange01.roles.exchange-admin",
+            "kind": "node-role",
+            "model_path": "nodes.exchange01.roles.exchange-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.exchange01.services.exchange-owa",
+            "kind": "service",
+            "model_path": "nodes.exchange01.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.exchange01.services.exchange-smtp",
+            "kind": "service",
+            "model_path": "nodes.exchange01.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.identity-net",
+            "kind": "node",
+            "model_path": "nodes.identity-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.internet-edge",
+            "kind": "node",
+            "model_path": "nodes.internet-edge",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.mail-gateway",
+            "kind": "node",
+            "model_path": "nodes.mail-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.mail-gateway.roles.mail-admin",
+            "kind": "node-role",
+            "model_path": "nodes.mail-gateway.roles.mail-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.mail-gateway.services.mail-admin-ui",
+            "kind": "service",
+            "model_path": "nodes.mail-gateway.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.mail-gateway.services.smtp-inbound",
+            "kind": "service",
+            "model_path": "nodes.mail-gateway.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.med-gateway",
+            "kind": "node",
+            "model_path": "nodes.med-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.med-gateway.roles.device-admin",
+            "kind": "node-role",
+            "model_path": "nodes.med-gateway.roles.device-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.med-gateway.services.med-mqtt",
+            "kind": "service",
+            "model_path": "nodes.med-gateway.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.pacs01",
+            "kind": "node",
+            "model_path": "nodes.pacs01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.pacs01.roles.pacs-admin",
+            "kind": "node-role",
+            "model_path": "nodes.pacs01.roles.pacs-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.pacs01.services.dicom-store",
+            "kind": "service",
+            "model_path": "nodes.pacs01.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.pacs01.services.pacs-web-ui",
+            "kind": "service",
+            "model_path": "nodes.pacs01.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.security-net",
+            "kind": "node",
+            "model_path": "nodes.security-net",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.siem01",
+            "kind": "node",
+            "model_path": "nodes.siem01",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.siem01.roles.soc-admin",
+            "kind": "node-role",
+            "model_path": "nodes.siem01.roles.soc-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.siem01.services.soc-search",
+            "kind": "service",
+            "model_path": "nodes.siem01.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.siem01.services.soc-ui",
+            "kind": "service",
+            "model_path": "nodes.siem01.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vendor-jump",
+            "kind": "node",
+            "model_path": "nodes.vendor-jump",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vendor-jump.roles.support",
+            "kind": "node-role",
+            "model_path": "nodes.vendor-jump.roles.support",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.vendor-jump.services.vendor-rdp",
+            "kind": "service",
+            "model_path": "nodes.vendor-jump.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vendor-segment",
+            "kind": "node",
+            "model_path": "nodes.vendor-segment",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vpn-gateway",
+            "kind": "node",
+            "model_path": "nodes.vpn-gateway",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vpn-gateway.roles.vpn-admin",
+            "kind": "node-role",
+            "model_path": "nodes.vpn-gateway.roles.vpn-admin",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "nodes.vpn-gateway.services.vpn-portal",
+            "kind": "service",
+            "model_path": "nodes.vpn-gateway.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.vpn-gateway.services.vpn-tunnel",
+            "kind": "service",
+            "model_path": "nodes.vpn-gateway.services.1.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "objectives.blue-detect-and-triage",
+            "kind": "objectives",
+            "model_path": "objectives.blue-detect-and-triage",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.blue-restore-clinical-services",
+            "kind": "objectives",
+            "model_path": "objectives.blue-restore-clinical-services",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.red-disrupt-radiology",
+            "kind": "objectives",
+            "model_path": "objectives.red-disrupt-radiology",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.red-establish-foothold",
+            "kind": "objectives",
+            "model_path": "objectives.red-establish-foothold",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "objectives.red-stage-phi",
+            "kind": "objectives",
+            "model_path": "objectives.red-stage-phi",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "propositions.backup-catalog-intact",
+            "kind": "propositions",
+            "model_path": "propositions.backup-catalog-intact",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.clinical-disruption-observed",
+            "kind": "propositions",
+            "model_path": "propositions.clinical-disruption-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.ehr-api-healthy",
+            "kind": "propositions",
+            "model_path": "propositions.ehr-api-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.pacs-archive-healthy",
+            "kind": "propositions",
+            "model_path": "propositions.pacs-archive-healthy",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.phi-staging-observed",
+            "kind": "propositions",
+            "model_path": "propositions.phi-staging-observed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.phish-mail-delivered",
+            "kind": "propositions",
+            "model_path": "propositions.phish-mail-delivered",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.radiology-workflow-delayed",
+            "kind": "propositions",
+            "model_path": "propositions.radiology-workflow-delayed",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.soc-pipeline-up",
+            "kind": "propositions",
+            "model_path": "propositions.soc-pipeline-up",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.triage-case-submitted",
+            "kind": "propositions",
+            "model_path": "propositions.triage-case-submitted",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.vendor-session-established",
+            "kind": "propositions",
+            "model_path": "propositions.vendor-session-established",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.ad01-controls-hospital-domain",
+            "kind": "relationships",
+            "model_path": "relationships.ad01-controls-hospital-domain",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.backup-manages-ehr",
+            "kind": "relationships",
+            "model_path": "relationships.backup-manages-ehr",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.ehr-db-joins-hospital-domain",
+            "kind": "relationships",
+            "model_path": "relationships.ehr-db-joins-hospital-domain",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.ehr-frontend-joins-hospital-domain",
+            "kind": "relationships",
+            "model_path": "relationships.ehr-frontend-joins-hospital-domain",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.ehr-sso-path",
+            "kind": "relationships",
+            "model_path": "relationships.ehr-sso-path",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.ehr-to-database",
+            "kind": "relationships",
+            "model_path": "relationships.ehr-to-database",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.exchange-auths-ad",
+            "kind": "relationships",
+            "model_path": "relationships.exchange-auths-ad",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.med-gateway-depends-ehr",
+            "kind": "relationships",
+            "model_path": "relationships.med-gateway-depends-ehr",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.pacs-sync-to-backup",
+            "kind": "relationships",
+            "model_path": "relationships.pacs-sync-to-backup",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.vpn-vendor-support-path",
+            "kind": "relationships",
+            "model_path": "relationships.vpn-vendor-support-path",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.hospital-ransomware-surgery-day",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "scripts.live-clinic",
+            "kind": "scripts",
+            "model_path": "scripts.live-clinic",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scripts.pre-surgery",
+            "kind": "scripts",
+            "model_path": "scripts.pre-surgery",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scripts.recovery-window",
+            "kind": "scripts",
+            "model_path": "scripts.recovery-window",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "stories.surgery-day",
+            "kind": "stories",
+            "model_path": "stories.surgery-day",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "variables.recovery_window",
+            "kind": "variable",
+            "model_path": "variables.recovery_window",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variables.surgery_day_speed",
+            "kind": "variable",
+            "model_path": "variables.surgery_day_speed",
+            "referenceable": true,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "hospital-ransomware-surgery-day",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "accounts",
+              "action_contracts",
+              "agents",
+              "assertions",
+              "conditions",
+              "content",
+              "entities",
+              "events",
+              "features",
+              "identity_domains",
+              "infrastructure",
+              "injects",
+              "nodes",
+              "objectives",
+              "propositions",
+              "relationships",
+              "scripts",
+              "stories",
+              "variables"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {
+            "objective-truth-evidence": {
+              "source": "legacy-evidence-requirement"
+            }
+          }
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

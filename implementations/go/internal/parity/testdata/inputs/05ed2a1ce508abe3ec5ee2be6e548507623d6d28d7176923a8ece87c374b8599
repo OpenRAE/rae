@@ -1,0 +1,23 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "backend-selected",
+    "version": "*",
+    "artifact_requirement": {
+      "requirement_id": "bad-extension",
+      "explicitness": "open",
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "arbitrary mechanism",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "none",
+          "timing": "realization"
+        }
+      ]
+    }
+  }
+}

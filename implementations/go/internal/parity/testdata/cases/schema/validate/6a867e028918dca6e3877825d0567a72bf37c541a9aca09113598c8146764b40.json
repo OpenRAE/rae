@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reference-models-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "2272c68dd396231d807d53590bb1d88b5f6f53b405e0f8c4de8330d270c7e0ad"
+  },
+  "name": "contracts/fixtures/concept-authority/reference-models-v1/invalid/instance-path-mismatch",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

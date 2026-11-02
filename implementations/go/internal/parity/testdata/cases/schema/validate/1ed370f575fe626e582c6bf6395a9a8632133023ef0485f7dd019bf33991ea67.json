@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-execution-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "52b858433c0cdd57bd2f5e7bdd947b6a761beff9e31c0ce3906aaf5a60028921"
+  },
+  "name": "contracts/fixtures/control-plane/mixed-backend-execution-binding-v1/invalid/transfer-as-owner-reader",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

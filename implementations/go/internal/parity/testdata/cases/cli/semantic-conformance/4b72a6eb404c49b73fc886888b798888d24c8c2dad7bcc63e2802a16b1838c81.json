@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "participant-control-occurrence-v2",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "3c29f9f8375d32a1c01c7aee1e695ff6beaed0c5f1ac3d298822274b5febf9f8"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-occurrence-v2/invalid/accepted-without-validity-bounds",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-control-occurrence-v2",
+      "diagnostics": [
+        {
+          "address": "participant-control-occurrence-v2",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural-context-required"
+    }
+  },
+  "surface": "cli"
+}

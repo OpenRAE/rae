@@ -1,0 +1,180 @@
+{
+  "schema_version": "reusable-asset-trust-policy/v1",
+  "policy_id": "raes-reusable-asset-trust-policy",
+  "families": [
+    {
+      "asset_family": "associated_artifact_set",
+      "identity_basis": "associated-artifact-manifest-v1 canonical parent-plus-reference-set digest",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "associated-artifact-set/v1 derived set_digest",
+          "description": "The set digest binds the exact parent reference and keyed artifact-reference set without changing parent identity."
+        },
+        {
+          "evidence_class": "artifact_checksum",
+          "enforcement": "required",
+          "mechanism_ref": "validate_associated_artifact_manifest bounded concrete-byte validation",
+          "description": "Every referenced payload checksum and size is recomputed from an explicitly supplied bounded byte stream."
+        },
+        {
+          "evidence_class": "authenticity_signature",
+          "enforcement": "optional",
+          "mechanism_ref": "downstream signature over the derived associated-artifact set digest",
+          "description": "A signature may authenticate the set digest, but neither the digest nor payload checksums establish authenticity alone."
+        }
+      ]
+    },
+    {
+      "asset_family": "reusable_scenario",
+      "identity_basis": "instantiated-scenario-v1 / scenario-instantiation-request-v1 scenario reference id",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "scenario-snapshot integrity binding (post module resolution and semantic validation)",
+          "description": "A composed, reusable scenario is integrity-bound at the scenario-snapshot boundary, distinct from its id-only scenario reference."
+        },
+        {
+          "evidence_class": "provenance_lock_record",
+          "enforcement": "required",
+          "mechanism_ref": "raes.lock.json module lock records for every composed module",
+          "description": "The scenario's composed modules are pinned by digest via the lockfile, giving SLSA-style resolved-dependency provenance over sub-assets."
+        },
+        {
+          "evidence_class": "authenticity_signature",
+          "enforcement": "recommended",
+          "mechanism_ref": "RegistryTrustPolicy trusted-signer verification for the source modules",
+          "description": "Authenticity of a composed scenario derives from the signatures on its source modules."
+        }
+      ],
+      "authenticity_policy": {
+        "trusted_signer_set_ref": "raes-trust.yaml:trusted_signers",
+        "threshold": 1
+      }
+    },
+    {
+      "asset_family": "sdl_module",
+      "identity_basis": "ImportDecl module import id / ModuleDescriptor",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "raes.lock.json digest pin (_validate_digest_pin)",
+          "description": "A resolved module import is pinned to a content digest recorded in the lockfile."
+        },
+        {
+          "evidence_class": "provenance_lock_record",
+          "enforcement": "required",
+          "mechanism_ref": "LockRecord / resolve_lock_records with export-hash and drift checks",
+          "description": "The lock record binds the resolved module identity checkout-independently and detects drift."
+        },
+        {
+          "evidence_class": "authenticity_signature",
+          "enforcement": "required",
+          "mechanism_ref": "RegistryTrustPolicy signature verification (_verify_signatures over _signable_payload)",
+          "description": "A trusted signer set attests the module; a name or registry id is not proof of authenticity."
+        }
+      ],
+      "authenticity_policy": {
+        "trusted_signer_set_ref": "raes-trust.yaml:trusted_signers",
+        "threshold": 1
+      }
+    },
+    {
+      "asset_family": "experiment_task",
+      "identity_basis": "experiment-task-v1 task id / ExperimentReferenceModel",
+      "evidence_requirements": [
+        {
+          "evidence_class": "artifact_checksum",
+          "enforcement": "required",
+          "mechanism_ref": "ExperimentChecksumModel over referenced task artifacts",
+          "description": "Task-referenced artifacts carry raw-content checksums bound to their bytes."
+        },
+        {
+          "evidence_class": "provenance_lock_record",
+          "enforcement": "recommended",
+          "mechanism_ref": "experiment-task-v1 references pinned to parent module/scenario digests",
+          "description": "A task records the pinned scenario/module it binds to, not just their ids."
+        }
+      ]
+    },
+    {
+      "asset_family": "experiment_study",
+      "identity_basis": "experiment-study-v1 study id",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "experiment-study-v1 study-definition digest",
+          "description": "The study definition is integrity-bound over its canonical serialization."
+        },
+        {
+          "evidence_class": "provenance_lock_record",
+          "enforcement": "required",
+          "mechanism_ref": "experiment-study-v1 referenced scenarios/results pinned via ExperimentChecksumModel",
+          "description": "A study pins the scenarios, tasks, and results it aggregates by digest (SSDF PS.3 archival provenance)."
+        }
+      ]
+    },
+    {
+      "asset_family": "behavior_vocabulary",
+      "identity_basis": "controlled-vocabularies-v1 vocabulary id",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "controlled-vocabularies-v1 source.source_digest",
+          "description": "A governed vocabulary's external source is pinned to a content digest."
+        },
+        {
+          "evidence_class": "governance_source",
+          "enforcement": "required",
+          "mechanism_ref": "controlled-vocabularies-v1 source (authority + authority_version + extension_policy)",
+          "description": "Authoritative-origin governance is a first-class evidence class for reusable vocabularies (TUF-delegation analog)."
+        }
+      ]
+    },
+    {
+      "asset_family": "participant_manifest",
+      "identity_basis": "participant-implementation-manifest-v1 selected manifest ref",
+      "evidence_requirements": [
+        {
+          "evidence_class": "integrity_digest",
+          "enforcement": "required",
+          "mechanism_ref": "participant-implementation-manifest-v1 manifest/configuration digests",
+          "description": "The selected manifest and its configuration are pinned by digest; portable artifacts carry references and digests, not secrets."
+        },
+        {
+          "evidence_class": "provenance_lock_record",
+          "enforcement": "recommended",
+          "mechanism_ref": "participant-implementation-provenance-v1",
+          "description": "Run-level provenance records how the participant implementation was selected and bound."
+        }
+      ]
+    },
+    {
+      "asset_family": "evidence_artifact",
+      "identity_basis": "experiment-evidence-record-v1 artifact ref",
+      "evidence_requirements": [
+        {
+          "evidence_class": "artifact_checksum",
+          "enforcement": "required",
+          "mechanism_ref": "experiment-evidence-record-v1 raw-content ExperimentChecksumModel",
+          "description": "Evidence artifacts are integrity-bound by a hard checksum over their bytes (C2PA hard-binding / OCI descriptor analog)."
+        },
+        {
+          "evidence_class": "authenticity_signature",
+          "enforcement": "recommended",
+          "mechanism_ref": "signed evidence claim over the artifact checksum",
+          "description": "A signed claim over the evidence checksum establishes authenticity without embedding the raw payload or secrets."
+        }
+      ],
+      "authenticity_policy": {
+        "trusted_signer_set_ref": "raes-trust.yaml:evidence_signers",
+        "threshold": 1
+      }
+    }
+  ]
+}

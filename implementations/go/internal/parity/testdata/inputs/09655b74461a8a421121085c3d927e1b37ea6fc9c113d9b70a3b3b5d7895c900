@@ -1,0 +1,5 @@
+name: canonical-anchors
+nodes:
+  shared: &shared
+    type: switch
+  reuse: *shared

@@ -1,0 +1,25 @@
+{
+  "schema_version": "participant-implementation-provenance/v1",
+  "run_id": "run-2026-05-29-001",
+  "participant_implementations": [
+    {
+      "participant_address": "participants.red",
+      "implementation_identity": {
+        "name": "reference-red-agent",
+        "version": "1.0.0"
+      },
+      "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+      "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "selected_decision_surface_mode": "policy-directed",
+      "participant_contract_versions": [
+        "participant-episode-state-envelope-v1"
+      ],
+      "exposure_policy": {
+        "policy_id": "red-agent-policy",
+        "exposure_policy_kinds": [
+          "task-statement"
+        ]
+      }
+    }
+  ]
+}

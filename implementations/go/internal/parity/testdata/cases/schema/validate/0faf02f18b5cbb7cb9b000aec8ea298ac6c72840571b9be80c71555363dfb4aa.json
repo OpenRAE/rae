@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-context-view-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "411fe0405aa73498708c04057a737f1c0b86e7567f71d9570f186b32efc99ede"
+  },
+  "name": "contracts/fixtures/control-plane/participant-context-view-v1/invalid/sem216-archival-evidence-participant-visible",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

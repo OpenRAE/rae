@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-capture-spec-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "b378c89f4e91f8a24027bb75620588e25756ded8b4d612b64e16d0e38abb530d"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-capture-spec-v1/invalid/missing-capture-requirements",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

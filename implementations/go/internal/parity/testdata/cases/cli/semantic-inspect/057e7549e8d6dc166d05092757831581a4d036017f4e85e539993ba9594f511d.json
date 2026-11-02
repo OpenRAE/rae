@@ -1,0 +1,62 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-opacity-model-check-input-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "fc5cc63e8f403cdeb7773647b152bd5919061c283ba50089aff635d632db9b26"
+  },
+  "name": "contracts/fixtures/formal-analysis/participant-opacity-model-check-input-v1/valid/opaque-transition-model",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "participant-opacity-model-check-input-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 19,
+        "members": [
+          "analysis_profile",
+          "assumptions",
+          "catalog_digest",
+          "claim",
+          "complete_model",
+          "declared_counts",
+          "initial_state_ordinals",
+          "materializer_digest",
+          "materializer_id",
+          "materializer_version",
+          "model_ref",
+          "model_revision",
+          "profile_digest",
+          "profile_id",
+          "profile_revision",
+          "schema_version",
+          "source",
+          "states",
+          "transitions"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

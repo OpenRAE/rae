@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-cleanup-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "d3ee988567621adbe1176843952f3f3cf0e0751cda1a9bc8701c272174cd162c"
+  },
+  "name": "contracts/fixtures/control-plane/trial-cleanup-receipt-v1/valid/timeout-cleanup-unsupported",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

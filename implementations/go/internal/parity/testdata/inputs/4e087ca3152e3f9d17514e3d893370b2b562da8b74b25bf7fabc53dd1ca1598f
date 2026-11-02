@@ -1,0 +1,32 @@
+{
+  "schema_version": "artifact-transformation-report/v1",
+  "operation_profile": "canonicalize-portable-contract/v1",
+  "status": "success",
+  "artifact_kind": "portable-contract",
+  "source_profile": "external-concept-bindings/v1",
+  "target_profile": "external-concept-bindings/v1",
+  "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+  "source_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "policy_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "derivation_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "preconditions": [
+    {
+      "check_id": "source-admitted",
+      "outcome": "passed",
+      "diagnostic_codes": []
+    }
+  ],
+  "postconditions": [],
+  "affected_identities": [],
+  "identity_map": [],
+  "preservation": {
+    "profile": "canonical-artifact-identity",
+    "outcome": "verified",
+    "evidence_digests": [
+      "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "limitations": []
+  },
+  "losses": [],
+  "diagnostics": []
+}

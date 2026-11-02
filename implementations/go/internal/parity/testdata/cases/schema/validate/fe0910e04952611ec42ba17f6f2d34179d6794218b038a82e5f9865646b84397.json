@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-requirement-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "fba7470c367cacba5a84ca8f2716701c075d7a810fd98c1b68b830b5128be3ff"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/invalid/exact-with-fallback",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

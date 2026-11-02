@@ -1,0 +1,92 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "1bca57381915eed042e554cce17156704f53f1d622062ecafab733df57bc7bcb"
+  },
+  "name": "examples/scenarios/techvault-observability-core.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 16,
+        "reference_bindings": {
+          "aptl-grafana-otel": [
+            "nodes.aptl-grafana-otel"
+          ],
+          "aptl-otel-collector": [
+            "nodes.aptl-otel-collector"
+          ],
+          "aptl-tempo": [
+            "nodes.aptl-tempo"
+          ],
+          "infrastructure.aptl-grafana-otel": [
+            "infrastructure.aptl-grafana-otel"
+          ],
+          "infrastructure.aptl-otel-collector": [
+            "infrastructure.aptl-otel-collector"
+          ],
+          "infrastructure.aptl-tempo": [
+            "infrastructure.aptl-tempo"
+          ],
+          "infrastructure.security-net": [
+            "infrastructure.security-net"
+          ],
+          "nodes.aptl-grafana-otel": [
+            "nodes.aptl-grafana-otel"
+          ],
+          "nodes.aptl-grafana-otel.services.grafana": [
+            "nodes.aptl-grafana-otel.services.grafana"
+          ],
+          "nodes.aptl-otel-collector": [
+            "nodes.aptl-otel-collector"
+          ],
+          "nodes.aptl-otel-collector.services.otlp-grpc": [
+            "nodes.aptl-otel-collector.services.otlp-grpc"
+          ],
+          "nodes.aptl-otel-collector.services.otlp-http": [
+            "nodes.aptl-otel-collector.services.otlp-http"
+          ],
+          "nodes.aptl-tempo": [
+            "nodes.aptl-tempo"
+          ],
+          "nodes.aptl-tempo.services.tempo-http": [
+            "nodes.aptl-tempo.services.tempo-http"
+          ],
+          "nodes.security-net": [
+            "nodes.security-net"
+          ],
+          "security-net": [
+            "nodes.security-net"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "techvault-observability-core"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

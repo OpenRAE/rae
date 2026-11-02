@@ -1,0 +1,60 @@
+{
+  "policy_id": "adaptive-standard",
+  "policy_version": "1.0.0",
+  "policy_digest": "sha256:54bb861a8981c26d755b3911cbd6d2057c1b88e908b2a71b88e158a17ffe59ec",
+  "condition": "adaptive",
+  "baseline_variant_id": "standard",
+  "evaluator_ref": {
+    "ref_kind": "profile",
+    "ref_id": "adaptive-threshold-v1",
+    "ref_version": "1.0.0",
+    "ref_digest": "sha256:727da7fd8a5bc39aac13bd40051c62223f8dc839a8080a213fc1f8225ddb467f"
+  },
+  "observation_sources": {
+    "progress": {
+      "source_id": "progress",
+      "source_kind": "derived-measure",
+      "source_ref": {
+        "ref_kind": "metric-definition",
+        "ref_id": "objective-progress",
+        "ref_version": "1.0.0",
+        "ref_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "visibility": "participant-visible",
+      "maximum_age": 1
+    }
+  },
+  "threshold_rules": {
+    "objectives-met-quickly": {
+      "rule_id": "objectives-met-quickly",
+      "observation_source_id": "progress",
+      "operator": "gte",
+      "threshold": 0.75,
+      "action_id": "harder-follow-up",
+      "priority": 1
+    }
+  },
+  "actions": {
+    "harder-follow-up": {
+      "action_id": "harder-follow-up",
+      "action_kind": "follow-up-trial",
+      "target_variant_id": "hard",
+      "affected_refs": [
+        {
+          "ref_kind": "scenario-variant",
+          "ref_id": "scenario-family.challenge-level"
+        }
+      ]
+    }
+  },
+  "bounds": {
+    "maximum_interventions": 2,
+    "minimum_decision_interval": 1,
+    "cooldown": 1,
+    "terminal_disposition": "no-change"
+  },
+  "guardrails": [
+    "Use only declared evidence and action carriers."
+  ],
+  "validity_effect": "Adaptive treatment must be analyzed as a distinct condition."
+}

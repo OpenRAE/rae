@@ -1,0 +1,22 @@
+[
+  {
+    "event_type": "episode_initialized",
+    "timestamp": "2026-04-11T10:00:00Z",
+    "participant_address": "participant.alice",
+    "episode_id": "ep-0001",
+    "sequence_number": 0,
+    "terminal_reason": null,
+    "control_action": "initialize",
+    "details": {}
+  },
+  {
+    "event_type": "episode_completed",
+    "timestamp": "2026-04-11T10:05:00Z",
+    "participant_address": "participant.alice",
+    "episode_id": "ep-0001",
+    "sequence_number": 0,
+    "terminal_reason": "completed",
+    "control_action": null,
+    "details": {}
+  }
+]

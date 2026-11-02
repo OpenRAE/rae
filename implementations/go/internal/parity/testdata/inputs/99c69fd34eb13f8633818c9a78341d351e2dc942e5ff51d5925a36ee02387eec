@@ -1,0 +1,29 @@
+name: techvault-guest-certified
+description: >
+  Minimal guest-certified realization scenario. One bounded appliance node boots
+  through the production apply path and is certified from inside the guest -
+  resource allocation, network addressing, file content, and service state are
+  read back from the realized guest, freshness-bound to a per-run challenge, with
+  verified teardown. RAES 7.0.0 used it for the removed libvirt guest
+  certification; a backend distribution can use it for its own proof.
+nodes:
+  guest-net:
+    type: switch
+  guest-vm:
+    type: compute
+    os: linux
+    resources: {ram: 128 MiB, cpu: 1}
+    services:
+      - {name: beacon, port: 9000, protocol: tcp}
+content:
+  guest-marker:
+    type: file
+    target: guest-vm
+    path: /etc/raes/marker
+    text: "guest-certified realization marker\n"
+    sensitive: false
+infrastructure:
+  guest-net:
+    properties: {cidr: 192.0.2.0/24, gateway: 192.0.2.1, internal: true}
+  guest-vm:
+    links: [guest-net]

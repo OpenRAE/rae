@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-requirement-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9298616f9bf6614f9a3bc99048468a116962cc76c9f3b8ce9e0ac63d300e554f"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/invalid/unknown-field",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

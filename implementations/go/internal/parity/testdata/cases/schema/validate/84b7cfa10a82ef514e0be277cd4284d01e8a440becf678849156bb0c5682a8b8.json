@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reference-models-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "ea53a5bbfb7c1382dde9ab138a92d556479842f46f500ec8f469c1990aaa3469"
+  },
+  "name": "contracts/fixtures/concept-authority/reference-models-v1/invalid/missing-key-field",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

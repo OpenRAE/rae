@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-derived-measure-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "6ea00a1f0ddd25f080f95ba7efabf8bc575527f465002c7dd45c557a95c778d5"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-derived-measure-v1/invalid/non-reported-with-value",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

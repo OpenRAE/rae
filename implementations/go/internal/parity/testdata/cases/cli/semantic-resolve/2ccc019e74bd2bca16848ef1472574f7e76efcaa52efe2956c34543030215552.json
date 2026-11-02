@@ -1,0 +1,980 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "cc29a410842ae0c4483f7809c74d639308046d0e8be8641898e4855639570572"
+  },
+  "name": "examples/scenarios/satcom-release-poisoning.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 308,
+        "reference_bindings": {
+          "abuse-support": [
+            "action_contracts.abuse-support"
+          ],
+          "accounts.ci-bot": [
+            "accounts.ci-bot"
+          ],
+          "accounts.registry-bot": [
+            "accounts.registry-bot"
+          ],
+          "accounts.release-engineer": [
+            "accounts.release-engineer"
+          ],
+          "accounts.satops": [
+            "accounts.satops"
+          ],
+          "accounts.soc-analyst": [
+            "accounts.soc-analyst"
+          ],
+          "accounts.support-vendor": [
+            "accounts.support-vendor"
+          ],
+          "accounts.tenant-admin": [
+            "accounts.tenant-admin"
+          ],
+          "action_contracts.abuse-support": [
+            "action_contracts.abuse-support"
+          ],
+          "action_contracts.exploit": [
+            "action_contracts.exploit"
+          ],
+          "action_contracts.inspect": [
+            "action_contracts.inspect"
+          ],
+          "action_contracts.isolate": [
+            "action_contracts.isolate"
+          ],
+          "action_contracts.promote": [
+            "action_contracts.promote"
+          ],
+          "action_contracts.push-artifact": [
+            "action_contracts.push-artifact"
+          ],
+          "action_contracts.restore": [
+            "action_contracts.restore"
+          ],
+          "action_contracts.review": [
+            "action_contracts.review"
+          ],
+          "action_contracts.revoke": [
+            "action_contracts.revoke"
+          ],
+          "action_contracts.rollback": [
+            "action_contracts.rollback"
+          ],
+          "action_contracts.steal-token": [
+            "action_contracts.steal-token"
+          ],
+          "action_contracts.validate": [
+            "action_contracts.validate"
+          ],
+          "agents.blue-release-agent": [
+            "agents.blue-release-agent"
+          ],
+          "agents.blue-sre-agent": [
+            "agents.blue-sre-agent"
+          ],
+          "agents.red-build-agent": [
+            "agents.red-build-agent"
+          ],
+          "analytics-ingest-healthy": [
+            "conditions.analytics-ingest-healthy"
+          ],
+          "analytics-lake": [
+            "nodes.analytics-lake"
+          ],
+          "analytics-store": [
+            "features.analytics-store"
+          ],
+          "artifact-registry": [
+            "nodes.artifact-registry"
+          ],
+          "assertions.edge-east-poisoned": [
+            "assertions.edge-east-poisoned"
+          ],
+          "assertions.pre-edge-east-poisoned": [
+            "assertions.pre-edge-east-poisoned"
+          ],
+          "assertions.pre-rogue-release-promoted": [
+            "assertions.pre-rogue-release-promoted"
+          ],
+          "assertions.release-signature-valid": [
+            "assertions.release-signature-valid"
+          ],
+          "assertions.rogue-release-promoted": [
+            "assertions.rogue-release-promoted"
+          ],
+          "assertions.rollback-package-ready": [
+            "assertions.rollback-package-ready"
+          ],
+          "assertions.telemetry-flowing": [
+            "assertions.telemetry-flowing"
+          ],
+          "assertions.tenant-isolation-healthy": [
+            "assertions.tenant-isolation-healthy"
+          ],
+          "bastion-connects-control": [
+            "relationships.bastion-connects-control"
+          ],
+          "blue-preserve-service": [
+            "objectives.blue-preserve-service"
+          ],
+          "blue-release-agent": [
+            "agents.blue-release-agent"
+          ],
+          "blue-revoke-artifact": [
+            "objectives.blue-revoke-artifact"
+          ],
+          "blue-sre-agent": [
+            "agents.blue-sre-agent"
+          ],
+          "blue-validate-release": [
+            "objectives.blue-validate-release"
+          ],
+          "build-net": [
+            "nodes.build-net"
+          ],
+          "canary-cutover-event": [
+            "events.canary-cutover-event"
+          ],
+          "canary-rollback": [
+            "content.rollback-playbooks.items.canary-rollback"
+          ],
+          "canary-rollout": [
+            "scripts.canary-rollout"
+          ],
+          "canary_cutover": [
+            "variables.canary_cutover"
+          ],
+          "ci-bot": [
+            "accounts.ci-bot"
+          ],
+          "ci-orchestrator": [
+            "features.ci-orchestrator"
+          ],
+          "ci-publishes-registry": [
+            "relationships.ci-publishes-registry"
+          ],
+          "ci-runner": [
+            "nodes.ci-runner"
+          ],
+          "conditions.analytics-ingest-healthy": [
+            "conditions.analytics-ingest-healthy"
+          ],
+          "conditions.control-plane-healthy": [
+            "conditions.control-plane-healthy"
+          ],
+          "conditions.customer-federation-healthy": [
+            "conditions.customer-federation-healthy"
+          ],
+          "conditions.edge-east-healthy": [
+            "conditions.edge-east-healthy"
+          ],
+          "conditions.edge-east-poisoned": [
+            "conditions.edge-east-poisoned"
+          ],
+          "conditions.edge-west-healthy": [
+            "conditions.edge-west-healthy"
+          ],
+          "conditions.edge-west-poisoned": [
+            "conditions.edge-west-poisoned"
+          ],
+          "conditions.pipeline-green": [
+            "conditions.pipeline-green"
+          ],
+          "conditions.portal-sso-healthy": [
+            "conditions.portal-sso-healthy"
+          ],
+          "conditions.release-incident-ticketed": [
+            "conditions.release-incident-ticketed"
+          ],
+          "conditions.release-signature-valid": [
+            "conditions.release-signature-valid"
+          ],
+          "conditions.repo-integrity-healthy": [
+            "conditions.repo-integrity-healthy"
+          ],
+          "conditions.rogue-release-promoted": [
+            "conditions.rogue-release-promoted"
+          ],
+          "conditions.rollback-complete": [
+            "conditions.rollback-complete"
+          ],
+          "conditions.rollback-package-ready": [
+            "conditions.rollback-package-ready"
+          ],
+          "conditions.security-pipeline-healthy": [
+            "conditions.security-pipeline-healthy"
+          ],
+          "conditions.signing-health": [
+            "conditions.signing-health"
+          ],
+          "conditions.support-bastion-online": [
+            "conditions.support-bastion-online"
+          ],
+          "conditions.telemetry-flowing": [
+            "conditions.telemetry-flowing"
+          ],
+          "conditions.tenant-isolation-healthy": [
+            "conditions.tenant-isolation-healthy"
+          ],
+          "conditions.vendor-federation-healthy": [
+            "conditions.vendor-federation-healthy"
+          ],
+          "content.golden-edge-config": [
+            "content.golden-edge-config"
+          ],
+          "content.release-manifest": [
+            "content.release-manifest"
+          ],
+          "content.rollback-playbooks": [
+            "content.rollback-playbooks"
+          ],
+          "content.rollback-playbooks.items.canary-rollback": [
+            "content.rollback-playbooks.items.canary-rollback"
+          ],
+          "content.rollback-playbooks.items.edge-validation": [
+            "content.rollback-playbooks.items.edge-validation"
+          ],
+          "content.tenant-api-keys": [
+            "content.tenant-api-keys"
+          ],
+          "control-api": [
+            "nodes.control-api"
+          ],
+          "control-manages-east": [
+            "relationships.control-manages-east"
+          ],
+          "control-manages-west": [
+            "relationships.control-manages-west"
+          ],
+          "control-net": [
+            "nodes.control-net"
+          ],
+          "control-plane-healthy": [
+            "conditions.control-plane-healthy"
+          ],
+          "corp-eng": [
+            "nodes.corp-eng"
+          ],
+          "customer-federation-healthy": [
+            "conditions.customer-federation-healthy"
+          ],
+          "customer-idp": [
+            "nodes.customer-idp"
+          ],
+          "customer-ops": [
+            "entities.customer-ops"
+          ],
+          "customer-portal": [
+            "nodes.customer-portal"
+          ],
+          "customer-portal-app": [
+            "features.customer-portal-app"
+          ],
+          "customer-sso": [
+            "features.customer-sso"
+          ],
+          "customer-telemetry-ticket": [
+            "injects.customer-telemetry-ticket"
+          ],
+          "edge-agent-east": [
+            "features.edge-agent-east"
+          ],
+          "edge-agent-west": [
+            "features.edge-agent-west"
+          ],
+          "edge-east-healthy": [
+            "conditions.edge-east-healthy"
+          ],
+          "edge-east-poisoned": [
+            "assertions.edge-east-poisoned",
+            "conditions.edge-east-poisoned",
+            "propositions.edge-east-poisoned"
+          ],
+          "edge-gateway-east": [
+            "nodes.edge-gateway-east"
+          ],
+          "edge-gateway-west": [
+            "nodes.edge-gateway-west"
+          ],
+          "edge-net": [
+            "nodes.edge-net"
+          ],
+          "edge-validation": [
+            "content.rollback-playbooks.items.edge-validation"
+          ],
+          "edge-west-healthy": [
+            "conditions.edge-west-healthy"
+          ],
+          "edge-west-poisoned": [
+            "conditions.edge-west-poisoned"
+          ],
+          "entities.customer-ops": [
+            "entities.customer-ops"
+          ],
+          "entities.platform-blue": [
+            "entities.platform-blue"
+          ],
+          "entities.platform-blue.release-engineering": [
+            "entities.platform-blue.release-engineering"
+          ],
+          "entities.platform-blue.soc": [
+            "entities.platform-blue.soc"
+          ],
+          "entities.platform-blue.sre": [
+            "entities.platform-blue.sre"
+          ],
+          "entities.red-supply-chain": [
+            "entities.red-supply-chain"
+          ],
+          "entities.vendor-ops": [
+            "entities.vendor-ops"
+          ],
+          "entities.white-cell": [
+            "entities.white-cell"
+          ],
+          "events.canary-cutover-event": [
+            "events.canary-cutover-event"
+          ],
+          "events.freeze-window": [
+            "events.freeze-window"
+          ],
+          "events.rollback-order-event": [
+            "events.rollback-order-event"
+          ],
+          "evidence_requirements.objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "exec-rollback-brief": [
+            "injects.exec-rollback-brief"
+          ],
+          "exploit": [
+            "action_contracts.exploit"
+          ],
+          "features.analytics-store": [
+            "features.analytics-store"
+          ],
+          "features.ci-orchestrator": [
+            "features.ci-orchestrator"
+          ],
+          "features.customer-portal-app": [
+            "features.customer-portal-app"
+          ],
+          "features.customer-sso": [
+            "features.customer-sso"
+          ],
+          "features.edge-agent-east": [
+            "features.edge-agent-east"
+          ],
+          "features.edge-agent-west": [
+            "features.edge-agent-west"
+          ],
+          "features.git-service": [
+            "features.git-service"
+          ],
+          "features.release-edr": [
+            "features.release-edr"
+          ],
+          "features.release-registry": [
+            "features.release-registry"
+          ],
+          "features.satcom-control": [
+            "features.satcom-control"
+          ],
+          "features.siem-core": [
+            "features.siem-core"
+          ],
+          "features.signing-service": [
+            "features.signing-service"
+          ],
+          "features.telemetry-bus": [
+            "features.telemetry-bus"
+          ],
+          "features.vendor-sso": [
+            "features.vendor-sso"
+          ],
+          "federation-net": [
+            "nodes.federation-net"
+          ],
+          "forge-auths-ci": [
+            "relationships.forge-auths-ci"
+          ],
+          "freeze-window": [
+            "events.freeze-window"
+          ],
+          "git-forge": [
+            "nodes.git-forge"
+          ],
+          "git-service": [
+            "features.git-service"
+          ],
+          "golden-edge-config": [
+            "content.golden-edge-config"
+          ],
+          "incident-rollback": [
+            "scripts.incident-rollback"
+          ],
+          "infrastructure.analytics-lake": [
+            "infrastructure.analytics-lake"
+          ],
+          "infrastructure.artifact-registry": [
+            "infrastructure.artifact-registry"
+          ],
+          "infrastructure.build-net": [
+            "infrastructure.build-net"
+          ],
+          "infrastructure.build-net.acls.allow-engineering-release": [
+            "infrastructure.build-net.acls.allow-engineering-release"
+          ],
+          "infrastructure.build-net.acls.deny-public-build": [
+            "infrastructure.build-net.acls.deny-public-build"
+          ],
+          "infrastructure.ci-runner": [
+            "infrastructure.ci-runner"
+          ],
+          "infrastructure.control-api": [
+            "infrastructure.control-api"
+          ],
+          "infrastructure.control-net": [
+            "infrastructure.control-net"
+          ],
+          "infrastructure.corp-eng": [
+            "infrastructure.corp-eng"
+          ],
+          "infrastructure.customer-idp": [
+            "infrastructure.customer-idp"
+          ],
+          "infrastructure.customer-portal": [
+            "infrastructure.customer-portal"
+          ],
+          "infrastructure.edge-gateway-east": [
+            "infrastructure.edge-gateway-east"
+          ],
+          "infrastructure.edge-gateway-west": [
+            "infrastructure.edge-gateway-west"
+          ],
+          "infrastructure.edge-net": [
+            "infrastructure.edge-net"
+          ],
+          "infrastructure.federation-net": [
+            "infrastructure.federation-net"
+          ],
+          "infrastructure.git-forge": [
+            "infrastructure.git-forge"
+          ],
+          "infrastructure.internet-edge": [
+            "infrastructure.internet-edge"
+          ],
+          "infrastructure.security-net": [
+            "infrastructure.security-net"
+          ],
+          "infrastructure.siem01": [
+            "infrastructure.siem01"
+          ],
+          "infrastructure.signing-hsm": [
+            "infrastructure.signing-hsm"
+          ],
+          "infrastructure.support-bastion": [
+            "infrastructure.support-bastion"
+          ],
+          "infrastructure.telemetry-broker": [
+            "infrastructure.telemetry-broker"
+          ],
+          "infrastructure.telemetry-net": [
+            "infrastructure.telemetry-net"
+          ],
+          "infrastructure.vendor-idp": [
+            "infrastructure.vendor-idp"
+          ],
+          "injects.customer-telemetry-ticket": [
+            "injects.customer-telemetry-ticket"
+          ],
+          "injects.exec-rollback-brief": [
+            "injects.exec-rollback-brief"
+          ],
+          "injects.release-freeze-brief": [
+            "injects.release-freeze-brief"
+          ],
+          "inspect": [
+            "action_contracts.inspect"
+          ],
+          "internet-edge": [
+            "nodes.internet-edge"
+          ],
+          "isolate": [
+            "action_contracts.isolate"
+          ],
+          "nodes.analytics-lake": [
+            "nodes.analytics-lake"
+          ],
+          "nodes.analytics-lake.services.analytics-ui": [
+            "nodes.analytics-lake.services.analytics-ui"
+          ],
+          "nodes.artifact-registry": [
+            "nodes.artifact-registry"
+          ],
+          "nodes.artifact-registry.services.registry-api": [
+            "nodes.artifact-registry.services.registry-api"
+          ],
+          "nodes.artifact-registry.services.registry-ui": [
+            "nodes.artifact-registry.services.registry-ui"
+          ],
+          "nodes.build-net": [
+            "nodes.build-net"
+          ],
+          "nodes.ci-runner": [
+            "nodes.ci-runner"
+          ],
+          "nodes.ci-runner.services.ci-api": [
+            "nodes.ci-runner.services.ci-api"
+          ],
+          "nodes.ci-runner.services.ci-ssh": [
+            "nodes.ci-runner.services.ci-ssh"
+          ],
+          "nodes.control-api": [
+            "nodes.control-api"
+          ],
+          "nodes.control-api.services.control-admin-ui": [
+            "nodes.control-api.services.control-admin-ui"
+          ],
+          "nodes.control-api.services.control-api": [
+            "nodes.control-api.services.control-api"
+          ],
+          "nodes.control-net": [
+            "nodes.control-net"
+          ],
+          "nodes.corp-eng": [
+            "nodes.corp-eng"
+          ],
+          "nodes.customer-idp": [
+            "nodes.customer-idp"
+          ],
+          "nodes.customer-idp.services.customer-idp-https": [
+            "nodes.customer-idp.services.customer-idp-https"
+          ],
+          "nodes.customer-portal": [
+            "nodes.customer-portal"
+          ],
+          "nodes.customer-portal.services.portal-https": [
+            "nodes.customer-portal.services.portal-https"
+          ],
+          "nodes.edge-gateway-east": [
+            "nodes.edge-gateway-east"
+          ],
+          "nodes.edge-gateway-east.services.edge-east-api": [
+            "nodes.edge-gateway-east.services.edge-east-api"
+          ],
+          "nodes.edge-gateway-west": [
+            "nodes.edge-gateway-west"
+          ],
+          "nodes.edge-gateway-west.services.edge-west-api": [
+            "nodes.edge-gateway-west.services.edge-west-api"
+          ],
+          "nodes.edge-net": [
+            "nodes.edge-net"
+          ],
+          "nodes.federation-net": [
+            "nodes.federation-net"
+          ],
+          "nodes.git-forge": [
+            "nodes.git-forge"
+          ],
+          "nodes.git-forge.services.forge-https": [
+            "nodes.git-forge.services.forge-https"
+          ],
+          "nodes.git-forge.services.forge-ssh": [
+            "nodes.git-forge.services.forge-ssh"
+          ],
+          "nodes.internet-edge": [
+            "nodes.internet-edge"
+          ],
+          "nodes.security-net": [
+            "nodes.security-net"
+          ],
+          "nodes.siem01": [
+            "nodes.siem01"
+          ],
+          "nodes.siem01.services.release-soc-ui": [
+            "nodes.siem01.services.release-soc-ui"
+          ],
+          "nodes.signing-hsm": [
+            "nodes.signing-hsm"
+          ],
+          "nodes.signing-hsm.services.signing-api": [
+            "nodes.signing-hsm.services.signing-api"
+          ],
+          "nodes.support-bastion": [
+            "nodes.support-bastion"
+          ],
+          "nodes.support-bastion.services.bastion-ssh": [
+            "nodes.support-bastion.services.bastion-ssh"
+          ],
+          "nodes.support-bastion.services.bastion-web": [
+            "nodes.support-bastion.services.bastion-web"
+          ],
+          "nodes.telemetry-broker": [
+            "nodes.telemetry-broker"
+          ],
+          "nodes.telemetry-broker.services.telemetry-kafka": [
+            "nodes.telemetry-broker.services.telemetry-kafka"
+          ],
+          "nodes.telemetry-broker.services.telemetry-ui": [
+            "nodes.telemetry-broker.services.telemetry-ui"
+          ],
+          "nodes.telemetry-net": [
+            "nodes.telemetry-net"
+          ],
+          "nodes.vendor-idp": [
+            "nodes.vendor-idp"
+          ],
+          "nodes.vendor-idp.services.vendor-idp-https": [
+            "nodes.vendor-idp.services.vendor-idp-https"
+          ],
+          "objective-truth-evidence": [
+            "evidence_requirements.objective-truth-evidence"
+          ],
+          "objectives.blue-preserve-service": [
+            "objectives.blue-preserve-service"
+          ],
+          "objectives.blue-revoke-artifact": [
+            "objectives.blue-revoke-artifact"
+          ],
+          "objectives.blue-validate-release": [
+            "objectives.blue-validate-release"
+          ],
+          "objectives.red-compromise-build": [
+            "objectives.red-compromise-build"
+          ],
+          "objectives.red-poison-release": [
+            "objectives.red-poison-release"
+          ],
+          "objectives.red-reach-edge": [
+            "objectives.red-reach-edge"
+          ],
+          "pipeline-green": [
+            "conditions.pipeline-green"
+          ],
+          "platform-blue": [
+            "entities.platform-blue"
+          ],
+          "platform-blue.release-engineering": [
+            "entities.platform-blue.release-engineering"
+          ],
+          "platform-blue.soc": [
+            "entities.platform-blue.soc"
+          ],
+          "platform-blue.sre": [
+            "entities.platform-blue.sre"
+          ],
+          "portal-federates-customer": [
+            "relationships.portal-federates-customer"
+          ],
+          "portal-federates-vendor": [
+            "relationships.portal-federates-vendor"
+          ],
+          "portal-sso-healthy": [
+            "conditions.portal-sso-healthy"
+          ],
+          "pre-edge-east-poisoned": [
+            "assertions.pre-edge-east-poisoned"
+          ],
+          "pre-rogue-release-promoted": [
+            "assertions.pre-rogue-release-promoted"
+          ],
+          "promote": [
+            "action_contracts.promote"
+          ],
+          "propositions.edge-east-poisoned": [
+            "propositions.edge-east-poisoned"
+          ],
+          "propositions.release-signature-valid": [
+            "propositions.release-signature-valid"
+          ],
+          "propositions.rogue-release-promoted": [
+            "propositions.rogue-release-promoted"
+          ],
+          "propositions.rollback-package-ready": [
+            "propositions.rollback-package-ready"
+          ],
+          "propositions.telemetry-flowing": [
+            "propositions.telemetry-flowing"
+          ],
+          "propositions.tenant-isolation-healthy": [
+            "propositions.tenant-isolation-healthy"
+          ],
+          "push-artifact": [
+            "action_contracts.push-artifact"
+          ],
+          "red-build-agent": [
+            "agents.red-build-agent"
+          ],
+          "red-compromise-build": [
+            "objectives.red-compromise-build"
+          ],
+          "red-poison-release": [
+            "objectives.red-poison-release"
+          ],
+          "red-reach-edge": [
+            "objectives.red-reach-edge"
+          ],
+          "red-supply-chain": [
+            "entities.red-supply-chain"
+          ],
+          "registry-bot": [
+            "accounts.registry-bot"
+          ],
+          "registry-relies-signing": [
+            "relationships.registry-relies-signing"
+          ],
+          "relationships.bastion-connects-control": [
+            "relationships.bastion-connects-control"
+          ],
+          "relationships.ci-publishes-registry": [
+            "relationships.ci-publishes-registry"
+          ],
+          "relationships.control-manages-east": [
+            "relationships.control-manages-east"
+          ],
+          "relationships.control-manages-west": [
+            "relationships.control-manages-west"
+          ],
+          "relationships.forge-auths-ci": [
+            "relationships.forge-auths-ci"
+          ],
+          "relationships.portal-federates-customer": [
+            "relationships.portal-federates-customer"
+          ],
+          "relationships.portal-federates-vendor": [
+            "relationships.portal-federates-vendor"
+          ],
+          "relationships.registry-relies-signing": [
+            "relationships.registry-relies-signing"
+          ],
+          "relationships.telemetry-replicates-analytics": [
+            "relationships.telemetry-replicates-analytics"
+          ],
+          "release-day": [
+            "stories.release-day"
+          ],
+          "release-edr": [
+            "features.release-edr"
+          ],
+          "release-engineer": [
+            "accounts.release-engineer"
+          ],
+          "release-freeze-brief": [
+            "injects.release-freeze-brief"
+          ],
+          "release-incident-ticketed": [
+            "conditions.release-incident-ticketed"
+          ],
+          "release-manifest": [
+            "content.release-manifest"
+          ],
+          "release-prep": [
+            "scripts.release-prep"
+          ],
+          "release-registry": [
+            "features.release-registry"
+          ],
+          "release-response": [
+            "workflows.release-response"
+          ],
+          "release-signature-valid": [
+            "assertions.release-signature-valid",
+            "conditions.release-signature-valid",
+            "propositions.release-signature-valid"
+          ],
+          "release_engineer_password_strength": [
+            "variables.release_engineer_password_strength"
+          ],
+          "release_story_speed": [
+            "variables.release_story_speed"
+          ],
+          "repo-integrity-healthy": [
+            "conditions.repo-integrity-healthy"
+          ],
+          "restore": [
+            "action_contracts.restore"
+          ],
+          "review": [
+            "action_contracts.review"
+          ],
+          "revoke": [
+            "action_contracts.revoke"
+          ],
+          "rogue-release-promoted": [
+            "assertions.rogue-release-promoted",
+            "conditions.rogue-release-promoted",
+            "propositions.rogue-release-promoted"
+          ],
+          "rollback": [
+            "action_contracts.rollback"
+          ],
+          "rollback-complete": [
+            "conditions.rollback-complete"
+          ],
+          "rollback-order-event": [
+            "events.rollback-order-event"
+          ],
+          "rollback-package-ready": [
+            "assertions.rollback-package-ready",
+            "conditions.rollback-package-ready",
+            "propositions.rollback-package-ready"
+          ],
+          "rollback-playbooks": [
+            "content.rollback-playbooks"
+          ],
+          "rollback_deadline": [
+            "variables.rollback_deadline"
+          ],
+          "satcom-control": [
+            "features.satcom-control"
+          ],
+          "satops": [
+            "accounts.satops"
+          ],
+          "scripts.canary-rollout": [
+            "scripts.canary-rollout"
+          ],
+          "scripts.incident-rollback": [
+            "scripts.incident-rollback"
+          ],
+          "scripts.release-prep": [
+            "scripts.release-prep"
+          ],
+          "security-net": [
+            "nodes.security-net"
+          ],
+          "security-pipeline-healthy": [
+            "conditions.security-pipeline-healthy"
+          ],
+          "siem-core": [
+            "features.siem-core"
+          ],
+          "siem01": [
+            "nodes.siem01"
+          ],
+          "signing-health": [
+            "conditions.signing-health"
+          ],
+          "signing-hsm": [
+            "nodes.signing-hsm"
+          ],
+          "signing-service": [
+            "features.signing-service"
+          ],
+          "soc-analyst": [
+            "accounts.soc-analyst"
+          ],
+          "steal-token": [
+            "action_contracts.steal-token"
+          ],
+          "stories.release-day": [
+            "stories.release-day"
+          ],
+          "support-bastion": [
+            "nodes.support-bastion"
+          ],
+          "support-bastion-online": [
+            "conditions.support-bastion-online"
+          ],
+          "support-vendor": [
+            "accounts.support-vendor"
+          ],
+          "telemetry-broker": [
+            "nodes.telemetry-broker"
+          ],
+          "telemetry-bus": [
+            "features.telemetry-bus"
+          ],
+          "telemetry-flowing": [
+            "assertions.telemetry-flowing",
+            "conditions.telemetry-flowing",
+            "propositions.telemetry-flowing"
+          ],
+          "telemetry-net": [
+            "nodes.telemetry-net"
+          ],
+          "telemetry-replicates-analytics": [
+            "relationships.telemetry-replicates-analytics"
+          ],
+          "tenant-admin": [
+            "accounts.tenant-admin"
+          ],
+          "tenant-api-keys": [
+            "content.tenant-api-keys"
+          ],
+          "tenant-isolation-healthy": [
+            "assertions.tenant-isolation-healthy",
+            "conditions.tenant-isolation-healthy",
+            "propositions.tenant-isolation-healthy"
+          ],
+          "validate": [
+            "action_contracts.validate"
+          ],
+          "variables.canary_cutover": [
+            "variables.canary_cutover"
+          ],
+          "variables.release_engineer_password_strength": [
+            "variables.release_engineer_password_strength"
+          ],
+          "variables.release_story_speed": [
+            "variables.release_story_speed"
+          ],
+          "variables.rollback_deadline": [
+            "variables.rollback_deadline"
+          ],
+          "vendor-federation-healthy": [
+            "conditions.vendor-federation-healthy"
+          ],
+          "vendor-idp": [
+            "nodes.vendor-idp"
+          ],
+          "vendor-ops": [
+            "entities.vendor-ops"
+          ],
+          "vendor-sso": [
+            "features.vendor-sso"
+          ],
+          "white-cell": [
+            "entities.white-cell"
+          ],
+          "workflows.release-response": [
+            "workflows.release-response"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "satcom-release-poisoning"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

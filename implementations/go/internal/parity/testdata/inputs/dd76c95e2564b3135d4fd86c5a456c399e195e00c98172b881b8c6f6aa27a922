@@ -1,0 +1,25 @@
+{
+  "schema_version": "processor-manifest/v2",
+  "identity": {
+    "name": "raes-reference-processor",
+    "version": "0.2.0"
+  },
+  "supported_contract_versions": ["processor-manifest-v2"],
+  "compatibility": {
+    "backends": ["stub"]
+  },
+  "realization_support": [
+    {
+      "domain": "instantiation",
+      "support_mode": "constrained",
+      "disclosure_kinds": []
+    }
+  ],
+  "concept_bindings": [
+    {"scope": "capabilities.supported_features", "family": "apparatus-declarations"}
+  ],
+  "capabilities": {
+    "supported_sdl_versions": ["sdl-authoring-input-v1"],
+    "supported_features": ["compilation"]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-candidate-synthesis-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "72a5b870114b625be98cae934968a08141b119c4ee7efd7363d2a88ec7542fe0"
+  },
+  "name": "contracts/fixtures/candidate-synthesis/sdl-candidate-synthesis-input-v1/invalid/unresolved-parameterization",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

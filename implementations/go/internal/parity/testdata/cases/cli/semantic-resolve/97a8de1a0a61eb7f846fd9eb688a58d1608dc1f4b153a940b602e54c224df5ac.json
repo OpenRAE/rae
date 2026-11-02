@@ -1,0 +1,461 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "5c6a5e183613186cd679a0f06fd4ba417b38c7fcc92b132d8b80fa8df2f30aa2"
+  },
+  "name": "examples/scenarios/techvault-operational.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 139,
+        "reference_bindings": {
+          "ad": [
+            "nodes.ad"
+          ],
+          "aptl-grafana-otel": [
+            "nodes.aptl-grafana-otel"
+          ],
+          "aptl-otel-collector": [
+            "nodes.aptl-otel-collector"
+          ],
+          "aptl-tempo": [
+            "nodes.aptl-tempo"
+          ],
+          "conditions.wazuh-manager-health": [
+            "conditions.wazuh-manager-health"
+          ],
+          "cortex": [
+            "nodes.cortex"
+          ],
+          "db": [
+            "nodes.db"
+          ],
+          "dmz-net": [
+            "nodes.dmz-net"
+          ],
+          "dns": [
+            "nodes.dns"
+          ],
+          "features.techvault-defensive-stack": [
+            "features.techvault-defensive-stack"
+          ],
+          "features.techvault-webapp-service": [
+            "features.techvault-webapp-service"
+          ],
+          "fileshare": [
+            "nodes.fileshare"
+          ],
+          "infrastructure.ad": [
+            "infrastructure.ad"
+          ],
+          "infrastructure.aptl-grafana-otel": [
+            "infrastructure.aptl-grafana-otel"
+          ],
+          "infrastructure.aptl-otel-collector": [
+            "infrastructure.aptl-otel-collector"
+          ],
+          "infrastructure.aptl-tempo": [
+            "infrastructure.aptl-tempo"
+          ],
+          "infrastructure.cortex": [
+            "infrastructure.cortex"
+          ],
+          "infrastructure.db": [
+            "infrastructure.db"
+          ],
+          "infrastructure.dmz-net": [
+            "infrastructure.dmz-net"
+          ],
+          "infrastructure.dns": [
+            "infrastructure.dns"
+          ],
+          "infrastructure.fileshare": [
+            "infrastructure.fileshare"
+          ],
+          "infrastructure.internal-net": [
+            "infrastructure.internal-net"
+          ],
+          "infrastructure.kali": [
+            "infrastructure.kali"
+          ],
+          "infrastructure.kali-capture": [
+            "infrastructure.kali-capture"
+          ],
+          "infrastructure.misp": [
+            "infrastructure.misp"
+          ],
+          "infrastructure.misp-db": [
+            "infrastructure.misp-db"
+          ],
+          "infrastructure.misp-redis": [
+            "infrastructure.misp-redis"
+          ],
+          "infrastructure.misp-suricata-sync": [
+            "infrastructure.misp-suricata-sync"
+          ],
+          "infrastructure.redteam-net": [
+            "infrastructure.redteam-net"
+          ],
+          "infrastructure.security-net": [
+            "infrastructure.security-net"
+          ],
+          "infrastructure.shuffle-backend": [
+            "infrastructure.shuffle-backend"
+          ],
+          "infrastructure.shuffle-frontend": [
+            "infrastructure.shuffle-frontend"
+          ],
+          "infrastructure.shuffle-opensearch": [
+            "infrastructure.shuffle-opensearch"
+          ],
+          "infrastructure.shuffle-orborus": [
+            "infrastructure.shuffle-orborus"
+          ],
+          "infrastructure.suricata": [
+            "infrastructure.suricata"
+          ],
+          "infrastructure.thehive": [
+            "infrastructure.thehive"
+          ],
+          "infrastructure.thehive-cassandra": [
+            "infrastructure.thehive-cassandra"
+          ],
+          "infrastructure.thehive-es": [
+            "infrastructure.thehive-es"
+          ],
+          "infrastructure.victim": [
+            "infrastructure.victim"
+          ],
+          "infrastructure.wazuh-dashboard": [
+            "infrastructure.wazuh-dashboard"
+          ],
+          "infrastructure.wazuh-indexer": [
+            "infrastructure.wazuh-indexer"
+          ],
+          "infrastructure.wazuh-manager": [
+            "infrastructure.wazuh-manager"
+          ],
+          "infrastructure.wazuh-sidecar-db": [
+            "infrastructure.wazuh-sidecar-db"
+          ],
+          "infrastructure.wazuh-sidecar-suricata": [
+            "infrastructure.wazuh-sidecar-suricata"
+          ],
+          "infrastructure.webapp": [
+            "infrastructure.webapp"
+          ],
+          "infrastructure.workstation": [
+            "infrastructure.workstation"
+          ],
+          "internal-net": [
+            "nodes.internal-net"
+          ],
+          "kali": [
+            "nodes.kali"
+          ],
+          "kali-capture": [
+            "nodes.kali-capture"
+          ],
+          "misp": [
+            "nodes.misp"
+          ],
+          "misp-db": [
+            "nodes.misp-db"
+          ],
+          "misp-redis": [
+            "nodes.misp-redis"
+          ],
+          "misp-suricata-sync": [
+            "nodes.misp-suricata-sync"
+          ],
+          "nodes.ad": [
+            "nodes.ad"
+          ],
+          "nodes.ad.services.kerberos": [
+            "nodes.ad.services.kerberos"
+          ],
+          "nodes.ad.services.ldap": [
+            "nodes.ad.services.ldap"
+          ],
+          "nodes.ad.services.smb": [
+            "nodes.ad.services.smb"
+          ],
+          "nodes.aptl-grafana-otel": [
+            "nodes.aptl-grafana-otel"
+          ],
+          "nodes.aptl-grafana-otel.services.grafana": [
+            "nodes.aptl-grafana-otel.services.grafana"
+          ],
+          "nodes.aptl-otel-collector": [
+            "nodes.aptl-otel-collector"
+          ],
+          "nodes.aptl-otel-collector.services.otlp-grpc": [
+            "nodes.aptl-otel-collector.services.otlp-grpc"
+          ],
+          "nodes.aptl-otel-collector.services.otlp-http": [
+            "nodes.aptl-otel-collector.services.otlp-http"
+          ],
+          "nodes.aptl-tempo": [
+            "nodes.aptl-tempo"
+          ],
+          "nodes.aptl-tempo.services.tempo-http": [
+            "nodes.aptl-tempo.services.tempo-http"
+          ],
+          "nodes.cortex": [
+            "nodes.cortex"
+          ],
+          "nodes.cortex.services.cortex-api": [
+            "nodes.cortex.services.cortex-api"
+          ],
+          "nodes.db": [
+            "nodes.db"
+          ],
+          "nodes.db.services.postgres": [
+            "nodes.db.services.postgres"
+          ],
+          "nodes.dmz-net": [
+            "nodes.dmz-net"
+          ],
+          "nodes.dns": [
+            "nodes.dns"
+          ],
+          "nodes.dns.services.dns": [
+            "nodes.dns.services.dns"
+          ],
+          "nodes.fileshare": [
+            "nodes.fileshare"
+          ],
+          "nodes.fileshare.services.smb": [
+            "nodes.fileshare.services.smb"
+          ],
+          "nodes.internal-net": [
+            "nodes.internal-net"
+          ],
+          "nodes.kali": [
+            "nodes.kali"
+          ],
+          "nodes.kali-capture": [
+            "nodes.kali-capture"
+          ],
+          "nodes.kali.services.ssh": [
+            "nodes.kali.services.ssh"
+          ],
+          "nodes.misp": [
+            "nodes.misp"
+          ],
+          "nodes.misp-db": [
+            "nodes.misp-db"
+          ],
+          "nodes.misp-db.services.mysql": [
+            "nodes.misp-db.services.mysql"
+          ],
+          "nodes.misp-redis": [
+            "nodes.misp-redis"
+          ],
+          "nodes.misp-redis.services.redis": [
+            "nodes.misp-redis.services.redis"
+          ],
+          "nodes.misp-suricata-sync": [
+            "nodes.misp-suricata-sync"
+          ],
+          "nodes.misp.services.https": [
+            "nodes.misp.services.https"
+          ],
+          "nodes.redteam-net": [
+            "nodes.redteam-net"
+          ],
+          "nodes.security-net": [
+            "nodes.security-net"
+          ],
+          "nodes.shuffle-backend": [
+            "nodes.shuffle-backend"
+          ],
+          "nodes.shuffle-backend.services.shuffle-api": [
+            "nodes.shuffle-backend.services.shuffle-api"
+          ],
+          "nodes.shuffle-frontend": [
+            "nodes.shuffle-frontend"
+          ],
+          "nodes.shuffle-frontend.services.http": [
+            "nodes.shuffle-frontend.services.http"
+          ],
+          "nodes.shuffle-frontend.services.https": [
+            "nodes.shuffle-frontend.services.https"
+          ],
+          "nodes.shuffle-opensearch": [
+            "nodes.shuffle-opensearch"
+          ],
+          "nodes.shuffle-opensearch.services.opensearch-rest": [
+            "nodes.shuffle-opensearch.services.opensearch-rest"
+          ],
+          "nodes.shuffle-opensearch.services.opensearch-transport": [
+            "nodes.shuffle-opensearch.services.opensearch-transport"
+          ],
+          "nodes.shuffle-orborus": [
+            "nodes.shuffle-orborus"
+          ],
+          "nodes.suricata": [
+            "nodes.suricata"
+          ],
+          "nodes.thehive": [
+            "nodes.thehive"
+          ],
+          "nodes.thehive-cassandra": [
+            "nodes.thehive-cassandra"
+          ],
+          "nodes.thehive-cassandra.services.cassandra": [
+            "nodes.thehive-cassandra.services.cassandra"
+          ],
+          "nodes.thehive-es": [
+            "nodes.thehive-es"
+          ],
+          "nodes.thehive-es.services.elasticsearch": [
+            "nodes.thehive-es.services.elasticsearch"
+          ],
+          "nodes.thehive.services.thehive-api": [
+            "nodes.thehive.services.thehive-api"
+          ],
+          "nodes.victim": [
+            "nodes.victim"
+          ],
+          "nodes.victim.services.ssh": [
+            "nodes.victim.services.ssh"
+          ],
+          "nodes.wazuh-dashboard": [
+            "nodes.wazuh-dashboard"
+          ],
+          "nodes.wazuh-dashboard.services.dashboard": [
+            "nodes.wazuh-dashboard.services.dashboard"
+          ],
+          "nodes.wazuh-indexer": [
+            "nodes.wazuh-indexer"
+          ],
+          "nodes.wazuh-indexer.services.indexer-api": [
+            "nodes.wazuh-indexer.services.indexer-api"
+          ],
+          "nodes.wazuh-manager": [
+            "nodes.wazuh-manager"
+          ],
+          "nodes.wazuh-manager.services.agent-events": [
+            "nodes.wazuh-manager.services.agent-events"
+          ],
+          "nodes.wazuh-manager.services.syslog": [
+            "nodes.wazuh-manager.services.syslog"
+          ],
+          "nodes.wazuh-manager.services.wazuh-api": [
+            "nodes.wazuh-manager.services.wazuh-api"
+          ],
+          "nodes.wazuh-sidecar-db": [
+            "nodes.wazuh-sidecar-db"
+          ],
+          "nodes.wazuh-sidecar-suricata": [
+            "nodes.wazuh-sidecar-suricata"
+          ],
+          "nodes.webapp": [
+            "nodes.webapp"
+          ],
+          "nodes.webapp.services.http": [
+            "nodes.webapp.services.http"
+          ],
+          "nodes.workstation": [
+            "nodes.workstation"
+          ],
+          "nodes.workstation.services.ssh": [
+            "nodes.workstation.services.ssh"
+          ],
+          "redteam-net": [
+            "nodes.redteam-net"
+          ],
+          "security-net": [
+            "nodes.security-net"
+          ],
+          "shuffle-backend": [
+            "nodes.shuffle-backend"
+          ],
+          "shuffle-frontend": [
+            "nodes.shuffle-frontend"
+          ],
+          "shuffle-opensearch": [
+            "nodes.shuffle-opensearch"
+          ],
+          "shuffle-orborus": [
+            "nodes.shuffle-orborus"
+          ],
+          "suricata": [
+            "nodes.suricata"
+          ],
+          "techvault-defensive-stack": [
+            "features.techvault-defensive-stack"
+          ],
+          "techvault-webapp-service": [
+            "features.techvault-webapp-service"
+          ],
+          "thehive": [
+            "nodes.thehive"
+          ],
+          "thehive-cassandra": [
+            "nodes.thehive-cassandra"
+          ],
+          "thehive-es": [
+            "nodes.thehive-es"
+          ],
+          "victim": [
+            "nodes.victim"
+          ],
+          "wazuh-dashboard": [
+            "nodes.wazuh-dashboard"
+          ],
+          "wazuh-indexer": [
+            "nodes.wazuh-indexer"
+          ],
+          "wazuh-manager": [
+            "nodes.wazuh-manager"
+          ],
+          "wazuh-manager-health": [
+            "conditions.wazuh-manager-health"
+          ],
+          "wazuh-sidecar-db": [
+            "nodes.wazuh-sidecar-db"
+          ],
+          "wazuh-sidecar-suricata": [
+            "nodes.wazuh-sidecar-suricata"
+          ],
+          "webapp": [
+            "nodes.webapp"
+          ],
+          "workstation": [
+            "nodes.workstation"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "techvault"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

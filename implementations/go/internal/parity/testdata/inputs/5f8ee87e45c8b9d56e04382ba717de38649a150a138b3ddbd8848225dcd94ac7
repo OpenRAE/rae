@@ -1,0 +1,12 @@
+{
+  "schema_version": "trial-cleanup-receipt/v1",
+  "receipt_id": "receipt-unsupported",
+  "cleanup_plan_ref": "cleanup-plan-a",
+  "plan_entry_id": "trial-entry-a",
+  "run_id": "run-a",
+  "execution_attempt_id": "attempt-unsupported",
+  "trial_outcome": "failed",
+  "cleanup_status": "unsupported",
+  "obligation_results": {},
+  "clean_state_claim": {"disposition": "declared-reusable", "boundary_refs": ["range-a"], "evidence_refs": ["evidence:unsupported"]}
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "artifact-requirement/v1",
+  "source": {
+    "name": "composed-image",
+    "version": "1",
+    "artifact_requirement": {
+      "requirement_id": "composed-image",
+      "explicitness": "constrained",
+      "materialization_specifications": [
+        {
+          "specification_id": "cloud-image",
+          "profile": {
+            "mechanism": "materialization-specification",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "locked_input_ids": [
+            "missing-rootfs"
+          ]
+        }
+      ],
+      "permitted_routes": [
+        {
+          "mechanism": {
+            "mechanism": "materialization-specification",
+            "profile": "raes-artifact-satisfaction",
+            "version": "1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "acquisition": "none",
+          "timing": "backend-preparation"
+        }
+      ]
+    }
+  }
+}

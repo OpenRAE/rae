@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-comparison-result-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "18a5007b45ea0ca81b710828472bebb8f2c1d537c828a614ffdd0e4a0f9728a9"
+  },
+  "name": "contracts/fixtures/semantic-comparison/semantic-comparison-result-v1/valid/changed-with-impact",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

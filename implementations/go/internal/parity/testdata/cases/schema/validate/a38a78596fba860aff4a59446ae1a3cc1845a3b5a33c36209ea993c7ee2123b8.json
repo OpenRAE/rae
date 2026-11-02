@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reusable-asset-trust-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "8f13e5d2aa966880dcffa303947a2e32f06632ead1da910cbc9ee5e97c849cc3"
+  },
+  "name": "contracts/fixtures/asset-trust/reusable-asset-trust-policy-v1/invalid/missing-family",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

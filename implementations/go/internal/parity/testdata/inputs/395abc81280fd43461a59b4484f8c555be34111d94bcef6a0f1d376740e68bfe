@@ -1,0 +1,61 @@
+{
+  "schema_version": "semantic-profile/v1",
+  "profile_id": "reference-stack-v1",
+  "title": "Reference Stack Interoperability Profile",
+  "description": "Invalid semantic profile fixture for undeclared binding families.",
+  "concept_catalog_version": "concept-families/v1",
+  "authoring": {
+    "required_contracts": ["sdl-authoring-input-v1"],
+    "required_concept_families": ["scenarios"],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "authoring-surface",
+        "statement": "Authoring is SDL-native."
+      }
+    ]
+  },
+  "exchange": {
+    "required_contracts": ["backend-manifest-v2"],
+    "required_concept_families": ["apparatus-declarations"],
+    "required_bindings": [],
+    "behavior_assumptions": [
+      {
+        "id": "exchange-surface",
+        "statement": "Exchange uses shared manifests."
+      }
+    ]
+  },
+  "processing": {
+    "required_contracts": ["processor-manifest-v2"],
+    "required_concept_families": ["scenarios"],
+    "required_bindings": [
+      {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+      }
+    ],
+    "behavior_assumptions": [
+      {
+        "id": "processing-surface",
+        "statement": "Processing uses shared contracts."
+      }
+    ]
+  },
+  "execution": {
+    "required_contracts": ["backend-manifest-v2"],
+    "required_concept_families": ["assets"],
+    "required_bindings": [
+      {
+        "scope": "capabilities.provisioner.supported_node_types",
+        "family": "assets"
+      }
+    ],
+    "behavior_assumptions": [
+      {
+        "id": "execution-surface",
+        "statement": "Execution uses shared contracts."
+      }
+    ]
+  }
+}

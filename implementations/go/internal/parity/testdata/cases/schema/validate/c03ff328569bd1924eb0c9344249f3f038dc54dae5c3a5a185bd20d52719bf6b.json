@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "af60deea90cd4326b33bdf76b5ac57ea86b0e46dee75759204e846c8acd83ab4"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/bounded-replacement",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

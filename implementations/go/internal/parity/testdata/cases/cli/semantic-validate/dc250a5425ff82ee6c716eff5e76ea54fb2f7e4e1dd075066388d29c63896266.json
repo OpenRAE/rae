@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "participant-observation-envelope-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "7676972d31a5aaf73c4ae11f9a9807244ba65be27defa9baa708b1212d5d7659"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-observation-envelope-v1/valid/rl-observation-only",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "participant-observation-envelope-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": true,
+        "member_count": 52,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

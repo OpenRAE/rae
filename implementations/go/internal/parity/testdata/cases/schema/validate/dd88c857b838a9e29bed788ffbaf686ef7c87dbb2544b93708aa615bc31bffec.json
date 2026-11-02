@@ -1,0 +1,14 @@
+{
+  "args": [
+    "behavioral-relation-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "786aa6809959dd2810ed1557f46693adff6184349e51e5c503f427079ea9ea0c"
+  },
+  "name": "contracts/fixtures/profiles/behavioral-relation-profile-v1/invalid/multi-operation-truncated-heads",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

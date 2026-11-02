@@ -1,0 +1,37 @@
+{
+  "schema_version": "random-stream-vector/v1",
+  "vector_id": "bounded-integer-basic-draw",
+  "description": "bounded-integer transform, range [0, 9], accepted on the first attempt. Independently computed via the blake3 library directly (not the reference engine): raw first byte of the raw block is 0xad = 173, limit for width 10 over one byte is 250, so 173 < 250 is accepted with value = 0 + 173 % 10 = 3.",
+  "profile_id": "blake3-xof-v1",
+  "root_entropy": {
+    "kind": "public-seed",
+    "encoding": "hex-fixed-width",
+    "value": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+  },
+  "stream_key_hex": "0bd8f475de652a6f23763d7cb9bcf92110cdc36f6039b9708fff8e641a902503",
+  "address": {
+    "namespace": "study-namespace",
+    "trial_coordinate": {
+      "condition_id": "condition-b"
+    },
+    "selection_policy_id": "policy-b",
+    "variation_point_id": "point-b",
+    "draw_purpose": "sampling-selection",
+    "local_coordinate": 5
+  },
+  "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a2273616d706c696e672d73656c656374696f6e222c226c6f63616c5f636f6f7264696e617465223a352c226e616d657370616365223a2273747564792d6e616d657370616365222c2273656c656374696f6e5f706f6c6963795f6964223a22706f6c6963792d62222c22747269616c5f636f6f7264696e617465223a7b22636f6e646974696f6e5f6964223a22636f6e646974696f6e2d62227d2c22766172696174696f6e5f706f696e745f6964223a22706f696e742d62227d",
+  "raw_block_hex": "e5a8a68e2efe0edfc587c1e4c43a795672e9c22961ec698f50cc1250a6b4b565",
+  "transform": {
+    "transform_id": "bounded-integer",
+    "transform_version": "1",
+    "minimum": 0,
+    "maximum": 9,
+    "max_rejection_attempts": 32,
+    "expected_rejection_attempts": 0,
+    "expected_rejection_exhausted": false,
+    "outcome": {
+      "kind": "public-value",
+      "value": "9"
+    }
+  }
+}

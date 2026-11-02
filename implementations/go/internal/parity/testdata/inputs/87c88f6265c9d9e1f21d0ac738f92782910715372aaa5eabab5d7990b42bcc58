@@ -1,0 +1,121 @@
+{
+  "event_id": "obs-blue-43",
+  "schema_name": "raes.participant_runtime.observation",
+  "schema_version": "1.0.0",
+  "event_type": "observation_emission",
+  "extension_policy": "reject_unknown_required",
+  "event_classification": {
+    "category_uid": 4,
+    "category_name": "findings",
+    "class_uid": 4001,
+    "class_name": "detection_finding",
+    "activity_id": 1,
+    "activity_name": "telemetry_observed",
+    "type_uid": 800101,
+    "type_name": "blue telemetry observation emitted",
+    "severity_id": 1,
+    "severity": "informational"
+  },
+  "source_status": {
+    "status_id": 1,
+    "status": "success",
+    "status_code": "observation_emitted",
+    "status_detail": "simulator emitted the blue local telemetry observation",
+    "source_status_label": "cyborg_observation",
+    "source_status_mapping": "raes.observation.emitted"
+  },
+  "participant_address": "participants.blue.rl",
+  "episode_id": "ep-blue-002",
+  "sequence_number": 43,
+  "occurred_at": "2026-05-26T10:20:10Z",
+  "recorded_at": "2026-05-26T10:20:10Z",
+  "ingested_at": "2026-05-26T10:20:11Z",
+  "clock_authority": "sim.tick",
+  "temporal_context": "tick-42",
+  "ordering_basis": "simulation_tick",
+  "logical_order_ref": "order.sim.42.blue.obs43",
+  "predecessor_event_refs": [
+    "evt-rl-42-exec"
+  ],
+  "actor_ref": "participants.blue.rl",
+  "producer_ref": "adapters.cyborg-blue.v1",
+  "source_system_ref": "cyborg.sim",
+  "source_record_ref": "cyborg.obs.42.blue",
+  "source_raw_ref": "evidence.raw.cyborg.obs.42.blue",
+  "source_pipeline": {
+    "product_ref": "products.cyborg.sim",
+    "product_version": "1.0.0",
+    "log_provider": "cyborg",
+    "log_source": "cyborg.sim",
+    "log_name": "observation-step",
+    "original_event_uid": "cyborg.obs.42.blue",
+    "original_time": "2026-05-26T10:20:10Z",
+    "processed_time": "2026-05-26T10:20:10Z",
+    "logged_time": "2026-05-26T10:20:10Z",
+    "transmit_time": "2026-05-26T10:20:11Z",
+    "correlation_uid": "cyborg.tick42.blue",
+    "sequence": 42
+  },
+  "raw_data_integrity": {
+    "raw_data_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "raw_data_hash_algorithm": "sha256",
+    "raw_data_size": 2048,
+    "raw_data_is_truncated": false,
+    "raw_data_untruncated_size": 2048
+  },
+  "confidence": 1.0,
+  "provenance_refs": [
+    "provenance.backend_realized"
+  ],
+  "evidence_refs": [
+    "evidence.obs-blue-43-redacted"
+  ],
+  "marking_definition_refs": [
+    "markings.participant_visible.v1",
+    "markings.restricted_evidence.v1"
+  ],
+  "object_marking_refs": [
+    "markings.participant_visible.v1"
+  ],
+  "markings": [
+    "participant_visible"
+  ],
+  "granular_markings": {
+    "/hidden_state_refs": [
+      "restricted_evidence"
+    ]
+  },
+  "redaction_policy_ref": "redaction.blue-observation.v1",
+  "authorization_scope": "participant:participants.blue.rl",
+  "observation_ref": "observations.blue.local.telemetry.43",
+  "phase_ref": "evt-rl-42-exec",
+  "information_guarantee": "observation_only",
+  "delivery_basis": "emission_is_delivery",
+  "delivery_point_ref": "order.sim.42.blue.obs43",
+  "delivered_at": "2026-05-26T10:20:10Z",
+  "action_observation_history_ref": "history.blue.ep002.prefix43",
+  "information_state_ref": null,
+  "hidden_state_refs": [
+    "evidence.hidden-world-state.tick42"
+  ],
+  "centralized_state_refs": [
+    "evidence.global-training-state.tick42"
+  ],
+  "loss_descriptor": {
+    "kind": "partial_projection",
+    "fields_redacted": [
+      "attacker.intent"
+    ]
+  },
+  "stochastic_context": {
+    "seed_ref": "seeds.run-778-blue",
+    "randomization_policy_ref": "randomization.cyborg.default.v1"
+  },
+  "noise_model_ref": null,
+  "reconstruction_algorithm_ref": null,
+  "reconstruction_proof_ref": null,
+  "belief_support_ref": null,
+  "redacted_field_refs": [
+    "/hidden_state_refs"
+  ]
+}

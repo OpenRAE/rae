@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-requirement-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "fef1e43f9f395fc99033eae11df8d2a4a16f7c2e3952d6ecdd7bd29daaf8513d"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/invalid/open-with-candidate",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

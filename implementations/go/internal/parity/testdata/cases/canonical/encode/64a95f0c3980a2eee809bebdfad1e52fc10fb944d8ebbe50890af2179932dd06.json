@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "58166f867cc88323b5b36f72301a7cf93232f246ba875fc82ebcc870960d616d"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/invalid/constrained-without-domain",
+  "result": {
+    "jcs": "sha256:6aa8911d1c55f5f3baf3315c0b12e87bc40501cf0253b978df8189fe402e51ac",
+    "sorted_ascii": "sha256:6aa8911d1c55f5f3baf3315c0b12e87bc40501cf0253b978df8189fe402e51ac",
+    "sorted_unicode": "sha256:6aa8911d1c55f5f3baf3315c0b12e87bc40501cf0253b978df8189fe402e51ac"
+  },
+  "surface": "canonical"
+}

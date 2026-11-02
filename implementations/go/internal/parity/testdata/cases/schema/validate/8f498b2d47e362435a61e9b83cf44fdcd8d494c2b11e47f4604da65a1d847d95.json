@@ -1,0 +1,14 @@
+{
+  "args": [
+    "behavioral-relation-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "646a227f3cda814c666a1463c01e9a52c9dc1a89ec811f728da010ee938113bb"
+  },
+  "name": "contracts/fixtures/profiles/behavioral-relation-profile-v1/valid/participant-opacity-theorem",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

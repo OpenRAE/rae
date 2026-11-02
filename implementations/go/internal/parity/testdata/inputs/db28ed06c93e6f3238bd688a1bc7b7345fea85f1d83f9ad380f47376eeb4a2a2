@@ -1,0 +1,22 @@
+{
+  "case_id": "rename-composed-reference",
+  "operation": "rename-sdl-declaration/v1",
+  "source_contract": "sdl-authoring-input/v1",
+  "source_path": "sdl/variation-points-v1/composition/root.yaml",
+  "request": {
+    "target_address": "nodes.shared.primary",
+    "new_local_name": "frontend"
+  },
+  "policy": {
+    "allowed_loss_kinds": []
+  },
+  "expected": {
+    "status": "success",
+    "identity_map": [
+      {
+        "before": "nodes.shared.primary",
+        "after": "nodes.shared.frontend"
+      }
+    ]
+  }
+}

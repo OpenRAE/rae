@@ -1,0 +1,107 @@
+name: techvault-attacker-target
+description: >
+  Curated TechVault attacker-target slice. Declares Kali, its capture sidecar,
+  a single monitored victim, the Wazuh dependency, and the OTEL core.
+
+nodes:
+  redteam-net:
+    type: switch
+    description: Red-team operations network.
+  internal-net:
+    type: switch
+    description: Internal enterprise target network.
+  security-net:
+    type: switch
+    description: SOC and security tooling network.
+
+  kali:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: ssh, port: 22, protocol: tcp}
+  kali-capture:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services: []
+
+  victim:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: ssh, port: 22, protocol: tcp}
+
+  wazuh-manager:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: wazuh-api, port: 55000, protocol: tcp}
+      - {name: agent-events, port: 1514, protocol: tcp}
+      - {name: syslog, port: 514, protocol: udp}
+    conditions: {wazuh-manager-health: ""}
+  wazuh-indexer:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: indexer-api, port: 9200, protocol: tcp}
+
+  aptl-otel-collector:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: otlp-grpc, port: 4317, protocol: tcp}
+      - {name: otlp-http, port: 4318, protocol: tcp}
+  aptl-tempo:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: tempo-http, port: 3200, protocol: tcp}
+  aptl-grafana-otel:
+    type: compute
+    os: linux
+    resources: {ram: 1 GiB, cpu: 1}
+    services:
+      - {name: grafana, port: 3000, protocol: tcp}
+
+infrastructure:
+  redteam-net:
+    properties: {cidr: 172.20.4.0/24, gateway: 172.20.4.1, internal: true}
+  internal-net:
+    properties: {cidr: 172.20.2.0/24, gateway: 172.20.2.1, internal: true}
+  security-net:
+    properties: {cidr: 172.20.0.0/24, gateway: 172.20.0.1, internal: false}
+
+  kali:
+    links: [redteam-net, internal-net]
+  kali-capture:
+    dependencies: [kali]
+
+  victim:
+    links: [internal-net]
+    dependencies: [wazuh-manager]
+
+  wazuh-manager:
+    links: [security-net, internal-net]
+    dependencies: [wazuh-indexer]
+  wazuh-indexer:
+    links: [security-net]
+
+  aptl-otel-collector:
+    links: [security-net]
+  aptl-tempo:
+    links: [security-net]
+  aptl-grafana-otel:
+    links: [security-net]
+    dependencies: [aptl-tempo]
+
+conditions:
+  wazuh-manager-health:
+    command: /usr/local/bin/check-wazuh-manager
+    interval: 30
+    description: Declarative healthcheck required before public startup is ready.

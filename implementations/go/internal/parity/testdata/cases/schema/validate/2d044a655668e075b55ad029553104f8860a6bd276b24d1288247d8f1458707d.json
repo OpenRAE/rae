@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-execution-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "62aa80d54942b12d1b173af234e1a835e31db6ead632feb605af1b6dcdc69c87"
+  },
+  "name": "contracts/fixtures/control-plane/mixed-backend-execution-binding-v1/invalid/changed-subject",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

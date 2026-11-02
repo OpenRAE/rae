@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-task-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "2fc27115e8b13d41448f9deda9de88325063a505036f3caa8e7738019314772c"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-task-v1/invalid/scenario-ref-is-run",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-task-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-task-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 9,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

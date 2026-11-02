@@ -1,0 +1,84 @@
+{
+  "analysis_profile": "raes-finite-domain-satisfiability-v1",
+  "authored_digest": {
+    "algorithm": "sha256",
+    "profile": "raes-sdl-semantic/v2",
+    "value": "sha256:c2991163c60632971cdc4b91bbb939d1739f4fba069f338636ab208f19d51e29"
+  },
+  "diagnostics": [
+    {
+      "address": "/nodes/target/resources/cpu",
+      "code": "scenario-satisfiability.unsupported-target",
+      "domain": "scenario-satisfiability",
+      "message": "The variable occurrence is outside the selected translation profile.",
+      "severity": "error"
+    }
+  ],
+  "imports": [],
+  "normalized_model": {
+    "authored_digest": {
+      "algorithm": "sha256",
+      "profile": "raes-sdl-semantic/v2",
+      "value": "sha256:c2991163c60632971cdc4b91bbb939d1739f4fba069f338636ab208f19d51e29"
+    },
+    "clauses": [
+      {
+        "allowed_values": [
+          1,
+          2
+        ],
+        "clause_id": "domain:a0d149e5d24ff238fff329fd011bc2c070f22b29da67b0d25e522482fca1c904",
+        "kind": "declared-domain",
+        "source_address": "/variables/cpu_count",
+        "symbol_id": "symbol:a0d149e5d24ff238fff329fd011bc2c070f22b29da67b0d25e522482fca1c904"
+      }
+    ],
+    "profile": "raes-finite-domain-constraints/v1",
+    "source_digest": "sha256:a5902bcb0e43a9aa8d88ffaa2fa7c608781adb3052ca96dd54573ea3c9be14d7",
+    "symbols": [
+      {
+        "domain": [
+          1,
+          2
+        ],
+        "sort": "integer",
+        "symbol_id": "symbol:a0d149e5d24ff238fff329fd011bc2c070f22b29da67b0d25e522482fca1c904",
+        "variable": "cpu_count"
+      }
+    ],
+    "theory_profile": "raes-finite-domain-theory/v1",
+    "translation_profile": "raes-sdl-authoring-translation/v1"
+  },
+  "normalized_model_digest": "sha256:0bcdaa84c7fc08a48c8a9c184e460e952262ba8f5723880640b1250cf78bf2ad",
+  "outcome": "unsupported",
+  "profile": "scenario-satisfiability-evidence/v1",
+  "solver_configuration": {
+    "auto_config": false,
+    "core_reduction": "sorted-deletion-subset-minimal/v1",
+    "engine": "z3",
+    "engine_version": "4.16.0",
+    "logic": "QF_LIA",
+    "model": true,
+    "package": "z3-solver",
+    "package_version": "4.16.0.0",
+    "profile": "raes-z3-finite-domain/v1",
+    "random_seed": 0,
+    "threads": 1,
+    "timeout_ms": 5000,
+    "unsat_core": true,
+    "witness_selection": "canonical-lexicographic/v1"
+  },
+  "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+  "source": {
+    "byte_digest": "sha256:a5902bcb0e43a9aa8d88ffaa2fa7c608781adb3052ca96dd54573ea3c9be14d7",
+    "source_id": "unsupported-control.sdl.yaml"
+  },
+  "unsat_core": null,
+  "unsupported": {
+    "profile": "raes-satisfiability-unsupported/v1",
+    "reason_codes": [
+      "scenario-satisfiability.unsupported-target"
+    ]
+  },
+  "witness": null
+}

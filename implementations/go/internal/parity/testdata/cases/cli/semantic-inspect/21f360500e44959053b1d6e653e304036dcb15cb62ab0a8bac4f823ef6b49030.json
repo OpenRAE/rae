@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "workflow-history-event-stream-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "3f789468fe5e90c05e64a34c60baacb22c2ab585c7ec2d5bace0671cfa311ffb"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-history-event-stream-v1/invalid/missing-timestamp",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "workflow-history-event-stream-v1",
+      "diagnostics": [
+        {
+          "address": "workflow-history-event-stream-v1[0]",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "item_count": 1,
+        "member_count": 1,
+        "phase": "inspection",
+        "root_type": "array"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

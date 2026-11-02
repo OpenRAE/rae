@@ -1,0 +1,692 @@
+{
+  "schema_version": "participant-control-evaluation/v2",
+  "evaluation_id": "owner-flow-evaluation",
+  "request": {
+    "selection": {
+      "schema_version": "participant-control-selection/v2",
+      "selection_id": "selection-1",
+      "semantic_revision": "sem-235/rev1",
+      "apparatus": {
+        "kind": "apparatus",
+        "ref": "apparatus-1",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "required_profiles": [
+        "participant-owner-flow-policy-v1"
+      ],
+      "bindings": [
+        {
+          "instance_id": "influence",
+          "profiles": [
+            {
+              "kind": "profile",
+              "ref": "participant-owner-flow-policy-v1",
+              "revision": "rev1",
+              "digest": "sha256:0a7872665ca0cf435bddcd0d6a39b89d20a8f5f6a5e8ca8abdf1d4f77da774df"
+            }
+          ],
+          "mechanism": {
+            "kind": "mechanism",
+            "ref": "propagation",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "protocol_revision": "participant-control-provider/v2",
+          "implementation": {
+            "kind": "implementation",
+            "ref": "provider-artifact",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "configuration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority": {
+            "kind": "authority",
+            "ref": "teaching-authority",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "memory_scope": {
+            "kind": "memory",
+            "ref": "retained-memory",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "applicability": [
+            {
+              "participant_address": "participants.student",
+              "episode_id": "episode-1",
+              "direction": "ingress",
+              "sink_ref": "teaching-observation",
+              "phase_ref": "practice",
+              "subject_kind": "participant-observation"
+            }
+          ],
+          "evidence": [
+            {
+              "kind": "evidence",
+              "ref": "binding-evidence",
+              "revision": "rev1",
+              "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ],
+          "limitations": [
+            {
+              "kind": "limitation",
+              "ref": "explicit-flows-only",
+              "revision": "rev1",
+              "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ],
+          "state_scope": {
+            "scope_id": "state-influence",
+            "sharing": "participant",
+            "authority": {
+              "kind": "authority",
+              "ref": "teaching-authority",
+              "revision": "rev1",
+              "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "configuration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      ],
+      "slots": [
+        {
+          "slot_id": "fact",
+          "instance_id": "influence",
+          "kind": "ifc-fact",
+          "role": "mandatory",
+          "dependencies": [],
+          "required_strength": "exact",
+          "constraints": []
+        }
+      ],
+      "bounds": {
+        "max_depth": 2,
+        "max_effects": 2,
+        "max_fanout": 2,
+        "max_firings_per_rule": 1,
+        "max_attempts": 3,
+        "expires_at_order": 20
+      },
+      "evidence": [
+        {
+          "kind": "evidence",
+          "ref": "selection-evidence",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "interpretation": "participant-control-applicability/rev1",
+      "obligations": [
+        {
+          "obligation_id": "ifc-owner-a",
+          "profile": {
+            "kind": "profile",
+            "ref": "participant-owner-flow-policy-v1",
+            "revision": "rev1",
+            "digest": "sha256:0a7872665ca0cf435bddcd0d6a39b89d20a8f5f6a5e8ca8abdf1d4f77da774df"
+          },
+          "required_kind": "ifc-fact",
+          "required_strength": "exact",
+          "constraints": [
+            {
+              "kind": "constraint",
+              "ref": "explicit-boundary-only",
+              "revision": "rev1",
+              "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ],
+          "admitted_support": [
+            {
+              "instance_id": "influence",
+              "feature": "participant_modular_control",
+              "declaration_ref": {
+                "kind": "manifest",
+                "ref": "backend-manifest",
+                "revision": "rev1",
+                "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "declared_level": "exact",
+              "effective_level": "exact",
+              "status": "resolved",
+              "context_digest": "sha256:cd7174c65aaf33361a2ebad4fc5f7b36f6a578579dcff266dc3c9915296bfef7",
+              "installation": {
+                "kind": "installation",
+                "ref": "installation-1",
+                "revision": "rev1",
+                "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "constraints": [
+                {
+                  "kind": "constraint",
+                  "ref": "explicit-boundary-only",
+                  "revision": "rev1",
+                  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ],
+              "limitations": [
+                {
+                  "kind": "limitation",
+                  "ref": "explicit-flows-only",
+                  "revision": "rev1",
+                  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ],
+              "evidence": [
+                {
+                  "kind": "evidence",
+                  "ref": "support-evidence",
+                  "revision": "rev1",
+                  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ],
+              "downgrade_authority": null
+            }
+          ]
+        },
+        {
+          "obligation_id": "ifc-owner-b",
+          "profile": {
+            "kind": "profile",
+            "ref": "participant-owner-flow-policy-v1",
+            "revision": "rev1",
+            "digest": "sha256:0a7872665ca0cf435bddcd0d6a39b89d20a8f5f6a5e8ca8abdf1d4f77da774df"
+          },
+          "required_kind": "ifc-fact",
+          "required_strength": "exact",
+          "constraints": [
+            {
+              "kind": "constraint",
+              "ref": "explicit-boundary-only",
+              "revision": "rev1",
+              "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ],
+          "admitted_support": [
+            {
+              "instance_id": "influence",
+              "feature": "participant_modular_control",
+              "declaration_ref": {
+                "kind": "manifest",
+                "ref": "backend-manifest",
+                "revision": "rev1",
+                "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "declared_level": "exact",
+              "effective_level": "exact",
+              "status": "resolved",
+              "context_digest": "sha256:cd7174c65aaf33361a2ebad4fc5f7b36f6a578579dcff266dc3c9915296bfef7",
+              "installation": {
+                "kind": "installation",
+                "ref": "installation-1",
+                "revision": "rev1",
+                "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "constraints": [
+                {
+                  "kind": "constraint",
+                  "ref": "explicit-boundary-only",
+                  "revision": "rev1",
+                  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ],
+              "limitations": [
+                {
+                  "kind": "limitation",
+                  "ref": "explicit-flows-only",
+                  "revision": "rev1",
+                  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ],
+              "evidence": [
+                {
+                  "kind": "evidence",
+                  "ref": "support-evidence",
+                  "revision": "rev1",
+                  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ],
+              "downgrade_authority": null
+            }
+          ]
+        }
+      ]
+    },
+    "context": {
+      "run": {
+        "kind": "run",
+        "ref": "run-1",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "apparatus": {
+        "kind": "apparatus",
+        "ref": "apparatus-1",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "participant_address": "participants.student",
+      "episode_id": "episode-1",
+      "subject": {
+        "subject_kind": "participant-observation",
+        "contract_id": "participant-observation-envelope-v1",
+        "subject_ref": "observation-1",
+        "subject_revision": "rev1",
+        "subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "participant_address": "participants.student",
+        "episode_id": "episode-1"
+      },
+      "crossing": {
+        "kind": "crossing",
+        "ref": "crossing-1",
+        "revision": "rev1",
+        "digest": "sha256:a6041f01335e5816f8452889f857b701ad9605e15805722a434445eaacba7868"
+      },
+      "direction": "ingress",
+      "sink_ref": "teaching-observation",
+      "audience_ref": "student-audience",
+      "destination_ref": "student",
+      "controller_ref": "teacher",
+      "authority": {
+        "kind": "authority",
+        "ref": "teaching-authority",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "policy": {
+        "policy_id": "teaching-policy",
+        "policy_revision": "rev1",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "crossing-decision-1",
+        "decision_cut_ref": "cut-1",
+        "effective_order": 1,
+        "valid_from_order": 0,
+        "valid_until_order": 20
+      },
+      "state_cut": {
+        "cut_kind": "sequence_prefix",
+        "cut_ref": "cut-1",
+        "history_domain": "participant_behavior_history",
+        "order_model": "behavior_history_order",
+        "anchor_event_ref": "event-1",
+        "anchor_order": 1,
+        "history_prefix_length": 2,
+        "predecessor_event_refs": [
+          "event-0"
+        ]
+      },
+      "expected_history_heads": [
+        {
+          "kind": "history",
+          "ref": "history-head",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "provider_states": [
+        {
+          "instance_id": "influence",
+          "state": {
+            "kind": "provider-state",
+            "ref": "state-1",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "kind": "input",
+          "ref": "observation-1",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "memory_scope": {
+        "kind": "memory",
+        "ref": "retained-memory",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "clock": {
+        "kind": "clock",
+        "ref": "clock-1",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "order": 1,
+      "phase_ref": "practice",
+      "trigger_root": "root-1",
+      "trigger": {
+        "kind": "trigger",
+        "ref": "event-1",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "predecessors": [],
+      "depth": 0,
+      "effects_consumed": 0,
+      "prior_effect_claims": [],
+      "rule_firings": [],
+      "attempt": 1
+    },
+    "applicability": {
+      "selection_digest": "sha256:648c06938e095d849b69256b93deb0dee151f9f47981d370a93fc536d5cd4432",
+      "context_digest": "sha256:cd7174c65aaf33361a2ebad4fc5f7b36f6a578579dcff266dc3c9915296bfef7",
+      "applicable_slot_ids": [
+        "fact"
+      ],
+      "required_slot_ids": [
+        "fact"
+      ],
+      "coverage": [
+        {
+          "obligation_id": "ifc-owner-a",
+          "status": "applies",
+          "slot_ids": [
+            "fact"
+          ],
+          "evidence": [
+            {
+              "kind": "evidence",
+              "ref": "coverage-here",
+              "revision": "rev1",
+              "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        },
+        {
+          "obligation_id": "ifc-owner-b",
+          "status": "applies",
+          "slot_ids": [
+            "fact"
+          ],
+          "evidence": [
+            {
+              "kind": "evidence",
+              "ref": "coverage-there",
+              "revision": "rev1",
+              "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        }
+      ],
+      "derivation_evidence": [
+        {
+          "kind": "evidence",
+          "ref": "subset-derivation",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    }
+  },
+  "invocations": [
+    {
+      "invocation_id": "owner-fact-call",
+      "instance_id": "influence",
+      "requested_slot_ids": [
+        "fact"
+      ],
+      "binding_digest": "sha256:d27afdf06c730c02cac3974cf5c4d552f1031ed8ccf8b2d4fd19813c3432997c",
+      "context_digest": "sha256:cd7174c65aaf33361a2ebad4fc5f7b36f6a578579dcff266dc3c9915296bfef7",
+      "predecessor_inputs": [],
+      "state_input": {
+        "scope": {
+          "scope_id": "state-influence",
+          "sharing": "participant",
+          "authority": {
+            "kind": "authority",
+            "ref": "teaching-authority",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "configuration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "state": {
+          "kind": "provider-state",
+          "ref": "state-1",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "source": "committed",
+        "predecessor_invocation_id": null
+      },
+      "projection": {
+        "kind": "projection",
+        "ref": "owner-projection",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  ],
+  "results": [
+    {
+      "result_id": "owner-fact-result",
+      "slot_id": "fact",
+      "instance_id": "influence",
+      "binding_digest": "sha256:d27afdf06c730c02cac3974cf5c4d552f1031ed8ccf8b2d4fd19813c3432997c",
+      "context_digest": "sha256:cd7174c65aaf33361a2ebad4fc5f7b36f6a578579dcff266dc3c9915296bfef7",
+      "status": "resolved",
+      "payload": {
+        "kind": "ifc-fact",
+        "domain": "owner-ifc/rev1",
+        "relation": {
+          "kind": "flow-relation",
+          "ref": "owner-relation",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "label_ref": "label.endorsed.1",
+        "profile": {
+          "kind": "profile",
+          "ref": "participant-owner-flow-policy-v1",
+          "revision": "rev1",
+          "digest": "sha256:0a7872665ca0cf435bddcd0d6a39b89d20a8f5f6a5e8ca8abdf1d4f77da774df"
+        },
+        "sink_decision_ref": "sink-decision.1",
+        "sink_disposition": "permit"
+      },
+      "evidence": [
+        {
+          "kind": "evidence",
+          "ref": "owner-fact-evidence",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "next_provider_state": null,
+      "invocation_digest": "sha256:96df8ff45deb301b04bfbef2f267abe3a30886a329ddf271f18188b8a4c1c25b",
+      "rule_outcome": null,
+      "evaluated_basis": []
+    }
+  ],
+  "support": [
+    {
+      "obligation_id": "ifc-owner-a",
+      "instance_id": "influence",
+      "required_strength": "exact",
+      "required_constraints": [
+        {
+          "kind": "constraint",
+          "ref": "explicit-boundary-only",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "effective_support": {
+        "instance_id": "influence",
+        "feature": "participant_modular_control",
+        "declaration_ref": {
+          "kind": "manifest",
+          "ref": "backend-manifest",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "declared_level": "exact",
+        "effective_level": "exact",
+        "status": "resolved",
+        "context_digest": "sha256:cd7174c65aaf33361a2ebad4fc5f7b36f6a578579dcff266dc3c9915296bfef7",
+        "installation": {
+          "kind": "installation",
+          "ref": "installation-1",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "constraints": [
+          {
+            "kind": "constraint",
+            "ref": "explicit-boundary-only",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "limitations": [
+          {
+            "kind": "limitation",
+            "ref": "explicit-flows-only",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "evidence": [
+          {
+            "kind": "evidence",
+            "ref": "support-evidence",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "downgrade_authority": null
+      },
+      "relation": "exact",
+      "evidence": [
+        {
+          "kind": "evidence",
+          "ref": "trusted-assessment",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "obligation_id": "ifc-owner-b",
+      "instance_id": "influence",
+      "required_strength": "exact",
+      "required_constraints": [
+        {
+          "kind": "constraint",
+          "ref": "explicit-boundary-only",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "effective_support": {
+        "instance_id": "influence",
+        "feature": "participant_modular_control",
+        "declaration_ref": {
+          "kind": "manifest",
+          "ref": "backend-manifest",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "declared_level": "exact",
+        "effective_level": "exact",
+        "status": "resolved",
+        "context_digest": "sha256:cd7174c65aaf33361a2ebad4fc5f7b36f6a578579dcff266dc3c9915296bfef7",
+        "installation": {
+          "kind": "installation",
+          "ref": "installation-1",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "constraints": [
+          {
+            "kind": "constraint",
+            "ref": "explicit-boundary-only",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "limitations": [
+          {
+            "kind": "limitation",
+            "ref": "explicit-flows-only",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "evidence": [
+          {
+            "kind": "evidence",
+            "ref": "support-evidence",
+            "revision": "rev1",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "downgrade_authority": null
+      },
+      "relation": "exact",
+      "evidence": [
+        {
+          "kind": "evidence",
+          "ref": "trusted-assessment",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    }
+  ],
+  "lost_advice": [],
+  "effect_plan": {
+    "parent_crossing": {
+      "kind": "crossing",
+      "ref": "crossing-1",
+      "revision": "rev1",
+      "digest": "sha256:a6041f01335e5816f8452889f857b701ad9605e15805722a434445eaacba7868"
+    },
+    "decisions": [],
+    "effects": [],
+    "incumbent_gate_disposition": "permit",
+    "realized_effect_ids": [],
+    "parent_applied": false,
+    "parent_admission_receipt": null,
+    "parent_application_receipt": null,
+    "effect_outcomes": [],
+    "parent_disposition": "permit",
+    "runnable_effect_ids": []
+  },
+  "state_proposals": [],
+  "composition": {
+    "rule_revision": "participant-control-applicability/rev1",
+    "disposition": "eligible",
+    "blockers": [],
+    "contributing_result_ids": [
+      "owner-fact-result"
+    ],
+    "lost_advice_slot_ids": []
+  },
+  "commit": {
+    "expected_history_heads": [
+      {
+        "kind": "history",
+        "ref": "history-head",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "coverage_digest": "sha256:7f6864619168c8bb5d8c329c62e26005281f1c18f6473b6d825e59d2b24a8a89",
+    "result_digests": [
+      "sha256:b5af2721e82c0392f54bf2af2732e035afdc79508e15610eb3c91f2c15d4ef90"
+    ],
+    "decision_digest": "sha256:777a3893d26c3636207d50d348916f0a21388806848e0e7e7eb1866b669f8a5d",
+    "state_proposal_digests": [],
+    "effect_intent_digests": [],
+    "effects_consumed": 0,
+    "status": "prepared",
+    "receipt": null,
+    "dispatchable_effect_ids": []
+  }
+}

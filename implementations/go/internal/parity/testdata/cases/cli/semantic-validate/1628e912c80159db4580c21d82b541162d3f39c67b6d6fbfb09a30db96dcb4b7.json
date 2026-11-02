@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-authoring-input-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "15d96ccc2fd36ea70ead1afb8510032955c047a6efc5befec2d50bf807c557d8"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/invalid/stratified-selection-empty-outcomes",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-authoring-input-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-authoring-input-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 7,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

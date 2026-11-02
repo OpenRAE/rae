@@ -1,0 +1,14 @@
+{
+  "schema_version": "runtime-snapshot/v1",
+  "entries": {},
+  "realization_observations": [
+    {
+      "address": "provision.node.web",
+      "field_path": "nodes.web.runtime.forwarding_agents",
+      "domain": "runtime-realization",
+      "requirement_kind": "forwarding-agents",
+      "verification_scope": "configuration"
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-implementation-manifest-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "9ab91a86caa50ed8c04feddc2f74d7ae2fc982d6577a821cb58f2144144559c0"
+  },
+  "name": "contracts/fixtures/participant-implementation-manifest/participant-implementation-manifest-v1/invalid/empty-compatibility",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

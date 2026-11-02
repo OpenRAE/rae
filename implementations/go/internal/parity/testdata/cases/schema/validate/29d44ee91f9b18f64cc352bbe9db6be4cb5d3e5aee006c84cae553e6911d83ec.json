@@ -1,0 +1,14 @@
+{
+  "args": [
+    "concept-families-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "821a49d2d43b52a5a780dc59eaf74bcc5c6f33ec6d17283c771ad9fa2b94c7f7"
+  },
+  "name": "contracts/fixtures/concept-authority/concept-families-v1/invalid/native-missing-extension-scope",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

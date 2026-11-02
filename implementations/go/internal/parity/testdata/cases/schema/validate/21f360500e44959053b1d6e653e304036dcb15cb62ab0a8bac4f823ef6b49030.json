@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-history-event-stream-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "3f789468fe5e90c05e64a34c60baacb22c2ab585c7ec2d5bace0671cfa311ffb"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-history-event-stream-v1/invalid/missing-timestamp",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

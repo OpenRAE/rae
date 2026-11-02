@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-capabilities-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "d0ffc37fe417866e8c77679777fb2b9cf354b01b114b6d188a2d6c4a35947dee"
+  },
+  "name": "contracts/fixtures/control-plane/backend-operation-capabilities-v1/valid/provider",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

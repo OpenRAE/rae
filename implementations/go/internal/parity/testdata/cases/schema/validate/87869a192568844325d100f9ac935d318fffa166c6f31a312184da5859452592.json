@@ -1,0 +1,14 @@
+{
+  "args": [
+    "proposition-truth-result-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "986beeeccaf0b1f680cd426978baeaed21391143e7d902138351318e3792e589"
+  },
+  "name": "contracts/fixtures/control-plane/proposition-truth-result-v1/valid/positive-observed",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-information-state-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "c642e0d154689bf10087b101cb7c037b5e86a91e0c45db41d358cab800ead0be"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-information-state-record-v1/invalid/strong-without-profile",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

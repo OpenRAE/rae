@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-joint-action-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "60e0fb4d7b816c8aa6e6d08f42dc1964451ac96fa5537248c550e79dd5a8b7c2"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-joint-action-record-v1/valid/serialized-red-blue-shared-state",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

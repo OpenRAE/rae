@@ -1,0 +1,14 @@
+{
+  "args": [
+    "time-runtime-state-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "cef5f9e496dcee9eb4bd36b6614b836c79843ab3c33347ac891b31abf48b82ac"
+  },
+  "name": "contracts/fixtures/time/time-runtime-state-v1/invalid/noncontiguous-history",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

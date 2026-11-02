@@ -1,0 +1,55 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "participant-boundary-flow-policy-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "36d071ecb0bd0be44a5ec4f50b2004cbc62f0383637ff516123585d858061d46"
+  },
+  "name": "contracts/fixtures/profiles/participant-boundary-flow-policy-v1/invalid/open-policy-expression",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "participant-boundary-flow-policy-v1",
+      "diagnostics": [
+        {
+          "address": "participant-boundary-flow-policy-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 5,
+        "members": [
+          "authority_revision",
+          "policy_expression",
+          "profile_id",
+          "profile_revision",
+          "schema_version"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

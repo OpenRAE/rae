@@ -1,0 +1,22 @@
+{
+  "case_id": "rename-references",
+  "operation": "rename-sdl-declaration/v1",
+  "source_contract": "sdl-authoring-input/v1",
+  "source_path": "artifact-transformations-v1/sources/references.sdl.yaml",
+  "request": {
+    "target_address": "nodes.web",
+    "new_local_name": "frontend"
+  },
+  "policy": {
+    "allowed_loss_kinds": []
+  },
+  "expected": {
+    "status": "success",
+    "identity_map": [
+      {
+        "before": "nodes.web",
+        "after": "nodes.frontend"
+      }
+    ]
+  }
+}

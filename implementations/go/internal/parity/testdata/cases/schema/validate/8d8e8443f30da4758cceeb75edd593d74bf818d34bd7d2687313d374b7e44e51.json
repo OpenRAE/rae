@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "608b4f1016e7c5867b76286be18f55d114b0683ff413a72753e80f7bccba70d3"
+  },
+  "name": "contracts/fixtures/control-plane/inject-occurrence-outcome-v1/valid/participant-free-environment",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

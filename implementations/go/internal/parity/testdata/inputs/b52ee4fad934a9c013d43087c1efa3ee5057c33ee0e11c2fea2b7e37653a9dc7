@@ -1,0 +1,62 @@
+{
+  "view_id": "views.context.participants.blue.rl.network-posture.0001",
+  "participant_address": "participants.blue.rl",
+  "episode_id": "ep-blue-002",
+  "generated_at": "2026-05-26T10:21:00Z",
+  "source_snapshot_ref": "snapshots.run-778.tick42",
+  "view_ref": "views.context.network-posture.v1",
+  "meaning_ref": "semantics.context.network-posture.v1",
+  "participant_scope": "participant_local",
+  "audience_scope": "participant_visible",
+  "observation_point": "episode-step:tick42",
+  "derived_from_refs": [
+    "snapshots.run-778.tick42"
+  ],
+  "source_layers": [
+    {
+      "source_id": "snapshot-tick42",
+      "source_layer": "source_snapshot",
+      "ref": "snapshots.run-778.tick42",
+      "temporal_relation": "future_state",
+      "observation_point": "episode-step:tick42",
+      "evidence_refs": [
+        "obs-blue-43"
+      ],
+      "provenance_refs": [
+        "snapshots.run-778.tick42"
+      ]
+    }
+  ],
+  "transformation": {
+    "transformation_rule_ref": "rules.context.network-posture.v1",
+    "description": "Derive a participant-visible network-posture view from the declared snapshot",
+    "input_source_ids": [
+      "snapshot-tick42"
+    ],
+    "output_semantics_ref": "semantics.context.network-posture.v1"
+  },
+  "comparability": {
+    "comparability_class": "portable_equivalent",
+    "comparison_basis_ref": "comparability.network-posture.same-rule-and-projection.v1",
+    "backend_disclosure_refs": [],
+    "limitations": [
+      "Comparable only for the same view rule and visibility projection"
+    ]
+  },
+  "evidence_refs": [
+    "obs-blue-43"
+  ],
+  "provenance_refs": [
+    "snapshots.run-778.tick42"
+  ],
+  "semantic_limitations": [
+    "The payload reference is derived context and does not expose backend-private global state"
+  ],
+  "derivation_basis_ref": "rules.context.network-posture.v1",
+  "payload_ref": "evidence.context.blue.network-posture.tick42",
+  "visibility_projection_ref": "projections.blue.context.v1",
+  "marking_definition_refs": [
+    "markings.participant_visible.v1"
+  ],
+  "redaction_policy_ref": "redaction.blue-observation.v1"
+}

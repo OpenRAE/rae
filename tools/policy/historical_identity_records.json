@@ -24,7 +24,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "25cc9e55934fb5dfbde7b247f46c95e1320dc3aa698296dbd6f98b571cb7e54f"
+      "content_sha256": "7ee6f00faffa840d358568e5394340a7afa09412a7ab5a9e19fa779f57180780"
     }
   ],
   "records": [
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-1776 ADR-055 and ADR-098 amendments, the issue-976 ADR-100 amendment, and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-1776 ADR-055 and ADR-098 amendments, the issue-1778 ADR-122 amendment, the issue-976 ADR-100 amendment, and their pins.",
       "occurrences": 4,
-      "content_sha256": "41fd6fb5ceaed8462cde1017f47e5cc3178abc8b4ecb734a467b5d0643d7b727"
+      "content_sha256": "4e06970e26340ad8f047d6d8e176a27782c15a4ea436927fb3b13f335be12321"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

@@ -1,0 +1,7 @@
+{
+  "schema_version": "participant-boundary-flow-policy/v1",
+  "profile_id": "participant-boundary-flow-policy-v1",
+  "profile_revision": "rev1",
+  "authority_revision": "sem-233/rev1",
+  "policy_expression": "permit when caller says trusted"
+}

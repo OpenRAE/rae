@@ -1,0 +1,14 @@
+{
+  "args": [
+    "domain-profile-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "e2d972302a05c7c272dd8c3ae067c8ea8809a62a855c4a5367330d1d71d7938a"
+  },
+  "name": "contracts/fixtures/profiles/domain-profile-binding-v1/invalid/observed-without-evidence",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

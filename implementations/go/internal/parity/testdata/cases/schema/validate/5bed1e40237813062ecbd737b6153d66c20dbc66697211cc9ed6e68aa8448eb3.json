@@ -1,0 +1,14 @@
+{
+  "args": [
+    "batch-execution-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "4a84b53462e832447fa045aa3394a6fc6140a25a2659571dd10adc9d266d3b61"
+  },
+  "name": "contracts/fixtures/control-plane/batch-execution-receipt-v1/invalid/parallel-missing-proof",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-run-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "abb2d42b416a66cb467692d1634a9c0997a741a3a696ace9d39f45d71b07feca"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-run-v1/invalid/augmentation-without-portable-carrier",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

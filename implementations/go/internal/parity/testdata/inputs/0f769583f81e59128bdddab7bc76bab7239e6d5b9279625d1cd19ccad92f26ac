@@ -1,0 +1,70 @@
+{
+  "schema_version": "semantic-comparison-request/v1",
+  "comparison_profile": "raes-semantic-comparison/v1",
+  "comparison_profile_digest": "sha256:50e5183320de75ccb96ded6d709b6c03e351850633a976cba21d281455749e36",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "before": {
+    "canonical_identity": "module:openrae/arena",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:d1fee3486fd4fa2b078201a3235ea698c137097103882ffb10d1e7ea7b1d53de",
+    "exact_representation": null,
+    "artifact_kind": "module",
+    "lifecycle_phase": "resolved-import",
+    "provenance_profile": "resolved-import-provenance/v1",
+    "module_id": "openrae/arena",
+    "module_version": "1.0.0"
+  },
+  "after": {
+    "canonical_identity": "module:openrae/arena",
+    "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+    "canonical_digest": "sha256:d1fee3486fd4fa2b078201a3235ea698c137097103882ffb10d1e7ea7b1d53de",
+    "exact_representation": null,
+    "artifact_kind": "module",
+    "lifecycle_phase": "resolved-import",
+    "provenance_profile": "resolved-import-provenance/v1",
+    "module_id": "openrae/arena",
+    "module_version": "1.0.0"
+  },
+  "impact_scope": {
+    "scope_id": "comparison-scope",
+    "closure_policy": "declared-exact-artifact-set/v1",
+    "closure_status": "complete",
+    "traversal_roots": [
+      "module:openrae/arena"
+    ],
+    "before_artifacts": [
+      {
+        "canonical_identity": "module:openrae/arena",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:d1fee3486fd4fa2b078201a3235ea698c137097103882ffb10d1e7ea7b1d53de",
+        "exact_representation": null,
+        "artifact_kind": "module",
+        "lifecycle_phase": "resolved-import",
+        "provenance_profile": "resolved-import-provenance/v1",
+        "module_id": "openrae/arena",
+        "module_version": "1.0.0"
+      }
+    ],
+    "after_artifacts": [
+      {
+        "canonical_identity": "module:openrae/arena",
+        "canonicalization_profile": "rfc8785-jcs-sha256/v1",
+        "canonical_digest": "sha256:d1fee3486fd4fa2b078201a3235ea698c137097103882ffb10d1e7ea7b1d53de",
+        "exact_representation": null,
+        "artifact_kind": "module",
+        "lifecycle_phase": "resolved-import",
+        "provenance_profile": "resolved-import-provenance/v1",
+        "module_id": "openrae/arena",
+        "module_version": "1.0.0"
+      }
+    ],
+    "scope_digest": "sha256:3875a6595e148b860574bf98f7b66e4d6bcb80dd938213cd31437262358657c8"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

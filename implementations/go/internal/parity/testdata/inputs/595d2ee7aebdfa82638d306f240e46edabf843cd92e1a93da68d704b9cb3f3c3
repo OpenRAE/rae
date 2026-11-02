@@ -1,0 +1,14 @@
+{
+  "schema_version": "scheduler-isolation-proof/v1",
+  "proof_id": "proof-missing-secret-scope",
+  "plan_entry_ids": ["trial-entry-a", "trial-entry-b"],
+  "requested_parallelism": 2,
+  "dimensions": [
+    {"dimension": "range-instance", "independent": true, "evidence_refs": ["evidence:range"]},
+    {"dimension": "host-capacity", "independent": true, "evidence_refs": ["evidence:capacity"]},
+    {"dimension": "ports", "independent": true, "evidence_refs": ["evidence:ports"]},
+    {"dimension": "storage", "independent": true, "evidence_refs": ["evidence:storage"]},
+    {"dimension": "control-plane-locks", "independent": true, "evidence_refs": ["evidence:locks"]},
+    {"dimension": "cleanup", "independent": true, "evidence_refs": ["evidence:cleanup"]}
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "access_sets": [
+    {
+      "member_event_ref": "scan-red-0001",
+      "shared_state_write_refs": [
+        "hosts.web01.service.http"
+      ]
+    },
+    {
+      "member_event_ref": "scan-blue-0001",
+      "shared_state_read_refs": [
+        "hosts.web01.service.http"
+      ]
+    }
+  ],
+  "actor_ref": "runtime.coordinator",
+  "atomicity_scope": "single_object",
+  "authorization_scope": "operators",
+  "clock_authority": "clock.logical.runtime",
+  "conflict_class": "read_write",
+  "conflict_policy": "serialize",
+  "event_id": "joint-red-blue-0001",
+  "event_type": "joint_action_recorded",
+  "exact_concurrency_claim": false,
+  "extension_policy": "forbid_unknown_fields",
+  "ingested_at": "2026-06-20T08:00:00Z",
+  "isolation_guarantee": "serializable",
+  "joint_action_set_id": "joint-red-blue-0001",
+  "logical_order_ref": "order.joint-red-blue-0001",
+  "member_event_refs": [
+    "scan-red-0001",
+    "scan-blue-0001"
+  ],
+  "occurred_at": "2026-06-20T08:00:00Z",
+  "ordering_basis": "serialized_backend_order",
+  "producer_ref": "backend.stub",
+  "realized_order": [
+    "scan-red-0001",
+    "scan-blue-0001"
+  ],
+  "recorded_at": "2026-06-20T08:00:00Z",
+  "schema_name": "participant-joint-action-record",
+  "schema_version": "participant-joint-action-record/v1",
+  "time_management_context_ref": "tm-red-blue-0001",
+  "unsupported_disclosure": false
+}

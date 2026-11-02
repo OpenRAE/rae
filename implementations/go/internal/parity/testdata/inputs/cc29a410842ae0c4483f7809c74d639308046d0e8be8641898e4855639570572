@@ -1,0 +1,1535 @@
+name: satcom-release-poisoning
+description: 'Hybrid supply-chain exercise for a satellite communications platform.
+  The scenario models build compromise, signed artifact poisoning, release promotion,
+  tenant isolation risk, and rollback under live telemetry pressure.
+
+  '
+nodes:
+  internet-edge:
+    type: switch
+    description: Public and partner ingress
+  corp-eng:
+    type: switch
+    description: Engineering workstations and forge access
+  build-net:
+    type: switch
+    description: CI runner and registry network
+  control-net:
+    type: switch
+    description: Satellite control plane
+  edge-net:
+    type: switch
+    description: Regional edge gateways
+  telemetry-net:
+    type: switch
+    description: Telemetry collection and streaming
+  federation-net:
+    type: switch
+    description: Customer and vendor federation boundary
+  security-net:
+    type: switch
+    description: Monitoring and response systems
+  git-forge:
+    type: compute
+    source:
+      name: git-forge
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: linux
+    features:
+      git-service: forge-admin
+    conditions:
+      repo-integrity-healthy: forge-admin
+    roles:
+      forge-admin:
+        username: forgeadmin
+        entities:
+        - platform-blue.release-engineering
+    services:
+    - port: 443
+      name: forge-https
+    - port: 22
+      name: forge-ssh
+  ci-runner:
+    type: compute
+    source:
+      name: ci-runner
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 4
+    os: linux
+    features:
+      ci-orchestrator: ci-admin
+    conditions:
+      pipeline-green: ci-admin
+      rogue-release-promoted: ci-admin
+    roles:
+      ci-admin:
+        username: gitlab-runner
+    services:
+    - port: 443
+      name: ci-api
+    - port: 2222
+      name: ci-ssh
+  artifact-registry:
+    type: compute
+    source:
+      name: artifact-registry
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: linux
+    features:
+      release-registry: registry-admin
+    conditions:
+      release-signature-valid: registry-admin
+      rollback-package-ready: registry-admin
+    roles:
+      registry-admin:
+        username: registry
+        entities:
+        - platform-blue.release-engineering
+    services:
+    - port: 5000
+      name: registry-api
+    - port: 443
+      name: registry-ui
+  signing-hsm:
+    type: compute
+    source:
+      name: signing-service
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 2
+    os: linux
+    features:
+      signing-service: signing-admin
+    conditions:
+      signing-health: signing-admin
+    roles:
+      signing-admin:
+        username: signer
+    services:
+    - port: 8443
+      name: signing-api
+  control-api:
+    type: compute
+    source:
+      name: satcom-control-plane
+      version: '*'
+    resources:
+      ram: 6442450944
+      cpu: 4
+    os: linux
+    features:
+      satcom-control: control-admin
+    conditions:
+      control-plane-healthy: control-admin
+      rollback-complete: control-admin
+    roles:
+      control-admin:
+        username: satops
+        entities:
+        - platform-blue.sre
+    services:
+    - port: 443
+      name: control-api
+    - port: 8444
+      name: control-admin-ui
+    asset_value:
+      integrity: critical
+      availability: critical
+  edge-gateway-east:
+    type: compute
+    source:
+      name: satcom-edge
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 2
+    os: linux
+    features:
+      edge-agent-east: edge-admin
+    conditions:
+      edge-east-healthy: edge-admin
+      edge-east-poisoned: edge-admin
+    roles:
+      edge-admin:
+        username: edgeeast
+    services:
+    - port: 443
+      name: edge-east-api
+  edge-gateway-west:
+    type: compute
+    source:
+      name: satcom-edge
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 2
+    os: linux
+    features:
+      edge-agent-west: edge-admin
+    conditions:
+      edge-west-healthy: edge-admin
+      edge-west-poisoned: edge-admin
+    roles:
+      edge-admin:
+        username: edgewest
+    services:
+    - port: 443
+      name: edge-west-api
+  telemetry-broker:
+    type: compute
+    source:
+      name: kafka-broker
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: linux
+    features:
+      telemetry-bus: telemetry-admin
+    conditions:
+      telemetry-flowing: telemetry-admin
+    roles:
+      telemetry-admin:
+        username: telemetry
+    services:
+    - port: 9092
+      name: telemetry-kafka
+    - port: 443
+      name: telemetry-ui
+  analytics-lake:
+    type: compute
+    source:
+      name: analytics-lake
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: linux
+    features:
+      analytics-store: lake-admin
+    conditions:
+      analytics-ingest-healthy: lake-admin
+    roles:
+      lake-admin:
+        username: lake
+    services:
+    - port: 443
+      name: analytics-ui
+  customer-portal:
+    type: compute
+    source:
+      name: customer-portal
+      version: '*'
+    resources:
+      ram: 4294967296
+      cpu: 2
+    os: linux
+    features:
+      customer-portal-app: portal-admin
+    conditions:
+      tenant-isolation-healthy: portal-admin
+      portal-sso-healthy: portal-admin
+    roles:
+      portal-admin:
+        username: portal
+        entities:
+        - platform-blue.release-engineering
+    services:
+    - port: 443
+      name: portal-https
+  support-bastion:
+    type: compute
+    source:
+      name: support-bastion
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 2
+    os: linux
+    conditions:
+      support-bastion-online: support-admin
+    roles:
+      support-admin:
+        username: support
+        entities:
+        - vendor-ops
+    services:
+    - port: 22
+      name: bastion-ssh
+    - port: 443
+      name: bastion-web
+  siem01:
+    type: compute
+    source:
+      name: siem-stack
+      version: '*'
+    resources:
+      ram: 8589934592
+      cpu: 4
+    os: linux
+    features:
+      siem-core: soc-admin
+      release-edr: soc-admin
+    conditions:
+      security-pipeline-healthy: soc-admin
+      release-incident-ticketed: soc-admin
+    roles:
+      soc-admin:
+        username: socadmin
+        entities:
+        - platform-blue.soc
+    services:
+    - port: 5601
+      name: release-soc-ui
+  vendor-idp:
+    type: compute
+    source:
+      name: vendor-idp
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 1
+    os: linux
+    features:
+      vendor-sso: idp-admin
+    conditions:
+      vendor-federation-healthy: idp-admin
+    roles:
+      idp-admin:
+        username: vendorauth
+    services:
+    - port: 443
+      name: vendor-idp-https
+  customer-idp:
+    type: compute
+    source:
+      name: customer-idp
+      version: '*'
+    resources:
+      ram: 2147483648
+      cpu: 1
+    os: linux
+    features:
+      customer-sso: idp-admin
+    conditions:
+      customer-federation-healthy: idp-admin
+    roles:
+      idp-admin:
+        username: customerauth
+    services:
+    - port: 443
+      name: customer-idp-https
+infrastructure:
+  internet-edge:
+    count: 1
+    properties:
+      cidr: 10.90.0.0/24
+      gateway: 10.90.0.1
+  corp-eng:
+    count: 1
+    properties:
+      cidr: 10.90.1.0/24
+      gateway: 10.90.1.1
+      internal: true
+  build-net:
+    count: 1
+    properties:
+      cidr: 10.90.2.0/24
+      gateway: 10.90.2.1
+      internal: true
+    acls:
+    - name: allow-engineering-release
+      direction: in
+      from_net: corp-eng
+      protocol: tcp
+      ports:
+      - 22
+      - 443
+      - 5000
+      action: allow
+    - name: deny-public-build
+      direction: in
+      from_net: internet-edge
+      action: deny
+  control-net:
+    count: 1
+    properties:
+      cidr: 10.90.3.0/24
+      gateway: 10.90.3.1
+      internal: true
+  edge-net:
+    count: 1
+    properties:
+      cidr: 10.90.4.0/24
+      gateway: 10.90.4.1
+      internal: true
+  telemetry-net:
+    count: 1
+    properties:
+      cidr: 10.90.5.0/24
+      gateway: 10.90.5.1
+      internal: true
+  federation-net:
+    count: 1
+    properties:
+      cidr: 10.90.6.0/24
+      gateway: 10.90.6.1
+  security-net:
+    count: 1
+    properties:
+      cidr: 10.90.7.0/24
+      gateway: 10.90.7.1
+      internal: true
+  git-forge:
+    count: 1
+    links:
+    - corp-eng
+    - build-net
+  ci-runner:
+    count: 1
+    links:
+    - build-net
+    - security-net
+    dependencies:
+    - git-forge
+    - artifact-registry
+  artifact-registry:
+    count: 1
+    links:
+    - build-net
+    - control-net
+    dependencies:
+    - signing-hsm
+  signing-hsm:
+    count: 1
+    links:
+    - build-net
+  control-api:
+    count: 1
+    links:
+    - control-net
+    - edge-net
+    - telemetry-net
+    dependencies:
+    - artifact-registry
+    - telemetry-broker
+  edge-gateway-east:
+    count: 1
+    links:
+    - edge-net
+    - telemetry-net
+    dependencies:
+    - control-api
+  edge-gateway-west:
+    count: 1
+    links:
+    - edge-net
+    - telemetry-net
+    dependencies:
+    - control-api
+  telemetry-broker:
+    count: 1
+    links:
+    - telemetry-net
+    - security-net
+    dependencies:
+    - analytics-lake
+  analytics-lake:
+    count: 1
+    links:
+    - telemetry-net
+  customer-portal:
+    count: 1
+    links:
+    - internet-edge
+    - federation-net
+    - control-net
+    dependencies:
+    - vendor-idp
+    - customer-idp
+  support-bastion:
+    count: 1
+    links:
+    - internet-edge
+    - federation-net
+    - control-net
+  siem01:
+    count: 1
+    links:
+    - security-net
+    - corp-eng
+  vendor-idp:
+    count: 1
+    links:
+    - federation-net
+  customer-idp:
+    count: 1
+    links:
+    - federation-net
+features:
+  git-service:
+    type: service
+    source:
+      name: gitea-enterprise
+      version: '*'
+  ci-orchestrator:
+    type: service
+    source:
+      name: gitlab-runner
+      version: '*'
+  release-registry:
+    type: service
+    source:
+      name: harbor-registry
+      version: '*'
+  signing-service:
+    type: service
+    source:
+      name: notation-signer
+      version: '*'
+  satcom-control:
+    type: service
+    source:
+      name: satcom-control-api
+      version: '*'
+  edge-agent-east:
+    type: service
+    source:
+      name: edge-control-agent
+      version: '*'
+  edge-agent-west:
+    type: service
+    source:
+      name: edge-control-agent
+      version: '*'
+  telemetry-bus:
+    type: service
+    source:
+      name: kafka
+      version: '*'
+  analytics-store:
+    type: service
+    source:
+      name: parquet-lake
+      version: '*'
+  customer-portal-app:
+    type: service
+    source:
+      name: tenant-portal
+      version: '*'
+  siem-core:
+    type: service
+    source:
+      name: wazuh-elastic-stack
+      version: '*'
+  release-edr:
+    type: artifact
+    source:
+      name: release-edr-agent
+      version: '*'
+    destination: /opt/edr
+  vendor-sso:
+    type: service
+    source:
+      name: vendor-idp
+      version: '*'
+  customer-sso:
+    type: service
+    source:
+      name: customer-idp
+      version: '*'
+conditions:
+  repo-integrity-healthy:
+    command: /usr/local/bin/check-repo-integrity
+    interval: 30
+  pipeline-green:
+    command: /usr/local/bin/check-pipeline
+    interval: 30
+  rogue-release-promoted:
+    proposition: rogue-release-promoted
+    command: /usr/local/bin/check-rogue-release
+    interval: 60
+  release-signature-valid:
+    proposition: release-signature-valid
+    command: /usr/local/bin/check-release-signature
+    interval: 30
+  rollback-package-ready:
+    proposition: rollback-package-ready
+    command: /usr/local/bin/check-rollback-package
+    interval: 60
+  signing-health:
+    command: /usr/local/bin/check-signing-service
+    interval: 30
+  control-plane-healthy:
+    command: /usr/local/bin/check-control-plane
+    interval: 15
+  rollback-complete:
+    command: /usr/local/bin/check-rollback-complete
+    interval: 60
+  edge-east-healthy:
+    command: /usr/local/bin/check-edge-east
+    interval: 30
+  edge-east-poisoned:
+    proposition: edge-east-poisoned
+    command: /usr/local/bin/check-edge-east-poisoned
+    interval: 60
+  edge-west-healthy:
+    command: /usr/local/bin/check-edge-west
+    interval: 30
+  edge-west-poisoned:
+    command: /usr/local/bin/check-edge-west-poisoned
+    interval: 60
+  telemetry-flowing:
+    proposition: telemetry-flowing
+    command: /usr/local/bin/check-telemetry
+    interval: 15
+  analytics-ingest-healthy:
+    command: /usr/local/bin/check-analytics-ingest
+    interval: 30
+  tenant-isolation-healthy:
+    proposition: tenant-isolation-healthy
+    command: /usr/local/bin/check-tenant-isolation
+    interval: 30
+  portal-sso-healthy:
+    command: /usr/local/bin/check-portal-sso
+    interval: 30
+  support-bastion-online:
+    command: /usr/local/bin/check-support-bastion
+    interval: 30
+  security-pipeline-healthy:
+    command: /usr/local/bin/check-security-pipeline
+    interval: 30
+  release-incident-ticketed:
+    command: /usr/local/bin/check-incident-ticket
+    interval: 60
+  vendor-federation-healthy:
+    command: /usr/local/bin/check-vendor-federation
+    interval: 30
+  customer-federation-healthy:
+    command: /usr/local/bin/check-customer-federation
+    interval: 30
+propositions:
+  edge-east-poisoned:
+    description: The governed edge-east-poisoned observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.edge-gateway-east
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: edge-east-poisoned
+      semantic_ref: urn:raes:observable:edge-east-poisoned
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  release-signature-valid:
+    description: The governed release-signature-valid observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.artifact-registry
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: release-signature-valid
+      semantic_ref: urn:raes:observable:release-signature-valid
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  rogue-release-promoted:
+    description: The governed rogue-release-promoted observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.ci-runner
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: rogue-release-promoted
+      semantic_ref: urn:raes:observable:rogue-release-promoted
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  rollback-package-ready:
+    description: The governed rollback-package-ready observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.artifact-registry
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: rollback-package-ready
+      semantic_ref: urn:raes:observable:rollback-package-ready
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  telemetry-flowing:
+    description: The governed telemetry-flowing observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.telemetry-broker
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: telemetry-flowing
+      semantic_ref: urn:raes:observable:telemetry-flowing
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+  tenant-isolation-healthy:
+    description: The governed tenant-isolation-healthy observation is true for the addressed scenario subject.
+    subjects:
+    - nodes.customer-portal
+    basis: observed_state
+    predicate:
+      kind: boolean
+      property: tenant-isolation-healthy
+      semantic_ref: urn:raes:observable:tenant-isolation-healthy
+      operator: equals
+      expected: true
+    quantifier: all
+    evidence_requirements:
+    - objective-truth-evidence
+assertions:
+  edge-east-poisoned:
+    proposition: edge-east-poisoned
+    role: postcondition
+    polarity: positive
+  release-signature-valid:
+    proposition: release-signature-valid
+    role: postcondition
+    polarity: positive
+  rogue-release-promoted:
+    proposition: rogue-release-promoted
+    role: postcondition
+    polarity: positive
+  rollback-package-ready:
+    proposition: rollback-package-ready
+    role: postcondition
+    polarity: positive
+  telemetry-flowing:
+    proposition: telemetry-flowing
+    role: postcondition
+    polarity: positive
+  tenant-isolation-healthy:
+    proposition: tenant-isolation-healthy
+    role: postcondition
+    polarity: positive
+  pre-edge-east-poisoned:
+    proposition: edge-east-poisoned
+    role: precondition
+    polarity: positive
+  pre-rogue-release-promoted:
+    proposition: rogue-release-promoted
+    role: precondition
+    polarity: positive
+evidence_requirements:
+  objective-truth-evidence:
+    description: Capture evidence used to decide authored proposition assertions.
+    source_refs:
+    - nodes.customer-portal
+    - nodes.ci-runner
+    - nodes.telemetry-broker
+    - nodes.artifact-registry
+    - nodes.edge-gateway-east
+    scope: authored objective, event, workflow, and participant assertion evaluation
+    boundary_kind: assertion_evaluation
+    channel: log
+    artifact_role: proposition_truth_evidence
+    media_types: [application/json]
+    sensitivity: plain
+    redaction: redact_secrets
+    integrity: checksum
+    retention: study_lifetime
+    loss_disclosure: required
+entities:
+  platform-blue:
+    name: Platform Blue Team
+    role: blue
+    mission: Deliver a trusted release while maintaining customer service continuity
+    entities:
+      release-engineering:
+        name: Release Engineering
+      sre:
+        name: Site Reliability Engineering
+      soc:
+        name: Security Operations
+  vendor-ops:
+    name: Vendor Operations
+    role: green
+    mission: Provide support access for customer escalations
+  customer-ops:
+    name: Customer Operations
+    role: green
+    mission: Monitor service continuity and tenant isolation
+  red-supply-chain:
+    name: Red Supply Chain Team
+    role: red
+    mission: Poison the rollout and survive long enough to reach an edge region
+  white-cell:
+    name: White Cell
+    role: white
+injects:
+  release-freeze-brief:
+    source:
+      name: release-freeze-brief
+      version: '*'
+    from_entity: white-cell
+    to_entities:
+    - platform-blue
+    description: Release engineering is notified of a planned promotion window
+  customer-telemetry-ticket:
+    source:
+      name: telemetry-ticket
+      version: '*'
+    from_entity: customer-ops
+    to_entities:
+    - platform-blue
+    description: Customer reports delayed telemetry from a canary region
+  exec-rollback-brief:
+    source:
+      name: rollback-order
+      version: '*'
+    from_entity: white-cell
+    to_entities:
+    - platform-blue
+    - vendor-ops
+    description: Leadership orders a verified rollback before customer impact spreads
+events:
+  freeze-window:
+    injects:
+    - release-freeze-brief
+  canary-cutover-event:
+    assertions:
+    - pre-rogue-release-promoted
+    injects:
+    - customer-telemetry-ticket
+  rollback-order-event:
+    assertions:
+    - pre-edge-east-poisoned
+    injects:
+    - exec-rollback-brief
+scripts:
+  release-prep:
+    start_time: 0
+    end_time: 7200
+    speed: ${release_story_speed}
+    events:
+      freeze-window: 600
+  canary-rollout:
+    start_time: 7200
+    end_time: 14400
+    speed: ${release_story_speed}
+    events:
+      canary-cutover-event: ${canary_cutover}
+  incident-rollback:
+    start_time: 14400
+    end_time: ${rollback_deadline}
+    speed: ${release_story_speed}
+    events:
+      rollback-order-event: 18000
+stories:
+  release-day:
+    speed: ${release_story_speed}
+    scripts:
+    - release-prep
+    - canary-rollout
+    - incident-rollback
+content:
+  release-manifest:
+    type: file
+    target: artifact-registry
+    path: /srv/releases/manifest.json
+    text: '{"ring":"canary","signed":true,"region":"east"}'
+    sensitive: true
+  golden-edge-config:
+    type: directory
+    target: control-api
+    destination: /srv/control/golden-configs
+    sensitive: true
+  tenant-api-keys:
+    type: dataset
+    target: customer-portal
+    source:
+      name: tenant-api-key-seed
+      version: '*'
+    format: json
+    sensitive: true
+  rollback-playbooks:
+    type: dataset
+    target: analytics-lake
+    format: markdown
+    items:
+    - name: canary-rollback
+      display_name: canary-rollback.md
+      tags:
+      - rollback
+      - release
+      description: Canary rollback checklist
+    - name: edge-validation
+      display_name: edge-validation.md
+      tags:
+      - validation
+      - edge
+      description: Edge validation checklist after rollback
+accounts:
+  release-engineer:
+    username: releasemgr
+    node: git-forge
+    groups:
+    - ReleaseEngineering
+    password_strength: ${release_engineer_password_strength}
+  ci-bot:
+    username: ci-bot
+    node: ci-runner
+    groups:
+    - CI
+    password_strength: medium
+    auth_method: certificate
+  registry-bot:
+    username: registry-bot
+    node: artifact-registry
+    groups:
+    - Registry
+    password_strength: medium
+  satops:
+    username: satops
+    node: control-api
+    groups:
+    - SRE
+    password_strength: strong
+  support-vendor:
+    username: support
+    node: support-bastion
+    groups:
+    - VendorOps
+    password_strength: medium
+  tenant-admin:
+    username: tenant.admin
+    node: customer-portal
+    groups:
+    - Customers
+    password_strength: strong
+  soc-analyst:
+    username: socanalyst
+    node: siem01
+    groups:
+    - SOC
+    password_strength: strong
+relationships:
+  forge-auths-ci:
+    type: authenticates_with
+    source: git-service
+    target: ci-orchestrator
+  ci-publishes-registry:
+    type: authenticates_with
+    source: ci-orchestrator
+    target: release-registry
+  registry-relies-signing:
+    type: depends_on
+    source: release-registry
+    target: signing-service
+  control-manages-east:
+    type: manages
+    source: satcom-control
+    target: edge-agent-east
+  control-manages-west:
+    type: manages
+    source: satcom-control
+    target: edge-agent-west
+  portal-federates-vendor:
+    type: federates_with
+    source: customer-portal-app
+    target: vendor-sso
+    properties:
+      protocol: OIDC
+  portal-federates-customer:
+    type: federates_with
+    source: customer-portal-app
+    target: customer-sso
+    properties:
+      protocol: OIDC
+  telemetry-replicates-analytics:
+    type: replicates_to
+    source: telemetry-bus
+    target: analytics-store
+  bastion-connects-control:
+    type: connects_to
+    source: support-bastion
+    target: control-api
+    properties:
+      protocol: ssh
+      port: '22'
+# Abstract action intent; backend realization and authorization remain separate.
+action_contracts:
+  abuse-support:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared AbuseSupport intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt AbuseSupport against the scenario-declared subject set.
+      target_refs:
+      - ci-runner
+      - git-forge
+      - support-bastion
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  exploit:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Exploit intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Exploit against the scenario-declared subject set.
+      target_refs:
+      - ci-runner
+      - forge-auths-ci
+      - support-bastion
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  inspect:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Inspect intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Inspect against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  isolate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Isolate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Isolate against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  promote:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Promote intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Promote against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - git-forge
+      - signing-hsm
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  push-artifact:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared PushArtifact intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt PushArtifact against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - ci-publishes-registry
+      - release-manifest
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  restore:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Restore intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Restore against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  review:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Review intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Review against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - registry-relies-signing
+      - signing-hsm
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  revoke:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Revoke intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Revoke against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - infrastructure.build-net.acls.allow-engineering-release
+      - nodes.artifact-registry.services.registry-api
+      - registry-relies-signing
+      - release-manifest
+      - signing-hsm
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  rollback:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Rollback intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Rollback against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - infrastructure.build-net.acls.allow-engineering-release
+      - nodes.artifact-registry.services.registry-api
+      - release-manifest
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  steal-token:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared StealToken intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt StealToken against the scenario-declared subject set.
+      target_refs:
+      - ci-runner
+      - forge-auths-ci
+      - support-bastion
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  validate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Validate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Validate against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+agents:
+  red-build-agent:
+    affiliations: [red-supply-chain]
+    actions:
+    - exploit
+    - steal-token
+    - push-artifact
+    - abuse-support
+    initial_knowledge:
+      hosts:
+      - git-forge
+      - ci-runner
+      - support-bastion
+      subnets:
+      - corp-eng
+      - build-net
+      - federation-net
+      services:
+      - forge-https
+      - ci-api
+      - bastion-ssh
+      accounts:
+      - support-vendor
+    allowed_subnets:
+    - corp-eng
+    - build-net
+    - federation-net
+    - control-net
+  blue-release-agent:
+    affiliations: [platform-blue.release-engineering]
+    actions:
+    - review
+    - promote
+    - revoke
+    - rollback
+    starting_accounts:
+    - release-engineer
+    - registry-bot
+    initial_knowledge:
+      hosts:
+      - git-forge
+      - artifact-registry
+      - signing-hsm
+      subnets:
+      - corp-eng
+      - build-net
+      services:
+      - forge-https
+      - registry-api
+      - signing-api
+      accounts:
+      - ci-bot
+      - registry-bot
+    allowed_subnets:
+    - corp-eng
+    - build-net
+    - control-net
+  blue-sre-agent:
+    affiliations: [platform-blue.sre]
+    actions:
+    - inspect
+    - isolate
+    - restore
+    - validate
+    starting_accounts:
+    - satops
+    initial_knowledge:
+      hosts:
+      - control-api
+      - edge-gateway-east
+      - edge-gateway-west
+      - telemetry-broker
+      subnets:
+      - control-net
+      - edge-net
+      - telemetry-net
+      services:
+      - control-api
+      - edge-east-api
+      - edge-west-api
+      - telemetry-kafka
+      accounts:
+      - satops
+    allowed_subnets:
+    - control-net
+    - edge-net
+    - telemetry-net
+    - security-net
+objectives:
+  red-compromise-build:
+    assigned_participant: red-build-agent
+    actions:
+    - exploit
+    - steal-token
+    targets:
+    - ci-runner
+    - support-bastion
+    - forge-auths-ci
+    success:
+      assertions:
+      - rogue-release-promoted
+    window:
+      stories:
+      - release-day
+      scripts:
+      - release-prep
+  red-poison-release:
+    assigned_participant: red-build-agent
+    actions:
+    - push-artifact
+    targets:
+    - release-manifest
+    - artifact-registry
+    - ci-publishes-registry
+    success:
+      assertions:
+      - rogue-release-promoted
+    window:
+      stories:
+      - release-day
+      scripts:
+      - canary-rollout
+      events:
+      - canary-cutover-event
+    depends_on:
+    - red-compromise-build
+  red-reach-edge:
+    owner: red-supply-chain
+    targets:
+    - edge-gateway-east
+    - control-manages-east
+    success:
+      assertions:
+      - edge-east-poisoned
+    window:
+      stories:
+      - release-day
+      scripts:
+      - incident-rollback
+      events:
+      - rollback-order-event
+    depends_on:
+    - red-poison-release
+  blue-validate-release:
+    assigned_participant: blue-release-agent
+    actions:
+    - review
+    - revoke
+    targets:
+    - artifact-registry
+    - signing-hsm
+    - registry-relies-signing
+    success:
+      assertions:
+      - release-signature-valid
+    window:
+      stories:
+      - release-day
+      scripts:
+      - release-prep
+      - canary-rollout
+      workflows:
+      - release-response
+      steps:
+      - release-response.validate-release
+  blue-revoke-artifact:
+    assigned_participant: blue-release-agent
+    actions:
+    - revoke
+    - rollback
+    targets:
+    - release-manifest
+    - artifact-registry
+    - nodes.artifact-registry.services.registry-api
+    - infrastructure.build-net.acls.allow-engineering-release
+    success:
+      assertions:
+      - rollback-package-ready
+    window:
+      stories:
+      - release-day
+      scripts:
+      - incident-rollback
+      events:
+      - rollback-order-event
+      workflows:
+      - release-response
+      steps:
+      - release-response.revoke-artifact
+    depends_on:
+    - blue-validate-release
+  blue-preserve-service:
+    assigned_participant: blue-sre-agent
+    actions:
+    - inspect
+    - isolate
+    - restore
+    - validate
+    targets:
+    - control-api
+    - edge-gateway-east
+    - telemetry-broker
+    - telemetry-replicates-analytics
+    success:
+      assertions:
+      - telemetry-flowing
+      - tenant-isolation-healthy
+    window:
+      stories:
+      - release-day
+      scripts:
+      - incident-rollback
+      workflows:
+      - release-response
+      steps:
+      - release-response.rollback-edge
+    depends_on:
+    - blue-validate-release
+    - red-reach-edge
+workflows:
+  release-response:
+    description: 'Release-control workflow that validates a canary, branches on poisoned
+      promotion, and fans out rollback work when needed.
+
+      '
+    start: validate-release
+    steps:
+      validate-release:
+        type: objective
+        objective: blue-validate-release
+        on_success: branch-on-promotion
+      branch-on-promotion:
+        type: decision
+        when:
+          assertions:
+          - pre-rogue-release-promoted
+        then: rollback-fanout
+        else: finish
+      rollback-fanout:
+        type: parallel
+        branches:
+        - revoke-artifact
+        - rollback-edge
+        join: rollback-joined
+      revoke-artifact:
+        type: objective
+        objective: blue-revoke-artifact
+        on_success: rollback-joined
+      rollback-edge:
+        type: objective
+        objective: blue-preserve-service
+        on_success: rollback-joined
+      rollback-joined:
+        type: join
+        next: verify-rollback
+      verify-rollback:
+        type: decision
+        when:
+          steps:
+          - step: revoke-artifact
+            outcomes:
+            - succeeded
+        then: finish
+        else: revalidate-release
+      revalidate-release:
+        type: objective
+        objective: blue-validate-release
+        on_success: finish
+      finish:
+        type: end
+variables:
+  release_story_speed:
+    type: number
+    default: 1.25
+    description: Playback speed for the release-day story
+  release_engineer_password_strength:
+    type: string
+    default: strong
+    description: Password posture for release engineering operator accounts
+  canary_cutover:
+    type: string
+    default: 2 hour 45 min
+    description: When canary promotion begins
+  rollback_deadline:
+    type: string
+    default: 6 hour
+    description: Time by which rollback should be complete

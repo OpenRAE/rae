@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "experiment-study-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "7f1430f3d1deec51f1e432dfaf1c5f2f23d5fa2025f62b9824e434a4a245b4c8"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-study-v1/invalid/empty-membership",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-study-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-study-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

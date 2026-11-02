@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "2efc1dd691966097068d665e1cb5941fb3e5f49b728c366ca73257d9eb56cc9f"
+  },
+  "name": "contracts/fixtures/asset-trust/reusable-asset-trust-policy-v1/invalid/missing-integrity",
+  "result": {
+    "jcs": "sha256:3a172d5e20673634f73eadb9885a39a8b0cc9104a1b254a280b25e84d719b294",
+    "sorted_ascii": "sha256:3a172d5e20673634f73eadb9885a39a8b0cc9104a1b254a280b25e84d719b294",
+    "sorted_unicode": "sha256:3a172d5e20673634f73eadb9885a39a8b0cc9104a1b254a280b25e84d719b294"
+  },
+  "surface": "canonical"
+}

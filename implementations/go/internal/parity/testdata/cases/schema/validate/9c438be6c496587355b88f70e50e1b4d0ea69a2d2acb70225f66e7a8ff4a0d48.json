@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "63bb3196c322be4d75cb909e53ddd1a9982b94ab770b6c989840bc5cfa95b8ec"
+  },
+  "name": "contracts/fixtures/control-plane/backend-operation-request-v1/valid/mixed-edge-time-refused",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-result-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "d51ebb6de68798180ef74b1d93bf51acc9784bf3f0fc8f0a4820de2c51e7be27"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-result-envelope-v1/valid/running",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

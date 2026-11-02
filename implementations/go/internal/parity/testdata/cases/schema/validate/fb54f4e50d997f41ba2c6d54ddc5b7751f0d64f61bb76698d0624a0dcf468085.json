@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reference-models-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "170c28bfa130b66eb0b969a6bc2f1ddc1238152d8966422a6ba7a394d086e929"
+  },
+  "name": "contracts/fixtures/concept-authority/reference-models-v1/valid/reference",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

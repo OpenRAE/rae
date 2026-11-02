@@ -1,0 +1,117 @@
+{
+  "schema_version": "participant-control-selection/v1",
+  "selection_id": "selection-1",
+  "semantic_revision": "sem-235/rev1",
+  "apparatus": {
+    "kind": "apparatus",
+    "ref": "apparatus-1",
+    "revision": "rev1",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "required_profiles": [
+    "teaching-influence"
+  ],
+  "bindings": [
+    {
+      "instance_id": "influence",
+      "profiles": [
+        {
+          "kind": "profile",
+          "ref": "teaching-influence",
+          "revision": "rev1",
+          "digest": "sha256:5500e3737b2a4d72fcf7fa40090cc9b01b27926902b16ae7cc6cf2739936c630"
+        }
+      ],
+      "mechanism": {
+        "kind": "mechanism",
+        "ref": "propagation",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "protocol_revision": "participant-control-provider/v1",
+      "implementation": {
+        "kind": "implementation",
+        "ref": "provider-artifact",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "configuration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "authority": {
+        "kind": "authority",
+        "ref": "teaching-authority",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "memory_scope": {
+        "kind": "memory",
+        "ref": "retained-memory",
+        "revision": "rev1",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "applicability": [
+        {
+          "participant_address": "participants.student",
+          "episode_id": "episode-1",
+          "direction": "ingress",
+          "sink_ref": "teaching-observation",
+          "phase_ref": "practice",
+          "subject_kind": "participant-observation"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "evidence",
+          "ref": "binding-evidence",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        {
+          "kind": "limitation",
+          "ref": "explicit-flows-only",
+          "revision": "rev1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    }
+  ],
+  "slots": [
+    {
+      "slot_id": "fact",
+      "instance_id": "influence",
+      "kind": "ifc-fact",
+      "role": "mandatory",
+      "dependencies": []
+    },
+    {
+      "slot_id": "rule",
+      "instance_id": "influence",
+      "kind": "effect-request",
+      "role": "mandatory",
+      "dependencies": [
+        {
+          "slot_id": "fact",
+          "kind": "ifc-fact"
+        }
+      ]
+    }
+  ],
+  "bounds": {
+    "max_depth": 2,
+    "max_effects": 2,
+    "max_fanout": 2,
+    "max_firings_per_rule": 1,
+    "max_attempts": 3,
+    "expires_at_order": 20
+  },
+  "evidence": [
+    {
+      "kind": "evidence",
+      "ref": "selection-evidence",
+      "revision": "rev1",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "provider_module": "forbidden.executable"
+}

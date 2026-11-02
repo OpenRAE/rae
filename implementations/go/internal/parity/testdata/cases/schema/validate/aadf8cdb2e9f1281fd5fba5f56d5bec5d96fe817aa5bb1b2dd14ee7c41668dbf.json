@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-requirement-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "3072121c624f28a0092c4d516cff096017d4c75cce63e7595ddeaebb199a221b"
+  },
+  "name": "contracts/fixtures/artifact-requirements/artifact-requirement-v1/valid/constrained-materialization",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

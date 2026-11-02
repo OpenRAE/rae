@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "5f8ee87e45c8b9d56e04382ba717de38649a150a138b3ddbd8848225dcd94ac7"
+  },
+  "name": "contracts/fixtures/control-plane/trial-cleanup-receipt-v1/invalid/unsupported-clean-claim",
+  "result": {
+    "jcs": "sha256:035988dd9c2fef777543ec5f504c267d703ca834631ad67e426766175ff402e7",
+    "sorted_ascii": "sha256:035988dd9c2fef777543ec5f504c267d703ca834631ad67e426766175ff402e7",
+    "sorted_unicode": "sha256:035988dd9c2fef777543ec5f504c267d703ca834631ad67e426766175ff402e7"
+  },
+  "surface": "canonical"
+}

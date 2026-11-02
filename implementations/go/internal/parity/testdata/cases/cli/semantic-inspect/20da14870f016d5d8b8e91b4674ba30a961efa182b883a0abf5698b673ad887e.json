@@ -1,0 +1,56 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "operation-receipt-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "368731cd72de5ea1a0c585485670375fdb6f9d10bf605c5f46276247fe7a5ccd"
+  },
+  "name": "contracts/fixtures/control-plane/operation-receipt-v1/invalid/missing-context",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "operation-receipt-v1",
+      "diagnostics": [
+        {
+          "address": "operation-receipt-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 6,
+        "members": [
+          "accepted",
+          "diagnostics",
+          "domain",
+          "operation_id",
+          "schema_version",
+          "submitted_at"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

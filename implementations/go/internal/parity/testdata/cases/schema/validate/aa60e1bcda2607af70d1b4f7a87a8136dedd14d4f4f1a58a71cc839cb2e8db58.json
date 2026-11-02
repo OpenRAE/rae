@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-study-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "974c731f097cd77911636cddd6c4bb293f2c49081106808fdfd7fc2e33162fe1"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-study-v1/invalid/typed-treatment-scalarized-member",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

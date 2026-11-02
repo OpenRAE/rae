@@ -1,0 +1,508 @@
+{
+  "schema_version": "participant-flow-control-relation/v1",
+  "document_id": "participant-flow-control-relation:red:episode-1",
+  "document_revision": "rev1",
+  "profile": {
+    "profile_id": "participant-boundary-flow-policy-v1",
+    "profile_revision": "rev1",
+    "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+    "authority_revision": "sem-233/rev1"
+  },
+  "labels": [
+    {
+      "label_id": "label.fact.1",
+      "subject": {
+        "subject_kind": "runtime-fact-version",
+        "subject_ref": "fact-version.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "resolution_status": "resolved",
+      "confidentiality_obligation_refs": ["confidentiality:restricted"],
+      "integrity_obligation_refs": ["integrity:untrusted"],
+      "provenance_refs": ["provenance:fact.1"],
+      "influence_refs": ["fact-version.1"],
+      "evidence_refs": ["evidence:label.fact.1"]
+    },
+    {
+      "label_id": "label.argument.1",
+      "subject": {
+        "subject_kind": "action-argument",
+        "subject_ref": "proposal.1:target",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "resolution_status": "resolved",
+      "confidentiality_obligation_refs": [],
+      "integrity_obligation_refs": ["integrity:untrusted"],
+      "provenance_refs": ["provenance:argument.1"],
+      "influence_refs": ["control-occurrence.proposal.1", "proposal.1:target"],
+      "evidence_refs": ["evidence:label.argument.1"]
+    },
+    {
+      "label_id": "label.derived.1",
+      "subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "derived-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "resolution_status": "resolved",
+      "confidentiality_obligation_refs": ["confidentiality:restricted"],
+      "integrity_obligation_refs": ["integrity:untrusted"],
+      "provenance_refs": ["provenance:argument.1", "provenance:derivation.1", "provenance:fact.1"],
+      "influence_refs": ["control-occurrence.proposal.1", "fact-version.1", "influence:derivation.1", "proposal.1:target"],
+      "evidence_refs": ["evidence:label.derived.1"]
+    },
+    {
+      "label_id": "label.declassified.1",
+      "subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "declassified-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "resolution_status": "resolved",
+      "confidentiality_obligation_refs": [],
+      "integrity_obligation_refs": ["integrity:untrusted"],
+      "provenance_refs": ["provenance:argument.1", "provenance:declassification.1", "provenance:derivation.1", "provenance:fact.1"],
+      "influence_refs": ["control-occurrence.proposal.1", "derived-result.1", "fact-version.1", "influence:derivation.1", "proposal.1:target"],
+      "evidence_refs": ["evidence:label.declassified.1"]
+    },
+    {
+      "label_id": "label.endorsed.1",
+      "subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "endorsed-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "resolution_status": "resolved",
+      "confidentiality_obligation_refs": [],
+      "integrity_obligation_refs": ["integrity:endorsed"],
+      "provenance_refs": ["provenance:argument.1", "provenance:declassification.1", "provenance:derivation.1", "provenance:endorsement.1", "provenance:fact.1"],
+      "influence_refs": ["control-occurrence.proposal.1", "declassified-result.1", "derived-result.1", "fact-version.1", "influence:derivation.1", "proposal.1:target"],
+      "evidence_refs": ["evidence:label.endorsed.1"]
+    }
+  ],
+  "derivations": [
+    {
+      "derivation_id": "derivation.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "inputs": [
+        {
+          "subject": {
+            "subject_kind": "action-argument",
+            "subject_ref": "proposal.1:target",
+            "subject_revision": "1",
+            "participant_address": "participants.red.operator",
+            "episode_id": "episode-1"
+          },
+          "label_ref": "label.argument.1"
+        },
+        {
+          "subject": {
+            "subject_kind": "runtime-fact-version",
+            "subject_ref": "fact-version.1",
+            "subject_revision": "1",
+            "participant_address": "participants.red.operator",
+            "episode_id": "episode-1"
+          },
+          "label_ref": "label.fact.1"
+        }
+      ],
+      "result_subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "derived-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "result_label_ref": "label.derived.1",
+      "rule_ref": "sem-233:complete-possible-input-join",
+      "rule_revision": "rev1",
+      "apparatus_ref": "apparatus:participant-runtime.red",
+      "apparatus_revision": "rev4",
+      "predecessor_refs": ["fact-version.1", "proposal.1:target"],
+      "provenance_refs": ["provenance:derivation.1"],
+      "influence_refs": ["influence:derivation.1"],
+      "evidence_refs": ["evidence:derivation.1"]
+    }
+  ],
+  "releases": [
+    {
+      "kind": "declassification",
+      "release_id": "release.declassification.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "source_subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "derived-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "source_label_ref": "label.derived.1",
+      "result_subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "declassified-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "result_label_ref": "label.declassified.1",
+      "removed_confidentiality_obligation_refs": ["confidentiality:restricted"],
+      "sink_ref": "sink:participant-output.1",
+      "destination_ref": "destination:operator-console",
+      "audience_scope_ref": "audience:red-operator",
+      "authority_basis_ref": "authority:declassification.1",
+      "authority_revision": "rev2",
+      "predecessor_refs": ["derived-result.1"],
+      "evidence_refs": ["evidence:declassification.1"],
+      "limitation_refs": ["limitation:explicit-flow-only"]
+    },
+    {
+      "kind": "endorsement",
+      "release_id": "release.endorsement.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "source_subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "declassified-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "source_label_ref": "label.declassified.1",
+      "result_subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "endorsed-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "result_label_ref": "label.endorsed.1",
+      "integrity_obligation_replacements": [
+        {
+          "source_obligation_ref": "integrity:untrusted",
+          "result_obligation_ref": "integrity:endorsed"
+        }
+      ],
+      "sink_ref": "sink:participant-output.1",
+      "destination_ref": "destination:operator-console",
+      "audience_scope_ref": "audience:red-operator",
+      "authority_basis_ref": "authority:endorsement.1",
+      "authority_revision": "rev5",
+      "predecessor_refs": ["declassified-result.1"],
+      "evidence_refs": ["evidence:endorsement.1"],
+      "limitation_refs": ["limitation:explicit-flow-only"]
+    }
+  ],
+  "sink_decisions": [
+    {
+      "decision_id": "sink-decision.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "subject": {
+        "subject_kind": "derived-result",
+        "subject_ref": "endorsed-result.1",
+        "subject_revision": "1",
+        "participant_address": "participants.red.operator",
+        "episode_id": "episode-1"
+      },
+      "label_ref": "label.endorsed.1",
+      "sink": {
+        "sink_kind": "participant-output",
+        "sink_ref": "sink:participant-output.1",
+        "destination_ref": "destination:operator-console",
+        "audience_scope_ref": "audience:red-operator"
+      },
+      "confidentiality_result": "satisfied",
+      "integrity_result": "satisfied",
+      "release_refs": ["release.declassification.1", "release.endorsement.1"],
+      "api_423_decision_ref": "crossing-decision.1",
+      "action_admission_ref": "action-admission.1",
+      "capability_resolution_ref": "capability-resolution.1",
+      "expected_history_head_refs": ["history-head:participant.1"],
+      "final_disposition": "permit",
+      "reason_code": "all-conjuncts-satisfied",
+      "evidence_refs": ["evidence:sink-decision.1"],
+      "limitation_refs": ["limitation:contract-record-only"]
+    }
+  ],
+  "bindings": [
+    {
+      "kind": "runtime-fact",
+      "binding_id": "binding.runtime-fact.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "relation_target": {"target_kind": "label", "target_ref": "label.fact.1"},
+      "source_participant_address": "participants.red.operator",
+      "source_episode_id": "episode-1",
+      "target_participant_address": "participants.red.operator",
+      "target_episode_id": "episode-1",
+      "crossing_refs": [],
+      "memory_predecessor_refs": [],
+      "plane_ref": "runtime-fact-plane.1",
+      "declaration_ref": "fact.observed-host",
+      "fact_version_ref": "fact-version.1",
+      "sink_ref": "sink.scan-target",
+      "binding_event_ref": "fact-binding.scan-0001.1"
+    },
+    {
+      "kind": "action-argument",
+      "binding_id": "binding.action-argument.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "relation_target": {"target_kind": "label", "target_ref": "label.argument.1"},
+      "source_participant_address": "participants.red.operator",
+      "source_episode_id": "episode-1",
+      "target_participant_address": "participants.red.operator",
+      "target_episode_id": "episode-1",
+      "crossing_refs": [],
+      "memory_predecessor_refs": [],
+      "action_contract_address": "participant.action-contract.contain-host",
+      "proposal_ref": "proposal.1",
+      "normalized_argument_name": "target",
+      "action_admission_ref": "action-admission.1"
+    },
+    {
+      "kind": "participant-control",
+      "binding_id": "binding.participant-control.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "relation_target": {"target_kind": "label", "target_ref": "label.argument.1"},
+      "source_participant_address": "participants.red.operator",
+      "source_episode_id": "episode-1",
+      "target_participant_address": "participants.red.operator",
+      "target_episode_id": "episode-1",
+      "crossing_refs": [],
+      "memory_predecessor_refs": [],
+      "event_id": "control-occurrence.proposal.1",
+      "occurrence_kind": "proposal",
+      "occurrence_revision": 1,
+      "participant_address": "participants.red.operator",
+      "episode_id": "episode-1",
+      "controller_ref": "controller.human.red",
+      "authority_basis_refs": ["authority:red-team"],
+      "control_policy_revision": "policy-v3",
+      "occurrence_identity_ref": "proposal.1",
+      "related_occurrence_refs": [],
+      "predecessor_event_refs": []
+    },
+    {
+      "kind": "participant-crossing",
+      "binding_id": "binding.participant-crossing.1",
+      "profile": {
+        "profile_id": "participant-boundary-flow-policy-v1",
+        "profile_revision": "rev1",
+        "profile_digest": "sha256:43546386e7c7331fd6ce4b42195b2446d984cf14d1a90aa8f050ef8166d01801",
+        "authority_revision": "sem-233/rev1"
+      },
+      "policy": {
+        "policy_id": "participant-crossing-policy:red",
+        "policy_revision": "revision-3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+        "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+        "decision_cut_revision": "cut-rev8",
+        "effective_order": 8
+      },
+      "relation_target": {"target_kind": "sink-decision", "target_ref": "sink-decision.1"},
+      "source_participant_address": "participants.red.operator",
+      "source_episode_id": "episode-1",
+      "target_participant_address": "participants.red.operator",
+      "target_episode_id": "episode-1",
+      "crossing_refs": [],
+      "memory_predecessor_refs": [],
+      "event_id": "crossing-occurrence.decided.1",
+      "stage": "decided",
+      "stage_identity_ref": "crossing-decision.1",
+      "related_stage_refs": ["crossing-request.1"],
+      "participant_address": "participants.red.operator",
+      "episode_id": "episode-1",
+      "subject_kind": "participant-control-occurrence",
+      "subject_contract_id": "participant-control-occurrence-v1",
+      "subject_ref": "control-occurrence.proposal.1",
+      "subject_revision": "1",
+      "crossing_policy_id": "participant-crossing-policy:red",
+      "crossing_policy_revision": "revision-3",
+      "crossing_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "crossing_policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+      "crossing_decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+      "predecessor_event_refs": ["crossing-occurrence.requested.1"]
+    }
+  ]
+}

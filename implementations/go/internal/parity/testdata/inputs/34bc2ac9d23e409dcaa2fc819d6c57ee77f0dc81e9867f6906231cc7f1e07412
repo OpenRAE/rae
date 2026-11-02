@@ -1,0 +1,9 @@
+{
+  "schema_version": "scheduler-isolation-proof/v1",
+  "proof_id": "proof-incomplete",
+  "plan_entry_ids": ["trial-entry-a", "trial-entry-b"],
+  "requested_parallelism": 2,
+  "dimensions": [
+    {"dimension": "range-instance", "independent": true, "evidence_refs": ["evidence:range"]}
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "time-model-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "792f8e0bb61d696760c6764efab58aea39ff43867805b97bf0234e2ecbdbf371"
+  },
+  "name": "contracts/fixtures/time/time-model-v1/invalid/dangling-clock-domain",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

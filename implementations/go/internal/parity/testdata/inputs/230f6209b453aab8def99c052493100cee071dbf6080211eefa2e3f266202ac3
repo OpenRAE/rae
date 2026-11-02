@@ -1,0 +1,18 @@
+{
+  "schema_version": "controlled-vocabularies/v1",
+  "vocabularies": {
+    "realization-support-modes": {
+      "title": "Realization Support Modes",
+      "description": "Closed portable realization-support mode identifiers.",
+      "kind": "enumeration",
+      "extension_policy": "closed",
+      "extension_pattern": "^x-acme:.*$",
+      "terms": {
+        "exact-only": {
+          "title": "Exact Only",
+          "description": "Implementation supports only exact realization matches."
+        }
+      }
+    }
+  }
+}

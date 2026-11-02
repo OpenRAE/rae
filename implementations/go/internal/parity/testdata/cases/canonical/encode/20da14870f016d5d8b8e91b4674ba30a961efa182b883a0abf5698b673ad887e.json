@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "368731cd72de5ea1a0c585485670375fdb6f9d10bf605c5f46276247fe7a5ccd"
+  },
+  "name": "contracts/fixtures/control-plane/operation-receipt-v1/invalid/missing-context",
+  "result": {
+    "jcs": "sha256:a2c951575d18fa3d2d1fbba6416bd61da9c28df87a9b19f4de263f575a92f318",
+    "sorted_ascii": "sha256:a2c951575d18fa3d2d1fbba6416bd61da9c28df87a9b19f4de263f575a92f318",
+    "sorted_unicode": "sha256:a2c951575d18fa3d2d1fbba6416bd61da9c28df87a9b19f4de263f575a92f318"
+  },
+  "surface": "canonical"
+}

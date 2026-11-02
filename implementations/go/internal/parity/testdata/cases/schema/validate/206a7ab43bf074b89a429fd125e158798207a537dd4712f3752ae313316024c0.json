@@ -1,0 +1,14 @@
+{
+  "args": [
+    "uco-alignment-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "3c99a05315ee2d343698961a624ab9dc7036a6a27a78f6b46652fcdb94041e72"
+  },
+  "name": "contracts/fixtures/concept-authority/uco-alignment-v1/invalid/missing-family",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
