@@ -57,7 +57,58 @@ env:
   RAES_CI_SHARD_COUNT: "8"
 
 jobs:
+  proof-archive:
+    # The official proof archive host is not always reachable, so the Actions
+    # cache keeps a verified copy, keyed by the locked digest. This job checks
+    # out the triggering commit, never a caller-selected ref, so code under
+    # verification cannot write the cache.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Read the locked proof archive identity
+        id: isabelle-lock
+        run: |
+          jq -r '.. | objects | select(.artifact_id? == "isabelle") | .platforms[]
+            | select(.platform_id == "linux-x86_64") | .raw_manifest[0]
+            | "sha256=\(.sha256)"' implementations/tooling/artifacts.lock.json >> "$GITHUB_OUTPUT"
+      - name: Look up the verified proof archive
+        id: isabelle-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .canonical-tool-inputs/archives/isabelle
+          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
+          lookup-only: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Fetch the locked proof archive with the qualified client
+        # Ubuntu 22.04's native curl predates the qualified client floor, so the
+        # proof host receives the exact reviewed archive as a verified local input.
+        # The client verifies the size and the digest before the cache keeps it.
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir .canonical-tool-inputs
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
+            proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
+            --locator-ref official-isabelle-release
+      - name: Save the verified proof archive
+        if: steps.isabelle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .canonical-tool-inputs/archives/isabelle
+          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
+
   generic-tool-local-inputs:
+    needs: proof-archive
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -85,8 +136,8 @@ jobs:
             | select(.platform_id == "linux-x86_64") | .raw_manifest[0]
             | "sha256=\(.sha256)\npath=\(.path)"' implementations/tooling/artifacts.lock.json >> "$GITHUB_OUTPUT"
       - name: Restore the verified proof archive
-        # The official host is not always reachable. A cached copy is keyed by
-        # the locked digest and is verified again before any job uses it.
+        # This job only reads the copy that the proof-archive job keeps. It
+        # verifies the copy against the digest that the verified ref locks.
         id: isabelle-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -101,24 +152,13 @@ jobs:
           printf '%s  %s\n' "$ARCHIVE_SHA256" ".canonical-tool-inputs/archives/isabelle/$ARCHIVE_PATH" \
             | sha256sum --check --strict
       - name: Fetch the locked proof archive with the qualified client
-        # Ubuntu 22.04's native curl predates the qualified client floor, so the
-        # proof host receives the exact reviewed archive as a verified local input.
+        # On a miss, for example when the verified ref locks a different archive,
+        # this job fetches the archive itself.
         if: steps.isabelle-cache.outputs.cache-hit != 'true'
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
             --locator-ref official-isabelle-release
-      - name: Save the verified proof archive
-        # Only a protected-branch push of the checked-out commit writes the
-        # cache. Pull request and dispatched runs only restore a verified copy.
-        if: >-
-          steps.isabelle-cache.outputs.cache-hit != 'true'
-          && github.event_name == 'push'
-          && inputs.ref == github.sha
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .canonical-tool-inputs/archives/isabelle
-          key: isabelle-raw-${{ steps.isabelle-lock.outputs.sha256 }}
       - name: Fetch the locked model checker
         run: >-
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs
