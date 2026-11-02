@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
+	"strings"
 	"testing"
 )
 
@@ -74,18 +76,18 @@ func TestBlockAtALaterCoordinateMatchesTheReference(t *testing.T) {
 
 func TestBoundedIntDrawsWithinTheRangeAndRecordsExhaustion(t *testing.T) {
 	key := zeroHeavyKey(t)
-	single, err := BoundedInt(key, []byte(zeroAddress), 0, 7, 7, 1)
-	if err != nil || single != (Draw{Value: 7}) {
+	single, err := BoundedInt(key, []byte(zeroAddress), 0, big.NewInt(7), big.NewInt(7), 1)
+	if err != nil || !sameDraw(single, Draw{Value: big.NewInt(7)}) {
 		t.Errorf("BoundedInt(7, 7) = %+v, %v, want 7 without rejections", single, err)
 	}
-	wide, err := BoundedInt(key, []byte(zeroAddress), 3, math.MinInt64, math.MaxInt64, 4)
+	wide, err := BoundedInt(key, []byte(zeroAddress), 3, big.NewInt(math.MinInt64), big.NewInt(math.MaxInt64), 4)
 	if err != nil || wide.Exhausted {
 		t.Errorf("BoundedInt(full range) = %+v, %v, want a value", wide, err)
 	}
 	// A width of 129 accepts candidates below 129 only: about half of them.
 	var exhausted bool
 	for coordinate := range int64(64) {
-		draw, err := BoundedInt(key, []byte(zeroAddress), coordinate, 0, 128, 1)
+		draw, err := BoundedInt(key, []byte(zeroAddress), coordinate, big.NewInt(0), big.NewInt(128), 1)
 		if err != nil {
 			t.Fatalf("BoundedInt() error = %v", err)
 		}
@@ -109,16 +111,16 @@ func TestBoundedIntMatchesThePythonReferenceAtEachBoundary(t *testing.T) {
 		maxAttempts int
 		want        Draw
 	}{
-		{"range of 256 values in one byte", 0, 255, 1, Draw{Value: 96}},
-		{"two-byte candidate rejected once", 3, 40000, 4, Draw{Value: 15446, Attempts: 1}},
+		{"range of 256 values in one byte", 0, 255, 1, Draw{Value: big.NewInt(96)}},
+		{"two-byte candidate rejected once", 3, 40000, 4, Draw{Value: big.NewInt(15446), Attempts: 1}},
 		{"candidate equal to the limit", 124, 128, 1, Draw{Attempts: 1, Exhausted: true}},
 	}
 	key := zeroHeavyKey(t)
 	for _, test := range tests {
 		address := fmt.Sprintf(`{"draw_purpose":"other","local_coordinate":%d,"namespace":"n",`+
 			`"selection_policy_id":"p","trial_coordinate":{},"variation_point_id":"v"}`, test.coordinate)
-		got, err := BoundedInt(key, []byte(address), test.coordinate, 0, test.maximum, test.maxAttempts)
-		if err != nil || got != test.want {
+		got, err := BoundedInt(key, []byte(address), test.coordinate, big.NewInt(0), big.NewInt(test.maximum), test.maxAttempts)
+		if err != nil || !sameDraw(got, test.want) {
 			t.Errorf("%s: BoundedInt() = %+v, %v, want %+v", test.name, got, err, test.want)
 		}
 	}
@@ -139,6 +141,7 @@ func TestFunctionsRefuseInvalidInput(t *testing.T) {
 	for name, err := range map[string]error{
 		"seed encoding":     func() error { _, err := PublicSeed("base64", zeroSeed); return err }(),
 		"seed length":       func() error { _, err := PublicSeed("hex-fixed-width", "00"); return err }(),
+		"seed too long":     func() error { _, err := PublicSeed("hex-fixed-width", strings.Repeat("0", 4096)); return err }(),
 		"seed digits":       func() error { _, err := PublicSeed("hex-fixed-width", "zz"+zeroSeed[2:]); return err }(),
 		"profile":           func() error { _, err := DeriveKey("blake3-xof-v2", make([]byte, KeyBytes)); return err }(),
 		"entropy length":    func() error { _, err := DeriveKey("blake3-xof-participant-v1", make([]byte, 16)); return err }(),
@@ -146,13 +149,83 @@ func TestFunctionsRefuseInvalidInput(t *testing.T) {
 		"coordinate":        func() error { _, err := Block(key, nil, math.MaxInt64/BlockBytes+1, 0, 1); return err }(),
 		"offset":            func() error { _, err := Block(key, nil, 0, -1, 1); return err }(),
 		"negative position": func() error { _, err := Block(key, nil, -1, 0, 1); return err }(),
-		"reversed range":    func() error { _, err := BoundedInt(key, nil, 0, 2, 1, 1); return err }(),
-		"no attempts":       func() error { _, err := BoundedInt(key, nil, 0, 0, 1, 0); return err }(),
-		"draw out of range": func() error { _, err := BoundedInt(key, nil, math.MaxInt64/BlockBytes+1, 0, 1, 2); return err }(),
+		"reversed range":    func() error { _, err := BoundedInt(key, nil, 0, big.NewInt(2), big.NewInt(1), 1); return err }(),
+		"no attempts":       func() error { _, err := BoundedInt(key, nil, 0, big.NewInt(0), big.NewInt(1), 0); return err }(),
+		"nil minimum":       func() error { _, err := BoundedInt(key, nil, 0, nil, big.NewInt(1), 1); return err }(),
+		"nil maximum":       func() error { _, err := BoundedInt(key, nil, 0, big.NewInt(0), nil, 1); return err }(),
+		"draw out of range": func() error {
+			_, err := BoundedInt(key, nil, math.MaxInt64/BlockBytes+1, big.NewInt(0), big.NewInt(1), 2)
+			return err
+		}(),
 	} {
 		if !errors.Is(err, ErrInput) {
 			t.Errorf("%s: error = %v, want ErrInput", name, err)
 		}
+	}
+}
+
+func TestPublicSeedExplainsTheRequiredWidth(t *testing.T) {
+	for _, value := range []string{"", "00", zeroSeed + "00"} {
+		_, err := PublicSeed("hex-fixed-width", value)
+		if err == nil || !strings.Contains(err.Error(), "64 hexadecimal digits") {
+			t.Errorf("PublicSeed(%d digits) error = %v, want the required width of 64 hexadecimal digits", len(value), err)
+		}
+	}
+}
+
+func TestBoundedIntPreservesExactBoundsAndDoesNotAliasInputs(t *testing.T) {
+	key := zeroHeavyKey(t)
+	for _, text := range []string{"9223372036854775808", "-9223372036854775809", "1234567890123456789012345678901234567890"} {
+		bound, ok := new(big.Int).SetString(text, 10)
+		if !ok {
+			t.Fatalf("SetString(%q) = invalid, want an integer", text)
+		}
+		draw, err := BoundedInt(key, []byte(zeroAddress), 0, bound, bound, 1)
+		if err != nil || draw.Exhausted || draw.Attempts != 0 || draw.Value == nil || draw.Value.String() != text {
+			t.Fatalf("BoundedInt(%s, %s) = %+v, %v, want the exact bound", text, text, draw, err)
+		}
+		draw.Value.SetInt64(0)
+		if bound.String() != text {
+			t.Errorf("bound after changing the result = %s, want %s", bound, text)
+		}
+	}
+}
+
+func FuzzBoundedIntExactDomain(f *testing.F) {
+	f.Add([]byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, []byte{128}, false)
+	f.Add([]byte{255, 255}, []byte{0}, true)
+	f.Fuzz(func(t *testing.T, lower, span []byte, negative bool) {
+		minimum := new(big.Int).SetBytes(lower)
+		if negative {
+			minimum.Neg(minimum)
+		}
+		maximum := new(big.Int).Add(minimum, new(big.Int).SetBytes(span))
+		beforeMinimum, beforeMaximum := minimum.String(), maximum.String()
+		draw, err := BoundedInt(Key{}, []byte(zeroAddress), 0, minimum, maximum, 8)
+		if err != nil {
+			t.Fatalf("BoundedInt() error = %v, want no error", err)
+		}
+		checkExactDraw(t, draw, minimum, maximum)
+		if minimum.String() != beforeMinimum || maximum.String() != beforeMaximum {
+			t.Errorf("bounds after draw = [%s, %s], want [%s, %s]", minimum, maximum, beforeMinimum, beforeMaximum)
+		}
+		again, err := BoundedInt(Key{}, []byte(zeroAddress), 0, minimum, maximum, 8)
+		if err != nil || !sameDraw(draw, again) {
+			t.Errorf("BoundedInt() repeated = %+v, %v, want %+v", again, err, draw)
+		}
+	})
+}
+
+func checkExactDraw(t *testing.T, draw Draw, minimum, maximum *big.Int) {
+	t.Helper()
+	if draw.Exhausted {
+		if draw.Value != nil || draw.Attempts != 8 {
+			t.Errorf("BoundedInt() = %+v, want nil value after eight rejections", draw)
+		}
+		return
+	}
+	if draw.Value == nil || draw.Value.Cmp(minimum) < 0 || draw.Value.Cmp(maximum) > 0 {
+		t.Errorf("BoundedInt() = %+v, want a value in [%s, %s]", draw, minimum, maximum)
 	}
 }
 
@@ -164,16 +237,27 @@ func FuzzBoundedIntStaysInItsRange(f *testing.F) {
 		if maximum < minimum || coordinate < 0 || coordinate > math.MaxInt64/BlockBytes-1 {
 			t.Skip()
 		}
-		draw, err := BoundedInt(key, address, coordinate, minimum, maximum, 8)
+		draw, err := BoundedInt(key, address, coordinate, big.NewInt(minimum), big.NewInt(maximum), 8)
 		if err != nil {
 			t.Fatalf("BoundedInt() error = %v", err)
 		}
-		if !draw.Exhausted && (draw.Value < minimum || draw.Value > maximum) {
-			t.Errorf("BoundedInt(%d, %d) = %d, want a value in the range", minimum, maximum, draw.Value)
+		if !draw.Exhausted && (draw.Value.Cmp(big.NewInt(minimum)) < 0 || draw.Value.Cmp(big.NewInt(maximum)) > 0) {
+			t.Errorf("BoundedInt(%d, %d) = %s, want a value in the range", minimum, maximum, draw.Value)
 		}
-		again, _ := BoundedInt(key, address, coordinate, minimum, maximum, 8)
-		if again != draw {
+		again, _ := BoundedInt(key, address, coordinate, big.NewInt(minimum), big.NewInt(maximum), 8)
+		if !sameDraw(again, draw) {
 			t.Errorf("BoundedInt() = %+v, then %+v, want the same draw", draw, again)
 		}
 	})
+}
+
+// sameDraw compares the exact value as well as the exhaustion provenance.
+func sameDraw(a, b Draw) bool {
+	if a.Attempts != b.Attempts || a.Exhausted != b.Exhausted {
+		return false
+	}
+	if a.Value == nil || b.Value == nil {
+		return a.Value == nil && b.Value == nil
+	}
+	return a.Value.Cmp(b.Value) == 0
 }

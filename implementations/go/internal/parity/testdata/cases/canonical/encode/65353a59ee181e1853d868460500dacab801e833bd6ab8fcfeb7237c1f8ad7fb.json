@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "5abed6c3b98dfc8c6eef1413e43d662da5dbf3561980aad783914c3d354d6c48"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-participant-v1/participant-negative-wide-range",
+  "result": {
+    "jcs": null,
+    "sorted_ascii": "sha256:6ded1a8266d0e3f34c61fd090426ed1d69b5419b582e4f20bce583477abeae09",
+    "sorted_unicode": "sha256:6ded1a8266d0e3f34c61fd090426ed1d69b5419b582e4f20bce583477abeae09"
+  },
+  "surface": "canonical"
+}

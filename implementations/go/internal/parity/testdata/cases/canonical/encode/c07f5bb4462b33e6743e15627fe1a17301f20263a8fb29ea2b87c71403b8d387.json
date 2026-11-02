@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "5ba43a3714dab604da91fce582f3e646bbaf3391528fa2f7ce0478ee970a7a31"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/wide-rejection-then-accept",
+  "result": {
+    "jcs": null,
+    "sorted_ascii": "sha256:4da861784dd7839153a0dde6983f9d8ac85690157da9ab49a4b1f20d2d2ac36a",
+    "sorted_unicode": "sha256:4da861784dd7839153a0dde6983f9d8ac85690157da9ab49a4b1f20d2d2ac36a"
+  },
+  "surface": "canonical"
+}
