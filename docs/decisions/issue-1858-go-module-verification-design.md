@@ -61,6 +61,14 @@ flowchart LR
     Artifacts -->|required profiles| Sonar
 ```
 
+## Integration branch
+
+This Go cutover change targets `go-cutover`.
+The Ground Control workflow sets `base_branch` to `go-cutover` on this branch.
+An absent value defaults to `dev` and starts an incorrect merge during publication.
+The explicit value keeps synchronization and PR creation on the same base.
+Reset this value when the cutover branch returns to the normal integration path.
+
 ## Verification and references
 
 Focused fixture tests add a declared module without matrix or scan entries.
