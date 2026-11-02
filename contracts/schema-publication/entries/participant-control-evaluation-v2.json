@@ -2,9 +2,9 @@
   "contract_id": "participant-control-evaluation-v2",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-evaluation-v2.json",
   "stability": "draft",
-  "content_hash": "2cfce4608959c5a1b5f7cfe7af901d88e7181947249e4205568ab8c48bfcd864",
+  "content_hash": "4c2606116c2262f1c7360b84488c0d125f0e975c2aea94d459a0988df034c9bf",
   "last_change": {
-    "summary": "Pin complete inject requests and add exact-source effect continuations; preserve absent-field historical serialization (#1369).",
-    "content_hash": "2cfce4608959c5a1b5f7cfe7af901d88e7181947249e4205568ab8c48bfcd864"
+    "content_hash": "4c2606116c2262f1c7360b84488c0d125f0e975c2aea94d459a0988df034c9bf",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

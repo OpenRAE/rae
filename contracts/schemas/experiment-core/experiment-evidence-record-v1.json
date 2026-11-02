@@ -2615,8 +2615,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Evidence records must carry raw content as an artifact reference, content URI with checksum, or bounded payload summary; redacted/withheld records must disclose loss.",
@@ -2627,8 +2626,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+      "level": "error"
     },
     {
       "description": "captured_at must be a valid RFC 3339 date-time.",
@@ -2639,8 +2637,7 @@
           "instance_path": "#/captured_at"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+      "level": "error"
     }
   ],
   "x-raes-plane": "captured_evidence",

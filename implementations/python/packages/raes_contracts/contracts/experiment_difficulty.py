@@ -88,7 +88,6 @@ def add_adaptive_study_invariant(json_schema: JsonSchemaValue) -> None:
         json_schema,
         "adaptive-difficulty-study-validity-treatment-required",
         "Any adaptive or scaffolded allocation condition requires an analysis plan and explicit validity notes.",
-        validator="raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study",
         inputs=[{"contract_id": "experiment-study-v1", "instance_path": "#/run_allocation"}],
     )
 
@@ -101,7 +100,6 @@ def add_difficulty_registry_invariant(json_schema: JsonSchemaValue) -> None:
         "difficulty-policy-registry-valid",
         "Difficulty variants resolve fixed admitted selection policies; condition policy ids resolve the "
         "bounded registry and match explicit fixed, adaptive, or scaffolded allocation conditions.",
-        validator="raes_contracts.contracts.ExperimentRunPlanModel._validate_difficulty_policy_registry",
         inputs=[
             {
                 "contract_id": "experiment-authoring-input-v1",

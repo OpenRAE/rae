@@ -2,9 +2,9 @@
   "contract_id": "participant-flow-control-relation-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json",
   "stability": "draft",
-  "content_hash": "72c807db58572148e64f61e8d75d0d0ee5660747a29813a5bf099ddeedea2af2",
+  "content_hash": "eac045ab97463ec20a70c3cc4107a25108bd951fac45755aab5f5555d3501d19",
   "last_change": {
-    "summary": "Publish finite owner-qualified IFC and API-424 v2 admitted promises, preserving original profile interpretations (#1370).",
-    "content_hash": "72c807db58572148e64f61e8d75d0d0ee5660747a29813a5bf099ddeedea2af2"
+    "content_hash": "eac045ab97463ec20a70c3cc4107a25108bd951fac45755aab5f5555d3501d19",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

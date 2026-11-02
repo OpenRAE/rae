@@ -2,9 +2,9 @@
   "contract_id": "sdl-candidate-synthesis-profile-v1",
   "schema_path": "contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-profile-v1.json",
   "stability": "draft",
-  "content_hash": "0fe9d75678897a0dcb23affe104b69d5f3ade0f1fdfd0aad7cbbb0e9aeee5f7a",
+  "content_hash": "1de704cff334150ffd291c6fa050cf68416eddeabc20e62e8ef7387b6e4ec806",
   "last_change": {
-    "summary": "Initial publication of the digest-bound SDL candidate-synthesis transformation profile for issue #988.",
-    "content_hash": "0fe9d75678897a0dcb23affe104b69d5f3ade0f1fdfd0aad7cbbb0e9aeee5f7a"
+    "content_hash": "1de704cff334150ffd291c6fa050cf68416eddeabc20e62e8ef7387b6e4ec806",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

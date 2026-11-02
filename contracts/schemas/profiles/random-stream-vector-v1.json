@@ -99,8 +99,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.ParticipantStreamAddressModel._validate_address"
+          "level": "error"
         }
       ]
     },
@@ -303,8 +302,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.StreamAddressModel._validate_draw_purpose"
+          "level": "error"
         }
       ]
     },

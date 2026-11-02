@@ -2556,8 +2556,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_participant_control_resolved_context"
+      "level": "error"
     }
   ],
   "x-raes-plane": "processor_backend_operational_observability",

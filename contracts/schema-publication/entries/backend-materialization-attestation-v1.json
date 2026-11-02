@@ -1,9 +1,9 @@
 {
-  "content_hash": "33043f480a4d125b22868a52bcd84b0c90bcdc0259517507d8fa0e259aba8f1d",
+  "content_hash": "fcec89bb5a5f937caf19c22761f22fb48c41637a1612e494232a8b4cc38dfbed",
   "contract_id": "backend-materialization-attestation-v1",
   "last_change": {
-    "content_hash": "33043f480a4d125b22868a52bcd84b0c90bcdc0259517507d8fa0e259aba8f1d",
-    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
+    "content_hash": "fcec89bb5a5f937caf19c22761f22fb48c41637a1612e494232a8b4cc38dfbed",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/plans/backend-materialization-attestation-v1.json",
   "stability": "draft"

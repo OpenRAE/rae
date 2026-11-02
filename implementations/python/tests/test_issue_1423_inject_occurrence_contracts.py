@@ -116,8 +116,8 @@ def test_published_schemas_are_the_reference_bundle_with_semantic_bindings():
         published = schema(contract_id)
         assert published == bundle[contract_id]
         assert published["x-raes-semantic-profile"]["required"] is True
-    validators = {item["validator"] for item in bundle["inject-occurrence-v1"]["x-raes-invariants"]}
-    assert "raes_contracts.contracts.validate_inject_occurrence_claims" in validators
+    invariant_ids = {item["id"] for item in bundle["inject-occurrence-v1"]["x-raes-invariants"]}
+    assert "inject-occurrence-unique-claims" in invariant_ids
 
 
 def _property_names(node: object) -> set[str]:

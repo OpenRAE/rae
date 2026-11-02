@@ -2,9 +2,9 @@
   "contract_id": "participant-control-occurrence-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-occurrence-v1.json",
   "stability": "draft",
-  "content_hash": "e00168614142f185eacb5128601ca956cf1f977f884346441479b5461fbb660d",
+  "content_hash": "a0f7d8ddb8b33b69d91294fe791554e8b1754f05763859de3b1cf39e0e24b2cb",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "e00168614142f185eacb5128601ca956cf1f977f884346441479b5461fbb660d"
+    "content_hash": "a0f7d8ddb8b33b69d91294fe791554e8b1754f05763859de3b1cf39e0e24b2cb",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

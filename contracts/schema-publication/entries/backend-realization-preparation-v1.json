@@ -2,9 +2,9 @@
   "contract_id": "backend-realization-preparation-v1",
   "schema_path": "contracts/schemas/plans/backend-realization-preparation-v1.json",
   "stability": "draft",
-  "content_hash": "a08ab314b8e89240b162b251fa7cbcad9c093236658949d30f64f852250961ca",
+  "content_hash": "e882dc8b4d5599a37c70509137c18475ff48d77fb28e3a989d852761a27986f0",
   "last_change": {
-    "content_hash": "a08ab314b8e89240b162b251fa7cbcad9c093236658949d30f64f852250961ca",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
+    "content_hash": "e882dc8b4d5599a37c70509137c18475ff48d77fb28e3a989d852761a27986f0",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

@@ -303,7 +303,6 @@ class ExperimentRunAllocationPlanModel(ContractModel):
             "run-allocation-condition-assignments-valid",
             "Run-allocation compared_conditions, condition_assignments keys, embedded condition ids, blocking "
             "factor ids, factor-level combinations, and run-level criteria signatures must be internally coherent.",
-            validator="raes_contracts.contracts.ExperimentRunAllocationPlanModel._validate_condition_assignments",
             inputs=[{"contract_id": "experiment-study-v1", "instance_path": "#/run_allocation"}],
         )
         return json_schema
@@ -374,7 +373,6 @@ class ExperimentAnalysisPlanModel(ContractModel):
             "analysis-plan-substantive-methods-required",
             "Analysis plans must name metrics plus structured statistical, uncertainty, multiplicity, "
             "and missing-data policies.",
-            validator="raes_contracts.contracts.ExperimentAnalysisPlanModel._validate_primary_metric",
             inputs=[{"contract_id": "experiment-study-v1", "instance_path": "#/analysis_plan"}],
         )
         return json_schema

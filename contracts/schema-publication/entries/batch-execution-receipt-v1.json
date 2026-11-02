@@ -1,9 +1,9 @@
 {
-  "content_hash": "3ea0cd5c849c81cb10df4914d07cb878a60124a25e8592538152bc604a9be82e",
+  "content_hash": "8b57766cf27558f531dc3c0637f835de3364f0c1a2eaad278b7cea92bebff018",
   "contract_id": "batch-execution-receipt-v1",
   "last_change": {
-    "content_hash": "3ea0cd5c849c81cb10df4914d07cb878a60124a25e8592538152bc604a9be82e",
-    "summary": "Add EXP-719 bounded cross-plane factorial conditions, realized binding criteria, and integrity-bound randomized allocation with matching dispatch receipts; preserve legacy profile semantics (#275)."
+    "content_hash": "8b57766cf27558f531dc3c0637f835de3364f0c1a2eaad278b7cea92bebff018",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/control-plane/batch-execution-receipt-v1.json",
   "stability": "draft"

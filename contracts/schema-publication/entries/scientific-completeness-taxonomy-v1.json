@@ -2,9 +2,9 @@
   "contract_id": "scientific-completeness-taxonomy-v1",
   "schema_path": "contracts/schemas/profiles/scientific-completeness-taxonomy-v1.json",
   "stability": "draft",
-  "content_hash": "63ef8ca42883cbf6244850f77e408a7d8de1687ced49831e6ccf376ef1e3f1fa",
+  "content_hash": "a4fc03cd589bf74a78563c2f1951d82b88152ee8e29d1815abc160c7555d719f",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "63ef8ca42883cbf6244850f77e408a7d8de1687ced49831e6ccf376ef1e3f1fa"
+    "content_hash": "a4fc03cd589bf74a78563c2f1951d82b88152ee8e29d1815abc160c7555d719f",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

@@ -2,9 +2,9 @@
   "contract_id": "backend-operation-response-v1",
   "schema_path": "contracts/schemas/control-plane/backend-operation-response-v1.json",
   "stability": "draft",
-  "content_hash": "2b2f7de32d9bda155b0b8c062e783721e4580fcda3a35d9e244cc951aa5bf349",
+  "content_hash": "d644b5b01c1bb128f72da46ff037742897aed000784e907eb170fc154c719b4b",
   "last_change": {
-    "summary": "Publish optional backend operation and supervision contracts with contextual admission and bounded evidence (#1360).",
-    "content_hash": "2b2f7de32d9bda155b0b8c062e783721e4580fcda3a35d9e244cc951aa5bf349"
+    "content_hash": "d644b5b01c1bb128f72da46ff037742897aed000784e907eb170fc154c719b4b",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

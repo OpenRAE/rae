@@ -492,8 +492,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.InjectOccurrenceModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Retry keys, occurrences, operations, schedule slots, order positions and order predecessors are each claimed at most once in one target/run store, so no two claims follow the same head; head tokens are opaque, so the head chain itself is not checked.",
@@ -504,8 +503,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_inject_occurrence_claims"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

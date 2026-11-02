@@ -20,7 +20,6 @@ from .apparatus import ApparatusIdentity
 from .versions import ARTIFACT_REQUIREMENT_SCHEMA_VERSION
 
 Sha256DigestString = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
-_INVARIANT_VALIDATOR = "raes_contracts.artifact_requirements.validate_artifact_requirement_invariants"
 
 
 def _require_unique(values: list[object], *, field_name: str) -> None:
@@ -152,7 +151,6 @@ class ArtifactRequirementContractModel(ContractModel):
                     "An exact requirement's immutable artifact id must equal the enclosing Source selector name."
                 ),
                 "level": "error",
-                "validator": _INVARIANT_VALIDATOR,
                 "inputs": [
                     {
                         "contract_id": "artifact-requirement-v1",
@@ -167,7 +165,6 @@ class ArtifactRequirementContractModel(ContractModel):
                     "equal the enclosing Source selector version."
                 ),
                 "level": "error",
-                "validator": _INVARIANT_VALIDATOR,
                 "inputs": [
                     {
                         "contract_id": "artifact-requirement-v1",
@@ -182,7 +179,6 @@ class ArtifactRequirementContractModel(ContractModel):
                     "locked input declared by the same artifact requirement."
                 ),
                 "level": "error",
-                "validator": _INVARIANT_VALIDATOR,
                 "inputs": [
                     {
                         "contract_id": "artifact-requirement-v1",

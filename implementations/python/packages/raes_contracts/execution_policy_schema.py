@@ -23,7 +23,6 @@ def execution_policy_schema(schema: dict[str, Any], model: type) -> None:
             "and unsupported continuation claims fail closed. "
             "See specs/sdl/execution-recovery.md for the portable semantic obligations.",
             "level": "error",
-            "validator": model.__module__ + "." + model.__name__ + ".model_validate",
             "inputs": [{"contract_id": contract_id, "instance_path": pointer}],
         }
     ]
