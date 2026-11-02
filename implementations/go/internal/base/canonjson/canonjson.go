@@ -167,9 +167,9 @@ func decodeString(raw []byte) string {
 		r, end := decodeUnit(raw, i)
 		i = end
 		if utf16.IsSurrogate(r) {
-			out.WriteByte(byte(0xe0 | r>>12))
-			out.WriteByte(byte(0x80 | (r>>6)&0x3f))
-			out.WriteByte(byte(0x80 | r&0x3f))
+			out.WriteByte(0xe0 | byte((r>>12)&0x0f))
+			out.WriteByte(0x80 | byte((r>>6)&0x3f))
+			out.WriteByte(0x80 | byte(r&0x3f))
 		} else {
 			out.WriteRune(r)
 		}
@@ -338,9 +338,6 @@ func pythonNumber(n json.Number) (string, error) {
 		return pythonFloat(f), nil
 	}
 	digits := strings.TrimPrefix(string(n), "-")
-	if len(digits) > maxDigits {
-		return "", fmt.Errorf("%w: an integer has more than %d digits", ErrInput, maxDigits)
-	}
 	// JSON integer text has no plus sign and no leading zero, so it is the
 	// decimal form of Python, except -0, which Python reads as 0.
 	if digits == "0" {

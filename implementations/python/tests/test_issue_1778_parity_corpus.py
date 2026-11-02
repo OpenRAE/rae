@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from tools import parity_corpus as pc
 
 SCHEMA = {
