@@ -860,6 +860,8 @@ jobs:
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
           echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Prepare pinned dependencies for offline API inspection
+        run: go -C implementations/go mod download
       - name: Check the Go code against the architecture model
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck

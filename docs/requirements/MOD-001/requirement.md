@@ -1,6 +1,6 @@
 ---
 id: MOD-001
-title: "Codebase Modularity And Layering"
+title: "Codebase modularity and layering"
 status: ACTIVE
 type: NON_FUNCTIONAL
 priority: SHOULD
@@ -9,7 +9,7 @@ created_at: 2026-05-09T19:09:48.679Z
 updated_at: 2026-10-31T00:00:00Z
 ---
 
-# MOD-001 — Codebase Modularity And Layering
+# MOD-001 — Codebase modularity and layering
 
 ## Statement
 
@@ -71,3 +71,11 @@ Layering and size invariants across the codebase prevent the architectural drift
 - TESTS → TEST `implementations/tooling/go/arch/code_test.go` (Code check tests)
 - TESTS → TEST `implementations/tooling/go/arch/rules_test.go` (Rule table and rule coverage tests)
 - TESTS → TEST `implementations/tooling/go/cmd/archcheck/main_test.go` (Architecture check command tests)
+
+- IMPLEMENTS → GITHUB_ISSUE `1859` (Complete Go architecture contracts and current system views)
+- IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/api.go` (Typed package interfaces and code comparison)
+- IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/documents.go` (Design commitments and current-view checks)
+- TESTS → TEST `implementations/tooling/go/arch/api_test.go` (Typed API regression tests)
+- TESTS → TEST `implementations/tooling/go/arch/documents_test.go` (Stale API design and system-view tests)
+- DOCUMENTS → DOCUMENTATION `docs/develop/go-architecture.md` (Current Go system and trust boundaries)
+- TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Offline API dependency preparation in the architecture CI job)

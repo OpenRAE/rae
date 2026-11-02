@@ -10,7 +10,7 @@ import (
 // validModel returns a model with one module, three layers, and packages that
 // meet every design rule.
 func validModel() *Model {
-	return &Model{
+	m := &Model{
 		Schema:  Schema,
 		Modules: []Module{{Dir: "m", Path: "example.com/m"}},
 		Layers: []Layer{
@@ -29,6 +29,12 @@ func validModel() *Model {
 			{Dir: "m/top/cli", Layer: "top", Doc: "cli", Imports: []string{"m/core/model", "m/base/clock"}},
 		},
 	}
+	for i := range m.Packages {
+		m.Packages[i].Design = "docs/design.md"
+		m.Packages[i].API = map[string][]string{"linux": {}}
+	}
+	m.Configurations = []Configuration{{ID: "linux", GOOS: "linux", GOARCH: "amd64"}}
+	return m
 }
 
 type designCase struct {
@@ -42,6 +48,14 @@ type designCase struct {
 // model can break a design rule, with the finding that the change causes.
 func designCases() []designCase {
 	return []designCase{
+		{"disconnected cycle", func(m *Model) {
+			m.Packages = append(m.Packages, Package{Dir: "m/base/a", Layer: "base", Doc: "a", Imports: []string{"m/base/b"}}, Package{Dir: "m/base/b", Layer: "base", Doc: "b", Imports: []string{"m/base/a"}})
+		}, "ARCH-010", "m/base/a -> m/base/b -> m/base/a"},
+		{"missing design", func(m *Model) { m.Packages[0].Design = "" }, "ARCH-013", "owning design"},
+		{"same layer cycle", func(m *Model) {
+			m.Packages[0].Imports = []string{"m/base/hidden"}
+			m.Packages[1].Imports = []string{"m/base/clock"}
+		}, "ARCH-010", "m/base/clock -> m/base/hidden -> m/base/clock"},
 		{"duplicate module", func(m *Model) { m.Modules = append(m.Modules, m.Modules[0]) }, "ARCH-001", "unique"},
 		{"module without path", func(m *Model) { m.Modules[0].Path = "" }, "ARCH-001", "module path"},
 		{"module outside the repository", func(m *Model) { m.Modules[0].Dir = "../m" }, "ARCH-001", "relative directory"},
@@ -100,7 +114,7 @@ func TestFindingStringNamesTheRuleTheLocationAndTheFix(t *testing.T) {
 }
 
 func TestLoadDecodesAValidModel(t *testing.T) {
-	fsys := fstest.MapFS{"arch.json": {Data: []byte(`{"schema": "raes-go-architecture/v1", "modules": [], "layers": [], "packages": []}`)}}
+	fsys := fstest.MapFS{"arch.json": {Data: []byte(`{"schema": "raes-go-architecture/v2", "modules": [], "layers": [], "packages": []}`)}}
 	model, err := Load(fsys, "arch.json")
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
@@ -112,10 +126,11 @@ func TestLoadDecodesAValidModel(t *testing.T) {
 
 func TestLoadRejectsAnInvalidModel(t *testing.T) {
 	tests := map[string]string{
-		"unknown field":         `{"schema": "raes-go-architecture/v1", "extra": true}`,
+		"duplicate schema":      `{"schema":"raes-go-architecture/v2","schema":"raes-go-architecture/v2"}`,
+		"unknown field":         `{"schema": "raes-go-architecture/v2", "extra": true}`,
 		"unknown schema":        `{"schema": "other/v1"}`,
-		"data after the model":  `{"schema": "raes-go-architecture/v1"} {}`,
-		"brace after the model": `{"schema": "raes-go-architecture/v1"}}`,
+		"data after the model":  `{"schema": "raes-go-architecture/v2"} {}`,
+		"brace after the model": `{"schema": "raes-go-architecture/v2"}}`,
 		"not JSON":              `{`,
 	}
 	for name, content := range tests {

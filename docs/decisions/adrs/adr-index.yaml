@@ -747,8 +747,11 @@ adrs:
         summary: "Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials."
   - id: ADR-122
     path: docs/decisions/adrs/adr-122-go-architecture-model.md
-    pin: 34a90b3cf4c44e780298b9efd7a3d2c804d4c1ba79cd3488099f8371494864b5
+    pin: cffbe366d90e29044873c8c2eb3d1e1deb42c22432a4984372ae565087c57228
     amendments:
       - date: 2026-10-31
         ref: "#1778"
         summary: "Section 2: the parity layer holds the checker of the Go implementation against the golden corpus."
+      - date: 2026-11-02
+        ref: "#1859"
+        summary: "Version 2 binds typed interfaces to designs, checks declared package cycles, and verifies current system views."
