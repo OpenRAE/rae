@@ -195,7 +195,7 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_issue_1362_review_round_two.py` (API-404-C1/C2/C3 capacity refusal settles acceptance, outer admission retains one allowance, blocked archive work remains physically reserved, and observations join protocol settlement)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_command_privacy.py` (API-404-C1/C2 private exact command commitments protect native and provider persistence while refusing changed credentials)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_observation_retention.py` (API-404-C1/C2 automatic polling preserves cancellation, verified reconciliation and later admission across local execution and durable reopening without discarding consumed authority)
-- TESTS → TEST `implementations/python/tests/test_issue_1362_distributed_integration.py` (API-404-C1/C2/C3 hosted real Temporal/P2/PostgreSQL delivery, control, duplicate and reopening tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_distributed_integration.py` (API-404-C2 hosted PostgreSQL ledger process loss never reissues a consumed grant)
 
 - DOCUMENTS → GITHUB_ISSUE `1359` (Enforce the accepted runtime API trust boundary)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1359-runtime-api-trust-boundary-preflight.md` (Administrative-only P2 enforcement guardrails and route authority matrix)
