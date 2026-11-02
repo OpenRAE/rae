@@ -111,8 +111,8 @@ fixture, example and exposed Python regression input has recorded behavior.
 
 ## Complete exposed-surface recording
 
-The development-tool recorder owns the additional adapters; Python product code
-is unchanged. `tools/parity_support.py` owns the case format, canonical JSON,
+The development-tool recorder owns the additional adapters. The publishing
+phase repair described below is the only Python product change. `tools/parity_support.py` owns the case format, canonical JSON,
 diagnostic normalization and deterministic recording context.
 `tools/parity_surfaces.py` owns enumeration and invocation of CLI, MCP and HTTP
 surfaces. `tools/parity_inputs.py` is a CI-only pytest input collector. The
