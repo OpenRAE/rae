@@ -8,10 +8,10 @@ from copy import deepcopy
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, InvalidInputError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 from .participant_interaction_conflicts import bindings_semantically_conflict as _bindings_semantically_conflict

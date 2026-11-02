@@ -76,7 +76,7 @@ def test_evaluate_routes_the_selected_capture_through_strict_validation(monkeypa
     calls: list[tuple[str, str]] = []
 
     monkeypatch.setattr(coverage_gate, "_load_bundle_index", lambda _root: records)
-    monkeypatch.setattr(coverage_gate, "current_release_path", lambda *_: "bundle-old.json")
+    monkeypatch.setattr(coverage_gate, "latest_recorded_release_path", lambda *_: "bundle-old.json")
     monkeypatch.setattr(
         coverage_gate,
         "_load_bundle_record",
@@ -236,11 +236,11 @@ def test_historical_implementation_digest_does_not_bind_the_live_checkout() -> N
     assert "specification-coverage-implementation-identity" not in _rule_ids(failures)
 
 
-def test_current_implementation_surface_digest_binds_live_checkout() -> None:
+def test_recorded_implementation_surface_digest_does_not_require_recapture() -> None:
     manifest, protocol, snapshot, analysis = _bundle()
     snapshot["implementation_surfaces"][0]["content_sha256"] = "f" * 64
     failures = validate_bundle(REPO_ROOT, manifest, protocol, snapshot, analysis)
-    assert "specification-coverage-implementation-identity" in _rule_ids(failures)
+    assert "specification-coverage-implementation-identity" not in _rule_ids(failures)
 
 
 @pytest.mark.parametrize(

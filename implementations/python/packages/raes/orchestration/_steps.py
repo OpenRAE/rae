@@ -3,8 +3,9 @@
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value, parse_int_or_var
 
-from .._base import SDLModel, normalize_enum_value, parse_int_or_var
 from ._durations import parse_duration
 
 

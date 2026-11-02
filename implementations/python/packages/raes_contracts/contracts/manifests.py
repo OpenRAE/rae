@@ -9,6 +9,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from ..addressing import require_compiled_address
+from ..concept_binding_scopes import PROCESSOR_CONCEPT_BINDING_SCOPES
 from ..manifest_authority import (
     PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES,
     PROCESSOR_SUPPORTED_CONTRACT_IDS,
@@ -18,7 +19,7 @@ from ..manifest_authority import (
 from ..operation_lifecycle import OperationKind
 from ..versions import PROCESSOR_MANIFEST_V2_SCHEMA_VERSION
 from ..vocabulary import ConceptFamilyId, ParticipantFeatureSupportLevel
-from .base import _PROCESSOR_CONCEPT_BINDING_SCOPES, ContractModel, NonEmptyString
+from .base import ContractModel, NonEmptyString
 from .capabilities import (
     ApparatusIdentityModel,
     EvaluatorCapabilitiesModel,
@@ -32,6 +33,8 @@ from .observation_capture import ObservationCaptureOfferModel
 from .participant_execution import ParticipantExecutionBindingModel
 from .participant_invocation_tools import (
     ParticipantInvocationToolActionCapabilitiesModel,
+    delivery_tool_actions_enabled,
+    validate_delivery_tool_bindings,
     validate_invocation_tool_action_claim,
 )
 from .participant_resource_budgets import ParticipantResourceBudgetCapabilitiesModel
@@ -44,9 +47,9 @@ from .time_manifest_capabilities import TimeCapabilitiesModel
 from .trial_cleanup import CleanupActionKind
 from .trial_controls import OperationSupervisionCapabilitiesModel
 from .validators import (
-    _validate_canonical_concept_bindings,
-    _validate_controlled_vocabulary_terms,
-    _validate_unique_string_values,
+    validate_canonical_concept_bindings,
+    validate_controlled_vocabulary_terms,
+    validate_unique_string_values,
 )
 
 
@@ -146,18 +149,18 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_api_405_declarations(self) -> ParticipantRuntimeCapabilitiesModel:
-        _validate_unique_string_values("supported_participant_roles", self.supported_participant_roles)
-        _validate_unique_string_values("supported_behavior_features", self.supported_behavior_features)
-        _validate_unique_string_values("supported_interaction_features", self.supported_interaction_features)
-        _validate_controlled_vocabulary_terms(
+        validate_unique_string_values("supported_participant_roles", self.supported_participant_roles)
+        validate_unique_string_values("supported_behavior_features", self.supported_behavior_features)
+        validate_unique_string_values("supported_interaction_features", self.supported_interaction_features)
+        validate_controlled_vocabulary_terms(
             "capabilities.participant_runtime.supported_participant_roles",
             self.supported_participant_roles,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.participant_runtime.supported_behavior_features",
             self.supported_behavior_features,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.participant_runtime.supported_interaction_features",
             self.supported_interaction_features,
         )
@@ -165,7 +168,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_api_407_feature_support(self) -> ParticipantRuntimeCapabilitiesModel:
-        _validate_unique_string_values("feature_support", [entry.feature for entry in self.feature_support])
+        validate_unique_string_values("feature_support", [entry.feature for entry in self.feature_support])
         self._validate_supported_feature_levels()
         validate_tool_feature_support(self.tool_profiles, self.feature_support, self.supported_behavior_features)
         self._validate_autonomous_configuration()
@@ -176,6 +179,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             supports_autonomous_execution=self.supports_autonomous_execution,
             supports_tool_affordances=self.tool_profiles is not None,
         )
+        validate_delivery_tool_bindings(self.invocation_tool_actions, self.execution_bindings)
         return self
 
     def _validate_supported_feature_levels(self) -> None:
@@ -264,7 +268,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
                 self.supported_autonomous_activity_features,
                 self.supported_autonomous_random_stream_profiles,
                 limits_configured,
-                self.execution_bindings,
+                self.execution_bindings and not delivery_tool_actions_enabled(self.invocation_tool_actions),
                 self.supports_execution_control,
                 self.supported_execution_control_actions,
                 self.supports_bounded_concurrency,
@@ -292,11 +296,13 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
 
     def _validate_execution_bindings(self) -> None:
         binding_ids = [binding.binding_id for binding in self.execution_bindings]
-        _validate_unique_string_values("execution_bindings", binding_ids)
+        validate_unique_string_values("execution_bindings", binding_ids)
         supported_actions = set(self.supported_autonomous_action_contracts)
         supported_targets = set(self.supported_autonomous_target_addresses)
         for binding in self.execution_bindings:
             if binding.action_contract_address not in supported_actions:
+                if delivery_tool_actions_enabled(self.invocation_tool_actions):
+                    continue
                 raise ValueError("execution binding action is not declared supported")
             if not set(binding.target_addresses).issubset(supported_targets):
                 raise ValueError("execution binding target is not declared supported")
@@ -320,7 +326,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             "supported_autonomous_target_addresses",
         ):
             values = getattr(self, field_name)
-            _validate_unique_string_values(field_name, values)
+            validate_unique_string_values(field_name, values)
             for address in values:
                 require_compiled_address(address, field_name=field_name)
 
@@ -345,21 +351,21 @@ class ObservationCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_observation_capability(self) -> ObservationCapabilitiesModel:
-        _validate_unique_string_values("supported_capture_kinds", self.supported_capture_kinds)
-        _validate_unique_string_values("supported_channel_kinds", self.supported_channel_kinds)
-        _validate_unique_string_values("supported_evidence_contracts", self.supported_evidence_contracts)
-        _validate_unique_string_values("supported_media_types", self.supported_media_types)
-        _validate_unique_string_values("supported_sealing_modes", self.supported_sealing_modes)
-        _validate_unique_string_values("capture offer ids", [offer.offer_id for offer in self.capture_offers])
-        _validate_controlled_vocabulary_terms(
+        validate_unique_string_values("supported_capture_kinds", self.supported_capture_kinds)
+        validate_unique_string_values("supported_channel_kinds", self.supported_channel_kinds)
+        validate_unique_string_values("supported_evidence_contracts", self.supported_evidence_contracts)
+        validate_unique_string_values("supported_media_types", self.supported_media_types)
+        validate_unique_string_values("supported_sealing_modes", self.supported_sealing_modes)
+        validate_unique_string_values("capture offer ids", [offer.offer_id for offer in self.capture_offers])
+        validate_controlled_vocabulary_terms(
             "capabilities.observation.supported_capture_kinds",
             self.supported_capture_kinds,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.observation.supported_channel_kinds",
             self.supported_channel_kinds,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.observation.supported_sealing_modes",
             self.supported_sealing_modes,
         )
@@ -389,9 +395,9 @@ class CleanupCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_cleanup_capability(self) -> CleanupCapabilitiesModel:
-        _validate_unique_string_values("cleanup supported_contract_versions", self.supported_contract_versions)
-        _validate_unique_string_values("cleanup supported_action_kinds", self.supported_action_kinds)
-        _validate_unique_string_values("cleanup supported_verification_methods", self.supported_verification_methods)
+        validate_unique_string_values("cleanup supported_contract_versions", self.supported_contract_versions)
+        validate_unique_string_values("cleanup supported_action_kinds", self.supported_action_kinds)
+        validate_unique_string_values("cleanup supported_verification_methods", self.supported_verification_methods)
         required = {"trial-cleanup-plan-v1", "trial-cleanup-receipt-v1"}
         if set(self.supported_contract_versions) != required:
             raise ValueError(
@@ -459,7 +465,7 @@ class ProcessorManifestV2Model(ContractModel):
         scopes = [binding.scope for binding in self.concept_bindings]
         if len(scopes) != len(set(scopes)):
             raise ValueError("concept_bindings must not contain duplicate scopes")
-        _validate_canonical_concept_bindings(self, allowed_scopes=_PROCESSOR_CONCEPT_BINDING_SCOPES)
+        validate_canonical_concept_bindings(self, allowed_scopes=PROCESSOR_CONCEPT_BINDING_SCOPES)
         return self
 
     @model_serializer(mode="wrap")

@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relation_profiles import (
     ActiveOpacityStrategyModel,
     BehavioralRelationProfileModel,
@@ -19,7 +20,6 @@ from raes_contracts.behavioral_relations import (
     load_behavioral_relation_catalog_revision,
     validate_behavioral_claim_binding,
 )
-from raes_contracts.contracts import BehavioralClaimBindingModel, schema_bundle
 from raes_contracts.errors import InvalidInputError, OperationalError
 from raes_contracts.participant_opacity import (
     NORMALIZED_INPUT_PROVENANCE_NONCLAIM,
@@ -29,7 +29,7 @@ from raes_contracts.participant_opacity import (
     ParticipantOpacityDeclaredCountsModel,
     ParticipantOpacityOutcome,
 )
-from raes_contracts.satisfiability import SourceArtifactIdentityModel
+from raes_contracts.source_identity import SourceArtifactIdentityModel
 from raes_processor.participant_opacity import (
     ParticipantOpacityEvidenceError,
     ParticipantOpacityInputError,
@@ -39,6 +39,7 @@ from raes_processor.participant_opacity import (
     replay_participant_opacity_evidence,
 )
 from raes_processor.participant_opacity import _service as opacity_service
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PROFILE_ID = "participant-opacity-baseline-v1"

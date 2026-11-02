@@ -81,6 +81,8 @@ _DETAIL_KEYS_BY_ACTION = {
     "record_participant_crossing": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
     "authorize_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
     "admit_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "admit_participant_tool_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "dispatch_participant_tool_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
 }
 _ENUM_DOMAINS = {
     "state": frozenset(state.value for state in OperationState),

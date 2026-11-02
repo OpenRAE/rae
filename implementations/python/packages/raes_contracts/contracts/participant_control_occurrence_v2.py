@@ -26,13 +26,17 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
+
+from raes_contracts.participant_mixed_control_vocabulary import (
+    MixedControlTransitionKind,
+    ParticipantControlTargetKind,
+)
 
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .participant_control import ParticipantControlOccurrenceModel
 from .participant_control_coordinates import ControlCount, ControlPosition, ControlRef
 from .participant_envelopes import ParticipantRuntimeBaseEnvelopeModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 PARTICIPANT_CONTROL_OCCURRENCE_V2_CONTRACT_ID = "participant-control-occurrence-v2"
 OccurrenceSchemaName = Literal["participant-control-occurrence"]
@@ -380,7 +384,7 @@ class ParticipantControlOccurrenceV2Model(ParticipantRuntimeBaseEnvelopeModel):
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
         for invariant_id, description, validator in _INVARIANTS:
-            _add_raes_invariant(json_schema, invariant_id, description, validator=validator, inputs=_V2)
+            add_raes_invariant(json_schema, invariant_id, description, validator=validator, inputs=_V2)
         return json_schema
 
 

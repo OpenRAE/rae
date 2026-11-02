@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from raes_contracts.contracts import schema_bundle
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import OperationalError
 
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
@@ -21,6 +22,9 @@ from raes_conformance.conformance.report import (
     BackendConformanceReport,
     ConformanceCaseResult,
     _bounded_conformance_claim,
+    conformance_tool_version,
+    contract_content_digests,
+    required_contract_schemas,
 )
 from raes_conformance.conformance.semantics import _fixture_case_diagnostics
 from raes_conformance.conformance.validators import _SCHEMA_INVALID_DIAGNOSTIC_CODE
@@ -68,6 +72,8 @@ def _fixture_case(contract_name: str, path: Path, *, valid: bool) -> Conformance
         valid=valid,
         passed=not case_diagnostics if valid else bool(case_diagnostics),
         diagnostics=tuple(case_diagnostics),
+        probe_digest=sha256_digest(raw),
+        evidence_refs=(f"fixture:{contract_name}:{'valid' if valid else 'invalid'}:{path.stem}:{sha256_digest(raw)}",),
     )
 
 
@@ -88,8 +94,10 @@ def run_fixture_suite(
     """
 
     root = fixtures_root() if root is None else root
-    bundle = schema_bundle()
-    required, profile_diagnostics = _resolve_required_contracts(profile, profiles_root=profiles_root)
+    profile_evidence: dict[str, object] = {}
+    required, profile_diagnostics = _resolve_required_contracts(
+        profile, profiles_root=profiles_root, evidence=profile_evidence
+    )
     cases: list[ConformanceCaseResult] = []
     diagnostics: list[Diagnostic] = list(profile_diagnostics)
 
@@ -97,7 +105,8 @@ def run_fixture_suite(
         contract_root = _fixture_contract_root(root, contract_name)
         valid_dir = contract_root / "valid"
         invalid_dir = contract_root / "invalid"
-        if not valid_dir.exists():
+        valid_paths = sorted(valid_dir.glob("*.json"))
+        if not valid_paths:
             diagnostics.append(
                 _diagnostic(
                     "conformance.fixture-missing",
@@ -105,14 +114,14 @@ def run_fixture_suite(
                     f"Missing valid fixture directory for {contract_name}.",
                 )
             )
-            continue
 
-        cases.extend(_fixture_case(contract_name, path, valid=True) for path in sorted(valid_dir.glob("*.json")))
+        cases.extend(_fixture_case(contract_name, path, valid=True) for path in valid_paths)
         if invalid_dir.exists():
             cases.extend(_fixture_case(contract_name, path, valid=False) for path in sorted(invalid_dir.glob("*.json")))
 
     profile_id = _to_profile_id(profile)
     case_tuple = tuple(cases)
+    schemas = required_contract_schemas(sorted(required))
     return BackendConformanceReport(
         profile=profile_id,
         passed=not diagnostics and all(case.passed for case in cases),
@@ -122,6 +131,15 @@ def run_fixture_suite(
             left_carrier_ref=f"conformance-fixture-suite:{profile_id}",
         ),
         cases=case_tuple,
-        contract_versions={name: str(schema.get("title", name)) for name, schema in bundle.items() if name in required},
+        contract_versions={name: str(schema.get("title", name)) for name, schema in schemas.items()},
         diagnostics=tuple(diagnostics),
+        profile_version=profile_evidence.get("version"),
+        profile_digest=profile_evidence.get("digest"),
+        tool_version=conformance_tool_version(),
+        contract_digests=contract_content_digests(schemas),
+        required_case_refs=tuple(f"conformance-case:{case.contract_name}:{case.name}" for case in case_tuple),
+        provenance={
+            "fixture_origin": "unknown",
+            "fixture_set_digest": canonical_json_digest([case.probe_digest for case in case_tuple]),
+        },
     )

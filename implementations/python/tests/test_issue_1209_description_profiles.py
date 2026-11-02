@@ -8,12 +8,11 @@ from raes_contracts.contracts import ExperimentEvidenceRecordModel, ExperimentRe
 from raes_contracts.contracts.realization_descriptions import TypedRealizationDescriptionModel
 from raes_contracts.domain_profiles import DomainProfileBindingBasis, DomainProfileBindingUse
 from raes_contracts.observation_demand import (
-    AchievedObservationValue,
     ObservationBasis,
     ObservationDemandResolution,
     ObservationSelector,
-    realization_description_report,
 )
+from raes_contracts.observation_reporting import AchievedObservationValue, realization_description_report
 from test_issue_1202_domain_profiles import _binding, _definition
 from test_issue_1209_descriptions import description_payload, evidence_payload
 from test_issue_1212_runtime_boundaries import _demands

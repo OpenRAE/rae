@@ -3,7 +3,7 @@
 import pytest
 from jsonschema import Draft202012Validator
 from raes_conformance.conformance import contract_validation_strength, validate_contract_payload
-from raes_contracts.contracts import schema_bundle
+from raes_schemas import schema_bundle
 from test_issue_1242_scope_admission import preview, scoped_plan
 
 

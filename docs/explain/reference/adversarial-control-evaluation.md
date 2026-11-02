@@ -104,7 +104,8 @@ and mathematical assurance remain separate evidence stages.
 These results establish no concrete backend qualification, mechanism parity, backend equivalence,
 universal robustness, monitor honesty, opacity, bisimulation, or undeclared-channel protection.
 Native executable guidance requires separate evidence from its backend owner.
-The separate finite-bisimulation result belongs to issue #976.
+The separate finite participant-crossing model-check result is in the [participant control guide](../../public/participant-control.md).
+It does not change these evaluation results.
 Control reference and migration documentation belongs to issue #1019.
 
 ASR-536's completion evidence records this bounded RAE profile and its limitations.

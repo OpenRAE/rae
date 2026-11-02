@@ -12,7 +12,7 @@ from test_issue_1200_mixed_runtime_constraints import _fixture, _returned
 def _request(*, offered_engine=None, closed_offer=False):
     from raes_backend_protocols.manifest import backend_manifest_v2_model
     from raes_contracts.canonical import canonical_json_digest
-    from raes_contracts.realization_preparation import RealizationPreparationAuthority
+    from raes_contracts.planning import RealizationPreparationAuthority
 
     _, plan, manifest = _fixture(
         {"database_services": [{"database_service_id": "db"}]},
@@ -65,7 +65,7 @@ class _PreparingBackend:
         self.applies = 0
 
     def prepare(self, plan, snapshot):
-        from raes_contracts.realization_preparation import RealizationPreparation
+        from raes_contracts.contracts.realization_preparation import RealizationPreparation
 
         self.prepares += 1
         operations = deepcopy(plan.operations)

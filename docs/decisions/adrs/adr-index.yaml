@@ -230,6 +230,10 @@ adrs:
   - id: ADR-036
     path: docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md
     pin: 80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9
+    amendments:
+      - date: 2026-10-31
+        ref: "#1711"
+        summary: "ADR-121 makes raes_contracts the lowest package. It imports no first-party package and owns the shared authored types."
   - id: ADR-037
     path: docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md
     pin: d58c39b1132fe59dedb53fa389fc9c9bee063c37fca4d30aecff056683550baa
@@ -522,8 +526,11 @@ adrs:
     pin: c2a0e6ac9fb87aa10fbb571b0f70efe0b99520b806f6ffe706f1556b0ec7e84b
   - id: ADR-092
     path: docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md
-    pin: 581f482d75d74f40f5cc1e395c0015d61d1dc4f11ede86b0555b80e8fc33626b
+    pin: fd1225e2d16c651b76b2dda7682fe1507e78eff3c8a20710b44904d8cfe7a465
     amendments:
+      - date: 2026-11-01
+        ref: "#1829"
+        summary: "Added runtime-owned delivery invocations with independently governed tool actions, shared-time evidence, and durable child settlement."
       - date: 2026-10-30
         ref: "#1740"
         summary: "Added versioned participant tool actions hosted inside an active autonomous invocation."
@@ -576,7 +583,7 @@ adrs:
     pin: 61a5ea9d72a0afa1033d46131913f45b140286b6ddddcb59e0e1f6914b721cb9
   - id: ADR-100
     path: docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md
-    pin: 8a406230189370e90c5fcab4e29459f3bcb7dc71321a7b4da007e7011bf6f4fb
+    pin: 4003729e08f84ab3a2db51c546482880f103ee27152d74d5e02372020d811524
     amendments:
       - date: 2026-09-27
         ref: "#971"
@@ -584,6 +591,9 @@ adrs:
       - date: 2026-10-13
         ref: "#1395"
         summary: "Add the separate two-operation construction profile and projection, history-sensitive retries and bounded completed-result response loss; preserve single-operation evidence and separate equivalence and realization."
+      - date: 2026-10-31
+        ref: "#976"
+        summary: "Record completion of the ordered #971-#976 work and the SEM-232 ACTIVE transition; retained records bind subject-source digests and execution records bind the source revision."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     pin: 52e6089fddc86a2f3361d678687db4823f5c06cdad74a97d99cd7c97a9b94acc
@@ -711,11 +721,23 @@ adrs:
     pin: a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa
   - id: ADR-117
     path: docs/decisions/adrs/adr-117-ratcheted-structural-checks.md
-    pin: 557d925c2ba6466947af0cc41e788c6cd0ed04b2256c761da27606313c863ca6
+    pin: caf8ad4b7c042e07c33a2f4f6d31e09e8d88117e819bf5e531a1e7dd183c1ce3
     amendments:
       - date: 2026-10-30
         ref: "#1752"
         summary: "I6: the adoption commit bounds a baseline that is absent at the base revision. Thus a dev to main promotion can pass."
+      - date: 2026-10-31
+        ref: "#1711"
+        summary: "Checks 4 to 6: private members, imports inside functions and hidden imports. Check 6 applies the layer and module-boundary rules to each dynamic edge. I10 adopts a new counted family."
   - id: ADR-118
     path: docs/decisions/adrs/adr-118-shared-primitives-and-injected-wall-clock.md
     pin: 820039e194f03289ac345a469cd9e5105b285812b8d51612c8014146424da226
+  - id: ADR-119
+    path: docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md
+    pin: b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442
+  - id: ADR-120
+    path: docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md
+    pin: 31c03fcaa4a342db746f1e62c41777aa718b191a81fdc2e62b13e24320f8647d
+  - id: ADR-121
+    path: docs/decisions/adrs/adr-121-strict-package-layers.md
+    pin: 1d0b035cd73a04e43af631dea33ceefbb5e62250587e09dcd5e818e16a6b4e69

@@ -5,9 +5,13 @@ import json
 import pytest
 from jsonschema import Draft202012Validator
 from paths import REPO_ROOT
-from raes_contracts.admitted_trial_plan_ingress import AdmittedTrialPlanIngressError, parse_admitted_trial_plan_json
-from raes_contracts.contracts import ExperimentSpecModel, schema_bundle
+from raes_contracts.contracts import ExperimentSpecModel
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    parse_admitted_trial_plan_json,
+)
 from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
+from raes_schemas import schema_bundle
 from test_exp_719_factorial_allocation import _payload
 
 

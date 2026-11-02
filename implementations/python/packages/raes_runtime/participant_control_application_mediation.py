@@ -91,7 +91,7 @@ def prepare_control_application(
     trial = context.archive.trial(candidate, policy=policy, available_targets=available_targets)
     if trial.violation is not None:
         raise ConflictError(trial.violation)
-    from raes_contracts.immutable_history import append_history
+    from raes_contracts.snapshot_histories import append_history
 
     try:
         appended = append_history(

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_resource_limits import process_resource_limit_identity_digest
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.bounded_domains import EnumDomain, scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.json_pointer import array_index, pointer_from_tokens, pointer_tokens
 from raes_contracts.planning import (
     ChangeAction,

@@ -13,8 +13,8 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.base import ContractModel
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.identifiers import require_portable_identifier
 
-from ._identifiers import require_portable_identifier
 from .scenario import ExpandedScenario, Scenario
 
 SDLAuthoringArtifact = Scenario | ExpandedScenario

@@ -540,7 +540,7 @@ class TestBoundOperatingSystemObservation:
         from dataclasses import replace
 
         from raes import parse_sdl
-        from raes.explicitness import ExplicitnessClass
+        from raes_contracts.explicitness import ExplicitnessClass
         from raes_contracts.vocabulary import RealizationSupportMode
         from raes_processor.compiler import compile_runtime_model
         from raes_processor.planner import plan, realization_disclosure
@@ -692,7 +692,7 @@ class TestBoundOperatingSystemObservation:
         assert public.realization_observations[0].operating_system.version == "22.04"
 
     def test_binding_derives_verified_disclosure_from_operation_and_envelope(self) -> None:
-        from raes_contracts.realization_observation import bind_operating_system_observations
+        from raes_contracts.realization_operational_observation import bind_operating_system_observations
 
         provisioning, envelope, native = _bound_os_observation_context()
 
@@ -731,10 +731,8 @@ class TestBoundOperatingSystemObservation:
             ObservationStrength,
             RealizationConcern,
         )
-        from raes_contracts.realization_observation import (
-            ObservedOperatingSystemIdentity,
-            bind_operating_system_observations,
-        )
+        from raes_contracts.realization_observation import ObservedOperatingSystemIdentity
+        from raes_contracts.realization_operational_observation import bind_operating_system_observations
 
         provisioning, envelope, native = _bound_os_observation_context()
         if invalid_binding == "unsupported-version":

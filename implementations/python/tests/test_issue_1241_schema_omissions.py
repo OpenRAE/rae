@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
-from raes_contracts.contracts import schema_bundle
+from raes_schemas import schema_bundle
 
 VALUE_CASES = [
     ("runtime_forwarding_agent", "RuntimeForwardingSetting", "classification", "value", {"setting_id": "setting"}),

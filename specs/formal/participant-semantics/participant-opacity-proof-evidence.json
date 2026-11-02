@@ -244,7 +244,7 @@
   "toolchain": {
     "prover": "Isabelle/HOL",
     "version": "Isabelle2025-2",
-    "archive_url": "https://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle2025-2_linux.tar.gz",
+    "archive_url": "https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2_linux.tar.gz",
     "archive_sha256": "sha256:a20a507bc7c1270d8be96a9f3fbec06345387789d2dc2c4d3df6260d47bfb33c",
     "archive_bytes": 1228480874,
     "acquire_command": [
@@ -289,7 +289,7 @@
     "tool_sources": [
       {
         "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:83a8b12b03ae97c11dd2ca88cf941b75d15c387a8b1bea7b7ce52632113b6dbc"
+        "digest": "sha256:fc3ee8077c0d7a3e0eea31bbf44b7e294a01dac080ae9cd7edff17c875f2ca30"
       },
       {
         "path": "tools/isabelle_sandbox.py",

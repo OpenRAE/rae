@@ -16,6 +16,7 @@ from participant_crossing_fixtures import (
     identity,
     policy_capable_target,
 )
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relation_profiles import (
     load_behavioral_relation_profile,
 )
@@ -24,7 +25,6 @@ from raes_contracts.behavioral_relations import (
     load_behavioral_relation_catalog_revision,
 )
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts.base import BehavioralClaimBindingModel
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingGateDisposition,
     ParticipantOpacityObservationInventoryModel,
@@ -456,7 +456,7 @@ def test_catalog_preserves_runtime_assurance_while_withdrawing_backend_axes() ->
     historical = load_behavioral_relation_catalog_revision("rev10").relations["participant-predicate-opacity"]
     withdrawn = load_behavioral_relation_catalog_revision("rev12").relations["participant-predicate-opacity"]
 
-    assert catalog.taxonomy_revision == "rev13"
+    assert catalog.taxonomy_revision == "rev14"
     assert relation.assurance.runtime_enforcement_status == "partial"
     assert relation.assurance.model_check_status == "model-checked"
     assert relation.assurance.proof_status == "proved"

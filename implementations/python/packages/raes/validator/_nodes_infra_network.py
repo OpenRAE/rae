@@ -5,7 +5,8 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 
 from ipaddress import ip_address, ip_network
 
-from .._identifiers import QualifiedName
+from raes_contracts.identifiers import QualifiedName
+
 from ..architectures import architectures_compatible
 from ..infrastructure import SimpleProperties
 from ..nodes import MAX_NODE_NAME_LENGTH, NodeType

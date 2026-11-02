@@ -1,9 +1,9 @@
 {
-  "content_hash": "b353cf1ec83bdb85272598124cff0d71f4bbfa7c1d03ddde7a2b648b32670d80",
+  "content_hash": "46bea2e7db9a78dfe18b281881fae5ffceac8400ff8f1c132ec9c3db7ad30047",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "b353cf1ec83bdb85272598124cff0d71f4bbfa7c1d03ddde7a2b648b32670d80",
-    "summary": "Add participant and role selectors to tool-affordance bindings with unique, nonblank items; preserve empty selectors and exact pinned control-context references from DSL-118 (ACT-619, issue #301). Add optional cloud ownership, identity use, resource policy and secret-version descriptions; enforce policy, evidence and selection field combinations (#1653)."
+    "content_hash": "46bea2e7db9a78dfe18b281881fae5ffceac8400ff8f1c132ec9c3db7ad30047",
+    "summary": "Add explicit provider-qualified secret replication policies, replicas and native encryption key constraints (issue #1848)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

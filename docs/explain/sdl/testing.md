@@ -16,9 +16,12 @@ Use the smallest level that matches the change:
 4. **Abstract models for FM3 work** — optional state-machine/TLA+/Alloy support
    for especially risky control or contract semantics
 
-Formal tools are not part of the default developer loop or CI. They are
-optional artifacts for selected `FM3` changes rather than a blanket requirement
-for SDL work.
+Formal tools are not part of the default developer loop. CI runs one formal
+proof: the `proof` job in `.github/workflows/canonical-verification.yml`
+replays the pinned Isabelle proof in `specs/formal/participant-semantics/isabelle/`
+through `nox -s participant-opacity-proof`, and the required `verify` check
+fails when that job fails. Other formal models remain optional artifacts for
+selected `FM3` changes rather than a blanket requirement for SDL work.
 
 ## Test Suites
 

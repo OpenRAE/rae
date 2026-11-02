@@ -20,8 +20,8 @@ from .experiment_artifacts import (
     ExperimentMeasurementChannelReferenceModel,
 )
 from .experiment_references import ExperimentReferenceModel
-from .schema_invariants import _add_raes_invariant, _add_raes_plane
-from .validators import _validate_unique_string_values
+from .schema_invariants import _add_raes_plane, add_raes_invariant
+from .validators import validate_unique_string_values
 
 __all__ = [
     "ExperimentCaptureRequirementModel",
@@ -85,7 +85,7 @@ class ExperimentCaptureWindowModel(ContractModel):
                 {"required": ["trigger_ref"], "properties": {"trigger_ref": {"not": {"type": "null"}}}},
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "capture-window-interval-valid",
             "Capture window ends_at must not precede starts_at when both timestamps are present.",
@@ -118,10 +118,10 @@ class ExperimentCaptureRequirementModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_capture_requirement(self) -> ExperimentCaptureRequirementModel:
-        _validate_unique_string_values("window_refs", self.window_refs)
-        _validate_unique_string_values("expected_media_types", self.expected_media_types)
-        _validate_unique_string_values("required_artifact_roles", self.required_artifact_roles)
-        _validate_unique_string_values("field_selectors", self.field_selectors)
+        validate_unique_string_values("window_refs", self.window_refs)
+        validate_unique_string_values("expected_media_types", self.expected_media_types)
+        validate_unique_string_values("required_artifact_roles", self.required_artifact_roles)
+        validate_unique_string_values("field_selectors", self.field_selectors)
         if any(re.fullmatch(r"(?:/(?:[^~/]|~[01])*)*", selector) is None for selector in self.field_selectors):
             raise ValueError("field_selectors must be canonical RFC 6901 JSON Pointers")
         validate_evidence_media_declaration(self.output_contract, self.expected_media_types)
@@ -165,7 +165,7 @@ class ExperimentCaptureSpecModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_capture_spec(self) -> ExperimentCaptureSpecModel:
-        _validate_unique_string_values(
+        validate_unique_string_values(
             "capture window ids",
             [window.window_id for window in self.capture_windows],
         )
@@ -199,7 +199,7 @@ class ExperimentCaptureSpecModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "capture-requirement-key-matches-requirement-id",
             "Every capture_requirements object key must match the embedded requirement_id value, capture window ids "

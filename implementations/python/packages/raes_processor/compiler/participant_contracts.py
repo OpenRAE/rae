@@ -2,13 +2,13 @@
 
 from collections.abc import Callable
 
-from raes.participant_outcome_semantics import (
-    OutcomeInterpretationSourceLayer,
-    OutcomeInterpretationTargetLayer,
-)
 from raes.scenario import InstantiatedScenario
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.digests import sha256_hex
+from raes_contracts.participant_outcome_semantics import (
+    OutcomeInterpretationSourceLayer,
+    OutcomeInterpretationTargetLayer,
+)
 
 from ..models import (
     ParticipantActionContractRuntime,

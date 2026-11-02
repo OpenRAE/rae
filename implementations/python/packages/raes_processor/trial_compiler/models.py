@@ -27,6 +27,7 @@ from raes_contracts.contracts.mixed_composition import (
     MixedParticipantCompositionProfileModel,
 )
 from raes_contracts.contracts.mixed_composition_resolution import MixedCompositionResolutionContext
+from raes_contracts.contracts.participant_configuration import ParticipantConfigurationValidator
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.experiment_bindings import (
@@ -34,7 +35,6 @@ from raes_contracts.experiment_bindings import (
     ApparatusManifestKey,
     ParticipantManifestKey,
 )
-from raes_contracts.participant_configuration import ParticipantConfigurationValidator
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
 

@@ -2,34 +2,23 @@
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import BinaryIO, cast
+from typing import BinaryIO, Protocol, cast, runtime_checkable
 
 import rfc8785
-from blake3 import blake3
-from raes import (
-    MaterializedScenario,
-    admit_instantiated_scenario,
-    canonical_instantiated_sdl_digest,
-    canonical_materialized_sdl_digest,
-    canonical_sdl_digest,
-    instantiate_scenario,
-)
-from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
+from raes_contracts.contracts.associated_artifacts import AssociatedArtifactManifestModel
+from raes_contracts.contracts.experiment_apparatus import ExperimentApparatusContextModel
+from raes_contracts.contracts.experiment_artifacts import ExperimentArtifactRefModel
+from raes_contracts.contracts.experiment_references import AssociatedArtifactParentReferenceModel
+from raes_contracts.contracts.experiment_run import ExperimentRunModel
+from raes_contracts.contracts.experiment_spec import ExperimentSpecModel
+from raes_contracts.contracts.experiment_study_contract import ExperimentStudyModel
+from raes_contracts.contracts.experiment_task import ExperimentTaskModel
+
+from .artifact_checksums import checksum_hasher
 from .canonical import canonical_json_bytes
-from .contracts import (
-    AssociatedArtifactManifestModel,
-    ExperimentApparatusContextModel,
-    ExperimentArtifactRefModel,
-    ExperimentRunModel,
-    ExperimentSpecModel,
-    ExperimentStudyModel,
-    ExperimentTaskModel,
-    OperationArtifactReferenceModel,
-)
 from .diagnostics import Diagnostic, Severity
 from .digests import sha256_digest
 from .json_ingress import parse_bounded_json_object
@@ -42,20 +31,42 @@ _MAX_MANIFEST_BYTES = 16 * 1024 * 1024
 JSONValue = None | bool | int | float | str | list["JSONValue"] | dict[str, "JSONValue"]
 
 
-def require_instantiated_scenario_reference(
-    parent: object, reference: OperationArtifactReferenceModel, *, instantiated: object | None = None
-) -> None:
-    """Join a trusted scenario association to its admitted instantiated content."""
+@runtime_checkable
+class ArtifactParent(Protocol):
+    """A concrete parent that confirms or refuses one manifest ``parent_ref``.
 
-    if not isinstance(parent, (Scenario, InstantiatedScenario)) or reference.contract_id != "instantiated-scenario-v1":
-        raise ValueError("artifact association requires its admitted scenario reference")
-    if instantiated is not None and not isinstance(instantiated, InstantiatedScenario):
-        raise ValueError("artifact association requires an instantiated scenario")
-    if instantiated is None:
-        instantiated = parent if isinstance(parent, InstantiatedScenario) else instantiate_scenario(parent)
-    admitted = admit_instantiated_scenario(instantiated)
-    if reference.artifact_id != admitted.name or reference.digest != canonical_instantiated_sdl_digest(admitted).value:
-        raise ValueError("scenario reference does not bind its admitted instantiated content")
+    The owner of the parent type implements this interface (ADR-121). The
+    contracts package implements it for experiment models, and ``raes``
+    implements it for SDL scenarios.
+    """
+
+    def matches_parent_ref(self, reference: AssociatedArtifactParentReferenceModel) -> bool:
+        """Return whether this parent is the parent that ``reference`` names."""
+        ...
+
+
+@dataclass(frozen=True)
+class ExperimentArtifactParent:
+    """An experiment task, authoring input, apparatus context, run or study as a manifest parent."""
+
+    parent: object
+
+    def matches_parent_ref(self, reference: AssociatedArtifactParentReferenceModel) -> bool:
+        parent_shapes: dict[str, tuple[type[object], str, str]] = {
+            "task": (ExperimentTaskModel, "task_id", "task_version"),
+            "authoring-input": (ExperimentSpecModel, "spec_id", "spec_version"),
+            "apparatus-context": (ExperimentApparatusContextModel, "apparatus_context_id", "context_version"),
+            "run": (ExperimentRunModel, "run_id", "run_version"),
+            "study": (ExperimentStudyModel, "study_id", "study_version"),
+        }
+        shape = parent_shapes.get(reference.ref_kind)
+        if shape is None:
+            return False
+        expected_type, id_field, version_field = shape
+        matches = isinstance(self.parent, expected_type) and getattr(self.parent, id_field) == reference.ref_id
+        if matches and reference.ref_version is not None:
+            matches = getattr(self.parent, version_field) == reference.ref_version
+        return matches
 
 
 @dataclass(frozen=True)
@@ -120,65 +131,11 @@ def _diagnostic(code: str, address: str, message: str) -> Diagnostic:
     return Diagnostic(code=code, domain=_DOMAIN, address=address, message=message, severity=Severity.ERROR)
 
 
-def _scenario_parent_matches(manifest: AssociatedArtifactManifestModel, parent: object) -> bool:
-    reference = manifest.parent_ref
-    if reference.ref_kind == "scenario":
-        # Generic scenario association remains the incumbent id-only contract.
-        return isinstance(parent, Scenario) and parent.name == reference.ref_id
-
-    snapshot_types = (Scenario, ExpandedScenario)
-    matches = (
-        isinstance(parent, snapshot_types)
-        and not isinstance(parent, InstantiatedScenario)
-        and parent.semantic_validated
-        and parent.name == reference.ref_id
-    )
-    if matches:
-        matches = reference.ref_version is None or parent.version == reference.ref_version
-    if matches and reference.ref_digest is not None:
-        matches = canonical_sdl_digest(parent).value.casefold() == reference.ref_digest.casefold()
-    return matches
-
-
-def _experiment_parent_matches(manifest: AssociatedArtifactManifestModel, parent: object) -> bool:
-    reference = manifest.parent_ref
-    parent_shapes: dict[str, tuple[type[object], str, str]] = {
-        "task": (ExperimentTaskModel, "task_id", "task_version"),
-        "authoring-input": (ExperimentSpecModel, "spec_id", "spec_version"),
-        "apparatus-context": (ExperimentApparatusContextModel, "apparatus_context_id", "context_version"),
-        "run": (ExperimentRunModel, "run_id", "run_version"),
-        "study": (ExperimentStudyModel, "study_id", "study_version"),
-    }
-    expected_type, id_field, version_field = parent_shapes[reference.ref_kind]
-    matches = isinstance(parent, expected_type) and getattr(parent, id_field) == reference.ref_id
-    if matches and reference.ref_version is not None:
-        matches = getattr(parent, version_field) == reference.ref_version
-    return matches
-
-
-def _parent_matches(manifest: AssociatedArtifactManifestModel, parent: object) -> bool:
-    if manifest.parent_ref.ref_kind == "materialization-attestation":
-        reference = manifest.parent_ref
-        return (
-            isinstance(parent, MaterializedScenario)
-            and parent.semantic_validated
-            and parent.materialization_provenance.attestation_id == reference.ref_id
-            and reference.ref_version == "raes-sdl-materialized/v1"
-            and canonical_materialized_sdl_digest(parent).value == reference.ref_digest
-        )
-    if manifest.parent_ref.ref_kind in {"scenario", "scenario-snapshot"}:
-        return _scenario_parent_matches(manifest, parent)
-    return _experiment_parent_matches(manifest, parent)
-
-
 def _read_and_hash(reader: BinaryIO, algorithm: str, declared_size: int) -> tuple[int, str] | None:
-    if algorithm == "blake3":
-        digest = blake3()
-    else:
-        try:
-            digest = hashlib.new(algorithm)
-        except ValueError:
-            return None
+    try:
+        digest = checksum_hasher(algorithm)
+    except ValueError:
+        return None
     total = 0
     while total <= declared_size:
         chunk = reader.read(min(_CHUNK_SIZE, declared_size + 1 - total))
@@ -221,9 +178,16 @@ def _resource_limit_diagnostics(
     return tuple(diagnostics)
 
 
+def _parent_confirms(parent: object, reference: AssociatedArtifactParentReferenceModel) -> bool:
+    """Fail closed: only an :class:`ArtifactParent` that returns ``True`` confirms the reference."""
+
+    matches = getattr(parent, "matches_parent_ref", None)
+    return callable(matches) and matches(reference) is True
+
+
 def _identity_diagnostics(manifest: AssociatedArtifactManifestModel, parent: object) -> tuple[Diagnostic, ...]:
     diagnostics: list[Diagnostic] = []
-    if not _parent_matches(manifest, parent):
+    if not _parent_confirms(parent, manifest.parent_ref):
         diagnostics.append(
             _diagnostic(
                 "associated-artifact.parent-mismatch",
@@ -339,16 +303,16 @@ def _payload_diagnostics(
 def validate_associated_artifact_manifest(
     manifest: AssociatedArtifactManifestModel,
     *,
-    parent: object,
+    parent: ArtifactParent,
     artifact_readers: Mapping[str, BinaryIO],
     limits: AssociatedArtifactValidationLimits | None = None,
 ) -> tuple[Diagnostic, ...]:
     """Validate parent/set identity and every payload through bounded readers.
 
-    Scenario snapshots accept only semantically validated ``Scenario`` or
-    ``ExpandedScenario`` authoring parents. Generic scenario association keeps
-    its id-only ``Scenario`` behavior; instantiated scenarios are never
-    canonical authoring snapshot parents.
+    The parent confirms ``parent_ref`` through :class:`ArtifactParent`. Use
+    :class:`ExperimentArtifactParent` for experiment parents and
+    ``raes.associated_artifacts.ScenarioArtifactParent`` for SDL parents. Any
+    other object is a parent mismatch.
 
     The caller acquires and immutably stages payloads. This function performs no
     URI fetching, directory traversal, archive extraction, or ambient lookup.
@@ -397,11 +361,12 @@ def _payload_bindings_diagnostics(
 
 
 __all__ = [
+    "ArtifactParent",
     "AssociatedArtifactValidationLimits",
+    "ExperimentArtifactParent",
     "associated_artifact_set_bytes",
     "associated_artifact_set_digest",
     "load_associated_artifact_manifest_json",
-    "require_instantiated_scenario_reference",
     "validate_associated_artifact_manifest",
     "validate_associated_artifact_payloads",
 ]

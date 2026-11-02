@@ -37,8 +37,8 @@ from raes_contracts.contracts import (
     ExternalConceptBindingDocumentModel,
     PreservationOutcome,
     TransformationCheckOutcome,
-    schema_bundle,
 )
+from raes_schemas import schema_bundle
 
 _DIGEST_A = "sha256:" + "a" * 64
 _DIGEST_B = "sha256:" + "b" * 64

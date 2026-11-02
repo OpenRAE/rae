@@ -18,8 +18,8 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeHistoryEvent,
     ParticipantEpisodeHistoryEventType,
     ParticipantEpisodeStatus,
-    iter_participant_episode_snapshot_violations,
 )
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .behavior_history_violations import iter_participant_behavior_history_violations

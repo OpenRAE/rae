@@ -6,9 +6,9 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceModel,
     ParticipantDecisionSurfaceSelectionModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
     ParticipantDecisionSurfaceBindingResolvers,
     bind_participant_decision_surface_selection,
 )

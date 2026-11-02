@@ -35,5 +35,6 @@ Batch execution is the apparatus mechanism that turns an RAES run allocation int
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/batch_execution.py` (SCE-006 batch execution receipt contract + plan-to-schedule isolation-proof and receipt validators)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_scheduler.py` (SCE-006 deterministic batch scheduling policy (canonical order + sealed-plan admitted ceiling) over the one-entry realization seam)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_coordinate_order.py` (SCE-006 single-owner canonical trial-coordinate dispatch order helper (SVR-014/SVR-031))
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/admitted_trial_plan.py` (SCE-006 single-owner canonical trial-coordinate dispatch order helper (SVR-014/SVR-031))
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/batch-execution-receipt-v1.json` (SCE-006 published batch-execution-receipt-v1 contract (immutable per-attempt scheduling + cleanup evidence))
 - TESTS → TEST `implementations/python/tests/test_sce_006_batch_scheduler.py` (SCE-006 batch scheduler tests: deterministic order, sealed-plan isolation authority, receipt validation, conformance corpus)

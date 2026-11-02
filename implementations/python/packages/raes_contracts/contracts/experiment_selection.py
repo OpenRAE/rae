@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import Field, model_validator
-from raes.identifiers import PortableIdentifier
+
+from raes_contracts.contracts.random_stream_profiles import load_random_stream_profile
+from raes_contracts.identifiers import PortableIdentifier
 
 from ..graphs import has_cycle
 from .base import ContractModel, NonEmptyString, PositiveInteger, SemanticProfileId
@@ -262,7 +264,6 @@ def _validate_sample_control(
         raise ValueError("stochastic selection policy control must have sampling or randomization role")
     if control.executable_binding is None:
         raise ValueError("stochastic selection policy control must carry an executable binding")
-    from ..random_stream_profiles import load_random_stream_profile
 
     profile = load_random_stream_profile(control.executable_binding.profile_ref.ref_id)
     transform = profile.transforms.get("bounded-integer")

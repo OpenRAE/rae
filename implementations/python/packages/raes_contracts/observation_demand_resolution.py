@@ -33,7 +33,11 @@ from .observation_demand_scope import (
 from .observation_demand_scope import (
     selector_lifecycle_overlap_conflicts as _lifecycle_overlap_conflicts,
 )
-from .realization_structure import RealizationConstraintLimits, semantic_address_contains
+from .realization_structure import (
+    DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
+    RealizationConstraintLimits,
+    semantic_address_contains,
+)
 
 
 def _scope_applies(parent: str, child: str) -> bool:
@@ -364,12 +368,14 @@ def _scope_demands(
     return effective
 
 
-def resolve_observation_demands(
+def normalize_observation_demands(
     document: ObservationDemandDocument | None,
     *,
     target_scopes: Sequence[str],
-    limits: RealizationConstraintLimits,
+    limits: RealizationConstraintLimits = DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
 ) -> ObservationDemandResolution:
+    """Resolve scoped demand without reading data or invoking backend code."""
+
     if not target_scopes or len(target_scopes) > limits.max_members:
         raise ValueError("observation-demand-limit-exceeded")
     if len(set(target_scopes)) != len(target_scopes):
@@ -392,4 +398,4 @@ def resolve_observation_demands(
     return ObservationDemandResolution(_partition_descendant_policies(effective), tuple(diagnostics))
 
 
-__all__ = ["resolve_observation_demands"]
+__all__ = ["normalize_observation_demands"]
