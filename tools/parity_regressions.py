@@ -55,7 +55,11 @@ def read_inputs(
             raise ValueError("unknown captured regression input schema")
         if identity is not None and any(document.get("source_identity") != identity for document in documents):
             raise ValueError("captured inputs came from different test or collector source")
-        collected = {nodeid for document in documents for nodeid in document.get("collected_tests", [])}
+        collected = {
+            nodeid
+            for document in documents
+            for nodeid in document.get("expected_tests", document.get("collected_tests", []))
+        }
         executed = {nodeid for document in documents for nodeid in document.get("tests", [])}
         origin_complete = bool(collected) and collected <= executed
     records: dict[str, dict[str, object]] = {}

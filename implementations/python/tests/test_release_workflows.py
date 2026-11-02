@@ -1716,6 +1716,14 @@ def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> No
     assert "--require-complete" in check["run"]
     assert "--raw-input-dir" in check["run"]
     assert job["needs"] == "parity-inputs"
+    inputs = workflow["jobs"]["parity-inputs"]
+    assert inputs["strategy"]["matrix"]["shard"] == list(range(8))
+    capture = _named_step(inputs, "Collect public inputs from the Python tests")
+    assert "tools.pytest_shard_plugin" in capture["env"]["PYTEST_PLUGINS"]
+    assert "--shard-count=8" in capture["run"]
+    receive = _named_step(job, "Receive public regression inputs")
+    assert receive["with"]["merge-multiple"] is True
+    assert receive["with"]["pattern"] == "parity-inputs-*-${{ inputs.ref }}"
     scan = _named_step(job, "Scan decoded corpus inputs before retaining compressed data")
     assert "tools.parity_storage scan" in scan["run"]
     enforce = _named_step(job, "Enforce corpus reproduction")

@@ -230,3 +230,13 @@ backend conformance command carries its fixture/profile directories explicitly,
 including empty directories; only contract data files under the allowed input
 roots are copied. Output directories and arbitrary working directories are not
 captured. The portable setup creates recorded empty input directories.
+
+Input capture reuses `tools.pytest_shard_plugin` and its stable eight-way
+partition. Every worker retains the unpartitioned collection as well as its
+executed tests; the reducer rejects missing shard inputs. Worker metadata names
+include the shard index. Unchanged frozen data is uploaded only once. This keeps
+full input collection in CI while avoiding a single long-running capture job.
+
+Two functional durability fixtures use an explicit ten-second store budget.
+They check recovery and readback semantics under CI filesystem contention;
+production defaults and tests of deadline enforcement remain unchanged.

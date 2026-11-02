@@ -636,6 +636,10 @@ jobs:
     needs: generic-tool-local-inputs
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     services:
       ledger:
         # Disposable fixture credentials; no production data or identities.
@@ -666,11 +670,13 @@ jobs:
         id: capture
         run: |
           if uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current; then
-            mkdir -p "${RUNNER_TEMP}/parity-inputs"
-            cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
-            cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
-            if [ -d implementations/go/internal/parity/testdata/pieces ]; then
-              cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
+            if [ "${{ matrix.shard }}" = "0" ]; then
+              mkdir -p "${RUNNER_TEMP}/parity-inputs"
+              cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
+              cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
+              if [ -d implementations/go/internal/parity/testdata/pieces ]; then
+                cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
+              fi
             fi
             echo "needed=false" >> "${GITHUB_OUTPUT}"
           else
@@ -702,27 +708,32 @@ jobs:
         working-directory: implementations/python
         env:
           RAES_PARITY_INPUT_DIR: ${{ runner.temp }}/parity-inputs
-          PYTEST_PLUGINS: tools.parity_inputs
+          PYTEST_PLUGINS: tools.parity_inputs,tools.pytest_shard_plugin
+          RAES_PARITY_SHARD_INDEX: ${{ matrix.shard }}
           PYTHONPATH: ${{ github.workspace }}
           RAES_EXECUTION_INTEGRATION: "1"
           RAES_TEST_PG_HOST: "127.0.0.1"
           RAES_TEMPORAL_CLI: ${{ github.workspace }}/implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
         run: |
-          uv run --all-extras --frozen python -m pytest -q -o addopts= \
+          if [ "${{ matrix.shard }}" = "0" ]; then
+            uv run --all-extras --frozen python -m pytest -q -o addopts= \
             tests/test_parity_surfaces.py tests/test_parity_storage.py tests/test_issue_1778_parity_corpus.py \
             tests/test_issue_1678_sweep_r1.py \
             tests/test_issue_1678_sweep_t.py::test_crossing_cli_reports_a_damaged_catalog_revision_as_failed_validation \
             tests/test_issue_1678_operational_logging.py::test_application_handler_reports_a_failed_write_without_values
-          uv run --all-extras --frozen python -m pytest -q -n auto --maxprocesses=8 --dist=loadfile -o addopts= tests
+          fi
+          uv run --all-extras --frozen python -m pytest -q -n auto --maxprocesses=4 --dist=loadfile -o addopts= \
+            --shard-count=8 --shard-index="${{ matrix.shard }}" tests
       - name: Check captured inputs for credentials before upload
         if: steps.capture.outputs.needed == 'true'
         run: >-
           uv run --project implementations/tooling/python --frozen --no-default-groups
           python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-inputs"
       - name: Retain public regression inputs
+        if: steps.capture.outputs.needed == 'true' || matrix.shard == 0
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: parity-inputs-${{ inputs.ref }}
+          name: parity-inputs-${{ matrix.shard }}-${{ inputs.ref }}
           path: |
             ${{ runner.temp }}/parity-inputs
             ${{ runner.temp }}/inputs
@@ -753,7 +764,8 @@ jobs:
       - name: Receive public regression inputs
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: parity-inputs-${{ inputs.ref }}
+          pattern: parity-inputs-*-${{ inputs.ref }}
+          merge-multiple: true
           path: ${{ runner.temp }}/parity-recording-inputs
       - name: Receive locked scanner inputs
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2

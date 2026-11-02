@@ -269,3 +269,17 @@ def test_cli_command_identity_follows_command_position_and_root_options() -> Non
         InputCollector.command(["--log-level", "warning", "runtime", "store", "check", "file"]) == "runtime store check"
     )
     assert InputCollector.command(["--version", "runtime", "store", "check"]) == "root"
+
+
+def test_capture_reducer_requires_every_partition_of_the_full_collection(tmp_path: Path, monkeypatch) -> None:
+    identity = {"test_tree": "a" * 40, "collector_sha256": "b" * 64}
+    monkeypatch.setattr(regressions, "source_identity", lambda repo: identity)
+    expected = {"tests/test_one.py::test_first", "tests/test_two.py::test_second"}
+    for index, nodeid in enumerate(sorted(expected)):
+        collector = InputCollector(tmp_path, tmp_path)
+        collector.expected_tests = expected
+        collector.collected_tests = {nodeid}
+        collector.tests = {nodeid}
+        collector.write("shard-" + str(index))
+        _, inventory, _ = regressions.read_inputs(tmp_path, identity=identity)
+        assert inventory["complete"] is (index == 1)

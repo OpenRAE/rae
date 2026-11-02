@@ -33,6 +33,7 @@ class InputCollector:
         self.nodeid = "collection"
         self.tests: set[str] = set()
         self.collected_tests: set[str] = set()
+        self.expected_tests: set[str] = set()
         self.non_protocol_tests: set[str] = set()
         self.records: dict[str, dict[str, object]] = {}
         self.blobs: dict[str, bytes] = {}
@@ -520,6 +521,7 @@ class InputCollector:
                 "worker": worker,
                 "tests": sorted(self.tests),
                 "collected_tests": sorted(self.collected_tests),
+                "expected_tests": sorted(self.expected_tests or self.collected_tests),
                 "non_protocol_tests": sorted(self.non_protocol_tests),
                 "source_identity": source_identity(self.repo),
                 "inputs": records,
@@ -554,7 +556,8 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     collector = getattr(session.config, "_parity_input_collector", None)
     if collector is not None:
         worker = os.environ.get("PYTEST_XDIST_WORKER", "main")
-        collector.write(worker)
+        shard = os.environ.get("RAES_PARITY_SHARD_INDEX", "0")
+        collector.write("shard-" + shard + "-" + worker)
         collector.close()
 
 
@@ -562,3 +565,10 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     collector = getattr(session.config, "_parity_input_collector", None)
     if collector is not None:
         collector.collected_tests.update(item.nodeid for item in session.items)
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    collector = getattr(config, "_parity_input_collector", None)
+    if collector is not None:
+        collector.expected_tests.update(item.nodeid for item in items)
