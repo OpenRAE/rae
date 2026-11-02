@@ -167,6 +167,10 @@ def test_check_reports_drift(repo: Path) -> None:
 
 def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.MonkeyPatch, capsys) -> None:
     monkeypatch.setattr(pc, "supported_contracts", lambda: ["demo-v1"])
+    monkeypatch.setattr(pc, "all_cases", lambda root: list(pc.schema_cases(root)))
+    from tools import parity_regressions
+
+    monkeypatch.setattr(parity_regressions, "source_identity", lambda root: None)
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err
@@ -205,7 +209,11 @@ def test_provenance_identifies_the_python_source_and_locked_environment(
     ]
     assert result["python_commit"] == "a" * 40
     assert result["python_tree"] == "b" * 40
-    assert result["recorder_sha256"] == pc.digest(Path(pc.__file__).read_bytes())
+    assert result["recorder_sha256"] == pc.digest(
+        pc.encode(
+            {path.name: pc.digest(path.read_bytes()) for path in sorted(Path(pc.__file__).parent.glob("parity_*.py"))}
+        )
+    )
     assert result["lock_sha256"] == pc.digest(b"locked environment")
     assert result["python_version"] == ".".join(map(str, pc.sys.version_info[:3]))
 

@@ -617,10 +617,99 @@ jobs:
           path: ${{ matrix.path }}/cover.out
           if-no-files-found: error
 
+  # Capture public regression inputs only when their source or collector changes.
+  # The ordinary shards, integration and fuzz jobs retain their normal environments.
+  parity-inputs:
+    needs: generic-tool-local-inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    services:
+      ledger:
+        # Disposable fixture credentials; no production data or identities.
+        image: docker.io/library/postgres@sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df
+        env:
+          POSTGRES_DB: rae_ledger
+          POSTGRES_USER: rae_ledger
+          POSTGRES_PASSWORD: integration-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U rae_ledger -d rae_ledger"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Decide whether regression inputs need collection
+        id: capture
+        run: |
+          if uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current; then
+            mkdir -p "${RUNNER_TEMP}/parity-inputs"
+            cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
+            cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
+            echo "needed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "needed=true" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Receive locked generic-tool inputs
+        if: steps.capture.outputs.needed == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+      - name: Install locked generic tools from local inputs
+        if: steps.capture.outputs.needed == 'true'
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
+      - name: Fetch and verify the locked Temporal test server
+        if: steps.capture.outputs.needed == 'true'
+        run: |
+          mkdir -p implementations/tooling/.cache/runtime-integration-inputs
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.bootstrap_profile fetch-inputs \
+            public-ubuntu-24.04-x86_64 implementations/tooling/.cache/runtime-integration-inputs --artifact-id temporal-cli-runtime-test
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m implementations.tooling.runtime_execution_ci \
+            implementations/tooling/.cache/runtime-integration-inputs/archives/temporal-cli-runtime-test/temporal_cli_1.9.1_linux_amd64.tar.gz \
+            implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+      - name: Collect public inputs from the Python tests
+        if: steps.capture.outputs.needed == 'true'
+        working-directory: implementations/python
+        env:
+          RAES_PARITY_INPUT_DIR: ${{ runner.temp }}/parity-inputs
+          PYTEST_PLUGINS: tools.parity_inputs
+          PYTHONPATH: ${{ github.workspace }}
+          RAES_EXECUTION_INTEGRATION: "1"
+          RAES_TEST_PG_HOST: "127.0.0.1"
+          RAES_TEMPORAL_CLI: ${{ github.workspace }}/implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+        run: uv run --all-extras --frozen python -m pytest -q -n auto --maxprocesses=8 --dist=loadfile -o addopts= tests
+      - name: Check captured inputs for credentials before upload
+        if: steps.capture.outputs.needed == 'true'
+        run: gitleaks dir --no-banner --redact=100 --config .gitleaks.toml "${RUNNER_TEMP}/parity-inputs"
+      - name: Retain public regression inputs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: parity-inputs-${{ inputs.ref }}
+          path: |
+            ${{ runner.temp }}/parity-inputs
+            ${{ runner.temp }}/inputs
+          if-no-files-found: error
+          retention-days: 1
+
   # The golden parity corpus of the Go port (issue #1778). The Python
   # implementation must reproduce the committed corpus. When it does not, the
   # job uploads the corpus that it recorded.
   parity-corpus:
+    needs: parity-inputs
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -636,10 +725,15 @@ jobs:
         with:
           enable-cache: false
           version: "0.13.4"
+      - name: Receive public regression inputs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: parity-inputs-${{ inputs.ref }}
+          path: ${{ runner.temp }}/parity-recording-inputs
       - name: Check that the Python implementation reproduces the corpus
         run: >-
-          uv run --project implementations/python --frozen
-          python -m tools.parity_corpus check --output-dir "${RUNNER_TEMP}/parity-corpus"
+          uv run --project implementations/python --all-extras --frozen
+          python -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus"
       - name: Upload the recorded corpus
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -25,13 +25,11 @@ committed corpus differs, and it can write the fresh corpus for review.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import shutil
 import subprocess
 import sys
 from collections.abc import Iterable, Iterator, Mapping
-from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +44,8 @@ from raes_conformance.conformance import contract_payload_root  # noqa: E402
 from raes_contracts.contracts import schema_bundle  # noqa: E402
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
+
+from tools.parity_support import Case, digest, encode, json_output  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
 SCHEMA = "raes-parity-corpus/v1"
@@ -65,23 +65,6 @@ PORTABLE_COMMANDS = ("validate", "inspect", "conformance")
 UNSUPPORTED_PORTABLE_COMMANDS = ("parse", "normalize", "resolve", "compile")
 MANIFEST = Path("manifest.json")
 PUBLICATION_ENTRIES = Path("contracts/schema-publication/entries")
-
-
-@dataclass(frozen=True)
-class Case:
-    """One invocation of a surface command with its input files."""
-
-    surface: str
-    command: str
-    name: str
-    args: tuple[str, ...]
-    files: Mapping[str, bytes]
-
-    @property
-    def path(self) -> Path:
-        """Return the case file path relative to the corpus directory."""
-
-        return Path("cases", self.surface, self.command.replace(" ", "-"), digest(self.name.encode()) + ".json")
 
 
 def semantic_case(command: str, contract: str, source: Path, repo: Path, *options: str, name: str = "") -> Case:
@@ -138,9 +121,8 @@ def contract_fixtures(repo: Path, contracts: Iterable[str]) -> Iterator[tuple[st
     root = repo / "contracts" / "fixtures"
     for contract in sorted(contracts):
         for directory in sorted(path for path in root.rglob(contract) if path.is_dir()):
-            for kind in ("valid", "invalid"):
-                for fixture in sorted((directory / kind).glob("*.json")):
-                    yield contract, fixture
+            for fixture in sorted(directory.rglob("*.json")):
+                yield contract, fixture
 
 
 def portable_cases(repo: Path, contracts: Iterable[str]) -> Iterator[Case]:
@@ -180,39 +162,89 @@ def schema_cases(repo: Path) -> Iterator[Case]:
 
 
 def all_cases(repo: Path) -> list[Case]:
-    """Return every case of the corpus, sorted by case path."""
+    """Enumerate the exposed registries, examples, fixtures and regressions."""
+    from tools import parity_surfaces as surfaces
 
-    cases = [
-        *sdl_cases(repo),
-        *portable_cases(repo, supported_contracts()),
-        *schema_cases(repo),
-    ]
+    sources = [path for path in surfaces.data_inputs(repo) if path.suffix in {".yaml", ".yml"}]
+    cases = [*sdl_cases(repo), *portable_cases(repo, supported_contracts()), *schema_cases(repo)]
+    existing_sdl = {case.name for case in cases if case.command == "semantic parse"}
+    for source in sources:
+        if source.relative_to(repo).with_suffix("").as_posix() not in existing_sdl:
+            for command in SDL_COMMANDS:
+                cases.append(semantic_case(command, SDL_CONTRACT, source, repo))
+    cases.extend(surfaces.extended_cli_cases(repo, sources))
+    cases.extend(surfaces.schema_source_cases(repo))
+    cases.extend(surfaces.mcp_cases(repo, sources, surfaces.mcp_registry()))
+    cases.extend(surfaces.http_cases(surfaces.http_schema()))
+    cases.extend(surfaces.http_trace_cases())
+    for surface in ("cli-schema", "mcp-schema", "http-schema"):
+        cases.append(Case(surface, "registry", "reference", (), {}))
     return sorted(cases, key=lambda case: case.path)
 
 
 def normalized_output(stdout: str) -> object:
-    """Return JSON standard output without diagnostic messages, or ``None`` for other output."""
-
-    try:
-        output = json.loads(stdout)
-    except ValueError:
-        return None
-    if isinstance(output, dict) and isinstance(output.get("diagnostics"), list):
-        for diagnostic in output["diagnostics"]:
-            if isinstance(diagnostic, dict):
-                diagnostic.pop("message", None)
-    return output
+    """Retain machine-readable output without free diagnostic wording."""
+    return json_output(stdout)
 
 
 def run_cli(case: Case) -> dict[str, object]:
-    """Run one CLI case in an isolated directory and return its exit code and output."""
+    """Run a CLI case, its explicit setup, and observe generated JSON files."""
+    from tools.parity_surfaces import machine_text
 
     runner = CliRunner()
     with runner.isolated_filesystem():
         for name, content in case.files.items():
-            Path(name).write_bytes(content)
-        result = runner.invoke(app, list(case.args), catch_exceptions=False)
-    return {"exit_code": result.exit_code, "stdout": normalized_output(result.stdout)}
+            target = Path(name)
+            if target.is_absolute() or ".." in target.parts:
+                raise ValueError("a corpus input path escapes its case")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+        recipes = json.loads(case.files.get("input-recipes.json", b"{}"))
+        for name, recipe in recipes.items():
+            target = Path(name)
+            if target.is_absolute() or ".." in target.parts:
+                raise ValueError("a generated input path escapes its case")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if recipe["kind"] == "public-test-ed25519":
+                from cryptography.hazmat.primitives import serialization
+                from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+                content = Ed25519PrivateKey.from_private_bytes(
+                    bytes.fromhex(digest(recipe["seed_id"].encode()))
+                ).private_bytes(
+                    serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
+                )
+            elif recipe["kind"] == "invalid-key":
+                content = b"not a private key\n"
+            else:
+                raise ValueError("unknown input recipe")
+            target.write_bytes(content)
+        setup = json.loads(case.files.get("setup.json", b"{}"))
+        if "store" in setup:
+            from raes_runtime.control_plane_store import LocalControlPlaneStore
+
+            store = LocalControlPlaneStore(Path(setup["store"]))
+            owner = store.admit_runtime(target_scope="target:stub", run_scope="run:parity")
+            store.close()
+            owner.close()
+        for command in setup.get("commands", []):
+            runner.invoke(app, command, catch_exceptions=False)
+        result = runner.invoke(app, list(case.args), input=case.files.get("stdin.bin"), catch_exceptions=False)
+        stdout = normalized_output(result.stdout)
+        if stdout is None and case.command == "sdl format":
+            stdout = machine_text(result.stdout)
+        if stdout is None and result.stdout.strip().startswith("control-plane-store-"):
+            stdout = result.stdout.strip()
+        output = {"exit_code": result.exit_code, "stdout": stdout}
+        generated = {}
+        for target in sorted(Path(".").rglob("*.json")):
+            name = target.as_posix()
+            content = target.read_bytes()
+            if name not in case.files or case.files[name] != content:
+                generated[name] = normalized_output(content.decode("utf-8"))
+        if generated:
+            output["generated_files"] = generated
+    return output
 
 
 def run_schema(repo: Path, case: Case) -> dict[str, object]:
@@ -229,17 +261,25 @@ def run_schema(repo: Path, case: Case) -> dict[str, object]:
 
 
 def run(repo: Path, case: Case) -> dict[str, object]:
-    """Return the result of one case."""
+    """Invoke only the adapter explicitly named by the case."""
+    from tools import parity_surfaces as surfaces
 
-    return run_cli(case) if case.surface == "cli" else run_schema(repo, case)
-
-
-def digest(content: bytes) -> str:
-    return hashlib.sha256(content).hexdigest()
-
-
-def encode(document: object) -> bytes:
-    return (json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode()
+    with surfaces.recording_context(case.surface + "/" + case.command + "/" + case.name):
+        if case.surface == "cli":
+            return run_cli(case)
+        if case.surface == "schema":
+            return run_schema(repo, case)
+        if case.surface == "mcp":
+            return surfaces.run_mcp(case)
+        if case.surface in {"http", "http-trace"}:
+            return surfaces.run_http(case)
+        if case.surface == "cli-schema":
+            return {"commands": surfaces.cli_registry()}
+        if case.surface == "mcp-schema":
+            return {"tools": surfaces.mcp_registry()}
+        if case.surface == "http-schema":
+            return surfaces.http_schema()
+    raise ValueError(f"unknown parity surface: {case.surface}")
 
 
 def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]:
@@ -269,16 +309,22 @@ def provenance(repo: Path) -> dict[str, str]:
     return {
         "python_commit": commit,
         "python_tree": tree,
-        "recorder_sha256": digest(Path(__file__).read_bytes()),
+        "recorder_sha256": digest(
+            encode({path.name: digest(path.read_bytes()) for path in sorted(Path(__file__).parent.glob("parity_*.py"))})
+        ),
         "python_version": ".".join(map(str, sys.version_info[:3])),
         "lock_sha256": digest((repo / "implementations/python/uv.lock").read_bytes()),
     }
 
 
-def build_corpus(repo: Path, cases: Iterable[Case]) -> dict[Path, bytes]:
+def build_corpus(
+    repo: Path, cases: Iterable[Case], *, inventory: Mapping[str, object] | None = None
+) -> dict[Path, bytes]:
     """Record each case and return the corpus files by path."""
 
     files = {MANIFEST: encode({"schema": SCHEMA, "provenance": provenance(repo)})}
+    if inventory is not None:
+        files[Path("inventory.json")] = encode(inventory)
     for case in cases:
         if case.path in files:
             raise ValueError(f"duplicate corpus case: {case.path}")
@@ -325,6 +371,8 @@ def parse_args(argv: Iterable[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Record or check the golden parity corpus.")
     parser.add_argument("mode", choices=("record", "check"))
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
+    parser.add_argument("--regression-inputs", type=Path)
+    parser.add_argument("--require-complete", action="store_true")
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -336,7 +384,38 @@ def parse_args(argv: Iterable[str] | None) -> argparse.Namespace:
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv)
     repo = args.repo_root.resolve()
-    recorded = build_corpus(repo, all_cases(repo))
+    from tools import parity_regressions as regressions
+    from tools.parity_surfaces import complete_inventory
+
+    cases = all_cases(repo)
+    frozen_root = args.regression_inputs or (repo / regressions.FROZEN)
+    identity = (
+        regressions.source_identity(repo)
+        if (frozen_root / "manifest.json").is_file() or args.regression_inputs
+        else None
+    )
+    captured, coverage, frozen = regressions.read_inputs(frozen_root, identity=identity)
+    cases.extend(captured)
+    inventory = complete_inventory(repo, cases, coverage)
+    if args.require_complete and not inventory["complete"]:
+        if args.output_dir is not None:
+            write_corpus(args.output_dir, {Path("inventory.json"): encode(inventory)})
+        print(
+            "parity corpus: incomplete inventory: "
+            + json.dumps(
+                {
+                    "missing_surfaces": inventory["missing_surfaces"],
+                    "missing_inputs": inventory["missing_inputs"],
+                    "regression_complete": coverage["complete"],
+                }
+            ),
+            file=sys.stderr,
+        )
+        return 1
+    recorded = build_corpus(repo, cases, inventory=inventory)
+    recorded.update(
+        {Path("regressions", name): content for name, content in frozen.items() if name.parts[0] != "blobs"}
+    )
     if args.mode == "record":
         write_corpus(repo / CORPUS_DIR, recorded)
         print(f"parity corpus: recorded {len(recorded)} files")

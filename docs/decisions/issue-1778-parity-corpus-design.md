@@ -107,3 +107,85 @@ empty or duplicate cases, and malformed input digests.
 Coverage inventory must distinguish observed cases from complete surface coverage.
 The parent issue remains incomplete until every exposed surface, published contract,
 fixture, example and exposed Python regression input has recorded behavior.
+
+## Complete exposed-surface recording
+
+The development-tool recorder owns the additional adapters; Python product code
+is unchanged. `tools/parity_support.py` owns the case format, canonical JSON,
+diagnostic normalization and deterministic recording context.
+`tools/parity_surfaces.py` owns enumeration and invocation of CLI, MCP and HTTP
+surfaces. `tools/parity_inputs.py` is a CI-only pytest input collector. The
+existing `tools/parity_corpus.py` remains the recording/checking entry point.
+No Go dependency direction changes: future ports still register runners through
+the parity package's existing entry point.
+
+The inventory is derived from the live CLI registry, MCP registry, HTTP OpenAPI
+route table and schema-publication entries. It lists all fixtures and examples,
+including source fragments and context fixtures, and all regression input cases
+collected by CI. Completeness is derived from these sets, rather than from a
+hand-maintained assertion that the corpus is complete. Missing cases fail the
+recording job. New operations therefore require recordings before CI passes.
+
+The recorder adds command/flag definitions, tool input/output schemas and the
+HTTP OpenAPI contract as machine-readable cases, excluding descriptions and help
+wording. It records successful and refused invocations, each published contract's
+real sample inputs, all source examples and fixture inputs, and the captured
+regression inputs. Prose-only tool results retain their protocol envelope but
+not their wording; JSON/YAML payloads and diagnostic codes/locations are retained.
+Authored payload data is never removed merely because its field is named message.
+
+The regression collector observes calls without replacing their assertions or
+results. CI collects inputs at the CLI, MCP, HTTP, SDL source, analysis-file and published-contract validation boundaries. It
+retains source test identities as provenance and deduplicates identical inputs.
+Recorded invocations run against an explicitly declared reference configuration;
+the corpus does not pretend that private Python mocks are a portable backend.
+HTTP regression requests use the same in-memory reference target, fixed clock,
+identity policy and initial state as the ordinary HTTP corpus cases. This keeps
+the configuration that determines their result visible to Go runners. Stateful
+reference traces retain their ordered setup requests.
+
+UUIDs generated during recording use a case-specific deterministic stream. Wall
+clocks use the public clock injection points (ADR-118). Temporary input paths
+are mapped into case-local files, preserving local source dependencies. The
+collector never reads secret files, never copies a complete working directory,
+and never records host credentials. Generated signing keys use an explicit
+public test-key recipe rather than storing private-key material. Input
+collection and corpus generation run only in isolated CI without repository
+write credentials. Existing CI artifacts carry the recordings; publication to
+the PR remains a separate controlled fast-forward push.
+
+```mermaid
+flowchart LR
+    Tests[Existing CI tests] --> Observe[Input collector]
+    Observe --> Inputs[Deduplicated public inputs and origins]
+    Registry[CLI, MCP, HTTP and contract registries] --> Inventory[Surface inventory]
+    Examples[Examples and fixtures] --> Record[Reference recorder]
+    Inputs --> Record
+    Inventory --> Record
+    Record --> Fresh[Fresh corpus and inventory]
+    Fresh --> Compare[Compare committed corpus]
+    Compare --> Gate[CI result]
+    Fresh --> Artifact[Existing CI artifact storage]
+    Committed[Committed corpus] --> Go[Go parity runners]
+    Go --> Gate
+```
+
+Invariants:
+
+- Registry identities and all declared inputs have recorded cases.
+- A recording and its reproduction have the same source and environment identity.
+- The collector does not change the original call's return value or exception.
+- Private test doubles are not treated as part of the portable exposed contract.
+- No path escapes the case's input root, and no private signing material is stored.
+- Normalization controls nondeterminism and free text, while retaining numeric
+  values, payload structure, status/exit codes, diagnostic codes and locations.
+- A completed Go surface cannot become a passing skip.
+
+
+The input-capture job is separate from the normal shards, integration and fuzz
+jobs. It runs all test markers in isolated CI with a deterministic Hypothesis
+profile and public, reproducible UUID/signing-key fixtures; the ordinary jobs
+retain their original environments. The test tree and collector source digests
+bind the frozen inputs. Unchanged sources reuse those inputs; changed sources
+require a new complete capture. Non-JSON Python-only probes are listed explicitly
+as non-protocol tests rather than being presented as JSON-RPC payloads.
