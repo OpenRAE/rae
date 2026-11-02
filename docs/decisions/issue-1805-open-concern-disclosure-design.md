@@ -9,21 +9,13 @@ ADR-036 preserves these package boundaries.
 
 The shared evaluator serves both public planner interfaces:
 `realization_disclosure` and `realization_authority_disclosure`.
-An applicable open concern with a verification floor requires an explicit report
-when the selected manifest declares readback for its kind.
-A missing value does not establish an empty concern.
-An explicit empty collection uses the existing concern validator and corroboration checks.
-A valid reported value produces backend realization provenance.
-An absent report produces no success provenance.
-
-The requirement's verification scope and observation strength select the evidence contract.
-Concerns without a verification floor retain their existing omission behavior.
+For an open concern that the author leaves empty, any backend may omit the
+report or report an empty collection without a matching observation.
+This means that the backend added no member and earns no provenance.
+Issue #1844 removes the former capability-dependent proof of absence rule.
+Reported members and matching observations retain full validation and corroboration.
+Authored constraints and author observation demands remain binding.
 Missing operations and DELETE operations retain their existing applicability rules.
-The planner admits authored-empty open concerns without observation capability.
-Issue #1828 aligns the runtime gate with that admission.
-A backend without readback for the kind adds no member.
-Its omission or empty report produces no provenance and needs no corroboration.
-A reported member or an unsupported readback disclosure still fails.
 
 The concern registry owns payload paths and safe projections.
 The existing observation matcher owns identity matching.
@@ -62,7 +54,7 @@ No new deployment component requires another diagram.
 The protected assets are realization integrity, provenance, prior state, and confidential values.
 The backend result crosses the trust boundary shown above.
 An omitted report can conceal a backend addition.
-Explicit readback and corroboration prevent omission from becoming a success claim.
+Reported values and observation claims require corroboration; omission earns no provenance.
 Behavioral tests exercise both public interfaces and the runtime adapter.
 
 Malformed reports use the existing closed validators.
@@ -91,7 +83,7 @@ No new observer, collection service, network transfer, or authentication surface
 
 ## Supporting artifacts
 
-The SEM-218 specification and its reference explanation describe the explicit-report rule.
+The SEM-218 specification and its reference explanation describe the open concern report rule.
 The existing module policy already enforces ownership and import direction.
 No policy configuration or architecture configuration change is required.
 No new ADR is required because ADR-036 already assigns these responsibilities.

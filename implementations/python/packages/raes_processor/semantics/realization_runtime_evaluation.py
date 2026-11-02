@@ -37,7 +37,6 @@ from .realization_runtime_common import (
     MISSING_CONCERN_VALUE,
     OPERATING_SYSTEM_REQUIREMENT_KINDS,
     concern_value,
-    declares_readback,
     manifest_corroborates,
     matching_observation,
     observation_posture_supported,
@@ -120,20 +119,16 @@ def _left_empty_without_readback(
     requirement: CompiledRealizationRequirement,
     realized_value: object,
     returned_snapshot: RuntimeSnapshot,
-    manifest: BackendManifest | None,
 ) -> bool:
-    """Accept no member where the planner admitted the concern without readback.
+    """Accept an authored-empty concern left empty without a readback claim.
 
-    A backend without readback for an authored-empty open concern cannot corroborate a
-    member, so it must add none. Its omission or empty report realizes nothing and
-    earns no provenance. A reported member, or a readback claim that the manifest
-    cannot support, still fails corroboration (SEM-218 I2).
+    Omission or an empty report earns no provenance regardless of capability.
+    Reported members and matching observations still require corroboration.
     """
 
     return (
         requirement.authored_empty
         and (realized_value is MISSING_CONCERN_VALUE or realized_value == [])
-        and not declares_readback(requirement, manifest)
         and matching_observation(requirement, returned_snapshot) is None
     )
 
@@ -144,7 +139,7 @@ def _evaluate_open_realization(
     returned_snapshot: RuntimeSnapshot,
     manifest: BackendManifest | None,
 ) -> tuple[Diagnostic | None, RealizationProvenanceEntry | None]:
-    if _left_empty_without_readback(requirement, realized_value, returned_snapshot, manifest):
+    if _left_empty_without_readback(requirement, realized_value, returned_snapshot):
         return None, None
     if realized_value is MISSING_CONCERN_VALUE and (
         requirement.verification_scope is not None or requirement.required_observation_strength is not None

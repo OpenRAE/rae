@@ -442,15 +442,12 @@ persistence.
 
 An open concern that the author leaves empty has no authored structure or
 constraint document. Planning MUST NOT require observation capability for
-that concern. The selected manifest then decides the runtime contract.
+that concern.
 
-- A backend that declares the capability MUST include an explicit report and
-  sufficient corroboration when the concern has a verification floor. Missing
-  data from that backend MUST NOT establish an empty concern, even when
-  observation metadata is present.
-- A backend without the capability cannot corroborate a member, so it MUST
-  add no member to the concern. Its omission or explicit empty report
-  establishes that no member exists and produces no provenance.
+- For any backend, omission or an explicit empty report without a matching
+  observation establishes that the backend added no member and produces no
+  provenance. A reported member or a matching observation MUST undergo full
+  corroboration. Proof of absence is required only when the author demands it.
 - The runtime gate MUST reject a malformed report, a reported member without
   sufficient corroboration, and a readback disclosure that the manifest cannot
   support.

@@ -51,8 +51,9 @@ def _evaluate(route, requirement, provisioning, snapshot, manifest):
 
 @pytest.mark.parametrize("route", ["compiled", "portable"])
 @pytest.mark.parametrize("kind", sorted(_FIELDS))
-def test_a_backend_without_readback_realizes_no_member_without_a_report(route, kind):
-    requirement, provisioning, operation, manifest = _case(kind)
+@pytest.mark.parametrize("capable", [False, True])
+def test_a_backend_realizes_no_member_without_a_report(route, kind, capable):
+    requirement, provisioning, operation, manifest = _case(kind, {kind: _CAPABILITY} if capable else None)
 
     for snapshot in (
         _snapshot(operation, requirement),
@@ -76,13 +77,13 @@ def test_a_backend_without_readback_cannot_report_a_member(kind):
 
 
 @pytest.mark.parametrize("kind", sorted(_FIELDS))
-def test_a_backend_with_readback_must_report_the_concern(kind):
+def test_a_backend_with_readback_can_leave_the_concern_empty(kind):
     requirement, provisioning, operation, manifest = _case(kind, {kind: _CAPABILITY})
 
     diagnostics, provenance = realization_disclosure(
         (requirement,), provisioning, _snapshot(operation, requirement), manifest=manifest
     )
-    assert [item.code for item in diagnostics] == ["runtime.backend-contract-invalid"]
+    assert diagnostics == []
     assert provenance == ()
 
     diagnostics, provenance = realization_disclosure(
