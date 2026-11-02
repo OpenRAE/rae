@@ -56,9 +56,9 @@ from raes_contracts.json_serialization import sorted_json_text_finite, sorted_js
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
 
-from tools import parity_primitives  # noqa: E402
+from tools import parity_primitives, parity_shared  # noqa: E402
 from tools.parity_records import case_document  # noqa: E402
-from tools.parity_support import Case, digest, encode, json_output  # noqa: E402
+from tools.parity_support import REQUEST_FILE, Case, digest, encode, json_output  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
 SCHEMA = "raes-parity-corpus/v2"
@@ -101,6 +101,15 @@ CANONICAL_EDGE_TEXTS = (
     "NaN",
     "-" + "9" * 4300,
     "9" * 4301,
+    r'"\ud800"',
+    r'"\uDFFF"',
+    r'"\ud800x\udfff"',
+    r'"\ud800\ud800\udc00"',
+    r'["\udc00", "\ufffd", "\\ud800", "\ud83d\ude00"]',
+    r'{"\ud800":1,"\ufffd":2,"\ud800":3,"😀":4,"\ue000":5}',
+    r'{"\ud83d\ude00":1,"😀":2}',
+    r'{"a":"\ud800","a":1}',
+    '{"a":' + "9" * 4301 + ',"a":1}',
 )
 
 SDL_CONTRACT = "sdl-yaml/v1"
@@ -317,13 +326,24 @@ def primitive_cases() -> Iterator[Case]:
         *parity_primitives.primitive_requests(),
         *parity_primitives.compatibility_requests(),
     ):
-        yield Case("primitive", command, name, (), {"request.json": encode(request)})
+        yield Case("primitive", command, name, (), {REQUEST_FILE: encode(request)})
 
 
 def run_primitive(case: Case) -> dict[str, object]:
     """Record one reference primitive outcome."""
 
-    return parity_primitives.run_primitive(case.command, json.loads(case.files["request.json"]))
+    return parity_primitives.run_primitive(case.command, json.loads(case.files[REQUEST_FILE]))
+
+
+def shared_cases() -> Iterator[Case]:
+    """Yield the remaining issue-1779 primitive requests."""
+    for command, name, request in parity_shared.requests():
+        yield Case("shared", command, name, (), {REQUEST_FILE: encode(request)})
+
+
+def run_shared(case: Case) -> dict[str, object]:
+    """Record the unchanged Python reference for a shared primitive."""
+    return parity_shared.run(case.command, json.loads(case.files[REQUEST_FILE]))
 
 
 def all_cases(repo: Path) -> list[Case]:
@@ -338,6 +358,7 @@ def all_cases(repo: Path) -> list[Case]:
         *canonical_cases(repo),
         *randstream_cases(repo),
         *primitive_cases(),
+        *shared_cases(),
     ]
     existing_sdl = {case.name for case in cases if case.command == "semantic parse"}
     for source in sources:
@@ -461,6 +482,7 @@ def run(repo: Path, case: Case) -> dict[str, object]:
 
     recorders = {
         "primitive": lambda: run_primitive(case),
+        "shared": lambda: run_shared(case),
         "canonical": lambda: run_canonical(case),
         "randstream": lambda: run_randstream(case),
         "cli": lambda: run_cli(case),

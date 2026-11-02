@@ -627,9 +627,12 @@ def complete_inventory(repo: Path, cases: list[Case], regressions: dict[str, obj
     leaves = {
         command for command in registry if command and not any(other.startswith(command + " ") for other in registry)
     }
+    from tools import parity_shared
+
     expected = {
         "cli": leaves,
         "canonical": {"encode"},
+        "shared": {command for command, _, _ in parity_shared.requests()},
         "randstream": {"vector"},
         "primitive": {"ingress", "ingress-exception", "uri", "pointer", "tokens", "address", "render", "plan-root"},
         "mcp": set(mcp_registry()),

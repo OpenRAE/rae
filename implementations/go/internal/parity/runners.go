@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+
 	"math/big"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
@@ -16,6 +18,17 @@ import (
 // its runner. Each Go port adds the commands that it implements.
 func runners() map[string]Runner {
 	return map[string]Runner{
+		"shared timestamp":            shared,
+		"shared version":              shared,
+		"shared domain":               shared,
+		"shared graph":                shared,
+		"shared value":                shared,
+		"shared carrier":              shared,
+		"shared secret":               shared,
+		"shared digest":               shared,
+		"shared log":                  shared,
+		"shared fault":                shared,
+		"shared clock":                shared,
 		"canonical encode":            canonicalEncode,
 		"randstream vector":           randstreamVector,
 		"primitive ingress":           primitive,
@@ -32,7 +45,10 @@ func runners() map[string]Runner {
 // canonicalEncode returns the digest of each canonical form of a JSON value,
 // or null for a form that refuses the value (issue #1779).
 func canonicalEncode(_ context.Context, c Case) (json.RawMessage, error) {
-	value := c.Files["value.json"]
+	value, ok := c.Files["value.json"]
+	if !ok {
+		return nil, errors.New("canonical encode: missing value.json")
+	}
 	forms := map[string]func([]byte) ([]byte, error){
 		"jcs":            canonjson.JCS,
 		"sorted_ascii":   func(data []byte) ([]byte, error) { return canonjson.Sorted(data, true) },

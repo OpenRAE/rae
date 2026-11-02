@@ -1,0 +1,13 @@
+{
+  "args": [],
+  "command": "timestamp",
+  "files": {
+    "request.json": "sha256:a57ec3b129a70538778a503f4461a9f1d85feb0ba7d7bf3063244ba8dc96ae48"
+  },
+  "name": "timestamp/offset/20",
+  "result": {
+    "ok": true,
+    "text": "0001-01-01T00:00:00+01:00"
+  },
+  "surface": "shared"
+}

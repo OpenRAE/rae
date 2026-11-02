@@ -1,0 +1,13 @@
+{
+  "args": [],
+  "command": "value",
+  "files": {
+    "request.json": "sha256:10963a42916095b365e746dd7c381727dc534afbc6ba2b57d54268e5eb49686d"
+  },
+  "name": "value/13",
+  "result": {
+    "canonical": "{\"nested\":[1,0,5e-324]}",
+    "status": "conformant"
+  },
+  "surface": "shared"
+}

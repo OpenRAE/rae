@@ -7,11 +7,12 @@
 package urisafety
 
 import (
-	"errors"
 	"net/netip"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/unicode/norm"
@@ -19,12 +20,12 @@ import (
 
 // The reasons that Check refuses a URI.
 var (
-	ErrInvalid         = errors.New("urisafety: the URI is invalid")
-	ErrNotAbsolute     = errors.New("urisafety: the URI is not absolute")
-	ErrForbiddenScheme = errors.New("urisafety: the URI uses a forbidden scheme")
-	ErrCredentials     = errors.New("urisafety: the URI contains credential userinfo")
-	ErrFragment        = errors.New("urisafety: the URI contains a fragment")
-	ErrSecretQuery     = errors.New("urisafety: the URI contains a secret-bearing query field")
+	ErrInvalid         = fault.New(fault.InvalidInput, "uri-invalid", nil)
+	ErrNotAbsolute     = fault.New(fault.InvalidInput, "uri-absolute", nil)
+	ErrForbiddenScheme = fault.New(fault.InvalidInput, "uri-scheme", nil)
+	ErrCredentials     = fault.New(fault.InvalidInput, "uri-credentials", nil)
+	ErrFragment        = fault.New(fault.InvalidInput, "uri-fragment", nil)
+	ErrSecretQuery     = fault.New(fault.InvalidInput, "uri-secret", nil)
 )
 
 // ipvFuture matches an IPvFuture literal inside brackets.

@@ -5,6 +5,7 @@ go 1.27.3
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/gowebpki/jcs v1.0.2
+	github.com/knqyf263/go-rpm-version v0.0.0-20260811110310-1815e1f1b790
 	github.com/zeebo/blake3 v0.2.4
 	golang.org/x/text v0.43.0
 )

@@ -1,0 +1,13 @@
+{
+  "args": [],
+  "command": "timestamp",
+  "files": {
+    "request.json": "sha256:ad53aee03b8a9a0d959a8170b3585775ac1d77301c0d699bab9ced3eacc0f3e9"
+  },
+  "name": "timestamp/rfc3339/01",
+  "result": {
+    "ok": true,
+    "text": "2024-01-01T00:00:00Z"
+  },
+  "surface": "shared"
+}
