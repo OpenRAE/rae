@@ -2,6 +2,7 @@ package parity
 
 import (
 	"encoding/json"
+	"math/big"
 	"testing"
 )
 
@@ -49,6 +50,26 @@ func TestCompareResultsRejectsInvalidJSON(t *testing.T) {
 			if _, err := compareResults(json.RawMessage(values[0]), json.RawMessage(values[1])); err == nil {
 				t.Errorf("compareResults(%q, %q) error = nil, want error", values[0], values[1])
 			}
+		}
+	}
+}
+
+// Check normalization against an independent standard-library numeric parser.
+// Equality-only tests can miss a transformation that shifts both operands by
+// the same erroneous scale while still comparing them consistently.
+func TestCanonicalNumberPreservesDecimalValue(t *testing.T) {
+	for _, number := range []string{"0", "-0", "10", "1200", "-12.3400", "0.00120", "1e10", "1e-10", "9007199254740993"} {
+		original, ok := new(big.Rat).SetString(number)
+		if !ok {
+			t.Fatalf("invalid test number %q", number)
+		}
+		normalized := canonicalNumber(json.Number(number))
+		actual, ok := new(big.Rat).SetString(normalized)
+		if !ok {
+			t.Fatalf("canonicalNumber(%q) = %q, want a decimal number", number, normalized)
+		}
+		if actual.Cmp(original) != 0 {
+			t.Errorf("canonicalNumber(%q) = %q, want the same numeric value", number, normalized)
 		}
 	}
 }
