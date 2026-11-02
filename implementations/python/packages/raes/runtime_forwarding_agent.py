@@ -89,7 +89,7 @@ _REDACTED_SETTING_CLASSIFICATIONS = (
 
 
 class RuntimeForwardingSource(SDLModel):
-    """An observed forwarder input source (tailed path, API pull, or queue)."""
+    """An observed forwarder input source (tailed path, API pull, queue, or listening socket)."""
 
     source_id: str
     kind: GovernedVocabulary[RuntimeForwardingSourceKind] = RuntimeForwardingSourceKind.UNKNOWN

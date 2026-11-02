@@ -25,7 +25,7 @@ from tools.nox_support.policy_lanes import (
 from tools.nox_support.runner import (
     SessionReporter,
     _requirement_aware_policy_args,
-    _run_pytest,
+    _run_changed_test_modules,
     _sync_project,
 )
 from tools.nox_support.test_lanes import (
@@ -233,7 +233,7 @@ def _run_fast_feedback(
     if changed_tests:
         reporter.run(
             "fast-feedback / directly changed pytest modules",
-            lambda: _run_pytest(session, *changed_tests, "-q"),
+            lambda: _run_changed_test_modules(session, changed_tests),
             detail=" ".join(changed_tests),
         )
     else:

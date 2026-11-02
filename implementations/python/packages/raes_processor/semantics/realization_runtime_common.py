@@ -78,16 +78,6 @@ def _capability_kind(requirement: CompiledRealizationRequirement) -> str:
     )
 
 
-def declares_readback(requirement: CompiledRealizationRequirement, manifest: BackendManifest | None) -> bool:
-    """Return whether the selected manifest can corroborate this concern."""
-
-    return manifest is not None and any(
-        declaration.domain == requirement.domain
-        and _capability_kind(requirement) in declaration.observation_capabilities
-        for declaration in manifest.realization_support
-    )
-
-
 def manifest_corroborates(
     requirement: CompiledRealizationRequirement,
     observation: RealizationObservationDisclosure,
@@ -197,7 +187,6 @@ __all__ = [
     "MISSING_CONCERN_VALUE",
     "OPERATING_SYSTEM_REQUIREMENT_KINDS",
     "concern_value",
-    "declares_readback",
     "manifest_corroborates",
     "matching_observation",
     "observation_posture_supported",

@@ -1,9 +1,9 @@
 {
-  "content_hash": "487bbd92fe6021a1129b15a3ef192f120dc4c2c324eb47ea8a0f3a8e738d23a7",
+  "content_hash": "143ccbb4459b2685e178632e8725f923f9f2f18b3be4ce9940854bac724243b5",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "487bbd92fe6021a1129b15a3ef192f120dc4c2c324eb47ea8a0f3a8e738d23a7",
-    "summary": "Add typed scope audit recording, exact exemptions, portable nonblank and uniqueness constraints, and the scope uniqueness semantic invariant (issue #1831)."
+    "content_hash": "143ccbb4459b2685e178632e8725f923f9f2f18b3be4ce9940854bac724243b5",
+    "summary": "Add the socket forwarding source kind for a listening-socket input, for example a local syslog socket or a network syslog port (issue #1836)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

@@ -1,9 +1,9 @@
 {
-  "content_hash": "6384641bc8dc285f0d1f36cd1747dc5f1a4f18a0c6f2ce8606f416bd03e5e54d",
+  "content_hash": "1dec7a75aa5094bb8b7509950267fc55f7cdf86799c06e716e62f9d857981def",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "6384641bc8dc285f0d1f36cd1747dc5f1a4f18a0c6f2ce8606f416bd03e5e54d",
-    "summary": "Add typed scope audit recording, exact exemptions, portable nonblank and uniqueness constraints, and the scope uniqueness semantic invariant (issue #1831)."
+    "content_hash": "1dec7a75aa5094bb8b7509950267fc55f7cdf86799c06e716e62f9d857981def",
+    "summary": "Add the socket forwarding source kind for a listening-socket input, for example a local syslog socket or a network syslog port (issue #1836)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"
