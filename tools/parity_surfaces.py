@@ -15,6 +15,7 @@ from unittest.mock import patch
 from urllib.error import URLError
 
 import click
+import httpx
 import yaml
 from mcp.server.fastmcp.exceptions import ToolError
 from raes.module_registry import LOCKFILE_NAME, TRUST_POLICY_NAME
@@ -40,6 +41,7 @@ from tools.parity_support import (
 from tools.tooling_artifact_policy_common import is_regular_repo_file
 
 HTTP_METHODS = frozenset({"get", "post", "put", "patch", "delete", "head", "options"})
+HTTP_LIMITS = ("max_request_bytes", "max_pending_mutations", "max_pending_rejection_audits")
 
 
 @lru_cache(maxsize=1)
@@ -102,6 +104,9 @@ def http_client(authority: dict[str, object] | None = None) -> Iterator[TestClie
     security = ControlPlaneSecurityConfig(
         trust_proxy_identity_headers=True,
         trusted_identities=principals,
+        **{
+            name: authority["limits"][name] for name in HTTP_LIMITS if authority and name in authority.get("limits", {})
+        },
     )
     served = create_control_plane_app(plane, security=security)
     with TestClient(served, raise_server_exceptions=False) as client:
@@ -373,15 +378,35 @@ def send_http(client: TestClient, request: dict[str, object], files: dict[str, b
         headers["x-raes-client-identity"] = principal
         if request.get("verified", True):
             headers["x-raes-client-verified"] = "true"
+    if principal == "invalid":
+        headers["authorization"] = "Bearer public-parity-invalid"
     payload = {key: request[key] for key in ("json", "content") if key in request}
     if "body_file" in request:
         payload["content"] = files[request["body_file"]]
-    response = client.request(
-        request["method"],
-        request["path"],
-        headers=headers,
-        **payload,
-    )
+    if request.get("streamed") or len(request.get("chunk_sizes", [])) > 1:
+        body = payload["content"]
+        sizes = request["chunk_sizes"]
+        if any(type(size) is not int or size < 0 for size in sizes) or sum(sizes) != len(body):
+            raise ValueError("invalid recorded HTTP chunk sizes")
+
+        async def streamed_response():
+            async def chunks():
+                offset = 0
+                for size in sizes:
+                    yield body[offset : offset + size]
+                    offset += size
+                if not request.get("stream_complete", True):
+                    raise RuntimeError("recorded HTTP stream did not complete")
+
+            transport = httpx.ASGITransport(app=client.app, raise_app_exceptions=False)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as streamed_client:
+                return await streamed_client.request(
+                    request["method"], request["path"], headers=headers, content=chunks()
+                )
+
+        response = client.portal.call(streamed_response)
+    else:
+        response = client.request(request["method"], request["path"], headers=headers, **payload)
     output = json_output(response.text)
     if isinstance(output, dict) and isinstance(output.get("detail"), str):
         output.pop("detail")

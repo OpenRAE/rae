@@ -263,8 +263,15 @@ The ordinary test and fuzz environments retain their existing settings.
 
 Gremlins v0.6.0 copies the complete module for each worker and leaves copied
 file handles to Go finalizers. CI bounds mutation execution to two workers and
-provisions the soft file-descriptor limit for both complete copies, including
-source and destination handles and a reserve. An insufficient hard limit fails
-with a concrete capacity error. This changes resource allocation only: all
+raises the soft file-descriptor limit to the runner's existing hard limit.
+This changes resource allocation only: all
 changed-line mutants and the existing coverage and efficacy thresholds remain
 mandatory. The upstream release and its source are used unchanged.
+
+HTTP input capture retains content-length and transfer-encoding, request-size
+and admission limits, and whether the body was streamed. Replay uses HTTPX's
+existing ASGI transport in the fixture's running portal for streamed bodies;
+the recorded chunk boundaries reach the application without TestClient joining
+them. Invalid bearer credentials are represented by an explicitly public invalid
+fixture token, never the original authentication material. Tests exercise a
+malformed content-length and a body that exceeds its limit across chunks.

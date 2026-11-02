@@ -246,7 +246,7 @@ class InputCollector:
         from raes_cli.main import app
         from typer.testing import CliRunner
 
-        from tools.parity_surfaces import cli_registry, http_registry, http_schema, mcp_registry, route_key
+        from tools.parity_surfaces import HTTP_LIMITS, cli_registry, http_registry, http_schema, mcp_registry, route_key
 
         self.previous_profile = settings.get_current_profile_name()
         settings.register_profile("parity-capture", derandomize=True, database=None)
@@ -409,6 +409,7 @@ class InputCollector:
             authorization = request.headers.get("authorization", "")
             # Persist authority as a principal, never persist authentication material.
             policy = served.state.control_plane_api_auth._security
+            specification["limits"] = {name: getattr(policy, name) for name in HTTP_LIMITS}
             identity = None
             if authorization.lower().startswith("bearer "):
                 identity = policy.bearer_tokens.get(authorization.split(" ", 1)[1].strip())
@@ -436,6 +437,7 @@ class InputCollector:
             try:
                 content = request.content
             except RequestNotRead:
+                specification["streamed"] = True
                 original_stream = request.stream
                 if isinstance(original_stream, AsyncByteStream):
 
@@ -466,13 +468,13 @@ class InputCollector:
             else:
                 parts.append(content)
                 completed["value"] = True
-            for header in ("idempotency-key", "if-match", "content-type"):
+            for header in ("idempotency-key", "if-match", "content-type", "content-length", "transfer-encoding"):
                 if header in request.headers:
                     specification.setdefault("headers", {})[header] = request.headers[header]
 
             def finish():
                 files = {}
-                if parts:
+                if parts or specification.get("streamed"):
                     files["body.bin"] = b"".join(parts)
                     specification["body_file"] = "body.bin"
                     specification["stream_complete"] = completed["value"]

@@ -7,6 +7,7 @@ import uuid
 from pathlib import Path
 
 import pytest
+from starlette.requests import Request
 from tools import parity_corpus as pc
 from tools import parity_regressions as regressions
 from tools import parity_surfaces as surfaces
@@ -66,6 +67,57 @@ def test_http_reference_traces_include_successful_state_changes(case: Case) -> N
     assert output["responses"][0]["status_code"] == 200
     assert output["responses"][0]["body"]["accepted"] is True
     assert all("status_code" in response for response in output["responses"])
+
+
+def test_http_replay_delivers_recorded_chunks_to_the_application() -> None:
+    from fastapi import FastAPI
+    from starlette.testclient import TestClient
+
+    app = FastAPI()
+
+    @app.post("/chunks")
+    async def chunks(request: Request):
+        return [len(chunk) async for chunk in request.stream()]
+
+    request = {
+        "method": "POST",
+        "path": "/chunks",
+        "body_file": "body.bin",
+        "chunk_sizes": [2, 3],
+        "streamed": True,
+        "stream_complete": True,
+    }
+    with TestClient(app) as client:
+        result = surfaces.send_http(client, request, {"body.bin": b"abcde"})
+        with pytest.raises(ValueError, match="chunk sizes"):
+            surfaces.send_http(client, {**request, "chunk_sizes": [2, 2]}, {"body.bin": b"abcde"})
+    assert result["status_code"] == 200
+    assert result["body"] == [2, 3, 0]
+
+
+def test_http_replay_preserves_size_limits_and_invalid_content_length() -> None:
+    request = {
+        "method": "POST",
+        "path": "/operations/provisioning",
+        "principal": "operator",
+        "limits": {"max_request_bytes": 32},
+        "headers": {"content-type": "application/json"},
+        "body_file": "body.bin",
+        "chunk_sizes": [16, 32, 16],
+        "streamed": True,
+        "stream_complete": True,
+    }
+    with surfaces.http_client(request) as client:
+        result = surfaces.send_http(client, request, {"body.bin": b"x" * 64})
+        assert result["status_code"] == 413
+        malformed = {**request, "streamed": False, "chunk_sizes": [], "headers": {"content-length": "invalid"}}
+        assert surfaces.send_http(client, malformed, {"body.bin": b"{}"})["status_code"] == 400
+        assert (
+            surfaces.send_http(client, {"method": "GET", "path": "/snapshot", "principal": "invalid"}, {})[
+                "status_code"
+            ]
+            == 401
+        )
 
 
 def test_cli_registry_includes_nested_commands_and_real_flag_names() -> None:
@@ -175,9 +227,12 @@ def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path, mo
         assert result.exit_code == 0
         tool_result = asyncio.run(surfaces.mcp_server().call_tool("sdl_parse", {"sdl_content": "name: parity\n"}))
         assert tool_result is not None
-        with surfaces.http_client() as client:
+        with surfaces.http_client({"limits": {"max_request_bytes": 32}}) as client:
             response = client.get("/participants/participant.parity/status")
         assert response.status_code == 401
+        http_record = next(record for record in collector.records.values() if record["surface"] == "http")
+        request = json.loads(collector.blobs[http_record["files"]["request.json"].removeprefix("sha256:")])
+        assert request["limits"]["max_request_bytes"] == 32
         with pytest.raises(ValidationError):
             ExecutionPolicy.model_validate({"schema_version": "invalid"})
         with pytest.raises(ValidationError):
