@@ -1674,7 +1674,7 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         "exit !(total >= 90)",
         "go test -list '^Fuzz' ./...",
         '-fuzztime 20s "${package}" || exit 1',
-        'gremlins unleash --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"',
+        'gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"',
         'regressiontest -base "${MERGE_BASE}"',
     ):
         assert command in scripts, command

@@ -260,3 +260,11 @@ Reference recording additionally fixes `PYTHONHASHSEED=0` before interpreter
 startup. The recorder refuses other seeds and records the seed in provenance,
 so hash-dependent iteration cannot vary between recording and reproduction.
 The ordinary test and fuzz environments retain their existing settings.
+
+Gremlins v0.6.0 copies the complete module for each worker and leaves copied
+file handles to Go finalizers. CI bounds mutation execution to two workers and
+provisions the soft file-descriptor limit for both complete copies, including
+source and destination handles and a reserve. An insufficient hard limit fails
+with a concrete capacity error. This changes resource allocation only: all
+changed-line mutants and the existing coverage and efficacy thresholds remain
+mandatory. The upstream release and its source are used unchanged.

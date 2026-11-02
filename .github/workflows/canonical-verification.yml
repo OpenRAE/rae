@@ -617,7 +617,18 @@ jobs:
           GIT_CONFIG_COUNT: "1"
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
-        run: gremlins unleash --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
+        run: |
+          # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
+          # Budget both handles for each file in both worker copies.
+          files="$(find . -type f -printf '.\n' | wc -l)"
+          descriptors=$((4 * files + 4096))
+          hard_limit="$(ulimit -Hn)"
+          if [ "${hard_limit}" != unlimited ] && [ "${hard_limit}" -lt "${descriptors}" ]; then
+            echo "Mutation copies require ${descriptors} file descriptors; hard limit is ${hard_limit}" >&2
+            exit 1
+          fi
+          ulimit -Sn "${descriptors}"
+          gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
       - name: Check that each new regression test fails on the base
         working-directory: ${{ matrix.path }}
         env:
