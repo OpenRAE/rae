@@ -135,3 +135,30 @@ func TestHandlerFailuresAreValueFreeAndNilIsRefused(t *testing.T) {
 		}
 	}
 }
+
+func TestGroupDepthExactFitsAndEscapeEndpoints(t *testing.T) {
+	for _, test := range [][2]string{{" \u009f\u00a0", " \\x9f\u00a0"}, {"\u001f!", "\\x1f!"}} {
+		if got := Escape(test[0]); got != test[1] {
+			t.Errorf("Escape(%q) = %q, want %q", test[0], got, test[1])
+		}
+	}
+	for depth := 0; depth <= MaxDepth+1; depth++ {
+		var out bytes.Buffer
+		safe, err := NewHandler(slog.NewJSONHandler(&out, nil))
+		if err != nil {
+			t.Fatal(err)
+		}
+		attr := slog.String("leaf", "permitted")
+		for range depth {
+			attr = slog.Group("group", attr)
+		}
+		record := slog.NewRecord(time.Time{}, slog.LevelInfo, "event", 0)
+		record.AddAttrs(attr)
+		if err := safe.Handle(context.Background(), record); err != nil {
+			t.Fatal(err)
+		}
+		if got := strings.Contains(out.String(), "permitted"); got != (depth <= MaxDepth) {
+			t.Errorf("depth %d leaf included = %t, want %t", depth, got, depth <= MaxDepth)
+		}
+	}
+}

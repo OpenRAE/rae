@@ -2,13 +2,13 @@ package parity
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/clock"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/digest"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/domain"
@@ -111,21 +111,8 @@ func sharedTimestamp(request sharedRequest) map[string]any {
 }
 
 func sharedVersion(request sharedRequest) (map[string]any, error) {
-	identity, err := softwareversion.Installed(request.Relation)
-	if err != nil {
-		text, marshalErr := json.Marshal(map[string]string{"relation": request.Relation, "revision": "1"})
-		if marshalErr != nil {
-			return nil, marshalErr
-		}
-		canonical, canonicalErr := canonjson.JCS(text)
-		if canonicalErr != nil {
-			return nil, canonicalErr
-		}
-		identity = softwareversion.Relation{
-			Authority: "https://openrae.org/semantics/versions", ID: request.Relation,
-			Revision: "1", Digest: digest.SHA256(canonical),
-		}
-	}
+	// An unknown name has no installed identity and remains unsupported.
+	identity, _ := softwareversion.Installed(request.Relation)
 	for key, replacement := range request.Mutation {
 		switch key {
 		case "authority":
@@ -245,7 +232,7 @@ func readDomain(data json.RawMessage) (domain.Domain, error) { //nolint:ireturn 
 func sharedGraph(request sharedRequest) (map[string]any, error) {
 	var less graph.Less
 	if request.Reverse {
-		less = func(a, b string) bool { return a > b }
+		less = func(a, b string) bool { return cmp.Compare(a, b) == 1 }
 	}
 	order, err := graph.Order(request.Graph, less)
 	if err != nil {

@@ -3,6 +3,7 @@
 package graph
 
 import (
+	"cmp"
 	"maps"
 	"slices"
 
@@ -15,21 +16,6 @@ var ErrGraph = fault.New(fault.InvalidInput, "graph-missing-node", nil)
 // Less supplies the node order. Nil selects lexical order; equal keys are
 // ordered by node identity so Go map iteration cannot change a result.
 type Less func(string, string) bool
-
-func ordering(less Less) Less {
-	return func(a, b string) bool {
-		if less == nil {
-			return a < b
-		}
-		if less(a, b) {
-			return true
-		}
-		if less(b, a) {
-			return false
-		}
-		return a < b
-	}
-}
 
 func normalized(input map[string][]string, closed bool) (map[string][]string, error) {
 	result := make(map[string][]string, len(input))
@@ -218,14 +204,15 @@ func collectComponent(root string, reverse map[string][]string, visited map[stri
 }
 
 func comparator(less Less) func(string, string) int {
-	ordered := ordering(less)
 	return func(a, b string) int {
-		if ordered(a, b) {
-			return -1
+		if less != nil {
+			if less(a, b) {
+				return -1
+			}
+			if less(b, a) {
+				return 1
+			}
 		}
-		if ordered(b, a) {
-			return 1
-		}
-		return 0
+		return cmp.Compare(a, b)
 	}
 }

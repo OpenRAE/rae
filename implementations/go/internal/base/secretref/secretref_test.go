@@ -7,7 +7,7 @@ import (
 )
 
 func TestIdentityGrammarAndLengthBoundaries(t *testing.T) {
-	for _, id := range []string{"a", "a0", "vault.production-key_1", strings.Repeat("a", 256)} {
+	for _, id := range []string{"a", "z", "az", "a0", "a9", "vault.production-key_1", strings.Repeat("a", 256)} {
 		if !Valid(id) || Validate(id) != nil {
 			t.Errorf("Validate(%q) refused a valid logical identity", id)
 		}

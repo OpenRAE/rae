@@ -82,8 +82,7 @@ func scalarOf(value any) scalar {
 
 func numberScalar(number json.Number) scalar {
 	text := string(number)
-	if text == "" || strings.TrimSpace(text) != text || !json.Valid([]byte(text)) ||
-		text[0] != '-' && (text[0] < '0' || text[0] > '9') {
+	if text == "" || strings.TrimSpace(text) != text || !json.Valid([]byte(text)) {
 		return scalar{}
 	}
 	if strings.ContainsAny(text, ".eE") {
@@ -184,8 +183,8 @@ type NumericType uint8
 
 // The closed numeric types.
 const (
-	Integer NumericType = iota + 1
-	Number
+	Integer NumericType = 1
+	Number  NumericType = 2
 )
 
 // Interval is a bounded numeric interval. Endpoints follow the reference

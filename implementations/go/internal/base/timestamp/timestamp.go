@@ -40,9 +40,6 @@ func (t Time) Instant() time.Time { return t.local.Add(-t.offset) }
 // String writes Python's isoformat_z text, at microsecond precision.
 func (t Time) String() string {
 	text := formatLocal(t.local)
-	if t.offset == 0 {
-		return text + "Z"
-	}
 	sign, offset := "+", t.offset
 	if offset < 0 {
 		sign, offset = "-", -offset
@@ -174,10 +171,11 @@ func splitOffset(text string) (clock, zone string, aware bool) {
 	if clock, found := strings.CutSuffix(text, "Z"); found {
 		return clock, "", true
 	}
-	if index := strings.IndexAny(text, "+-"); index >= 0 {
-		return text[:index], text[index:], true
+	index := strings.IndexAny(text, "+-")
+	if index == -1 {
+		return text, "", false
 	}
-	return text, "", false
+	return text[:index], text[index:], true
 }
 
 func parseDate(text string) (time.Time, error) {
@@ -207,7 +205,7 @@ func parseWeekDate(text string) (time.Time, error) {
 	monday := january.AddDate(0, 0, -(int(january.Weekday())+6)%7)
 	date := monday.AddDate(0, 0, (week-1)*7+day-1)
 	actualYear, actualWeek := date.ISOWeek()
-	if year < 1 || year > 9999 || actualYear != year || actualWeek != week || date.Year() > 9999 {
+	if year < 1 || actualYear != year || actualWeek != week || date.Year() > 9999 {
 		return time.Time{}, ErrInput
 	}
 	return date, nil
@@ -261,7 +259,7 @@ func validClock(whole, digits string, fraction bool) bool {
 
 func splitFraction(text string) (whole, fraction string, err error) {
 	index := strings.IndexAny(text, ".,")
-	if index < 0 {
+	if index == -1 {
 		return text, "", nil
 	}
 	whole, fraction = text[:index], text[index+1:]

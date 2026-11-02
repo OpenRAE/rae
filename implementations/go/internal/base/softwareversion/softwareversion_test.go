@@ -120,3 +120,75 @@ func TestUnsupportedBoundsRetainThePublishedCharacterLimit(t *testing.T) {
 		}
 	}
 }
+
+func TestDebianPolicyCharacterClassesAndNumericRuns(t *testing.T) {
+	// Debian Policy: tilde, end/digits, ASCII letters, then punctuation;
+	// numeric runs retain their value across leading and zero-only runs.
+	groups := [][]string{{"1~"}, {"1", "1-0", "01"}, {"1A", "1A0"}, {"1A9"}, {"1AA"}, {"1AZ"}, {"1Aa"}, {"1Az"}, {"1Z"}, {"1a"}, {"1z"}, {"1+"}, {"1."}, {"10"}}
+	samples := rankedVersions(groups)
+	identity, err := Installed("debian")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, lower := range samples {
+		singleton := versionDomainForTest(t, identity, &lower.text, &lower.text, true)
+		open := versionDomainForTest(t, identity, &lower.text, nil, false)
+		for _, actual := range samples {
+			assertMembership(t, singleton, actual.text, lower.rank == actual.rank)
+			assertMembership(t, open, actual.text, actual.rank > lower.rank)
+		}
+	}
+}
+
+type rankedVersion struct {
+	text string
+	rank int
+}
+
+func rankedVersions(groups [][]string) []rankedVersion {
+	var result []rankedVersion
+	for rank, group := range groups {
+		for _, text := range group {
+			result = append(result, rankedVersion{text: text, rank: rank})
+		}
+	}
+	return result
+}
+
+func versionDomainForTest(t *testing.T, identity Relation, lower, upper *string, closed bool) Domain {
+	t.Helper()
+	result, err := NewDomain(identity, lower, upper, closed, closed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return result
+}
+
+func assertMembership(t *testing.T, domain Domain, actual string, member bool) {
+	t.Helper()
+	want := Nonconformant
+	if member {
+		want = Conformant
+	}
+	if got := domain.Membership(actual); got != want {
+		t.Errorf("Membership(%q) = %s, want %s", actual, got, want)
+	}
+}
+
+func TestVersionValueAtTheMaximumLength(t *testing.T) {
+	identity, err := Installed("rpm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	lower := "1"
+	domain, err := NewDomain(identity, &lower, nil, true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := domain.Membership("1" + strings.Repeat("a", 255)); got != Conformant {
+		t.Errorf("256-byte RPM value = %s, want conformant", got)
+	}
+	if got := domain.Membership("1" + strings.Repeat("a", 256)); got != Unresolved {
+		t.Errorf("257-byte RPM value = %s, want unresolved", got)
+	}
+}

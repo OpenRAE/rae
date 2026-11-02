@@ -64,3 +64,14 @@ func TestGraphTraversalSurvivesLongChains(t *testing.T) {
 		t.Errorf("Cycles(long cycle) count = %d, %v, want one component of 5001 nodes", len(components), err)
 	}
 }
+
+func TestEqualOrderingKeysUseNodeIdentity(t *testing.T) {
+	input := map[string][]string{"a": {}, "c": {}, "b": {"a"}}
+	equalKeys := func(string, string) bool { return false }
+	for range 10 {
+		got, err := Order(input, equalKeys)
+		if err != nil || !slices.Equal(got, []string{"a", "c", "b"}) {
+			t.Errorf("Order(equal keys) = %v, %v, want stable [a c b]", got, err)
+		}
+	}
+}

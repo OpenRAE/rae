@@ -12,12 +12,12 @@ type Category uint8
 
 // The closed operational categories.
 const (
-	InvalidInput Category = iota + 1
-	Conflict
-	NotFound
-	Authorization
-	Operational
-	EvidenceIntegrity
+	InvalidInput      Category = 1
+	Conflict          Category = 2
+	NotFound          Category = 3
+	Authorization     Category = 4
+	Operational       Category = 5
+	EvidenceIntegrity Category = 6
 )
 
 // ErrDefinition reports a programming error in an error definition.

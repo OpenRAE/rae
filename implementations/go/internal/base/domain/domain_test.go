@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/softwareversion"
@@ -99,5 +100,16 @@ func TestIntervalOverflowIsARefusalRatherThanNonmembership(t *testing.T) {
 	}
 	if interval.Contains(huge) {
 		t.Error("unchecked membership accepted an overflowing integer")
+	}
+}
+
+func TestScalarIntegerDigitAndSingletonIntervalBoundaries(t *testing.T) {
+	text := strings.Repeat("9", 4300)
+	integer, ok := new(big.Int).SetString(text, 10)
+	if !ok || !Equal(json.Number(text), integer) {
+		t.Error("the maximum reference integer lost scalar identity")
+	}
+	if _, err := In(1, Interval{Type: Number, Lower: 1, Upper: 1, LowerClosed: true, UpperClosed: true}); err != nil {
+		t.Errorf("closed singleton interval was refused: %v", err)
 	}
 }

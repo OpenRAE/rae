@@ -40,6 +40,9 @@ func TestErrorDefinitionsRefuseInvalidCategoriesAndCodes(t *testing.T) {
 			t.Errorf("New(invalid code %q) did not refuse it", code)
 		}
 	}
+	if _, ok := CategoryOf(New(Operational, "z", nil)); !ok {
+		t.Error("last ASCII letter was refused as a code")
+	}
 	if errors.Is(New(Operational, strings.Repeat("a", 64), nil), ErrDefinition) {
 		t.Error("New(64-byte code) refused a valid boundary")
 	}

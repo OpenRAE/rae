@@ -110,3 +110,98 @@ func TestLimitDefinitionsAndDocumentAllowanceBounds(t *testing.T) {
 		t.Errorf("upper document ceiling boundary = %v, want valid limits", err)
 	}
 }
+
+func TestPublishedLimitDefinitionBoundaries(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		maximum int
+		set     func(*Limits, int)
+	}{
+		{"depth", 1024, func(l *Limits, v int) { l.MaxDepth = v }},
+		{"nodes", 1000000, func(l *Limits, v int) { l.MaxNodes = v }},
+		{"operations", 4000000, func(l *Limits, v int) { l.MaxOperations = v }},
+		{"members", 100000, func(l *Limits, v int) { l.MaxMembers = v }},
+		{"identity checks", 1000000, func(l *Limits, v int) { l.MaxIdentityChecks = v }},
+		{"reference hops", 4096, func(l *Limits, v int) { l.MaxReferenceHops = v }},
+		{"scalar bytes", 8388608, func(l *Limits, v int) { l.MaxScalarBytes = v }},
+		{"total bytes", 67108864, func(l *Limits, v int) { l.MaxTotalScalarBytes = v }},
+		{"diagnostics", 256, func(l *Limits, v int) { l.MaxDiagnostics = v }},
+	} {
+		for _, bound := range []int{0, 1, test.maximum, test.maximum + 1} {
+			limits := Default()
+			test.set(&limits, bound)
+			wantValid := bound == 1 || bound == test.maximum
+			if err := limits.Validate(); (err == nil) != wantValid {
+				t.Errorf("%s=%d validation = %v, want valid=%t", test.name, bound, err, wantValid)
+			}
+		}
+	}
+	if Plan().MaxOperations != 1048576 || Runtime().MaxDocumentScalarBytes != 4194304 {
+		t.Error("published plan operations or materialization ceiling changed")
+	}
+}
+
+func TestValueBudgetExactFitsAndOverflowPrecedence(t *testing.T) {
+	for _, test := range []struct {
+		payload any
+		change  func(*Limits)
+	}{
+		{[]any{1, 2}, func(l *Limits) { l.MaxNodes = 3 }},
+		{[]any{1, 2}, func(l *Limits) { l.MaxOperations = 3 }},
+		{map[string]any{"a": 1}, func(l *Limits) { l.MaxDepth = 1 }},
+		{[]any{1, 2}, func(l *Limits) { l.MaxMembers = 2 }},
+		{map[string]any{"a": 1, "b": 2}, func(l *Limits) { l.MaxMembers = 2 }},
+		{"é", func(l *Limits) { l.MaxScalarBytes = 2 }},
+		{[]any{"ab", "cd"}, func(l *Limits) { l.MaxTotalScalarBytes = 4 }},
+		{map[string]any{"ab": "cd"}, func(l *Limits) { l.MaxTotalScalarBytes = 4 }},
+	} {
+		limits := Default()
+		test.change(&limits)
+		if err := Validate(test.payload, limits); err != nil {
+			t.Errorf("Validate(exact fit) = %v, want accepted", err)
+		}
+	}
+	limits := Default()
+	limits.MaxNodes = 4
+	called := false
+	payload := []any{0, 0, []any{unknownCarrier{called: &called}}}
+	if err := Validate(payload, limits); !errors.Is(err, ErrLimit) || called {
+		t.Errorf("queued nodes over budget = %v, called=%t, want refusal before visiting child", err, called)
+	}
+	limits = Default()
+	limits.MaxDepth = 1
+	if err := Validate(map[string]any{"a": map[string]any{"b": 1}}, limits); !errors.Is(err, ErrLimit) {
+		t.Errorf("map depth overflow = %v, want ErrLimit", err)
+	}
+}
+
+func TestIntegerByteAccountingAndPreciseFloatCanonicalization(t *testing.T) {
+	for _, test := range []struct {
+		integer int64
+		bytes   int
+	}{
+		{0, 1}, {255, 1}, {-255, 1}, {256, 2}, {65535, 2}, {65536, 3},
+	} {
+		for _, width := range []int{test.bytes, test.bytes + 1} {
+			limits := Default()
+			limits.MaxScalarBytes = width
+			if err := Validate(test.integer, limits); err != nil {
+				t.Errorf("integer %d in %d bytes = %v, want accepted", test.integer, width, err)
+			}
+		}
+		if test.bytes > 1 {
+			limits := Default()
+			limits.MaxScalarBytes = test.bytes - 1
+			if err := Validate(test.integer, limits); !errors.Is(err, ErrLimit) {
+				t.Errorf("integer %d below byte width = %v, want ErrLimit", test.integer, err)
+			}
+		}
+	}
+	if err := Validate(json.Number(strings.Repeat("9", 4300)), Default()); err != nil {
+		t.Errorf("4,300-digit integer was refused: %v", err)
+	}
+	got, err := Canonical(1.2345678901234567, Default())
+	if err != nil || string(got) != "1.2345678901234567" {
+		t.Errorf("precise float = %s, %v, want all reference digits", got, err)
+	}
+}

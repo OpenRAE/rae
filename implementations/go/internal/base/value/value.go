@@ -22,7 +22,7 @@ var (
 )
 
 // MaterializationBytes is the authored document-body ceiling.
-const MaterializationBytes = 4 * 1048576
+const MaterializationBytes = 4194304
 
 // Limits are the shared finite-work limits, including budgets consumed by
 // relation owners in addition to the value admission performed here.
@@ -210,8 +210,7 @@ func integerSize(value *big.Int) int { return max(1, (value.BitLen()+7)/8) }
 
 func numberSize(number json.Number) (int, error) {
 	text := string(number)
-	if text == "" || !json.Valid([]byte(text)) || strings.TrimSpace(text) != text ||
-		text[0] != '-' && (text[0] < '0' || text[0] > '9') {
+	if text == "" || !json.Valid([]byte(text)) || strings.TrimSpace(text) != text {
 		return 0, ErrInput
 	}
 	if strings.ContainsAny(text, ".eE") {
