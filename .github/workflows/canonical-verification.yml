@@ -622,18 +622,16 @@ jobs:
           # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
           # Use the runner's available descriptor capacity with bounded workers.
           ulimit -Sn "$(ulimit -Hn)"
-          if command -v strace >/dev/null; then
+          status=0
+          gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}" || status=$?
+          if [ "${status}" -ne 0 ] && command -v strace >/dev/null; then
             trace="${RUNNER_TEMP}/mutation-${{ matrix.name }}.trace"
-            status=0
+            # Dry-run still creates worker copies, without rerunning mutants.
             strace -f -qq -e trace=%file -e status=failed -o "${trace}" \
-              gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}" || status=$?
-            if [ "${status}" -ne 0 ]; then
-              awk '/= -1 (EMFILE|ENFILE|ENOSPC|EACCES|EROFS)/ { print }' "${trace}" | tail -20
-              exit "${status}"
-            fi
-          else
-            gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
+              gremlins unleash --dry-run --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}" > "${trace}.log" 2>&1 || true
+            awk '/= -1 (EMFILE|ENFILE|ENOSPC|EACCES|EROFS)/ { print }' "${trace}" | tail -20
           fi
+          exit "${status}"
       - name: Check that each new regression test fails on the base
         working-directory: ${{ matrix.path }}
         env:
