@@ -116,7 +116,6 @@ class CandidateSynthesisProfileDefinitionModel(ContractModel):
             schema,
             "candidate-synthesis-complete-profile-digest",
             "The profile digest covers every output-affecting rule, default, limit, and refusal posture.",
-            validator="raes_contracts.contracts.CandidateSynthesisProfileDefinitionModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-profile-v1", "instance_path": "#"}],
         )
         return schema

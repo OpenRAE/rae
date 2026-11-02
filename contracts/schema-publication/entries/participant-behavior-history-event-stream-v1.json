@@ -2,9 +2,9 @@
   "contract_id": "participant-behavior-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/participant-behavior-history-event-stream-v1.json",
   "stability": "draft",
-  "content_hash": "5d1760c509c79a1e20238c0dcaf3747fa3774dda03007e5ac3d10157c4b0542a",
+  "content_hash": "3d31b517f5bbfc3e8f81913856ec115232ea9bbf15273124d4e201b8b2499577",
   "last_change": {
-    "summary": "Add the optional invocation_tool_context that correlates a hosted tool action with its enclosing autonomous invocation; issue #1740.",
-    "content_hash": "5d1760c509c79a1e20238c0dcaf3747fa3774dda03007e5ac3d10157c4b0542a"
+    "content_hash": "3d31b517f5bbfc3e8f81913856ec115232ea9bbf15273124d4e201b8b2499577",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

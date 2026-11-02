@@ -1,9 +1,9 @@
 {
-  "content_hash": "c944a50797f486e94cbe210cfdaaab3d254ee33c7fabeb8557063f00c43c774a",
+  "content_hash": "5c5c9345f0d679ca25c7724e2af302668c0e8a9ddace24735939d79cc5059df6",
   "contract_id": "experiment-evidence-record-v1",
   "last_change": {
-    "content_hash": "c944a50797f486e94cbe210cfdaaab3d254ee33c7fabeb8557063f00c43c774a",
-    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+    "content_hash": "5c5c9345f0d679ca25c7724e2af302668c0e8a9ddace24735939d79cc5059df6",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json",
   "stability": "draft"

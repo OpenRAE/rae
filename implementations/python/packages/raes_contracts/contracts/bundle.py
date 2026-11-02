@@ -266,7 +266,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "required-evidence-media-type-provable",
         "Every declared required evidence media type must have a registered content-proof path; an explicit "
         "output_contract must support every declared type.",
-        validator="raes.evidence_requirements.EvidenceRequirement._validate_capture_intent",
         inputs=[{"contract_id": "sdl-authoring-input-v1", "instance_path": "#/evidence_requirements"}],
     )
     _add_raes_invariant(
@@ -274,7 +273,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "capture-media-type-provable",
         "Every required media type must have a registered content-proof path and be supported by its "
         "declared output_contract.",
-        validator="raes_contracts.contracts.ExperimentCaptureRequirementModel._validate_capture_requirement",
         inputs=[{"contract_id": "experiment-capture-spec-v1", "instance_path": "#/capture_requirements"}],
     )
     _add_raes_invariant(
@@ -282,7 +280,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "behavioral-relations-reference-resolution",
         "Relation map keys, bibliography references, claim-surface relation references, and worked-example keys "
         "must resolve exactly inside one taxonomy revision.",
-        validator="raes_contracts.behavioral_relations.BehavioralRelationCatalogModel",
         inputs=[{"contract_id": "behavioral-relations-v1", "instance_path": "#"}],
     )
     _add_raes_invariant(
@@ -290,7 +287,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "behavioral-relation-profile-local-join",
         "The closed relation-specific parameter variant must match the profile relation, carrier, projection, "
         "finite domains, local refs, limitations, and explicit nonclaims.",
-        validator="raes_contracts.behavioral_relation_profiles.BehavioralRelationProfileModel",
         inputs=[
             {
                 "contract_id": "behavioral-relation-profile-v1",
@@ -303,7 +299,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "behavioral-relation-profile-claim-resolution",
         "Catalog, profile, carrier, observation projection, and claim coordinates must resolve exactly through "
         "the shared behavioral claim validator.",
-        validator="raes_contracts.behavioral_relations.validate_behavioral_claim_binding",
         inputs=[
             {
                 "contract_id": "behavioral-relation-profile-v1",
@@ -317,7 +312,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "participant-opacity-finite-carrier-counts",
         "Point ordinals and refs must be unique, and every declared finite count must exactly match the "
         "normalized possible-point carrier.",
-        validator="raes_contracts.participant_opacity.ParticipantOpacityAnalysisInputModel",
         inputs=[
             {
                 "contract_id": "participant-opacity-analysis-input-v1",
@@ -330,7 +324,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "participant-opacity-evidence-joins",
         "Profile, normalized model, checker, claim, outcome payload, diagnostics, normalized-input-only "
         "provenance scope, and bounded assurance coordinates must remain digest-bound and mutually consistent.",
-        validator="raes_contracts.participant_opacity.ParticipantOpacityAnalysisEvidenceModel",
         inputs=[
             {
                 "contract_id": "participant-opacity-analysis-evidence-v1",
@@ -351,7 +344,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "participant-opacity-model-check-graph-joins",
         "State and transition ordinals, refs, endpoints, fixed domains, exact declared counts, assumptions, "
         "and model-check claim coordinates must form one closed canonical transition model.",
-        validator="raes_contracts.participant_opacity.ParticipantOpacityModelCheckInputModel",
         inputs=[
             {
                 "contract_id": "participant-opacity-model-check-input-v1",
@@ -369,7 +361,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "participant-opacity-model-check-evidence-joins",
         "Exact catalog, profile, model, assumptions, checker, derived carrier, complete coverage, claim, outcome, "
         "diagnostics, and safe counterexample joins must remain digest-bound and mutually consistent.",
-        validator="raes_contracts.participant_opacity.ParticipantOpacityModelCheckEvidenceModel",
         inputs=[
             {
                 "contract_id": "participant-opacity-model-check-evidence-v1",
@@ -391,7 +382,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "study-behavioral-claim-catalog-resolution",
         "Every study behavioral claim must resolve against the canonical taxonomy revision, include a required "
         "observation projection, and keep bounded evidence out of universal quantifiers.",
-        validator="raes_contracts.behavioral_relations.validate_behavioral_claim_binding",
         inputs=[
             {"contract_id": "experiment-study-v1", "instance_path": "#/behavioral_claims"},
             {"contract_id": "behavioral-relations-v1", "instance_path": "#"},
@@ -402,7 +392,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "scientific-completeness-taxonomy-rectangular",
         "Concern and profile ids must be unique, and every profile disposition "
         "map must exactly cover the taxonomy concern set.",
-        validator="raes_contracts.scientific_completeness.ScientificCompletenessTaxonomyModel",
         inputs=[{"contract_id": "scientific-completeness-taxonomy-v1", "instance_path": "#"}],
     )
     _add_raes_invariant(
@@ -410,7 +399,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "scientific-completeness-behavioral-claim-resolution",
         "Each profile must carry resolved behavioral claim bindings and disjoint, catalog-resolved nonclaimed "
         "relation ids.",
-        validator="raes_contracts.scientific_completeness.CompletenessProfileModel.validate_behavioral_claims",
         inputs=[
             {"contract_id": "scientific-completeness-taxonomy-v1", "instance_path": "#/profiles"},
             {"contract_id": "behavioral-relations-v1", "instance_path": "#"},
@@ -422,7 +410,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "Concern ids must be unique and each delivery status must carry its "
         "required executable evidence, external binding, issue refs, or "
         "exclusion rationale.",
-        validator="raes_contracts.scientific_completeness.ScientificCompletenessAssessmentModel",
         inputs=[{"contract_id": "scientific-completeness-assessment-v1", "instance_path": "#"}],
     )
     _add_raes_invariant(
@@ -431,7 +418,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "Every fact version resolves to a declaration, every binding event resolves to its compiled sink and "
         "optional immutable fact version with matching scope, sensitivity, provenance, redaction, and sink policy, "
         "and every projection exactly matches the immutable version it discloses.",
-        validator="raes_contracts.contracts.runtime_facts.RuntimeFactBindingPlaneModel._validate_references",
         inputs=[{"contract_id": "runtime-fact-binding-plane-v1", "instance_path": "#"}],
     )
     _add_raes_invariant(
@@ -439,7 +425,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "scientific-completeness-taxonomy-assessment-join",
         "Assessment family, taxonomy revision, and concern ids must exactly "
         "match the joined taxonomy before completeness is computed.",
-        validator="raes_contracts.scientific_completeness.evaluate_profile_completeness",
         inputs=[
             {"contract_id": "scientific-completeness-taxonomy-v1", "instance_path": "#"},
             {"contract_id": "scientific-completeness-assessment-v1", "instance_path": "#"},
@@ -451,7 +436,6 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         "Strength ranks and term ids must be unique, profile identities must "
         "be unique, required and optional gates must be disjoint, and every "
         "profile reference must resolve within the catalog.",
-        validator=("raes_contracts.validation_profiles.ValidationProfileCatalogModel"),
         inputs=[
             {
                 "contract_id": "validation-profile-catalog-v1",

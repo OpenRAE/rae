@@ -384,8 +384,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.scientific_completeness.ScientificCompletenessTaxonomyModel"
+      "level": "error"
     },
     {
       "description": "Each profile must carry resolved behavioral claim bindings and disjoint, catalog-resolved nonclaimed relation ids.",
@@ -400,8 +399,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.scientific_completeness.CompletenessProfileModel.validate_behavioral_claims"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

@@ -183,15 +183,21 @@ context established by the applicable trust and evidence contracts.
 
 ## 6. Security and conformance
 
-All public models and schemas are closed. Implementations MUST reject unknown
-fields, duplicate semantic ids/routes, invalid digest syntax, ungoverned
-mechanism names, unresolved materialization input joins, and posture/authority
-contradictions. The published schema structurally requires
-`Source.artifact_requirement`; cross-object equality and local-id joins that
-Draft 2020-12 cannot express are published under the governed
-`x-raes-invariants` profile with an importable validator. Diagnostics MUST
-identify stable requirement, field, and capability terms without echoing
-realized values or operational secrets.
+All public models and schemas are closed. Implementations MUST reject these
+inputs:
+
+- unknown fields;
+- duplicate semantic ids or routes;
+- invalid digest syntax;
+- ungoverned mechanism names;
+- unresolved materialization input joins;
+- contradictions between posture and authority.
+
+The published schema structurally requires `Source.artifact_requirement`.
+Draft 2020-12 cannot express cross-object equality and local-id joins, so the
+governed `x-raes-invariants` profile publishes them. Diagnostics MUST identify
+stable requirement, field, and capability terms. They MUST NOT echo realized
+values or operational secrets.
 
 This specification authorizes no network access, registry mutation,
 credential lookup, archive extraction, subprocess execution, or artifact

@@ -213,11 +213,11 @@ def test_published_schema_enforces_expressible_realization_invariants():
     assert list(validator.iter_errors(incoherent_disposition))
 
 
-def test_published_schema_declares_callable_canonical_semantic_validator():
+def test_published_schema_declares_the_canonical_semantic_invariant():
     schema = BackendRealizationEnvelopeModel.model_json_schema()
     invariant = schema["x-raes-invariants"][0]
 
-    assert invariant["validator"] == "raes_contracts.realization_envelope.validate_backend_realization_envelope"
+    assert invariant["id"] == "realization-envelope-canonical-semantics-valid"
     with pytest.raises(ValidationError, match="digest does not match"):
         validate_backend_realization_envelope({**_payload(), "digest": "sha256:" + "f" * 64})
 

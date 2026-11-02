@@ -1,9 +1,9 @@
 {
-  "content_hash": "4b139ab63445cb174f97f7d505d089aed850fae2e0f6b53883f97b596965a832",
+  "content_hash": "2b7b0b20d4e7b7df6a8bfb2a7ad544b7cf3c1ffed06d88024798e93422ebbd08",
   "contract_id": "experiment-run-v1",
   "last_change": {
-    "content_hash": "4b139ab63445cb174f97f7d505d089aed850fae2e0f6b53883f97b596965a832",
-    "summary": "Retain complete and partial run accounting with coherent admitted provenance and exact immutable record identities (#1630)."
+    "content_hash": "2b7b0b20d4e7b7df6a8bfb2a7ad544b7cf3c1ffed06d88024798e93422ebbd08",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft"

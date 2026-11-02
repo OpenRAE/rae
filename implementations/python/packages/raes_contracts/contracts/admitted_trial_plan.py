@@ -189,7 +189,6 @@ class AdmittedTrialEntryModel(ContractModel):
             "An admitted trial entry keeps run_id distinct from plan_entry_id, records unique resolved variation "
             "selections and non-exhausted stochastic draws, matches its instantiation provenance to the entry "
             "identity, and binds its content with a recomputed entry_digest.",
-            validator="raes_contracts.contracts.admitted_trial_plan.AdmittedTrialEntryModel._validate_entry",
             inputs=[{"contract_id": "admitted-trial-plan-v1", "instance_path": "#/entries"}],
         )
         return json_schema
@@ -438,7 +437,6 @@ class AdmittedTrialPlanModel(ContractModel):
             "admission cardinality, binds a replacement profile to a distinct single-entry child within the "
             "original replacement budget, and binds the complete plan with a recomputed plan_digest "
             "over the entry set.",
-            validator="raes_contracts.contracts.admitted_trial_plan.AdmittedTrialPlanModel._validate_plan",
             inputs=[{"contract_id": "admitted-trial-plan-v1", "instance_path": "#"}],
         )
         return json_schema

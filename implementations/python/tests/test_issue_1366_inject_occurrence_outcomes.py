@@ -156,19 +156,19 @@ def test_fixture_corpus_separates_structure_from_contextual_claims(contract_id, 
 
 
 @pytest.mark.parametrize(
-    ("contract_id", "validator"),
+    ("contract_id", "invariant_id"),
     [
-        ("inject-occurrence-outcome-v1", "validate_inject_occurrence_outcome"),
-        ("inject-occurrence-correlation-v1", "validate_inject_occurrence_correlation"),
+        ("inject-occurrence-outcome-v1", "inject-occurrence-outcome-binding"),
+        ("inject-occurrence-correlation-v1", "inject-occurrence-correlation-source"),
     ],
 )
-def test_published_schemas_are_the_reference_bundle_with_semantic_bindings(contract_id, validator):
+def test_published_schemas_are_the_reference_bundle_with_semantic_bindings(contract_id, invariant_id):
     published = schema(contract_id)
     invariants = published["x-raes-invariants"]
 
     assert published == contracts.schema_bundle()[contract_id]
     assert published["x-raes-semantic-profile"]["required"] is True
-    assert f"raes_contracts.contracts.{validator}" in {item["validator"] for item in invariants}
+    assert invariant_id in {item["id"] for item in invariants}
     # Each invariant reads the instance of the schema that publishes it.
     assert all(contract_id in {item["contract_id"] for item in invariant["inputs"]} for invariant in invariants)
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 from copy import deepcopy
 from functools import cache
 from typing import Any, Literal
@@ -350,12 +349,14 @@ class RaesSemanticInvariantInputModel(ContractModel):
 
 
 class RaesSemanticInvariantEntryModel(ContractModel):
-    """Machine-readable semantic invariant annotation entry."""
+    """Machine-readable semantic invariant annotation entry.
+
+    The contract id of the host schema and the entry id identify the invariant.
+    """
 
     id: NonEmptyString
     description: NonEmptyString
     level: Literal["error"]
-    validator: NonEmptyString
     inputs: list[RaesSemanticInvariantInputModel] = Field(min_length=1)
 
 
@@ -407,28 +408,6 @@ def _iter_raes_semantic_invariant_entries(schema_node: object) -> list[dict[str,
     return entries
 
 
-def _resolve_semantic_validator(validator: str) -> object:
-    parts = validator.split(".")
-    for index in range(len(parts), 0, -1):
-        module_name = ".".join(parts[:index])
-        try:
-            module_spec = importlib.util.find_spec(module_name)
-        except ModuleNotFoundError, ValueError:
-            continue
-        if module_spec is None:
-            continue
-        target: object = importlib.import_module(module_name)
-        try:
-            for attr in parts[index:]:
-                target = getattr(target, attr)
-        except AttributeError as exc:
-            raise ValueError(
-                f"semantic invariant validator '{validator}' does not resolve to an importable object"
-            ) from exc
-        return target
-    raise ValueError(f"semantic invariant validator '{validator}' does not resolve to an importable object")
-
-
 def _validate_raes_semantic_invariant_annotations(
     *,
     contract_id: str,
@@ -449,8 +428,6 @@ def _validate_raes_semantic_invariant_annotations(
     seen_invariant_ids: set[str] = set()
     for invariant_payload in invariant_entries:
         invariant = RaesSemanticInvariantEntryModel.model_validate(invariant_payload)
-        if not callable(_resolve_semantic_validator(invariant.validator)):
-            raise ValueError(f"semantic invariant validator '{invariant.validator}' must resolve to a callable")
         if invariant.id in seen_invariant_ids:
             raise ValueError(f"schema '{contract_id}' has duplicate semantic invariant id '{invariant.id}'")
         seen_invariant_ids.add(invariant.id)

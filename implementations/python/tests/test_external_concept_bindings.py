@@ -306,10 +306,6 @@ def test_normative_schema_publishes_cross_entry_binding_identity_invariant() -> 
     invariants = {entry["id"]: entry for entry in published_schema["x-raes-invariants"]}
 
     assert "external-concept-binding-identities" in invariants
-    assert (
-        invariants["external-concept-binding-identities"]["validator"]
-        == "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
-    )
 
 
 def test_binding_map_key_must_equal_stable_binding_id() -> None:

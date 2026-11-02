@@ -78,7 +78,6 @@ def add_run_difficulty_invariants(json_schema: JsonSchemaValue) -> None:
         "adaptive-difficulty-run-provenance-valid",
         "Difficulty decisions and interventions match the archival run id, remain within the run time window, "
         "and preserve fixed/adaptive/scaffolded policy provenance.",
-        validator="raes_contracts.contracts.ExperimentRunModel._validate_archival_run",
         inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/difficulty_provenance"}],
     )
     _add_raes_invariant(
@@ -86,7 +85,6 @@ def add_run_difficulty_invariants(json_schema: JsonSchemaValue) -> None:
         "adaptive-difficulty-authoring-admission-valid",
         "Difficulty provenance must match the exact digest-bound authoring input, allocated condition, task, "
         "and immutable policy snapshot.",
-        validator="raes_contracts.contracts.validate_experiment_difficulty_against_spec",
         inputs=[
             {"contract_id": "experiment-authoring-input-v1", "instance_path": "#"},
             {"contract_id": "experiment-run-v1", "instance_path": "#"},

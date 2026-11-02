@@ -211,7 +211,6 @@ class TrialCleanupPlanModel(ContractModel):
             "Cleanup boundary and dependency references resolve, ordering is acyclic, required cleanup is "
             "verifiable, and retries after non-idempotent effects declare required retry-triggered reset "
             "obligations covering the affected boundaries or compensation.",
-            validator="raes_contracts.contracts.TrialCleanupPlanModel._validate_plan",
             inputs=[{"contract_id": "trial-cleanup-plan-v1", "instance_path": "#"}],
         )
         return json_schema
@@ -302,7 +301,6 @@ class TrialCleanupReceiptModel(ContractModel):
             "reports an attempted result for every required obligation owed by the terminal trigger, keeps results "
             "consistent with obligation triggers, requires successful required results when cleanup succeeded, and "
             "permits clean-state claims only after verified success.",
-            validator="raes_contracts.contracts.validate_trial_cleanup_receipt",
             inputs=[
                 {"contract_id": "trial-cleanup-plan-v1", "instance_path": "#"},
                 {"contract_id": "trial-cleanup-receipt-v1", "instance_path": "#"},
@@ -415,7 +413,6 @@ class SchedulerIsolationProofModel(ContractModel):
             "scheduler-isolation-serial-default-and-complete-parallel-proof",
             "Scheduling defaults to serial; bounded parallelism requires independent evidence for range, capacity, "
             "ports, storage, control-plane locks, secret scope, and cleanup.",
-            validator="raes_contracts.contracts.SchedulerIsolationProofModel._validate_isolation",
             inputs=[{"contract_id": "scheduler-isolation-proof-v1", "instance_path": "#"}],
         )
         return json_schema
