@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-05-15T04:13:16.700063Z
-updated_at: 2026-10-21T00:00:00Z
+updated_at: 2026-11-02T00:00:00Z
 ---
 
 # GOV-928 — Trusted Package Publishing
@@ -20,6 +20,9 @@ The ecosystem shall use short-lived, identity-bound publishing mechanisms for pa
 Imported from the superseded governance backlog before deleting the old governance repo. Package publication is a supply-chain trust boundary and should be governed separately from implementation-level artifact integrity.
 
 ## Traceability
+
+- IMPLEMENTS → CODE_FILE `implementations/tooling/release-please/run.cjs` (Complete ancestry-based commit input for release PR versioning and notes, #1841)
+- TESTS → TEST `implementations/tooling/release-please/run.test.cjs` (Older-dated breaking commits, ordinary release classification, and incomplete-history refusal)
 
 - IMPLEMENTS → CODE_FILE `.github/workflows/release-please.yml` (Exact-SHA-gated PyPI trusted publishing workflow)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence_publication.py` (Tag-derived subject-name correspondence and the validated publisher handoff)
