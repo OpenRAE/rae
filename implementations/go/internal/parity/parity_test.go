@@ -61,8 +61,8 @@ func TestLoadRejectsAnInvalidCorpus(t *testing.T) {
 		"input that does not match its digest": corpus([]byte("changed")),
 	}
 	for name, content := range map[string]string{
-		"unknown schema":       `{"schema": "other/v1"}`,
-		"unknown field":        `{"schema": "raes-parity-corpus/v1", "x": 1}`,
+		"unknown schema":       strings.Replace(manifest, Schema, "other/v1", 1),
+		"unknown field":        strings.TrimSuffix(manifest, "}") + `, "x": 1}`,
 		"data after the value": manifest + " {}",
 	} {
 		fsys := corpus([]byte(input))
