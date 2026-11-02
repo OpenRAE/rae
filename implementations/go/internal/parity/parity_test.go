@@ -96,6 +96,7 @@ func TestResultComparisonKeepsExactNumbers(t *testing.T) {
 		{`{"n":9007199254740992}`, `{"n":9007199254740993}`},
 		{`[-9007199254740992]`, `[-9007199254740993]`},
 		{`1.00000000000000000001`, `1`},
+		{`1e100`, `1.00000000000000001e100`},
 		{`1e100000000000000000000`, `1e100000000000000000001`},
 	} {
 		if cmp.Equal(decode(t, json.RawMessage(pair[0])), decode(t, json.RawMessage(pair[1]))) {
