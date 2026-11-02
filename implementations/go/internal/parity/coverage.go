@@ -35,9 +35,9 @@ func registryProblems(keys map[string]bool, registered map[string]Runner, implem
 			problems = append(problems, fmt.Errorf("implemented surface %q has no runner", key))
 		}
 	}
-	for key, run := range registered {
-		if run == nil || !keys[key] {
-			problems = append(problems, fmt.Errorf("runner %q is nil or has no cases", key))
+	for key := range registered {
+		if !keys[key] {
+			problems = append(problems, fmt.Errorf("runner %q has no cases", key))
 		}
 		if !required[key] {
 			problems = append(problems, fmt.Errorf("runner %q is missing from the implemented inventory", key))

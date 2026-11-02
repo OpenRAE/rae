@@ -152,3 +152,31 @@ func TestHexDigestRequiresLowercaseHexOfTheExactLength(t *testing.T) {
 		}
 	}
 }
+
+// observedFS records file reads so the security test can distinguish rejecting
+// a path before lookup from detecting bad content after an unsafe lookup.
+type observedFS struct {
+	fs.FS
+
+	opened []string
+}
+
+func (f *observedFS) Open(name string) (fs.File, error) {
+	f.opened = append(f.opened, name)
+	return f.FS.Open(name)
+}
+
+func TestLoadRejectsAnInvalidDigestBeforeOpeningItsPath(t *testing.T) {
+	fsys := corpus([]byte(input))
+	sum := sha256.Sum256([]byte(input))
+	fsys[caseName].Data = []byte(strings.ReplaceAll(string(fsys[caseName].Data), hex.EncodeToString(sum[:]), "../escape"))
+	observed := &observedFS{FS: fsys}
+	if _, err := Load(observed); err == nil {
+		t.Error("Load() error = nil, want error")
+	}
+	for _, name := range observed.opened {
+		if name == "escape" {
+			t.Error("Load() opened an input path outside inputs/, want rejection before lookup")
+		}
+	}
+}
