@@ -7,20 +7,30 @@ import json
 import os
 import subprocess
 import sys
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping, Sequence
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, get_args
+from typing import TYPE_CHECKING, get_args
 
 from tools.parity_support import ARGUMENTS_FILE, PAYLOAD_FILE, REQUEST_FILE, Case, encode
 
 if TYPE_CHECKING:
-    from tools.parity_inputs import InputCollector
+    import typer
+    from click.testing import Result
+    from fastapi import FastAPI
+    from httpx import AsyncByteStream, AsyncClient, Client, Request, Response, SyncByteStream
+    from jsonschema import Draft202012Validator, ValidationError
+    from mcp import types as mcp_types
+    from mcp.server.fastmcp import FastMCP
+    from pydantic import BaseModel
+    from raes.materialization import MaterializedScenario
+    from raes.scenario import ExpandedScenario, Scenario
+    from raes_runtime.control_plane_security import ControlPlaneIdentity
+    from starlette.types import Message, Receive, Scope, Send
+    from typer.testing import CliRunner
 
-Message = dict[str, Any]
-Receive = Callable[[], Awaitable[Message]]
-Send = Callable[[Message], Awaitable[None]]
+    from tools.parity_inputs import InputCollector
 
 
 @dataclass
@@ -29,7 +39,7 @@ class PublishedModels:
     published: set[str]
     schema_ids: dict[str, str]
 
-    def contract(self, model: Any) -> str | None:
+    def contract(self, model: type[BaseModel]) -> str | None:
         if not model.__module__.startswith("raes_contracts"):
             return None
         version = model.model_fields.get("schema_version")
@@ -39,7 +49,7 @@ class PublishedModels:
         candidates = {value.replace("/", "-") for value in versions if isinstance(value, str)} & self.published
         return next(iter(candidates)) if len(candidates) == 1 else None
 
-    def record(self, contract: str | None, value: Any) -> None:
+    def record(self, contract: str | None, value: object) -> None:
         if contract is not None:
             try:
                 content = encode(value)
@@ -48,7 +58,7 @@ class PublishedModels:
             else:
                 self.collector.add(Case("schema", "validate", "", (contract,), {PAYLOAD_FILE: content}))
 
-    def record_json(self, model: Any, value: Any) -> None:
+    def record_json(self, model: type[BaseModel], value: object) -> None:
         contract = self.contract(model)
         if contract is not None and isinstance(value, (str, bytes, bytearray)):
             try:
@@ -58,7 +68,9 @@ class PublishedModels:
             else:
                 self.collector.add(Case("schema", "validate", "", (contract,), {PAYLOAD_FILE: content}))
 
-    def record_schema(self, validator: Any, value: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> None:
+    def record_schema(
+        self, validator: Draft202012Validator, value: object, args: tuple[object, ...], kwargs: dict[str, object]
+    ) -> None:
         schema = args[0] if args else kwargs.get("_schema", validator.schema)
         schema_id = schema.get("$id") if isinstance(schema, dict) else None
         contract = self.schema_ids.get(schema_id) if isinstance(schema_id, str) else None
@@ -84,17 +96,17 @@ def install_models(collector: InputCollector, models: PublishedModels) -> None:
     original_validate_json = BaseModel.model_validate_json.__func__
 
     @functools.wraps(original_initialize)
-    def initialize(instance: Any, /, **values: Any) -> None:
+    def initialize(instance: BaseModel, /, **values: object) -> None:
         models.record(models.contract(type(instance)), values)
         original_initialize(instance, **values)
 
     @functools.wraps(original_validate)
-    def validate(model: Any, value: Any, *args: Any, **kwargs: Any) -> Any:
+    def validate(model: type[BaseModel], value: object, *args: object, **kwargs: object) -> BaseModel:
         models.record(models.contract(model), value)
         return original_validate(model, value, *args, **kwargs)
 
     @functools.wraps(original_validate_json)
-    def validate_json(model: Any, value: Any, *args: Any, **kwargs: Any) -> Any:
+    def validate_json(model: type[BaseModel], value: object, *args: object, **kwargs: object) -> BaseModel:
         models.record_json(model, value)
         return original_validate_json(model, value, *args, **kwargs)
 
@@ -109,16 +121,20 @@ def install_schema_validation(collector: InputCollector, models: PublishedModels
     original = Draft202012Validator.iter_errors
 
     @functools.wraps(original)
-    def iter_errors(validator: Any, value: Any, *args: Any, **kwargs: Any) -> Any:
+    def iter_errors(
+        validator: Draft202012Validator, value: object, *args: object, **kwargs: object
+    ) -> Iterator[ValidationError]:
         models.record_schema(validator, value, args, kwargs)
         return original(validator, value, *args, **kwargs)
 
     collector.patches.setattr(Draft202012Validator, "iter_errors", iter_errors)
 
 
-def analysis_probe(collector: InputCollector, original: Callable[..., Any], command: str) -> Callable[..., Any]:
+def analysis_probe[ResultT](
+    collector: InputCollector, original: Callable[..., ResultT], command: str
+) -> Callable[..., ResultT]:
     @functools.wraps(original)
-    def invoke(path: Any, *args: Any, **kwargs: Any) -> Any:
+    def invoke(path: Path, *args: object, **kwargs: object) -> ResultT:
         arguments = ["processor", command, str(path)]
         if "profile" in kwargs:
             arguments.extend(["--profile", kwargs["profile"]])
@@ -136,7 +152,7 @@ def install_parsing(collector: InputCollector) -> None:
     original = parser.parse_sdl
 
     @functools.wraps(original)
-    def parse(content: Any, *args: Any, **kwargs: Any) -> Any:
+    def parse(content: str, *args: object, **kwargs: object) -> Scenario | ExpandedScenario | MaterializedScenario:
         if isinstance(content, str):
             collector.source(content, **kwargs)
         return original(content, *args, **kwargs)
@@ -148,7 +164,7 @@ def install_parsing(collector: InputCollector) -> None:
     )
 
 
-def installed_cli(arguments: Any, shell: Any) -> bool:
+def installed_cli(arguments: object, shell: object) -> bool:
     if not isinstance(arguments, (list, tuple)) or not arguments:
         return False
     return Path(os.fsdecode(arguments[0])).name in {"raes", "raes.exe"} and not shell
@@ -164,18 +180,22 @@ def install_cli(collector: InputCollector) -> None:
     original_run = subprocess.run
 
     @functools.wraps(original_cli)
-    def invoke(runner: Any, application: Any, args: Any = None, **kwargs: Any) -> Any:
+    def invoke(
+        runner: CliRunner, application: typer.Typer, args: str | Sequence[str] | None = None, **kwargs: object
+    ) -> Result:
         if application is app:
             collector.cli(args, kwargs)
         return original_cli(runner, application, args, **kwargs)
 
     @functools.wraps(original_entrypoint)
-    def main(*args: Any, **kwargs: Any) -> Any:
+    def main(*args: object, **kwargs: object) -> None:
         collector.cli(sys.argv[1:], {})
         return original_entrypoint(*args, **kwargs)
 
     @functools.wraps(original_run)
-    def process_run(*popenargs: Any, **kwargs: Any) -> Any:
+    def process_run(
+        *popenargs: object, **kwargs: object
+    ) -> subprocess.CompletedProcess[str] | subprocess.CompletedProcess[bytes]:
         arguments = popenargs[0] if popenargs else kwargs.get("args")
         if installed_cli(arguments, kwargs.get("shell")):
             collector.cli(arguments[1:], kwargs, working_directory=kwargs.get("cwd"))
@@ -193,7 +213,9 @@ def install_mcp(collector: InputCollector, declared: set[str]) -> None:
     original = FastMCP.call_tool
 
     @functools.wraps(original)
-    async def call_tool(server: Any, name: str, arguments: Any) -> Any:
+    async def call_tool(
+        server: FastMCP, name: str, arguments: dict[str, object]
+    ) -> Sequence[mcp_types.ContentBlock] | dict[str, object]:
         if name in declared:
             try:
                 content = encode(arguments)
@@ -206,7 +228,9 @@ def install_mcp(collector: InputCollector, declared: set[str]) -> None:
     collector.patches.setattr(FastMCP, "call_tool", call_tool)
 
 
-def identity_fields(served: Any, identity: Any, authorization: str, headers: Any) -> dict[str, Any]:
+def identity_fields(
+    served: FastAPI, identity: ControlPlaneIdentity, authorization: str, headers: Mapping[str, str]
+) -> dict[str, object]:
     policy = served.state.control_plane_api_auth._security
     return {
         "principal": "recorded",
@@ -220,7 +244,7 @@ def identity_fields(served: Any, identity: Any, authorization: str, headers: Any
     }
 
 
-def authority_fields(served: Any, headers: Any) -> dict[str, Any]:
+def authority_fields(served: FastAPI, headers: Mapping[str, str]) -> dict[str, object]:
     policy = served.state.control_plane_api_auth._security
     authorization = headers.get("authorization", "")
     identity = None
@@ -235,7 +259,7 @@ def authority_fields(served: Any, headers: Any) -> dict[str, Any]:
     return {"principal": principal} if identity is None else identity_fields(served, identity, authorization, headers)
 
 
-def request_specification(served: Any, method: str, path: str, headers: Any) -> dict[str, Any]:
+def request_specification(served: FastAPI, method: str, path: str, headers: Mapping[str, str]) -> dict[str, object]:
     from tools.parity_surfaces import HTTP_LIMITS
 
     policy = served.state.control_plane_api_auth._security
@@ -254,7 +278,7 @@ class CapturedBody:
 
 
 def capture_http(
-    collector: InputCollector, specification: dict[str, Any], body: CapturedBody, routes: list[str]
+    collector: InputCollector, specification: dict[str, object], body: CapturedBody, routes: list[str]
 ) -> None:
     from tools.parity_surfaces import route_key
 
@@ -269,7 +293,7 @@ def capture_http(
     collector.add(Case("http", key, "", (), files))
 
 
-def observed_stream(original: Any, body: CapturedBody) -> Any:
+def observed_stream(original: AsyncByteStream | SyncByteStream, body: CapturedBody) -> AsyncByteStream | SyncByteStream:
     from httpx import AsyncByteStream, SyncByteStream
 
     class ObservedAsyncStream(AsyncByteStream):
@@ -295,7 +319,9 @@ def observed_stream(original: Any, body: CapturedBody) -> Any:
     return ObservedAsyncStream() if isinstance(original, AsyncByteStream) else ObservedStream()
 
 
-def observe_http(collector: InputCollector, client: Any, request: Any, routes: list[str]) -> Callable[[], None] | None:
+def observe_http(
+    collector: InputCollector, client: Client | AsyncClient, request: Request, routes: list[str]
+) -> Callable[[], None] | None:
     from httpx import RequestNotRead
 
     served = getattr(client, "app", None) or getattr(getattr(client, "_transport", None), "app", None)
@@ -318,13 +344,13 @@ def observe_http(collector: InputCollector, client: Any, request: Any, routes: l
 
 async def observe_asgi(
     collector: InputCollector,
-    original: Callable[..., Awaitable[Any]],
-    application: Any,
-    scope: Message,
+    original: Callable[[FastAPI, Scope, Receive, Send], Awaitable[None]],
+    application: FastAPI,
+    scope: Scope,
     receive: Receive,
     send: Send,
     routes: list[str],
-) -> Any:
+) -> None:
     from httpx import Headers
 
     query = scope.get("query_string", b"").decode("ascii")
@@ -359,7 +385,7 @@ def install_http(collector: InputCollector, routes: list[str]) -> None:
     observed = ContextVar("parity_http_observed", default=False)
 
     @functools.wraps(original_sync)
-    def send(client: Any, request: Any, **kwargs: Any) -> Any:
+    def send(client: Client, request: Request, **kwargs: object) -> Response:
         finish = observe_http(collector, client, request, routes)
         token = observed.set(finish is not None or observed.get())
         try:
@@ -370,7 +396,7 @@ def install_http(collector: InputCollector, routes: list[str]) -> None:
                 finish()
 
     @functools.wraps(original_async)
-    async def async_send(client: Any, request: Any, **kwargs: Any) -> Any:
+    async def async_send(client: AsyncClient, request: Request, **kwargs: object) -> Response:
         finish = observe_http(collector, client, request, routes)
         token = observed.set(finish is not None or observed.get())
         try:
@@ -381,7 +407,7 @@ def install_http(collector: InputCollector, routes: list[str]) -> None:
                 finish()
 
     @functools.wraps(original_asgi)
-    async def asgi(application: Any, scope: Message, receive: Receive, send: Send) -> Any:
+    async def asgi(application: FastAPI, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http" or observed.get() or not hasattr(application.state, "control_plane_api_auth"):
             return await original_asgi(application, scope, receive, send)
         return await observe_asgi(collector, original_asgi, application, scope, receive, send, routes)

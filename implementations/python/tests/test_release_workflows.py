@@ -441,9 +441,13 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     assert "test -d /etc/fonts" in sandbox
     assert "test -d /usr/share/fonts" in sandbox
 
-    # Coverage is combined once, after a completeness proof, gated on both producers.
+    # Coverage is combined once after shard completeness and real recorder execution.
     reduce = workflow["jobs"]["coverage-reduce"]
-    assert reduce["needs"] == ["test-shard", "integration"]
+    assert reduce["needs"] == ["test-shard", "integration", "parity-corpus"]
+    assert "needs.test-shard.result == 'success'" in reduce["if"]
+    assert "needs.integration.result == 'success'" in reduce["if"]
+    recorder_coverage = _named_step(reduce, "Receive recorder coverage data")
+    assert recorder_coverage["with"]["name"] == "coverage-parity-${{ inputs.ref }}"
     reduce_run = _named_step(reduce, "Prove completeness and combine coverage")["run"]
     assert "nox -f noxfile.py -s verify-coverage-reduce" in reduce_run
     coverage = _named_step(reduce, "Upload combined coverage report")
@@ -1709,7 +1713,13 @@ def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> No
     workflow = _load(CANONICAL_PATH)
     job = workflow["jobs"]["parity-corpus"]
     check = _named_step(job, "Check that the Python implementation reproduces the corpus")
-    assert "python -m tools.parity_corpus check" in check["run"]
+    assert "python -m coverage run" in check["run"]
+    assert "-m tools.parity_corpus check" in check["run"]
+    assert '--data-file="${RUNNER_TEMP}/.coverage.parity"' in check["run"]
+    coverage = _named_step(job, "Retain recorder coverage data")
+    assert coverage["with"]["name"] == "coverage-parity-${{ inputs.ref }}"
+    assert coverage["with"]["include-hidden-files"] is True
+    assert coverage["with"]["if-no-files-found"] == "error"
     upload = _named_step(job, "Upload the recorded corpus")
     assert upload["if"] == "failure() && steps.scan.outcome == 'success'"
     assert check["continue-on-error"] is True

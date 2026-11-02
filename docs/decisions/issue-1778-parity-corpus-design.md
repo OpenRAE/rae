@@ -318,3 +318,19 @@ be converted into a synthetic server error. Requesting an unrecorded frame fails
 recording instead of inventing missing input.
 CLI version probes retain their plain version value; help and unstructured
 diagnostic prose remain excluded from machine-output comparison.
+
+## Recorder coverage and boundary types
+
+The corpus reproduction command runs under the existing coverage tool in CI.
+Its measured execution joins the unit shards and integration data before the
+existing coverage floors and Sonar analysis. This measures the real recorder
+on every run, including frozen-input reuse; it does not substitute generated
+expectations or relax coverage requirements. Coverage is retained before the
+independent corpus-reproduction verdict, so a recording difference remains a
+failure while still supplying diagnostic coverage. Shard completeness remains
+a prerequisite for reduction.
+
+Observer annotations use the SDK boundary types for models, clients, streams,
+ASGI messages and identities. Values deliberately accepted before validation
+use `object`; generic callback adapters preserve their result type. These type
+changes must preserve calls, return values and exceptions.

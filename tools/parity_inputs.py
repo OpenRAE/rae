@@ -12,10 +12,13 @@ import shlex
 import stat
 import tempfile
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from threading import RLock
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 import pytest
 
@@ -28,7 +31,7 @@ def absolute_input(directory: Path, value: str) -> Path:
     return Path(os.path.abspath(directory / value))
 
 
-def command_tokens(arguments: Any) -> list[str]:
+def command_tokens(arguments: str | Sequence[object] | None) -> list[str]:
     supplied = shlex.split(arguments) if isinstance(arguments, str) else [str(value) for value in (arguments or [])]
     tokens: list[str] = []
     positional = False
@@ -63,7 +66,11 @@ def source_names(originals: dict[Path, bytes], roots: list[Path]) -> tuple[Path,
 
 
 def portable_files(
-    originals: dict[Path, bytes], recipes: dict[Path, Any], roots: list[Path], base: Path, names: dict[Path, str]
+    originals: dict[Path, bytes],
+    recipes: dict[Path, dict[str, str]],
+    roots: list[Path],
+    base: Path,
+    names: dict[Path, str],
 ) -> dict[str, bytes]:
     files = {names[path]: content for path, content in originals.items() if path not in recipes}
     if recipes:
@@ -153,7 +160,7 @@ class InputCollector:
             recipe = {"kind": "public-test-ed25519", "seed_id": self.key_seeds[public]}
         return recipe
 
-    def candidate_input(self, path: Path) -> tuple[bytes | None, dict[str, Any] | None]:
+    def candidate_input(self, path: Path) -> tuple[bytes | None, dict[str, str] | None]:
         """Inspect only regular files under explicitly allowed CI input roots."""
         absolute = self.regular_input(path)
         if absolute is None:
@@ -163,7 +170,8 @@ class InputCollector:
             return b"", self.key_recipe(content)
         return content, None
 
-    def directory_inputs(self, root: Path) -> list[Path]:
+    @staticmethod
+    def directory_inputs(root: Path) -> list[Path]:
         files = []
         for path in sorted(root.rglob("*")):
             if path.is_symlink():
@@ -193,7 +201,7 @@ class InputCollector:
                     files.extend(self.directory_inputs(root))
         return roots, files
 
-    def input_graph(self, pending: list[Path]) -> tuple[dict[Path, bytes], dict[Path, Any]]:
+    def input_graph(self, pending: list[Path]) -> tuple[dict[Path, bytes], dict[Path, dict[str, str]]]:
         from tools.parity_surfaces import local_dependencies
 
         originals: dict[Path, bytes] = {}
@@ -211,7 +219,13 @@ class InputCollector:
                     pending.extend(local_dependencies(path, content))
         return originals, recipes
 
-    def cli(self, arguments: Any, kwargs: dict[str, Any], *, working_directory: Any = None) -> None:
+    def cli(
+        self,
+        arguments: str | Sequence[object] | None,
+        kwargs: dict[str, object],
+        *,
+        working_directory: str | bytes | os.PathLike[str] | None = None,
+    ) -> None:
         directory = Path(os.fsdecode(working_directory)) if working_directory is not None else Path.cwd()
         tokens = command_tokens(arguments)
         command = self.command(tokens)
@@ -262,7 +276,7 @@ class InputCollector:
                 setattr(module, attribute, original)
         settings.load_profile(self.previous_profile)
 
-    def patch_aliases(self, original: Callable[..., Any], replacement: Callable[..., Any]) -> None:
+    def patch_aliases(self, original: Callable[..., object], replacement: Callable[..., object]) -> None:
         for module, attribute in runtime_aliases(original):
             self.patches.setattr(module, attribute, replacement)
         self.aliases_to_restore.append((replacement, original))
@@ -273,7 +287,7 @@ class InputCollector:
             self.id_counts[self.nodeid] = serial + 1
         return uuid.UUID(hex=digest(f"parity/{self.nodeid}/{serial}".encode())[:32], version=4)
 
-    def fixture_key(self) -> Any:
+    def fixture_key(self) -> Ed25519PrivateKey:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
         with self.lock:

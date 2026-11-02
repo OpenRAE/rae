@@ -478,7 +478,13 @@ jobs:
   # only when both coverage producers succeed, so partial coverage is never
   # reported.
   coverage-reduce:
-    needs: [test-shard, integration]
+    needs: [test-shard, integration, parity-corpus]
+    # A corpus difference still fails the gate, but its completed recording can
+    # supply coverage. Failed test producers must never yield a partial report.
+    if: >-
+      always() && !cancelled()
+      && needs.test-shard.result == 'success'
+      && needs.integration.result == 'success'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -503,6 +509,11 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: coverage-integration-${{ inputs.ref }}
+          path: ${{ runner.temp }}/reduce
+      - name: Receive recorder coverage data
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-parity-${{ inputs.ref }}
           path: ${{ runner.temp }}/reduce
       - name: Prove completeness and combine coverage
         env:
@@ -791,7 +802,16 @@ jobs:
           PYTHONHASHSEED: "0"
         run: >-
           uv run --project implementations/python --all-extras --frozen
-          python -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus" --raw-input-dir "${RUNNER_TEMP}/parity-decoded"
+          python -m coverage run --rcfile=implementations/python/pyproject.toml --source=tools --data-file="${RUNNER_TEMP}/.coverage.parity" -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus" --raw-input-dir "${RUNNER_TEMP}/parity-decoded"
+      - name: Retain recorder coverage data
+        if: always() && steps.corpus.outcome != 'skipped'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-parity-${{ inputs.ref }}
+          path: ${{ runner.temp }}/.coverage.parity
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
       - name: Scan decoded corpus inputs before retaining compressed data
         id: scan
         run: |
