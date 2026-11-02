@@ -1,9 +1,9 @@
 {
-  "content_hash": "143ccbb4459b2685e178632e8725f923f9f2f18b3be4ce9940854bac724243b5",
+  "content_hash": "dfca09358e7e6d1e46b06586557d7a962f2c22a3b2f3084a67158bd36d100a12",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "143ccbb4459b2685e178632e8725f923f9f2f18b3be4ce9940854bac724243b5",
-    "summary": "Add the socket forwarding source kind for a listening-socket input, for example a local syslog socket or a network syslog port (issue #1836)."
+    "content_hash": "dfca09358e7e6d1e46b06586557d7a962f2c22a3b2f3084a67158bd36d100a12",
+    "summary": "Add explicit provider-qualified secret replication policies, replicas and native encryption key constraints (issue #1848)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"
