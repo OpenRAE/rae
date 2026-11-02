@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterator
+from itertools import chain
 
 from raes_contracts import addressing, json_ingress, json_pointer, uri_safety
 
@@ -76,6 +77,9 @@ def _ingress_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
                     "max_depth": 3,
                 },
             )
+
+
+def _ingress_edge_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for i, data in enumerate((b'["\xff"]', b"\xff\xfe[\x00]", b"\x00\x00\xfe\xff\x00", b'["\x01"]')):
         yield (
             "ingress",
@@ -231,10 +235,9 @@ def _address_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
 
 def primitive_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     """Record each input primitive with its own boundary cases."""
-    yield from _ingress_requests()
-    yield from _uri_requests()
-    yield from _pointer_requests()
-    yield from _address_requests()
+    return chain(
+        _ingress_requests(), _ingress_edge_requests(), _uri_requests(), _pointer_requests(), _address_requests()
+    )
 
 
 def compatibility_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
@@ -274,46 +277,60 @@ def compatibility_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
 
 def run_primitive(command: str, request: dict[str, object]) -> dict[str, object]:
     """Call the unchanged reference; free-text errors are not parity data."""
-
     if command == "ingress-exception":
-        return {"reference": run_primitive("ingress", request), "go": request["go"], "decision": request["decision"]}
-    if command == "ingress":
-        return _run_ingress(request)
-    if command == "uri":
-        return _run_uri(request)
-    if command == "pointer":
-        token = request["token"]
-        return {
-            "escape": json_pointer.escape_token(token),
-            "unescape": json_pointer.unescape_token(token),
-            "is_index": json_pointer.is_array_index_token(token),
-            "index": json_pointer.array_index(token, request["length"]),
-        }
-    if command == "tokens":
-        tokens = json_pointer.pointer_tokens(request["pointer"])
-        return {
-            "tokens": list(tokens),
-            "pointer": json_pointer.pointer_from_tokens(tokens),
-        }
-    if command == "address":
-        value = request["value"]
-        try:
-            addressing.require_compiled_address(value)
-            valid = True
-        except ValueError:
-            valid = False
-        return {
-            "valid": valid,
-            "temporal": addressing.is_compiler_owned_temporal_subject_address(value),
-        }
-    if command == "render":
-        try:
-            return {"value": addressing.render_compiled_address(*request["parts"])}
-        except ValueError:
-            return {"value": None}
-    if command == "plan-root":
-        return {"value": addressing.PLAN_ADDRESS_ROOT_BY_DOMAIN.get(request["domain"])}
-    raise ValueError("unknown primitive command: " + command)
+        return {"reference": _run_ingress(request), "go": request["go"], "decision": request["decision"]}
+    runners = {
+        "ingress": _run_ingress,
+        "uri": _run_uri,
+        "pointer": _run_pointer,
+        "tokens": _run_tokens,
+        "address": _run_address,
+        "render": _run_render,
+        "plan-root": lambda r: {"value": addressing.PLAN_ADDRESS_ROOT_BY_DOMAIN.get(r["domain"])},
+    }
+    try:
+        run = runners[command]
+    except KeyError as exc:
+        raise ValueError("unknown primitive command: " + command) from exc
+    return run(request)
+
+
+def _run_pointer(request: dict[str, object]) -> dict[str, object]:
+    token = request["token"]
+    return {
+        "escape": json_pointer.escape_token(token),
+        "unescape": json_pointer.unescape_token(token),
+        "is_index": json_pointer.is_array_index_token(token),
+        "index": json_pointer.array_index(token, request["length"]),
+    }
+
+
+def _run_tokens(request: dict[str, object]) -> dict[str, object]:
+    tokens = json_pointer.pointer_tokens(request["pointer"])
+    return {
+        "tokens": list(tokens),
+        "pointer": json_pointer.pointer_from_tokens(tokens),
+    }
+
+
+def _run_address(request: dict[str, object]) -> dict[str, object]:
+    value = request["value"]
+    try:
+        addressing.require_compiled_address(value)
+        valid = True
+    except ValueError:
+        valid = False
+    return {
+        "valid": valid,
+        "temporal": addressing.is_compiler_owned_temporal_subject_address(value),
+    }
+
+
+def _run_render(request: dict[str, object]) -> dict[str, object]:
+    try:
+        return {"value": addressing.render_compiled_address(*request["parts"])}
+    except ValueError:
+        return {"value": None}
 
 
 def _run_ingress(request: dict[str, object]) -> dict[str, object]:
