@@ -56,22 +56,26 @@ def read_blob(root: Path, identity: str) -> bytes:
     if len(data) > INLINE_BYTES:
         raise ValueError("an encoded parity input exceeds its piece limit")
     if not data.startswith(b"\x1f\x8b"):
-        index = json.loads(data)
-        if set(index) != {"parts"} or type(index["parts"]) is not int or not 0 < index["parts"] <= MAX_PARTS:
-            raise ValueError("invalid parity input piece index")
-        parts = []
-        for number in range(index["parts"]):
-            with (root / "pieces" / identity / str(number)).open("rb") as stream:
-                piece = stream.read(INLINE_BYTES + 2)
-            if not piece.startswith(b"\x00") or len(piece) > INLINE_BYTES + 1:
-                raise ValueError("invalid parity input piece")
-            parts.append(piece[1:])
-        data = b"".join(parts)
+        data = read_pieces(root, identity, data)
     with gzip.GzipFile(fileobj=io.BytesIO(data), mode="rb") as stream:
         content = stream.read(MAX_BLOB_BYTES + 1)
     if len(content) > MAX_BLOB_BYTES or digest(content) != identity:
         raise ValueError("a parity input is oversized or does not match its digest")
     return content
+
+
+def read_pieces(root: Path, identity: str, data: bytes) -> bytes:
+    index = json.loads(data)
+    if set(index) != {"parts"} or type(index["parts"]) is not int or not 0 < index["parts"] <= MAX_PARTS:
+        raise ValueError("invalid parity input piece index")
+    parts = []
+    for number in range(index["parts"]):
+        with (root / "pieces" / identity / str(number)).open("rb") as stream:
+            piece = stream.read(INLINE_BYTES + 2)
+        if not piece.startswith(b"\x00") or len(piece) > INLINE_BYTES + 1:
+            raise ValueError("invalid parity input piece")
+        parts.append(piece[1:])
+    return b"".join(parts)
 
 
 def read_document(root: Path, path: Path) -> object:
@@ -83,6 +87,8 @@ def read_document(root: Path, path: Path) -> object:
 
 def scan(root: Path, repo: Path) -> int:
     # The existing installer supplies the reviewed binary; never trust PATH.
+    repo = repo.resolve()
+    root = root.resolve()
     packages = repo / "implementations/python/packages"
     if str(packages) not in sys.path:
         sys.path.insert(0, str(packages))
@@ -98,8 +104,10 @@ def scan(root: Path, repo: Path) -> int:
             "--redact=100",
             "--config",
             str(repo / ".gitleaks.toml"),
-            str(root),
-        ]
+            "--",
+            "./" + root.name,
+        ],
+        cwd=root.parent,
     )
 
 
@@ -114,9 +122,10 @@ def main() -> int:
         return scan(args.root, args.repo_root)
     if args.output is None:
         parser.error("unpack requires --output")
-    args.output.mkdir(parents=True, exist_ok=True)
-    for path in sorted((args.root / "inputs").iterdir()):
-        (args.output / path.name).write_bytes(read_blob(args.root, path.name))
+    else:
+        args.output.mkdir(parents=True, exist_ok=True)
+        for path in sorted((args.root / "inputs").iterdir()):
+            (args.output / path.name).write_bytes(read_blob(args.root, path.name))
     return 0
 
 

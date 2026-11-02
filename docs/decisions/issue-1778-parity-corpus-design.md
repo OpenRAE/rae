@@ -251,6 +251,23 @@ both close the destination connection. Apply the same ownership repair to raw
 SQLite transaction contexts in tests; preserve commit/rollback behavior. Focused
 backup tests retain the connection and prove that it is closed on both paths.
 
+## Recorder maintainability and command boundaries
+
+The existing recorder modules retain their public entry points. Collector
+installation is split by identity, CLI, contracts, parsing, MCP and HTTP
+boundaries in `tools/parity_observers.py`; input relocation and body observation get focused typed helpers.
+Shared runtime-alias discovery removes duplicated patch/restore traversal.
+Recording dispatch and CLI setup are separated from transport execution.
+The regression reader separates validation, merging and freezing. The Go
+inventory names its source-identity type instead of nesting anonymous types.
+
+Git identity requests use fixed revision arguments and the working-directory
+parameter. Credential scanning uses the qualified executable, an explicitly
+relative target after the end-of-options marker, and its existing configuration.
+Caller paths cannot become command options. Optional unpack destinations are
+checked before filesystem access. These repairs preserve the corpus format,
+source accounting, privacy boundaries and deterministic fixture behavior.
+
 ## Publishing phase repair found during recording
 
 An imported authoring source becomes `ExpandedScenario`; that phase deliberately

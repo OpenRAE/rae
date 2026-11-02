@@ -176,7 +176,7 @@ def contract_fixtures(repo: Path, contracts: Iterable[str]) -> Iterator[tuple[st
     for contract in sorted(contracts):
         for directory in sorted(path for path in root.rglob(contract) if path.is_dir()):
             for fixture in sorted(
-                directory.rglob("*.json"),
+                directory.rglob(JSON_FILES),
                 key=lambda path: (
                     {"valid": 0, "invalid": 1}.get(path.relative_to(directory).parts[0], 2),
                     path.as_posix(),
@@ -210,7 +210,7 @@ def supported_contracts() -> list[str]:
 def schema_cases(repo: Path) -> Iterator[Case]:
     """Yield the schema verdict for each fixture of each published contract."""
 
-    contracts = sorted(path.stem for path in (repo / PUBLICATION_ENTRIES).glob("*.json"))
+    contracts = sorted(path.stem for path in (repo / PUBLICATION_ENTRIES).glob(JSON_FILES))
     for contract, fixture in contract_fixtures(repo, contracts):
         yield Case(
             surface="schema",
@@ -359,68 +359,84 @@ def normalized_output(stdout: str) -> object:
     return json_output(stdout)
 
 
-def run_cli(case: Case) -> dict[str, object]:
-    """Run a CLI case, its explicit setup, and observe generated JSON files."""
+def case_path(name: str) -> Path:
+    target = Path(name)
+    if target.is_absolute() or ".." in target.parts:
+        raise ValueError("a corpus input path escapes its case")
+    return target
+
+
+def recipe_content(recipe: dict[str, str]) -> bytes:
+    if recipe["kind"] == "invalid-key":
+        return b"not a private key\n"
+    if recipe["kind"] != "public-test-ed25519":
+        raise ValueError("unknown input recipe")
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    return Ed25519PrivateKey.from_private_bytes(bytes.fromhex(digest(recipe["seed_id"].encode()))).private_bytes(
+        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
+    )
+
+
+def materialize_case(case: Case) -> None:
+    for name, content in case.files.items():
+        target = case_path(name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+    for name, recipe in json.loads(case.files.get("input-recipes.json", b"{}")).items():
+        target = case_path(name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(recipe_content(recipe))
+
+
+def prepare_cli(runner: CliRunner, case: Case) -> None:
+    setup = json.loads(case.files.get("setup.json", b"{}"))
+    for directory in setup.get("directories", []):
+        case_path(directory).mkdir(parents=True, exist_ok=True)
+    if "store" in setup:
+        from raes_runtime.control_plane_store import LocalControlPlaneStore
+
+        store = LocalControlPlaneStore(Path(setup["store"]))
+        owner = store.admit_runtime(target_scope="target:stub", run_scope="run:parity")
+        store.close()
+        owner.close()
+    for command in setup.get("commands", []):
+        runner.invoke(app, command, catch_exceptions=False)
+
+
+def cli_stdout(case: Case, text: str) -> object:
     from tools.parity_surfaces import machine_text
 
+    stdout = normalized_output(text.replace(str(Path.cwd()), "<case>"))
+    if stdout is None and case.command == "root" and {"--version", "-V"}.intersection(case.args):
+        stdout = text.strip()
+    if stdout is None and case.command == "sdl format":
+        stdout = machine_text(text)
+    if stdout is None and text.strip().startswith("control-plane-store-"):
+        stdout = text.strip()
+    return stdout
+
+
+def generated_outputs(case: Case) -> dict[str, object]:
+    generated = {}
+    for target in sorted(Path(".").rglob(JSON_FILES)):
+        name = target.as_posix()
+        content = target.read_bytes()
+        if name not in case.files or case.files[name] != content:
+            generated[name] = normalized_output(content.decode("utf-8").replace(str(Path.cwd()), "<case>"))
+    return generated
+
+
+def run_cli(case: Case) -> dict[str, object]:
+    """Run a CLI case, its explicit setup, and observe generated JSON files."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        for name, content in case.files.items():
-            target = Path(name)
-            if target.is_absolute() or ".." in target.parts:
-                raise ValueError("a corpus input path escapes its case")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(content)
-        recipes = json.loads(case.files.get("input-recipes.json", b"{}"))
-        for name, recipe in recipes.items():
-            target = Path(name)
-            if target.is_absolute() or ".." in target.parts:
-                raise ValueError("a generated input path escapes its case")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if recipe["kind"] == "public-test-ed25519":
-                from cryptography.hazmat.primitives import serialization
-                from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
-                content = Ed25519PrivateKey.from_private_bytes(
-                    bytes.fromhex(digest(recipe["seed_id"].encode()))
-                ).private_bytes(
-                    serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
-                )
-            elif recipe["kind"] == "invalid-key":
-                content = b"not a private key\n"
-            else:
-                raise ValueError("unknown input recipe")
-            target.write_bytes(content)
-        setup = json.loads(case.files.get("setup.json", b"{}"))
-        for directory in setup.get("directories", []):
-            target = Path(directory)
-            if target.is_absolute() or ".." in target.parts:
-                raise ValueError("an input directory escapes its case")
-            target.mkdir(parents=True, exist_ok=True)
-        if "store" in setup:
-            from raes_runtime.control_plane_store import LocalControlPlaneStore
-
-            store = LocalControlPlaneStore(Path(setup["store"]))
-            owner = store.admit_runtime(target_scope="target:stub", run_scope="run:parity")
-            store.close()
-            owner.close()
-        for command in setup.get("commands", []):
-            runner.invoke(app, command, catch_exceptions=False)
+        materialize_case(case)
+        prepare_cli(runner, case)
         result = runner.invoke(app, list(case.args), input=case.files.get("stdin.bin"), catch_exceptions=False)
-        stdout = normalized_output(result.stdout.replace(str(Path.cwd()), "<case>"))
-        if stdout is None and case.command == "root" and {"--version", "-V"}.intersection(case.args):
-            stdout = result.stdout.strip()
-        if stdout is None and case.command == "sdl format":
-            stdout = machine_text(result.stdout)
-        if stdout is None and result.stdout.strip().startswith("control-plane-store-"):
-            stdout = result.stdout.strip()
-        output = {"exit_code": result.exit_code, "stdout": stdout}
-        generated = {}
-        for target in sorted(Path(".").rglob("*.json")):
-            name = target.as_posix()
-            content = target.read_bytes()
-            if name not in case.files or case.files[name] != content:
-                generated[name] = normalized_output(content.decode("utf-8").replace(str(Path.cwd()), "<case>"))
+        output = {"exit_code": result.exit_code, "stdout": cli_stdout(case, result.stdout)}
+        generated = generated_outputs(case)
         if generated:
             output["generated_files"] = generated
     return output
@@ -443,28 +459,23 @@ def run(repo: Path, case: Case) -> dict[str, object]:
     """Invoke only the adapter explicitly named by the case."""
     from tools import parity_surfaces as surfaces
 
+    recorders = {
+        "primitive": lambda: run_primitive(case),
+        "canonical": lambda: run_canonical(case),
+        "randstream": lambda: run_randstream(case),
+        "cli": lambda: run_cli(case),
+        "schema": lambda: run_schema(repo, case),
+        "mcp": lambda: surfaces.run_mcp(case),
+        "http": lambda: surfaces.run_http(case),
+        "http-trace": lambda: surfaces.run_http(case),
+        "cli-schema": lambda: {"commands": surfaces.cli_registry()},
+        "mcp-schema": lambda: {"tools": surfaces.mcp_registry()},
+        "http-schema": surfaces.http_schema,
+    }
+    if case.surface not in recorders:
+        raise ValueError(f"unknown parity surface: {case.surface}")
     with surfaces.recording_context(case.surface + "/" + case.command + "/" + case.name):
-        if case.surface == "primitive":
-            return run_primitive(case)
-        if case.surface == "canonical":
-            return run_canonical(case)
-        if case.surface == "randstream":
-            return run_randstream(case)
-        if case.surface == "cli":
-            return run_cli(case)
-        if case.surface == "schema":
-            return run_schema(repo, case)
-        if case.surface == "mcp":
-            return surfaces.run_mcp(case)
-        if case.surface in {"http", "http-trace"}:
-            return surfaces.run_http(case)
-        if case.surface == "cli-schema":
-            return {"commands": surfaces.cli_registry()}
-        if case.surface == "mcp-schema":
-            return {"tools": surfaces.mcp_registry()}
-        if case.surface == "http-schema":
-            return surfaces.http_schema()
-    raise ValueError(f"unknown parity surface: {case.surface}")
+        return recorders[case.surface]()
 
 
 def provenance(repo: Path) -> dict[str, str]:
@@ -611,7 +622,12 @@ def main(argv: Iterable[str] | None = None) -> int:
         write_corpus(repo / CORPUS_DIR, recorded)
         print(f"parity corpus: recorded {len(recorded)} files")
         return 0
-    differences = corpus_differences(recorded, read_corpus(repo / CORPUS_DIR))
+    return check_recording(recorded, repo / CORPUS_DIR, args.output_dir)
+
+
+def check_recording(recorded: Mapping[Path, bytes], committed_root: Path, output_dir: Path | None) -> int:
+    """Compare the complete generated recording and retain differences for CI."""
+    differences = corpus_differences(recorded, read_corpus(committed_root))
     if not differences:
         print(f"parity corpus: {len(recorded)} files match")
         return 0
@@ -621,8 +637,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         f"parity corpus: {len(differences)} files differ; record the corpus again",
         file=sys.stderr,
     )
-    if args.output_dir is not None:
-        write_corpus(args.output_dir, recorded)
+    if output_dir is not None:
+        write_corpus(output_dir, recorded)
     return 1
 
 

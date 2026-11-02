@@ -318,7 +318,9 @@ def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path, mo
 def test_regression_identity_binds_product_data_and_environment(tmp_path: Path, monkeypatch) -> None:
     calls = []
 
-    def git_output(command, *, text):
+    def git_output(command, *, cwd, text):
+        assert cwd == tmp_path
+        assert command[:2] == ["git", "rev-parse"]
         calls.append(command)
         return "\n".join(character * 40 for character in "abcd") + "\n"
 

@@ -12,7 +12,14 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
+from types import ModuleType
 from unittest.mock import patch
+
+ARGUMENTS_FILE = "arguments.json"
+PAYLOAD_FILE = "payload.json"
+REQUEST_FILE = "request.json"
+SHA256_PREFIX = "sha256:"
+MANIFEST_FILE = "manifest.json"
 
 
 @dataclass(frozen=True)
@@ -91,6 +98,19 @@ def json_output(text: str) -> object:
         return None
 
 
+def runtime_aliases(value: object) -> Iterator[tuple[ModuleType, str]]:
+    """Find aliases in the product modules, including modules imported lazily."""
+    modules = (
+        module
+        for name, module in tuple(sys.modules.items())
+        if module is not None and name.startswith(("raes", "raes_"))
+    )
+    for module in modules:
+        for attribute, candidate in tuple(vars(module).items()):
+            if candidate is value:
+                yield module, attribute
+
+
 @contextmanager
 def deterministic_ids(seed: str) -> Iterator[None]:
     """Control generated UUIDs only during an isolated reference recording."""
@@ -106,19 +126,12 @@ def deterministic_ids(seed: str) -> Iterator[None]:
         return uuid.UUID(hex=identity, version=4)
 
     with ExitStack() as patches:
-        for name, module in tuple(sys.modules.items()):
-            if module is None or not name.startswith(("raes", "raes_")):
-                continue
-            for attribute, value in tuple(vars(module).items()):
-                if value is original:
-                    patches.enter_context(patch.object(module, attribute, next_uuid))
+        for module, attribute in runtime_aliases(original):
+            patches.enter_context(patch.object(module, attribute, next_uuid))
         patches.enter_context(patch.object(uuid, "uuid4", next_uuid))
         try:
             yield
         finally:
             # Lazy imports can retain a patched function after its context ends.
-            for name, module in tuple(sys.modules.items()):
-                if module is not None and name.startswith(("raes", "raes_")):
-                    for attribute, value in tuple(vars(module).items()):
-                        if value is next_uuid:
-                            setattr(module, attribute, original)
+            for module, attribute in runtime_aliases(next_uuid):
+                setattr(module, attribute, original)

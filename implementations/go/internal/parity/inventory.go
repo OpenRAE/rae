@@ -10,6 +10,15 @@ import (
 	"strings"
 )
 
+type regressionSourceIdentity struct {
+	TestTree          string `json:"test_tree"`
+	PythonTree        string `json:"python_tree"`
+	ContractsTree     string `json:"contracts_tree"`
+	ExamplesTree      string `json:"examples_tree"`
+	CollectorSHA256   string `json:"collector_sha256"`
+	EnvironmentSHA256 string `json:"environment_sha256"`
+}
+
 type corpusInventory struct {
 	Surfaces       map[string][]string `json:"surfaces"`
 	Inputs         []string            `json:"inputs"`
@@ -18,19 +27,12 @@ type corpusInventory struct {
 	MissingSurface map[string][]string `json:"missing_surfaces"`
 	Complete       bool                `json:"complete"`
 	Regressions    struct {
-		Complete         bool                `json:"complete"`
-		TestCount        int                 `json:"test_count"`
-		InputCount       int                 `json:"input_count"`
-		NonProtocolTests []string            `json:"non_protocol_tests"`
-		Origins          map[string][]string `json:"origins"`
-		SourceIdentity   struct {
-			TestTree          string `json:"test_tree"`
-			PythonTree        string `json:"python_tree"`
-			ContractsTree     string `json:"contracts_tree"`
-			ExamplesTree      string `json:"examples_tree"`
-			CollectorSHA256   string `json:"collector_sha256"`
-			EnvironmentSHA256 string `json:"environment_sha256"`
-		} `json:"source_identity"`
+		Complete         bool                     `json:"complete"`
+		TestCount        int                      `json:"test_count"`
+		InputCount       int                      `json:"input_count"`
+		NonProtocolTests []string                 `json:"non_protocol_tests"`
+		Origins          map[string][]string      `json:"origins"`
+		SourceIdentity   regressionSourceIdentity `json:"source_identity"`
 	} `json:"regressions"`
 }
 
