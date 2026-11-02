@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.6.0](https://github.com/OpenRAE/rae/compare/v10.5.0...v10.6.0) (2026-11-02)
+
+
+### Features
+
+* declare provider-qualified secret replication policies ([#1853](https://github.com/OpenRAE/rae/issues/1853)) ([bd0a004](https://github.com/OpenRAE/rae/commit/bd0a0043a7e9d028ebc4cc9b307415107a242493))
+
+
+### Bug Fixes
+
+* admit larger application constraints within existing limits ([#1856](https://github.com/OpenRAE/rae/issues/1856)) ([3e77219](https://github.com/OpenRAE/rae/commit/3e772194b084a7c5217d589f4695228e72757103))
+* **release:** include older-dated commits merged after the last release ([#1860](https://github.com/OpenRAE/rae/issues/1860)) ([8b7238c](https://github.com/OpenRAE/rae/commit/8b7238c0abef5f2b7eb4ff53d1de911ec4d6f25a))
+* remove the Isabelle mirror locator that returns HTTP 404 ([#1855](https://github.com/OpenRAE/rae/issues/1855)) ([51c6c6c](https://github.com/OpenRAE/rae/commit/51c6c6cb4395e8c801765e4757797316016c548a))
+
 ## [10.5.0](https://github.com/OpenRAE/rae/compare/v10.4.0...v10.5.0) (2026-11-02)
 
 
