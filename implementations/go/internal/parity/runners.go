@@ -18,6 +18,17 @@ import (
 // its runner. Each Go port adds the commands that it implements.
 func runners() map[string]Runner {
 	return map[string]Runner{
+		"shared timestamp":            shared,
+		"shared version":              shared,
+		"shared domain":               shared,
+		"shared graph":                shared,
+		"shared value":                shared,
+		"shared carrier":              shared,
+		"shared secret":               shared,
+		"shared digest":               shared,
+		"shared log":                  shared,
+		"shared fault":                shared,
+		"shared clock":                shared,
 		"canonical encode":            canonicalEncode,
 		"randstream vector":           randstreamVector,
 		"primitive ingress":           primitive,

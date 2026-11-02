@@ -1,0 +1,24 @@
+{
+  "args": [],
+  "command": "graph",
+  "files": {
+    "request.json": "b6db9eea26773ca07a3f3968288396fc2cb0d819623c9e0af334f8cd9963f253"
+  },
+  "name": "graph/05/True",
+  "result": {
+    "components": [
+      [
+        "b",
+        "a"
+      ]
+    ],
+    "cycle": true,
+    "order": [
+      "c",
+      "d",
+      "b",
+      "a"
+    ]
+  },
+  "surface": "shared"
+}

@@ -14,7 +14,13 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/internal/base/urisafety"
 )
 
-const valueField = "value"
+const (
+	valueField  = "value"
+	validField  = "valid"
+	codeField   = "code"
+	statusField = "status"
+	invalidCode = "invalid"
+)
 
 // primitive runs the input-boundary API against a Python-recorded request.
 func primitive(_ context.Context, c Case) (json.RawMessage, error) {
@@ -39,7 +45,7 @@ func primitive(_ context.Context, c Case) (json.RawMessage, error) {
 		tokens := jsonpointer.Tokens(request.Pointer)
 		result = map[string]any{"tokens": tokens, "pointer": jsonpointer.FromTokens(tokens)}
 	case "address":
-		result = map[string]any{"valid": address.Valid(request.Value), "temporal": address.CompilerOwnedTemporalSubject(request.Value)}
+		result = map[string]any{validField: address.Valid(request.Value), "temporal": address.CompilerOwnedTemporalSubject(request.Value)}
 	case "render":
 		var value *string
 		if rendered, err := address.Render(request.Parts...); err == nil {
@@ -84,7 +90,7 @@ func primitiveIngress(request primitiveRequest) (json.RawMessage, error) {
 	}
 	value, err := ingress.Parse(data, ingress.Limits{MaxBytes: request.MaxBytes, MaxDepth: request.MaxDepth}, root)
 	if failure, ok := errors.AsType[*ingress.Error](err); ok {
-		return json.Marshal(map[string]any{"code": failure.Code})
+		return json.Marshal(map[string]any{codeField: failure.Code})
 	}
 	if err != nil {
 		return nil, err
@@ -111,7 +117,7 @@ func primitiveURI(request primitiveRequest) (json.RawMessage, error) {
 		err  error
 		code string
 	}{
-		{urisafety.ErrInvalid, "invalid"}, {urisafety.ErrNotAbsolute, "absolute"},
+		{urisafety.ErrInvalid, invalidCode}, {urisafety.ErrNotAbsolute, "absolute"},
 		{urisafety.ErrForbiddenScheme, "scheme"}, {urisafety.ErrCredentials, "credentials"},
 		{urisafety.ErrFragment, "fragment"}, {urisafety.ErrSecretQuery, "secret"},
 	} {
@@ -123,5 +129,5 @@ func primitiveURI(request primitiveRequest) (json.RawMessage, error) {
 	if err != nil && code == "" {
 		return nil, err
 	}
-	return json.Marshal(map[string]any{"code": code})
+	return json.Marshal(map[string]any{codeField: code})
 }

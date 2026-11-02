@@ -106,15 +106,13 @@ scheme/host syntax, so the small compatibility splitter stays isolated in
 `urisafety`; `netip` and the maintained Unicode tables do the complex host and
 normalization work. No network requests or value-bearing logs are added.
 
-Issue #1779 remains the delivery inventory: canonical JSON/digests and random
-streams are earlier slices; this slice supplies ingress, pointers, URI safety,
-and addresses. Timestamps, versions (including Debian/RPM), bounded domains,
-errors/logging, clock, graphs, and secret references remain pending under that
-issue. This slice must reference, rather than close, the parent issue.
+PR #1820 incorporates this work and its review repairs as the single delivery
+for #1779. The [completion design](issue-1779-shared-primitives-completion.md)
+records the additional primitive owners and verification boundaries.
 
 The inherited corpus checker must compare JSON numbers exactly: converting
 numbers to `float64` hides adjacent integers above 2^53. Its comparison uses
-`json.Number` and exact rational equality, so equivalent decimal/exponent
+`json.Number` and exact normalized decimal equality, so equivalent decimal/exponent
 spellings compare equal without losing a unit. An independent inventory of
 implemented commands prevents a deleted runner from silently becoming a skip.
 
@@ -141,5 +139,4 @@ The checker checks the Go result against that explicit field, rather than
 silently rewriting the reference result. Ordinary cases retain strict parity.
 This decision keeps ingress consistent with the existing Go canonical encoder's
 strict Unicode boundary; it does not change the Python release or published
-schemas, and it does not claim Python's legacy ASCII surrogate encoding exists
-in Go.
+schemas, and leaves the separate Python-compatible ASCII canonical encoder unchanged.

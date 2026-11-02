@@ -16,7 +16,6 @@ package canonjson
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -27,10 +26,12 @@ import (
 	"unicode/utf8"
 
 	"github.com/gowebpki/jcs"
+
+	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
 )
 
 // ErrInput reports JSON text that a canonical form cannot encode.
-var ErrInput = errors.New("canonjson: the input has no canonical encoding")
+var ErrInput = fault.New(fault.InvalidInput, "canonical-json", nil)
 
 const (
 	// maxExact is 2^53 - 1, the largest magnitude of an integer that RFC 8785

@@ -25,6 +25,8 @@ import (
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
 )
 
 // The codes of a failed parse.
@@ -47,6 +49,9 @@ type Error struct {
 func (e *Error) Error() string {
 	return "ingress: " + e.Code
 }
+
+// Category identifies all authored parse refusals as invalid input.
+func (e *Error) Category() fault.Category { return fault.InvalidInput }
 
 // ErrLimits reports limits that are not valid.
 var ErrLimits = errors.New("ingress: MaxBytes must be positive and MaxDepth must not be negative")

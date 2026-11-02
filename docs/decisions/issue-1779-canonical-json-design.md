@@ -95,22 +95,31 @@ flowchart LR
 
 ## Delivery inventory
 
-PR #1820 delivers canonical JSON and rendered SHA-256 only. It references #1779;
-it does not complete or close that parent issue. The remaining primitives stay
-owned by #1779 until their implementations and acceptance evidence land.
+PR #1820 delivers issue #1779 in one pull request. The random-stream and
+ingress contributions from #1821 and #1822 are incorporated through real
+merges, together with their review repairs. The
+[completion design](issue-1779-shared-primitives-completion.md) records the
+remaining package interfaces and security boundaries.
 
-| Primitive / behavior | Delivery and evidence | Remaining work under #1779 |
-| --- | --- | --- |
-| Canonical JSON and digests | #1820; `canonjson` and `digest` vectors, `canonical encode` corpus, CI fuzz target | Current-head CI and mutation evidence |
-| Random streams and published profile limits | #1821; published random-stream vectors | Exact integer-domain audit; batch/address integration with #1780 |
-| JSON ingress, pointers, URI safety, addresses | #1822 | Root-selector audit and reproducible corpus coverage |
-| Timestamps, Debian/RPM versions, bounded domains and runtime limits | Python reference in `raes_contracts` | Port, boundary vectors, error/recovery and prior-defect inventory |
-| Errors, value-free logging and injected clock | ADR-116 / ADR-118 | Port with error categories, log privacy, clock injection and negative tests |
-| Graphs, secret references, base models and serialization fallback | Python `graphs.py`, `secret_references.py`, `_base.py`, `json_serialization.py` | Explicit ownership and rejection of unmodeled snapshot values; no Python type names in digest input |
+| Primitive / behavior | Owner and acceptance evidence |
+| --- | --- |
+| Canonical JSON and digests | `canonjson`, `digest`; canonical corpus, Unicode/number boundaries, fuzz targets |
+| Published random streams | `randstream`; published vectors, wide integer and rejection boundaries, corpus |
+| Ingress, pointers, URI safety and addresses | `ingress`, `jsonpointer`, `urisafety`, `address`; failure precedence, safety ceilings, previous defect vectors and corpus |
+| Named timestamp policies | `timestamp`; leap seconds, offsets, ISO week/basic forms, precision/range boundaries, corpus and fuzz target |
+| Debian, RPM and triplet versions | `softwareversion`; exact relation identity, wide epochs/digit runs, endpoint validation, univers reference corpus and fuzz target |
+| Bounded domains and snapshot limits | `domain`, `value`; typed membership, every limit definition, aggregate budgets, cycles, document allowance and refusal before unknown callbacks |
+| Errors, logging and clock | `fault`, `logrecord`, `clock`; six categories, standard traversal, log privacy/controls/ceilings, injected UTC reads and corpus |
+| Graphs and secret references | `graph`, `secretref`; FIFO order, cyclic components, deep iterative traversal, grammar/length boundaries and corpus |
+| Unknown snapshot carriers | `value`; explicit Go refusal, with the unchanged Python outcome and the maintainer decision recorded in the corpus |
 
-For this slice the security-limit and defect inventory is: invalid UTF-8,
-JSON syntax/trailing data, 10,000-level nesting, 4,300-digit integers (also in
+The canonical-encoding security inventory includes invalid UTF-8, JSON
+syntax/trailing data, 10,000-level nesting, 4,300-digit integers (also in
 discarded members), finite float output, JCS exact-integer range, Unicode and
 surrogate identity, duplicate replacement, key ordering, and number notation.
-The parent remains incomplete while any remaining row lacks implementation,
-parity, security/error/recovery tests, prior Python defect coverage, or CI evidence.
+
+Python's Pydantic base class has no Go inheritance analogue. Strict model
+bindings and the schema identifiers in `versions.py` belong to #1780; this
+primitive layer neither changes schemas nor accepts unmodeled snapshot values.
+Current-head CI remains the authority for full tests, mutation, fuzzing and
+release gates. Local verification selects the affected packages and modules.

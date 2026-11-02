@@ -276,3 +276,27 @@ def test_primitive_corpus_records_reference_results_and_all_commands() -> None:
     }
     uri_codes = {pc.run_primitive(case)["code"] for case in cases if case.command == "uri"}
     assert uri_codes == {"", "absolute", "invalid", "scheme", "credentials", "fragment", "secret"}
+
+
+def test_shared_cases_cover_the_remaining_primitives_and_replay_the_reference() -> None:
+    cases = list(pc.shared_cases())
+    assert {case.command for case in cases} == {
+        "timestamp",
+        "version",
+        "domain",
+        "graph",
+        "value",
+        "carrier",
+        "secret",
+        "digest",
+        "log",
+        "fault",
+        "clock",
+    }
+    assert len({case.path for case in cases}) == len(cases)
+    for case in cases:
+        result = pc.run_shared(case)
+        assert result == pc.run_shared(case)
+        assert json.loads(pc.encode(result)) == result
+    carrier = next(case for case in cases if case.command == "carrier")
+    assert pc.run_shared(carrier)["go"] == {"accepted": False}

@@ -1,0 +1,11 @@
+{
+  "document": true,
+  "limits": {
+    "max_document_scalar_bytes": 8,
+    "max_scalar_bytes": 4,
+    "max_total_scalar_bytes": 16
+  },
+  "value": {
+    "body": "12345"
+  }
+}

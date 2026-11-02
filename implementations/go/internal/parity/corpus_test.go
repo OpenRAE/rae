@@ -145,13 +145,31 @@ func implementedCommands() []string {
 	return []string{
 		"canonical encode", "randstream vector", "primitive ingress", "primitive uri",
 		"primitive ingress-exception", "primitive pointer", "primitive tokens", "primitive address", "primitive render", "primitive plan-root",
+		"shared timestamp",
+		"shared version",
+		"shared domain",
+		"shared graph",
+		"shared value",
+		"shared carrier",
+		"shared secret",
+		"shared digest",
+		"shared log",
+		"shared fault",
+		"shared clock",
 	}
 }
 
 func expectedResult(t *testing.T, c Case) json.RawMessage {
 	t.Helper()
 	expected := c.Result
-	if c.Key() == "primitive ingress-exception" {
+	decision := ""
+	switch c.Key() {
+	case "primitive ingress-exception":
+		decision = "maintainer-1822-2026-11-02"
+	case "shared carrier":
+		decision = "maintainer-1779-2026-10-31"
+	}
+	if decision != "" {
 		var governed struct {
 			Decision  string          `json:"decision"`
 			Go        json.RawMessage `json:"go"`
@@ -160,7 +178,7 @@ func expectedResult(t *testing.T, c Case) json.RawMessage {
 		if err := json.Unmarshal(expected, &governed); err != nil {
 			t.Fatal(err)
 		}
-		if governed.Decision != "maintainer-1822-2026-11-02" || len(governed.Reference) == 0 {
+		if governed.Decision != decision || len(governed.Reference) == 0 {
 			t.Fatal("compatibility case has no approved decision or reference outcome")
 		}
 		expected = governed.Go

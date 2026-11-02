@@ -62,7 +62,7 @@ from raes_contracts.json_serialization import (  # noqa: E402
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
 
-from tools import parity_primitives  # noqa: E402
+from tools import parity_primitives, parity_shared  # noqa: E402
 from tools.parity_records import Case, case_document, digest, encode, reference_identity  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
@@ -284,6 +284,17 @@ def run_primitive(case: Case) -> dict[str, object]:
     return parity_primitives.run_primitive(case.command, json.loads(case.files["request.json"]))
 
 
+def shared_cases() -> Iterator[Case]:
+    """Yield the remaining issue-1779 primitive requests."""
+    for command, name, request in parity_shared.requests():
+        yield Case("shared", command, name, (), {"request.json": encode(request)})
+
+
+def run_shared(case: Case) -> dict[str, object]:
+    """Record the unchanged Python reference for a shared primitive."""
+    return parity_shared.run(case.command, json.loads(case.files["request.json"]))
+
+
 def all_cases(repo: Path) -> list[Case]:
     """Return every case of the corpus, sorted by case path."""
 
@@ -294,6 +305,7 @@ def all_cases(repo: Path) -> list[Case]:
         *canonical_cases(repo),
         *randstream_cases(repo),
         *primitive_cases(),
+        *shared_cases(),
     ]
     return sorted(cases, key=lambda case: case.path)
 
@@ -401,6 +413,7 @@ def run(repo: Path, case: Case) -> dict[str, object]:
         "canonical": run_canonical,
         "randstream": run_randstream,
         "primitive": run_primitive,
+        "shared": run_shared,
     }
     if case.surface in runners:
         return runners[case.surface](case)
