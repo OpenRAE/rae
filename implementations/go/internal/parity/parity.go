@@ -54,13 +54,27 @@ type Runner func(ctx context.Context, c Case) (json.RawMessage, error)
 // unknown fields, and an input file whose content does not match its digest.
 func Load(fsys fs.FS) ([]Case, error) {
 	var manifest struct {
-		Schema string `json:"schema"`
+		Schema    string `json:"schema"`
+		Reference struct {
+			Source      string `json:"source_sha256"`
+			Recorder    string `json:"recorder_sha256"`
+			Environment string `json:"environment_sha256"`
+			Python      string `json:"python_version"`
+		} `json:"reference"`
 	}
 	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
 		return nil, err
 	}
 	if manifest.Schema != Schema {
 		return nil, fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
+	}
+	if manifest.Reference.Python == "" {
+		return nil, errors.New("manifest.json: missing Python version")
+	}
+	for _, digest := range []string{manifest.Reference.Source, manifest.Reference.Recorder, manifest.Reference.Environment} {
+		if !validDigest(digest) {
+			return nil, errors.New("manifest.json: missing or invalid reference identity")
+		}
 	}
 	var cases []Case
 	err := fs.WalkDir(fsys, "cases", func(name string, entry fs.DirEntry, err error) error {
@@ -97,6 +111,9 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 	}
 	files := make(map[string][]byte, len(record.Files))
 	for fileName, digest := range record.Files {
+		if !validDigest(digest) {
+			return Case{}, fmt.Errorf("%s: input %s has an invalid digest", name, fileName)
+		}
 		content, err := fs.ReadFile(fsys, path.Join("inputs", digest))
 		if err != nil {
 			return Case{}, fmt.Errorf("%s: input %s: %w", name, fileName, err)
@@ -131,4 +148,17 @@ func decodeFile(fsys fs.FS, name string, v any) error {
 		return fmt.Errorf("decode %s: data follows the value", name)
 	}
 	return nil
+}
+
+// validDigest admits only the content-addressed store's lowercase SHA-256 names.
+func validDigest(digest string) bool {
+	if len(digest) != sha256.Size*2 {
+		return false
+	}
+	for _, ch := range digest {
+		if (ch < '0' || ch > '9') && (ch < 'a' || ch > 'f') {
+			return false
+		}
+	}
+	return true
 }

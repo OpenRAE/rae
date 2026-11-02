@@ -19,7 +19,7 @@ Mutation testing copies only the module, so the Go tests read no file outside it
 
 | Part | Content |
 | --- | --- |
-| `manifest.json` | The corpus schema `raes-parity-corpus/v1` |
+| `manifest.json` | The corpus schema `raes-parity-corpus/v1`, content digests of reference source, recorder and environment locks, and the Python version |
 | `inputs/<sha256>` | Each input file once, under the SHA-256 digest of its content |
 | `cases/<surface>/<command>/<sha256 of the name>.json` | One recorded invocation: name, surface, command, arguments, input digests, and result |
 
@@ -30,7 +30,14 @@ The case file names use digests, because repository path policy reserves some fi
 
 The Go package `internal/parity` loads the corpus and verifies each input against its digest.
 Each Go port adds a runner for the commands that it implements.
-`TestCorpus` runs each case that has a runner, and it fails a runner that has no case.
+`TestCorpus` compares numbers exactly, including large integers and decimal
+exponents, and fails a runner that has no case. Its independent implemented-command
+inventory requires `canonical encode`; deleting that runner fails the check.
+`RAES_PARITY_COMPLETE=1` fails any recorded command without a runner and is required
+at cutover. During incremental porting, only genuinely unported commands may skip.
+The manifest binds source identity by the sorted Python package paths and bytes,
+not by an unstable branch-tip commit. The recorder and Python lock/configuration
+have separate digests, and the interpreter version is recorded explicitly.
 
 The CI job `parity-corpus` records the corpus again from the Python implementation.
 It fails when one corpus file differs, and it uploads the fresh corpus for review.
@@ -78,3 +85,22 @@ flowchart LR
 ## References and document review
 
 - Issue #1778
+
+## Incremental delivery inventory
+
+The corpus is incomplete against #1778. That issue owns all pending surfaces;
+no incremental slice completes the parent acceptance criteria.
+
+| Surface / input inventory | Recorded today | Required before completing #1778 |
+| --- | --- | --- |
+| Semantic CLI and SDL fixtures | Parse, validate, normalize, resolve, compile, inspect, conformance and transforms | Bind the complete CLI command/option inventory and defect inputs to recordings |
+| Published schemas | Valid/invalid JSON fixtures in matching published-contract directories | Supply cases for published identities without fixtures and enforce full identity coverage |
+| Canonical forms | Contract JSON fixtures and numeric/Unicode/surrogate edge texts | Keep coverage aligned with each added compatibility defect |
+| Other CLI services | None | Processor, runtime, conformance and remaining CLI command recordings |
+| MCP tools | None | Tool inventory, success, refusals, diagnostics and deterministic recordings |
+| HTTP API | None | Route/method inventory, bodies, status codes, errors and recovery recordings |
+| Prior Python defect cases and limits | Only cases reached by the fixtures above | Map the regression-test inventory, input limits, security/error/recovery cases to explicit corpus cases |
+
+The Go cutover must additionally bind this inventory to CI completeness checks;
+the no-skip mode alone proves only coverage of cases that were recorded, not that
+every exposed surface or defect was recorded. #1778 remains open until both hold.

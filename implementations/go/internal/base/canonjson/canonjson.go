@@ -8,11 +8,9 @@
 // notation and in key order.
 //
 // Both functions take UTF-8 JSON text that holds one value. A later duplicate
-// member replaces an earlier one, as in Python. Both refuse a UTF-16
-// surrogate escape that is not part of a pair. Valid UTF-8 cannot hold such a
-// surrogate, and I-JSON (RFC 7493) forbids it. Python's RFC 8785 form and its
-// form without ensure_ascii also refuse it, but its ensure_ascii form writes it
-// back as an escape.
+// member replaces an earlier one, as in Python. Sorted with ascii preserves
+// lone UTF-16 surrogate escapes for legacy digest compatibility. JCS and the
+// Unicode Sorted form refuse surviving lone surrogates.
 package canonjson
 
 import (
@@ -20,10 +18,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"maps"
 	"math"
-	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -85,57 +81,116 @@ func encode(data []byte, ascii bool, number func(json.Number) (string, error)) (
 	return e.out.Bytes(), nil
 }
 
-// decode returns the single JSON value in data, with numbers as their text.
+// decode returns one JSON value, retaining number text and surrogate identity.
 func decode(data []byte) (any, error) {
-	if !utf8.Valid(data) || hasLoneSurrogate(data) {
-		return nil, fmt.Errorf("%w: the text is not valid Unicode", ErrInput)
+	// Validate the entire document first: Decoder.Token alone does not enforce
+	// the standard library's nesting limit across separate token calls.
+	if !utf8.Valid(data) || !json.Valid(data) {
+		return nil, fmt.Errorf("%w: invalid UTF-8 or JSON", ErrInput)
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
-	var value any
-	if err := decoder.Decode(&value); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInput, err)
-	}
-	if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
-		return nil, fmt.Errorf("%w: data follows the value", ErrInput)
-	}
-	return value, nil
+	return decodeValue(decoder, data)
 }
 
-// escapes matches one escape of a JSON string. Group 1 holds the four
-// hexadecimal digits of a \u escape.
-var escapes = regexp.MustCompile(`\\(?:u([0-9a-fA-F]{4})|.)`)
+// decodeValue walks syntax already validated by encoding/json. Each string's
+// original spelling is available through InputOffset, before Go replaces a
+// lone surrogate with U+FFFD. All decoded strings use the same private format.
+func decodeValue(decoder *json.Decoder, data []byte) (any, error) {
+	start := decoder.InputOffset()
+	token, _ := decoder.Token() // Syntax and depth were validated in decode.
+	switch v := token.(type) {
+	case string:
+		raw := data[start:decoder.InputOffset()]
+		return decodeString(raw[bytes.IndexByte(raw, '"'):]), nil
+	case json.Number:
+		if isInteger(v) && len(strings.TrimPrefix(string(v), "-")) > maxDigits {
+			return nil, fmt.Errorf("%w: an integer has more than %d digits", ErrInput, maxDigits)
+		}
+	case json.Delim:
+		if v == '[' {
+			return decodeArray(decoder, data)
+		}
+		return decodeObject(decoder, data)
+	}
+	return token, nil
+}
 
-// hasLoneSurrogate reports whether a string escape in the JSON text data names
-// a UTF-16 surrogate that is not part of a pair. A pair is a \u escape of a
-// high surrogate directly followed by a \u escape of a low surrogate. The Go
-// decoder would replace a lone surrogate with U+FFFD, and so give two
-// different texts the same encoding.
-func hasLoneSurrogate(data []byte) bool {
-	found := escapes.FindAllSubmatchIndex(data, -1)
-	for i := 0; i < len(found); i++ {
-		unit := escapedUnit(data, found[i])
-		if !utf16.IsSurrogate(unit) {
+// decodeArray reads the contents and closing delimiter of a validated array.
+func decodeArray(decoder *json.Decoder, data []byte) ([]any, error) {
+	values := []any{}
+	for decoder.More() {
+		item, err := decodeValue(decoder, data)
+		if err != nil {
+			return nil, err
+		}
+		values = append(values, item)
+	}
+	_, _ = decoder.Token()
+	return values, nil
+}
+
+// decodeObject applies Python's last-member-wins rule to validated members.
+func decodeObject(decoder *json.Decoder, data []byte) (map[string]any, error) {
+	members := map[string]any{}
+	for decoder.More() {
+		start := decoder.InputOffset()
+		_, _ = decoder.Token() // Object keys are strings in validated JSON.
+		raw := data[start:decoder.InputOffset()]
+		key := decodeString(raw[bytes.IndexByte(raw, '"'):])
+		value, err := decodeValue(decoder, data)
+		if err != nil {
+			return nil, err
+		}
+		members[key] = value
+	}
+	_, _ = decoder.Token()
+	return members, nil
+}
+
+// decodeString decodes a validated JSON string. A lone surrogate is retained
+// as its three-byte code-point encoding, private to this encoder. This sorts
+// in code-point order like UTF-8 and cannot collide with valid Unicode.
+func decodeString(raw []byte) string {
+	var out strings.Builder
+	for i := 1; i < len(raw)-1; i++ {
+		if raw[i] != '\\' {
+			out.WriteByte(raw[i])
 			continue
 		}
-		if i+1 == len(found) || found[i+1][0] != found[i][1] ||
-			utf16.DecodeRune(unit, escapedUnit(data, found[i+1])) == utf8.RuneError {
-			return true
+		i++
+		if raw[i] != 'u' {
+			escape := map[byte]byte{'"': '"', '\\': '\\', '/': '/', 'b': '\b', 'f': '\f', 'n': '\n', 'r': '\r', 't': '\t'}
+			out.WriteByte(escape[raw[i]])
+			continue
 		}
-		i++ // The low surrogate of the pair.
+		r, end := decodeUnit(raw, i)
+		i = end
+		if utf16.IsSurrogate(r) {
+			out.WriteByte(byte(0xe0 | r>>12))
+			out.WriteByte(byte(0x80 | (r>>6)&0x3f))
+			out.WriteByte(byte(0x80 | r&0x3f))
+		} else {
+			out.WriteRune(r)
+		}
 	}
-	return false
+	return out.String()
 }
 
-// escapedUnit returns the UTF-16 code unit of a \u escape that escapes found.
-// For another escape it returns zero, which is not a surrogate.
-func escapedUnit(data []byte, match []int) rune {
-	if match[2] == -1 {
-		return 0
+// decodeUnit decodes a validated Unicode escape and, when present, its pair.
+// end is the index of the last consumed hexadecimal digit.
+func decodeUnit(raw []byte, start int) (r rune, end int) {
+	unit, _ := strconv.ParseUint(string(raw[start+1:start+5]), 16, 16)
+	r = rune(unit)
+	end = start + 4
+	if r < 0xd800 || r > 0xdbff || end+6 >= len(raw) || raw[end+1] != '\\' || raw[end+2] != 'u' {
+		return r, end
 	}
-	// The pattern admits exactly four hexadecimal digits, so the text parses.
-	unit, _ := strconv.ParseUint(string(data[match[2]:match[3]]), 16, 16)
-	return rune(unit)
+	low, _ := strconv.ParseUint(string(raw[end+3:end+7]), 16, 16)
+	if pair := utf16.DecodeRune(r, rune(low)); pair != utf8.RuneError {
+		return pair, end + 6
+	}
+	return r, end
 }
 
 // encoder writes a decoded JSON value with sorted keys and compact separators.
@@ -156,7 +211,7 @@ func (e *encoder) value(decoded any) error {
 	case bool:
 		e.out.WriteString(strconv.FormatBool(v))
 	case string:
-		e.quote(v)
+		return e.quote(v)
 	case json.Number:
 		text, err := e.number(v)
 		if err != nil {
@@ -188,7 +243,9 @@ func (e *encoder) object(members map[string]any) error {
 		if i > 0 {
 			e.out.WriteByte(',')
 		}
-		e.quote(key)
+		if err := e.quote(key); err != nil {
+			return err
+		}
 		e.out.WriteByte(':')
 		if err := e.value(members[key]); err != nil {
 			return err
@@ -199,9 +256,20 @@ func (e *encoder) object(members map[string]any) error {
 }
 
 // quote writes s as a JSON string with the escapes of Python's json module.
-func (e *encoder) quote(s string) {
+func (e *encoder) quote(s string) error {
 	e.out.WriteByte('"')
-	for _, r := range s {
+	for len(s) > 0 {
+		r, size := utf8.DecodeRuneInString(s)
+		if r == utf8.RuneError && size == 1 {
+			// Only decodeString can produce invalid UTF-8 here, and only for
+			// one retained surrogate. No replacement is permitted.
+			if !e.ascii {
+				return fmt.Errorf("%w: a string contains a lone surrogate", ErrInput)
+			}
+			r = rune(s[0]&0x0f)<<12 | rune(s[1]&0x3f)<<6 | rune(s[2]&0x3f)
+			size = 3
+		}
+		s = s[size:]
 		switch r {
 		case '"':
 			e.out.WriteString(`\"`)
@@ -222,6 +290,7 @@ func (e *encoder) quote(s string) {
 		}
 	}
 	e.out.WriteByte('"')
+	return nil
 }
 
 // char writes a control character, and with ascii a character outside

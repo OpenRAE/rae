@@ -27,11 +27,23 @@ Both forms refuse a number outside the finite float64 range.
 It writes each other integer as its JSON text, which is the decimal form of Python, except `-0`, which Python reads as `0`.
 Thus no form converts integer text to a big integer.
 
-One difference from Python is deliberate.
-The Python `ensure_ascii` form writes a lone UTF-16 surrogate back as a `\u` escape.
-Both Go forms refuse it, because valid UTF-8 cannot hold it and I-JSON (RFC 7493) forbids it.
-The Python RFC 8785 form and the Python form without `ensure_ascii` also refuse it.
-Thus the corpus holds no lone surrogate.
+The ASCII compatibility form preserves lone UTF-16 surrogate escapes, as Python
+`ensure_ascii=True` does. JCS and the Unicode form refuse a surviving lone
+surrogate. This is an encoder compatibility boundary, not untrusted JSON ingress.
+The standard-library decoder validates JSON syntax and nesting before a token
+walk. The walk keeps surrogate code points in a private three-byte string
+representation; that representation never leaves this package. Key order and
+duplicate-member identity therefore remain Python-compatible, including keys
+containing a surrogate. The ASCII writer emits the original code point as an
+escape, without replacing it with U+FFFD. A valid surrogate pair is one Unicode
+code point. Strict forms validate surviving strings after duplicate replacement,
+as Python does. Integer digit limits apply during decoding, including discarded
+members, because Python applies them in `json.loads`.
+
+The corpus includes lone high and low surrogates, pairs, escaped backslashes,
+replacement characters, duplicate keys, and mixed Unicode key ordering. The
+parity comparator keeps numbers exact, and a declared implemented command cannot
+silently become a skipped command when its runner is removed.
 
 `Sorted` is custom, because no Go encoder writes the Python text.
 The standard library has an RFC 8785 canonicalizer, `Value.Canonicalize` in `encoding/json/jsontext`.
@@ -40,7 +52,7 @@ Go 1.27 builds that package only with `GOEXPERIMENT=jsonv2`, so `JCS` uses `gowe
 `Sorted` writes each float as Python `repr` does: the shortest digits, and scientific notation below 1e-4 or from 1e16.
 
 The parity corpus checks both forms.
-Its `canonical` surface holds each JSON contract fixture and 32 edge texts.
+Its `canonical` surface holds each JSON contract fixture and explicit edge texts.
 The Go runner `canonical encode` compares the digest of each form with the Python result.
 
 ## Security and data flows
@@ -61,7 +73,7 @@ flowchart LR
 
 | Threat | Control | Verification |
 | --- | --- | --- |
-| Two different texts get one encoding, so one digest names two values | The decoder refuses invalid UTF-8, a lone surrogate escape, and data after the value. `encoding/json` would replace a lone surrogate. | `TestFormsRefuseInputWithoutAnEncoding` |
+| Two different texts get one encoding, so one digest names two values | The decoder refuses invalid UTF-8 and data after the value. Lone surrogates survive only as ASCII escapes; strict forms refuse them after duplicate replacement. | `TestFormsRefuseInputWithoutAnEncoding` |
 | A large integer loses precision and changes a JCS digest | `JCS` refuses an integer above 2^53 - 1 in magnitude | `TestJCSRefusesAnInexactInteger` |
 | A digest differs between the Python and the Go implementation | The corpus compares each form for each fixture and edge text | `TestCorpus` and `TestFormsMatchThePythonReference` |
 | A non-finite number gets an encoding | Both forms refuse a number outside the finite float64 range | `TestFormsRefuseInputWithoutAnEncoding` |
@@ -80,3 +92,25 @@ flowchart LR
 - [RFC 8785: JSON Canonicalization Scheme](https://www.rfc-editor.org/rfc/rfc8785)
 - [github.com/gowebpki/jcs](https://github.com/gowebpki/jcs)
 - Issue #1779
+
+## Delivery inventory
+
+PR #1820 delivers canonical JSON and rendered SHA-256 only. It references #1779;
+it does not complete or close that parent issue. The remaining primitives stay
+owned by #1779 until their implementations and acceptance evidence land.
+
+| Primitive / behavior | Delivery and evidence | Remaining work under #1779 |
+| --- | --- | --- |
+| Canonical JSON and digests | #1820; `canonjson` and `digest` vectors, `canonical encode` corpus, CI fuzz target | Current-head CI and mutation evidence |
+| Random streams and published profile limits | #1821; published random-stream vectors | Exact integer-domain audit; batch/address integration with #1780 |
+| JSON ingress, pointers, URI safety, addresses | #1822 | Root-selector audit and reproducible corpus coverage |
+| Timestamps, Debian/RPM versions, bounded domains and runtime limits | Python reference in `raes_contracts` | Port, boundary vectors, error/recovery and prior-defect inventory |
+| Errors, value-free logging and injected clock | ADR-116 / ADR-118 | Port with error categories, log privacy, clock injection and negative tests |
+| Graphs, secret references, base models and serialization fallback | Python `graphs.py`, `secret_references.py`, `_base.py`, `json_serialization.py` | Explicit ownership and rejection of unmodeled snapshot values; no Python type names in digest input |
+
+For this slice the security-limit and defect inventory is: invalid UTF-8,
+JSON syntax/trailing data, 10,000-level nesting, 4,300-digit integers (also in
+discarded members), finite float output, JCS exact-integer range, Unicode and
+surrogate identity, duplicate replacement, key ordering, and number notation.
+The parent remains incomplete while any remaining row lacks implementation,
+parity, security/error/recovery tests, prior Python defect coverage, or CI evidence.

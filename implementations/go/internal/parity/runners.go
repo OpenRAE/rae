@@ -3,6 +3,7 @@ package parity
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/digest"
@@ -19,7 +20,10 @@ func runners() map[string]Runner {
 // canonicalEncode returns the digest of each canonical form of a JSON value,
 // or null for a form that refuses the value (issue #1779).
 func canonicalEncode(_ context.Context, c Case) (json.RawMessage, error) {
-	value := c.Files["value.json"]
+	value, ok := c.Files["value.json"]
+	if !ok {
+		return nil, errors.New("canonical encode: missing value.json")
+	}
 	forms := map[string]func([]byte) ([]byte, error){
 		"jcs":            canonjson.JCS,
 		"sorted_ascii":   func(data []byte) ([]byte, error) { return canonjson.Sorted(data, true) },

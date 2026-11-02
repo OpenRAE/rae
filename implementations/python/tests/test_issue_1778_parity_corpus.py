@@ -28,6 +28,10 @@ def repo(tmp_path: Path) -> Path:
     _write(
         tmp_path,
         {
+            "tools/parity_corpus.py": "# recorder fixture\n",
+            "implementations/python/packages/reference.py": "# reference fixture\n",
+            "implementations/python/pyproject.toml": "# environment fixture\n",
+            "implementations/python/uv.lock": "# lock fixture\n",
             "examples/scenarios/minimal.sdl.yaml": "name: minimal\n",
             "examples/scenarios/broken.sdl.yaml": "name: [\n",
             "contracts/fixtures/sdl/sdl-yaml-v1/valid/core.yaml": "name: core\n",
@@ -154,7 +158,7 @@ def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.Monk
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err
-    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode({"schema": pc.SCHEMA})
+    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode(pc.manifest_document(repo))
 
     assert pc.main(["record", "--repo-root", str(repo)]) == 0
     assert pc.main(["check", "--repo-root", str(repo)]) == 0
@@ -191,3 +195,28 @@ def test_canonical_results_record_each_form_or_its_refusal() -> None:
     }
     for refused in ("NaN", "1e400", "[1] 2", "9" * 4301):
         assert result(refused) == {"jcs": None, "sorted_ascii": None, "sorted_unicode": None}
+
+
+def test_ascii_surrogate_compatibility_is_recorded() -> None:
+    for text in (r'"\ud800"', r'"\udfff"', r'{"\ud800":1,"\ufffd":2}'):
+        case = pc.Case("canonical", "encode", "surrogate", (), {"value.json": text.encode()})
+        result = pc.run_canonical(case)
+        expected = json.dumps(json.loads(text), sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
+        assert result == {"jcs": None, "sorted_ascii": "sha256:" + pc.digest(expected), "sorted_unicode": None}
+        assert text in pc.CANONICAL_EDGE_TEXTS or text.startswith("{")
+
+
+def test_manifest_binds_reference_recorder_and_environment(repo: Path) -> None:
+    before = pc.manifest_document(repo)
+    for name, field in (
+        ("implementations/python/packages/reference.py", "source_sha256"),
+        ("tools/parity_corpus.py", "recorder_sha256"),
+        ("implementations/python/uv.lock", "environment_sha256"),
+    ):
+        path = repo / name
+        original = path.read_bytes()
+        path.write_bytes(original + b"# changed\n")
+        after = pc.manifest_document(repo)
+        assert after["reference"][field] != before["reference"][field]
+        assert {key for key in before["reference"] if before["reference"][key] != after["reference"][key]} == {field}
+        path.write_bytes(original)

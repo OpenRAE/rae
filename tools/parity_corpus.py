@@ -113,6 +113,15 @@ CANONICAL_EDGE_TEXTS = (
     "NaN",
     "-" + "9" * 4300,
     "9" * 4301,
+    r'"\ud800"',
+    r'"\uDFFF"',
+    r'"\ud800x\udfff"',
+    r'"\ud800\ud800\udc00"',
+    r'["\udc00", "\ufffd", "\\ud800", "\ud83d\ude00"]',
+    r'{"\ud800":1,"\ufffd":2,"\ud800":3,"😀":4,"\ue000":5}',
+    r'{"\ud83d\ude00":1,"😀":2}',
+    r'{"a":"\ud800","a":1}',
+    '{"a":' + "9" * 4301 + ',"a":1}',
 )
 
 
@@ -356,10 +365,32 @@ def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]
     }
 
 
+def manifest_document(repo: Path) -> dict[str, object]:
+    """Bind the corpus to the source, recorder and locked reference environment."""
+
+    packages = repo / "implementations/python/packages"
+    source = hashlib.sha256()
+    for path in sorted(packages.rglob("*.py")):
+        source.update(path.relative_to(repo).as_posix().encode() + b"\0")
+        source.update(path.read_bytes() + b"\0")
+    environment = hashlib.sha256()
+    for name in ("pyproject.toml", "uv.lock"):
+        environment.update((repo / "implementations/python" / name).read_bytes() + b"\0")
+    return {
+        "schema": SCHEMA,
+        "reference": {
+            "source_sha256": source.hexdigest(),
+            "recorder_sha256": digest((repo / "tools/parity_corpus.py").read_bytes()),
+            "environment_sha256": environment.hexdigest(),
+            "python_version": ".".join(str(part) for part in sys.version_info[:3]),
+        },
+    }
+
+
 def build_corpus(repo: Path, cases: Iterable[Case]) -> dict[Path, bytes]:
     """Record each case and return the corpus files by path."""
 
-    files = {MANIFEST: encode({"schema": SCHEMA})}
+    files = {MANIFEST: encode(manifest_document(repo))}
     for case in cases:
         files[case.path] = encode(case_document(case, run(repo, case)))
         for content in case.files.values():

@@ -98,7 +98,7 @@ func TestFormsRefuseInputWithoutAnEncoding(t *testing.T) {
 		"high after an escape":   `"\n\ud83d"`,
 	}
 	for name, input := range tests {
-		for _, encode := range []func([]byte) ([]byte, error){JCS, func(data []byte) ([]byte, error) { return Sorted(data, true) }} {
+		for _, encode := range []func([]byte) ([]byte, error){JCS, func(data []byte) ([]byte, error) { return Sorted(data, false) }} {
 			if _, err := encode([]byte(input)); !errors.Is(err, ErrInput) {
 				t.Errorf("%s: encode(%q) error = %v, want ErrInput", name, input, err)
 			}
@@ -106,11 +106,50 @@ func TestFormsRefuseInputWithoutAnEncoding(t *testing.T) {
 	}
 }
 
-func TestEscapesThatAreNotSurrogatesStayValid(t *testing.T) {
-	for _, input := range []string{`"\\ud83d"`, `"é\u"`, `"\"`, `"\uZZZZ"`} {
-		if hasLoneSurrogate([]byte(input)) {
-			t.Errorf("hasLoneSurrogate(%s) = true, want false", input)
+func TestSortedPreservesSurrogateEscapes(t *testing.T) {
+	for _, test := range []struct{ input, want string }{
+		{`"\ud800"`, `"\ud800"`},
+		{`"\uDFFF"`, `"\udfff"`},
+		{`"\ud800x\udfff"`, `"\ud800x\udfff"`},
+		{`"\ud800\ud800\udc00"`, `"\ud800\ud800\udc00"`},
+		{`["\udc00", "\ufffd", "\\ud800", "\ud83d\ude00"]`, `["\udc00","\ufffd","\\ud800","\ud83d\ude00"]`},
+		{`{"\ud800":1,"\ufffd":2,"\ud800":3,"😀":4,"\ue000":5}`, `{"\ud800":3,"\ue000":5,"\ufffd":2,"\ud83d\ude00":4}`},
+		{`{"\ud83d\ude00":1,"😀":2}`, `{"\ud83d\ude00":2}`},
+	} {
+		got, err := Sorted([]byte(test.input), true)
+		if err != nil || string(got) != test.want {
+			t.Errorf("Sorted(%s, true) = %s, %v, want %s", test.input, got, err, test.want)
 		}
+	}
+	for _, input := range []string{`{"\ud800":1}`, `["\udfff"]`, `"\ud800"`} {
+		for _, encode := range []func([]byte) ([]byte, error){JCS, func(data []byte) ([]byte, error) { return Sorted(data, false) }} {
+			if _, err := encode([]byte(input)); !errors.Is(err, ErrInput) {
+				t.Errorf("encode(%s) error = %v, want ErrInput", input, err)
+			}
+		}
+	}
+}
+
+func TestDiscardedMembersKeepPythonDecodeBehavior(t *testing.T) {
+	for _, encode := range []func([]byte) ([]byte, error){JCS,
+		func(data []byte) ([]byte, error) { return Sorted(data, true) },
+		func(data []byte) ([]byte, error) { return Sorted(data, false) },
+	} {
+		input := []byte(`{"a":"\ud800","a":1}`)
+		if got, err := encode(input); err != nil || string(got) != `{"a":1}` {
+			t.Errorf("encode(%s) = %s, %v, want {a:1}", input, got, err)
+		}
+		input = []byte(`{"a":` + strings.Repeat("9", 4301) + `,"a":1}`)
+		if _, err := encode(input); !errors.Is(err, ErrInput) {
+			t.Errorf("encode(discarded long integer) error = %v, want ErrInput", err)
+		}
+	}
+}
+
+func TestFormsKeepNestingLimit(t *testing.T) {
+	input := []byte(strings.Repeat("[", 10001) + "0" + strings.Repeat("]", 10001))
+	if _, err := Sorted(input, true); !errors.Is(err, ErrInput) {
+		t.Errorf("Sorted(deep array) error = %v, want ErrInput", err)
 	}
 }
 
@@ -119,7 +158,7 @@ func TestEscapesThatAreNotSurrogatesStayValid(t *testing.T) {
 // writes the float 1e16 as an integer, which it then refuses as an integer
 // outside the exact range.
 func FuzzForms(f *testing.F) {
-	for _, seed := range []string{`{"b": [1, 2.5e-7, "é"], "a": null}`, "1e16", `"😀"`, "-0.0"} {
+	for _, seed := range []string{`{"b": [1, 2.5e-7, "é"], "a": null}`, "1e16", `"😀"`, "-0.0", `"\ud800"`, `{"\udfff": "\ufffd"}`} {
 		f.Add([]byte(seed))
 	}
 	f.Fuzz(func(t *testing.T, data []byte) {
