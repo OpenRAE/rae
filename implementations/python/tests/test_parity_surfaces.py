@@ -132,3 +132,47 @@ def test_incomplete_collection_cannot_claim_regression_coverage(tmp_path: Path, 
     collector.write("worker")
     _, inventory, _ = regressions.read_inputs(tmp_path, identity=identity)
     assert inventory["complete"] is False
+
+
+@pytest.mark.parametrize("name", ["file/child", "x" * 300])
+def test_input_collector_leaves_invalid_host_paths_to_the_original_call(tmp_path: Path, name: str) -> None:
+    (tmp_path / "file").write_bytes(b"regular file")
+    collector = InputCollector(tmp_path / "capture", tmp_path)
+    assert collector.candidate_input(tmp_path / name) == (None, None)
+
+
+def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path) -> None:
+    import asyncio
+    import logging
+
+    from hypothesis import settings
+    from pydantic import ValidationError
+    from raes_cli.main import app
+    from raes_contracts.execution_policy import ExecutionPolicy
+    from typer.testing import CliRunner
+
+    repo = Path(__file__).resolve().parents[3]
+    collector = InputCollector(tmp_path / "capture", repo)
+    collector.nodeid = "tests/test_observers.py::test_all_boundaries"
+    root = logging.root
+    handlers, level = root.handlers[:], root.level
+    profile = settings.get_current_profile_name()
+    collector.install()
+    try:
+        assert root.handlers == handlers
+        assert root.level == level
+        source = tmp_path / "source.yaml"
+        source.write_text("name: parity\n")
+        result = CliRunner().invoke(app, ["semantic", "validate", str(source)])
+        assert result.exit_code == 0
+        tool_result = asyncio.run(surfaces.mcp_server().call_tool("sdl_parse", {"sdl_content": "name: parity\n"}))
+        assert tool_result is not None
+        with surfaces.http_client() as client:
+            response = client.get("/participants/participant.parity/status")
+        assert response.status_code == 401
+        with pytest.raises(ValidationError):
+            ExecutionPolicy.model_validate({"schema_version": "invalid"})
+        assert {record["surface"] for record in collector.records.values()} >= {"cli", "mcp", "http", "schema"}
+    finally:
+        collector.close()
+    assert settings.get_current_profile_name() == profile

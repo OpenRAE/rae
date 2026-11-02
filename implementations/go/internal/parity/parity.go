@@ -16,20 +16,17 @@ package parity
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
-	"path"
 	"regexp"
 	"strings"
 )
 
 // Schema is the schema identifier of the corpus manifest.
-const Schema = "raes-parity-corpus/v1"
+const Schema = "raes-parity-corpus/v2"
 
 // Case is one recorded invocation of a surface command.
 type Case struct {
@@ -114,12 +111,9 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 		if !hexDigest(digest, 64) {
 			return Case{}, fmt.Errorf("%s: invalid input digest", name)
 		}
-		content, err := fs.ReadFile(fsys, path.Join("inputs", digest))
+		content, err := readBlob(fsys, digest)
 		if err != nil {
 			return Case{}, fmt.Errorf("%s: input %s: %w", name, fileName, err)
-		}
-		if sum := sha256.Sum256(content); hex.EncodeToString(sum[:]) != digest {
-			return Case{}, fmt.Errorf("%s: input %s does not match its digest", name, fileName)
 		}
 		files[fileName] = content
 	}
@@ -135,10 +129,14 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 
 // decodeFile decodes the single JSON value in the file name into v.
 func decodeFile(fsys fs.FS, name string, v any) error {
-	content, err := fs.ReadFile(fsys, name)
+	content, err := documentBytes(fsys, name)
 	if err != nil {
 		return err
 	}
+	return decodeJSON(content, name, v)
+}
+
+func decodeJSON(content []byte, name string, v any) error {
 	decoder := json.NewDecoder(bytes.NewReader(content))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(v); err != nil {

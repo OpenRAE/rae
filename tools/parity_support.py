@@ -74,7 +74,7 @@ def machine_payload(value: object, *, diagnostic: bool = False) -> object:
     if isinstance(value, list):
         return [machine_payload(item, diagnostic=diagnostic) for item in value]
     if not isinstance(value, dict):
-        return None if diagnostic and isinstance(value, str) else value
+        return value
     return {
         key: item
         if key == "payload"

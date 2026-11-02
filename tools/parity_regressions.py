@@ -7,6 +7,7 @@ import json
 import subprocess
 from pathlib import Path
 
+from tools.parity_storage import read_blob, read_document
 from tools.parity_support import Case, digest, encode
 
 FORMAT = "raes-parity-regressions/v1"
@@ -27,7 +28,7 @@ def read_inputs(
     """Validate captured digests, merge worker origins, and freeze the input set."""
     manifest = root / "manifest.json"
     if manifest.is_file():
-        document = json.loads(manifest.read_bytes())
+        document = read_document(root.parent, Path(root.name, "manifest.json"))
         if document.get("schema") != FORMAT:
             raise ValueError("unknown frozen regression input schema")
         if identity is not None and document.get("source_identity") != identity:
@@ -60,8 +61,7 @@ def read_inputs(
             for value in descriptor["files"].values():
                 if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
                     raise ValueError("invalid captured input digest")
-                blob_root = root.parent / "inputs" if manifest.is_file() else root / "blobs"
-                content = (blob_root / value).read_bytes()
+                content = read_blob(root.parent, value) if manifest.is_file() else (root / "blobs" / value).read_bytes()
                 if digest(content) != value:
                     raise ValueError("a captured input blob does not match its digest")
                 blobs[value] = content
@@ -104,7 +104,7 @@ def main() -> int:
     root = args.repo_root / FROZEN
     if not (root / "manifest.json").is_file():
         return 1
-    document = json.loads((root / "manifest.json").read_bytes())
+    document = read_document(root.parent, Path(root.name, "manifest.json"))
     if document.get("source_identity") != source_identity(args.repo_root):
         return 1
     _, inventory, _ = read_inputs(root, identity=document["source_identity"])

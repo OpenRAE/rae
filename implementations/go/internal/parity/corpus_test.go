@@ -16,14 +16,16 @@ func TestCorpus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load(testdata) error = %v", err)
 	}
+	if err = checkCorpusInventory(os.DirFS("testdata"), cases); err != nil {
+		t.Fatal(err)
+	}
 	byKey := map[string][]Case{}
 	for _, c := range cases {
 		byKey[c.Key()] = append(byKey[c.Key()], c)
 	}
 	registered := runners()
 	var inventory struct {
-		Implemented    []string `json:"implemented"`
-		CorpusComplete bool     `json:"corpus_complete"`
+		Implemented []string `json:"implemented"`
 	}
 	if err = decodeFile(os.DirFS("."), "runner-inventory.json", &inventory); err != nil {
 		t.Fatalf("read implemented inventory: %v", err)
@@ -35,9 +37,6 @@ func TestCorpus(t *testing.T) {
 			t.Fatalf("RAES_PARITY_REQUIRE_COMPLETE: %v", err)
 		}
 	}
-	if complete && !inventory.CorpusComplete {
-		t.Fatal("corpus does not yet cover the full scope of issue #1778")
-	}
 	if err := checkCoverage(cases, registered, inventory.Implemented, complete); err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +44,7 @@ func TestCorpus(t *testing.T) {
 		t.Run(key, func(t *testing.T) {
 			run, ok := registered[key]
 			if !ok {
-				t.Skipf("no Go runner covers the %d cases yet", len(byKey[key]))
+				t.Skipf("no Go runner covers %q (%d cases)", key, len(byKey[key]))
 			}
 			checkCases(t, run, byKey[key])
 		})

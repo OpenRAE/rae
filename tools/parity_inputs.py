@@ -7,6 +7,7 @@ changed. This module is inert unless RAES_PARITY_INPUT_DIR is explicitly set.
 from __future__ import annotations
 
 import functools
+import logging
 import os
 import shlex
 import stat
@@ -70,12 +71,12 @@ class InputCollector:
         temporary_root = Path(tempfile.gettempdir())
         if not (absolute.is_relative_to(self.repo) or absolute.is_relative_to(temporary_root)):
             return None, None
-        for candidate in reversed((absolute, *absolute.parents)):
-            if candidate.is_symlink():
-                raise ValueError("parity input collection refuses symbolic links")
         try:
+            for candidate in reversed((absolute, *absolute.parents)):
+                if candidate.is_symlink():
+                    raise ValueError("parity input collection refuses symbolic links")
             mode = absolute.lstat().st_mode
-        except FileNotFoundError:
+        except OSError:
             return None, None
         if not stat.S_ISREG(mode):
             return None, None
@@ -160,6 +161,23 @@ class InputCollector:
         return max(matches, key=len, default="root")
 
     def install(self) -> None:
+        # FastMCP configures the root logger during registry discovery. Discovery
+        # must not change the handlers or levels that the tests are verifying.
+        root = logging.root
+        handlers, level = root.handlers[:], root.level
+        try:
+            self._install()
+        finally:
+            root.handlers[:] = handlers
+            root.setLevel(level)
+
+    def close(self) -> None:
+        from hypothesis import settings
+
+        self.patches.undo()
+        settings.load_profile(self.previous_profile)
+
+    def _install(self) -> None:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
         from httpx import AsyncByteStream, AsyncClient, Client, RequestNotRead, SyncByteStream
         from hypothesis import settings
@@ -170,6 +188,7 @@ class InputCollector:
 
         from tools.parity_surfaces import cli_registry, http_registry, http_schema, mcp_registry, route_key
 
+        self.previous_profile = settings.get_current_profile_name()
         settings.register_profile("parity-capture", derandomize=True, database=None)
         settings.load_profile("parity-capture")
         original_uuid = uuid.uuid4
@@ -437,7 +456,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if collector is not None:
         worker = os.environ.get("PYTEST_XDIST_WORKER", "main")
         collector.write(worker)
-        collector.patches.undo()
+        collector.close()
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:

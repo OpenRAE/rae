@@ -57,7 +57,7 @@ from typer.testing import CliRunner  # noqa: E402
 from tools.parity_support import Case, digest, encode, json_output  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
-SCHEMA = "raes-parity-corpus/v1"
+SCHEMA = "raes-parity-corpus/v2"
 JSON_FILES = "*.json"
 
 CANONICAL_VALUE = "value.json"
@@ -171,7 +171,13 @@ def contract_fixtures(repo: Path, contracts: Iterable[str]) -> Iterator[tuple[st
     root = repo / "contracts" / "fixtures"
     for contract in sorted(contracts):
         for directory in sorted(path for path in root.rglob(contract) if path.is_dir()):
-            for fixture in sorted(directory.rglob("*.json")):
+            for fixture in sorted(
+                directory.rglob("*.json"),
+                key=lambda path: (
+                    {"valid": 0, "invalid": 1}.get(path.relative_to(directory).parts[0], 2),
+                    path.as_posix(),
+                ),
+            ):
                 yield contract, fixture
 
 
@@ -375,7 +381,7 @@ def run_cli(case: Case) -> dict[str, object]:
         for command in setup.get("commands", []):
             runner.invoke(app, command, catch_exceptions=False)
         result = runner.invoke(app, list(case.args), input=case.files.get("stdin.bin"), catch_exceptions=False)
-        stdout = normalized_output(result.stdout)
+        stdout = normalized_output(result.stdout.replace(str(Path.cwd()), "<case>"))
         if stdout is None and case.command == "sdl format":
             stdout = machine_text(result.stdout)
         if stdout is None and result.stdout.strip().startswith("control-plane-store-"):
@@ -386,7 +392,7 @@ def run_cli(case: Case) -> dict[str, object]:
             name = target.as_posix()
             content = target.read_bytes()
             if name not in case.files or case.files[name] != content:
-                generated[name] = normalized_output(content.decode("utf-8"))
+                generated[name] = normalized_output(content.decode("utf-8").replace(str(Path.cwd()), "<case>"))
         if generated:
             output["generated_files"] = generated
     return output
@@ -522,6 +528,7 @@ def parse_args(argv: Iterable[str] | None) -> argparse.Namespace:
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     parser.add_argument("--regression-inputs", type=Path)
     parser.add_argument("--require-complete", action="store_true")
+    parser.add_argument("--raw-input-dir", type=Path)
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -565,6 +572,13 @@ def main(argv: Iterable[str] | None = None) -> int:
     recorded.update(
         {Path("regressions", name): content for name, content in frozen.items() if name.parts[0] != "blobs"}
     )
+    from tools.parity_storage import pack
+
+    recorded, raw_blobs = pack(recorded)
+    if args.raw_input_dir is not None:
+        args.raw_input_dir.mkdir(parents=True, exist_ok=True)
+        for identity, content in raw_blobs.items():
+            (args.raw_input_dir / identity).write_bytes(content)
     if args.mode == "record":
         write_corpus(repo / CORPUS_DIR, recorded)
         print(f"parity corpus: recorded {len(recorded)} files")

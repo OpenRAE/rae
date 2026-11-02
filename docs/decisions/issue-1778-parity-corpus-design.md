@@ -90,9 +90,9 @@ Malformed or concatenated JSON results fail before comparison.
 `runner-inventory.json`, outside the generated corpus, records implemented runner keys.
 Removing a registered runner for an implemented key fails, as does a runner without
 cases. `RAES_PARITY_REQUIRE_COMPLETE=1` rejects all uncovered keys at cutover and
-requires the inventory to declare full corpus coverage. `corpus_complete` stays
-false until issue #1778 is fully delivered, including surfaces with no cases yet.
-The inventory starts empty because this PR implements no product surface.
+requires the derived corpus inventory to pass. Every normal run validates that
+the declared surfaces, fixture digests and regression origins have actual cases.
+The implemented inventory includes the canonical JSON and random-stream runners.
 Port issues must add both their runner and its required key in the same change.
 
 The manifest records the last commit changing the Python packages, their Git tree
@@ -189,3 +189,22 @@ retain their original environments. The test tree and collector source digests
 bind the frozen inputs. Unchanged sources reuse those inputs; changed sources
 require a new complete capture. Non-JSON Python-only probes are listed explicitly
 as non-protocol tests rather than being presented as JSON-RPC payloads.
+
+## Bounded opaque storage (corpus v2)
+
+Public regression inputs include invalid UTF-8, significant trailing whitespace,
+missing final newlines and oversized-input probes. They are opaque bytes, so
+text-hygiene rewrites would corrupt their identity. Corpus v2 stores input blobs
+as deterministic gzip streams (`mtime=0`), addressed by the SHA-256 of their
+original bytes. Encoded pieces remain below 256 KiB. Larger streams use a small
+`{"parts": N}` index and NUL-prefixed pieces at `pieces/<digest>/<index>`.
+A JSON corpus document larger than 256 KiB uses a single `document_ref` to the
+same blob store. Go validates references, enforces bounded decoding, verifies
+original-byte digests, and compares the decoded data exactly.
+
+Compression must never hide credentials from the scanner. Recording jobs scan
+the complete uncompressed blobs with the existing qualified Gitleaks tool before
+uploading any corpus artifact. The decoder is a standalone standard-library
+module (`tools/parity_storage.py`), so stored inputs remain inspectable without
+the Python product implementation after cutover. The Go loader uses only its
+standard gzip/JSON and digest libraries. No file-size or secret gate is waived.

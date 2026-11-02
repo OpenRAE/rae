@@ -371,6 +371,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "go",
         "go-architecture",
         "parity-corpus",
+        "parity-inputs",
         "sonar",
         "gate",
     }
@@ -1669,7 +1670,7 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         "go mod verify",
         "golangci-lint run ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
-        "go test -race -covermode=atomic -coverprofile=cover.out ./...",
+        "go test -v -race -covermode=atomic -coverprofile=cover.out ./...",
         "exit !(total >= 90)",
         "go test -list '^Fuzz' ./...",
         '-fuzztime 20s "${package}" || exit 1',
@@ -1710,5 +1711,14 @@ def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> No
     check = _named_step(job, "Check that the Python implementation reproduces the corpus")
     assert "python -m tools.parity_corpus check" in check["run"]
     upload = _named_step(job, "Upload the recorded corpus")
-    assert upload["if"] == "failure()"
+    assert upload["if"] == "failure() && steps.scan.outcome == 'success'"
+    assert check["continue-on-error"] is True
+    assert "--require-complete" in check["run"]
+    assert "--raw-input-dir" in check["run"]
+    assert job["needs"] == "parity-inputs"
+    scan = _named_step(job, "Scan decoded corpus inputs before retaining compressed data")
+    assert "tools.parity_storage scan" in scan["run"]
+    enforce = _named_step(job, "Enforce corpus reproduction")
+    assert enforce["if"] == "steps.corpus.outcome != 'success'"
+    assert enforce["run"] == "exit 1"
     assert "parity-corpus" in workflow["jobs"]["gate"]["needs"]

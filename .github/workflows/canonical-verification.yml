@@ -579,7 +579,12 @@ jobs:
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |
-          go test -race -covermode=atomic -coverprofile=cover.out ./...
+          log="${RUNNER_TEMP}/go-test-${{ matrix.name }}.log"
+          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... > "${log}" 2>&1; then
+            cat "${log}"
+            exit 1
+          fi
+          awk '/no Go runner covers/ || /^ok[[:space:]]/ { print }' "${log}"
           total="$(go tool cover -func=cover.out | awk '/^total:/ { sub(/%/, "", $3); print $3 }')"
           if ! awk -v total="${total}" 'BEGIN { exit !(total >= 90) }'; then
             echo "Go statement coverage ${total}% is below the 90% floor (ADR-121)" >&2
@@ -664,6 +669,9 @@ jobs:
             mkdir -p "${RUNNER_TEMP}/parity-inputs"
             cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
             cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
+            if [ -d implementations/go/internal/parity/testdata/pieces ]; then
+              cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
+            fi
             echo "needed=false" >> "${GITHUB_OUTPUT}"
           else
             echo "needed=true" >> "${GITHUB_OUTPUT}"
@@ -699,10 +707,18 @@ jobs:
           RAES_EXECUTION_INTEGRATION: "1"
           RAES_TEST_PG_HOST: "127.0.0.1"
           RAES_TEMPORAL_CLI: ${{ github.workspace }}/implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
-        run: uv run --all-extras --frozen python -m pytest -q -n auto --maxprocesses=8 --dist=loadfile -o addopts= tests
+        run: |
+          uv run --all-extras --frozen python -m pytest -q -o addopts= \
+            tests/test_parity_surfaces.py tests/test_parity_storage.py tests/test_issue_1778_parity_corpus.py \
+            tests/test_issue_1678_sweep_r1.py \
+            tests/test_issue_1678_sweep_t.py::test_crossing_cli_reports_a_damaged_catalog_revision_as_failed_validation \
+            tests/test_issue_1678_operational_logging.py::test_application_handler_reports_a_failed_write_without_values
+          uv run --all-extras --frozen python -m pytest -q -n auto --maxprocesses=8 --dist=loadfile -o addopts= tests
       - name: Check captured inputs for credentials before upload
         if: steps.capture.outputs.needed == 'true'
-        run: gitleaks dir --no-banner --redact=100 --config .gitleaks.toml "${RUNNER_TEMP}/parity-inputs"
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-inputs"
       - name: Retain public regression inputs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -710,6 +726,7 @@ jobs:
           path: |
             ${{ runner.temp }}/parity-inputs
             ${{ runner.temp }}/inputs
+            ${{ runner.temp }}/pieces
           if-no-files-found: error
           retention-days: 1
 
@@ -738,12 +755,32 @@ jobs:
         with:
           name: parity-inputs-${{ inputs.ref }}
           path: ${{ runner.temp }}/parity-recording-inputs
+      - name: Receive locked scanner inputs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+      - name: Install the locked scanner
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
       - name: Check that the Python implementation reproduces the corpus
+        id: corpus
+        continue-on-error: true
         run: >-
           uv run --project implementations/python --all-extras --frozen
-          python -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus"
+          python -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus" --raw-input-dir "${RUNNER_TEMP}/parity-decoded"
+      - name: Scan decoded corpus inputs before retaining compressed data
+        id: scan
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-decoded"
+      - name: Enforce corpus reproduction
+        if: steps.corpus.outcome != 'success'
+        run: exit 1
       - name: Upload the recorded corpus
-        if: failure()
+        if: failure() && steps.scan.outcome == 'success'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: parity-corpus-${{ inputs.ref }}

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	manifest = `{"schema": "raes-parity-corpus/v1", "provenance": {"python_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "python_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "recorder_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "lock_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "python_version": "3.14.7"}}`
+	manifest = `{"schema": "raes-parity-corpus/v2", "provenance": {"python_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "python_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "recorder_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "lock_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "python_version": "3.14.7"}}`
 	input    = "name: a\n"
 	caseName = "cases/cli/semantic-validate/examples/a.json"
 )
@@ -29,7 +29,7 @@ func corpus(stored []byte) fstest.MapFS {
 			` "files": {"input.yaml": "` + digest + `"}, "result": {"exit_code": 0}}`)},
 	}
 	if stored != nil {
-		fsys["inputs/"+digest] = &fstest.MapFile{Data: stored}
+		fsys["inputs/"+digest] = &fstest.MapFile{Data: compressed(stored)}
 	}
 	return fsys
 }
