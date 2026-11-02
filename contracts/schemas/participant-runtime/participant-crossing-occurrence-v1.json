@@ -2614,8 +2614,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_participant_crossing_occurrence_context"
+      "level": "error"
     },
     {
       "description": "Requested, decided, transformed, disclosed, attempted, delivered, observed, and audited facts remain independently addressable and do not imply one another.",
@@ -2626,8 +2625,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantCrossingOccurrenceModel"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

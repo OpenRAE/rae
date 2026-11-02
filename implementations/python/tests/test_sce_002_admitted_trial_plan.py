@@ -755,7 +755,7 @@ def test_schema_bundle_publishes_admitted_trial_plan_contract() -> None:
     assert CONTRACT_ID in bundle
     assert bundle[CONTRACT_ID]["additionalProperties"] is False
     assert any(
-        invariant["validator"].endswith("AdmittedTrialPlanModel._validate_plan")
+        invariant["id"] == "admitted-trial-plan-identity-joins-and-integrity"
         for invariant in bundle[CONTRACT_ID]["x-raes-invariants"]
     )
 

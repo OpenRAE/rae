@@ -500,8 +500,7 @@
               "instance_path": "#/operations"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.execution_policy.EffectiveExecutionPolicy.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -1309,8 +1308,7 @@
               "instance_path": "#/execution_policy"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.execution_policy.ExecutionPolicy.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -2220,8 +2218,7 @@
               "instance_path": "#/operations"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.plan_operation.PlanOperationModel.model_validate"
+          "level": "error"
         }
       ]
     },

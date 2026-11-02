@@ -122,8 +122,8 @@ class RuntimeOrchestrationAuthority(SDLModel):
     """Node-scoped runtime inventory for a container-spawn control authority.
 
     ``control_interface_ref`` is the ``control_interface_id`` of a same-node
-    ``RuntimeControlInterface`` (the docker.sock shell), resolved by
-    ``validator.py`` — referenced, never duplicated. The privilege classification
+    ``RuntimeControlInterface`` (the docker.sock shell), resolved by semantic
+    validation — referenced, never duplicated. The privilege classification
     is descriptive and does not select or authorize a privileged operation.
     """
 

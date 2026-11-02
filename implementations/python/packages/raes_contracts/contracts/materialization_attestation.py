@@ -89,39 +89,33 @@ def attach_materialization_invariants(contract_id: str, schema: dict[str, Any]) 
             "materialized-sdl-source-and-inventory-binding",
             "Complete origins, source/plan/predecessor/producer identity and realized inventory require "
             "the admitted source and execution context; descriptive admission grants no execution authority.",
-            "raes_processor.planner.admit_materialization_submission",
         ),
         "backend-materialization-attestation-v1": (
             "backend-materialization-submission-admission",
             "SDL bytes require bounded parsing and semantic, original-authority, complete inventory "
             "and execution-context validation after materialization hooks.",
-            "raes_processor.planner.admit_materialization_submission",
         ),
         "backend-runtime-descendants-v1": (
             "runtime-descendant-inventory-admission",
             "Descendant identities, source and reporting attempts, causal receipts, complete coverage, "
             "original structural authority and lifecycle transitions require the trusted runtime predecessor.",
-            "raes_processor.planner.materialization_inventory.admit_runtime_inventory",
         ),
         "materialization-archive-record-v1": (
             "materialization-archive-byte-and-lineage-binding",
             "The typed record must join protected immutable published SDL bytes to their size, checksum, "
             "semantic identity, run and operation; metadata alone does not prove delivery.",
-            "raes_processor.planner.validate_materialization_archive_record",
         ),
         "experiment-run-v1": (
             "run-materialization-carriers-archived",
             "Materialization records belong to this run and materialization disclosure carriers bind "
             "exactly one archived record; the original scenario snapshot reference is not replaced.",
-            "raes_contracts.contracts.materialization_attestation.validate_run_materializations",
         ),
     }
     if contract_id in invariants:
-        identity, description, validator = invariants[contract_id]
+        identity, description = invariants[contract_id]
         _add_raes_invariant(
             schema,
             identity,
             description,
-            validator=validator,
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )

@@ -2177,8 +2177,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentApparatusContextModel._validate_instrument_context"
+          "level": "error"
         },
         {
           "description": "Canonical processor and backend manifest_ref values must resolve to manifest payloads with matching identities and mutual compatibility declarations.",
@@ -2197,8 +2196,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_experiment_apparatus_context_against_manifests"
+          "level": "error"
         }
       ]
     },
@@ -2756,8 +2754,7 @@
               "instance_path": "#/augmentation_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentAugmentationDisclosureModel._validate_augmentation_disclosure"
+          "level": "error"
         }
       ]
     },
@@ -3320,8 +3317,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate"
+          "level": "error"
         },
         {
           "description": "Evidence records must carry raw content as an artifact reference, content URI with checksum, or bounded payload summary; redacted/withheld records must disclose loss.",
@@ -3332,8 +3328,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+          "level": "error"
         },
         {
           "description": "captured_at must be a valid RFC 3339 date-time.",
@@ -3344,8 +3339,7 @@
               "instance_path": "#/captured_at"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+          "level": "error"
         }
       ],
       "x-raes-plane": "captured_evidence"
@@ -3534,8 +3528,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_evidence_requirement_relations"
+          "level": "error"
         }
       ]
     },
@@ -3879,8 +3872,7 @@
               "instance_path": "#/$defs/ExperimentManifestReferenceModel"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+          "level": "error"
         }
       ]
     },
@@ -4334,8 +4326,7 @@
               "instance_path": "#/realized_form_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel._validate_realized_form_disclosure"
+          "level": "error"
         },
         {
           "description": "Typed descriptions preserve explicit knowledge, bounded recursive values and coverage separately from author authority, with versioned sources and exact extension coordinates. Profile owners bind to the fact scope and realization-description carrier; nested profile basis and evidence join fact provenance.",
@@ -4346,8 +4337,7 @@
               "instance_path": "#/realized_form_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -4671,8 +4661,7 @@
               "instance_path": "#/traceability"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentRunTraceabilityModel._validate_run_traceability"
+          "level": "error"
         }
       ]
     },
@@ -4776,8 +4765,7 @@
               "instance_path": "#/realized_selections"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+          "level": "error"
         }
       ]
     },
@@ -5473,8 +5461,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"
+          "level": "error"
         }
       ]
     },
@@ -6028,8 +6015,7 @@
               "instance_path": "#/stochastic_draws"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel._validate_local_coordinate_matches_address"
+          "level": "error"
         },
         {
           "description": "outcome must be present exactly when rejection_exhausted is false, and absent when true.",
@@ -6040,8 +6026,7 @@
               "instance_path": "#/stochastic_draws"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel._validate_outcome_matches_exhaustion"
+          "level": "error"
         }
       ]
     },
@@ -7541,8 +7526,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.StreamAddressModel._validate_draw_purpose"
+          "level": "error"
         }
       ]
     },
@@ -8265,8 +8249,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_trial_cleanup_receipt"
+          "level": "error"
         }
       ]
     },
@@ -8673,8 +8656,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         },
         {
           "description": "gate_results gate_kind values must be unique, drawn from the resolved profile's required/optional union, and every required gate_kind must be present.",
@@ -8697,8 +8679,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         },
         {
           "description": "achieved_strength must be supported by ADR-072-ordered passed gate rows for its own rank (structural never implies semantic; semantic never implies behavioral); evidence_backed/falsification_backed additionally require at least one evidence_ref.",
@@ -8721,8 +8702,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         },
         {
           "description": "A required gate not passed, a not_applicable gate outcome, a below-minimum achieved_strength, and a public/audience-restricted audience each require an explicit, profile-declared limitation (the audience-restricted case specifically requires the audience_restricted category).",
@@ -8745,8 +8725,7 @@
               "instance_path": "#/validation_basis_disclosures"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+          "level": "error"
         }
       ]
     },
@@ -9618,8 +9597,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "When present, trial provenance binds the archival run id to one admitted plan entry, the canonical instantiated snapshot, all three published processor-plan projections, and distinct execution attempts.",
@@ -9638,8 +9616,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_admitted_trial_run"
+      "level": "error"
     },
     {
       "description": "Difficulty decisions and interventions match the archival run id, remain within the run time window, and preserve fixed/adaptive/scaffolded policy provenance.",
@@ -9650,8 +9627,7 @@
           "instance_path": "#/difficulty_provenance"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Difficulty provenance must match the exact digest-bound authoring input, allocated condition, task, and immutable policy snapshot.",
@@ -9666,8 +9642,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_difficulty_against_spec"
+      "level": "error"
     },
     {
       "description": "ended_at must be greater than or equal to started_at.",
@@ -9678,8 +9653,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Every result_summaries evidence_refs ref_id must match an evidence_artifacts artifact_id.",
@@ -9690,8 +9664,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Participant implementation apparatus components must resolve to run-level participant provenance.",
@@ -9702,8 +9675,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Every realized-form disclosure evidence ref must also appear in the run traceability evidence refs.",
@@ -9714,8 +9686,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Every augmentation disclosure evidence ref must also appear in the run traceability evidence refs, and augmentation_id values must be unique within the run.",
@@ -9726,8 +9697,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Every validation_basis_disclosures entry must declare subject_kind='experiment_run' and a subject_ref matching this run's run_id/run_version.",
@@ -9738,8 +9708,7 @@
           "instance_path": "#/validation_basis_disclosures"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validation_disclosure.validate_carrier_validation_basis_disclosures"
+      "level": "error"
     },
     {
       "description": "Every stochastic_draws control_id must resolve to a stochastic_controls control_id with an executable_binding on the same run, and each draw's address.namespace and transform_id/transform_version must match that binding's namespace and admitted profile transforms.",
@@ -9750,8 +9719,7 @@
           "instance_path": "#/stochastic_draws"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_run_structure_against_task"
+      "level": "error"
     },
     {
       "description": "When present, realized-time provenance must match the run id and its declared model digest.",
@@ -9762,8 +9730,7 @@
           "instance_path": "#/realized_time_model"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Run apparatus and result metric ids must satisfy the referenced task protocol. Content-backed evidence is additionally required by authoritative task/run validation.",
@@ -9778,8 +9745,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_run_structure_against_task"
+      "level": "error"
     },
     {
       "description": "Archived run-scoped evidence requirement relations must identify this exact run and scenario snapshot.",
@@ -9790,8 +9756,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+      "level": "error"
     },
     {
       "description": "Materialization records belong to this run and materialization disclosure carriers bind exactly one archived record; the original scenario snapshot reference is not replaced.",
@@ -9802,8 +9767,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.materialization_attestation.validate_run_materializations"
+      "level": "error"
     },
     {
       "description": "Run started_at, ended_at, invalidation invalidated_at, and evidence_artifacts created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
@@ -9826,8 +9790,7 @@
           "instance_path": "#/evidence_artifacts"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_run_archival_datetimes"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

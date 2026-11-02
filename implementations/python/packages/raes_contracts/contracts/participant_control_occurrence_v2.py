@@ -43,7 +43,6 @@ PolicyRevision = Annotated[NonEmptyString, Field(max_length=256, pattern=r"\S")]
 # A record's own binding revision. StrictInt, not lax Literal[1], which would take the boolean true (MC-01).
 OwnBindingRevision = Annotated[StrictInt, Field(ge=1, le=1), WithJsonSchema({"const": 1, "type": "integer"})]
 _V2 = [{"contract_id": PARTICIPANT_CONTROL_OCCURRENCE_V2_CONTRACT_ID, "instance_path": "#"}]
-_MODEL_VALIDATOR = "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
 _REJECTED = "rejected"
 
 
@@ -326,27 +325,22 @@ _INVARIANTS = (
         "Every v2 occurrence must fold under its episode's exact pinned rev1 policy at its participant-wide "
         "position: exact state, revision and history head, acting source controller and scope, order and windows, "
         "script cursor, target identity, revision, liveness and evaluated validity bounds.",
-        "raes_contracts.contracts.validate_participant_control_occurrence_context",
     ),
     (
         "participant-control-occurrence-v2-acting-controller",
         "actor_ref equals the acting controller_ref: the accepted record's, or the rejected attempt's.",
-        _MODEL_VALIDATOR,
     ),
     (
         "participant-control-occurrence-v2-revision-advance",
         "An accepted occurrence's resulting_state_revision equals expected_state_revision + 1 for every kind.",
-        _MODEL_VALIDATOR,
     ),
     (
         "participant-control-occurrence-v2-history-head",
         "An accepted occurrence's expected_history_head equals occurrence_revision - 1.",
-        _MODEL_VALIDATOR,
     ),
     (
         "participant-control-occurrence-v2-validity-bounds",
         "An accepted occurrence satisfies valid_from_order <= effective_order <= valid_until_order (inclusive).",
-        _MODEL_VALIDATOR,
     ),
 )
 
@@ -379,8 +373,8 @@ class ParticipantControlOccurrenceV2Model(ParticipantRuntimeBaseEnvelopeModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        for invariant_id, description, validator in _INVARIANTS:
-            _add_raes_invariant(json_schema, invariant_id, description, validator=validator, inputs=_V2)
+        for invariant_id, description in _INVARIANTS:
+            _add_raes_invariant(json_schema, invariant_id, description, inputs=_V2)
         return json_schema
 
 

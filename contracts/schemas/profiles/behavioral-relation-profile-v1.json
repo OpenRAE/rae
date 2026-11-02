@@ -2279,8 +2279,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.behavioral_relation_profiles.BehavioralRelationProfileModel"
+      "level": "error"
     },
     {
       "description": "Catalog, profile, carrier, observation projection, and claim coordinates must resolve exactly through the shared behavioral claim validator.",
@@ -2295,8 +2294,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.behavioral_relations.validate_behavioral_claim_binding"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

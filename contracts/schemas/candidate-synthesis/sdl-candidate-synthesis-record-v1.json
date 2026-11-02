@@ -326,8 +326,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ArtifactTransformationReportModel.model_validate"
+          "level": "error"
         },
         {
           "description": "Checks, identities, mappings, losses, diagnostics, and evidence use stable closed ordering.",
@@ -338,8 +337,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ArtifactTransformationReportModel.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -663,8 +661,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.CandidateSynthesisInputModel.model_validate"
+          "level": "error"
         },
         {
           "description": "Assertions, assumptions, decisions, references, values, and target identities use stable unique ordering.",
@@ -675,8 +672,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.CandidateSynthesisInputModel.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -882,8 +878,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.CandidateSynthesisProfileDefinitionModel.model_validate"
+          "level": "error"
         }
       ]
     },
@@ -1580,8 +1575,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Source assertions, assumptions, decisions, construct contributions, unresolved choices, and transformation evidence remain distinct.",
@@ -1592,8 +1586,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

@@ -94,10 +94,6 @@ class ExperimentScenarioSelectionDescriptorModel(ExperimentFactorLevelSelectionM
             "experiment-selection-treatment-identity-valid",
             "Typed selection identity binds the exact source condition, factor and canonical scenario target. "
             "Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
-            validator=(
-                "raes_contracts.contracts.experiment_treatments."
-                "ExperimentScenarioSelectionDescriptorModel._validate_identity"
-            ),
             inputs=[
                 {
                     "contract_id": "experiment-authoring-input-v1",

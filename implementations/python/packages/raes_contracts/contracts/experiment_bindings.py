@@ -331,9 +331,6 @@ class ExperimentBindingDescriptorSetModel(ContractModel):
             json_schema,
             "binding-descriptors-canonical-targets-injective",
             "Binding ids must be unique and target resolution must be injective within each source condition.",
-            validator=(
-                "raes_contracts.contracts.ExperimentBindingDescriptorSetModel._validate_unique_bindings_and_targets"
-            ),
             inputs=[{"contract_id": "experiment-binding-descriptors-v1", "instance_path": "#"}],
         )
         return json_schema
@@ -439,7 +436,6 @@ class ParticipantConfigurationResultModel(ContractModel):
             json_schema,
             "participant-configuration-digest-valid",
             "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
-            validator=("raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"),
             inputs=[{"contract_id": "participant-configuration-result-v1", "instance_path": "#"}],
         )
         return json_schema

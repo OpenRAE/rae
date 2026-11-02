@@ -2670,8 +2670,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_participant_control_occurrence_context"
+      "level": "error"
     },
     {
       "description": "actor_ref equals the acting controller_ref: the accepted record's, or the rejected attempt's.",
@@ -2682,8 +2681,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+      "level": "error"
     },
     {
       "description": "An accepted occurrence's resulting_state_revision equals expected_state_revision + 1 for every kind.",
@@ -2694,8 +2692,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+      "level": "error"
     },
     {
       "description": "An accepted occurrence's expected_history_head equals occurrence_revision - 1.",
@@ -2706,8 +2703,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+      "level": "error"
     },
     {
       "description": "An accepted occurrence satisfies valid_from_order <= effective_order <= valid_until_order (inclusive).",
@@ -2718,8 +2714,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

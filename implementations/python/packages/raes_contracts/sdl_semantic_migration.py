@@ -82,7 +82,6 @@ class SDLSemanticMigrationContext(ContractModel):
                 "id": "unique-sentinel-decision-pointers",
                 "description": "Each source sentinel pointer has at most one author decision.",
                 "level": "error",
-                "validator": "raes_contracts.sdl_semantic_migration.SDLSemanticMigrationContext.model_validate",
                 "inputs": [{"contract_id": "sdl-semantic-migration-context-v1", "instance_path": "#"}],
             }
         ]

@@ -199,9 +199,6 @@ class ExperimentAugmentationDisclosureModel(ContractModel):
             "augmentation-disclosure-semantics-valid",
             "Augmentation disclosures must keep environment-visible, participant-visible, and "
             "comparability-relevant semantics explicit and must use processor/backend authority.",
-            validator=(
-                "raes_contracts.contracts.ExperimentAugmentationDisclosureModel._validate_augmentation_disclosure"
-            ),
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/augmentation_disclosures"}],
         )
         return json_schema
@@ -259,7 +256,6 @@ class ExperimentEvaluationProtocolModel(ContractModel):
             json_schema,
             "metric-definition-key-matches-metric-id",
             "Every metric_definitions object key must match the embedded metric_id value.",
-            validator="raes_contracts.contracts.ExperimentEvaluationProtocolModel._validate_metric_definition_keys",
             inputs=[{"contract_id": "experiment-task-v1", "instance_path": "#/evaluation_protocol"}],
         )
         return json_schema
@@ -448,9 +444,6 @@ class ExperimentApparatusConstraintModel(ContractModel):
             "apparatus-constraint-identity-manifest-resolves",
             "Every allowed processor/backend identity reference must have a matching required manifest ref_id "
             "with matching manifest id, subject identity, and manifest schema version.",
-            validator=(
-                "raes_contracts.contracts.ExperimentApparatusConstraintModel._validate_allowed_identity_manifest_refs"
-            ),
             inputs=[{"contract_id": "experiment-task-v1", "instance_path": "#/apparatus_constraints"}],
         )
         return json_schema

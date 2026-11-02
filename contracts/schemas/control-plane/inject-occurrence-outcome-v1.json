@@ -774,8 +774,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.InjectOccurrenceOutcomeModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Readback answers one backend invocation that commands the exact claimed occurrence under its operation and admission context, carries its evidence requirements and keeps attempt identities distinct from the claims. It reports every selected binding in request order, and binding residual effects stay inside an admitted resource scope. This grants no dispatch; an adopting runtime still validates and commits the terminal state.",
@@ -794,8 +793,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_inject_occurrence_outcome"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {
