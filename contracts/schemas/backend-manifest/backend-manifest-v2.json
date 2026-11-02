@@ -1154,8 +1154,7 @@
               "instance_path": "#/execution_policy"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.execution_policy.ExecutionPolicyCapabilities.model_validate"
+          "level": "error"
         }
       ]
     },

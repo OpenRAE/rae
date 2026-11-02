@@ -778,7 +778,7 @@ def test_published_schema_bundle_fixtures_and_change_ledger_are_consistent() -> 
         "contract_id": MIXED_COMPOSITION_CONTRACT_ID,
         "last_change": {
             "content_hash": digest,
-            "summary": "Publish the initial closed SEM-234 mixed-participant composition profile (#1014).",
+            "summary": "Remove the Python validator paths from the semantic invariants (#1776).",
         },
         "schema_path": "contracts/schemas/plans/mixed-participant-composition-profile-v1.json",
         "stability": "draft",

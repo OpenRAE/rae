@@ -1171,8 +1171,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.artifact_requirements.validate_artifact_requirement_invariants"
+      "level": "error"
     },
     {
       "description": "An exact requirement's immutable artifact version must equal the enclosing Source selector version.",
@@ -1183,8 +1182,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.artifact_requirements.validate_artifact_requirement_invariants"
+      "level": "error"
     },
     {
       "description": "Every materialization locked_input_id must resolve to a locked input declared by the same artifact requirement.",
@@ -1195,8 +1193,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.artifact_requirements.validate_artifact_requirement_invariants"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

@@ -1,9 +1,9 @@
 {
-  "content_hash": "840bb5d8b4e49609af7505bf83d2ceba452152bfeb65b66148095f50488c3f0a",
+  "content_hash": "29665c172b7855a196240b2c695a506b295469794e98d2dacaa91b5a021c94a1",
   "contract_id": "artifact-transformation-report-v1",
   "last_change": {
-    "content_hash": "840bb5d8b4e49609af7505bf83d2ceba452152bfeb65b66148095f50488c3f0a",
-    "summary": "Distinguish descriptive SDL materialization canonical comparisons from authored or instantiated artifacts (#1241)."
+    "content_hash": "29665c172b7855a196240b2c695a506b295469794e98d2dacaa91b5a021c94a1",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/artifact-transformations/artifact-transformation-report-v1.json",
   "stability": "draft"

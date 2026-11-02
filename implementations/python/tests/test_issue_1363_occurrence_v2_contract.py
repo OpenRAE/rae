@@ -67,10 +67,9 @@ def test_inclusive_bounds_equal_to_the_order_pass_and_each_rule_is_a_published_i
     )
     assert (record.occurrence.valid_from_order, record.occurrence.valid_until_order) == (10, 10)
     invariants = schema_bundle()["participant-control-occurrence-v2"]["x-raes-invariants"]
-    by_validator = {item["id"]: item["validator"] for item in invariants}
-    model = "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+    invariant_ids = {item["id"] for item in invariants}
     for rule in ("revision-advance", "history-head", "validity-bounds", "acting-controller"):
-        assert by_validator[f"participant-control-occurrence-v2-{rule}"] == model
+        assert f"participant-control-occurrence-v2-{rule}" in invariant_ids
 
 
 @pytest.mark.parametrize("value", [True, "5", 1_000_001, -1])

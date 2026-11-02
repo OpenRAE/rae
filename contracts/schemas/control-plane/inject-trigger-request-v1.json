@@ -303,8 +303,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.InjectTriggerRequestModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Only the original actor, key and request commitment retrieve the original claim; changed content conflicts and no retry admits, rebases or dispatches again.",
@@ -319,8 +318,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.require_inject_trigger_retry"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

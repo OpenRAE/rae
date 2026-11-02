@@ -2,9 +2,9 @@
   "contract_id": "semantic-projection-report-v1",
   "schema_path": "contracts/schemas/concept-authority/semantic-projection-report-v1.json",
   "stability": "draft",
-  "content_hash": "1aad6c6d3cae7595fd8c8b79f56fdc443e8b1eef46ce7dffc0283c163a269f8a",
+  "content_hash": "85c73db6ac2f08c78f50f1b9d98cb308465cea822a1e414dd0e8a13b9841e5a1",
   "last_change": {
-    "summary": "Initial publication of scheme-neutral evidence-bounded semantic projection reports for issue #987.",
-    "content_hash": "1aad6c6d3cae7595fd8c8b79f56fdc443e8b1eef46ce7dffc0283c163a269f8a"
+    "content_hash": "85c73db6ac2f08c78f50f1b9d98cb308465cea822a1e414dd0e8a13b9841e5a1",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

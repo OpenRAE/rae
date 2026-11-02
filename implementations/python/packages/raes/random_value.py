@@ -32,12 +32,10 @@ _MAX_AFFIX_LENGTH = 256
 _MIN_ALPHABET_SIZE = 2
 
 
+# raes_contracts.random_value_generation.NAMED_ALPHABET_CHARSETS holds the
+# concrete charsets, the single source of truth shared with backend generation.
 class NamedAlphabet(str, Enum):
-    """Closed set of portable alphabets a random value may draw from.
-
-    Concrete charsets live in :data:`raes_contracts.random_value_generation.NAMED_ALPHABET_CHARSETS`,
-    the single source of truth shared with backend generation.
-    """
+    """Closed set of portable alphabets a random value may draw from."""
 
     HEX_LOWER = "hex_lower"
     HEX_UPPER = "hex_upper"

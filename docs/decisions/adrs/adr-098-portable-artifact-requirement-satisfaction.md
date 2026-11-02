@@ -142,3 +142,9 @@ with authorized backend and trust-policy owners.
 - [ADR-077](adr-077-associated-artifact-manifest-boundary.md)
 - Portable Artifact Requirement Satisfaction:
   `specs/supply-chain/artifact-requirement-satisfaction.md`
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-10-31 | #1776 | The `x-raes-invariants` profile no longer publishes importable validator paths. |

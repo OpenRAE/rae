@@ -1,9 +1,9 @@
 {
-  "content_hash": "f0cea5aae8070729c4cb17af063606943b3736a71380734b0886a751e228d548",
+  "content_hash": "6be02dad9331ecefb8fd23241f72c16c124dc27d2fb500ed31656bd114704a82",
   "contract_id": "associated-artifact-manifest-v1",
   "last_change": {
-    "content_hash": "f0cea5aae8070729c4cb17af063606943b3736a71380734b0886a751e228d548",
-    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+    "content_hash": "6be02dad9331ecefb8fd23241f72c16c124dc27d2fb500ed31656bd114704a82",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json",
   "stability": "draft"

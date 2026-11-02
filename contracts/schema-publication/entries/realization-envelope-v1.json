@@ -2,9 +2,9 @@
   "contract_id": "realization-envelope-v1",
   "schema_path": "contracts/schemas/realization-envelope/realization-envelope-v1.json",
   "stability": "draft",
-  "content_hash": "d8c49ab8d6c0db23a53e4d6808470e85c0839d5092386d5978e419af708dc464",
+  "content_hash": "02fec602ddc90c1c90ed8e80a61b529f1f897ef328017b7472885a1b20095971",
   "last_change": {
-    "summary": "Added coupled operating-system compatibility rows and an explicit operating-system realization concern for issue #1077.",
-    "content_hash": "d8c49ab8d6c0db23a53e4d6808470e85c0839d5092386d5978e419af708dc464"
+    "content_hash": "02fec602ddc90c1c90ed8e80a61b529f1f897ef328017b7472885a1b20095971",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

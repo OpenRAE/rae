@@ -216,9 +216,6 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
         task_schema["$defs"]["ExperimentEvaluationProtocolModel"],
         "metric-definition-key-matches-metric-id",
     )
-    assert metric_key_invariant["validator"].endswith(
-        "ExperimentEvaluationProtocolModel._validate_metric_definition_keys"
-    )
     assert metric_key_invariant["inputs"] == [
         {"contract_id": "experiment-task-v1", "instance_path": "#/evaluation_protocol"}
     ]
@@ -345,9 +342,6 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
     assert "ended-at-not-before-started-at" in _invariant_ids(run_schema)
     assert "result-evidence-ref-resolves" in _invariant_ids(run_schema)
     task_run_invariant = _invariant_by_id(run_schema, "task-run-protocol-binding-valid")
-    assert task_run_invariant["validator"] == (
-        "raes_contracts.contracts.validate_experiment_run_structure_against_task"
-    )
     assert task_run_invariant["inputs"] == [
         {"contract_id": "experiment-task-v1", "instance_path": "#"},
         {"contract_id": "experiment-run-v1", "instance_path": "#"},
@@ -603,14 +597,21 @@ def test_raes_semantic_invariant_annotations_have_published_shape():
     assert invariant.inputs[0].contract_id == "experiment-task-v1"
 
     corrupted_schema = deepcopy(run_schema)
-    del corrupted_schema["x-raes-invariants"][0]["validator"]
+    del corrupted_schema["x-raes-invariants"][0]["description"]
     with pytest.raises(ValidationError):
         validate_raes_semantic_invariant_annotations("experiment-run-v1", corrupted_schema)
 
-    unresolved_validator_schema = deepcopy(run_schema)
-    unresolved_validator_schema["x-raes-invariants"][0]["validator"] = "raes_contracts.contracts.DoesNotExist"
-    with pytest.raises(ValueError, match="does not resolve"):
-        validate_raes_semantic_invariant_annotations("experiment-run-v1", unresolved_validator_schema)
+    # An entry does not name implementation code (issue #1776).
+    python_path_schema = deepcopy(run_schema)
+    python_path_schema["x-raes-invariants"][0]["validator"] = "raes_contracts.contracts.ExperimentRunModel"
+    with pytest.raises(ValidationError):
+        validate_raes_semantic_invariant_annotations("experiment-run-v1", python_path_schema)
+
+    # The contract id and the entry id identify one invariant.
+    duplicate_schema = deepcopy(run_schema)
+    duplicate_schema["x-raes-invariants"].append(deepcopy(duplicate_schema["x-raes-invariants"][0]))
+    with pytest.raises(ValueError, match="duplicate semantic invariant id"):
+        validate_raes_semantic_invariant_annotations("experiment-run-v1", duplicate_schema)
 
 
 def test_experiment_core_valid_fixtures_pass_model_validation():

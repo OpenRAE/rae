@@ -654,8 +654,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.BackendOperationResponseModel.model_validate"
+      "level": "error"
     },
     {
       "description": "Require exact request binding and commitment, scoped residuals and independently bound controls when present.",
@@ -670,8 +669,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.validate_backend_operation_response"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

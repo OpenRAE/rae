@@ -294,3 +294,4 @@ and redaction patterns.
 |------|-----------|---------|
 | 2026-06-12 | #482 | Recorded that the ADR's decision date is 2026-05-26 and it landed with experiment-core PR #422 on 2026-06-05. |
 | 2026-07-08 | #675 | ADR-074 realizes the "explicit draft/authoring surface" anticipated in this ADR's Risks section as `experiment-authoring-input-v1`, a separate pre-run input contract; the archival contracts published here are unchanged. |
+| 2026-10-31 | #1776 | The `x-raes-invariants` entries no longer name Python validators. The contract id and the entry id identify each invariant, and the contract models still enforce it. |

@@ -2,9 +2,9 @@
   "contract_id": "behavioral-relations-v1",
   "schema_path": "contracts/schemas/concept-authority/behavioral-relations-v1.json",
   "stability": "draft",
-  "content_hash": "6cbd7886d1acd7158ad5a71b3d8e53d099484db8fc885b0ab90a613fca5de788",
+  "content_hash": "f6bcf13e056f0bc4b3fb8f645323d36625398b93935abbc7a8c51994cd09faa1",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "6cbd7886d1acd7158ad5a71b3d8e53d099484db8fc885b0ab90a613fca5de788"
+    "content_hash": "f6bcf13e056f0bc4b3fb8f645323d36625398b93935abbc7a8c51994cd09faa1",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }
