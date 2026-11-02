@@ -26,7 +26,7 @@ func corpus(stored []byte) fstest.MapFS {
 	fsys := fstest.MapFS{
 		"manifest.json": {Data: []byte(manifest)},
 		caseName: {Data: []byte(`{"name": "examples/a", "surface": "cli", "command": "semantic validate", "args": ["semantic", "validate", "input.yaml"],` +
-			` "files": {"input.yaml": "` + digest + `"}, "result": {"exit_code": 0}}`)},
+			` "files": {"input.yaml": "sha256:` + digest + `"}, "result": {"exit_code": 0}}`)},
 	}
 	if stored != nil {
 		fsys["inputs/"+digest] = &fstest.MapFile{Data: compressed(stored)}
@@ -179,5 +179,13 @@ func TestLoadRejectsAnInvalidDigestBeforeOpeningItsPath(t *testing.T) {
 		if name == "escape" {
 			t.Error("Load() opened an input path outside inputs/, want rejection before lookup")
 		}
+	}
+}
+
+func TestLoadRequiresTaggedFileReferences(t *testing.T) {
+	fsys := corpus([]byte(input))
+	fsys[caseName].Data = []byte(strings.Replace(string(fsys[caseName].Data), "sha256:", "", 1))
+	if _, err := Load(fsys); err == nil {
+		t.Error("Load(untagged file reference) error = nil")
 	}
 }

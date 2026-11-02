@@ -219,3 +219,14 @@ Git trees, the Python dependency/configuration files and collector helpers. Mode
 validation observers include constructors, explicit validation methods and literal
 schema versions without defaults. Published JSON Schema validations are observed
 by their normative schema identity. Original results and exceptions are preserved.
+
+Case-file and source-inventory references use the standard `sha256:<digest>`
+notation; blob filenames use the bare digest. This identifies hashes even when
+an input filename contains words such as token or key. Credential scanning stays
+fully enabled; digest fields need no secret-scanner exception.
+
+CLI observation expands `--option=value` before mapping file arguments. The
+backend conformance command carries its fixture/profile directories explicitly,
+including empty directories; only contract data files under the allowed input
+roots are copied. Output directories and arbitrary working directories are not
+captured. The portable setup creates recorded empty input directories.

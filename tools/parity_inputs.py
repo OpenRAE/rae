@@ -46,7 +46,7 @@ class InputCollector:
     def add(self, case: Case) -> None:
         if self.nodeid == "collection":
             return
-        files = {name: digest(content) for name, content in sorted(case.files.items())}
+        files = {name: "sha256:" + digest(content) for name, content in sorted(case.files.items())}
         record = {"surface": case.surface, "command": case.command, "args": list(case.args), "files": files}
         identity = digest(encode(record))
         with self.lock:
@@ -109,10 +109,44 @@ class InputCollector:
     def cli(self, arguments: object, kwargs: dict[str, object]) -> None:
         from tools.parity_surfaces import local_dependencies
 
-        tokens = shlex.split(arguments) if isinstance(arguments, str) else [str(value) for value in (arguments or [])]
+        supplied_tokens = (
+            shlex.split(arguments) if isinstance(arguments, str) else [str(value) for value in (arguments or [])]
+        )
+        tokens = []
+        positional = False
+        for argument in supplied_tokens:
+            if not positional and argument.startswith("--") and "=" in argument:
+                tokens.extend(argument.split("=", 1))
+            else:
+                tokens.append(argument)
+            positional = positional or argument == "--"
+        command = self.command(tokens)
+        input_directories = []
+        directory_files = []
+        if command == "conformance backend":
+            for option, default in (
+                ("--fixtures-root", self.repo / "contracts/fixtures"),
+                ("--profiles-root", self.repo / "contracts/profiles/backend"),
+            ):
+                if option not in tokens:
+                    tokens.extend([option, str(default)])
+                position = tokens.index(option) + 1
+                if position >= len(tokens):
+                    continue
+                root = Path(os.path.abspath(tokens[position]))
+                if not (root.is_relative_to(self.repo) or root.is_relative_to(Path(tempfile.gettempdir()))):
+                    continue
+                self.candidate_input(root)
+                if root.is_dir():
+                    input_directories.append(root)
+                    for path in sorted(root.rglob("*")):
+                        if path.is_symlink():
+                            raise ValueError("parity input collection refuses symbolic links")
+                        if path.suffix in {".json", ".yaml", ".yml"}:
+                            directory_files.append(path)
         originals: dict[Path, bytes] = {}
         recipes = {}
-        pending = [Path(os.path.abspath(token)) for token in tokens if not token.startswith("-")]
+        pending = [Path(os.path.abspath(token)) for token in tokens if not token.startswith("-")] + directory_files
         while pending:
             path = pending.pop()
             if path in originals:
@@ -125,16 +159,23 @@ class InputCollector:
                 recipes[path] = recipe
             if path.suffix in {".yaml", ".yml"}:
                 pending.extend(local_dependencies(path, content))
-        base = Path(os.path.commonpath([str(path.parent) for path in originals])) if originals else Path.cwd()
+        parents = [str(path.parent) for path in originals] + [str(root) for root in input_directories]
+        base = Path(os.path.commonpath(parents)) if parents else Path.cwd()
         names = {path: "input/" + path.relative_to(base).as_posix() for path in originals}
         files = {names[path]: content for path, content in originals.items() if path not in recipes}
         if recipes:
             files["input-recipes.json"] = encode({names[path]: recipe for path, recipe in recipes.items()})
+        if input_directories:
+            files["setup.json"] = encode(
+                {"directories": ["input/" + root.relative_to(base).as_posix() for root in input_directories]}
+            )
         rewritten = []
         for token in tokens:
             absolute = Path(os.path.abspath(token))
             if absolute in names:
                 rewritten.append(names[absolute])
+            elif absolute in input_directories:
+                rewritten.append("input/" + absolute.relative_to(base).as_posix())
             elif Path(token).is_absolute():
                 relative = (
                     absolute.relative_to(base).as_posix()
@@ -147,7 +188,6 @@ class InputCollector:
         supplied = kwargs.get("input")
         if supplied is not None:
             files["stdin.bin"] = supplied.encode() if isinstance(supplied, str) else bytes(supplied)
-        command = self.command(tokens)
         if command:
             self.add(Case("cli", command, "", tuple(rewritten), files))
 
@@ -156,11 +196,14 @@ class InputCollector:
         from tools.parity_surfaces import cli_registry
 
         registry = cli_registry()
-        matches = [
-            name
-            for name in registry
-            if name and any(tokens[start : start + len(name.split())] == name.split() for start in range(len(tokens)))
-        ]
+        root_options = {option: parameter for parameter in registry[""] for option in parameter.get("opts", [])}
+        start = 0
+        while start < len(tokens) and tokens[start].startswith("-"):
+            parameter = root_options.get(tokens[start])
+            if parameter is None or parameter["name"] == "version":
+                return "root"
+            start += 1 + (0 if parameter.get("is_flag") else parameter.get("nargs", 1))
+        matches = [name for name in registry if name and tokens[start : start + len(name.split())] == name.split()]
         return max(matches, key=len, default="root")
 
     def install(self) -> None:

@@ -15,6 +15,6 @@ def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]
         "surface": case.surface,
         "command": case.command,
         "args": list(case.args),
-        "files": {name: digest(content) for name, content in sorted(case.files.items())},
+        "files": {name: "sha256:" + digest(content) for name, content in sorted(case.files.items())},
         "result": dict(result),
     }

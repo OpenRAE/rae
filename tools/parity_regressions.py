@@ -71,7 +71,10 @@ def read_inputs(
                 raise ValueError("a captured regression input does not match its digest")
             merged = records.setdefault(key, {**descriptor, "tests": set()})
             merged["tests"].update(record.get("tests", []))
-            for value in descriptor["files"].values():
+            for reference in descriptor["files"].values():
+                if not isinstance(reference, str) or not reference.startswith("sha256:"):
+                    raise ValueError("invalid captured input digest")
+                value = reference.removeprefix("sha256:")
                 if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
                     raise ValueError("invalid captured input digest")
                 content = read_blob(root.parent, value) if manifest.is_file() else (root / "blobs" / value).read_bytes()
@@ -93,7 +96,7 @@ def read_inputs(
             record["command"],
             "regression/" + key,
             tuple(record["args"]),
-            {name: blobs[value] for name, value in record["files"].items()},
+            {name: blobs[value.removeprefix("sha256:")] for name, value in record["files"].items()},
         )
         for key, record in records.items()
     ]

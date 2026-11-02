@@ -391,6 +391,11 @@ def run_cli(case: Case) -> dict[str, object]:
                 raise ValueError("unknown input recipe")
             target.write_bytes(content)
         setup = json.loads(case.files.get("setup.json", b"{}"))
+        for directory in setup.get("directories", []):
+            target = Path(directory)
+            if target.is_absolute() or ".." in target.parts:
+                raise ValueError("an input directory escapes its case")
+            target.mkdir(parents=True, exist_ok=True)
         if "store" in setup:
             from raes_runtime.control_plane_store import LocalControlPlaneStore
 

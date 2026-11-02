@@ -104,11 +104,12 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 		return Case{}, fmt.Errorf("%s: missing result", name)
 	}
 	files := make(map[string][]byte, len(record.Files))
-	for fileName, digest := range record.Files {
+	for fileName, reference := range record.Files {
 		if !fs.ValidPath(fileName) || strings.Contains(fileName, "\\") || strings.Contains(fileName, ":") {
 			return Case{}, fmt.Errorf("%s: unsafe input name %q", name, fileName)
 		}
-		if !hexDigest(digest, 64) {
+		digest, tagged := strings.CutPrefix(reference, "sha256:")
+		if !tagged {
 			return Case{}, fmt.Errorf("%s: invalid input digest", name)
 		}
 		content, err := readBlob(fsys, digest)

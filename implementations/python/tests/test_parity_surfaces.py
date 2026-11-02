@@ -87,7 +87,7 @@ def test_input_collector_preserves_local_imports_and_sandbox_paths(tmp_path: Pat
     record = next(iter(collector.records.values()))
     assert record["args"] == ["sdl", "format", "input/root.yaml"]
     assert set(record["files"]) == {"input/root.yaml", "input/module.yaml"}
-    assert collector.blobs[record["files"]["input/module.yaml"]] == b"name: module\n"
+    assert collector.blobs[record["files"]["input/module.yaml"].removeprefix("sha256:")] == b"name: module\n"
 
 
 def test_input_collector_refuses_links_and_does_not_inspect_external_paths(tmp_path: Path, monkeypatch) -> None:
@@ -186,7 +186,7 @@ def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path, mo
         schema = json.loads((repo / entry["schema_path"]).read_bytes())
         assert list(Draft202012Validator(schema).iter_errors({"schema_probe": "json-schema"}))
         observed = [
-            json.loads(collector.blobs[record["files"]["payload.json"]])
+            json.loads(collector.blobs[record["files"]["payload.json"].removeprefix("sha256:")])
             for record in collector.records.values()
             if record["surface"] == "schema" and record["args"] == ["observation-demand-v1"]
         ]
@@ -240,3 +240,32 @@ def test_deterministic_ids_restore_aliases_created_by_lazy_imports(monkeypatch) 
         module.uuid4 = uuid.uuid4
         assert module.uuid4 is not original_uuid
     assert module.uuid4 is original_uuid
+
+
+def test_cli_collector_captures_conformance_directories_and_option_assignments(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    fixtures = repo / "contracts/fixtures"
+    profiles = repo / "contracts/profiles/backend"
+    (fixtures / "sample/valid").mkdir(parents=True)
+    profiles.mkdir(parents=True)
+    (fixtures / "sample/valid/input.json").write_text('{"value": 1}')
+    collector = InputCollector(tmp_path / "capture", repo)
+    collector.nodeid = "tests/test_example.py::test_conformance"
+    collector.cli(["conformance", "backend", "--format=json", f"--fixtures-root={fixtures}"], {})
+    record = next(iter(collector.records.values()))
+    assert record["command"] == "conformance backend"
+    assert record["args"][:4] == ["conformance", "backend", "--format", "json"]
+    assert not any(argument.startswith(str(tmp_path)) for argument in record["args"])
+    assert any(name.endswith("sample/valid/input.json") for name in record["files"])
+    assert all(reference.startswith("sha256:") for reference in record["files"].values())
+    setup = json.loads(collector.blobs[record["files"]["setup.json"].removeprefix("sha256:")])
+    assert len(setup["directories"]) == 2
+    assert any(directory.endswith("profiles/backend") for directory in setup["directories"])
+
+
+def test_cli_command_identity_follows_command_position_and_root_options() -> None:
+    assert InputCollector.command(["semantic", "validate", "runtime", "store", "check"]) == "semantic validate"
+    assert (
+        InputCollector.command(["--log-level", "warning", "runtime", "store", "check", "file"]) == "runtime store check"
+    )
+    assert InputCollector.command(["--version", "runtime", "store", "check"]) == "root"

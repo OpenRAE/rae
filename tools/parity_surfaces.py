@@ -482,7 +482,7 @@ def complete_inventory(repo: Path, cases: list[Case], regressions: dict[str, obj
     return {
         "surfaces": {surface: sorted(keys) for surface, keys in expected.items()},
         "inputs": inputs,
-        "input_digests": {name: digest((repo / name).read_bytes()) for name in inputs},
+        "input_digests": {name: "sha256:" + digest((repo / name).read_bytes()) for name in inputs},
         "regressions": regressions,
         "missing_surfaces": missing,
         "missing_inputs": missing_inputs,

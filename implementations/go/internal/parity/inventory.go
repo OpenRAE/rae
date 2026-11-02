@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"slices"
+	"strings"
 )
 
 type corpusInventory struct {
@@ -52,7 +53,8 @@ func checkCorpusInventory(fsys fs.FS, cases []Case) error {
 	}
 	seen := map[string]bool{}
 	for _, name := range inventory.Inputs {
-		if seen[name] || !digests[inventory.InputDigests[name]] {
+		digest, tagged := strings.CutPrefix(inventory.InputDigests[name], "sha256:")
+		if !tagged || seen[name] || !digests[digest] {
 			return fmt.Errorf("corpus source input %q has no unique recorded entry", name)
 		}
 		seen[name] = true

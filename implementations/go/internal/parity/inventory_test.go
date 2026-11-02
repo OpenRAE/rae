@@ -24,7 +24,7 @@ func inventoryFixture() (corpusInventory, []Case) {
 	}
 	sum := sha256.Sum256([]byte(input))
 	inventory.Inputs = []string{"examples/source.yaml"}
-	inventory.InputDigests = map[string]string{inventory.Inputs[0]: hex.EncodeToString(sum[:])}
+	inventory.InputDigests = map[string]string{inventory.Inputs[0]: "sha256:" + hex.EncodeToString(sum[:])}
 	cases[0].Files = map[string][]byte{"input.yaml": []byte(input)}
 	identity := strings.Repeat("a", 64)
 	cases[0].Name = "regression/" + identity
