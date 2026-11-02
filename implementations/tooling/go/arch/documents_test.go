@@ -51,3 +51,24 @@ func TestDocumentsBindAPIAndView(t *testing.T) {
 		})
 	}
 }
+
+func TestViewReportsDeliveryAndDependencyOwnership(t *testing.T) {
+	m := validModel()
+	m.Layers = append(m.Layers, Layer{Name: "future", Dir: "m/future", Doc: "planned"})
+	view := m.View()
+	for _, want := range []string{"| `base` | implemented packages |", "| `future` | planned |", "L1 --> L0", "L2 --> L1", "| `m/core/model` | core | true | true | m/base/clock |"} {
+		if !strings.Contains(view, want) {
+			t.Errorf("View() omits current status or edge %q", want)
+		}
+	}
+	layer := m.Layers[0]
+	before := m.componentCommitment(layer)
+	m.Packages[2].Doc = "a different layer"
+	if m.componentCommitment(layer) != before {
+		t.Error("a component commitment changed for a different layer's package")
+	}
+	m.Packages[0].Doc = "changed owned package"
+	if m.componentCommitment(layer) == before {
+		t.Error("a component commitment ignored its owned package change")
+	}
+}

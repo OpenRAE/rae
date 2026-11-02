@@ -150,3 +150,38 @@ func TestAPICoverageRejectsEscapingPackageDirectory(t *testing.T) {
 		t.Fatalf("coverage error = %v, want containment refusal without outside directory entries", err)
 	}
 }
+
+func TestAPISourceContainmentAndIgnoredDirectories(t *testing.T) {
+	root := writeTree(t, map[string]string{"m/go.mod": "module example.com/m\n\ngo 1.27\n", "m/p/p.go": "package p\n"})
+	outside := filepath.Join(t.TempDir(), "outside.go")
+	if err := os.WriteFile(outside, []byte("private"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	model := &Model{Modules: []Module{{Dir: "m", Path: "example.com/m"}}}
+	if err := validateAPITree(filepath.Join(root, "missing"), model); err == nil {
+		t.Fatal("validateAPITree() accepted a missing root")
+	}
+	if err := os.Mkdir(filepath.Join(root, "m/.ignored"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(root, "m/.ignored/hidden.go")); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateAPITree(root, model); err != nil {
+		t.Fatalf("ignored Go directory blocked validation: %v", err)
+	}
+	if err := os.Remove(filepath.Join(root, "m/go.mod")); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"m/p/escape.go", "m/go.mod"} {
+		if err := os.Symlink(outside, filepath.Join(root, name)); err != nil {
+			t.Fatal(err)
+		}
+		if err := validateAPITree(root, model); err == nil {
+			t.Errorf("validateAPITree() accepted escaping source %s", name)
+		}
+		if err := os.Remove(filepath.Join(root, name)); err != nil {
+			t.Fatal(err)
+		}
+	}
+}

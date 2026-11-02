@@ -1,6 +1,7 @@
 package arch
 
 import (
+	"encoding/json"
 	"slices"
 	"strings"
 	"testing"
@@ -142,5 +143,27 @@ func TestLoadRejectsAnInvalidModel(t *testing.T) {
 	}
 	if _, err := Load(fstest.MapFS{}, "missing.json"); err == nil {
 		t.Error("Load(missing.json) error = nil, want an error")
+	}
+}
+
+func TestLoadEnforcesExactSizeAndNestingLimits(t *testing.T) {
+	const limit = 4 * 1024 * 1024
+	model := `{"schema":"raes-go-architecture/v2"}`
+	bounded := model + strings.Repeat(" ", limit-len(model))
+	for _, test := range []struct {
+		content string
+		invalid bool
+	}{{bounded, false}, {bounded + " ", true}} {
+		_, err := Load(fstest.MapFS{"model.json": {Data: []byte(test.content)}}, "model.json")
+		if (err != nil) != test.invalid {
+			t.Errorf("Load(%d bytes) error = %v, want invalid=%t", len(test.content), err, test.invalid)
+		}
+	}
+	for _, depth := range []int{128, 129} {
+		input := strings.Repeat("[", depth) + "0" + strings.Repeat("]", depth)
+		err := uniqueJSON(json.NewDecoder(strings.NewReader(input)), 0)
+		if (err != nil) != (depth > 128) {
+			t.Errorf("uniqueJSON(depth %d) error = %v", depth, err)
+		}
 	}
 }
