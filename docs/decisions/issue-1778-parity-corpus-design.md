@@ -87,7 +87,7 @@ to floating point. Normalization keeps a decimal coefficient and an arbitrary-si
 exponent rather than expanding attacker-controlled exponents into huge integers.
 Malformed or concatenated JSON results fail before comparison.
 
-`coverage.json`, outside the generated corpus, records implemented runner keys.
+`runner-inventory.json`, outside the generated corpus, records implemented runner keys.
 Removing a registered runner for an implemented key fails, as does a runner without
 cases. `RAES_PARITY_REQUIRE_COMPLETE=1` rejects all uncovered keys at cutover and
 requires the inventory to declare full corpus coverage. `corpus_complete` stays

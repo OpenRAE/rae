@@ -25,7 +25,7 @@ func TestCorpus(t *testing.T) {
 		Implemented    []string `json:"implemented"`
 		CorpusComplete bool     `json:"corpus_complete"`
 	}
-	if err = decodeFile(os.DirFS("."), "coverage.json", &inventory); err != nil {
+	if err = decodeFile(os.DirFS("."), "runner-inventory.json", &inventory); err != nil {
 		t.Fatalf("read implemented inventory: %v", err)
 	}
 	complete := false

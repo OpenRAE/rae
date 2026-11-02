@@ -262,12 +262,8 @@ def provenance(repo: Path) -> dict[str, str]:
     commit = subprocess.check_output(
         ["git", "-C", str(repo), "log", "-1", "--format=%H", "--", source], text=True
     ).strip()
-    tree = subprocess.check_output(
-        ["git", "-C", str(repo), "rev-parse", f"{commit}:{source}"], text=True
-    ).strip()
-    current_tree = subprocess.check_output(
-        ["git", "-C", str(repo), "rev-parse", f"HEAD:{source}"], text=True
-    ).strip()
+    tree = subprocess.check_output(["git", "-C", str(repo), "rev-parse", f"{commit}:{source}"], text=True).strip()
+    current_tree = subprocess.check_output(["git", "-C", str(repo), "rev-parse", f"HEAD:{source}"], text=True).strip()
     if tree != current_tree:
         raise ValueError("Python source commit does not identify the current Python tree")
     return {

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from tools import parity_corpus as pc
 
 REAL_PROVENANCE = pc.provenance
@@ -188,8 +189,21 @@ def test_provenance_identifies_the_python_source_and_locked_environment(
 ) -> None:
     _write(tmp_path, {"implementations/python/uv.lock": "locked environment"})
     values = iter(["a" * 40, "b" * 40, "b" * 40])
-    monkeypatch.setattr(pc.subprocess, "check_output", lambda *args, **kwargs: next(values))
+    commands = []
+
+    def git_output(command: list[str], *, text: bool) -> str:
+        assert text is True
+        commands.append(command)
+        return next(values)
+
+    monkeypatch.setattr(pc.subprocess, "check_output", git_output)
     result = REAL_PROVENANCE(tmp_path)
+    source = "implementations/python/packages"
+    assert commands == [
+        ["git", "-C", str(tmp_path), "log", "-1", "--format=%H", "--", source],
+        ["git", "-C", str(tmp_path), "rev-parse", "a" * 40 + ":" + source],
+        ["git", "-C", str(tmp_path), "rev-parse", "HEAD:" + source],
+    ]
     assert result["python_commit"] == "a" * 40
     assert result["python_tree"] == "b" * 40
     assert result["recorder_sha256"] == pc.digest(Path(pc.__file__).read_bytes())
