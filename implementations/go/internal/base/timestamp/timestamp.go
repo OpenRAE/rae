@@ -19,6 +19,8 @@ var ErrInput = fault.New(fault.InvalidInput, "timestamp", nil)
 // ErrLeap reports a leap-second spelling outside the governed leap instants.
 var ErrLeap = fault.New(fault.InvalidInput, "timestamp-leap-second", ErrInput)
 
+const utcOffset = "+00:00"
+
 // Time retains the authored local time and exact UTC offset. The Go time
 // package's Location cannot represent a fractional-second offset.
 type Time struct {
@@ -56,7 +58,7 @@ func (t Time) String() string {
 		text += fmt.Sprintf(".%06d", micros)
 	}
 	// Retain isoformat_z's literal replacement, including second offsets.
-	return strings.ReplaceAll(text, "+00:00", "Z")
+	return strings.ReplaceAll(text, utcOffset, "Z")
 }
 
 // Format writes an aware Go instant with Python's automatic microsecond text.
@@ -121,7 +123,7 @@ func ParseOffsetUTC(text string) (Time, error) {
 
 // ParseOffset requires an explicit offset, accepting Z and z and keeping it.
 func ParseOffset(field, text string) (Time, error) {
-	text = strings.NewReplacer("Z", "+00:00", "z", "+00:00").Replace(text)
+	text = strings.NewReplacer("Z", utcOffset, "z", utcOffset).Replace(text)
 	parsed, aware, err := parseISO(text)
 	if err != nil || !aware {
 		return Time{}, fmt.Errorf("%s must be an ISO 8601 date-time with an explicit UTC offset: %w", field, ErrInput)

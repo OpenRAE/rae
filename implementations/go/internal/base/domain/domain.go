@@ -109,7 +109,9 @@ func Equal(first, second any) bool {
 // Exact is the singleton scalar domain.
 type Exact struct{ Value any }
 
-func (Exact) domain() {}
+func (Exact) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Validate checks the domain invariant.
 func (d Exact) Validate() error {
@@ -125,7 +127,9 @@ func (d Exact) Contains(value any) bool { return Equal(value, d.Value) }
 // Enumeration is a nonempty set of distinct typed JSON scalars.
 type Enumeration struct{ Values []any }
 
-func (Enumeration) domain() {}
+func (Enumeration) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Validate checks the domain invariant.
 func (d Enumeration) Validate() error {
@@ -156,7 +160,9 @@ func (d Enumeration) Contains(value any) bool {
 // Boolean admits both booleans, or the selected boolean when Value is set.
 type Boolean struct{ Value *bool }
 
-func (Boolean) domain() {}
+func (Boolean) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Validate checks the domain invariant.
 func (Boolean) Validate() error { return nil }
@@ -170,7 +176,9 @@ func (d Boolean) Contains(value any) bool {
 // Null is the singleton JSON null domain.
 type Null struct{}
 
-func (Null) domain() {}
+func (Null) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Validate checks the domain invariant.
 func (Null) Validate() error { return nil }
@@ -195,7 +203,9 @@ type Interval struct {
 	LowerClosed, UpperClosed bool
 }
 
-func (Interval) domain() {}
+func (Interval) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Validate checks the domain invariant.
 func (d Interval) Validate() error {
@@ -244,7 +254,9 @@ type References struct {
 	Allowed   []string
 }
 
-func (References) domain() {}
+func (References) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Validate checks the domain invariant.
 func (d References) Validate() error {
@@ -277,7 +289,9 @@ type Record struct {
 	Extra  bool
 }
 
-func (Record) domain() {}
+func (Record) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Contains reports scalar membership.
 func (Record) Contains(any) bool { return false }
@@ -298,7 +312,9 @@ func (d Record) Validate() error {
 // Version exposes membership of an already validated installed version domain.
 type Version struct{ Domain softwareversion.Domain }
 
-func (Version) domain() {}
+func (Version) domain() {
+	// Seal the descriptor algebra; only this package defines domain variants.
+}
 
 // Validate checks the domain invariant.
 func (d Version) Validate() error {

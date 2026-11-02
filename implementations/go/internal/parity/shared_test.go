@@ -40,7 +40,7 @@ func TestSharedRunnerDistinguishesMalformedCasesFromPrimitiveRefusals(t *testing
 		if err != nil {
 			t.Fatalf("shared(%s) error = %v", test.request, err)
 		}
-		if diff := cmp.Diff(decode(t, json.RawMessage(test.want)), decode(t, got)); diff != "" {
+		if cmp.Diff(decode(t, json.RawMessage(test.want)), decode(t, got)) != "" {
 			t.Errorf("shared(%s) = %s, want %s", test.request, got, test.want)
 		}
 	}

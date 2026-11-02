@@ -65,6 +65,7 @@ from typer.testing import CliRunner  # noqa: E402
 from tools import parity_primitives, parity_shared  # noqa: E402
 from tools.parity_records import Case, case_document, digest, encode, reference_identity  # noqa: E402
 
+REQUEST_FILE = "request.json"
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
 SCHEMA = "raes-parity-corpus/v1"
 JSON_FILES = "*.json"
@@ -275,24 +276,24 @@ def primitive_cases() -> Iterator[Case]:
         *parity_primitives.primitive_requests(),
         *parity_primitives.compatibility_requests(),
     ):
-        yield Case("primitive", command, name, (), {"request.json": encode(request)})
+        yield Case("primitive", command, name, (), {REQUEST_FILE: encode(request)})
 
 
 def run_primitive(case: Case) -> dict[str, object]:
     """Record one reference primitive outcome."""
 
-    return parity_primitives.run_primitive(case.command, json.loads(case.files["request.json"]))
+    return parity_primitives.run_primitive(case.command, json.loads(case.files[REQUEST_FILE]))
 
 
 def shared_cases() -> Iterator[Case]:
     """Yield the remaining issue-1779 primitive requests."""
     for command, name, request in parity_shared.requests():
-        yield Case("shared", command, name, (), {"request.json": encode(request)})
+        yield Case("shared", command, name, (), {REQUEST_FILE: encode(request)})
 
 
 def run_shared(case: Case) -> dict[str, object]:
     """Record the unchanged Python reference for a shared primitive."""
-    return parity_shared.run(case.command, json.loads(case.files["request.json"]))
+    return parity_shared.run(case.command, json.loads(case.files[REQUEST_FILE]))
 
 
 def all_cases(repo: Path) -> list[Case]:

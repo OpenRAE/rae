@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterator
+from datetime import UTC
+from itertools import chain
 from typing import Annotated
 
 from pydantic import TypeAdapter, ValidationError
@@ -23,7 +25,19 @@ class _DocumentFixture(ContractModel):
 
 
 def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
-    """Yield small deterministic boundary requests; complete suites stay in CI."""
+    """Combine deterministic boundary requests for each shared primitive."""
+    return chain(
+        _timestamp_requests(),
+        _version_requests(),
+        _domain_requests(),
+        _graph_requests(),
+        _value_requests(),
+        _identity_requests(),
+        _log_requests(),
+    )
+
+
+def _timestamp_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     texts = (
         "2024-01-01T00:00:00Z",
         "2024-01-01t00:00:00z",
@@ -64,14 +78,9 @@ def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for mode in ("rfc3339", "utc", "offset", "assuming"):
         for index, text in enumerate(texts):
             yield "timestamp", f"timestamp/{mode}/{index:02}", {"mode": mode, "text": text}
-    yield (
-        "domain",
-        "domain/overflow",
-        {
-            "descriptor": {"kind": "numeric-interval", "numeric_type": "number", "lower": 0, "upper": 1},
-            "value": 10**400,
-        },
-    )
+
+
+def _version_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     versions = (
         ("numeric-triplet", "7.9.0", None, "7.10.0"),
         ("numeric-triplet", None, "7.10.0", "7.9.0"),
@@ -83,7 +92,7 @@ def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
         ("debian", None, "1.0-1", "1.0~rc1-1"),
         ("debian", "1.0", "1.0-0", "1.0"),
         ("debian", "1.0", None, "1-"),
-        ("debian", "1.0", None, "1::2"),
+        ("debian", "1.0", None, "1::2"),  # NOSONAR -- Malformed Debian epoch fixture, never a network address.
         ("debian", "1.0", None, "1.0-💥"),
         ("debian", "1.0", None, "1.0\n"),
         ("debian", "9223372036854775808:1", None, "9223372036854775809:0"),
@@ -123,6 +132,17 @@ def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
                 "mutation": {field: value},
             },
         )
+
+
+def _domain_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
+    yield (
+        "domain",
+        "domain/overflow",
+        {
+            "descriptor": {"kind": "numeric-interval", "numeric_type": "number", "lower": 0, "upper": 1},
+            "value": 10**400,
+        },
+    )
     domains = (
         ({"kind": "exact", "value": 1}, 1),
         ({"kind": "exact", "value": 1}, True),
@@ -148,6 +168,9 @@ def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     )
     for index, (descriptor, value) in enumerate(domains):
         yield "domain", f"domain/{index:02}", {"descriptor": descriptor, "value": value}
+
+
+def _graph_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for index, graph in enumerate(
         (
             {},
@@ -162,6 +185,9 @@ def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     ):
         for reverse in (False, True):
             yield "graph", f"graph/{index:02}/{reverse}", {"graph": graph, "reverse": reverse}
+
+
+def _value_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     values = (
         {"value": {"b": 1.0, "a": "é"}},
         {"value": [True, None, 42]},
@@ -185,6 +211,9 @@ def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for index, request in enumerate(values):
         yield "value", f"value/{index:02}", request
     yield "carrier", "value/unknown-carrier", {}
+
+
+def _identity_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for index, text in enumerate(
         ("", "a", "a0", "a.b-c_d", "A", "1a", "a.", "a..b", "a-_b", "é", "a" * 256, "a" * 257)
     ):
@@ -192,6 +221,9 @@ def requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for name, size in (("sha256", 64), ("sha384", 96), ("sha512", 128), ("blake3", 64), ("md5", 32)):
         for offset in (-1, 0, 1):
             yield "digest", f"digest/{name}/{offset}", {"text": name + ":" + "F" * (size + offset)}
+
+
+def _log_requests() -> Iterator[tuple[str, str, dict[str, object]]]:
     for index, text in enumerate(
         (
             "message",
@@ -218,41 +250,50 @@ def run(command: str, request: dict[str, object]) -> dict[str, object]:
         "secret": _secret,
         "digest": _digest,
         "log": _log,
+        "carrier": _carrier,
+        "fault": _fault,
+        "clock": _clock,
     }
-    if command in runners:
-        return runners[command](request)
-    if command == "carrier":
-        return {
-            "decision": "maintainer-1779-2026-10-31",
-            "reference": jsonable_fallback(object()),
-            "go": {"accepted": False},
-        }
-    if command == "fault":
-        kinds = (
-            errors.InvalidInputError,
-            errors.ConflictError,
-            errors.NotFoundError,
-            errors.AuthorizationError,
-            errors.OperationalError,
-            errors.EvidenceIntegrityError,
-        )
-        return {
-            "categories": [
-                "invalid-input",
-                "conflict",
-                "not-found",
-                "authorization",
-                "operational",
-                "evidence-integrity",
-            ],
-            "hierarchy": all(issubclass(kind, errors.RaesError) for kind in kinds),
-        }
-    if command == "clock":
-        from datetime import UTC
+    try:
+        runner = runners[command]
+    except KeyError as exc:
+        raise ValueError("unknown shared primitive command") from exc
+    return runner(request)
 
-        instant = timestamps.parse_timestamp_assuming_utc(request["text"]).astimezone(UTC)
-        return {"utc": timestamps.isoformat_z(instant)}
-    raise ValueError("unknown shared primitive command")
+
+def _carrier(_request: dict[str, object]) -> dict[str, object]:
+    return {
+        "decision": "maintainer-1779-2026-10-31",
+        "reference": jsonable_fallback(object()),
+        "go": {"accepted": False},
+    }
+
+
+def _fault(_request: dict[str, object]) -> dict[str, object]:
+    kinds = (
+        errors.InvalidInputError,
+        errors.ConflictError,
+        errors.NotFoundError,
+        errors.AuthorizationError,
+        errors.OperationalError,
+        errors.EvidenceIntegrityError,
+    )
+    return {
+        "categories": [
+            "invalid-input",
+            "conflict",
+            "not-found",
+            "authorization",
+            "operational",
+            "evidence-integrity",
+        ],
+        "hierarchy": all(issubclass(kind, errors.RaesError) for kind in kinds),
+    }
+
+
+def _clock(request: dict[str, object]) -> dict[str, object]:
+    instant = timestamps.parse_timestamp_assuming_utc(request["text"]).astimezone(UTC)
+    return {"utc": timestamps.isoformat_z(instant)}
 
 
 def _timestamp(request: dict[str, object]) -> dict[str, object]:
@@ -324,11 +365,15 @@ def _value(request: dict[str, object]) -> dict[str, object]:
     result = validate_realization_value(payload, limits=limits, python_carriers=bool(request.get("document")))
     if not request.get("canonical") or not result.conformant:
         return {"status": result.status.value}
+    return _canonical_value(payload)
+
+
+def _canonical_value(payload: object) -> dict[str, object]:
     try:
         encoded = canonical_json_bytes(payload).decode()
     except ValueError, TypeError:
         return {"status": "invalid"}
-    return {"status": result.status.value, "canonical": encoded}
+    return {"status": "conformant", "canonical": encoded}
 
 
 def _secret(request: dict[str, object]) -> dict[str, object]:
