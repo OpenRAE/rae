@@ -1,0 +1,171 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:b1c4e28280ce4ca892d03ef45b5ec3e9593be6c05b01083bb468c400a3a09164"
+  },
+  "name": "examples/scenarios/techvault-attacker-target.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 1,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 0
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 3,
+                "nodes": 8
+              }
+            },
+            "metadata": {
+              "agents": 0,
+              "capability_constraints": 0,
+              "entities": 0,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 1,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "techvault-attacker-target"
+          },
+          "source_diagnostics": [],
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            }
+          ],
+          "status": "compiled"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 1,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 0
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 3,
+              "nodes": 8
+            }
+          },
+          "metadata": {
+            "agents": 0,
+            "capability_constraints": 0,
+            "entities": 0,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 1,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "techvault-attacker-target"
+        },
+        "source_diagnostics": [],
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          }
+        ],
+        "status": "compiled"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "observation-demand-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:5ae2f2ed619a0942cdb0c2c552e0671fc4dc58e224c3a3c0001994b32e35def5"
+  },
+  "name": "regression/ea69741e480abe947104318e89dbd60b2e1002dfd7bef812007756ed55c6f158",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

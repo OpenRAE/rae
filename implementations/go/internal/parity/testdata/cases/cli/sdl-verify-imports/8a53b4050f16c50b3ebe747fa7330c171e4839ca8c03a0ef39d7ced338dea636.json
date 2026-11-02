@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/root.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/root.yaml": "sha256:0f283b5251b257408d4ba75b991b5530815736d10bf801551b2b01b80796af04",
+    "setup.json": "sha256:7b712c242fe6ccfdb5924a9401b5680e8ce3ff24aa2d5db1655bfd4de33f117c"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/root.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,65 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:251b6523cca70999230906b7009445ba9431ee8f90fc9f0617c6e61adda3dbd3"
+  },
+  "name": "regression/c01a573c6264856b96314602a50ab8ea814f5352e9d79a31a1ab5aad470b0d98",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "locked-shields-style",
+            "populated_sections": {
+              "conditions": 2,
+              "entities": 2,
+              "events": 2,
+              "features": 5,
+              "infrastructure": 11,
+              "nodes": 11,
+              "objectives": 2,
+              "relationships": 3,
+              "scripts": 1,
+              "stories": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "locked-shields-style",
+          "populated_sections": {
+            "conditions": 2,
+            "entities": 2,
+            "events": 2,
+            "features": 5,
+            "infrastructure": 11,
+            "nodes": 11,
+            "objectives": 2,
+            "relationships": 3,
+            "scripts": 1,
+            "stories": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

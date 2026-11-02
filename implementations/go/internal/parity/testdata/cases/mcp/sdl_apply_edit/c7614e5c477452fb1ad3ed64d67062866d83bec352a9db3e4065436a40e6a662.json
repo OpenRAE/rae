@@ -1,0 +1,319 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:a6a49cba3cf2c62e79b2a161dd9978163a2b4bd00437057713b7b4242a395180"
+  },
+  "name": "examples/library/templates/run/timed-run-control.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "template: raes-library-template\nversion: 1\nid: timed-run-control\nsurface: run\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Run template binding story/script timing to objective and workflow windows.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-run-template\n  description: Run-oriented SDL wrapper with a timed story, script, event, objective,\n    and workflow.\n  nodes:\n    service:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 443\n        name: https\n  conditions:\n    telemetry-ready:\n      proposition: telemetry-ready\n      command: test -f /var/lib/raes/telemetry-ready\n      interval: 30\n  injects:\n    start-run:\n      description: Operator starts the run window.\n  events:\n    run-start:\n      assertions:\n      - pre-telemetry-ready\n      injects:\n      - start-run\n  scripts:\n    run-script:\n      start_time: 0\n      end_time: 15 min\n      speed: 1.0\n      events:\n        run-start: 1 min\n  stories:\n    run-story:\n      speed: 1.0\n      scripts:\n      - run-script\n  entities:\n    operator-team:\n      role: blue\n  agents:\n    run-operator:\n      affiliations:\n      - operator-team\n  propositions:\n    telemetry-ready:\n      description: The governed telemetry-ready observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.service.services.https\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: telemetry-ready\n        semantic_ref: urn:raes:observable:telemetry-ready\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    telemetry-ready:\n      proposition: telemetry-ready\n      role: postcondition\n      polarity: positive\n    pre-telemetry-ready:\n      proposition: telemetry-ready\n      role: precondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.service.services.https\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    observe-run-telemetry:\n      assigned_participant: run-operator\n      targets:\n      - nodes.service.services.https\n      success:\n        assertions:\n        - telemetry-ready\n      window:\n        stories:\n        - run-story\n        scripts:\n        - run-script\n        events:\n        - run-start\n  workflows:\n    run-control:\n      start: observe\n      steps:\n        observe:\n          type: objective\n          objective: observe-run-telemetry\n          on_success: done\n        done:\n          type: end\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/template",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 1
+                },
+                "start": {
+                  "column": 11,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 22,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 13,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 85,
+                  "line": 10
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 20
+                },
+                "start": {
+                  "column": 1,
+                  "line": 12
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/body",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 131
+                },
+                "start": {
+                  "column": 3,
+                  "line": 21
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "template: raes-library-template\nversion: 1\nid: timed-run-control\nsurface: run\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Run template binding story/script timing to objective and workflow windows.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-run-template\n  description: Run-oriented SDL wrapper with a timed story, script, event, objective,\n    and workflow.\n  nodes:\n    service:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 443\n        name: https\n  conditions:\n    telemetry-ready:\n      proposition: telemetry-ready\n      command: test -f /var/lib/raes/telemetry-ready\n      interval: 30\n  injects:\n    start-run:\n      description: Operator starts the run window.\n  events:\n    run-start:\n      assertions:\n      - pre-telemetry-ready\n      injects:\n      - start-run\n  scripts:\n    run-script:\n      start_time: 0\n      end_time: 15 min\n      speed: 1.0\n      events:\n        run-start: 1 min\n  stories:\n    run-story:\n      speed: 1.0\n      scripts:\n      - run-script\n  entities:\n    operator-team:\n      role: blue\n  agents:\n    run-operator:\n      affiliations:\n      - operator-team\n  propositions:\n    telemetry-ready:\n      description: The governed telemetry-ready observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.service.services.https\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: telemetry-ready\n        semantic_ref: urn:raes:observable:telemetry-ready\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    telemetry-ready:\n      proposition: telemetry-ready\n      role: postcondition\n      polarity: positive\n    pre-telemetry-ready:\n      proposition: telemetry-ready\n      role: precondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.service.services.https\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    observe-run-telemetry:\n      assigned_participant: run-operator\n      targets:\n      - nodes.service.services.https\n      success:\n        assertions:\n        - telemetry-ready\n      window:\n        stories:\n        - run-story\n        scripts:\n        - run-script\n        events:\n        - run-start\n  workflows:\n    run-control:\n      start: observe\n      steps:\n        observe:\n          type: objective\n          objective: observe-run-telemetry\n          on_success: done\n        done:\n          type: end\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/template",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 1
+              },
+              "start": {
+                "column": 11,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 22,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 13,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 85,
+                "line": 10
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 20
+              },
+              "start": {
+                "column": 1,
+                "line": 12
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/body",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 131
+              },
+              "start": {
+                "column": 3,
+                "line": 21
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

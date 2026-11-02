@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/provisioning",
+  "files": {
+    "request.json": "sha256:62df97d0bc72e732b485020a97153b49df6d7afab1de6fae932ca1949044dea2"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

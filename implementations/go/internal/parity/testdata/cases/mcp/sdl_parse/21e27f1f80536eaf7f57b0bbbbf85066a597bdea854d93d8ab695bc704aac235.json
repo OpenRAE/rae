@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:45cf893159cb1f464ed42601f31b017f0d71f41fd9819df82edaab252045dfdb"
+  },
+  "name": "regression/9f1066ae0da8d83cfef449ddd9bcb95b78c4ed650b041eee462c3399f9f4b0cf",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/action_contracts/scan/temporal_contracts/0/clock_authority",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 43
+                },
+                "start": {
+                  "column": 9,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/action_contracts/scan/temporal_contracts/0/clock_authority",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 43
+              },
+              "start": {
+                "column": 9,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

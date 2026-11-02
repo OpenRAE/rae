@@ -1,0 +1,14 @@
+{
+  "args": [
+    "domain-profile-admission-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:16c4ef1c436a11c7a4f5dea82ee396c82fda83234d30e743459bfc8932f3bd64"
+  },
+  "name": "regression/7682744fea110dcb552427b181de06ec53005338432fc9d82d9cb83cb41fc8b9",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

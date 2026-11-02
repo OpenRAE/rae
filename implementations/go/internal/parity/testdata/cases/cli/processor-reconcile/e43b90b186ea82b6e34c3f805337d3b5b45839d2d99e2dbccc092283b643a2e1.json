@@ -1,0 +1,42 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml": "sha256:dab33c31c9202875d218833f39bd9e468a7f4604557a254ef584d442d91c3ab3"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "actions": {
+        "create": 0,
+        "delete": 0,
+        "unchanged": 0,
+        "update": 0
+      },
+      "baseline": {
+        "diagnostics": [],
+        "scenario_name": "autonomous-behavior-binding-subject",
+        "snapshot": {
+          "entries": [],
+          "entry_count": 0
+        }
+      },
+      "candidate": {
+        "diagnostics": [],
+        "scenario_name": "autonomous-behavior-binding-subject"
+      },
+      "operations": [],
+      "snapshot_kind": "planned-state-projection",
+      "status": "reconciled"
+    }
+  },
+  "surface": "cli"
+}

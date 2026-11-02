@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /participants/{participant_address}/episodes/initialize",
+  "files": {
+    "request.json": "sha256:30d9d2fc80578dfc23e3e8b7bf7a38ce4849ee98e76c0c931e085ebbba84c8ea"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

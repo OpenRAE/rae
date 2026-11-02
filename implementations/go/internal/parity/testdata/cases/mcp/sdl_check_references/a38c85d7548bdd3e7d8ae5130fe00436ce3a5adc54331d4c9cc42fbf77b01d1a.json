@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:105aa0978f2d889f7a9a55e7e720dde36243fac6c4ccf9d9c202e89acecbe155"
+  },
+  "name": "examples/scenarios/techvault-enterprise-web.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "infrastructure.ad -> internal-net, wazuh-manager infrastructure.aptl-grafana-otel -> aptl-tempo, security-net infrastructure.aptl-otel-collector -> security-net infrastructure.aptl-tempo -> security-net infrastructure.db -> internal-net infrastructure.wazuh-indexer -> security-net infrastructure.wazuh-manager -> internal-net, security-net, wazuh-indexer infrastructure.webapp -> db, dmz-net, internal-net, wazuh-manager infrastructure.workstation -> internal-net, wazuh-manager nodes.wazuh-manager -> wazuh-manager-health"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "infrastructure.ad -> internal-net, wazuh-manager infrastructure.aptl-grafana-otel -> aptl-tempo, security-net infrastructure.aptl-otel-collector -> security-net infrastructure.aptl-tempo -> security-net infrastructure.db -> internal-net infrastructure.wazuh-indexer -> security-net infrastructure.wazuh-manager -> internal-net, security-net, wazuh-indexer infrastructure.webapp -> db, dmz-net, internal-net, wazuh-manager infrastructure.workstation -> internal-net, wazuh-manager nodes.wazuh-manager -> wazuh-manager-health"
+      }
+    }
+  },
+  "surface": "mcp"
+}

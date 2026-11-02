@@ -19,7 +19,7 @@ Mutation testing copies only the module, so the Go tests read no file outside it
 
 | Part | Content |
 | --- | --- |
-| `manifest.json` | The corpus schema `raes-parity-corpus/v1`, content digests of reference source, recorder and environment locks, and the Python version |
+| `manifest.json` | The corpus schema, Python source commit and tree, recorder digest, and locked environment digests |
 | `inputs/<sha256>` | Each input file once, under the SHA-256 digest of its content |
 | `cases/<surface>/<command>/<sha256 of the name>.json` | One recorded invocation: name, surface, command, arguments, input digests, and result |
 
@@ -30,14 +30,7 @@ The case file names use digests, because repository path policy reserves some fi
 
 The Go package `internal/parity` loads the corpus and verifies each input against its digest.
 Each Go port adds a runner for the commands that it implements.
-`TestCorpus` compares numbers exactly, including large integers and decimal
-exponents, and fails a runner that has no case. Its independent implemented-command
-inventory requires `canonical encode` and `randstream vector`; deleting that runner fails the check.
-`RAES_PARITY_COMPLETE=1` fails any recorded command without a runner and is required
-at cutover. During incremental porting, only genuinely unported commands may skip.
-The manifest binds source identity by the sorted Python package paths and bytes,
-not by an unstable branch-tip commit. The recorder and Python lock/configuration
-have separate digests, and the interpreter version is recorded explicitly.
+`TestCorpus` runs each case that has a runner, and it fails a runner that has no case.
 
 The CI job `parity-corpus` records the corpus again from the Python implementation.
 It fails when one corpus file differs, and it uploads the fresh corpus for review.
@@ -86,21 +79,269 @@ flowchart LR
 
 - Issue #1778
 
-## Incremental delivery inventory
+## Review remediation design
 
-The corpus is incomplete against #1778. That issue owns all pending surfaces;
-no incremental slice completes the parent acceptance criteria.
+The parity package owns exact JSON comparison. JSON numbers compare by decimal
+value, including equivalent fractional and exponent spellings, without conversion
+to floating point. Normalization keeps a decimal coefficient and an arbitrary-size
+exponent rather than expanding attacker-controlled exponents into huge integers.
+Malformed or concatenated JSON results fail before comparison.
 
-| Surface / input inventory | Recorded today | Required before completing #1778 |
-| --- | --- | --- |
-| Semantic CLI and SDL fixtures | Parse, validate, normalize, resolve, compile, inspect, conformance and transforms | Bind the complete CLI command/option inventory and defect inputs to recordings |
-| Published schemas | Valid/invalid JSON fixtures in matching published-contract directories | Supply cases for published identities without fixtures and enforce full identity coverage |
-| Canonical forms | Contract JSON fixtures and numeric/Unicode/surrogate edge texts | Keep coverage aligned with each added compatibility defect |
-| Other CLI services | None | Processor, runtime, conformance and remaining CLI command recordings |
-| MCP tools | None | Tool inventory, success, refusals, diagnostics and deterministic recordings |
-| HTTP API | None | Route/method inventory, bodies, status codes, errors and recovery recordings |
-| Prior Python defect cases and limits | Only cases reached by the fixtures above | Map the regression-test inventory, input limits, security/error/recovery cases to explicit corpus cases |
+`runner-inventory.json`, outside the generated corpus, records implemented runner keys.
+Removing a registered runner for an implemented key fails, as does a runner without
+cases. `RAES_PARITY_REQUIRE_COMPLETE=1` rejects all uncovered keys at cutover and
+requires the derived corpus inventory to pass. Every normal run validates that
+the declared surfaces, fixture digests and regression origins have actual cases.
+The implemented inventory includes the canonical JSON and random-stream runners.
+Port issues must add both their runner and its required key in the same change.
 
-The Go cutover must additionally bind this inventory to CI completeness checks;
-the no-skip mode alone proves only coverage of cases that were recorded, not that
-every exposed surface or defect was recorded. #1778 remains open until both hold.
+The manifest also binds the Unicode table version used by the primitive adapters.
+The manifest records the last commit changing the Python packages, their Git tree
+identity, the recorder SHA-256, Python version, and the SHA-256 of the Python
+lockfile. Reproduction checks preserve the recorded source commit when its tree
+still matches; unrelated commits must not invalidate unchanged behavior. Source,
+recorder or lock changes require a new CI recording. CI fetches history so the
+recorded commit can be verified. Provenance is checked before runners execute.
+The loader rejects missing provenance, unsafe input names, missing results,
+empty or duplicate cases, and malformed input digests.
+
+Coverage inventory must distinguish observed cases from complete surface coverage.
+The parent issue remains incomplete until every exposed surface, published contract,
+fixture, example and exposed Python regression input has recorded behavior.
+
+## Complete exposed-surface recording
+
+The development-tool recorder owns the additional adapters. The publishing
+phase repair described below is the only Python product change. `tools/parity_support.py` owns the case format, canonical JSON,
+diagnostic normalization and deterministic recording context.
+`tools/parity_surfaces.py` owns enumeration and invocation of CLI, MCP and HTTP
+surfaces. `tools/parity_inputs.py` is a CI-only pytest input collector. The
+existing `tools/parity_corpus.py` remains the recording/checking entry point.
+No Go dependency direction changes: future ports still register runners through
+the parity package's existing entry point.
+
+The inventory is derived from the live CLI registry, MCP registry, HTTP OpenAPI
+route table and schema-publication entries. It lists all fixtures and examples,
+including source fragments and context fixtures, and all regression input cases
+collected by CI. Completeness is derived from these sets, rather than from a
+hand-maintained assertion that the corpus is complete. Missing cases fail the
+recording job. New operations therefore require recordings before CI passes.
+
+The recorder adds command/flag definitions, tool input/output schemas and the
+HTTP OpenAPI contract as machine-readable cases, excluding descriptions and help
+wording. It records successful and refused invocations, each published contract's
+real sample inputs, all source examples and fixture inputs, and the captured
+regression inputs. Prose-only tool results retain their protocol envelope but
+not their wording; JSON/YAML payloads and diagnostic codes/locations are retained.
+Authored payload data is never removed merely because its field is named message.
+
+The regression collector observes calls without replacing their assertions or
+results. CI collects inputs at the CLI, MCP, HTTP, SDL source, analysis-file and published-contract validation boundaries. It
+retains source test identities as provenance and deduplicates identical inputs.
+Recorded invocations run against an explicitly declared reference configuration;
+the corpus does not pretend that private Python mocks are a portable backend.
+HTTP regression requests use the same in-memory reference target, fixed clock,
+identity policy and initial state as the ordinary HTTP corpus cases. This keeps
+the configuration that determines their result visible to Go runners. Stateful
+reference traces retain their ordered setup requests.
+
+UUIDs generated during recording use a case-specific deterministic stream. Wall
+clocks use the public clock injection points (ADR-118). Temporary input paths
+are mapped into case-local files, preserving local source dependencies. The
+collector never reads secret files, never copies a complete working directory,
+and never records host credentials. Generated signing keys use an explicit
+public test-key recipe rather than storing private-key material. Input
+collection and corpus generation run only in isolated CI without repository
+write credentials. Existing CI artifacts carry the recordings; publication to
+the PR remains a separate controlled fast-forward push.
+
+```mermaid
+flowchart LR
+    Tests[Existing CI tests] --> Observe[Input collector]
+    Observe --> Inputs[Deduplicated public inputs and origins]
+    Registry[CLI, MCP, HTTP and contract registries] --> Inventory[Surface inventory]
+    Examples[Examples and fixtures] --> Record[Reference recorder]
+    Inputs --> Record
+    Inventory --> Record
+    Record --> Fresh[Fresh corpus and inventory]
+    Fresh --> Compare[Compare committed corpus]
+    Compare --> Gate[CI result]
+    Fresh --> Artifact[Existing CI artifact storage]
+    Committed[Committed corpus] --> Go[Go parity runners]
+    Go --> Gate
+```
+
+Invariants:
+
+- Registry identities and all declared inputs have recorded cases.
+- A recording and its reproduction have the same source and environment identity.
+- The collector does not change the original call's return value or exception.
+- Private test doubles are not treated as part of the portable exposed contract.
+- No path escapes the case's input root, and no private signing material is stored.
+- Normalization controls nondeterminism and free text, while retaining numeric
+  values, payload structure, status/exit codes, diagnostic codes and locations.
+- A completed Go surface cannot become a passing skip.
+
+
+The input-capture job is separate from the normal shards, integration and fuzz
+jobs. It runs all test markers in isolated CI with a deterministic Hypothesis
+profile and public, reproducible UUID/signing-key fixtures; the ordinary jobs
+retain their original environments. The test tree and collector source digests
+bind the frozen inputs. Unchanged sources reuse those inputs; changed sources
+require a new complete capture. Non-JSON Python-only probes are listed explicitly
+as non-protocol tests rather than being presented as JSON-RPC payloads.
+
+## Bounded opaque storage (corpus v2)
+
+Public regression inputs include invalid UTF-8, significant trailing whitespace,
+missing final newlines and oversized-input probes. They are opaque bytes, so
+text-hygiene rewrites would corrupt their identity. Corpus v2 stores input blobs
+as deterministic gzip streams (`mtime=0`), addressed by the SHA-256 of their
+original bytes. Encoded pieces remain below 256 KiB. Larger streams use a small
+`{"parts": N}` index and NUL-prefixed pieces at `pieces/<digest>/<index>`.
+A JSON corpus document larger than 256 KiB uses a single `document_ref` to the
+same blob store. Go validates references, enforces bounded decoding, verifies
+original-byte digests, and compares the decoded data exactly.
+
+Compression must never hide credentials from the scanner. Recording jobs scan
+the complete uncompressed blobs with the existing qualified Gitleaks tool before
+uploading any corpus artifact. The decoder is a standalone standard-library
+module (`tools/parity_storage.py`), so stored inputs remain inspectable without
+the Python product implementation after cutover. The Go loader uses only its
+standard gzip/JSON and digest libraries. No file-size or secret gate is waived.
+
+The primitive adapters and runners from #1822 remain part of the corpus. Approved
+`ingress-exception` cases retain both the unchanged Python result and the Go
+outcome, bound to the maintainer decision documented in the ingress design.
+
+The regression source identity binds the test, Python package, contract and example
+Git trees, the Python dependency/configuration files and collector helpers. Model
+validation observers include constructors, explicit validation methods and literal
+schema versions without defaults. Published JSON Schema validations are observed
+by their normative schema identity. Original results and exceptions are preserved.
+
+Case-file and source-inventory references use the standard `sha256:<digest>`
+notation; blob filenames use the bare digest. This identifies hashes even when
+an input filename contains words such as token or key. Credential scanning stays
+fully enabled; digest fields need no secret-scanner exception.
+
+CLI observation expands `--option=value` before mapping file arguments. The
+backend conformance command carries its fixture/profile directories explicitly,
+including empty directories; only contract data files under the allowed input
+roots are copied. Output directories and arbitrary working directories are not
+captured. The portable setup creates recorded empty input directories.
+
+Input capture reuses `tools.pytest_shard_plugin` and its stable eight-way
+partition. Every worker retains the unpartitioned collection as well as its
+executed tests; the reducer rejects missing shard inputs. Worker metadata names
+include the shard index. Unchanged frozen data is uploaded only once. This keeps
+full input collection in CI while avoiding a single long-running capture job.
+
+Two functional durability fixtures use an explicit ten-second store budget.
+They check recovery and readback semantics under CI filesystem contention;
+production defaults and tests of deadline enforcement remain unchanged.
+The deadline-classification regression tests defer timer arming until submission
+has completed, then arm the real adapter callback with an immediately due
+deadline. They verify lane ownership and poisoning without racing a 100–200 ms
+submission budget against CI scheduling. Clock enforcement remains covered by
+the execution-adapter tests.
+The local-store maintenance module owns backup connection lifetime. Use
+`contextlib.closing` around SQLite's transaction context so success and failure
+both close the destination connection. Apply the same ownership repair to raw
+SQLite transaction contexts in tests; preserve commit/rollback behavior. Focused
+backup tests retain the connection and prove that it is closed on both paths.
+
+## Recorder maintainability and command boundaries
+
+The existing recorder modules retain their public entry points. Collector
+installation is split by identity, CLI, contracts, parsing, MCP and HTTP
+boundaries in `tools/parity_observers.py`; input relocation and body observation get focused typed helpers.
+Shared runtime-alias discovery removes duplicated patch/restore traversal.
+Recording dispatch and CLI setup are separated from transport execution.
+The regression reader separates validation, merging and freezing. The Go
+inventory names its source-identity type instead of nesting anonymous types.
+
+Git identity requests use fixed revision arguments and the working-directory
+parameter. Credential scanning uses the qualified executable, an explicitly
+relative target after the end-of-options marker, and its existing configuration.
+Caller paths cannot become command options. Optional unpack destinations are
+checked before filesystem access. These repairs preserve the corpus format,
+source accounting, privacy boundaries and deterministic fixture behavior.
+
+## Publishing phase repair found during recording
+
+An imported authoring source becomes `ExpandedScenario`; that phase deliberately
+has no module descriptor. Publishing must validate the expanded graph, then read
+the descriptor from the normalized authoring root using the existing parser and
+`Scenario` model. Missing descriptors retain the governed import refusal. Tests
+cover both publishing a local module graph and refusing a graph whose root has
+no descriptor. The corpus provenance binds this repaired Python reference.
+
+CLI observation also covers direct console-entry calls and installed `raes`
+subprocess invocations. Subprocess working directories and standard input are
+retained without changing execution arguments, environment, return values or
+exceptions. Performance probes and unrelated subprocesses are left to their
+original execution paths.
+
+Reference recording additionally fixes `PYTHONHASHSEED=0` before interpreter
+startup. The recorder refuses other seeds and records the seed in provenance,
+so hash-dependent iteration cannot vary between recording and reproduction.
+The ordinary test and fuzz environments retain their existing settings.
+
+Gremlins v0.6.0 copies the complete module for each worker and leaves copied
+file handles to Go finalizers. CI bounds mutation execution to two workers and
+raises the soft file-descriptor limit to the runner's existing hard limit.
+The mutation process uses `GOGC=10` so file finalizers run before copying the
+large corpus exhausts that capacity.
+This changes resource allocation only: all
+changed-line mutants and the existing coverage and efficacy thresholds remain
+mandatory. The upstream release and its source are used unchanged.
+Storage budgets use explicit byte counts, since Go coverage cannot attribute
+compile-time arithmetic to a test. Real gzip fixtures independently exercise
+the 64 MiB decoded boundary and reject one extra byte. Inventory tests also
+reject zero regression inputs even when the origins map is empty.
+
+HTTP input capture retains content-length and transfer-encoding, request-size
+and admission limits, and whether the body was streamed. Replay uses HTTPX's
+existing ASGI transport in the fixture's running portal for streamed bodies;
+the recorded chunk boundaries reach the application without TestClient joining
+them. Invalid bearer credentials are represented by an explicitly public invalid
+fixture token, never the original authentication material. Tests exercise a
+malformed content-length and a body that exceeds its limit across chunks.
+The CI collector also observes direct control-plane ASGI calls, preserving each
+receive message while retaining consumed body chunks. A context variable avoids
+duplicating requests already observed at HTTPX. This covers raw ingress tests
+which deliberately bypass HTTP clients.
+Raw ASGI replay preserves each frame's completion flag and an observed client
+disconnect. A disconnect can legitimately yield no HTTP response; it must not
+be converted into a synthetic server error. Requesting an unrecorded frame fails
+recording instead of inventing missing input.
+CLI version probes retain their plain version value; help and unstructured
+diagnostic prose remain excluded from machine-output comparison.
+
+## Recorder coverage and boundary types
+
+The corpus reproduction command runs under the existing coverage tool in CI.
+Its measured execution joins the unit shards and integration data before the
+existing coverage floors and Sonar analysis. This measures the real recorder
+on every run, including frozen-input reuse; it does not substitute generated
+expectations or relax coverage requirements. Coverage is retained before the
+independent corpus-reproduction verdict, so a recording difference remains a
+failure while still supplying diagnostic coverage. Shard completeness remains
+a prerequisite for reduction.
+
+Observer annotations use the SDK boundary types for models, clients, streams,
+ASGI messages and identities. Values deliberately accepted before validation
+use `object`; generic callback adapters preserve their result type. These type
+changes must preserve calls, return values and exceptions.
+
+
+## Shared-primitives integration
+
+PR #1820 retains its canonical surrogate/integer regression cases and the 279
+shared-primitives cases in corpus v2. The shared recorder uses the common Case
+format and compressed blob store. Its eleven commands are listed in both the
+derived surface inventory and the independent Go runner inventory. The carrier
+refusal remains bound to the maintainer decision of 2026-10-31. Exact numeric
+comparison, strict result decoding and corpus completeness use the upstream
+parity owners rather than parallel implementations.

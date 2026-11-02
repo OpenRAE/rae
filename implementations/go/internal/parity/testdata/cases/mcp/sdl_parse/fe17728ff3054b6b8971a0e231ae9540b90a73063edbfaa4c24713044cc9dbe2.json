@@ -1,0 +1,59 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:336c56c1b05674090bcc5e41735ef4b309f316a7a59bbf6531b75611d748817b"
+  },
+  "name": "regression/6b9a5352336c407753ba2352594c48f519dcb1f1963cf8ae91e83f8c1da61b6f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "incalmo-equifax",
+            "populated_sections": {
+              "accounts": 3,
+              "content": 2,
+              "entities": 1,
+              "features": 3,
+              "infrastructure": 9,
+              "nodes": 9,
+              "relationships": 3
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "incalmo-equifax",
+          "populated_sections": {
+            "accounts": 3,
+            "content": 2,
+            "entities": 1,
+            "features": 3,
+            "infrastructure": 9,
+            "nodes": 9,
+            "relationships": 3
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

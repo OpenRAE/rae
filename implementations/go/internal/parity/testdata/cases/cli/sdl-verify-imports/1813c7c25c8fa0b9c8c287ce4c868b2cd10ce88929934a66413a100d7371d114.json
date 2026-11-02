@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml": "sha256:aa405292dc7ece76b5020c7b140489c4fa3a7c60102f6a2508ff2c1e221ea04e",
+    "setup.json": "sha256:cdd7b7aeff0633d80f9e639286020ef190ccff7156b1efac9ced083139f48b45"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/variation-points-v1/canonical/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

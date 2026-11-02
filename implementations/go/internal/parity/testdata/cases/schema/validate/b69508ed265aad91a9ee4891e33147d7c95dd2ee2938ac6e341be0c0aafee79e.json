@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-history-event-stream-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96"
+  },
+  "name": "workflow-history-event-stream-v1/malformed-json",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

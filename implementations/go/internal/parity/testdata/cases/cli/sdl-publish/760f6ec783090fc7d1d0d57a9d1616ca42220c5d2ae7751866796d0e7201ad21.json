@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml": "sha256:bdbfecf178c9cde8adaf0c68481ce91b060e72f3b58325c77fa8e5fd4c6825e4"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

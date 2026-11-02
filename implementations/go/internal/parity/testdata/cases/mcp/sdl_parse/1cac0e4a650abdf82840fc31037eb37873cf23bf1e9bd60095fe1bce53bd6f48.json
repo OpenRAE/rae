@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:defb9f458c60a850497a95a90105ee2a2d141678e12a82c44ca28b4885e1f7b9"
+  },
+  "name": "regression/4acacc52b4bb2954702e8d41fd133e7e604e6909d734f503a770a3bfb5b32719",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/observation_boundaries/red-view/view_transitions/0",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 107
+                },
+                "start": {
+                  "column": 9,
+                  "line": 95
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/observation_boundaries/red-view/view_transitions/0",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 107
+              },
+              "start": {
+                "column": 9,
+                "line": 95
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

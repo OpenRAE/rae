@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:f6777f99eab61633614ee075ad63533410d2c81f0a583a61aaf89c73dfff2087"
+  },
+  "name": "regression/7523ed895d543f3cbb6669a84ada7356f6c708efc773bedccae96b4b612550f8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "workflows",
+            "populated_sections": {
+              "conditions": 1,
+              "entities": 1,
+              "objectives": 2,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "workflows",
+          "populated_sections": {
+            "conditions": 1,
+            "entities": 1,
+            "objectives": 2,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

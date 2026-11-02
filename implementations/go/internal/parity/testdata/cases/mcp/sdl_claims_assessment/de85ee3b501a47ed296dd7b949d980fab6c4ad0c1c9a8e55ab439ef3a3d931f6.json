@@ -1,0 +1,39 @@
+{
+  "args": [],
+  "command": "sdl_claims_assessment",
+  "files": {
+    "arguments.json": "sha256:95fced8bf3210c3950af16395f7ead229b09136e40b3e62476da6c53d5470299"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "severity": "error",
+              "stage": "instantiation"
+            }
+          ],
+          "stage": "instantiation",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "severity": "error",
+            "stage": "instantiation"
+          }
+        ],
+        "stage": "instantiation",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

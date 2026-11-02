@@ -1,0 +1,93 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:6c0062cb213991f86353fd8f266053be8c90072b6b9162a8f1c91717d9bdbf34"
+  },
+  "name": "examples/library/templates/scenario/parameterized-scenario.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/body/nodes/web",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 43
+                },
+                "start": {
+                  "column": 5,
+                  "line": 43
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "mapping_key",
+              "path": "/body/infrastructure/web",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 60
+                },
+                "start": {
+                  "column": 5,
+                  "line": 60
+                }
+              },
+              "value": "web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/body/nodes/web",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 43
+              },
+              "start": {
+                "column": 5,
+                "line": 43
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "mapping_key",
+            "path": "/body/infrastructure/web",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 60
+              },
+              "start": {
+                "column": 5,
+                "line": 60
+              }
+            },
+            "value": "web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

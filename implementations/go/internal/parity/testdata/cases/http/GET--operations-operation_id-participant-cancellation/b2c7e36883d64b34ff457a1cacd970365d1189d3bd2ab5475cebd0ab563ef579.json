@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/participant-cancellation",
+  "files": {
+    "request.json": "sha256:18a195ba168901abfe27cfa1c0a3724a39ab997bd9f3feed37742a9e68906ed2"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

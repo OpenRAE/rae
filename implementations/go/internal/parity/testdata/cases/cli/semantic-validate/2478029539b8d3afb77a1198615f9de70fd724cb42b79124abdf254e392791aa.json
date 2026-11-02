@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--contract",
+    "experiment-task-v1",
+    "input/task.json",
+    "--output",
+    "json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input/task.json": "sha256:ac37fd1968bb565b0a65629913954fd011a149ce687e3d05d351b6b9477d4e2d"
+  },
+  "name": "regression/2e4641971b1b4d93a03dc5a50881a6a5dfe26aa95e73158370c19cf3aad05160",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "experiment-task-v1",
+      "diagnostics": [
+        {
+          "address": "experiment-task-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": false,
+        "member_count": 9,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,27 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml": "sha256:f586fd21961fce86c468c68156ac20e877705b835719f9d166adf52efd144217"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "name": "migration-merge",
+      "nodes": {
+        "reuse": {
+          "type": "switch"
+        },
+        "shared": {
+          "type": "switch"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

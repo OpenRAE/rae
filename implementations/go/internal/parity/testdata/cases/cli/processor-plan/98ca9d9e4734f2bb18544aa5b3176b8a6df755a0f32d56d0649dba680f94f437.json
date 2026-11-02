@@ -1,0 +1,22 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "input/home/runner/work/rae/rae/examples/scenarios/techvault-defensive-min.sdl.yaml",
+    "--manifest",
+    "input/tmp/pytest-of-runner/pytest-1/popen-gw3/test_plan_manifest_beyond_the_0/manifest.json",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "input/home/runner/work/rae/rae/examples/scenarios/techvault-defensive-min.sdl.yaml": "sha256:116003d8297639f1ce4673454d1b2befd801b6d4fe802aecd8162ccd6d8933cd",
+    "input/tmp/pytest-of-runner/pytest-1/popen-gw3/test_plan_manifest_beyond_the_0/manifest.json": "sha256:859ff684a5fac25b46c5824b2c606aa4dd539028d750353cd58b752b166fd976"
+  },
+  "name": "regression/a815a7db2fe831e3d5667ad76cb339db770b15b27a6f420d8a87d52c7bccf61a",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

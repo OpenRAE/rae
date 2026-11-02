@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/participant-cancellation/dispatch",
+  "files": {
+    "request.json": "sha256:e0c264bfad178db046cde7e767799b5fc2b98160e27755387e07f3e7b06d334c"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

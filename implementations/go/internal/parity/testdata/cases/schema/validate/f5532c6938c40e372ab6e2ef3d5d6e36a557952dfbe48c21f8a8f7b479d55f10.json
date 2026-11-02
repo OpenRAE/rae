@@ -1,0 +1,14 @@
+{
+  "args": [
+    "validation-profile-catalog-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:f1db977e7beb834865e2287d8998141cb389130f23a8135d073078e162d67414"
+  },
+  "name": "validation-profile-catalog-v1/routed/contracts/fixtures/profiles/validation-profile-catalog-v1/valid/minimal.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

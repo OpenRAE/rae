@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/patterns/workflow-explicit-control-graph.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/patterns/workflow-explicit-control-graph.yaml": "sha256:aae547adc1982fdac71cf431e80d17bc51c58bbdc849ec12b4d2482987acd537",
+    "setup.json": "sha256:2cbea016376acb2da3488de02fb0d8092679f9fbbbbbafc57f2d029b0ffca080"
+  },
+  "name": "examples/library/patterns/workflow-explicit-control-graph.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/patterns/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

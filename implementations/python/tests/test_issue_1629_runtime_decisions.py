@@ -1,5 +1,7 @@
 """Runtime decisions are immutable atomic claims in the existing store."""
 
+from contextlib import closing
+
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.errors import ConflictError
@@ -34,7 +36,7 @@ def test_local_schema_11_upgrade_preserves_operation_records(tmp_path):
     with RuntimeControlPlane(target, store=store) as engine:
         engine.submit_provisioning(ProvisioningPlan(), idempotency_key="before-upgrade")
         records = engine._store.load_records()
-    with sqlite3.connect(store._database_path) as connection:
+    with closing(sqlite3.connect(store._database_path)) as connection, connection:
         connection.execute("DROP TABLE runtime_decisions")
         connection.execute("UPDATE metadata SET value='11' WHERE key='schema-version'")
     with RuntimeControlPlane(target, store=LocalControlPlaneStore(tmp_path)) as engine:

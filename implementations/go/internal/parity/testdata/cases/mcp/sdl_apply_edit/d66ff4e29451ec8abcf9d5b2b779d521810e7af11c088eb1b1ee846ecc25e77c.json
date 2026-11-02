@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:ec5d777cd86b2fa0957aee1bb898ba84051e7caa1c71171e4aa6872d1b00de7e"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  peer:\n    type: switch\ncontent:\n  payload:\n    type: file\n    target: web\n    path: /opt/payload\nrelationships:\n  loop:\n    type: connects_to\n    source: web\n    target: web\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  peer:\n    type: switch\ncontent:\n  payload:\n    type: file\n    target: web\n    path: /opt/payload\nrelationships:\n  loop:\n    type: connects_to\n    source: web\n    target: web\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

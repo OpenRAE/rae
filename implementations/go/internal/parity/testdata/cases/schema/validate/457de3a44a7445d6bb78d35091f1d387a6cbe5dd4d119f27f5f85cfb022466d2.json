@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-opacity-analysis-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:b5aaf9d1294f0b104772572aa5ee213ed4e456ce244e7b628b1ef1ca9f415912"
+  },
+  "name": "participant-opacity-analysis-evidence-v1/routed/contracts/fixtures/formal-analysis/participant-opacity-analysis-evidence-v1/valid/bounded-counterexample.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_validate",
+  "files": {
+    "arguments.json": "sha256:b3d6d53f7ccf1295d827b27ea43f98a2122abdcafe81e53b20201654db218114"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

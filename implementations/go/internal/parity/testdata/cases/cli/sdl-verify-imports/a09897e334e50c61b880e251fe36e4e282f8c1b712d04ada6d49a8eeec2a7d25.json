@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/guided-web-probe.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/guided-web-probe.sdl.yaml": "sha256:9b7acc3f4c8a1731600ee6152e34e09d1d84e9bc12b45c9047e27092b8239b7e",
+    "setup.json": "sha256:3c12e5ea53bb54b14184a52cb71d3fc2612fa006b804a872fe8d30aa0f3460eb"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

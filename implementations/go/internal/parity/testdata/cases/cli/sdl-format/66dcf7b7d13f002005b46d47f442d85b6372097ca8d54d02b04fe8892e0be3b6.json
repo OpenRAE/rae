@@ -1,0 +1,30 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/scenarios/participant-control-context/twice-imported.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+    "repo/examples/scenarios/participant-control-context/twice-imported.sdl.yaml": "sha256:4f88a37b6778a7360d6d71dc2094adfefe77bda7cbb74abe6b6af6bfedd8ff9d"
+  },
+  "name": "examples/scenarios/participant-control-context/twice-imported.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "imports": [
+        {
+          "namespace": "alpha",
+          "source": "local:context-kit.sdl.yaml"
+        },
+        {
+          "namespace": "bravo",
+          "source": "local:context-kit.sdl.yaml"
+        }
+      ],
+      "name": "two-context-kits"
+    }
+  },
+  "surface": "cli"
+}

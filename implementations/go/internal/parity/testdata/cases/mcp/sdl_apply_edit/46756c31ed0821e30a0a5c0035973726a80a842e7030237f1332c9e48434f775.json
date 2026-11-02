@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:feb9b160d349ee38b2fc527ce6d4b9980275e59a3d73df15bc4ab638bca238e1"
+  },
+  "name": "regression/b0d39b7e150ee10dbf1deef08744952670c30c08a298773554af135b79f52677",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.edit",
+              "severity": "error",
+              "stage": "edit"
+            }
+          ],
+          "stage": "edit",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.edit",
+            "severity": "error",
+            "stage": "edit"
+          }
+        ],
+        "stage": "edit",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

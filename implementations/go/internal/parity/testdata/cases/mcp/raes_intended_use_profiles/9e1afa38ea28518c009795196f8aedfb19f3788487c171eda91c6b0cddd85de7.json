@@ -1,0 +1,273 @@
+{
+  "args": [],
+  "command": "raes_intended_use_profiles",
+  "files": {
+    "arguments.json": "sha256:647f5c7d6c0099e919155058a86e217053af255246c82d7834222b1732927899"
+  },
+  "name": "regression/61b3a047db7ba5c8e123d68fb46a4ccf638988230a9b372fc822d8c993b2eb60",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "assessed_on": "2026-10-31",
+          "assessment_revision": "2026-10-31",
+          "profile": {
+            "disposition_counts": {
+              "allowed-underspecified": 16,
+              "excluded": 25,
+              "required": 3
+            },
+            "example_refs": [
+              "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml"
+            ],
+            "explicit_non_claims": [
+              "Does not claim deployability, realization, experimental control, reproducibility, backend conformance, or behavioral equivalence."
+            ],
+            "intended_claim": "The document is admitted as a structurally and semantically valid SDL authoring fragment.",
+            "next_tools": [
+              "sdl_overview",
+              "sdl_section_reference",
+              "sdl_scaffold",
+              "sdl_diagnostics",
+              "sdl_validate",
+              "sdl_design_assessment",
+              "sdl_plan",
+              "sdl_claims_assessment"
+            ],
+            "profile_id": "valid-sdl-fragment",
+            "raes_delivery": {
+              "blocking_concern_count": 0,
+              "blocking_concern_ids": [],
+              "complete": true
+            },
+            "required_concerns": [
+              {
+                "binding_obligation": null,
+                "concern_id": "closed-structural-model",
+                "definition": "Authored fields conform to the published closed SDL document model.",
+                "evidence": [
+                  {
+                    "claim": "Closed Scenario model.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/scenario.py"
+                  },
+                  {
+                    "claim": "Closed-model validation coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_models.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Closed structure permits a name-only fragment and is not a completeness claim.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL document model",
+                "status": "implemented",
+                "title": "Closed structural model"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "semantic-reference-integrity",
+                "definition": "Named references and cross-section constraints pass semantic validation.",
+                "evidence": [
+                  {
+                    "claim": "Collect-all semantic validation.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/validator/_core.py"
+                  },
+                  {
+                    "claim": "Cross-section semantic validation coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_validator.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Semantic admission covers declared SDL references, not backend realization.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL semantic validator",
+                "status": "implemented",
+                "title": "Semantic reference integrity"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "source-profile-validity",
+                "definition": "Source uses the governed SDL YAML profile and safe loading rules.",
+                "evidence": [
+                  {
+                    "claim": "Safe YAML ingress and source-profile enforcement.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/_yaml_loader.py"
+                  },
+                  {
+                    "claim": "Source-profile and parser rejection coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_parser.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Admission proves the governed source profile, not scientific adequacy.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL source and parser",
+                "status": "implemented",
+                "title": "Canonical SDL source profile"
+              }
+            ],
+            "title": "Valid SDL fragment"
+          },
+          "profile_family": "scientific-scenario-completeness",
+          "scenario_assessment": {
+            "performed": false,
+            "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+            "status": "not-assessed"
+          },
+          "scope": "raes-delivery-capability",
+          "status": "ok",
+          "taxonomy_revision": "rev1"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "assessed_on": "2026-10-31",
+        "assessment_revision": "2026-10-31",
+        "profile": {
+          "disposition_counts": {
+            "allowed-underspecified": 16,
+            "excluded": 25,
+            "required": 3
+          },
+          "example_refs": [
+            "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml"
+          ],
+          "explicit_non_claims": [
+            "Does not claim deployability, realization, experimental control, reproducibility, backend conformance, or behavioral equivalence."
+          ],
+          "intended_claim": "The document is admitted as a structurally and semantically valid SDL authoring fragment.",
+          "next_tools": [
+            "sdl_overview",
+            "sdl_section_reference",
+            "sdl_scaffold",
+            "sdl_diagnostics",
+            "sdl_validate",
+            "sdl_design_assessment",
+            "sdl_plan",
+            "sdl_claims_assessment"
+          ],
+          "profile_id": "valid-sdl-fragment",
+          "raes_delivery": {
+            "blocking_concern_count": 0,
+            "blocking_concern_ids": [],
+            "complete": true
+          },
+          "required_concerns": [
+            {
+              "binding_obligation": null,
+              "concern_id": "closed-structural-model",
+              "definition": "Authored fields conform to the published closed SDL document model.",
+              "evidence": [
+                {
+                  "claim": "Closed Scenario model.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/scenario.py"
+                },
+                {
+                  "claim": "Closed-model validation coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_models.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Closed structure permits a name-only fragment and is not a completeness claim.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL document model",
+              "status": "implemented",
+              "title": "Closed structural model"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "semantic-reference-integrity",
+              "definition": "Named references and cross-section constraints pass semantic validation.",
+              "evidence": [
+                {
+                  "claim": "Collect-all semantic validation.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/validator/_core.py"
+                },
+                {
+                  "claim": "Cross-section semantic validation coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_validator.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Semantic admission covers declared SDL references, not backend realization.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL semantic validator",
+              "status": "implemented",
+              "title": "Semantic reference integrity"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "source-profile-validity",
+              "definition": "Source uses the governed SDL YAML profile and safe loading rules.",
+              "evidence": [
+                {
+                  "claim": "Safe YAML ingress and source-profile enforcement.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/_yaml_loader.py"
+                },
+                {
+                  "claim": "Source-profile and parser rejection coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_parser.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Admission proves the governed source profile, not scientific adequacy.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL source and parser",
+              "status": "implemented",
+              "title": "Canonical SDL source profile"
+            }
+          ],
+          "title": "Valid SDL fragment"
+        },
+        "profile_family": "scientific-scenario-completeness",
+        "scenario_assessment": {
+          "performed": false,
+          "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+          "status": "not-assessed"
+        },
+        "scope": "raes-delivery-capability",
+        "status": "ok",
+        "taxonomy_revision": "rev1"
+      }
+    }
+  },
+  "surface": "mcp"
+}

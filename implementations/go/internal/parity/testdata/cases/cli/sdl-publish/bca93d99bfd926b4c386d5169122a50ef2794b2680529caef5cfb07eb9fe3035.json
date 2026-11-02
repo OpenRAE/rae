@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

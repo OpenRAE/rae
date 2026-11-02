@@ -23,7 +23,8 @@ same directory:
    -- the same field name/value shape placed anywhere else in the repository is still flagged.
 
 The Go parity corpus (implementations/go/internal/parity/testdata/) records these vectors for
-module-local tests. The same rule and field scope applies to the whole corpus directory (#1779).
+module-local tests. The same rule and field scope applies to the whole corpus directory (#1779)
+and decoded CI recording blobs, before those public inputs are compressed.
 
 `targetRules` is required for the AND semantics to hold: gitleaks' directory walker prunes a whole
 file/directory from scanning based on `paths` alone for any *global* (non-rule-targeted) allowlist,
@@ -53,6 +54,9 @@ regexes = [
 paths = [
   '''(^|/)contracts/fixtures/random-stream-vectors/.*''',
   '''(^|/)implementations/go/internal/parity/testdata/.*''',
+  '''(^|/)parity-inputs/blobs/[0-9a-f]{64}$''',
+  '''(^|/)parity-decoded/[0-9a-f]{64}$''',
+  '''(^|/)parity-corpus/.*''',
 ]
 
 [[allowlists]]

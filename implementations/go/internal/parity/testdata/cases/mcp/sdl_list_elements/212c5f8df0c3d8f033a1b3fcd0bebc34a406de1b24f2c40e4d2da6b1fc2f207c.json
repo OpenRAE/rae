@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:680c3e937a996faa4bd57e366f4964ae4fb518da74b9e214fc6b07a36030179a"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/noncanonical-field.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

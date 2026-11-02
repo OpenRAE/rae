@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "GET /health/ready",
+  "files": {
+    "request.json": "sha256:47bd7f3c00041507948754a16a6b1681fe0fb73b8e7ced83f6bed25ed42e268d"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {
+      "reasons": [],
+      "status": "ready"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

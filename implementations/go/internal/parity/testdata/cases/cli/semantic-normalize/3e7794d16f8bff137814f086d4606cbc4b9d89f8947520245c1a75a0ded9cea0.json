@@ -1,0 +1,58 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "input/legacy.sdl.yaml",
+    "--contract",
+    "sdl-yaml/v1",
+    "--migration-policy",
+    "accept",
+    "--output",
+    "json"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input/legacy.sdl.yaml": "sha256:acb25d811addcb766a9b361642fc2bd969aa5acfa1045efe7e1e9752832b78f2"
+  },
+  "name": "regression/e03feb96e0c4cf73917baaeb77882042a154d73ec44a1fda247bb97ad40725cc",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [
+        {
+          "address": "/name",
+          "code": "sdl.noncanonical_field",
+          "domain": "sdl-parse",
+          "severity": "warning"
+        }
+      ],
+      "migration_policy": "accept",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: migrated\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:089fef34fdc6266967c18b3127e4543d0f6404f7eb707d2560911636fb32fddd"
+        },
+        "field_count": 1,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "migrated",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

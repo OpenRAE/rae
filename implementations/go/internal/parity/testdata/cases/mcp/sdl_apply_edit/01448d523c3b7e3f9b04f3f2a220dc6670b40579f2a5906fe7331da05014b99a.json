@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:ed8cedf31516e6227ff56a0d455d8a011c9a29b8b5d34450dc4f10c7bffce5b7"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/anchors.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  shared:\n    type: switch\n  reuse:\n    type: switch\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  shared:\n    type: switch\n  reuse:\n    type: switch\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

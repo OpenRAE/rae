@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "input/scenario.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "input/scenario.yaml": "sha256:f8771bceccf31985106921678a6f9ea9ba6ac2235e5d0a2524c55812cb50ff3c"
+  },
+  "name": "regression/bfa5aed76600106c3490b1f0fbbbe1d765f02aed4eb00286efea91f3f0be99a0",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

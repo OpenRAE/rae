@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: transformation-reference-case\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n  peer:\n    type: switch\ncontent:\n  payload:\n    type: file\n    target: web\n    path: /opt/payload\nrelationships:\n  loop:\n    type: connects_to\n    source: web\n    target: web\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8"
+        },
+        "field_count": 4,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "transformation-reference-case",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

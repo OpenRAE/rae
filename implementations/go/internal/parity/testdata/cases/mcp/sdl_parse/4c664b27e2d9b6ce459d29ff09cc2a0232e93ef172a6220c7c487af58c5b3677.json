@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:d895699f8d7898d693664bc8f010b89eea1c74e59a25298dabe7fc9e1b6d9500"
+  },
+  "name": "regression/42a3040b1ac706512da0ac33db15524e66c0d9e169b8294dba96955ca6bfbafc",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "zd2a9prl2",
+                "zd2a9prl2"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/zd2a9prl2",
+              "range": {
+                "end": {
+                  "column": 12,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'zd2a9prl2'.",
+                  "range": {
+                    "end": {
+                      "column": 12,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "zd2a9prl2",
+              "zd2a9prl2"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/zd2a9prl2",
+            "range": {
+              "end": {
+                "column": 12,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'zd2a9prl2'.",
+                "range": {
+                  "end": {
+                    "column": 12,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

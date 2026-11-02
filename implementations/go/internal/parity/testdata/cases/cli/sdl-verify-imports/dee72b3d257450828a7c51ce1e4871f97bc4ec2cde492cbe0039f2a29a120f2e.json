@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml": "sha256:aa405292dc7ece76b5020c7b140489c4fa3a7c60102f6a2508ff2c1e221ea04e"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

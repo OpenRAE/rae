@@ -1,0 +1,48 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "input/shared.yaml",
+    "--output-dir",
+    "input/dist",
+    "--signer-id",
+    "test-signer",
+    "--private-key",
+    "input/signing-key.pem"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "input-recipes.json": "sha256:0c7fe2b9aec3e70cee80b67d5ab94342671340160c9365740e344cd2451fc60c",
+    "input/shared.yaml": "sha256:6cd9bc2664a4da46ef1e981abd58a53d1085199181c03c50105d17edd20e3d42"
+  },
+  "name": "regression/0e976fdad25af38fbfc581b6584fab9d8fe96372bf25ecd76721f4cdefca477e",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "input/dist/acme_shared-1.2.3.oci/versions/007bf727a670434034a7-e53f57ec640649ceb4fe/index.json": {
+        "manifests": [
+          {
+            "annotations": {
+              "io.raes.module.id": "acme/shared",
+              "org.opencontainers.image.ref.name": "1.2.3"
+            },
+            "digest": "sha256:007bf727a670434034a7dc0c02151e3e860bf83a8e0ca85675d2c263e29c5f62",
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "size": 500
+          }
+        ],
+        "schemaVersion": 2
+      }
+    },
+    "stdout": {
+      "content_digest": "sha256:50efd1286eb90134d9cf287188f0e03d1e39d97451b8ff98230a840ea3024227",
+      "export_hash": "70e8ba69d3ec6818965cf0abf280b104ed81c9725167c74f79f489a0f052b7e9",
+      "layout_dir": "input/dist/acme_shared-1.2.3.oci/versions/007bf727a670434034a7-e53f57ec640649ceb4fe",
+      "manifest_digest": "sha256:007bf727a670434034a7dc0c02151e3e860bf83a8e0ca85675d2c263e29c5f62",
+      "module_id": "acme/shared",
+      "module_version": "1.2.3",
+      "signer_id": "test-signer"
+    }
+  },
+  "surface": "cli"
+}

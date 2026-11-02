@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-occurrence",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:8799feef35c1d97ee113d3565a0e303a65a8e6362da36a0976600ca0448485b1"
+  },
+  "name": "regression/986bad890ffdf8262908135e7215a3372661805b7e9e44aa829a3fc6c8f9e9e1",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

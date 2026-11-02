@@ -1,0 +1,121 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml": "sha256:b8a6885f3f40d64db70735ebb570bdf8439061f45f89615644bf84ef3b98e233"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "action_contracts": {
+        "probe": {
+          "behavioral_granularity": "atomic",
+          "effects": [
+            {
+              "description": "probe observation",
+              "effect_class": "observation_effect",
+              "effect_id": "observed",
+              "evidence_refs": [
+                "evidence.probe-output"
+              ]
+            }
+          ],
+          "failure_classes": [
+            "unknown"
+          ],
+          "fidelity_claim": "records probe intent",
+          "preconditions": [
+            {
+              "description": "the web service is in scope",
+              "precondition_class": "authority",
+              "precondition_id": "in-scope"
+            }
+          ],
+          "procedure_basis": "probe the web service",
+          "realization_profile": "backend-declared",
+          "semantic_version": "1.0.0"
+        }
+      },
+      "agents": {
+        "red-agent": {
+          "actions": [
+            "probe"
+          ],
+          "affiliations": [
+            "red-team"
+          ],
+          "operating_scope": [
+            "nodes.web.services.http",
+            "content.bundle.items.report"
+          ]
+        }
+      },
+      "behavior_specifications": {
+        "probe-behavior": {
+          "action_contract_refs": [
+            "probe"
+          ],
+          "authority_scope_refs": [
+            "nodes.web.services.http",
+            "nodes.web.runtime.service_listeners.telemetry",
+            "content.bundle.items.report"
+          ],
+          "lifecycle_state": "active",
+          "participant_refs": [
+            "red-agent"
+          ],
+          "semantic_version": "1.0.0"
+        }
+      },
+      "content": {
+        "bundle": {
+          "items": [
+            {
+              "name": "report"
+            }
+          ],
+          "target": "web",
+          "type": "dataset"
+        }
+      },
+      "entities": {
+        "red-team": {
+          "role": "red"
+        }
+      },
+      "name": "transformation-nested-reference-case",
+      "nodes": {
+        "lan": {
+          "type": "switch"
+        },
+        "web": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "runtime": {
+            "service_listeners": [
+              {
+                "port": 9100,
+                "service_listener_id": "telemetry"
+              }
+            ]
+          },
+          "services": [
+            {
+              "name": "http",
+              "port": 80
+            }
+          ],
+          "type": "compute"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

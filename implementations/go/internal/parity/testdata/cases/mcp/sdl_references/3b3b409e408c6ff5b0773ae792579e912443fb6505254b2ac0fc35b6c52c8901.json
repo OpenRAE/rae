@@ -1,0 +1,189 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:68b0cd85b267cbc7edc52fc80d1e94e075e99f7154c811b80d094f2afc359d49"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [
+            {
+              "name": "web",
+              "path": "/nodes/web",
+              "qualified_name": "nodes.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 7
+                },
+                "start": {
+                  "column": 3,
+                  "line": 7
+                }
+              },
+              "section": "nodes"
+            },
+            {
+              "name": "web",
+              "path": "/infrastructure/web",
+              "qualified_name": "infrastructure.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 33
+                },
+                "start": {
+                  "column": 3,
+                  "line": 33
+                }
+              },
+              "section": "infrastructure"
+            }
+          ],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/nodes/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 7
+                },
+                "start": {
+                  "column": 3,
+                  "line": 7
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "mapping_key",
+              "path": "/infrastructure/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 33
+                },
+                "start": {
+                  "column": 3,
+                  "line": 33
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/evidence_requirements/web-health-evidence/source_refs/0",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 52
+                },
+                "start": {
+                  "column": 9,
+                  "line": 52
+                }
+              },
+              "value": "nodes.web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [
+          {
+            "name": "web",
+            "path": "/nodes/web",
+            "qualified_name": "nodes.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 7
+              },
+              "start": {
+                "column": 3,
+                "line": 7
+              }
+            },
+            "section": "nodes"
+          },
+          {
+            "name": "web",
+            "path": "/infrastructure/web",
+            "qualified_name": "infrastructure.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 33
+              },
+              "start": {
+                "column": 3,
+                "line": 33
+              }
+            },
+            "section": "infrastructure"
+          }
+        ],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/nodes/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 7
+              },
+              "start": {
+                "column": 3,
+                "line": 7
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "mapping_key",
+            "path": "/infrastructure/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 33
+              },
+              "start": {
+                "column": 3,
+                "line": 33
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/evidence_requirements/web-health-evidence/source_refs/0",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 52
+              },
+              "start": {
+                "column": 9,
+                "line": 52
+              }
+            },
+            "value": "nodes.web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

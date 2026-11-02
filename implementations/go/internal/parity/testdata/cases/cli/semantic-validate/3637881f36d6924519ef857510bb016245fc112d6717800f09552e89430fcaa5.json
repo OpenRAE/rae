@@ -1,0 +1,17 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "input/source.yaml"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input/source.yaml": "sha256:23930244fd9a0e5380bccffe91636833234cedb92df37f1c604edbb7fada1676"
+  },
+  "name": "regression/3055d1baec96238df065f7c5f0a5457ce807243b3129df7e55e86dc6b98332cc",
+  "result": {
+    "exit_code": 0,
+    "stdout": null
+  },
+  "surface": "cli"
+}

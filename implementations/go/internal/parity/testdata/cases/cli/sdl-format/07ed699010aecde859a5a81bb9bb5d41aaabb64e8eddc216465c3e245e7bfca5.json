@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/experiments/techvault-red-tactic-sweep.exp.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/experiments/techvault-red-tactic-sweep.exp.yaml": "sha256:bcbbfbbc6158dbaf71e5d734dcb449a14b56a0ffb16bf1e690b93682fce74682"
+  },
+  "name": "examples/experiments/techvault-red-tactic-sweep.exp.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

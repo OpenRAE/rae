@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml": "sha256:144f39d33776b16b6057eb66038778d3446c8c6ae512b07774051abcb37e1e20",
+    "setup.json": "sha256:bad189ca34df09dcf46e6bdc335007adc2847fb9ddf3cd2e3e2360607ef6a804"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,151 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:bb6e321bd33c0c8cb5527537d2e8e8ddb87824178766415cafc2b373adfdde5f"
+  },
+  "name": "regression/0c4b29f48fc1f74ca431469c2fa91a0b22fd07e391786fb5927e9f9e14ee5957",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: x\nnodes:\n  sw:\n    type: switch\n",
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 1
+                },
+                "start": {
+                  "column": 1,
+                  "line": 1
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "Nodes",
+                "nodes"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/nodes",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 2
+                },
+                "start": {
+                  "column": 1,
+                  "line": 2
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "Type",
+                "type"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/nodes/sw/type",
+              "range": {
+                "end": {
+                  "column": 12,
+                  "line": 3
+                },
+                "start": {
+                  "column": 8,
+                  "line": 3
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "status": "formatted_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: x\nnodes:\n  sw:\n    type: switch\n",
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "Name",
+              "name"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/name",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 1
+              },
+              "start": {
+                "column": 1,
+                "line": 1
+              }
+            },
+            "severity": "warning",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "Nodes",
+              "nodes"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/nodes",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 2
+              },
+              "start": {
+                "column": 1,
+                "line": 2
+              }
+            },
+            "severity": "warning",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "Type",
+              "type"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/nodes/sw/type",
+            "range": {
+              "end": {
+                "column": 12,
+                "line": 3
+              },
+              "start": {
+                "column": 8,
+                "line": 3
+              }
+            },
+            "severity": "warning",
+            "stage": "parse"
+          }
+        ],
+        "status": "formatted_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

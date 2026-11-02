@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/experiments/techvault-smoke-run.exp.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/experiments/techvault-smoke-run.exp.yaml": "sha256:bc39d050c465fd28abe27c1db25cfd3ee1c08c8578d8b972d67e90dd46071103",
+    "setup.json": "sha256:0aa423979e41a2d0b133b33c03fba048707044267cb08333cf0e8251ad6862ab"
+  },
+  "name": "examples/experiments/techvault-smoke-run.exp.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/experiments/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

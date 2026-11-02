@@ -1,0 +1,19 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "input/reconciliation-demo-v1.sdl.yaml",
+    "input/reconciliation-demo-v2.sdl.yaml"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "input/reconciliation-demo-v1.sdl.yaml": "sha256:20d82be186fe2d1a2498690a2132579d3323ae5393c13d1f7f4550ce6eb51c93",
+    "input/reconciliation-demo-v2.sdl.yaml": "sha256:a2f61a76ef03da8d9abf163197a8ca8a7c2b522725eb89ac62ec8443263295dc"
+  },
+  "name": "regression/bf4b660e2ab45e4343ecb7e8c4bebd32603f9e7333315b239381bb2bea0266ca",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:13568fbfc4f88614d4768186af02f54a8022906264e799cb342d02c915662373"
+  },
+  "name": "examples/scenarios/enterprise-identity-tenancy.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nversion: 1.0.0\ndescription: Portable enterprise forest, carrier placement, and shared inference tenancy.\nnodes:\n  dc:\n    type: compute\n    os: windows\n    resources:\n      ram: 2 GiB\n      cpu: 2\n    endpoint_persona: service\n  idp:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    endpoint_persona: service\n    services:\n    - name: oidc\n      port: 8443\n  carrier:\n    type: compute\n    os: linux\n    resources:\n      ram: 2 GiB\n      cpu: 2\n    endpoint_persona: carrier\n  workforce:\n    type: compute\n    os: windows\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    endpoint_persona: workforce\n  inference:\n    type: compute\n    os: linux\n    resources:\n      ram: 2 GiB\n      cpu: 2\n    endpoint_persona: service\n    services:\n    - name: inference-api\n      port: 8080\naccounts:\n  domain-admin:\n    username: Administrator\n    node: dc\nidentity_domains:\n  corp:\n    profile: active_directory\n    dns_name: corp.example\n    netbios_name: CORP\n    authority_account_ref: domain-admin\nidentity_forests:\n  enterprise:\n    root_domain_ref: corp\n    domain_refs:\n    - corp\nidentity_facades:\n  workforce-oidc:\n    service_ref: nodes.idp.services.oidc\n    protocol: oidc\ndeployment_tenants:\n  range-a: {}\n  shared-platform: {}\ndeployment_cells:\n  range-a-cell:\n    tenant_ref: range-a\n    node_refs:\n    - dc\n    - idp\n    - carrier\n    - workforce\n    cross_tenant_isolation: default_deny\n  shared-cell:\n    tenant_ref: shared-platform\n    node_refs:\n    - inference\n    cross_tenant_isolation: default_deny\nrelationships:\n  dc-role:\n    type: domain_controller_for\n    source: dc\n    target: corp\n    domain_controller: {}\n  workforce-federation:\n    type: directory_federates_to\n    source: enterprise\n    target: workforce-oidc\n    identity_federation:\n      direction: authority_to_facade\n      protocol: ldap_tls\n      mapping_intent: groups_to_roles\n      tenant_claim_name: range_instance\n      tenant_claim_owner: facade\n  workforce-placement:\n    type: placed_on_carrier\n    source: workforce\n    target: carrier\n    carrier_placement:\n      kernel_boundary: shared_kernel\n  shared-inference:\n    type: uses_shared_service\n    source: range-a\n    target: nodes.inference.services.inference-api\n    shared_service:\n      tenant_isolation: stateless\n      workload_authentication: tenant_scoped_workload_identity\n      mutable_state_refs: []\n      mutable_state_owner: none\n      reset_generation_owner: none\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nversion: 1.0.0\ndescription: Portable enterprise forest, carrier placement, and shared inference tenancy.\nnodes:\n  dc:\n    type: compute\n    os: windows\n    resources:\n      ram: 2 GiB\n      cpu: 2\n    endpoint_persona: service\n  idp:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    endpoint_persona: service\n    services:\n    - name: oidc\n      port: 8443\n  carrier:\n    type: compute\n    os: linux\n    resources:\n      ram: 2 GiB\n      cpu: 2\n    endpoint_persona: carrier\n  workforce:\n    type: compute\n    os: windows\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    endpoint_persona: workforce\n  inference:\n    type: compute\n    os: linux\n    resources:\n      ram: 2 GiB\n      cpu: 2\n    endpoint_persona: service\n    services:\n    - name: inference-api\n      port: 8080\naccounts:\n  domain-admin:\n    username: Administrator\n    node: dc\nidentity_domains:\n  corp:\n    profile: active_directory\n    dns_name: corp.example\n    netbios_name: CORP\n    authority_account_ref: domain-admin\nidentity_forests:\n  enterprise:\n    root_domain_ref: corp\n    domain_refs:\n    - corp\nidentity_facades:\n  workforce-oidc:\n    service_ref: nodes.idp.services.oidc\n    protocol: oidc\ndeployment_tenants:\n  range-a: {}\n  shared-platform: {}\ndeployment_cells:\n  range-a-cell:\n    tenant_ref: range-a\n    node_refs:\n    - dc\n    - idp\n    - carrier\n    - workforce\n    cross_tenant_isolation: default_deny\n  shared-cell:\n    tenant_ref: shared-platform\n    node_refs:\n    - inference\n    cross_tenant_isolation: default_deny\nrelationships:\n  dc-role:\n    type: domain_controller_for\n    source: dc\n    target: corp\n    domain_controller: {}\n  workforce-federation:\n    type: directory_federates_to\n    source: enterprise\n    target: workforce-oidc\n    identity_federation:\n      direction: authority_to_facade\n      protocol: ldap_tls\n      mapping_intent: groups_to_roles\n      tenant_claim_name: range_instance\n      tenant_claim_owner: facade\n  workforce-placement:\n    type: placed_on_carrier\n    source: workforce\n    target: carrier\n    carrier_placement:\n      kernel_boundary: shared_kernel\n  shared-inference:\n    type: uses_shared_service\n    source: range-a\n    target: nodes.inference.services.inference-api\n    shared_service:\n      tenant_isolation: stateless\n      workload_authentication: tenant_scoped_workload_identity\n      mutable_state_refs: []\n      mutable_state_owner: none\n      reset_generation_owner: none\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

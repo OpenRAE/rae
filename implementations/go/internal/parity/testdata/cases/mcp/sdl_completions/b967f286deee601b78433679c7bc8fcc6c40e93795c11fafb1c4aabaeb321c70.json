@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_completions",
+  "files": {
+    "arguments.json": "sha256:8c373745912192e20195c70cf022cd32e70a7927de9238051542e2832c02065b"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/nonfinite.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.non_json_value",
+              "path": "",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 1
+                },
+                "start": {
+                  "column": 1,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.non_json_value",
+            "path": "",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 1
+              },
+              "start": {
+                "column": 1,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

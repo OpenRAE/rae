@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:3aea2fd7a708578b03181ed04bfb7497be8682b823e000ad991bfed7e7c37177"
+  },
+  "name": "regression/e93b3eae9a598957e76505e45bbb2db9f4fdae7c625f5a13a7e2126d6aeb02d3",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/relationships/range-inference/shared_service/workload_authentication",
+              "range": {
+                "end": {
+                  "column": 39,
+                  "line": 106
+                },
+                "start": {
+                  "column": 32,
+                  "line": 106
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/relationships/range-inference/shared_service/workload_authentication",
+            "range": {
+              "end": {
+                "column": 39,
+                "line": 106
+              },
+              "start": {
+                "column": 32,
+                "line": 106
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

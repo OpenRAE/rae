@@ -1,0 +1,14 @@
+{
+  "args": [
+    "controlled-vocabularies-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:cb1a8faf28638e177bcb79ef43043ebf74aacb5cf6fd54f53f7b9a49761ccfc2"
+  },
+  "name": "controlled-vocabularies-v1/routed/contracts/concept-authority/controlled-vocabularies-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

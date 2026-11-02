@@ -1,0 +1,14 @@
+{
+  "args": [
+    "runtime-snapshot-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c8052da2a38f63606def39a85c27b4151a93b3e4e5bf7403b4387308df79d003"
+  },
+  "name": "runtime-snapshot-v1/routed/contracts/fixtures/snapshots/runtime-snapshot-v1/valid/reference.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

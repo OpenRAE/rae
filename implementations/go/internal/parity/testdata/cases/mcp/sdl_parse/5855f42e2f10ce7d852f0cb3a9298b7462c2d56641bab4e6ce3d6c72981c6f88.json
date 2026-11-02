@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:0f08d99e680f58f9c85d21fcba51b4ca7c70d62d57a681937d99e4b6a33c816c"
+  },
+  "name": "regression/89766c95cbe2bf801598b677938474698b516d2637eb3f8fd5ff06562a89edfa",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/red-briefing/participant_inject_deliveries/briefing/failure_disposition",
+              "range": {
+                "end": {
+                  "column": 38,
+                  "line": 112
+                },
+                "start": {
+                  "column": 30,
+                  "line": 112
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/red-briefing/participant_inject_deliveries/briefing/failure_disposition",
+            "range": {
+              "end": {
+                "column": 38,
+                "line": 112
+              },
+              "start": {
+                "column": 30,
+                "line": 112
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

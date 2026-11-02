@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-delivery",
+  "files": {
+    "request.json": "sha256:3c45ed87786e77d2ed970e04fc2beb9cb9f349137bc9392413b4c9b78a37872d"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

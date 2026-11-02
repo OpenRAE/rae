@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reusable-asset-trust-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:78a6d0dd3146af3d041f8fd761031c741d19152581423b325208131ed493c50a"
+  },
+  "name": "regression/338b6cab76a782016a43cd3b9c50f8f68257b279b4a015b401d4998b4c1fca04",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

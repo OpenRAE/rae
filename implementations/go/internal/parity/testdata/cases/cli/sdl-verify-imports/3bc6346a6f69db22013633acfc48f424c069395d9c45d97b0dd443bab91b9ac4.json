@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml": "sha256:e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e"
+  },
+  "name": "examples/scenarios/techvault-bounded-native.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

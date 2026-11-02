@@ -1,0 +1,50 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/temporal-profiles/user-deadline.sdl.yaml",
+    "repo/examples/scenarios/temporal-profiles/user-deadline.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/temporal-profiles/user-deadline.sdl.yaml": "sha256:1549bf308d7e6f8c711f8f16ce44831b82bf2a65d82080c8e774d6b4dd9475f4"
+  },
+  "name": "examples/scenarios/temporal-profiles/user-deadline.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "time.model",
+            "code": "time.unsupported-capability",
+            "domain": "time",
+            "severity": "error"
+          },
+          {
+            "address": "participant.autonomous-execution",
+            "code": "participant.autonomous-execution-unsupported",
+            "domain": "participant",
+            "severity": "error"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "user-deadline",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

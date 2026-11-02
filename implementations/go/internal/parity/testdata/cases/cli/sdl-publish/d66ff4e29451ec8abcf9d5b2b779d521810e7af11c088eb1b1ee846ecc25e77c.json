@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

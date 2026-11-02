@@ -1,0 +1,171 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:5af3519409fbf8eb64350753acb9ce1db42f94c604659d916085e6d9f033ddc6"
+  },
+  "name": "examples/scenarios/satcom-release-poisoning.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 21,
+                "objectives": 6
+              },
+              "orchestration": {
+                "events": 3,
+                "inject_bindings": 0,
+                "injects": 3,
+                "scripts": 3,
+                "stories": 1,
+                "workflows": 1
+              },
+              "participant": {
+                "action_contracts": 12,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 3
+              },
+              "provisioning": {
+                "account_placements": 7,
+                "content_placements": 4,
+                "feature_bindings": 14,
+                "networks": 8,
+                "nodes": 14
+              }
+            },
+            "metadata": {
+              "agents": 3,
+              "capability_constraints": 0,
+              "entities": 8,
+              "relationships": 9
+            },
+            "templates": {
+              "conditions": 21,
+              "features": 14,
+              "injects": 3
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 4,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "satcom-release-poisoning"
+          },
+          "source_diagnostics": [],
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            }
+          ],
+          "status": "compiled"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 21,
+              "objectives": 6
+            },
+            "orchestration": {
+              "events": 3,
+              "inject_bindings": 0,
+              "injects": 3,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "participant": {
+              "action_contracts": 12,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 3
+            },
+            "provisioning": {
+              "account_placements": 7,
+              "content_placements": 4,
+              "feature_bindings": 14,
+              "networks": 8,
+              "nodes": 14
+            }
+          },
+          "metadata": {
+            "agents": 3,
+            "capability_constraints": 0,
+            "entities": 8,
+            "relationships": 9
+          },
+          "templates": {
+            "conditions": 21,
+            "features": 14,
+            "injects": 3
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 4,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "satcom-release-poisoning"
+        },
+        "source_diagnostics": [],
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          }
+        ],
+        "status": "compiled"
+      }
+    }
+  },
+  "surface": "mcp"
+}

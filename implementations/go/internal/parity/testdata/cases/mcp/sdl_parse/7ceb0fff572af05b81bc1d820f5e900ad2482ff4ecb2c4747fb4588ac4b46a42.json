@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7f0c07893201e37c649e8a0057afb69620626d6ddb2f5aa1b0d63f587b327d31"
+  },
+  "name": "regression/d3f62f84cf1000c4389916739d05b0b88521e5214dbbdd51e6e0f1f15397067a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "ordering",
+            "populated_sections": {
+              "accounts": 1,
+              "conditions": 1,
+              "content": 1,
+              "entities": 1,
+              "events": 1,
+              "features": 1,
+              "infrastructure": 2,
+              "injects": 1,
+              "nodes": 2,
+              "objectives": 1,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "ordering",
+          "populated_sections": {
+            "accounts": 1,
+            "conditions": 1,
+            "content": 1,
+            "entities": 1,
+            "events": 1,
+            "features": 1,
+            "infrastructure": 2,
+            "injects": 1,
+            "nodes": 2,
+            "objectives": 1,
+            "scripts": 1,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

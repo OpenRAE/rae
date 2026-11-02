@@ -1,0 +1,14 @@
+{
+  "args": [
+    "instantiated-scenario-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:479d3f4c029f6d422c5fc2beb14f50c60a522458e9e3adc3ab01fa8bcdd619d3"
+  },
+  "name": "regression/cb1aa4990efbdf900b0d4440ff193249f84c14e8457166ca99c24e8514cb5b39",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

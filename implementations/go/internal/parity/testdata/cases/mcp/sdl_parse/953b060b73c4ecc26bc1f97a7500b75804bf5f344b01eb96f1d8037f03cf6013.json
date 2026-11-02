@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:08a54f95c658d39e1140d433465d65ef55977a3a87a1023723239e6e754c7262"
+  },
+  "name": "regression/a5d98823203151d5235401c4e5ec1929890d593e8fb98e0e1cc626c0898268e3",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.legacy_node_type_vm",
+              "path": "/nodes/vm/type",
+              "range": {
+                "end": {
+                  "column": 13,
+                  "line": 4
+                },
+                "start": {
+                  "column": 11,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.legacy_node_type_vm",
+            "path": "/nodes/vm/type",
+            "range": {
+              "end": {
+                "column": 13,
+                "line": 4
+              },
+              "start": {
+                "column": 11,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

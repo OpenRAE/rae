@@ -1,0 +1,14 @@
+{
+  "args": [
+    "runtime-snapshot-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:1ea0c9114b6fb849eff32a7ba33c705390bc193431ba6fcb81827777ceb3690a"
+  },
+  "name": "runtime-snapshot-v1/routed/contracts/fixtures/snapshots/runtime-snapshot-v1/migration/participant-control-legacy-before.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

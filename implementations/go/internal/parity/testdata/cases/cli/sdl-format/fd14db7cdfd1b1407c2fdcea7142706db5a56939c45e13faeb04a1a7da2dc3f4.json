@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/root.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/root.yaml": "sha256:0f283b5251b257408d4ba75b991b5530815736d10bf801551b2b01b80796af04"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/root.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,95 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:6a198fb66996c97781e7e54ed60df2c31ba0119b12984822e8e07e3d80e5c1fe"
+  },
+  "name": "regression/28366009c7f4a7e2b43768b2535461373140bbe4b2197e7cccfdeac83a44a3fa",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/red-scan-behavior/tool_affordances/network-scanner/observation_boundary_refs",
+              "range": {
+                "end": {
+                  "column": 38,
+                  "line": 136
+                },
+                "start": {
+                  "column": 36,
+                  "line": 136
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/red-scan-behavior/tool_affordances/network-scanner/visible",
+              "range": {
+                "end": {
+                  "column": 22,
+                  "line": 137
+                },
+                "start": {
+                  "column": 18,
+                  "line": 137
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/red-scan-behavior/tool_affordances/network-scanner/observation_boundary_refs",
+            "range": {
+              "end": {
+                "column": 38,
+                "line": 136
+              },
+              "start": {
+                "column": 36,
+                "line": 136
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/red-scan-behavior/tool_affordances/network-scanner/visible",
+            "range": {
+              "end": {
+                "column": 22,
+                "line": 137
+              },
+              "start": {
+                "column": 18,
+                "line": 137
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

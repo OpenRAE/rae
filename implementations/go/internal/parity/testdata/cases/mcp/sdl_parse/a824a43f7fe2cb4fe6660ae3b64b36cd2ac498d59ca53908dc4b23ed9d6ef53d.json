@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:13447487ba2567ceb60c5544e92d103eaf6d6da4ab1b95797b6c95cd71964dc3"
+  },
+  "name": "regression/43a5ea0bf83a34402fe4a39280252bec34a3bdeb0f9c4746cc6a066a0b2dfff8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/evidence_requirements/web-health-evidence/retention",
+              "range": {
+                "end": {
+                  "column": 23,
+                  "line": 60
+                },
+                "start": {
+                  "column": 16,
+                  "line": 60
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/evidence_requirements/web-health-evidence/retention",
+            "range": {
+              "end": {
+                "column": 23,
+                "line": 60
+              },
+              "start": {
+                "column": 16,
+                "line": 60
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

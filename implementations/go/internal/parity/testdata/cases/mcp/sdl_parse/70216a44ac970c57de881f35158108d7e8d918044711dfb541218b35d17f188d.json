@@ -1,0 +1,61 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:40bb6d4b088af806eec0f56dffd489cec6ff005f324e7b519176bd7ee5893359"
+  },
+  "name": "regression/52690ee64226682962e2f878aa14c3417bfdce9f7e59a7d152493076d3d521df",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "my-scenario",
+            "populated_sections": {
+              "accounts": 2,
+              "conditions": 1,
+              "entities": 2,
+              "features": 2,
+              "infrastructure": 3,
+              "nodes": 3,
+              "objectives": 1,
+              "relationships": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "my-scenario",
+          "populated_sections": {
+            "accounts": 2,
+            "conditions": 1,
+            "entities": 2,
+            "features": 2,
+            "infrastructure": 3,
+            "nodes": 3,
+            "objectives": 1,
+            "relationships": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

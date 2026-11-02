@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:90da0d93548b79c893d63cea8a44637ffe63db5a9692dba7b578c5ac90352f21"
+  },
+  "name": "examples/scenarios/temporal-profiles/user-deadline.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.participant-agent -> enterprise-participant content.participant-observation -> customer-portal"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.participant-agent -> enterprise-participant content.participant-observation -> customer-portal"
+      }
+    }
+  },
+  "surface": "mcp"
+}

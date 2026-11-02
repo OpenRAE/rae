@@ -1,0 +1,75 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml": "sha256:3cc2cbed579f8f003c7eb67647b26767e7c95a6f33fe9c24639f9b66cd1894f0"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "infrastructure": {
+        "worker": {
+          "count": 1
+        }
+      },
+      "name": "node-inventory-family",
+      "nodes": {
+        "worker": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "runtime": {
+            "scheduled_jobs": [
+              {
+                "name": "Baseline job",
+                "scheduled_job_id": "baseline"
+              },
+              {
+                "name": "Extra job",
+                "scheduled_job_id": "extra"
+              }
+            ]
+          },
+          "type": "compute"
+        }
+      },
+      "variation_points": {
+        "worker-state": {
+          "alternatives": {
+            "absent": {
+              "kind": "node-presence",
+              "present": false
+            },
+            "baseline": {
+              "inventory": {
+                "nodes.runtime.scheduled_jobs": [
+                  "nodes.worker.runtime.scheduled_jobs.baseline"
+                ]
+              },
+              "kind": "node-presence",
+              "present": true
+            },
+            "complete": {
+              "kind": "node-presence",
+              "present": true
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "structural",
+            "owner": "worker",
+            "slot": "nodes.presence"
+          }
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

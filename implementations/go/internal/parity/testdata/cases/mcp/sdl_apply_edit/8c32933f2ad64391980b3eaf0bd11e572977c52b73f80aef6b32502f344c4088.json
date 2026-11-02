@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:416ca23c11cefec35556170e166af77066493d47e38e91e9df7d1d90b1c69514"
+  },
+  "name": "regression/4cc13fba095988c6b5fa6aa9b3db1b2f716045c8d310c0e492af8acf81a01f36",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: append-edit\nnodes:\n  net:\n    type: Switch\n  net2:\n    type: Switch\n  web:\n    type: compute\n    os: linux\n    resources:\n      ram: 2 GiB\n      cpu: 1\ninfrastructure:\n  net:\n    count: 1\n    properties:\n      cidr: 10.0.0.0/24\n      gateway: 10.0.0.1\n  net2:\n    count: 1\n    properties:\n      cidr: 10.0.1.0/24\n      gateway: 10.0.1.1\n  web:\n    count: 1\n    links:\n    - net\n    - net2\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: append-edit\nnodes:\n  net:\n    type: Switch\n  net2:\n    type: Switch\n  web:\n    type: compute\n    os: linux\n    resources:\n      ram: 2 GiB\n      cpu: 1\ninfrastructure:\n  net:\n    count: 1\n    properties:\n      cidr: 10.0.0.0/24\n      gateway: 10.0.0.1\n  net2:\n    count: 1\n    properties:\n      cidr: 10.0.1.0/24\n      gateway: 10.0.1.1\n  web:\n    count: 1\n    links:\n    - net\n    - net2\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

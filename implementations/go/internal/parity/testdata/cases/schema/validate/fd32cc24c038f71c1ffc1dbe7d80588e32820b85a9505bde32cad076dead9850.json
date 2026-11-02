@@ -1,0 +1,14 @@
+{
+  "args": [
+    "associated-artifact-manifest-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ae18c02b79cf461eb227184885cfe9de36a6440f389b6d3a23dd5689277b3715"
+  },
+  "name": "regression/abd7bdaddee3c8fbe8c873bdc3b8adb05b5d3717dd760e79e55e6671f683c7ca",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,171 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:4ec12fd62034012ab756239028f552e5d1fa5901b6d56eb7a6f93c478239f6b2"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 16,
+        "declarations": [
+          {
+            "address": "accounts.sync-api",
+            "kind": "accounts",
+            "model_path": "accounts.sync-api",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.sensor",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.sensor",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "infrastructure.sync",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.sync",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.sensor",
+            "kind": "node",
+            "model_path": "nodes.sensor",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.sync",
+            "kind": "node",
+            "model_path": "nodes.sync",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "persistent_volumes.rules",
+            "kind": "persistent_volumes",
+            "model_path": "persistent_volumes.rules",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.dependent-declarations-family",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.shared-mounts",
+            "kind": "variation_points",
+            "model_path": "variation_points.shared-mounts",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "variation_points.shared-mounts.alternatives.all",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.shared-mounts.alternatives.all",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.shared-mounts.alternatives.without-sync",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.shared-mounts.alternatives.without-sync",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.sync-account",
+            "kind": "variation_points",
+            "model_path": "variation_points.sync-account",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "variation_points.sync-account.alternatives.absent",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.sync-account.alternatives.absent",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.sync-account.alternatives.present",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.sync-account.alternatives.present",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.sync-host",
+            "kind": "variation_points",
+            "model_path": "variation_points.sync-host",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "variation_points.sync-host.alternatives.absent",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.sync-host.alternatives.absent",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.sync-host.alternatives.present",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.sync-host.alternatives.present",
+            "referenceable": true,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "dependent-declarations-family",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "accounts",
+              "infrastructure",
+              "nodes",
+              "persistent_volumes",
+              "variation_points"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

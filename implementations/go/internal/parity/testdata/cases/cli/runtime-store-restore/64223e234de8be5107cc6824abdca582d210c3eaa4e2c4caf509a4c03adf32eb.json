@@ -1,0 +1,23 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "restore",
+    "backup.sqlite3",
+    "restored.sqlite3",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:parity"
+  ],
+  "command": "runtime store restore",
+  "files": {
+    "setup.json": "sha256:8d95683b5269445f59fc34c221e4fae6b9166a933c41b56b88fa426351ef594c"
+  },
+  "name": "admitted-store",
+  "result": {
+    "exit_code": 0,
+    "stdout": "control-plane-store-restore-succeeded"
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,19 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "input/fixture.yaml",
+    "--profile",
+    "raes-finite-domain-satisfiability-v1"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "input/fixture.yaml": "sha256:9706d096c1ba3e17db825097131b42966da597ddc41787e3ff857d03ce9a3866"
+  },
+  "name": "regression/ee8920fbab849ab57eada5c7aea112c6f19393ed811538b8a003105991797245",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

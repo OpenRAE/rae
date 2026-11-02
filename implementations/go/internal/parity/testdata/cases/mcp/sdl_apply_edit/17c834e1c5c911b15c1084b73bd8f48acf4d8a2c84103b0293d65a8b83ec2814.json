@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:4d9bf50c59c581cb1a8a8722ffddf2a44dbb6c0d54404e0ffe0d54de1d86daa6"
+  },
+  "name": "examples/scenarios/participant-tools/twice-imported.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nimports:\n- source: local:tool-kit.sdl.yaml\n  namespace: alpha\n  version: 2.1.0\n- source: local:tool-kit.sdl.yaml\n  namespace: bravo\n  version: '>=2,<3'\nnodes:\n  console-host:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  scanner-package:\n    type: file\n    target: console-host\n    path: /opt/console/scanner\nentities:\n  oversight:\n    role: blue\n  audit:\n    role: white\nagents:\n  operator:\n    affiliations:\n    - oversight\n    actions:\n    - alpha.scan\n    observation_boundaries:\n    - operator-view\n    interactive_access:\n      console:\n        target_ref: alpha.web\n        channel: rdp\n  auditor:\n    affiliations:\n    - audit\n    observation_boundaries:\n    - operator-view\nobservation_boundaries:\n  operator-view:\n    projection_basis: operator view of the shared scanner\n    observable_refs:\n    - behavior_specifications.operator-scan.tool_affordances.shared-scanner\n    evidence_refs:\n    - evidence.scan-output\n    redaction_policy: no hidden refs are disclosed\n    latency_profile: immediate\n    view_rules:\n    - information_ref: behavior_specifications.operator-scan.tool_affordances.shared-scanner\n      boundary_class: observable_resource\n      disposition: observable\n      visibility_basis: authored participant-local affordance\nbehavior_specifications:\n  operator-scan:\n    semantic_version: 1.0.0\n    lifecycle_state: draft\n    participant_role_refs:\n    - blue\n    action_contract_refs:\n    - alpha.scan\n    observation_boundary_refs:\n    - operator-view\n    authority_scope_refs:\n    - nodes.alpha.web.services.http\n    tool_affordances:\n      shared-scanner:\n        tool_ref: alpha.scanner-package\n        action_contract_refs:\n        - alpha.scan\n        observation_boundary_refs:\n        - operator-view\n",
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nimports:\n- source: local:tool-kit.sdl.yaml\n  namespace: alpha\n  version: 2.1.0\n- source: local:tool-kit.sdl.yaml\n  namespace: bravo\n  version: '>=2,<3'\nnodes:\n  console-host:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  scanner-package:\n    type: file\n    target: console-host\n    path: /opt/console/scanner\nentities:\n  oversight:\n    role: blue\n  audit:\n    role: white\nagents:\n  operator:\n    affiliations:\n    - oversight\n    actions:\n    - alpha.scan\n    observation_boundaries:\n    - operator-view\n    interactive_access:\n      console:\n        target_ref: alpha.web\n        channel: rdp\n  auditor:\n    affiliations:\n    - audit\n    observation_boundaries:\n    - operator-view\nobservation_boundaries:\n  operator-view:\n    projection_basis: operator view of the shared scanner\n    observable_refs:\n    - behavior_specifications.operator-scan.tool_affordances.shared-scanner\n    evidence_refs:\n    - evidence.scan-output\n    redaction_policy: no hidden refs are disclosed\n    latency_profile: immediate\n    view_rules:\n    - information_ref: behavior_specifications.operator-scan.tool_affordances.shared-scanner\n      boundary_class: observable_resource\n      disposition: observable\n      visibility_basis: authored participant-local affordance\nbehavior_specifications:\n  operator-scan:\n    semantic_version: 1.0.0\n    lifecycle_state: draft\n    participant_role_refs:\n    - blue\n    action_contract_refs:\n    - alpha.scan\n    observation_boundary_refs:\n    - operator-view\n    authority_scope_refs:\n    - nodes.alpha.web.services.http\n    tool_affordances:\n      shared-scanner:\n        tool_ref: alpha.scanner-package\n        action_contract_refs:\n        - alpha.scan\n        observation_boundary_refs:\n        - operator-view\n",
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

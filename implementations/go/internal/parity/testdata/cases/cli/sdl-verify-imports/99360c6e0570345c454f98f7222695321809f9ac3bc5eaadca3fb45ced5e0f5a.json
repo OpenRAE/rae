@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/scenario/segmented-network-scenario.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/scenario/segmented-network-scenario.yaml": "sha256:658410a6622b34e310407e0a90258df7545b83bfa421f0dae2d43486d175c905",
+    "setup.json": "sha256:be18bb456a2b1221706030788e6ae7674e089c6729e58dd7e5a642029dce050f"
+  },
+  "name": "examples/library/templates/scenario/segmented-network-scenario.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/templates/scenario/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

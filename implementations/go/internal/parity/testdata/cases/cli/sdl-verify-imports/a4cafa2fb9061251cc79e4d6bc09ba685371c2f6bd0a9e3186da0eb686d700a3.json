@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml": "sha256:4ec12fd62034012ab756239028f552e5d1fa5901b6d56eb7a6f93c478239f6b2",
+    "setup.json": "sha256:598a5791388d7a0d4ed66bc45f6556879be1a8ae4dad3dc60ff8c183050bd7c0"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/variation-points-v1/valid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:59780ae6464965377a705dbdebbd082c0564b01516e3e8dea8456e5beec28d20"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: /opt/payload\nvariation_points:\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      missing-host:\n        reference: undeclared-host\n",
+          "diagnostics": [
+            {
+              "code": "sdl.semantic",
+              "severity": "error",
+              "stage": "semantic_validation"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: /opt/payload\nvariation_points:\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      missing-host:\n        reference: undeclared-host\n",
+        "diagnostics": [
+          {
+            "code": "sdl.semantic",
+            "severity": "error",
+            "stage": "semantic_validation"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

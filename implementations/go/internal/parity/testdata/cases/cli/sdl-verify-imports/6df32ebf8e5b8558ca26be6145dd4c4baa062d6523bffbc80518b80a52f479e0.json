@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "input/root.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "input/nodes/shared.yaml": "sha256:6cd9bc2664a4da46ef1e981abd58a53d1085199181c03c50105d17edd20e3d42",
+    "input/raes.lock.json": "sha256:b23710dfdf90dc36a78baf9d7114b5b44fc89684d1973e2cdf3b16793f152ccc",
+    "input/root.yaml": "sha256:c284d626c25f19c95c8f3b2c6d917b03a0176dcae967f1e59155ed611c4fcd3f"
+  },
+  "name": "regression/a36cbe649bf2d6c5b5a410efbe2c69c4f9f0d52aa02bd2e2bc82e062a1f1cc7c",
+  "result": {
+    "exit_code": 0,
+    "stdout": null
+  },
+  "surface": "cli"
+}

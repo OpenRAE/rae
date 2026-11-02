@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:af1f80ad3f3b26d1c2dfa8852500efac7b3d3a3801ebe0a094b70b3362b693ff"
+  },
+  "name": "regression/61cdaadf99f3939f45779a26fba8c5dad9fbd9a3593b1f15bb4a17b3c47ae0d8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: test-scenario\nnodes:\n  net:\n    type: Switch\n  web:\n    type: compute\n    resources:\n      ram: 2 GiB\n      cpu: 1\ninfrastructure:\n  net:\n    count: 1\n    properties:\n      cidr: 10.0.0.0/24\n      gateway: 10.0.0.1\n  web:\n    count: 1\n    links:\n    - net\ndescription: Edited\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: test-scenario\nnodes:\n  net:\n    type: Switch\n  web:\n    type: compute\n    resources:\n      ram: 2 GiB\n      cpu: 1\ninfrastructure:\n  net:\n    count: 1\n    properties:\n      cidr: 10.0.0.0/24\n      gateway: 10.0.0.1\n  web:\n    count: 1\n    links:\n    - net\ndescription: Edited\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

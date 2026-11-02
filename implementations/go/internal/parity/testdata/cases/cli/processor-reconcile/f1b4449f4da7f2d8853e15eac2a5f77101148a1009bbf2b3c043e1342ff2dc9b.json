@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml": "sha256:6eee87ffbab8a253eb9ff5eb208796c151fc3e7cb10eec6f9ae1ccea2fa5c215"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

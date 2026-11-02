@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:b916a2aca8ea5b07cf2298cb3e890ac14db673013d90044341e288d85df3bfd1"
+  },
+  "name": "regression/cce352ac44f6b89c8f043df79239b13c5750cd552d61f6cab92b730a91e273a7",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/observation_boundaries/red-view",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 121
+                },
+                "start": {
+                  "column": 5,
+                  "line": 71
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/observation_boundaries/red-view",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 121
+              },
+              "start": {
+                "column": 5,
+                "line": 71
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

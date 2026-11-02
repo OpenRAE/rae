@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:cd133606d915dfc2d63744b55cf90e249c39db37010da1ff1952d69ffe87e5c9"
+  },
+  "name": "regression/dcd28b05afe03e6e1249b480c47885d8091729154eb273404408d82c2e34d63c",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.identifier.invalid",
+              "path": "/agents/red/control_context/briefing/declaration_ref",
+              "range": {
+                "end": {
+                  "column": 46,
+                  "line": 19
+                },
+                "start": {
+                  "column": 26,
+                  "line": 19
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.identifier.invalid",
+            "path": "/agents/red/control_context/briefing/declaration_ref",
+            "range": {
+              "end": {
+                "column": 46,
+                "line": 19
+              },
+              "start": {
+                "column": 26,
+                "line": 19
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

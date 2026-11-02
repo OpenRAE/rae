@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "input/scenario.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "input/scenario.yaml": "sha256:8967e682a51d680b94701e186404ac67add90e211f122287d48574e97222c1a7"
+  },
+  "name": "regression/b81facd532f92d096804a76f0253f2868b16d221693cae1e40d8023273dcc8bc",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

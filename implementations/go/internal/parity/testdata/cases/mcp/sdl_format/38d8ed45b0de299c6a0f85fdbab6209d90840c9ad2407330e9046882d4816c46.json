@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:867db61814e2ec496b170852e8c0e780960b4f16411f9a6deefcff23616ce823"
+  },
+  "name": "examples/scenarios/techvault-observability-core.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: techvault-observability-core\ndescription: 'Curated TechVault observability-core slice. Declares only the OTEL core\n  observability stack to prove the backend realizes the smallest bounded startup surface\n  from declared SDL content.\n\n  '\nnodes:\n  security-net:\n    type: switch\n    description: SOC and security tooling network.\n  aptl-otel-collector:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 4317\n      protocol: tcp\n      name: otlp-grpc\n    - port: 4318\n      protocol: tcp\n      name: otlp-http\n  aptl-tempo:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3200\n      protocol: tcp\n      name: tempo-http\n  aptl-grafana-otel:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3000\n      protocol: tcp\n      name: grafana\ninfrastructure:\n  security-net:\n    properties:\n      cidr: 172.20.0.0/24\n      gateway: 172.20.0.1\n      internal: false\n  aptl-otel-collector:\n    links:\n    - security-net\n  aptl-tempo:\n    links:\n    - security-net\n  aptl-grafana-otel:\n    links:\n    - security-net\n    dependencies:\n    - aptl-tempo\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: techvault-observability-core\ndescription: 'Curated TechVault observability-core slice. Declares only the OTEL core\n  observability stack to prove the backend realizes the smallest bounded startup surface\n  from declared SDL content.\n\n  '\nnodes:\n  security-net:\n    type: switch\n    description: SOC and security tooling network.\n  aptl-otel-collector:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 4317\n      protocol: tcp\n      name: otlp-grpc\n    - port: 4318\n      protocol: tcp\n      name: otlp-http\n  aptl-tempo:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3200\n      protocol: tcp\n      name: tempo-http\n  aptl-grafana-otel:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    services:\n    - port: 3000\n      protocol: tcp\n      name: grafana\ninfrastructure:\n  security-net:\n    properties:\n      cidr: 172.20.0.0/24\n      gateway: 172.20.0.1\n      internal: false\n  aptl-otel-collector:\n    links:\n    - security-net\n  aptl-tempo:\n    links:\n    - security-net\n  aptl-grafana-otel:\n    links:\n    - security-net\n    dependencies:\n    - aptl-tempo\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

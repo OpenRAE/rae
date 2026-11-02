@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml": "sha256:b8a6885f3f40d64db70735ebb570bdf8439061f45f89615644bf84ef3b98e233",
+    "setup.json": "sha256:cff5170a99b4951986bb89c135c7879b38a275a94d7dd4da4ee907d4d7e560dc"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/artifact-transformations-v1/sources/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

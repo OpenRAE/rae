@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:e605c645c7a8638d561534bf6de577be575164d52b1e09f0e067d3330f9eb7a9"
+  },
+  "name": "regression/134026392c7da16f77d6a3f108a2b23184305814e97392f8b4a9746c3a0bd155",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

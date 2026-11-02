@@ -1,0 +1,191 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:0540ac4ec9d6130306101eed947e750a61eca1b172364fa252a2d49a2d61e15b"
+  },
+  "name": "examples/library/catalog.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "library: raes-example-pattern-library\nversion: 1\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/README.md\n- docs/public/quickstart.md\n- docs/explain/reference/canonical-reference-map.md\ndescription: 'Domain-neutral RAES agentic-environment authoring library for non-normative\n  examples, templates, and reusable patterns. Current examples are strongest in cyber;\n  additional domains extend through their own profiles, assets, backends, and evidence\n  requirements. SDL template bodies are parsed and semantically validated by the Python\n  reference implementation, and experiment templates hold experiment-authoring-input-v1\n  documents that its experiment authoring-input loader validates.\n\n  '\nsurfaces:\n  scenario:\n    summary: Complete scenario authoring from topology through objective flow.\n    worked_examples:\n    - id: cloud-secret-cross-project\n      path: examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml\n      source_refs:\n      - specs/sdl/cloud-resource-access.md\n      - examples/README.md\n      validation_status: guidance\n      sdl_sections:\n      - nodes\n      intended_user: sdl-author\n      limits:\n      - Synthetic metadata and illustrative evidence references; no cloud deployment\n        or certified access result.\n      - Host sizing is omitted; the parser emits deployment advisories.\n    - id: hospital-ransomware-surgery-day\n      path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - infrastructure\n      - features\n      - entities\n      - agents\n      - relationships\n      - content\n      - conditions\n      - objectives\n      intended_user: sdl-author\n      limits:\n      - Does not deploy a hospital range or prove clinical exercise adequacy.\n    - id: cross-backend-minimal\n      path: examples/scenarios/cross-backend-minimal.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - infrastructure\n      intended_user: sdl-author\n      limits:\n      - Does not exercise an OCI runtime or live libvirt/QEMU daemon and makes no\n        infrastructure-equivalence or fidelity claim.\n    templates:\n    - id: minimal-validated-scenario\n      path: examples/library/templates/scenario/minimal-validated-scenario.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Validation covers SDL structure and references; it does not show that a backend\n        can realize the scenario.\n    - id: segmented-network-scenario\n      path: examples/library/templates/scenario/segmented-network-scenario.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - features\n      - infrastructure\n      intended_user: sdl-author\n      limits:\n      - Validation covers topology structure, addresses, and references; it does not\n        show that a backend enforces the access rules or installs the feature.\n    - id: parameterized-scenario\n      path: examples/library/templates/scenario/parameterized-scenario.yaml\n      validation_status: validated\n      sdl_sections:\n      - variables\n      - nodes\n      - infrastructure\n      intended_user: sdl-author\n      limits:\n      - The gate validates the authored body and does not instantiate it with any\n        variable values.\n    patterns:\n    - id: scenario-reference-integrity\n      path: examples/library/patterns/scenario-reference-integrity.yaml\n      validation_status: guidance\n      sdl_sections:\n      - nodes\n      - entities\n      - agents\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Covers reference resolution only, not backend realization.\n  workflow:\n    summary: Declarative workflow authoring over objectives and branch state.\n    worked_examples:\n    - id: satcom-release-poisoning-workflows\n      path: examples/scenarios/satcom-release-poisoning.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - objectives\n      - workflows\n      - variables\n      intended_user: sdl-author\n      limits:\n      - Does not implement a CI/CD backend or production release system.\n    templates:\n    - id: parallel-objective-workflow\n      path: examples/library/templates/workflow/parallel-objective-workflow.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Validation covers the workflow graph and its references; no workflow is executed.\n    patterns:\n    - id: workflow-explicit-control-graph\n      path: examples/library/patterns/workflow-explicit-control-graph.yaml\n      validation_status: guidance\n      sdl_sections:\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Covers workflow graph authoring only; it does not execute workflows.\n  participant_behavior:\n    summary: Participant action contracts, observation boundaries, behavior specifications,\n      and agent bindings.\n    worked_examples:\n    - id: sem-208-participant-behavior\n      path: implementations/python/tests/test_sem_208_participant_behavior.py\n      source_refs:\n      - docs/explain/sdl/validation.md\n      validation_status: guidance\n      sdl_sections:\n      - agents\n      - action_contracts\n      - observation_boundaries\n      - behavior_specifications\n      intended_user: sdl-author\n      limits:\n      - A pytest module rather than an SDL file; the test suite parses and validates\n        its inline SDL, and this gate does not.\n    templates:\n    - id: action-contract-observation-boundary\n      path: examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - entities\n      - action_contracts\n      - observation_boundaries\n      - agents\n      - behavior_specifications\n      intended_user: sdl-author\n      limits:\n      - Validation covers the participant declarations and their references; it does\n        not run a participant or show backend support.\n    patterns:\n    - id: participant-behavior-contract-binding\n      path: examples/library/patterns/participant-behavior-contract-binding.yaml\n      validation_status: guidance\n      sdl_sections:\n      - agents\n      - action_contracts\n      - observation_boundaries\n      intended_user: sdl-author\n      limits:\n      - Covers declaring and binding contracts only; it does not show participant\n        runtime behavior.\n  task:\n    summary: Task-oriented authoring using current objectives, conditions, and target\n      refs.\n    worked_examples:\n    - id: port-authority-objective-tasks\n      path: examples/scenarios/port-authority-surge-response.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - agents\n      - conditions\n      - propositions\n      - assertions\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Does not implement OT control, safety validation, or port operations.\n    templates:\n    - id: single-objective-task\n      path: examples/library/templates/task/single-objective-task.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class tasks section, and this objective is not an experiment-task-v1\n        record.\n      - No experiment-task-v1 template is shipped. Its required artifact checksum,\n        byte size, and creation time must describe an author's real protocol artifact;\n        this SDL template cannot supply them. Validate an authored task with raes\n        semantic validate --contract experiment-task-v1.\n    patterns:\n    - id: task-as-objective-contract\n      path: examples/library/patterns/task-as-objective-contract.yaml\n      validation_status: guidance\n      sdl_sections:\n      - agents\n      - conditions\n      - propositions\n      - assertions\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class tasks section, and an objective written this way is\n        not an experiment-task-v1 record.\n  run:\n    summary: Run-oriented authoring with story, script, event, workflow, and objective\n      windows, plus a pre-run experiment run plan.\n    worked_examples:\n    - id: hospital-run-story\n      path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - injects\n      - events\n      - scripts\n      - stories\n      - objectives\n      intended_user: sdl-author\n      limits:\n      - Story, script, and event timing is authored SDL; nothing is scheduled or run.\n    templates:\n    - id: timed-run-control\n      path: examples/library/templates/run/timed-run-control.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - injects\n      - events\n      - scripts\n      - stories\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class runs section; the template expresses a run with stories,\n        scripts, and events, and nothing is scheduled or run.\n    - id: seeded-run-plan\n      path: examples/library/templates/run/seeded-run-plan.yaml\n      contract: experiment-authoring-input-v1\n      validation_status: validated\n      intended_user: experiment-author\n      limits:\n      - Pre-run design only; nothing runs, and it is not an experiment-run-v1 record.\n      - Without a supplied task, task_ref is unresolved. load_experiment_spec and\n        parse_experiment_spec check the id and any declared version when passed task=ExperimentTaskModel.\n        The seed is not an executable random-stream contract.\n    patterns:\n    - id: run-window-with-evidence\n      path: examples/library/patterns/run-window-with-evidence.yaml\n      validation_status: guidance\n      sdl_sections:\n      - injects\n      - events\n      - scripts\n      - stories\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class runs section; the pattern maps a run onto stories,\n        scripts, events, and objective windows.\n  study:\n    summary: Study-oriented authoring with observable conditions, objectives, and\n      workflow protocol, plus a pre-run two-condition experiment design. Graded scoring\n      is an experiment/evaluator-plane concern per ADR-073.\n    worked_examples:\n    - id: satcom-study-scenario\n      path: examples/scenarios/satcom-release-poisoning.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - conditions\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Declares observable conditions only; graded scoring and reward are outside\n        the SDL per ADR-073.\n    templates:\n    - id: observational-study-protocol\n      path: examples/library/templates/study/observational-study-protocol.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class studies section; graded scoring stays in the experiment/evaluator\n        plane per ADR-073.\n    - id: two-condition-study-design\n      path: examples/library/templates/study/two-condition-study-design.yaml\n      contract: experiment-authoring-input-v1\n      validation_status: validated\n      intended_user: experiment-author\n      limits:\n      - Pre-run design only; it is not an experiment-study-v1 record and declares\n        no analysis plan.\n      - Without a supplied task, task_ref is unresolved; task=ExperimentTaskModel\n        checks its id and any declared version.\n      - The loader checks every condition factor and level against this experiment's\n        author-supplied declarations in every binding posture. This establishes local\n        consistency; it does not validate domain meaning or resolve an ontology.\n      - The required_parameters are descriptive data that bind no configuration target;\n        binding_semantics explicit-required rejects them and needs binding descriptors\n        instead (ADR-094).\n    patterns:\n    - id: observable-study-conditions\n      path: examples/library/patterns/observable-study-conditions.yaml\n      validation_status: guidance\n      sdl_sections:\n      - conditions\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class studies section; graded scoring stays in the experiment/evaluator\n        plane per ADR-073.\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/library",
+              "range": {
+                "end": {
+                  "column": 38,
+                  "line": 1
+                },
+                "start": {
+                  "column": 10,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 5
+                },
+                "start": {
+                  "column": 1,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 9
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surfaces",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 395
+                },
+                "start": {
+                  "column": 3,
+                  "line": 18
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "library: raes-example-pattern-library\nversion: 1\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/README.md\n- docs/public/quickstart.md\n- docs/explain/reference/canonical-reference-map.md\ndescription: 'Domain-neutral RAES agentic-environment authoring library for non-normative\n  examples, templates, and reusable patterns. Current examples are strongest in cyber;\n  additional domains extend through their own profiles, assets, backends, and evidence\n  requirements. SDL template bodies are parsed and semantically validated by the Python\n  reference implementation, and experiment templates hold experiment-authoring-input-v1\n  documents that its experiment authoring-input loader validates.\n\n  '\nsurfaces:\n  scenario:\n    summary: Complete scenario authoring from topology through objective flow.\n    worked_examples:\n    - id: cloud-secret-cross-project\n      path: examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml\n      source_refs:\n      - specs/sdl/cloud-resource-access.md\n      - examples/README.md\n      validation_status: guidance\n      sdl_sections:\n      - nodes\n      intended_user: sdl-author\n      limits:\n      - Synthetic metadata and illustrative evidence references; no cloud deployment\n        or certified access result.\n      - Host sizing is omitted; the parser emits deployment advisories.\n    - id: hospital-ransomware-surgery-day\n      path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - infrastructure\n      - features\n      - entities\n      - agents\n      - relationships\n      - content\n      - conditions\n      - objectives\n      intended_user: sdl-author\n      limits:\n      - Does not deploy a hospital range or prove clinical exercise adequacy.\n    - id: cross-backend-minimal\n      path: examples/scenarios/cross-backend-minimal.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - infrastructure\n      intended_user: sdl-author\n      limits:\n      - Does not exercise an OCI runtime or live libvirt/QEMU daemon and makes no\n        infrastructure-equivalence or fidelity claim.\n    templates:\n    - id: minimal-validated-scenario\n      path: examples/library/templates/scenario/minimal-validated-scenario.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Validation covers SDL structure and references; it does not show that a backend\n        can realize the scenario.\n    - id: segmented-network-scenario\n      path: examples/library/templates/scenario/segmented-network-scenario.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - features\n      - infrastructure\n      intended_user: sdl-author\n      limits:\n      - Validation covers topology structure, addresses, and references; it does not\n        show that a backend enforces the access rules or installs the feature.\n    - id: parameterized-scenario\n      path: examples/library/templates/scenario/parameterized-scenario.yaml\n      validation_status: validated\n      sdl_sections:\n      - variables\n      - nodes\n      - infrastructure\n      intended_user: sdl-author\n      limits:\n      - The gate validates the authored body and does not instantiate it with any\n        variable values.\n    patterns:\n    - id: scenario-reference-integrity\n      path: examples/library/patterns/scenario-reference-integrity.yaml\n      validation_status: guidance\n      sdl_sections:\n      - nodes\n      - entities\n      - agents\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Covers reference resolution only, not backend realization.\n  workflow:\n    summary: Declarative workflow authoring over objectives and branch state.\n    worked_examples:\n    - id: satcom-release-poisoning-workflows\n      path: examples/scenarios/satcom-release-poisoning.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - objectives\n      - workflows\n      - variables\n      intended_user: sdl-author\n      limits:\n      - Does not implement a CI/CD backend or production release system.\n    templates:\n    - id: parallel-objective-workflow\n      path: examples/library/templates/workflow/parallel-objective-workflow.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Validation covers the workflow graph and its references; no workflow is executed.\n    patterns:\n    - id: workflow-explicit-control-graph\n      path: examples/library/patterns/workflow-explicit-control-graph.yaml\n      validation_status: guidance\n      sdl_sections:\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Covers workflow graph authoring only; it does not execute workflows.\n  participant_behavior:\n    summary: Participant action contracts, observation boundaries, behavior specifications,\n      and agent bindings.\n    worked_examples:\n    - id: sem-208-participant-behavior\n      path: implementations/python/tests/test_sem_208_participant_behavior.py\n      source_refs:\n      - docs/explain/sdl/validation.md\n      validation_status: guidance\n      sdl_sections:\n      - agents\n      - action_contracts\n      - observation_boundaries\n      - behavior_specifications\n      intended_user: sdl-author\n      limits:\n      - A pytest module rather than an SDL file; the test suite parses and validates\n        its inline SDL, and this gate does not.\n    templates:\n    - id: action-contract-observation-boundary\n      path: examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - entities\n      - action_contracts\n      - observation_boundaries\n      - agents\n      - behavior_specifications\n      intended_user: sdl-author\n      limits:\n      - Validation covers the participant declarations and their references; it does\n        not run a participant or show backend support.\n    patterns:\n    - id: participant-behavior-contract-binding\n      path: examples/library/patterns/participant-behavior-contract-binding.yaml\n      validation_status: guidance\n      sdl_sections:\n      - agents\n      - action_contracts\n      - observation_boundaries\n      intended_user: sdl-author\n      limits:\n      - Covers declaring and binding contracts only; it does not show participant\n        runtime behavior.\n  task:\n    summary: Task-oriented authoring using current objectives, conditions, and target\n      refs.\n    worked_examples:\n    - id: port-authority-objective-tasks\n      path: examples/scenarios/port-authority-surge-response.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - agents\n      - conditions\n      - propositions\n      - assertions\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Does not implement OT control, safety validation, or port operations.\n    templates:\n    - id: single-objective-task\n      path: examples/library/templates/task/single-objective-task.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class tasks section, and this objective is not an experiment-task-v1\n        record.\n      - No experiment-task-v1 template is shipped. Its required artifact checksum,\n        byte size, and creation time must describe an author's real protocol artifact;\n        this SDL template cannot supply them. Validate an authored task with raes\n        semantic validate --contract experiment-task-v1.\n    patterns:\n    - id: task-as-objective-contract\n      path: examples/library/patterns/task-as-objective-contract.yaml\n      validation_status: guidance\n      sdl_sections:\n      - agents\n      - conditions\n      - propositions\n      - assertions\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class tasks section, and an objective written this way is\n        not an experiment-task-v1 record.\n  run:\n    summary: Run-oriented authoring with story, script, event, workflow, and objective\n      windows, plus a pre-run experiment run plan.\n    worked_examples:\n    - id: hospital-run-story\n      path: examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - injects\n      - events\n      - scripts\n      - stories\n      - objectives\n      intended_user: sdl-author\n      limits:\n      - Story, script, and event timing is authored SDL; nothing is scheduled or run.\n    templates:\n    - id: timed-run-control\n      path: examples/library/templates/run/timed-run-control.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - injects\n      - events\n      - scripts\n      - stories\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class runs section; the template expresses a run with stories,\n        scripts, and events, and nothing is scheduled or run.\n    - id: seeded-run-plan\n      path: examples/library/templates/run/seeded-run-plan.yaml\n      contract: experiment-authoring-input-v1\n      validation_status: validated\n      intended_user: experiment-author\n      limits:\n      - Pre-run design only; nothing runs, and it is not an experiment-run-v1 record.\n      - Without a supplied task, task_ref is unresolved. load_experiment_spec and\n        parse_experiment_spec check the id and any declared version when passed task=ExperimentTaskModel.\n        The seed is not an executable random-stream contract.\n    patterns:\n    - id: run-window-with-evidence\n      path: examples/library/patterns/run-window-with-evidence.yaml\n      validation_status: guidance\n      sdl_sections:\n      - injects\n      - events\n      - scripts\n      - stories\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class runs section; the pattern maps a run onto stories,\n        scripts, events, and objective windows.\n  study:\n    summary: Study-oriented authoring with observable conditions, objectives, and\n      workflow protocol, plus a pre-run two-condition experiment design. Graded scoring\n      is an experiment/evaluator-plane concern per ADR-073.\n    worked_examples:\n    - id: satcom-study-scenario\n      path: examples/scenarios/satcom-release-poisoning.sdl.yaml\n      source_refs:\n      - examples/README.md\n      validation_status: validated\n      sdl_sections:\n      - conditions\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - Declares observable conditions only; graded scoring and reward are outside\n        the SDL per ADR-073.\n    templates:\n    - id: observational-study-protocol\n      path: examples/library/templates/study/observational-study-protocol.yaml\n      validation_status: validated\n      sdl_sections:\n      - nodes\n      - conditions\n      - entities\n      - agents\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class studies section; graded scoring stays in the experiment/evaluator\n        plane per ADR-073.\n    - id: two-condition-study-design\n      path: examples/library/templates/study/two-condition-study-design.yaml\n      contract: experiment-authoring-input-v1\n      validation_status: validated\n      intended_user: experiment-author\n      limits:\n      - Pre-run design only; it is not an experiment-study-v1 record and declares\n        no analysis plan.\n      - Without a supplied task, task_ref is unresolved; task=ExperimentTaskModel\n        checks its id and any declared version.\n      - The loader checks every condition factor and level against this experiment's\n        author-supplied declarations in every binding posture. This establishes local\n        consistency; it does not validate domain meaning or resolve an ontology.\n      - The required_parameters are descriptive data that bind no configuration target;\n        binding_semantics explicit-required rejects them and needs binding descriptors\n        instead (ADR-094).\n    patterns:\n    - id: observable-study-conditions\n      path: examples/library/patterns/observable-study-conditions.yaml\n      validation_status: guidance\n      sdl_sections:\n      - conditions\n      - propositions\n      - assertions\n      - evidence_requirements\n      - objectives\n      - workflows\n      intended_user: sdl-author\n      limits:\n      - SDL has no first-class studies section; graded scoring stays in the experiment/evaluator\n        plane per ADR-073.\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/library",
+            "range": {
+              "end": {
+                "column": 38,
+                "line": 1
+              },
+              "start": {
+                "column": 10,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 5
+              },
+              "start": {
+                "column": 1,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 9
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surfaces",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 395
+              },
+              "start": {
+                "column": 3,
+                "line": 18
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

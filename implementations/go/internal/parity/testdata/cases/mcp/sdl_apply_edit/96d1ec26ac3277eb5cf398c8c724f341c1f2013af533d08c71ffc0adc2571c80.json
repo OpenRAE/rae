@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:729569e44799f01dad08c0b10bd778fc1e65edafb38b3b22f458decab763f918"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/invalid/unpinned-key.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  manager:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n    runtime:\n      packages:\n      - manager: apt\n        name: wazuh-agent\n        version: 4.12.0-1\n        repository:\n          repository_profile: apt\n          profile_version: '1'\n          uri: https://packages.wazuh.com/4.x/apt/\n          suite: stable\n          components:\n          - main\n          signing_key:\n            uri: https://packages.wazuh.com/key/GPG-KEY-WAZUH\n            format: openpgp-ascii-armored\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/manager/runtime/packages/0/repository/apt/signing_key/digest",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 24
+                },
+                "start": {
+                  "column": 11,
+                  "line": 15
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  manager:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n    runtime:\n      packages:\n      - manager: apt\n        name: wazuh-agent\n        version: 4.12.0-1\n        repository:\n          repository_profile: apt\n          profile_version: '1'\n          uri: https://packages.wazuh.com/4.x/apt/\n          suite: stable\n          components:\n          - main\n          signing_key:\n            uri: https://packages.wazuh.com/key/GPG-KEY-WAZUH\n            format: openpgp-ascii-armored\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/manager/runtime/packages/0/repository/apt/signing_key/digest",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 24
+              },
+              "start": {
+                "column": 11,
+                "line": 15
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

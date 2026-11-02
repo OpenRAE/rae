@@ -1,0 +1,49 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml": "sha256:e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e"
+  },
+  "name": "examples/scenarios/techvault-bounded-native.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "description": "Bounded TechVault libvirt substrate used to certify exact VM/network realization without guest image, placement, service, ACL, or SOC claims.",
+      "infrastructure": {
+        "demo": {
+          "links": [
+            "lab"
+          ]
+        },
+        "lab": {
+          "properties": {
+            "cidr": "192.0.2.0/24",
+            "gateway": "192.0.2.1",
+            "internal": true
+          }
+        }
+      },
+      "name": "techvault-bounded-native",
+      "nodes": {
+        "demo": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 134217728
+          },
+          "services": [],
+          "type": "compute"
+        },
+        "lab": {
+          "type": "switch"
+        }
+      },
+      "version": "1.0.0"
+    }
+  },
+  "surface": "cli"
+}

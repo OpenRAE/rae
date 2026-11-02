@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml": "sha256:0ca8aaab2a483a9a678816540b975dcc74fbfe446923d0c642bd17c801597480"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

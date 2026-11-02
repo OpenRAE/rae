@@ -1,0 +1,50 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml": "sha256:5ef7502ac5933703d6f52ab317fff93ba1aeaa68d79d4e3c49ee86813b622d03"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "content": {
+        "payload": {
+          "path": "/opt/payload",
+          "target": "primary",
+          "type": "file"
+        }
+      },
+      "name": "invalid-family",
+      "nodes": {
+        "primary": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "variation_points": {
+        "payload-host": {
+          "alternatives": {
+            "missing-host": {
+              "reference": "undeclared-host"
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "reference",
+            "owner": "payload",
+            "slot": "content.target"
+          }
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

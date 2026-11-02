@@ -1,0 +1,139 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/scenarios/satcom-release-poisoning.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/scenarios/satcom-release-poisoning.sdl.yaml": "sha256:cc29a410842ae0c4483f7809c74d639308046d0e8be8641898e4855639570572"
+  },
+  "name": "examples/scenarios/satcom-release-poisoning.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:c176aefd6ed6b812c1ed5b64dc2010b67d1b0150bcada18468f6ffcaee19facf"
+      },
+      "diagnostics": [
+        {
+          "address": "/accounts/release-engineer/password_strength",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/canary-rollout/events/canary-cutover-event",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/canary-rollout/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/incident-rollback/end_time",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/incident-rollback/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/release-prep/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/stories/release-day/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/variables/canary_cutover",
+          "code": "scenario-satisfiability.unsupported-domain",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/variables/release_engineer_password_strength",
+          "code": "scenario-satisfiability.unsupported-domain",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/variables/release_story_speed",
+          "code": "scenario-satisfiability.unsupported-domain",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/variables/rollback_deadline",
+          "code": "scenario-satisfiability.unsupported-domain",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        }
+      ],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:c176aefd6ed6b812c1ed5b64dc2010b67d1b0150bcada18468f6ffcaee19facf"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:cc29a410842ae0c4483f7809c74d639308046d0e8be8641898e4855639570572",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:7a22f8df717aae76fe8d646a7aab8956cef77dedf28b1e4333a4e48294ee5f68",
+      "outcome": "unsupported",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:cc29a410842ae0c4483f7809c74d639308046d0e8be8641898e4855639570572",
+        "source_id": "satcom-release-poisoning.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": {
+        "profile": "raes-satisfiability-unsupported/v1",
+        "reason_codes": [
+          "scenario-satisfiability.unsupported-domain",
+          "scenario-satisfiability.unsupported-target"
+        ]
+      },
+      "witness": null
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,63 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/scenarios/techvault-guest-certified.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/scenarios/techvault-guest-certified.sdl.yaml": "sha256:99c69fd34eb13f8633818c9a78341d351e2dc942e5ff51d5925a36ee02387eec"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "content": {
+        "guest-marker": {
+          "path": "/etc/raes/marker",
+          "sensitive": false,
+          "target": "guest-vm",
+          "text": "guest-certified realization marker\n",
+          "type": "file"
+        }
+      },
+      "description": "Minimal guest-certified realization scenario. One bounded appliance node boots through the production apply path and is certified from inside the guest - resource allocation, network addressing, file content, and service state are read back from the realized guest, freshness-bound to a per-run challenge, with verified teardown. RAES 7.0.0 used it for the removed libvirt guest certification; a backend distribution can use it for its own proof.\n",
+      "infrastructure": {
+        "guest-net": {
+          "properties": {
+            "cidr": "192.0.2.0/24",
+            "gateway": "192.0.2.1",
+            "internal": true
+          }
+        },
+        "guest-vm": {
+          "links": [
+            "guest-net"
+          ]
+        }
+      },
+      "name": "techvault-guest-certified",
+      "nodes": {
+        "guest-net": {
+          "type": "switch"
+        },
+        "guest-vm": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 134217728
+          },
+          "services": [
+            {
+              "name": "beacon",
+              "port": 9000,
+              "protocol": "tcp"
+            }
+          ],
+          "type": "compute"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

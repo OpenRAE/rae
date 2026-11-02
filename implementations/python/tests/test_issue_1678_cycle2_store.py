@@ -6,7 +6,7 @@ import errno
 import hashlib
 import os
 import sqlite3
-from contextlib import nullcontext
+from contextlib import closing, nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -42,7 +42,7 @@ _INJECT_SCOPE = {"target_scope": "target:reference", "run_scope": "run:environme
 
 
 def _damage_root_page(database: Path, table: str) -> None:
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         page_size = connection.execute("PRAGMA page_size").fetchone()[0]
         root = connection.execute("SELECT rootpage FROM sqlite_master WHERE name=?", (table,)).fetchone()[0]
     content = bytearray(database.read_bytes())
@@ -108,7 +108,7 @@ def test_a_store_connection_keeps_other_sqlite_errors(tmp_path: Path) -> None:
 def test_a_stored_snapshot_with_a_non_object_element_is_an_integrity_failure(tmp_path: Path, change: object) -> None:
     store_path = tmp_path / "store"
     database = _bound_store(store_path)
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         # Without the history format marker, the header carries the histories itself.
         connection.execute("DELETE FROM metadata WHERE key='snapshot-history-format'")
         connection.execute("DELETE FROM snapshot_history")
@@ -126,7 +126,7 @@ def test_a_stored_snapshot_with_a_non_object_element_is_an_integrity_failure(tmp
 
 
 def _store_rows(database: Path, *records: object) -> None:
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         for record in records:
             payload, digest = encode_payload(_record_payload(record))
             context = record.receipt.context

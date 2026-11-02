@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:19030dd0878ea4e7a0045f9e818f00431495958e43f2da9389c7f964779adafc"
+  },
+  "name": "regression/7b4d1f0a84934d503aa06a89f358804d6a03e774f0ae940ffaf825dcdcbdf2d2",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.classification-migration-required",
+              "path": "/entities/team/entities/person",
+              "range": {
+                "end": {
+                  "column": 54,
+                  "line": 2
+                },
+                "start": {
+                  "column": 38,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.classification-migration-required",
+            "path": "/entities/team/entities/person",
+            "range": {
+              "end": {
+                "column": 54,
+                "line": 2
+              },
+              "start": {
+                "column": 38,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,47 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml": "sha256:dab33c31c9202875d218833f39bd9e468a7f4604557a254ef584d442d91c3ab3"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "diagnostics": [],
+      "evaluation": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operations": [],
+        "run_id": null,
+        "startup_order": []
+      },
+      "orchestration": {
+        "diagnostics": [],
+        "observation_demands": [],
+        "operations": [],
+        "startup_order": []
+      },
+      "provisioning": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operation_id": null,
+        "operations": [],
+        "realization_authority": [],
+        "realization_constraints": [],
+        "realization_envelope": null,
+        "run_id": null
+      },
+      "scenario_name": "autonomous-behavior-binding-subject"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:02e6605d69346e35d64aa0966be5c0662addee39bae082c64ffb608108ed1dfa"
+  },
+  "name": "regression/27ee525c21796cd67ff44605ba6680c77d86dd7b55cdcab40da5d92765c5e271",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "Type",
+                "type"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/sw/type",
+              "range": {
+                "end": {
+                  "column": 9,
+                  "line": 5
+                },
+                "start": {
+                  "column": 5,
+                  "line": 5
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'Type'.",
+                  "range": {
+                    "end": {
+                      "column": 9,
+                      "line": 4
+                    },
+                    "start": {
+                      "column": 5,
+                      "line": 4
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "Type",
+              "type"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/sw/type",
+            "range": {
+              "end": {
+                "column": 9,
+                "line": 5
+              },
+              "start": {
+                "column": 5,
+                "line": 5
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'Type'.",
+                "range": {
+                  "end": {
+                    "column": 9,
+                    "line": 4
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 4
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

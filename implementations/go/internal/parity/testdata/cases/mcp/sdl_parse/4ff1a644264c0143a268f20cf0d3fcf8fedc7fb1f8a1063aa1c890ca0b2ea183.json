@@ -1,0 +1,77 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:42f28ee8fe640aaf39999a4400cd2eb97b326063dcf99a46e7fa20723b427014"
+  },
+  "name": "regression/403623b459097ce93d41b468f8a5bcb9ad0dd0388dfc9df58dbfe0504912acd1",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "satcom-release-poisoning",
+            "populated_sections": {
+              "accounts": 7,
+              "action_contracts": 12,
+              "agents": 3,
+              "conditions": 21,
+              "content": 4,
+              "entities": 5,
+              "events": 3,
+              "features": 14,
+              "infrastructure": 22,
+              "injects": 3,
+              "nodes": 22,
+              "objectives": 6,
+              "relationships": 9,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "satcom-release-poisoning",
+          "populated_sections": {
+            "accounts": 7,
+            "action_contracts": 12,
+            "agents": 3,
+            "conditions": 21,
+            "content": 4,
+            "entities": 5,
+            "events": 3,
+            "features": 14,
+            "infrastructure": 22,
+            "injects": 3,
+            "nodes": 22,
+            "objectives": 6,
+            "relationships": 9,
+            "scripts": 3,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

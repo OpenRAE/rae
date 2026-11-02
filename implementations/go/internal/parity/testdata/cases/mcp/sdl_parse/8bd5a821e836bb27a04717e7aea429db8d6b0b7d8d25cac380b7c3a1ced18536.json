@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:6919a5e560d585c99bf285178780e813058b0dced464f510c815fa4a032ebba1"
+  },
+  "name": "regression/b81e3ab6c6142b046532fa2baf6d2a3d43101d278926b5504bfbd50c9036d219",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "<<",
+                "<<"
+              ],
+              "code": "sdl.noncanonical_merge",
+              "path": "/nodes/reuse",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 6
+                },
+                "start": {
+                  "column": 5,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "<<",
+              "<<"
+            ],
+            "code": "sdl.noncanonical_merge",
+            "path": "/nodes/reuse",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 6
+              },
+              "start": {
+                "column": 5,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

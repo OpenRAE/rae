@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:2b7e1f332eb0a769cce51a6f1f6314ab3fd5828dfac82e3315cbeda17446fba5"
+  },
+  "name": "regression/c687ccf4351d06cb00f77933a9f33726f9af8a60e6d9764de172ae1e93dbc7b8",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

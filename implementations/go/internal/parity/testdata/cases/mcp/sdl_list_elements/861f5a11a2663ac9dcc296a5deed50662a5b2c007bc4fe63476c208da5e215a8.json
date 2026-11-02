@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:24e84111f0b9b21fce0959a47e73b8e88bb7e9296073fc474e836b99de14655b"
+  },
+  "name": "examples/scenarios/techvault-defensive-min.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "conditions": [
+            "wazuh-manager-health"
+          ],
+          "features": [
+            "techvault-defensive-stack"
+          ],
+          "infrastructure": [
+            "security-net",
+            "wazuh-manager",
+            "wazuh-indexer",
+            "wazuh-dashboard",
+            "aptl-otel-collector",
+            "aptl-tempo",
+            "aptl-grafana-otel"
+          ],
+          "nodes": [
+            "security-net",
+            "wazuh-manager",
+            "wazuh-indexer",
+            "wazuh-dashboard",
+            "aptl-otel-collector",
+            "aptl-tempo",
+            "aptl-grafana-otel"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "conditions": [
+          "wazuh-manager-health"
+        ],
+        "features": [
+          "techvault-defensive-stack"
+        ],
+        "infrastructure": [
+          "security-net",
+          "wazuh-manager",
+          "wazuh-indexer",
+          "wazuh-dashboard",
+          "aptl-otel-collector",
+          "aptl-tempo",
+          "aptl-grafana-otel"
+        ],
+        "nodes": [
+          "security-net",
+          "wazuh-manager",
+          "wazuh-indexer",
+          "wazuh-dashboard",
+          "aptl-otel-collector",
+          "aptl-tempo",
+          "aptl-grafana-otel"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

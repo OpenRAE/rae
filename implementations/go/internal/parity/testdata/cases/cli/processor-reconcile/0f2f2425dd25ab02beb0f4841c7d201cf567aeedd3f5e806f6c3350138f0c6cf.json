@@ -1,0 +1,68 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/initial-service-state.sdl.yaml",
+    "repo/examples/scenarios/initial-service-state.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/initial-service-state.sdl.yaml": "sha256:daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.mail",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.company-mail-readback",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.job-index-schema-readback",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.mail",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.content.company-mail",
+            "code": "provisioner.unsupported-service-materialization-profile",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.content.job-index-schema",
+            "code": "provisioner.unsupported-service-materialization-profile",
+            "domain": "provisioning",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "initial-service-state",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

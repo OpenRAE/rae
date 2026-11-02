@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/initial-service-state.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/initial-service-state.sdl.yaml": "sha256:daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7",
+    "setup.json": "sha256:bcecf5c6136223f259205f37f3f84409416f86d72404ab4e9301e4dafcb07c14"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

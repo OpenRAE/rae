@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:269280520e23cd9578822b39396a7de0d122ffad8edcad80ac995bd0fa2be3c3"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: fixture-family\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: ${payload_path}\nvariables:\n  payload_path:\n    type: string\n    allowed_values:\n    - /opt/a\n    - /opt/b\nvariation_points:\n  payload-path:\n    kind: parameter\n    target:\n      kind: variable\n      variable: payload_path\n    domain:\n      kind: enum\n      values:\n      - /opt/a\n      - /opt/b\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: fixture-family\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: ${payload_path}\nvariables:\n  payload_path:\n    type: string\n    allowed_values:\n    - /opt/a\n    - /opt/b\nvariation_points:\n  payload-path:\n    kind: parameter\n    target:\n      kind: variable\n      variable: payload_path\n    domain:\n      kind: enum\n      values:\n      - /opt/a\n      - /opt/b\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

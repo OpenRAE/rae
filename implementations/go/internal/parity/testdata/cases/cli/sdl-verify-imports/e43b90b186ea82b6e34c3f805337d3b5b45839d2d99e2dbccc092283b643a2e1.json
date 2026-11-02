@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml": "sha256:dab33c31c9202875d218833f39bd9e468a7f4604557a254ef584d442d91c3ab3"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

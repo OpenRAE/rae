@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/task/single-objective-task.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/task/single-objective-task.yaml": "sha256:70897db0ecbf0aff17be966feb6e7800b67ad18d8fdc64bbed9071741e1a9e03",
+    "setup.json": "sha256:9eb7aa92a8fc5743316f289d3906216be0688def02e8ad7381bc6f822e13e8d0"
+  },
+  "name": "examples/library/templates/task/single-objective-task.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/templates/task/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

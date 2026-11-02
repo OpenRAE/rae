@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:010825af0bc2e3bb20c15b5c0b5efe573b0a0a8caad3e9386cb51712c226a722"
+  },
+  "name": "regression/36f38bc9fb60676e4549f0f96a46cabeef00f55bd7036a09317b08072e581cef",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/host/runtime/software_components/0/refinements/0/purpose",
+              "range": {
+                "end": {
+                  "column": 36,
+                  "line": 42
+                },
+                "start": {
+                  "column": 20,
+                  "line": 42
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/host/runtime/software_components/0/refinements/0/purpose",
+            "range": {
+              "end": {
+                "column": 36,
+                "line": 42
+              },
+              "start": {
+                "column": 20,
+                "line": 42
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

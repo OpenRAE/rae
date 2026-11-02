@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:40c530ad89a9bfe1f4770182714122aa705f58011b7f9ccf2532065587cc0eda"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

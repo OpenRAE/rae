@@ -1,0 +1,115 @@
+{
+  "args": [],
+  "command": "sdl_scaffold",
+  "files": {
+    "arguments.json": "sha256:6166c13dd8cf02ef50aad26b0ea9c9346fb4f2fa92ee2348e14b3d549a7c6e28"
+  },
+  "name": "regression/24afd29d9e53f47c2d38bce5ed92cfa82a8f9d6a210f4ca02d994100ef83972e",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "description": "A new SDL scenario",
+          "features": {
+            "my-service": {
+              "source": "my-package",
+              "type": "Service"
+            }
+          },
+          "infrastructure": {
+            "net-switch": {
+              "count": 1,
+              "properties": {
+                "cidr": "10.0.0.0/24",
+                "gateway": "10.0.0.1"
+              }
+            },
+            "server-01": {
+              "count": 1,
+              "links": [
+                "net-switch"
+              ]
+            }
+          },
+          "name": "my-scenario",
+          "nodes": {
+            "net-switch": {
+              "description": "Main network",
+              "type": "Switch"
+            },
+            "server-01": {
+              "features": [
+                "my-service"
+              ],
+              "os": "linux",
+              "resources": {
+                "cpu": 1,
+                "ram": "2 GiB"
+              },
+              "services": [
+                {
+                  "name": "https",
+                  "port": 443
+                }
+              ],
+              "type": "compute"
+            }
+          }
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "description": "A new SDL scenario",
+        "features": {
+          "my-service": {
+            "source": "my-package",
+            "type": "Service"
+          }
+        },
+        "infrastructure": {
+          "net-switch": {
+            "count": 1,
+            "properties": {
+              "cidr": "10.0.0.0/24",
+              "gateway": "10.0.0.1"
+            }
+          },
+          "server-01": {
+            "count": 1,
+            "links": [
+              "net-switch"
+            ]
+          }
+        },
+        "name": "my-scenario",
+        "nodes": {
+          "net-switch": {
+            "description": "Main network",
+            "type": "Switch"
+          },
+          "server-01": {
+            "features": [
+              "my-service"
+            ],
+            "os": "linux",
+            "resources": {
+              "cpu": 1,
+              "ram": "2 GiB"
+            },
+            "services": [
+              {
+                "name": "https",
+                "port": 443
+              }
+            ],
+            "type": "compute"
+          }
+        }
+      }
+    }
+  },
+  "surface": "mcp"
+}

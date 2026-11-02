@@ -1,0 +1,383 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:a931818b8c3ac831194e8fc1a99c1e8c078141d90e5d5e06d4bc37ce584b6f54"
+  },
+  "name": "examples/library/patterns/observable-study-conditions.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "pattern: raes-library-pattern\nversion: 1\nid: observable-study-conditions\nsurface: study\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/decisions/adrs/adr-073-scoring-reward-language-scope.md\nsummary: Represent study-style examples through propositions, assertions, and explicit\n  probe bindings while keeping graded scoring in the experiment/evaluator plane.\nintent: 'Make study-like examples reusable by connecting participant activity to backend-neutral\n  propositions, assertions, evidence requirements, and workflow protocol. Graded scoring,\n  reward, and interpretation live in the experiment/evaluator plane (experiment-*\n  contracts) per ADR-073, not in the SDL.\n\n  '\nuse_when:\n- A study needs a repeatable, observable definition of participant success.\n- Reviewers need to see how evidence and a probe binding support an asserted proposition.\nauthoring_steps:\n- Define a typed proposition with grounded property semantics and finite subjects.\n- Declare the evidence requirement needed for observed-state truth.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Reference a postcondition or invariant assertion from objective success.\n- Drive the objective from a workflow protocol step.\n- Carry any graded scoring or reward in the experiment/evaluator plane, not the SDL.\nvalidation:\n- command: parse_sdl_file\n  expected: proposition, assertion, evidence, objective, and workflow references resolve\n    with no removed scoring surfaces.\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/pattern",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 1
+                },
+                "start": {
+                  "column": 10,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 15,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 81,
+                  "line": 11
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/intent",
+              "range": {
+                "end": {
+                  "column": 4,
+                  "line": 17
+                },
+                "start": {
+                  "column": 9,
+                  "line": 12
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/use_when",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 21
+                },
+                "start": {
+                  "column": 1,
+                  "line": 19
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/authoring_steps",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 28
+                },
+                "start": {
+                  "column": 1,
+                  "line": 22
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 32
+                },
+                "start": {
+                  "column": 1,
+                  "line": 29
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "pattern: raes-library-pattern\nversion: 1\nid: observable-study-conditions\nsurface: study\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/decisions/adrs/adr-073-scoring-reward-language-scope.md\nsummary: Represent study-style examples through propositions, assertions, and explicit\n  probe bindings while keeping graded scoring in the experiment/evaluator plane.\nintent: 'Make study-like examples reusable by connecting participant activity to backend-neutral\n  propositions, assertions, evidence requirements, and workflow protocol. Graded scoring,\n  reward, and interpretation live in the experiment/evaluator plane (experiment-*\n  contracts) per ADR-073, not in the SDL.\n\n  '\nuse_when:\n- A study needs a repeatable, observable definition of participant success.\n- Reviewers need to see how evidence and a probe binding support an asserted proposition.\nauthoring_steps:\n- Define a typed proposition with grounded property semantics and finite subjects.\n- Declare the evidence requirement needed for observed-state truth.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Reference a postcondition or invariant assertion from objective success.\n- Drive the objective from a workflow protocol step.\n- Carry any graded scoring or reward in the experiment/evaluator plane, not the SDL.\nvalidation:\n- command: parse_sdl_file\n  expected: proposition, assertion, evidence, objective, and workflow references resolve\n    with no removed scoring surfaces.\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/pattern",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 1
+              },
+              "start": {
+                "column": 10,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 15,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 81,
+                "line": 11
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/intent",
+            "range": {
+              "end": {
+                "column": 4,
+                "line": 17
+              },
+              "start": {
+                "column": 9,
+                "line": 12
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/use_when",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 21
+              },
+              "start": {
+                "column": 1,
+                "line": 19
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/authoring_steps",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 28
+              },
+              "start": {
+                "column": 1,
+                "line": 22
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 32
+              },
+              "start": {
+                "column": 1,
+                "line": 29
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

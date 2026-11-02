@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:efef40df52abbc579247752317144608260e9fcad0518adc35e704cd93c1aea0"
+  },
+  "name": "regression/c7e480f64c6eb044d6bf5cbb99f6e0b836a5fa2e879977f95524e54e69064384",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "yicfl1awahr",
+                "yicfl1awahr"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/yicfl1awahr",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'yicfl1awahr'.",
+                  "range": {
+                    "end": {
+                      "column": 14,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "yicfl1awahr",
+              "yicfl1awahr"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/yicfl1awahr",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'yicfl1awahr'.",
+                "range": {
+                  "end": {
+                    "column": 14,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

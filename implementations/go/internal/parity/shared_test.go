@@ -3,8 +3,6 @@ package parity
 import (
 	"encoding/json"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestSharedRunnerDistinguishesMalformedCasesFromPrimitiveRefusals(t *testing.T) {
@@ -40,7 +38,7 @@ func TestSharedRunnerDistinguishesMalformedCasesFromPrimitiveRefusals(t *testing
 		if err != nil {
 			t.Fatalf("shared(%s) error = %v", test.request, err)
 		}
-		if cmp.Diff(decode(t, json.RawMessage(test.want)), decode(t, got)) != "" {
+		if diff, failure := compareResults(json.RawMessage(test.want), got); failure != nil || diff != "" {
 			t.Errorf("shared(%s) = %s, want %s", test.request, got, test.want)
 		}
 	}

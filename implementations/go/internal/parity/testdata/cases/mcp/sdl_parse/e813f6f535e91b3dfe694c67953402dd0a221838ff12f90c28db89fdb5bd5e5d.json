@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:325d2db56ecfcaecc9a63b67864ec4ad6bab11aecb187fe1b75799d68e03dfd9"
+  },
+  "name": "regression/8734f6e54f79f607af06dc94cc01019db5ac3cece3d1f9d5de7bb114ceeef046",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "nice-challenge-17",
+            "populated_sections": {
+              "entities": 2,
+              "features": 7,
+              "infrastructure": 10,
+              "nodes": 10,
+              "relationships": 2
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "nice-challenge-17",
+          "populated_sections": {
+            "entities": 2,
+            "features": 7,
+            "infrastructure": 10,
+            "nodes": 10,
+            "relationships": 2
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

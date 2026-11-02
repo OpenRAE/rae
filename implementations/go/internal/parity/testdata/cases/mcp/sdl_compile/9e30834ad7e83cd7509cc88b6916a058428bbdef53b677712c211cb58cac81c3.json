@@ -1,0 +1,171 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:7a3bf97a17932d905c499116ad02c5dc0a1a25acc1f16088de0c407495b15124"
+  },
+  "name": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 17,
+                "objectives": 5
+              },
+              "orchestration": {
+                "events": 3,
+                "inject_bindings": 0,
+                "injects": 3,
+                "scripts": 3,
+                "stories": 1,
+                "workflows": 1
+              },
+              "participant": {
+                "action_contracts": 12,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 3
+              },
+              "provisioning": {
+                "account_placements": 7,
+                "content_placements": 5,
+                "feature_bindings": 12,
+                "networks": 8,
+                "nodes": 13
+              }
+            },
+            "metadata": {
+              "agents": 3,
+              "capability_constraints": 0,
+              "entities": 8,
+              "relationships": 7
+            },
+            "templates": {
+              "conditions": 17,
+              "features": 12,
+              "injects": 3
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "port-authority-surge-response"
+          },
+          "source_diagnostics": [],
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            }
+          ],
+          "status": "compiled"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 17,
+              "objectives": 5
+            },
+            "orchestration": {
+              "events": 3,
+              "inject_bindings": 0,
+              "injects": 3,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "participant": {
+              "action_contracts": 12,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 3
+            },
+            "provisioning": {
+              "account_placements": 7,
+              "content_placements": 5,
+              "feature_bindings": 12,
+              "networks": 8,
+              "nodes": 13
+            }
+          },
+          "metadata": {
+            "agents": 3,
+            "capability_constraints": 0,
+            "entities": 8,
+            "relationships": 7
+          },
+          "templates": {
+            "conditions": 17,
+            "features": 12,
+            "injects": 3
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "port-authority-surge-response"
+        },
+        "source_diagnostics": [],
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          }
+        ],
+        "status": "compiled"
+      }
+    }
+  },
+  "surface": "mcp"
+}

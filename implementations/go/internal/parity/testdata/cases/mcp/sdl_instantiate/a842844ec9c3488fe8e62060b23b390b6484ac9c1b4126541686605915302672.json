@@ -1,0 +1,37 @@
+{
+  "args": [],
+  "command": "sdl_instantiate",
+  "files": {
+    "arguments.json": "sha256:7bec7f7d9a55ac98345aea337a4ade21705bcd8bc12bab0208e9516f017c784c"
+  },
+  "name": "examples/scenarios/techvault.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "INSTANTIATION ERRORS (5)": [
+            "Variable 'app_py_sha256' is required and has no provided value or default.",
+            "Variable 'requirements_sha256' is required and has no provided value or default.",
+            "Variable 'style_css_sha256' is required and has no provided value or default.",
+            "Variable 'webapp_conf_sha256' is required and has no provided value or default.",
+            "Variable 'wazuh_conf_sha256' is required and has no provided value or default."
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "INSTANTIATION ERRORS (5)": [
+          "Variable 'app_py_sha256' is required and has no provided value or default.",
+          "Variable 'requirements_sha256' is required and has no provided value or default.",
+          "Variable 'style_css_sha256' is required and has no provided value or default.",
+          "Variable 'webapp_conf_sha256' is required and has no provided value or default.",
+          "Variable 'wazuh_conf_sha256' is required and has no provided value or default."
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

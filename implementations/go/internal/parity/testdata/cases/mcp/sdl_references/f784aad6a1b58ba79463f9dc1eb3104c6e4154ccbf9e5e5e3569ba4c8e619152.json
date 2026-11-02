@@ -1,0 +1,231 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:c06547358c7d971f42949e0bd66f883a04464461ddd3ba6f1ba4e5b5d56125dd"
+  },
+  "name": "examples/library/templates/study/two-condition-study-design.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "guidance-level",
+                "guidance_level"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/body/factors/guidance_level",
+              "range": {
+                "end": {
+                  "column": 19,
+                  "line": 26
+                },
+                "start": {
+                  "column": 5,
+                  "line": 26
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "cond-baseline",
+                "cond_baseline"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/body/run_plan/allocation/condition_assignments/cond_baseline",
+              "range": {
+                "end": {
+                  "column": 22,
+                  "line": 45
+                },
+                "start": {
+                  "column": 9,
+                  "line": 45
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "guidance-level",
+                "guidance_level"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/body/run_plan/allocation/condition_assignments/cond_baseline/factor_levels/guidance_level",
+              "range": {
+                "end": {
+                  "column": 27,
+                  "line": 48
+                },
+                "start": {
+                  "column": 13,
+                  "line": 48
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "cond-with-hints",
+                "cond_with_hints"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/body/run_plan/allocation/condition_assignments/cond_with_hints",
+              "range": {
+                "end": {
+                  "column": 24,
+                  "line": 53
+                },
+                "start": {
+                  "column": 9,
+                  "line": 53
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "guidance-level",
+                "guidance_level"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/body/run_plan/allocation/condition_assignments/cond_with_hints/factor_levels/guidance_level",
+              "range": {
+                "end": {
+                  "column": 27,
+                  "line": 56
+                },
+                "start": {
+                  "column": 13,
+                  "line": 56
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "guidance-level",
+              "guidance_level"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/body/factors/guidance_level",
+            "range": {
+              "end": {
+                "column": 19,
+                "line": 26
+              },
+              "start": {
+                "column": 5,
+                "line": 26
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "cond-baseline",
+              "cond_baseline"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/body/run_plan/allocation/condition_assignments/cond_baseline",
+            "range": {
+              "end": {
+                "column": 22,
+                "line": 45
+              },
+              "start": {
+                "column": 9,
+                "line": 45
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "guidance-level",
+              "guidance_level"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/body/run_plan/allocation/condition_assignments/cond_baseline/factor_levels/guidance_level",
+            "range": {
+              "end": {
+                "column": 27,
+                "line": 48
+              },
+              "start": {
+                "column": 13,
+                "line": 48
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "cond-with-hints",
+              "cond_with_hints"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/body/run_plan/allocation/condition_assignments/cond_with_hints",
+            "range": {
+              "end": {
+                "column": 24,
+                "line": 53
+              },
+              "start": {
+                "column": 9,
+                "line": 53
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "guidance-level",
+              "guidance_level"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/body/run_plan/allocation/condition_assignments/cond_with_hints/factor_levels/guidance_level",
+            "range": {
+              "end": {
+                "column": 27,
+                "line": 56
+              },
+              "start": {
+                "column": 13,
+                "line": 56
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

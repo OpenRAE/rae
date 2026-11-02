@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:5b28df752af26987238312d3834ecd6bbee74d61692389d4cbc6b3757dc746d0"
+  },
+  "name": "regression/29d35a69e388176c87ae796ffca3349e4e033eaf08563cc97c1ed4dbc92ff1a8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.identifier.invalid",
+              "path": "/forwarding_agents/0/forwarding_agent_id",
+              "range": {
+                "end": {
+                  "column": 34,
+                  "line": 3
+                },
+                "start": {
+                  "column": 26,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.identifier.invalid",
+            "path": "/forwarding_agents/0/forwarding_agent_id",
+            "range": {
+              "end": {
+                "column": 34,
+                "line": 3
+              },
+              "start": {
+                "column": 26,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

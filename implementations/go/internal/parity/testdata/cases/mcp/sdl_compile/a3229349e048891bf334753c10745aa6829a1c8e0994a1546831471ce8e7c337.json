@@ -1,0 +1,171 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:309e2604b74a92bcdd40f17046396690ea3e375b819bfa9f5c2f06cc4eeba1eb"
+  },
+  "name": "regression/fb496d91d4abdd31a85ed701e8a8298e722ece64213b1239442f18fe7a2983d8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 1,
+                "objectives": 1
+              },
+              "orchestration": {
+                "events": 1,
+                "inject_bindings": 0,
+                "injects": 1,
+                "scripts": 1,
+                "stories": 1,
+                "workflows": 1
+              },
+              "participant": {
+                "action_contracts": 1,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 1
+              },
+              "provisioning": {
+                "account_placements": 1,
+                "content_placements": 1,
+                "feature_bindings": 2,
+                "networks": 1,
+                "nodes": 2
+              }
+            },
+            "metadata": {
+              "agents": 1,
+              "capability_constraints": 0,
+              "entities": 3,
+              "relationships": 1
+            },
+            "templates": {
+              "conditions": 1,
+              "features": 2,
+              "injects": 1
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 1,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "mcp-test"
+          },
+          "source_diagnostics": [],
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            }
+          ],
+          "status": "compiled"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 1,
+              "objectives": 1
+            },
+            "orchestration": {
+              "events": 1,
+              "inject_bindings": 0,
+              "injects": 1,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            },
+            "participant": {
+              "action_contracts": 1,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 1
+            },
+            "provisioning": {
+              "account_placements": 1,
+              "content_placements": 1,
+              "feature_bindings": 2,
+              "networks": 1,
+              "nodes": 2
+            }
+          },
+          "metadata": {
+            "agents": 1,
+            "capability_constraints": 0,
+            "entities": 3,
+            "relationships": 1
+          },
+          "templates": {
+            "conditions": 1,
+            "features": 2,
+            "injects": 1
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 1,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "mcp-test"
+        },
+        "source_diagnostics": [],
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          }
+        ],
+        "status": "compiled"
+      }
+    }
+  },
+  "surface": "mcp"
+}

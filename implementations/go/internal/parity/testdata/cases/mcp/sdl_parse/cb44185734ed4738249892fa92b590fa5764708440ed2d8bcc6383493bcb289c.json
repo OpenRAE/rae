@@ -1,0 +1,51 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:2aa619fdf622a8ddebecf90454afd3e93cd18df843550ce00481de9bd6b676ac"
+  },
+  "name": "regression/9b31804fa8787982da156e8a29c6a21d94c2c276a1bf4af6f0f2a6a680cbd63a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "techvault-attacker-target",
+            "populated_sections": {
+              "conditions": 1,
+              "infrastructure": 11,
+              "nodes": 11
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "techvault-attacker-target",
+          "populated_sections": {
+            "conditions": 1,
+            "infrastructure": 11,
+            "nodes": 11
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

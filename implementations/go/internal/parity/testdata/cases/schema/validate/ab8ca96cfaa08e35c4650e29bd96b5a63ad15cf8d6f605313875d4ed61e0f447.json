@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-lifecycle-event-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c7fe123c9db587780f0b5842614485af13aa13cdd2e4742533253e2edfbc6a75"
+  },
+  "name": "regression/11beea0231ad6d51e9972ce04a8b52fa2e4d1af666e8079864d7d284f9d5b8d6",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

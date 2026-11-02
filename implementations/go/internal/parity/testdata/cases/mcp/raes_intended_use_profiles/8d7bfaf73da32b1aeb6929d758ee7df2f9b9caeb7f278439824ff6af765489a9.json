@@ -1,0 +1,69 @@
+{
+  "args": [],
+  "command": "raes_intended_use_profiles",
+  "files": {
+    "arguments.json": "sha256:7a5bb2bb7d869a8fca997244a1fe07b19eb301591ca4162166ed1d24dcdbde02"
+  },
+  "name": "regression/04b255ad42f4382a682abd9e2f5c19af9ced37869bc9cd02a3e47b5e851745ce",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "assessed_on": "2026-10-31",
+          "assessment_revision": "2026-10-31",
+          "diagnostics": [
+            {
+              "available_profile_ids": [
+                "valid-sdl-fragment",
+                "deployable-scenario-intent",
+                "participant-evaluation-scenario",
+                "controlled-experiment-scenario",
+                "reproducible-benchmark-study-input"
+              ],
+              "code": "raes.intended_use_profile.unknown"
+            }
+          ],
+          "profile_family": "scientific-scenario-completeness",
+          "scenario_assessment": {
+            "performed": false,
+            "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+            "status": "not-assessed"
+          },
+          "scope": "raes-delivery-capability",
+          "status": "invalid",
+          "taxonomy_revision": "rev1"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "assessed_on": "2026-10-31",
+        "assessment_revision": "2026-10-31",
+        "diagnostics": [
+          {
+            "available_profile_ids": [
+              "valid-sdl-fragment",
+              "deployable-scenario-intent",
+              "participant-evaluation-scenario",
+              "controlled-experiment-scenario",
+              "reproducible-benchmark-study-input"
+            ],
+            "code": "raes.intended_use_profile.unknown"
+          }
+        ],
+        "profile_family": "scientific-scenario-completeness",
+        "scenario_assessment": {
+          "performed": false,
+          "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+          "status": "not-assessed"
+        },
+        "scope": "raes-delivery-capability",
+        "status": "invalid",
+        "taxonomy_revision": "rev1"
+      }
+    }
+  },
+  "surface": "mcp"
+}

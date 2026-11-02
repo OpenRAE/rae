@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:ec0af8cc5d0000fc63e4947dedafbab698a014c4c92f72975621a70095378a7c"
+  },
+  "name": "regression/f7607360996fbed30ae3df17f116565b604d8efbe267400a3215ec7c56fee331",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/identity_domains/corp/netbios_name",
+              "range": {
+                "end": {
+                  "column": 42,
+                  "line": 7
+                },
+                "start": {
+                  "column": 19,
+                  "line": 7
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/identity_domains/corp/netbios_name",
+            "range": {
+              "end": {
+                "column": 42,
+                "line": 7
+              },
+              "start": {
+                "column": 19,
+                "line": 7
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

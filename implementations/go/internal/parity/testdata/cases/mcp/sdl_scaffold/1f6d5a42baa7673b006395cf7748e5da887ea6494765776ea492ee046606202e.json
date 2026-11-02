@@ -1,0 +1,115 @@
+{
+  "args": [],
+  "command": "sdl_scaffold",
+  "files": {
+    "arguments.json": "sha256:40eeb3ae7049aff574e4bcc81300002767d1f925da840312ae8851a4fd00b40e"
+  },
+  "name": "regression/ef69d55b07783479beaf3678f40323c4fb2b90fa0f373f6fd67dc28c3156381b",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "description": "desc with {curly} braces",
+          "features": {
+            "my-service": {
+              "source": "my-package",
+              "type": "Service"
+            }
+          },
+          "infrastructure": {
+            "net-switch": {
+              "count": 1,
+              "properties": {
+                "cidr": "10.0.0.0/24",
+                "gateway": "10.0.0.1"
+              }
+            },
+            "server-01": {
+              "count": 1,
+              "links": [
+                "net-switch"
+              ]
+            }
+          },
+          "name": "test{oops}",
+          "nodes": {
+            "net-switch": {
+              "description": "Main network",
+              "type": "Switch"
+            },
+            "server-01": {
+              "features": [
+                "my-service"
+              ],
+              "os": "linux",
+              "resources": {
+                "cpu": 1,
+                "ram": "2 GiB"
+              },
+              "services": [
+                {
+                  "name": "https",
+                  "port": 443
+                }
+              ],
+              "type": "compute"
+            }
+          }
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "description": "desc with {curly} braces",
+        "features": {
+          "my-service": {
+            "source": "my-package",
+            "type": "Service"
+          }
+        },
+        "infrastructure": {
+          "net-switch": {
+            "count": 1,
+            "properties": {
+              "cidr": "10.0.0.0/24",
+              "gateway": "10.0.0.1"
+            }
+          },
+          "server-01": {
+            "count": 1,
+            "links": [
+              "net-switch"
+            ]
+          }
+        },
+        "name": "test{oops}",
+        "nodes": {
+          "net-switch": {
+            "description": "Main network",
+            "type": "Switch"
+          },
+          "server-01": {
+            "features": [
+              "my-service"
+            ],
+            "os": "linux",
+            "resources": {
+              "cpu": 1,
+              "ram": "2 GiB"
+            },
+            "services": [
+              {
+                "name": "https",
+                "port": 443
+              }
+            ],
+            "type": "compute"
+          }
+        }
+      }
+    }
+  },
+  "surface": "mcp"
+}

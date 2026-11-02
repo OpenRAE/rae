@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:67aab629ff80054089610adf6b54aa761aec25ac301623fc2e19060667b2552c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-opt-in-after.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

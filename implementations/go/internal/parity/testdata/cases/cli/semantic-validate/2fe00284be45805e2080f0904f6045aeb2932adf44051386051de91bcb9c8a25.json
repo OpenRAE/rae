@@ -1,0 +1,44 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "input/scenario.sdl.yaml",
+    "--contract",
+    "unknown-contract-v1",
+    "--output",
+    "json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input/scenario.sdl.yaml": "sha256:548e11291b4465d226010a325fa37d738a80e49a678d28cca8fe55615a111d95"
+  },
+  "name": "regression/9caa15c645b88653df70530d6ee93e0784939267ab91d05a96ba3a94bf665217",
+  "result": {
+    "exit_code": 2,
+    "stdout": {
+      "contract_id": null,
+      "diagnostics": [
+        {
+          "address": "",
+          "code": "cli.selector",
+          "domain": "cli",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "usage",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

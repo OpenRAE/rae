@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/techvault-enterprise-web.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/techvault-enterprise-web.sdl.yaml": "sha256:ad6b7716b393b23a64fa82700ef0d2b8d6d28c8347bee48e7f761c4c16791883",
+    "setup.json": "sha256:01224a1ea17f49acb85628803d1e2b8383b54c225a361e3344be97dbf8a8f4aa"
+  },
+  "name": "examples/scenarios/techvault-enterprise-web.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

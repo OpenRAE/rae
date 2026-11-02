@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml": "sha256:f7b3b6013ba94dc5be7a1cf04ecc8df84f01a8c48775280a3e717db3079b2907",
+    "setup.json": "sha256:a75fbaafeaad59e592d6101062bd1d86ed4b6b24cd216bc02bf33e6d76abbb35"
+  },
+  "name": "examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/templates/participant_behavior/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

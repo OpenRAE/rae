@@ -1,0 +1,14 @@
+{
+  "args": [
+    "w3c-activitystreams-activity-types-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:335148ceafa0b7cb9812b7a3fa1038aba5a3803405da3b131098c5145843b5cf"
+  },
+  "name": "regression/2ec31769ecaad61888902c50b102ed0e2db72a9bcca5545ee86ba58ced9098c1",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

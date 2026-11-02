@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/family.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/family.yaml": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

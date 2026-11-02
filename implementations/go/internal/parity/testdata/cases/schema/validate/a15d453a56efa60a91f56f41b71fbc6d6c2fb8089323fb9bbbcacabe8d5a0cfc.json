@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-resource-budget-state-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:67ff2a5e81d02f5703e6cf53f261be08ff65ba9fa2bc167ff57dd61834d4fa5d"
+  },
+  "name": "participant-resource-budget-state-v1/routed/contracts/fixtures/participant-runtime/participant-resource-budget-state-v1/valid/token-budget-state.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

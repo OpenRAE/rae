@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_section_reference",
+  "files": {
+    "arguments.json": "sha256:f5f5bd499a9390a1331082e1dc8e47d9b1e8b0d861accd598b3bcfae73bac414"
+  },
+  "name": "regression/d5559d168d6c0ed88cf62d313cfd2b67a5baa9ca5fecef80f787d3a50b4df78f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Unknown section 'nonexistent'. Valid names": "accounts, action_contracts, agents, assertions, behavior_specifications, conditions, content, entities, events, evidence_requirements, features, forwarding_agents, infrastructure, injects, nodes, objectives, observation_boundaries, orchestration, outcome_interpretation_rules, propositions, relationships, scripts, stories, variables, workflows"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Unknown section 'nonexistent'. Valid names": "accounts, action_contracts, agents, assertions, behavior_specifications, conditions, content, entities, events, evidence_requirements, features, forwarding_agents, infrastructure, injects, nodes, objectives, observation_boundaries, orchestration, outcome_interpretation_rules, propositions, relationships, scripts, stories, variables, workflows"
+      }
+    }
+  },
+  "surface": "mcp"
+}

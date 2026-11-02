@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-control-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:d63206fa1c8fc9f1a6c36d11fc9a6a5c3bf3cefb141d4a2f9bb136c45e2c7b7e"
+  },
+  "name": "backend-operation-control-v1/routed/contracts/fixtures/control-plane/backend-operation-control-v1/valid/uncertain-01.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

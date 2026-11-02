@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:dc5f15595e06b22b9a79182c1d2b87948e456d70525702b62e3051730d4ec10b"
+  },
+  "name": "examples/scenarios/reconciliation-demo-v2.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "assertions.health -> health assertions.pre-health -> health events.kickoff -> pre-health infrastructure.cache -> lab infrastructure.database -> lab infrastructure.web -> lab nodes.database -> health nodes.web -> health objectives.initial -> blue, health propositions.health -> nodes.web scripts.timeline -> kickoff"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "assertions.health -> health assertions.pre-health -> health events.kickoff -> pre-health infrastructure.cache -> lab infrastructure.database -> lab infrastructure.web -> lab nodes.database -> health nodes.web -> health objectives.initial -> blue, health propositions.health -> nodes.web scripts.timeline -> kickoff"
+      }
+    }
+  },
+  "surface": "mcp"
+}

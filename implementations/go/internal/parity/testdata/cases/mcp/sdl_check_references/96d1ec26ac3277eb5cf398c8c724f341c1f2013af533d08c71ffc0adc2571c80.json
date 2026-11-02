@@ -1,0 +1,27 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:67619c7f2f7f005d69252c09dd87bbb1c6dbd3db85d142874be843a35f5b539d"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/invalid/unpinned-key.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "PARSE ERROR": null,
+          "SDL model validation failed at /nodes/manager/runtime/packages/0/repository/apt/signing_key/digest": "Field required"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "PARSE ERROR": null,
+        "SDL model validation failed at /nodes/manager/runtime/packages/0/repository/apt/signing_key/digest": "Field required"
+      }
+    }
+  },
+  "surface": "mcp"
+}

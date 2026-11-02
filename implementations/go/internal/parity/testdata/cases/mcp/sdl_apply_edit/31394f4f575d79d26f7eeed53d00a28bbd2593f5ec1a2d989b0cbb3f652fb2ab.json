@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:4b3c523ac41e7c4f9ffb00625129396ccd324382962348ea2fd1f468a8ad1710"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\ndescription: 'yes'\nnodes:\n  'on':\n    type: switch\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\ndescription: 'yes'\nnodes:\n  'on':\n    type: switch\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

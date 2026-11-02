@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/scenario/parameterized-scenario.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/scenario/parameterized-scenario.yaml": "sha256:23691bae33a8aa6b85e109755f8462d048b93c43dd9ada34b80954137dee51cb",
+    "setup.json": "sha256:cbfb8893b5734d3c90d3792e1d0b38ece6db3a7b9dbefb4cec1ae961c1d7748f"
+  },
+  "name": "examples/library/templates/scenario/parameterized-scenario.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/templates/scenario/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

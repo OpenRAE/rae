@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-resource-budget-event-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ebaa0260ca520654245420928f55b03c8bc903589d71e9750f36601d4df031dc"
+  },
+  "name": "regression/fc0d0c1de06168fc064087355691be8c03a63df58375ed8a64f30307fb425eb8",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

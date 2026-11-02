@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:0dccf387bb47a9f99d317898b9504c44e508473d66c7c3875a985d329206bd68"
+  },
+  "name": "regression/f56ff2f545bf0167bb4e6de1e7c246548c5a22ff2216ed98a91be3351c147ae7",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "metasploitable-2",
+            "populated_sections": {
+              "accounts": 3,
+              "entities": 1,
+              "features": 11,
+              "infrastructure": 3,
+              "nodes": 3
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "metasploitable-2",
+          "populated_sections": {
+            "accounts": 3,
+            "entities": 1,
+            "features": 11,
+            "infrastructure": 3,
+            "nodes": 3
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

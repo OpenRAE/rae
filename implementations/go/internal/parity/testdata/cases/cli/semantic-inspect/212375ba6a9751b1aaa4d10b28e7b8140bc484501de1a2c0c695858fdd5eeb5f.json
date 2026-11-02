@@ -1,0 +1,69 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "input/scenario.sdl.yaml",
+    "--contract",
+    "sdl-yaml/v1",
+    "--output",
+    "json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input/scenario.sdl.yaml": "sha256:548e11291b4465d226010a325fa37d738a80e49a678d28cca8fe55615a111d95"
+  },
+  "name": "regression/db3838bc26a6d285e2920902f6026686f4f7407878d55d92929e9ac1bca76851",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 2,
+        "declarations": [
+          {
+            "address": "nodes.network",
+            "kind": "node",
+            "model_path": "nodes.network",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.semantic-cli",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "semantic-cli",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

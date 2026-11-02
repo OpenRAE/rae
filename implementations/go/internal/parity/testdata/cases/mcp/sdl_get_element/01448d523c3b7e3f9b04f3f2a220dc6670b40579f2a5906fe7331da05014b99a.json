@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:fb6b7ce036a708192552c90c59da8301a00cc251858570e43121642a1c3663b4"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/anchors.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

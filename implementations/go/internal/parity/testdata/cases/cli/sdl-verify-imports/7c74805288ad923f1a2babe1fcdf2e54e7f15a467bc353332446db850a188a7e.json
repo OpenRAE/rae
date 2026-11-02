@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/catalog.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/catalog.yaml": "sha256:4d93f9fae12ecebc06caa12273a9d332af578d1911cee1cbf4045e7842d80cc5"
+  },
+  "name": "examples/library/catalog.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

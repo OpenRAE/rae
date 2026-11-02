@@ -1,0 +1,83 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "sha256:3cc2cbed579f8f003c7eb67647b26767e7c95a6f33fe9c24639f9b66cd1894f0"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 13,
+        "reference_bindings": {
+          "infrastructure.worker": [
+            "infrastructure.worker"
+          ],
+          "nodes.worker": [
+            "nodes.worker"
+          ],
+          "nodes.worker.runtime.scheduled_jobs.baseline": [
+            "nodes.worker.runtime.scheduled_jobs.baseline"
+          ],
+          "nodes.worker.runtime.scheduled_jobs.extra": [
+            "nodes.worker.runtime.scheduled_jobs.extra"
+          ],
+          "variation_points.worker-state": [
+            "variation_points.worker-state"
+          ],
+          "variation_points.worker-state.alternatives.absent": [
+            "variation_points.worker-state.alternatives.absent"
+          ],
+          "variation_points.worker-state.alternatives.baseline": [
+            "variation_points.worker-state.alternatives.baseline"
+          ],
+          "variation_points.worker-state.alternatives.complete": [
+            "variation_points.worker-state.alternatives.complete"
+          ],
+          "worker": [
+            "nodes.worker"
+          ],
+          "worker-state": [
+            "variation_points.worker-state"
+          ],
+          "worker-state.absent": [
+            "variation_points.worker-state.alternatives.absent"
+          ],
+          "worker-state.baseline": [
+            "variation_points.worker-state.alternatives.baseline"
+          ],
+          "worker-state.complete": [
+            "variation_points.worker-state.alternatives.complete"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "node-inventory-family"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

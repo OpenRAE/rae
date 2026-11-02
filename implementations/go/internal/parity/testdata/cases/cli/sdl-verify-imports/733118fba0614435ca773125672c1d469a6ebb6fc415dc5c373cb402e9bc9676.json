@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/scenario/segmented-network-scenario.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/scenario/segmented-network-scenario.yaml": "sha256:658410a6622b34e310407e0a90258df7545b83bfa421f0dae2d43486d175c905"
+  },
+  "name": "examples/library/templates/scenario/segmented-network-scenario.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -8,6 +8,24 @@ from pathlib import Path
 import pytest
 from tools import parity_corpus as pc
 
+REAL_PROVENANCE = pc.provenance
+
+PROVENANCE = {
+    "python_commit": "a" * 40,
+    "python_tree": "b" * 40,
+    "recorder_sha256": "c" * 64,
+    "python_version": "3.14.7",
+    "unicode_version": "16.0.0",
+    "hash_seed": "0",
+    "lock_sha256": "d" * 64,
+}
+
+
+@pytest.fixture(autouse=True)
+def fixed_provenance(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(pc, "provenance", lambda repo: PROVENANCE)
+
+
 SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -28,10 +46,6 @@ def repo(tmp_path: Path) -> Path:
     _write(
         tmp_path,
         {
-            "tools/parity_corpus.py": "# recorder fixture\n",
-            "implementations/python/packages/reference.py": "# reference fixture\n",
-            "implementations/python/pyproject.toml": "# environment fixture\n",
-            "implementations/python/uv.lock": "# lock fixture\n",
             "examples/scenarios/minimal.sdl.yaml": "name: minimal\n",
             "examples/scenarios/broken.sdl.yaml": "name: [\n",
             "contracts/fixtures/sdl/sdl-yaml-v1/valid/core.yaml": "name: core\n",
@@ -155,14 +169,62 @@ def test_check_reports_drift(repo: Path) -> None:
 
 def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.MonkeyPatch, capsys) -> None:
     monkeypatch.setattr(pc, "supported_contracts", lambda: ["demo-v1"])
+    monkeypatch.setattr(pc, "all_cases", lambda root: list(pc.schema_cases(root)))
+    from tools import parity_regressions
+
+    monkeypatch.setattr(parity_regressions, "source_identity", lambda root: None)
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err
-    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode(pc.manifest_document(repo))
+    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode({"schema": pc.SCHEMA, "provenance": PROVENANCE})
 
     assert pc.main(["record", "--repo-root", str(repo)]) == 0
     assert pc.main(["check", "--repo-root", str(repo)]) == 0
     assert "files match" in capsys.readouterr().out
+
+
+def test_duplicate_case_cannot_overwrite_a_recording(repo: Path) -> None:
+    case = next(pc.schema_cases(repo))
+    with pytest.raises(ValueError, match="duplicate corpus case"):
+        pc.build_corpus(repo, [case, case])
+
+
+def test_provenance_identifies_the_python_source_and_locked_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("PYTHONHASHSEED", "0")
+    _write(tmp_path, {"implementations/python/uv.lock": "locked environment"})
+    values = iter(["a" * 40, "b" * 40, "b" * 40])
+    commands = []
+
+    def git_output(command: list[str], *, text: bool) -> str:
+        assert text is True
+        commands.append(command)
+        return next(values)
+
+    monkeypatch.setattr(pc.subprocess, "check_output", git_output)
+    result = REAL_PROVENANCE(tmp_path)
+    source = "implementations/python/packages"
+    assert commands == [
+        ["git", "-C", str(tmp_path), "log", "-1", "--format=%H", "--", source],
+        ["git", "-C", str(tmp_path), "rev-parse", "a" * 40 + ":" + source],
+        ["git", "-C", str(tmp_path), "rev-parse", "HEAD:" + source],
+    ]
+    assert result["python_commit"] == "a" * 40
+    assert result["python_tree"] == "b" * 40
+    assert result["recorder_sha256"] == pc.digest(
+        pc.encode(
+            {path.name: pc.digest(path.read_bytes()) for path in sorted(Path(pc.__file__).parent.glob("parity_*.py"))}
+        )
+    )
+    assert result["lock_sha256"] == pc.digest(b"locked environment")
+    assert result["python_version"] == ".".join(map(str, pc.sys.version_info[:3]))
+    assert result["unicode_version"] == pc.unicodedata.unidata_version
+    assert result["hash_seed"] == "0"
+
+    values = iter(["a" * 40, "b" * 40, "c" * 40])
+    with pytest.raises(ValueError, match="does not identify the current Python tree"):
+        REAL_PROVENANCE(tmp_path)
 
 
 def test_canonical_cases_cover_each_json_fixture_and_each_edge_input(repo: Path) -> None:
@@ -195,35 +257,6 @@ def test_canonical_results_record_each_form_or_its_refusal() -> None:
     }
     for refused in ("NaN", "1e400", "[1] 2", "9" * 4301):
         assert result(refused) == {"jcs": None, "sorted_ascii": None, "sorted_unicode": None}
-
-
-def test_ascii_surrogate_compatibility_is_recorded() -> None:
-    for text in (
-        r'"\ud800"',
-        r'"\uDFFF"',
-        r'{"\ud800":1,"\ufffd":2,"\ud800":3,"😀":4,"\ue000":5}',
-    ):
-        case = pc.Case("canonical", "encode", "surrogate", (), {"value.json": text.encode()})
-        result = pc.run_canonical(case)
-        expected = json.dumps(json.loads(text), sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
-        assert result == {"jcs": None, "sorted_ascii": "sha256:" + pc.digest(expected), "sorted_unicode": None}
-        assert text in pc.CANONICAL_EDGE_TEXTS
-
-
-def test_manifest_binds_reference_recorder_and_environment(repo: Path) -> None:
-    before = pc.manifest_document(repo)
-    for name, field in (
-        ("implementations/python/packages/reference.py", "source_sha256"),
-        ("tools/parity_corpus.py", "recorder_sha256"),
-        ("implementations/python/uv.lock", "environment_sha256"),
-    ):
-        path = repo / name
-        original = path.read_bytes()
-        path.write_bytes(original + b"# changed\n")
-        after = pc.manifest_document(repo)
-        assert after["reference"][field] != before["reference"][field]
-        assert {key for key in before["reference"] if before["reference"][key] != after["reference"][key]} == {field}
-        path.write_bytes(original)
 
 
 def test_randstream_cases_reproduce_each_published_vector() -> None:
@@ -276,6 +309,40 @@ def test_primitive_corpus_records_reference_results_and_all_commands() -> None:
     }
     uri_codes = {pc.run_primitive(case)["code"] for case in cases if case.command == "uri"}
     assert uri_codes == {"", "absolute", "invalid", "scheme", "credentials", "fragment", "secret"}
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b'{"name":"valid","extra":NaN}',
+        b'{"name":"valid","extra":Infinity}',
+        b'{"name":"valid","extra":-Infinity}',
+        '{"name":"valid"}'.encode("utf-16"),
+    ],
+)
+def test_schema_recording_rejects_non_json_constants_and_non_utf8_wire_payloads(repo: Path, payload: bytes) -> None:
+    case = pc.Case("schema", "validate", "wire-format", ("demo-v1",), {"payload.json": payload})
+    assert pc.run_schema(repo, case) == {"valid": False}
+
+
+def test_recording_failure_identifies_the_case_without_printing_input_values(repo: Path, monkeypatch, capsys) -> None:
+    case = pc.Case("cli", "sdl publish", "reference-module", (), {})
+
+    def fail(*args):
+        raise RuntimeError("private input sentinel")
+
+    monkeypatch.setattr(pc, "run", fail)
+    with pytest.raises(RuntimeError):
+        pc.build_corpus(repo, [case])
+    error = capsys.readouterr().err
+    assert "cli sdl publish (reference-module)" in error
+    assert "private input sentinel" not in error
+
+
+def test_provenance_requires_the_recording_hash_seed(repo: Path, monkeypatch) -> None:
+    monkeypatch.setenv("PYTHONHASHSEED", "random")
+    with pytest.raises(ValueError, match="PYTHONHASHSEED=0"):
+        REAL_PROVENANCE(repo)
 
 
 def test_shared_cases_cover_the_remaining_primitives_and_replay_the_reference() -> None:

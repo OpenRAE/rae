@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:46b9f04c1a8226b1504141d3e29f868692a8cc65f959e728e8d6cdc459de68ac"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "red-agent"
+          ],
+          "content": [
+            "answer-key"
+          ],
+          "entities": [
+            "red-team"
+          ],
+          "events": [
+            "environment-event"
+          ],
+          "injects": [
+            "environment-inject"
+          ],
+          "nodes": [
+            "web"
+          ],
+          "scripts": [
+            "environment-script"
+          ],
+          "stories": [
+            "environment-story"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "red-agent"
+        ],
+        "content": [
+          "answer-key"
+        ],
+        "entities": [
+          "red-team"
+        ],
+        "events": [
+          "environment-event"
+        ],
+        "injects": [
+          "environment-inject"
+        ],
+        "nodes": [
+          "web"
+        ],
+        "scripts": [
+          "environment-script"
+        ],
+        "stories": [
+          "environment-story"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

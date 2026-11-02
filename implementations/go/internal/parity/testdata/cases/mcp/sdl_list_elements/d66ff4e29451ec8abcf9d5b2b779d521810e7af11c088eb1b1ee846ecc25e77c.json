@@ -1,0 +1,43 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:05c8c1b5d5a5bbb0429f03617911a7491ca911206abe8c6d1798038a30cd8034"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": [
+            "payload"
+          ],
+          "nodes": [
+            "web",
+            "peer"
+          ],
+          "relationships": [
+            "loop"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": [
+          "payload"
+        ],
+        "nodes": [
+          "web",
+          "peer"
+        ],
+        "relationships": [
+          "loop"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

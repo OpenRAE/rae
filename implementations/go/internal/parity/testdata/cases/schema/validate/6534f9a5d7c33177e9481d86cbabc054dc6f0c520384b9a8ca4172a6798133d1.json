@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-history-view-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:71ad872695838ccd5f2a40bcfb73a0759fc1f99bfe0f892e6e8f780f0be75dbd"
+  },
+  "name": "regression/f531932254f62524a9d5a8c7271e2c85fedc3fd9875f437f54190474468bfa66",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

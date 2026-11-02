@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /workflows/{workflow_address}/cancel",
+  "files": {
+    "request.json": "sha256:90174fbe1f2d8313541d1b53949a737363b7ab56d101bfd36b52c132a8d3403e"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

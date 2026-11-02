@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:e249289a21a80d20e50c90122eda3e9343d58f48830b5c50df3ecffd0c60020b"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "alice",
+            "bob"
+          ],
+          "entities": [
+            "team-a",
+            "team-b"
+          ],
+          "relationships": [
+            "coordination",
+            "delegation",
+            "cooperation",
+            "competition",
+            "supervision"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "alice",
+          "bob"
+        ],
+        "entities": [
+          "team-a",
+          "team-b"
+        ],
+        "relationships": [
+          "coordination",
+          "delegation",
+          "cooperation",
+          "competition",
+          "supervision"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

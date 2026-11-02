@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "input/scenario.yaml"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "input/scenario.yaml": "sha256:f8771bceccf31985106921678a6f9ea9ba6ac2235e5d0a2524c55812cb50ff3c"
+  },
+  "name": "regression/bc3e9117f3b6284c2402b883f604aa79e44eaccdfc7bc4536898d68c7c89b743",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

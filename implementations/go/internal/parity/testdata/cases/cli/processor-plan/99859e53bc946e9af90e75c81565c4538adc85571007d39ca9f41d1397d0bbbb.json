@@ -1,0 +1,47 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml": "sha256:0ca8aaab2a483a9a678816540b975dcc74fbfe446923d0c642bd17c801597480"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "diagnostics": [],
+      "evaluation": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operations": [],
+        "run_id": null,
+        "startup_order": []
+      },
+      "orchestration": {
+        "diagnostics": [],
+        "observation_demands": [],
+        "operations": [],
+        "startup_order": []
+      },
+      "provisioning": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operation_id": null,
+        "operations": [],
+        "realization_authority": [],
+        "realization_constraints": [],
+        "realization_envelope": null,
+        "run_id": null
+      },
+      "scenario_name": "participant-control-legacy"
+    }
+  },
+  "surface": "cli"
+}

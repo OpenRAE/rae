@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:9d60b54b69f2ab6d63d78be2556f51e021b00c386c03ba3813f77d00184adfbf"
+  },
+  "name": "regression/b195621b54119e1e53f7fc3ee4cdb52b140ecc76eea2d68bc2ab0c393335e83d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.identifier.invalid",
+              "path": "/nodes/techvault-kali/runtime/ssh_servers/0/ssh_server_id",
+              "range": {
+                "end": {
+                  "column": 38,
+                  "line": 16
+                },
+                "start": {
+                  "column": 26,
+                  "line": 16
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.identifier.invalid",
+            "path": "/nodes/techvault-kali/runtime/ssh_servers/0/ssh_server_id",
+            "range": {
+              "end": {
+                "column": 38,
+                "line": 16
+              },
+              "start": {
+                "column": 26,
+                "line": 16
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:88f4b5b69d8c1c4c2f91165048aeabb1dd952bfb4d290805ddc6fff412db09ad"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: transformation-collision-case\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: transformation-collision-case\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

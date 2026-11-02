@@ -1,0 +1,19 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml": "sha256:3cc2cbed579f8f003c7eb67647b26767e7c95a6f33fe9c24639f9b66cd1894f0"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

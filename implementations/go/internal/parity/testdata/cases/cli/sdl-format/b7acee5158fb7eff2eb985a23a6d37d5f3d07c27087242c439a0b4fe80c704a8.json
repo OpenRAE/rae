@@ -1,0 +1,55 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml": "sha256:9e541184d9dcd003db1c42ee8384aaef2dcd8810d908ead7b5d3ccd983fe26f5"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "name": "observability-plane-conformance",
+      "nodes": {
+        "monitor": {
+          "os": "linux",
+          "os_distribution": "ubuntu",
+          "os_version": "24.04",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "runtime": {
+            "service_listeners": [
+              {
+                "address": "0.0.0.0",
+                "address_family": "ipv4",
+                "port": 80,
+                "protocol": "tcp",
+                "scope": "wildcard",
+                "service": "http",
+                "service_listener_id": "telemetry"
+              }
+            ]
+          },
+          "services": [
+            {
+              "name": "http",
+              "port": 80,
+              "protocol": "tcp"
+            }
+          ],
+          "source": {
+            "name": "exact-monitor-image",
+            "version": "*"
+          },
+          "type": "compute"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

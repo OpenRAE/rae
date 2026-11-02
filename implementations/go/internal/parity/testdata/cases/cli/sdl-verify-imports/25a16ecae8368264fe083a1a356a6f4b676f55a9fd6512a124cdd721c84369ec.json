@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml": "sha256:6eee87ffbab8a253eb9ff5eb208796c151fc3e7cb10eec6f9ae1ccea2fa5c215",
+    "setup.json": "sha256:2f8850e418e221bbff40bed91abef1470614b1370d2f94d71806d1f7770cdc3c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/non-string-key.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

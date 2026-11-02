@@ -1,0 +1,18 @@
+{
+  "args": [
+    "conformance",
+    "processor",
+    "--feature",
+    "runtime-control-plane",
+    "--format",
+    "text"
+  ],
+  "command": "conformance processor",
+  "files": {},
+  "name": "regression/ecffa070bac23f518164aa8b5b6c41ea1bdf806a4577329ae1e04ebf5f4559f4",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

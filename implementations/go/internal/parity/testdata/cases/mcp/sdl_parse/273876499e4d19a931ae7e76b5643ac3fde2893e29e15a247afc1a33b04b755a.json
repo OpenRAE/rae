@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:9cbc1c4c40931353a7c1be5be703ace60f7150b89d96a7ad4a21afd00d68833e"
+  },
+  "name": "regression/57538b87c00ecc4cd61956dd0ec07eca4cb660efb157d877a8573ea9cba24818",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "Password-Strength",
+                "password_strength"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/accounts/alice/password_strength",
+              "range": {
+                "end": {
+                  "column": 22,
+                  "line": 9
+                },
+                "start": {
+                  "column": 5,
+                  "line": 9
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'Password-Strength'.",
+                  "range": {
+                    "end": {
+                      "column": 22,
+                      "line": 8
+                    },
+                    "start": {
+                      "column": 5,
+                      "line": 8
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "Password-Strength",
+              "password_strength"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/accounts/alice/password_strength",
+            "range": {
+              "end": {
+                "column": 22,
+                "line": 9
+              },
+              "start": {
+                "column": 5,
+                "line": 9
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'Password-Strength'.",
+                "range": {
+                  "end": {
+                    "column": 22,
+                    "line": 8
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 8
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

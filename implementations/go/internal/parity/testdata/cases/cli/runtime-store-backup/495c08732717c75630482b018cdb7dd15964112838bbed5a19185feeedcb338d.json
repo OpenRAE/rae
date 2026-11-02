@@ -1,0 +1,21 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "backup",
+    "input/output/source",
+    "input/output/store.sqlite3",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:ops"
+  ],
+  "command": "runtime store backup",
+  "files": {},
+  "name": "regression/a3050537fbaf2871c279b06d4dc80c3c0eeed8d315cdf767bfb27819d990bbd2",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

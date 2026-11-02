@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/library/templates/workflow/parallel-objective-workflow.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/library/templates/workflow/parallel-objective-workflow.yaml": "sha256:6d8f182045fc780b29cddfc8769133482d38a6cdb4692f86e922da4803c0c760"
+  },
+  "name": "examples/library/templates/workflow/parallel-objective-workflow.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/library/templates/workflow/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

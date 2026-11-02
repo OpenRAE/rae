@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:8fa7746ff2237f859aac7aab390edf9d7c3cb1461415d370b191edee5e56db2e"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/multiple-documents.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

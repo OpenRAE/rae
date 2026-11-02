@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml": "sha256:93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239"
+  },
+  "name": "examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

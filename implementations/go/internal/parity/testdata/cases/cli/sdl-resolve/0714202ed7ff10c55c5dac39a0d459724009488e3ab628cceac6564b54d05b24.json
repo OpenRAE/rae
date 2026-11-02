@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/subject.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/subject.sdl.yaml": "sha256:fdb7d6ae1174f157b9c1ee074190684556c89fc9b9dbe12f3fc46a02888d8826"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/subject.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

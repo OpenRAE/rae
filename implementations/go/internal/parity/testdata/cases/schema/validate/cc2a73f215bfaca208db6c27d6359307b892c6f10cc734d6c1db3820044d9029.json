@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-study-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:94b185d4a3c42f19a4176b2dab17fe42818b69f867a7a0047c008e89abe91bfa"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-study-v1/context-invalid/typed-treatment-source-level",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

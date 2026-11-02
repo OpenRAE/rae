@@ -1,0 +1,41 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "input/scenario.sdl.yaml",
+    "--output",
+    "json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input/scenario.sdl.yaml": "sha256:548e11291b4465d226010a325fa37d738a80e49a678d28cca8fe55615a111d95"
+  },
+  "name": "regression/82063dc0568726661c999d05ea9e2e0cc42da36dcc43d6e651e52361adb9d5c4",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "validate",
+      "payload": {
+        "field_count": 2,
+        "phase": "validated-authoring",
+        "root_type": "object",
+        "scenario_name": "semantic-cli",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

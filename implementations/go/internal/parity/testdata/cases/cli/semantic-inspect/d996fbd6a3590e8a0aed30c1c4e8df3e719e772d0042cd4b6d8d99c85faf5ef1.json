@@ -1,0 +1,127 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 10,
+        "declarations": [
+          {
+            "address": "agents.alice",
+            "kind": "agents",
+            "model_path": "agents.alice",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.bob",
+            "kind": "agents",
+            "model_path": "agents.bob",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.team-a",
+            "kind": "entity",
+            "model_path": "entities.team-a",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.team-b",
+            "kind": "entity",
+            "model_path": "entities.team-b",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.competition",
+            "kind": "relationships",
+            "model_path": "relationships.competition",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.cooperation",
+            "kind": "relationships",
+            "model_path": "relationships.cooperation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.coordination",
+            "kind": "relationships",
+            "model_path": "relationships.coordination",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.delegation",
+            "kind": "relationships",
+            "model_path": "relationships.delegation",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.supervision",
+            "kind": "relationships",
+            "model_path": "relationships.supervision",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.abstract-participant-relationships",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "abstract-participant-relationships",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "agents",
+              "entities",
+              "relationships"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/nonfinite.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/nonfinite.yaml": "sha256:5cf7f4fe310e3da46ce842629df7ec00d1715b60a9670ea89f79dfebf80ea15f",
+    "setup.json": "sha256:1dc59e37d70c75e8a8b279c493b83fcc9a07cb643b3c5f7dd34712f1c3be0dc7"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/nonfinite.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

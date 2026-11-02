@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-stage-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:99b6e03bf240b314511d10890e8b643a9dc1277a74d2e70b46b77e61b4ab419e"
+  },
+  "name": "mixed-backend-stage-report-v1/routed/contracts/fixtures/control-plane/mixed-backend-stage-report-v1/valid/mixed-handoff-01.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

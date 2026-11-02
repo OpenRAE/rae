@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/techvault-attacker-target.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/techvault-attacker-target.sdl.yaml": "sha256:7971dfbc7cb0dd9dea753f880b56ef5bf34e340d52af7ec2f705c584b9cbb910",
+    "setup.json": "sha256:ea60ee33f7ce4d920c6e7219e69b05e5e5dfcd48433ac57eb0f5b0531d39a43b"
+  },
+  "name": "examples/scenarios/techvault-attacker-target.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realization-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:e71b710d2ee25eb866b21492898899e1db1ae058ea69f0d803892b8ed756bcc3"
+  },
+  "name": "realization-envelope-v1/routed/contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

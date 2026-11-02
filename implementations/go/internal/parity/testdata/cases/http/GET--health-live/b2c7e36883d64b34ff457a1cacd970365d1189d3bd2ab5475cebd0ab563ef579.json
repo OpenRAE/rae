@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "GET /health/live",
+  "files": {
+    "request.json": "sha256:f9c2998b79d88d8db3c77ef84a9e24f69b439628a1bb62345177f544a1644d60"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {
+      "reasons": [],
+      "status": "live"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET unmatched",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:e1c5997abf79c29527fdc5de108f97ab11bd57c4d2996c7b355e7c11dcebcc03"
+  },
+  "name": "regression/7be84428f520c47dd863c24abc2a3bf8b33795b34d1f9e77a5db9cad866fcbc8",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

@@ -1,0 +1,50 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "sha256:fdb7d6ae1174f157b9c1ee074190684556c89fc9b9dbe12f3fc46a02888d8826"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/subject.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 2,
+        "reference_bindings": {
+          "nodes.web": [
+            "nodes.web"
+          ],
+          "web": [
+            "nodes.web"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "external-binding-subject"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

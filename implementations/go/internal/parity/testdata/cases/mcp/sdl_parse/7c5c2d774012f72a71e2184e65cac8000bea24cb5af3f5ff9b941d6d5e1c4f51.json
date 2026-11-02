@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7d6d5fb496325a43c48d626d29299f589a0f13dcf6ddcbf1fc36c7411ce74515"
+  },
+  "name": "regression/acfc8eeadfdaa0c08c806ab5b26a47032b4a3432369cab1e9dc419211426fda8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/red-briefing/participant_inject_deliveries/briefing/participant_refs",
+              "range": {
+                "end": {
+                  "column": 38,
+                  "line": 93
+                },
+                "start": {
+                  "column": 27,
+                  "line": 93
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/red-briefing/participant_inject_deliveries/briefing/participant_refs",
+            "range": {
+              "end": {
+                "column": 38,
+                "line": 93
+              },
+              "start": {
+                "column": 27,
+                "line": 93
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/mixed-control-v1/valid/mixed-control-participant.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/mixed-control-v1/valid/mixed-control-participant.yaml": "sha256:2d6be574c7871ac40a15001db602ab11629d6ed8561dbe5383501e95b3a93767"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/valid/mixed-control-participant.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

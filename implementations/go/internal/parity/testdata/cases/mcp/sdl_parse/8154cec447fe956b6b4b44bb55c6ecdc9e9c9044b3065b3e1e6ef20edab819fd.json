@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:09f2b312fd0de9463fa6205b3939d5d45ed54d202f030ad47550bc52e3c9ff16"
+  },
+  "name": "regression/f58f890d90c15841ffb221c37c2826375fd45f5ce8f07dfa2390cba5546cecef",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "library-workflow-template",
+            "populated_sections": {
+              "agents": 1,
+              "conditions": 2,
+              "entities": 1,
+              "nodes": 1,
+              "objectives": 2,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "library-workflow-template",
+          "populated_sections": {
+            "agents": 1,
+            "conditions": 2,
+            "entities": 1,
+            "nodes": 1,
+            "objectives": 2,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

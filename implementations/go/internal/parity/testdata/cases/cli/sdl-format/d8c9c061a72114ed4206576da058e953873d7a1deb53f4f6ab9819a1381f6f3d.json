@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "--check",
+    "input/canonical.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "input/canonical.sdl.yaml": "sha256:dba6593c6221925184a0799f1512a46e269b37d0db4948a244e4e8e60d3e203e"
+  },
+  "name": "regression/5cc7714a92c810d231548854cf84a4f7eb2cf855d3d3b8456b2d713b9eac8bf1",
+  "result": {
+    "exit_code": 0,
+    "stdout": null
+  },
+  "surface": "cli"
+}

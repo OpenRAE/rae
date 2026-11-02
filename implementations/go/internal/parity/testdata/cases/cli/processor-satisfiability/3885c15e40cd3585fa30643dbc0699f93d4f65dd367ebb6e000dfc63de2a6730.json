@@ -1,0 +1,633 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:87b6398e98e4709784a782b04ac2cd3e7521df043bde8c7f96e692caaf65d8b8"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:87b6398e98e4709784a782b04ac2cd3e7521df043bde8c7f96e692caaf65d8b8"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:8d7e28efb203f2547a18171200f27dbb0609409e86faa842987389645f3a6f28",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93",
+        "source_id": "abstract-relations.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {
+              "alice": {
+                "actions": [],
+                "affiliations": [
+                  "team-a"
+                ],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [],
+                "operating_scope": [],
+                "role": null,
+                "starting_accounts": [],
+                "starting_assertions": []
+              },
+              "bob": {
+                "actions": [],
+                "affiliations": [
+                  "team-b"
+                ],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [],
+                "operating_scope": [],
+                "role": null,
+                "starting_accounts": [],
+                "starting_assertions": []
+              }
+            },
+            "assertions": {},
+            "behavior_specifications": {},
+            "clocks": {},
+            "conditions": {},
+            "content": {},
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "",
+            "entities": {
+              "team-a": {
+                "description": "",
+                "entities": {},
+                "events": [],
+                "facts": {},
+                "mission": "",
+                "name": "",
+                "role": "red"
+              },
+              "team-b": {
+                "description": "",
+                "entities": {},
+                "events": [],
+                "facts": {},
+                "mission": "",
+                "name": "",
+                "role": "blue"
+              }
+            },
+            "events": {},
+            "evidence_requirements": {},
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:87b6398e98e4709784a782b04ac2cd3e7521df043bde8c7f96e692caaf65d8b8"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.team-a.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.team-a",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.team-b.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.team-b",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.coordination.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.coordination.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.coordination.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.coordination.participant.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.coordination.participant",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.coordination",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.delegation.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.delegation.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.delegation.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.delegation.participant.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.delegation.participant",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.delegation",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.cooperation.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.cooperation.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.cooperation.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.cooperation.participant.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.cooperation.participant",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.cooperation",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.competition.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.competition.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.competition.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.competition.participant.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.competition.participant",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.competition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.supervision.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.supervision.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.supervision.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.supervision.participant.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.supervision.participant",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.supervision",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alice.affiliations[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alice.affiliations",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alice",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bob.affiliations[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bob.affiliations",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bob",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "abstract-participant-relationships",
+            "nodes": {},
+            "objectives": {},
+            "observation_boundaries": {},
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {},
+            "relationships": {
+              "competition": {
+                "carrier_placement": null,
+                "database_access": null,
+                "description": "",
+                "domain_controller": null,
+                "domain_join": null,
+                "forest_trust": null,
+                "forwarding_edge": null,
+                "identity_federation": null,
+                "mail_access": null,
+                "participant": {
+                  "authority_basis_refs": [],
+                  "behavior_specification_refs": [],
+                  "control_specification_ref": null,
+                  "kind": "competition",
+                  "objective_refs": [],
+                  "observation_boundary_refs": [],
+                  "scope_refs": [],
+                  "source_action_refs": [],
+                  "target_action_refs": []
+                },
+                "properties": {},
+                "proxy_upstream": null,
+                "service_integration": null,
+                "shared_service": null,
+                "source": "agents.alice",
+                "target": "bob",
+                "type": "participant"
+              },
+              "cooperation": {
+                "carrier_placement": null,
+                "database_access": null,
+                "description": "",
+                "domain_controller": null,
+                "domain_join": null,
+                "forest_trust": null,
+                "forwarding_edge": null,
+                "identity_federation": null,
+                "mail_access": null,
+                "participant": {
+                  "authority_basis_refs": [],
+                  "behavior_specification_refs": [],
+                  "control_specification_ref": null,
+                  "kind": "cooperation",
+                  "objective_refs": [],
+                  "observation_boundary_refs": [],
+                  "scope_refs": [],
+                  "source_action_refs": [],
+                  "target_action_refs": []
+                },
+                "properties": {},
+                "proxy_upstream": null,
+                "service_integration": null,
+                "shared_service": null,
+                "source": "agents.alice",
+                "target": "bob",
+                "type": "participant"
+              },
+              "coordination": {
+                "carrier_placement": null,
+                "database_access": null,
+                "description": "",
+                "domain_controller": null,
+                "domain_join": null,
+                "forest_trust": null,
+                "forwarding_edge": null,
+                "identity_federation": null,
+                "mail_access": null,
+                "participant": {
+                  "authority_basis_refs": [],
+                  "behavior_specification_refs": [],
+                  "control_specification_ref": null,
+                  "kind": "coordination",
+                  "objective_refs": [],
+                  "observation_boundary_refs": [],
+                  "scope_refs": [],
+                  "source_action_refs": [],
+                  "target_action_refs": []
+                },
+                "properties": {},
+                "proxy_upstream": null,
+                "service_integration": null,
+                "shared_service": null,
+                "source": "agents.alice",
+                "target": "bob",
+                "type": "participant"
+              },
+              "delegation": {
+                "carrier_placement": null,
+                "database_access": null,
+                "description": "",
+                "domain_controller": null,
+                "domain_join": null,
+                "forest_trust": null,
+                "forwarding_edge": null,
+                "identity_federation": null,
+                "mail_access": null,
+                "participant": {
+                  "authority_basis_refs": [],
+                  "behavior_specification_refs": [],
+                  "control_specification_ref": null,
+                  "kind": "delegation",
+                  "objective_refs": [],
+                  "observation_boundary_refs": [],
+                  "scope_refs": [],
+                  "source_action_refs": [],
+                  "target_action_refs": []
+                },
+                "properties": {},
+                "proxy_upstream": null,
+                "service_integration": null,
+                "shared_service": null,
+                "source": "agents.alice",
+                "target": "bob",
+                "type": "participant"
+              },
+              "supervision": {
+                "carrier_placement": null,
+                "database_access": null,
+                "description": "",
+                "domain_controller": null,
+                "domain_join": null,
+                "forest_trust": null,
+                "forwarding_edge": null,
+                "identity_federation": null,
+                "mail_access": null,
+                "participant": {
+                  "authority_basis_refs": [],
+                  "behavior_specification_refs": [],
+                  "control_specification_ref": null,
+                  "kind": "supervision",
+                  "objective_refs": [],
+                  "observation_boundary_refs": [],
+                  "scope_refs": [],
+                  "source_action_refs": [],
+                  "target_action_refs": []
+                },
+                "properties": {},
+                "proxy_upstream": null,
+                "service_integration": null,
+                "shared_service": null,
+                "source": "agents.alice",
+                "target": "bob",
+                "type": "participant"
+              }
+            },
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {},
+            "time_domain_mappings": {},
+            "time_domains": {},
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:891537f891950a07b4cea8a8df687c6b52a23bef5aad4fad53d211637f538555"
+      }
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,20 @@
+{
+  "args": [],
+  "command": "GET /health/live",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:e57dc06b6a7d957fdcac6fc23468611c5c599dd71127a8896180242b966ef099"
+  },
+  "name": "regression/f72f84ccda6e4ccbbde9761d99fcbcbecc364cd94395720fee9b0cbf2fe8724e",
+  "result": {
+    "body": {
+      "reasons": [],
+      "status": "live"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

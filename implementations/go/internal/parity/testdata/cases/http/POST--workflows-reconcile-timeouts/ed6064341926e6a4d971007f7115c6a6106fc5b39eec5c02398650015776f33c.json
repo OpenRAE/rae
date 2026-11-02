@@ -1,0 +1,36 @@
+{
+  "args": [],
+  "command": "POST /workflows/reconcile-timeouts",
+  "files": {
+    "request.json": "sha256:9103070dc590e975a80df13ce6dc3a4263bcf572f3b68281ccc9746bdd14b554"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "operator",
+        "authorization_scope": [
+          "role:auditor",
+          "role:backend",
+          "role:operator"
+        ],
+        "operation_kind": "workflow-timeout-reconciliation",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:8c9e631b82ab28835db0fde3fdd1a148162883f79003bf760e70f18f0e5f48c9",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "orchestration",
+      "operation_id": "7688bf16-605f-43e1-b08d-e226f256a684",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

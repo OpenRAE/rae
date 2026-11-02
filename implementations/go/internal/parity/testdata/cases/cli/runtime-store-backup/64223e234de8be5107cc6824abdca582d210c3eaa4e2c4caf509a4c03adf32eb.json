@@ -1,0 +1,23 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "backup",
+    "store.sqlite3",
+    "backup.sqlite3",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:parity"
+  ],
+  "command": "runtime store backup",
+  "files": {
+    "setup.json": "sha256:d9c1b3eab00134ef64281e4f0365f8c4e01b0d92856864f9bf83e7f946532ff6"
+  },
+  "name": "admitted-store",
+  "result": {
+    "exit_code": 0,
+    "stdout": "control-plane-store-backup-succeeded"
+  },
+  "surface": "cli"
+}

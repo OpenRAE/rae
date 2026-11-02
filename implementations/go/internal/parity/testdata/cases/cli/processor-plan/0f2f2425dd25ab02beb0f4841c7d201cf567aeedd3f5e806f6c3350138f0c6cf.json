@@ -1,0 +1,1789 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "repo/examples/scenarios/initial-service-state.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "repo/examples/scenarios/initial-service-state.sdl.yaml": "sha256:daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "diagnostics": [
+        {
+          "address": "provision.node.mail",
+          "code": "provisioner.unsupported-operating-system",
+          "domain": "provisioning",
+          "severity": "error"
+        },
+        {
+          "address": "evidence_requirements.company-mail-readback",
+          "code": "capture.offer-missing",
+          "domain": "capture",
+          "severity": "error"
+        },
+        {
+          "address": "evidence_requirements.job-index-schema-readback",
+          "code": "capture.offer-missing",
+          "domain": "capture",
+          "severity": "error"
+        },
+        {
+          "address": "provision.node.mail",
+          "code": "realization.under-observed-exact-requirement",
+          "domain": "runtime-realization",
+          "severity": "error"
+        },
+        {
+          "address": "provision.content.company-mail",
+          "code": "provisioner.unsupported-service-materialization-profile",
+          "domain": "provisioning",
+          "severity": "error"
+        },
+        {
+          "address": "provision.content.job-index-schema",
+          "code": "provisioner.unsupported-service-materialization-profile",
+          "domain": "provisioning",
+          "severity": "error"
+        }
+      ],
+      "evaluation": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [
+          {
+            "basis": "observed",
+            "collection": "require",
+            "export": "disable",
+            "integrity": "checksum",
+            "mode": "selected",
+            "origins": {
+              "authority": "evidence_requirements.company-mail-readback",
+              "basis": "root-default",
+              "collection": "company-mail-readback",
+              "export": "company-mail-readback",
+              "integrity": "company-mail-readback",
+              "mode": "company-mail-readback",
+              "redaction": "company-mail-readback",
+              "retention": "company-mail-readback",
+              "selector": "company-mail-readback"
+            },
+            "prohibited_stages": [],
+            "purpose": "experimental",
+            "redaction": "redact_secrets",
+            "required": false,
+            "retention": "require",
+            "scope": "/content/company-mail",
+            "selectors": [
+              {
+                "component_refs": [
+                  "provision.content.company-mail"
+                ],
+                "coverage_profile": null,
+                "data_kind": "stream",
+                "excluded_scopes": [],
+                "max_items": null,
+                "names": [
+                  "api_response"
+                ],
+                "semantic_scope": "/content/company-mail",
+                "window_refs": []
+              }
+            ]
+          },
+          {
+            "basis": "observed",
+            "collection": "require",
+            "export": "disable",
+            "integrity": "checksum",
+            "mode": "selected",
+            "origins": {
+              "authority": "evidence_requirements.job-index-schema-readback",
+              "basis": "root-default",
+              "collection": "job-index-schema-readback",
+              "export": "job-index-schema-readback",
+              "integrity": "job-index-schema-readback",
+              "mode": "job-index-schema-readback",
+              "redaction": "job-index-schema-readback",
+              "retention": "job-index-schema-readback",
+              "selector": "job-index-schema-readback"
+            },
+            "prohibited_stages": [],
+            "purpose": "experimental",
+            "redaction": "redact_secrets",
+            "required": false,
+            "retention": "require",
+            "scope": "/content/job-index-schema",
+            "selectors": [
+              {
+                "component_refs": [
+                  "provision.content.job-index-schema"
+                ],
+                "coverage_profile": null,
+                "data_kind": "stream",
+                "excluded_scopes": [],
+                "max_items": null,
+                "names": [
+                  "api_response"
+                ],
+                "semantic_scope": "/content/job-index-schema",
+                "window_refs": []
+              }
+            ]
+          }
+        ],
+        "operations": [
+          {
+            "action": "create",
+            "address": "evaluation.proposition.company-mail-visible",
+            "ordering_dependencies": [],
+            "payload": {
+              "evaluation_basis": "observed_state",
+              "evidence_channels": [
+                "api_response"
+              ],
+              "evidence_requirement_refs": [
+                "company-mail-readback"
+              ],
+              "name": "company-mail-visible",
+              "predicate_kind": "boolean",
+              "quantifier": "all",
+              "required_time_domain": "scenario_time",
+              "spec": {
+                "basis": "observed_state",
+                "description": "The authored message set is visible through the named service.",
+                "evidence_requirements": [
+                  "company-mail-readback"
+                ],
+                "predicate": {
+                  "expected": true,
+                  "kind": "boolean",
+                  "operator": "equals",
+                  "property": "service-content-visible",
+                  "semantic_ref": "urn:raes:observable:service-content-visible"
+                },
+                "quantifier": "all",
+                "subjects": [
+                  "content.company-mail"
+                ],
+                "threshold": null
+              },
+              "subject_addresses": [
+                "provision.content.company-mail"
+              ],
+              "unresolved_evidence_channel_refs": []
+            },
+            "refresh_dependencies": [],
+            "resource_type": "proposition"
+          },
+          {
+            "action": "create",
+            "address": "evaluation.proposition.job-index-schema-visible",
+            "ordering_dependencies": [],
+            "payload": {
+              "evaluation_basis": "observed_state",
+              "evidence_channels": [
+                "api_response"
+              ],
+              "evidence_requirement_refs": [
+                "job-index-schema-readback"
+              ],
+              "name": "job-index-schema-visible",
+              "predicate_kind": "boolean",
+              "quantifier": "all",
+              "required_time_domain": "scenario_time",
+              "spec": {
+                "basis": "observed_state",
+                "description": "The declared search-index fields have exact portable semantics.",
+                "evidence_requirements": [
+                  "job-index-schema-readback"
+                ],
+                "predicate": {
+                  "expected": true,
+                  "kind": "boolean",
+                  "operator": "equals",
+                  "property": "service-search-index-schema-visible",
+                  "semantic_ref": "urn:raes:observable:service-search-index-schema-visible"
+                },
+                "quantifier": "all",
+                "subjects": [
+                  "content.job-index-schema"
+                ],
+                "threshold": null
+              },
+              "subject_addresses": [
+                "provision.content.job-index-schema"
+              ],
+              "unresolved_evidence_channel_refs": []
+            },
+            "refresh_dependencies": [],
+            "resource_type": "proposition"
+          },
+          {
+            "action": "create",
+            "address": "evaluation.assertion.company-mail-visible",
+            "ordering_dependencies": [
+              "evaluation.proposition.company-mail-visible"
+            ],
+            "payload": {
+              "name": "company-mail-visible",
+              "polarity": "positive",
+              "proposition_address": "evaluation.proposition.company-mail-visible",
+              "role": "postcondition",
+              "spec": {
+                "description": "",
+                "polarity": "positive",
+                "proposition": "company-mail-visible",
+                "role": "postcondition"
+              }
+            },
+            "refresh_dependencies": [
+              "evaluation.proposition.company-mail-visible"
+            ],
+            "resource_type": "assertion"
+          },
+          {
+            "action": "create",
+            "address": "evaluation.assertion.job-index-schema-visible",
+            "ordering_dependencies": [
+              "evaluation.proposition.job-index-schema-visible"
+            ],
+            "payload": {
+              "name": "job-index-schema-visible",
+              "polarity": "positive",
+              "proposition_address": "evaluation.proposition.job-index-schema-visible",
+              "role": "postcondition",
+              "spec": {
+                "description": "",
+                "polarity": "positive",
+                "proposition": "job-index-schema-visible",
+                "role": "postcondition"
+              }
+            },
+            "refresh_dependencies": [
+              "evaluation.proposition.job-index-schema-visible"
+            ],
+            "resource_type": "assertion"
+          }
+        ],
+        "run_id": null,
+        "startup_order": [
+          "evaluation.proposition.company-mail-visible",
+          "evaluation.proposition.job-index-schema-visible",
+          "evaluation.assertion.company-mail-visible",
+          "evaluation.assertion.job-index-schema-visible"
+        ]
+      },
+      "orchestration": {
+        "diagnostics": [],
+        "observation_demands": [
+          {
+            "basis": "observed",
+            "collection": "require",
+            "export": "disable",
+            "integrity": "checksum",
+            "mode": "selected",
+            "origins": {
+              "authority": "evidence_requirements.company-mail-readback",
+              "basis": "root-default",
+              "collection": "company-mail-readback",
+              "export": "company-mail-readback",
+              "integrity": "company-mail-readback",
+              "mode": "company-mail-readback",
+              "redaction": "company-mail-readback",
+              "retention": "company-mail-readback",
+              "selector": "company-mail-readback"
+            },
+            "prohibited_stages": [],
+            "purpose": "experimental",
+            "redaction": "redact_secrets",
+            "required": false,
+            "retention": "require",
+            "scope": "/content/company-mail",
+            "selectors": [
+              {
+                "component_refs": [
+                  "provision.content.company-mail"
+                ],
+                "coverage_profile": null,
+                "data_kind": "stream",
+                "excluded_scopes": [],
+                "max_items": null,
+                "names": [
+                  "api_response"
+                ],
+                "semantic_scope": "/content/company-mail",
+                "window_refs": []
+              }
+            ]
+          },
+          {
+            "basis": "observed",
+            "collection": "require",
+            "export": "disable",
+            "integrity": "checksum",
+            "mode": "selected",
+            "origins": {
+              "authority": "evidence_requirements.job-index-schema-readback",
+              "basis": "root-default",
+              "collection": "job-index-schema-readback",
+              "export": "job-index-schema-readback",
+              "integrity": "job-index-schema-readback",
+              "mode": "job-index-schema-readback",
+              "redaction": "job-index-schema-readback",
+              "retention": "job-index-schema-readback",
+              "selector": "job-index-schema-readback"
+            },
+            "prohibited_stages": [],
+            "purpose": "experimental",
+            "redaction": "redact_secrets",
+            "required": false,
+            "retention": "require",
+            "scope": "/content/job-index-schema",
+            "selectors": [
+              {
+                "component_refs": [
+                  "provision.content.job-index-schema"
+                ],
+                "coverage_profile": null,
+                "data_kind": "stream",
+                "excluded_scopes": [],
+                "max_items": null,
+                "names": [
+                  "api_response"
+                ],
+                "semantic_scope": "/content/job-index-schema",
+                "window_refs": []
+              }
+            ]
+          }
+        ],
+        "operations": [],
+        "startup_order": []
+      },
+      "provisioning": {
+        "diagnostics": [
+          {
+            "address": "provision.content.company-mail",
+            "code": "provisioner.unsupported-service-materialization-profile",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.content.job-index-schema",
+            "code": "provisioner.unsupported-service-materialization-profile",
+            "domain": "provisioning",
+            "severity": "error"
+          }
+        ],
+        "instantiation_id": null,
+        "observation_demands": [
+          {
+            "basis": "observed",
+            "collection": "require",
+            "export": "disable",
+            "integrity": "checksum",
+            "mode": "selected",
+            "origins": {
+              "authority": "evidence_requirements.company-mail-readback",
+              "basis": "root-default",
+              "collection": "company-mail-readback",
+              "export": "company-mail-readback",
+              "integrity": "company-mail-readback",
+              "mode": "company-mail-readback",
+              "redaction": "company-mail-readback",
+              "retention": "company-mail-readback",
+              "selector": "company-mail-readback"
+            },
+            "prohibited_stages": [],
+            "purpose": "experimental",
+            "redaction": "redact_secrets",
+            "required": false,
+            "retention": "require",
+            "scope": "/content/company-mail",
+            "selectors": [
+              {
+                "component_refs": [
+                  "provision.content.company-mail"
+                ],
+                "coverage_profile": null,
+                "data_kind": "stream",
+                "excluded_scopes": [],
+                "max_items": null,
+                "names": [
+                  "api_response"
+                ],
+                "semantic_scope": "/content/company-mail",
+                "window_refs": []
+              }
+            ]
+          },
+          {
+            "basis": "observed",
+            "collection": "require",
+            "export": "disable",
+            "integrity": "checksum",
+            "mode": "selected",
+            "origins": {
+              "authority": "evidence_requirements.job-index-schema-readback",
+              "basis": "root-default",
+              "collection": "job-index-schema-readback",
+              "export": "job-index-schema-readback",
+              "integrity": "job-index-schema-readback",
+              "mode": "job-index-schema-readback",
+              "redaction": "job-index-schema-readback",
+              "retention": "job-index-schema-readback",
+              "selector": "job-index-schema-readback"
+            },
+            "prohibited_stages": [],
+            "purpose": "experimental",
+            "redaction": "redact_secrets",
+            "required": false,
+            "retention": "require",
+            "scope": "/content/job-index-schema",
+            "selectors": [
+              {
+                "component_refs": [
+                  "provision.content.job-index-schema"
+                ],
+                "coverage_profile": null,
+                "data_kind": "stream",
+                "excluded_scopes": [],
+                "max_items": null,
+                "names": [
+                  "api_response"
+                ],
+                "semantic_scope": "/content/job-index-schema",
+                "window_refs": []
+              }
+            ]
+          }
+        ],
+        "operation_id": null,
+        "operations": [
+          {
+            "action": "create",
+            "address": "provision.node.mail",
+            "ordering_dependencies": [],
+            "payload": {
+              "architecture": "",
+              "count": null,
+              "domain_topology": null,
+              "name": "mail",
+              "network_namespace_target": "",
+              "node_kind": "compute",
+              "node_name": "mail",
+              "os_distribution": "",
+              "os_family": "linux",
+              "os_version": "",
+              "spec": {
+                "infrastructure": {},
+                "node": {
+                  "asset_value": null,
+                  "conditions": {},
+                  "description": "",
+                  "endpoint_persona": null,
+                  "features": {},
+                  "injects": {},
+                  "os": "linux",
+                  "resources": {
+                    "cpu": 2,
+                    "ram": 2147483648
+                  },
+                  "roles": {},
+                  "runtime": null,
+                  "services": [
+                    {
+                      "description": "",
+                      "name": "imap",
+                      "port": 143,
+                      "protocol": "tcp"
+                    },
+                    {
+                      "description": "",
+                      "name": "search",
+                      "port": 9200,
+                      "protocol": "tcp"
+                    }
+                  ],
+                  "source": null,
+                  "type": "compute"
+                }
+              }
+            },
+            "refresh_dependencies": [],
+            "resource_type": "node"
+          },
+          {
+            "action": "create",
+            "address": "provision.content.company-mail",
+            "ordering_dependencies": [
+              "provision.node.mail"
+            ],
+            "payload": {
+              "content_name": "company-mail",
+              "name": "company-mail",
+              "service_materialization": {
+                "canonical_content_digest": "sha256:1fee0df5645c87549f2a3c7bcdb2870bcc78481fbf3b795fffafd071ff8eff95",
+                "conflict_policy": "reject-unowned-collision",
+                "consumer_tenant_ref": "",
+                "content_type": "dataset",
+                "evidence_requirement_refs": [
+                  "company-mail-readback"
+                ],
+                "interface_profile": "service-content",
+                "mutable_state_owner": "",
+                "observation_boundary_addresses": [
+                  "participant.observation-boundary.participant-mail-view"
+                ],
+                "operation": "ensure-owned-items",
+                "profile_version": "1",
+                "readback": "canonical-content-digest",
+                "readback_assertion_addresses": [
+                  "evaluation.assertion.company-mail-visible"
+                ],
+                "reset_generation_owner": "",
+                "shared_service_relationship_ref": "",
+                "target_service_address": "provision.node.mail.service.imap"
+              },
+              "spec": {
+                "description": "",
+                "destination": "",
+                "format": "message-set-v1",
+                "items": [
+                  {
+                    "description": "",
+                    "display_name": "Welcome to the company",
+                    "name": "welcome-message",
+                    "tags": []
+                  }
+                ],
+                "path": "",
+                "sensitive": false,
+                "service_materialization": {
+                  "evidence_requirement_refs": [
+                    "company-mail-readback"
+                  ],
+                  "interface_profile": "service-content",
+                  "observation_boundary_refs": [
+                    "participant-mail-view"
+                  ],
+                  "ordering_content_refs": [],
+                  "profile_version": "1",
+                  "readback_assertion_refs": [
+                    "company-mail-visible"
+                  ],
+                  "requirements": {
+                    "conflict_policy": "reject-unowned-collision",
+                    "operation": "ensure-owned-items",
+                    "readback": "canonical-content-digest"
+                  },
+                  "shared_service_relationship_ref": "",
+                  "target_service_ref": "nodes.mail.services.imap"
+                },
+                "source": null,
+                "tags": [],
+                "target": "mail",
+                "text": null,
+                "type": "dataset"
+              },
+              "target_address": "provision.node.mail",
+              "target_node": "mail"
+            },
+            "refresh_dependencies": [
+              "provision.node.mail"
+            ],
+            "resource_type": "content-placement"
+          },
+          {
+            "action": "create",
+            "address": "provision.content.job-index-schema",
+            "ordering_dependencies": [
+              "provision.node.mail"
+            ],
+            "payload": {
+              "content_name": "job-index-schema",
+              "name": "job-index-schema",
+              "service_materialization": {
+                "canonical_content_digest": "sha256:691f5d842a7684a251900ecc76379e74c22a348860fc4cf6604d26b9a67806e1",
+                "canonical_field_schema_digest": "sha256:2d0661b00c76f58086aacece2f7a11612713f64f5b49952ec1bc5e53b3a42e37",
+                "conflict_policy": "reject-unowned-collision",
+                "consumer_tenant_ref": "",
+                "content_type": "dataset",
+                "evidence_requirement_refs": [
+                  "job-index-schema-readback"
+                ],
+                "field_semantics": {
+                  "key": "exact-token",
+                  "relations": "exact-token",
+                  "status": "exact-token"
+                },
+                "interface_profile": "service-search-index-schema",
+                "mutable_state_owner": "",
+                "observation_boundary_addresses": [
+                  "participant.observation-boundary.participant-search-view"
+                ],
+                "operation": "ensure-search-index-field-schema",
+                "profile_version": "1",
+                "readback": "canonical-portable-field-schema-digest",
+                "readback_assertion_addresses": [
+                  "evaluation.assertion.job-index-schema-visible"
+                ],
+                "reset_generation_owner": "",
+                "shared_service_relationship_ref": "",
+                "target_service_address": "provision.node.mail.service.search"
+              },
+              "spec": {
+                "description": "",
+                "destination": "",
+                "format": "",
+                "items": [],
+                "path": "",
+                "sensitive": false,
+                "service_materialization": {
+                  "evidence_requirement_refs": [
+                    "job-index-schema-readback"
+                  ],
+                  "interface_profile": "service-search-index-schema",
+                  "observation_boundary_refs": [
+                    "participant-search-view"
+                  ],
+                  "ordering_content_refs": [],
+                  "profile_version": "1",
+                  "readback_assertion_refs": [
+                    "job-index-schema-visible"
+                  ],
+                  "requirements": {
+                    "conflict_policy": "reject-unowned-collision",
+                    "field_semantics": {
+                      "key": "exact-token",
+                      "relations": "exact-token",
+                      "status": "exact-token"
+                    },
+                    "operation": "ensure-search-index-field-schema",
+                    "readback": "canonical-portable-field-schema-digest"
+                  },
+                  "shared_service_relationship_ref": "",
+                  "target_service_ref": "nodes.mail.services.search"
+                },
+                "source": null,
+                "tags": [],
+                "target": "mail",
+                "text": null,
+                "type": "dataset"
+              },
+              "target_address": "provision.node.mail",
+              "target_node": "mail"
+            },
+            "refresh_dependencies": [
+              "provision.node.mail"
+            ],
+            "resource_type": "content-placement"
+          }
+        ],
+        "realization_authority": [
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "constraint_binding": "sha256:c05719378dbe6b888bd2e7a1956dc00d108dbe5778a8bf5fadf3c3861a778068",
+            "constraint_document": {
+              "contract_id": "recursive-realization-constraint-v1",
+              "default_closure": {
+                "posture": "undefined",
+                "profile": null,
+                "universe": null
+              },
+              "definitions": {},
+              "root": {
+                "kind": "literal",
+                "origin": "author",
+                "presence": "required",
+                "value": "compute"
+              },
+              "scopes": [],
+              "semantic_profile": "raes/node-type/v1"
+            },
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.type",
+            "governing_scope": "#/nodes/mail/type",
+            "mode": "exact",
+            "payload_pointer": "/node_kind",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "node-type",
+            "source": "authored-leaf",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "constraint_binding": "sha256:fb35a1fb951547d7a2f77935809b7fdc8518f5008c1843e623da808c846d9b60",
+            "constraint_document": {
+              "contract_id": "recursive-realization-constraint-v1",
+              "default_closure": {
+                "posture": "undefined",
+                "profile": null,
+                "universe": null
+              },
+              "definitions": {},
+              "root": {
+                "kind": "literal",
+                "origin": "author",
+                "presence": "required",
+                "value": "linux"
+              },
+              "scopes": [],
+              "semantic_profile": "raes/os-family/v1"
+            },
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.os",
+            "governing_scope": "#/nodes/mail/os",
+            "mode": "exact",
+            "payload_pointer": "/os_family",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "os-family",
+            "source": "authored-leaf",
+            "verification_scope": "presence"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.os_distribution",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/os_distribution",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "os-distribution",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.os_version",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/os_version",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "os-version",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.architecture",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/architecture",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "node-architecture",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.content.company-mail",
+            "bounds": [],
+            "constraint_binding": "sha256:824e8f34c181e8960710378e5d6e5e1b8c9d3c0b44c9070e49b1eeb413d345cf",
+            "constraint_document": {
+              "contract_id": "recursive-realization-constraint-v1",
+              "default_closure": {
+                "posture": "undefined",
+                "profile": null,
+                "universe": null
+              },
+              "definitions": {},
+              "root": {
+                "kind": "literal",
+                "origin": "author",
+                "presence": "required",
+                "value": "dataset"
+              },
+              "scopes": [],
+              "semantic_profile": "raes/content-type/v1"
+            },
+            "domain": "runtime-realization",
+            "field_path": "content.company-mail.type",
+            "governing_scope": "#/content/company-mail/type",
+            "mode": "exact",
+            "payload_pointer": "/spec/type",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "content-type",
+            "source": "authored-leaf",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.content.job-index-schema",
+            "bounds": [],
+            "constraint_binding": "sha256:824e8f34c181e8960710378e5d6e5e1b8c9d3c0b44c9070e49b1eeb413d345cf",
+            "constraint_document": {
+              "contract_id": "recursive-realization-constraint-v1",
+              "default_closure": {
+                "posture": "undefined",
+                "profile": null,
+                "universe": null
+              },
+              "definitions": {},
+              "root": {
+                "kind": "literal",
+                "origin": "author",
+                "presence": "required",
+                "value": "dataset"
+              },
+              "scopes": [],
+              "semantic_profile": "raes/content-type/v1"
+            },
+            "domain": "runtime-realization",
+            "field_path": "content.job-index-schema.type",
+            "governing_scope": "#/content/job-index-schema/type",
+            "mode": "exact",
+            "payload_pointer": "/spec/type",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "content-type",
+            "source": "authored-leaf",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.environment",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/environment",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-environment",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.mounts",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/mounts",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-mounts",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.linux_capabilities",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/linux_capabilities",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "linux-capabilities",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.operational_policy.resource_limits.process_limits",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/process_limits",
+            "provenance": "author-declared",
+            "required_observation_strength": "guest-observed",
+            "requirement_kind": "process-resource-limits",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.network.published_ports",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/published_ports",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "published-ports",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.forwarding_agents",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/forwarding_agents",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "forwarding-agents",
+            "source": "legacy-default",
+            "verification_scope": "presence"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.service_listeners",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/service_listeners",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "service-listeners",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.filesystem_inventory",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/filesystem_inventory",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-filesystem-inventory",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.local_control_interfaces",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/local_control_interfaces",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-local-control-interfaces",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.processes",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/processes",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-processes",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.operational_policy.restart",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/restart",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-restart-policy",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.operational_policy.resource_limits.memory",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/memory",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-memory-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.operational_policy.resource_limits.memory_swap",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/memory_swap",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-memory-swap-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.operational_policy.resource_limits.cpu",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/cpu",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-cpu-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.operational_policy.resource_limits.pids",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/pids",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-pids-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.entrypoint",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/entrypoint",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-entrypoint",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.command",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/command",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-command",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.log_driver",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/log_driver",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-log-driver",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.log_options",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/log_options",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-log-options",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.namespaces",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/namespaces",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-namespaces",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.privileged",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/privileged",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-privileged",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.read_only_rootfs",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/read_only_rootfs",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-read-only-rootfs",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.publish_all_ports",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/publish_all_ports",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-publish-all-ports",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.autoremove",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/autoremove",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-autoremove",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.shm_size",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/shm_size",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-shm-size",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.masked_paths",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/masked_paths",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-masked-paths",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.read_only_paths",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/read_only_paths",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-read-only-paths",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.cgroup_parent",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/cgroup_parent",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-cgroup-parent",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.runtime_name",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/runtime_name",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-runtime-name",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.init_process",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/init_process",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-init-process",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.devices",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/devices",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-devices",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.device_cgroup_rules",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/device_cgroup_rules",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-device-cgroup-rules",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.seccomp_profile",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/seccomp_profile",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-seccomp-profile",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.security_opt",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/security_opt",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-security-opt",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.extra_hosts",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/extra_hosts",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-extra-hosts",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.dns",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/dns",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-dns",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.dns_options",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/dns_options",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-dns-options",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.dns_search",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/dns_search",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-dns-search",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.container.group_add",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/group_add",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-group-add",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.local_identity",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/local_identity",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-local-identity",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.identity_authorities",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/identity_authorities",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-identity-authorities",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.file_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/file_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-file-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.mail_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/mail_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-mail-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.network.hostname",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/hostname",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-hostname",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.network.domainname",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/domainname",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-domainname",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.network.endpoints",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/endpoints",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-endpoints",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.applications",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/applications",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-applications",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.database_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/database_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-database-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.dns_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/dns_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-dns-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.network_sensors",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network_sensors",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-sensors",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.network_detection_engines",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network_detection_engines",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-detection-engines",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.security_monitoring_managers",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/security_monitoring_managers",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-security-monitoring-managers",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.ssh_servers",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/ssh_servers",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-ssh-servers",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.datastore_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/datastore_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-datastore-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.platform_applications",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/platform_applications",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-platform-applications",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.orchestration_authorities",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/orchestration_authorities",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-orchestration-authorities",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.app_authorizations",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/app_authorizations",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-app-authorizations",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.scheduled_jobs",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/scheduled_jobs",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-scheduled-jobs",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.service_manager_units",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/service_manager_units",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-service-manager-units",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.packages",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/packages",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-packages",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.repository_state",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/repository_state",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-repository-state",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.software_components",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/software_components",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-software-components",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.mail.runtime.dependency_manifests",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/dependency_manifests",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-dependency-manifests",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.content.company-mail",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "content.company-mail.service_materialization",
+            "governing_scope": "#/content/company-mail/service_materialization",
+            "mode": "exact",
+            "payload_pointer": "/service_materialization",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "service-content-materialization",
+            "source": "processor-derived",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.content.job-index-schema",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "content.job-index-schema.service_materialization",
+            "governing_scope": "#/content/job-index-schema/service_materialization",
+            "mode": "exact",
+            "payload_pointer": "/service_materialization",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "service-search-index-schema-materialization",
+            "source": "processor-derived",
+            "verification_scope": null
+          }
+        ],
+        "realization_constraints": [
+          {
+            "address": "provision.node.mail",
+            "concern": "compute-substrate",
+            "field_path": "nodes.mail.realization.compute-substrate",
+            "governing_scope": "#/nodes/mail",
+            "posture": "open",
+            "provenance": "author-declared",
+            "value_domain": null
+          }
+        ],
+        "realization_envelope": null,
+        "run_id": null
+      },
+      "scenario_name": "initial-service-state"
+    }
+  },
+  "surface": "cli"
+}

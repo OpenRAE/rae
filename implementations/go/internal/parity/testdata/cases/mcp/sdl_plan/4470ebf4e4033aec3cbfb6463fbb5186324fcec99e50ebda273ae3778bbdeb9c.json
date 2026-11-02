@@ -1,0 +1,235 @@
+{
+  "args": [],
+  "command": "sdl_plan",
+  "files": {
+    "arguments.json": "sha256:e7e7d52a408819a035faf7823a2c871ef830f3f8f661175efa27e1e292bcea56"
+  },
+  "name": "regression/0c15b1323363f244e78159153e490b4a43df124bdce9d064345495cdec19ebad",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "claim_boundary": "This is a reference-manifest dry run. It supports capability and planning claims, not claims that a live range actually ran.",
+          "diagnostics": [],
+          "manifest": {
+            "backend": "stub",
+            "supported_contract_versions": [
+              "artifact-requirement-v1",
+              "backend-manifest-v2",
+              "evaluation-history-event-stream-v1",
+              "evaluation-plan-v1",
+              "evaluation-result-envelope-v1",
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1",
+              "operation-receipt-v1",
+              "operation-status-v1",
+              "orchestration-plan-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-control-evaluation-v1",
+              "participant-control-evaluation-v2",
+              "participant-control-occurrence-v1",
+              "participant-control-selection-v1",
+              "participant-control-selection-v2",
+              "participant-crossing-occurrence-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-episode-state-envelope-v1",
+              "participant-execution-binding-v1",
+              "participant-execution-control-v1",
+              "participant-execution-service-state-v1",
+              "participant-flow-control-relation-v1",
+              "participant-joint-action-record-v1",
+              "participant-lifecycle-event-v1",
+              "participant-observation-envelope-v1",
+              "participant-outcome-report-v1",
+              "participant-resource-budget-event-v1",
+              "participant-resource-budget-policy-v1",
+              "participant-resource-budget-state-v1",
+              "participant-resource-pool-capacity-v1",
+              "participant-shared-state-record-v1",
+              "participant-time-management-context-v1",
+              "proposition-truth-result-v1",
+              "provisioning-plan-v1",
+              "runtime-snapshot-v1",
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1",
+              "workflow-history-event-stream-v1",
+              "workflow-result-envelope-v1"
+            ],
+            "version": "10.2.0"
+          },
+          "plan": {
+            "diagnostic_count": 0,
+            "is_valid": true,
+            "operations": {
+              "evaluation": {},
+              "orchestration": {},
+              "provisioning": {
+                "create": 2
+              }
+            },
+            "resources": {
+              "evaluation": 0,
+              "orchestration": 0,
+              "provisioning": 2
+            },
+            "startup_order": {
+              "evaluation": [],
+              "orchestration": []
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "test-scenario"
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "planned"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "claim_boundary": "This is a reference-manifest dry run. It supports capability and planning claims, not claims that a live range actually ran.",
+        "diagnostics": [],
+        "manifest": {
+          "backend": "stub",
+          "supported_contract_versions": [
+            "artifact-requirement-v1",
+            "backend-manifest-v2",
+            "evaluation-history-event-stream-v1",
+            "evaluation-plan-v1",
+            "evaluation-result-envelope-v1",
+            "experiment-capture-spec-v1",
+            "experiment-derived-measure-v1",
+            "experiment-evidence-record-v1",
+            "experiment-run-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "orchestration-plan-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-control-evaluation-v1",
+            "participant-control-evaluation-v2",
+            "participant-control-occurrence-v1",
+            "participant-control-selection-v1",
+            "participant-control-selection-v2",
+            "participant-crossing-occurrence-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-execution-binding-v1",
+            "participant-execution-control-v1",
+            "participant-execution-service-state-v1",
+            "participant-flow-control-relation-v1",
+            "participant-joint-action-record-v1",
+            "participant-lifecycle-event-v1",
+            "participant-observation-envelope-v1",
+            "participant-outcome-report-v1",
+            "participant-resource-budget-event-v1",
+            "participant-resource-budget-policy-v1",
+            "participant-resource-budget-state-v1",
+            "participant-resource-pool-capacity-v1",
+            "participant-shared-state-record-v1",
+            "participant-time-management-context-v1",
+            "proposition-truth-result-v1",
+            "provisioning-plan-v1",
+            "runtime-snapshot-v1",
+            "trial-cleanup-plan-v1",
+            "trial-cleanup-receipt-v1",
+            "workflow-history-event-stream-v1",
+            "workflow-result-envelope-v1"
+          ],
+          "version": "10.2.0"
+        },
+        "plan": {
+          "diagnostic_count": 0,
+          "is_valid": true,
+          "operations": {
+            "evaluation": {},
+            "orchestration": {},
+            "provisioning": {
+              "create": 2
+            }
+          },
+          "resources": {
+            "evaluation": 0,
+            "orchestration": 0,
+            "provisioning": 2
+          },
+          "startup_order": {
+            "evaluation": [],
+            "orchestration": []
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "test-scenario"
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "planned"
+      }
+    }
+  },
+  "surface": "mcp"
+}

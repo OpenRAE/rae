@@ -1,0 +1,131 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 29,
+        "reference_bindings": {
+          "agents.red-agent": [
+            "agents.red-agent"
+          ],
+          "behavior_specifications.red-briefing": [
+            "behavior_specifications.red-briefing"
+          ],
+          "behavior_specifications.red-briefing.participant_inject_deliveries.briefing": [
+            "behavior_specifications.red-briefing.participant_inject_deliveries.briefing"
+          ],
+          "briefing": [
+            "content.briefing"
+          ],
+          "briefing-delivery-evidence": [
+            "evidence_requirements.briefing-delivery-evidence"
+          ],
+          "briefing-event": [
+            "events.briefing-event"
+          ],
+          "briefing-inject": [
+            "injects.briefing-inject"
+          ],
+          "briefing-script": [
+            "scripts.briefing-script"
+          ],
+          "briefing-story": [
+            "stories.briefing-story"
+          ],
+          "briefing-window": [
+            "temporal_constraints.briefing-window"
+          ],
+          "clocks.exercise-clock": [
+            "clocks.exercise-clock"
+          ],
+          "content.briefing": [
+            "content.briefing"
+          ],
+          "entities.red-team": [
+            "entities.red-team"
+          ],
+          "events.briefing-event": [
+            "events.briefing-event"
+          ],
+          "evidence_requirements.briefing-delivery-evidence": [
+            "evidence_requirements.briefing-delivery-evidence"
+          ],
+          "exercise-clock": [
+            "clocks.exercise-clock"
+          ],
+          "exercise-time": [
+            "time_domains.exercise-time"
+          ],
+          "injects.briefing-inject": [
+            "injects.briefing-inject"
+          ],
+          "nodes.web": [
+            "nodes.web"
+          ],
+          "observation_boundaries.red-view": [
+            "observation_boundaries.red-view"
+          ],
+          "red-agent": [
+            "agents.red-agent"
+          ],
+          "red-briefing": [
+            "behavior_specifications.red-briefing"
+          ],
+          "red-team": [
+            "entities.red-team"
+          ],
+          "red-view": [
+            "observation_boundaries.red-view"
+          ],
+          "scripts.briefing-script": [
+            "scripts.briefing-script"
+          ],
+          "stories.briefing-story": [
+            "stories.briefing-story"
+          ],
+          "temporal_constraints.briefing-window": [
+            "temporal_constraints.briefing-window"
+          ],
+          "time_domains.exercise-time": [
+            "time_domains.exercise-time"
+          ],
+          "web": [
+            "nodes.web"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "dsl-142"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

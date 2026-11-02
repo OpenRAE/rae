@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/provisioning",
+  "files": {
+    "request.json": "sha256:3995b88f7deb13ba162c0b96b1e125b2345755211d1dd3aac9df1f3bc9129ec6"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 422
+  },
+  "surface": "http"
+}

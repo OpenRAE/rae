@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:30ff5e653da50d271c1cb1979441f134c4ebbeeab26b12d9062184b68e56e857"
+  },
+  "name": "admitted-trial-plan-v1/routed/contracts/fixtures/plans/admitted-trial-plan-v1/context-invalid/typed-treatment-wrong-family-pin.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

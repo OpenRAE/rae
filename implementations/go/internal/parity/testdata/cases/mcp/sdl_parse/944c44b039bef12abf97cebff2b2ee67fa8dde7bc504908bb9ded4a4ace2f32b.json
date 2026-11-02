@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:38e794f96aa70e771c2aeaed89e45f05331f7b6c2a0b420bd0055b3ee99b0572"
+  },
+  "name": "regression/cb7f5d70b7ec7ed1ed19cc25804ad3f948f019939fbc13db7fc80d145d108cd6",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "<<",
+                "<<"
+              ],
+              "code": "sdl.noncanonical_merge",
+              "path": "/nodes/inherited",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 7
+                },
+                "start": {
+                  "column": 5,
+                  "line": 7
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "<<",
+              "<<"
+            ],
+            "code": "sdl.noncanonical_merge",
+            "path": "/nodes/inherited",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 7
+              },
+              "start": {
+                "column": 5,
+                "line": 7
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "input/scenario.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "input/scenario.yaml": "sha256:f8771bceccf31985106921678a6f9ea9ba6ac2235e5d0a2524c55812cb50ff3c"
+  },
+  "name": "regression/5b887dc1c04e8f51cc5117dd200874daf314db808e58daa026ee810a28a2f319",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "input/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

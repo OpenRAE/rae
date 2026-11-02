@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_validate",
+  "files": {
+    "arguments.json": "sha256:46b9f04c1a8226b1504141d3e29f868692a8cc65f959e728e8d6cdc459de68ac"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,107 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:2d6be574c7871ac40a15001db602ab11629d6ed8561dbe5383501e95b3a93767"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/valid/mixed-control-participant",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 7,
+        "declarations": [
+          {
+            "address": "agents.red-agent",
+            "kind": "agents",
+            "model_path": "agents.red-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "agents.supervisor-agent",
+            "kind": "agents",
+            "model_path": "agents.supervisor-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "behavior_specifications.controlled-red",
+            "kind": "behavior_specifications",
+            "model_path": "behavior_specifications.controlled-red",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.blue-team",
+            "kind": "entity",
+            "model_path": "entities.blue-team",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.red-team",
+            "kind": "entity",
+            "model_path": "entities.red-team",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.web",
+            "kind": "node",
+            "model_path": "nodes.web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.act-617-valid",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "act-617-valid",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "agents",
+              "behavior_specifications",
+              "entities",
+              "nodes"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

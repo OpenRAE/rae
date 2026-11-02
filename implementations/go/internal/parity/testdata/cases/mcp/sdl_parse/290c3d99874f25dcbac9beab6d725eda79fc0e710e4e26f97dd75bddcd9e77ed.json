@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:2ef446bc2ce9e2d6d38780438be8e27ff1fed41df1389b2d6af71d286836eff6"
+  },
+  "name": "regression/7eaa3cc6c2a2f4dda7973c72a43ef36564fb99cf5c30f6890f8a9d7c06b87eb8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "window",
+            "populated_sections": {
+              "entities": 1,
+              "events": 1,
+              "objectives": 1,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "1.0.0"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "window",
+          "populated_sections": {
+            "entities": 1,
+            "events": 1,
+            "objectives": 1,
+            "scripts": 1,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "1.0.0"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

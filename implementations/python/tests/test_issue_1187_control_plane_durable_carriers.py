@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 
 import pytest
 from control_plane_conformance_fixtures import DURABLE_PROFILES, profile_harness, witness_events
@@ -30,7 +31,7 @@ def test_malformed_durable_carrier_blocks_reopen_without_backend_replay(profile,
     with profile_harness(profile, tmp_path) as harness:
         operation_id = harness.submit()
     database = tmp_path / "store" / "control-plane.sqlite3"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         original = connection.execute(
             "SELECT payload FROM operations WHERE operation_id=?", (operation_id,)
         ).fetchone()[0]
@@ -61,7 +62,7 @@ def test_malformed_durable_carrier_blocks_reopen_without_backend_replay(profile,
         pytest.fail("malformed persisted operation reached readiness")
     assert witness_events(tmp_path / "effects.jsonl") == effects
     # Rejection does not silently repair, drop, or replace the invalid history.
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute(
             "SELECT payload, digest FROM operations WHERE operation_id=?", (operation_id,)
         ).fetchone() == (content, digest)

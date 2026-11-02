@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/library/catalog.yaml",
+    "repo/examples/library/catalog.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/library/catalog.yaml": "sha256:4d93f9fae12ecebc06caa12273a9d332af578d1911cee1cbf4045e7842d80cc5"
+  },
+  "name": "examples/library/catalog.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

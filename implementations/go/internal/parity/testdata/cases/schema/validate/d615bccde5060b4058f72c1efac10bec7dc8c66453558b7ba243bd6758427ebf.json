@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:9fce09d8022f37fc53d75c0372adbb1f17285c5abf4e8b31f016363420a84153"
+  },
+  "name": "backend-operation-request-v1/routed/contracts/fixtures/control-plane/backend-operation-request-v1/valid/inject-release.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

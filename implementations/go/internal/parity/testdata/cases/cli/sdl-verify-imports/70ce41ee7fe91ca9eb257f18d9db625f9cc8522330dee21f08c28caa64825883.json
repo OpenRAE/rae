@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/techvault-observability-core.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/techvault-observability-core.sdl.yaml": "sha256:1bca57381915eed042e554cce17156704f53f1d622062ecafab733df57bc7bcb",
+    "setup.json": "sha256:f09e13f9ea26ab6ec1976fb93cdfe39201eeeb6cbee806b00c7158ebe31dddb9"
+  },
+  "name": "examples/scenarios/techvault-observability-core.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

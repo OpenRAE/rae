@@ -1,0 +1,14 @@
+{
+  "args": [
+    "validation-basis-disclosure-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:9dcdbf3914bdb7ae10bdaf81fb3c4925cde80424bf1a83c63ab97a9b36cbb265"
+  },
+  "name": "validation-basis-disclosure-v1/routed/contracts/fixtures/profiles/validation-basis-disclosure-v1/valid/scenario-snapshot.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

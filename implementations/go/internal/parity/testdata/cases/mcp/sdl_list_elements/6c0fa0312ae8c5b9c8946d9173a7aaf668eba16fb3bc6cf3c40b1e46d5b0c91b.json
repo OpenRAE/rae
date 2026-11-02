@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:a1e9a00b7b8bc3bdf6472c38ca4a9167d810e05a19c713b1c8881211eed8258f"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/minimal.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

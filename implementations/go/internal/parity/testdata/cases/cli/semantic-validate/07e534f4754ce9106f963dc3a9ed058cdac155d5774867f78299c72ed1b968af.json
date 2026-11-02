@@ -1,0 +1,17 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "input/guided-web-probe.sdl.yaml"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input/guided-web-probe.sdl.yaml": "sha256:ae54785d71c4b168239f905508832ef9b97ee2ce6d1adc65dfd540c127457c4f"
+  },
+  "name": "regression/c876264310481430ba274edbb8974862aa1a4d41bd57a922fc3244ec325cf85a",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

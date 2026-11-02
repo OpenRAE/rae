@@ -1,0 +1,50 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml",
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml": "sha256:93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239"
+  },
+  "name": "examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "time.model",
+            "code": "time.unsupported-capability",
+            "domain": "time",
+            "severity": "error"
+          },
+          {
+            "address": "participant.autonomous-execution",
+            "code": "participant.autonomous-execution-unsupported",
+            "domain": "participant",
+            "severity": "error"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "automation-dwell",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

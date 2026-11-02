@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf"
+  },
+  "name": "examples/scenarios/participant-control-context/context-kit.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

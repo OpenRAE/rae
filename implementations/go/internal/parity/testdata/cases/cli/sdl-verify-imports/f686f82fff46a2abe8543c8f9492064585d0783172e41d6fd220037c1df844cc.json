@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml": "sha256:f7a8897beec243e188ee081975006fad32725f469f267db6e75a1e1cf5727032",
+    "setup.json": "sha256:f7358ea782796bb46aa1cd37dade5f47c739b9d5a0243c8ca91cc08c37a61729"
+  },
+  "name": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

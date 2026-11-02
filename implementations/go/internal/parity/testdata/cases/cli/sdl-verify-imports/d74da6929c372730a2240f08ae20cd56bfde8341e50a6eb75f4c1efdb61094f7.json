@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc",
+    "setup.json": "sha256:6da8e2c9e39d2a4a2e652d8cf81b9955a97d17384f79c10626ddf33b543ecb16"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/artifact-transformations-v1/sources/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

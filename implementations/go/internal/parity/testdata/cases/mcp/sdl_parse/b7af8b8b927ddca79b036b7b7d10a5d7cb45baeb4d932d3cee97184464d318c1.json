@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:54433c78b78832b24bfbfcb6abb0890d40dd166a170ab3262ccc20db2cf52483"
+  },
+  "name": "regression/5467d43bcdb3ad934dcc86ec08155f093b80a74a7d18617d8f18d9cc1fb597b9",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/action_contracts/scan/temporal_contracts/3",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 79
+                },
+                "start": {
+                  "column": 9,
+                  "line": 67
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/action_contracts/scan/temporal_contracts/3",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 79
+              },
+              "start": {
+                "column": 9,
+                "line": 67
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

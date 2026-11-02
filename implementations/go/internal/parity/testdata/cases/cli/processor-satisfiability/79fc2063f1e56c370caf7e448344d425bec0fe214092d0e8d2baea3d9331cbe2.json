@@ -1,0 +1,19 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "input/SECRET-MARKER.sdl.yaml",
+    "--profile",
+    "raes-finite-domain-satisfiability-v1"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "input/SECRET-MARKER.sdl.yaml": "sha256:939cba2aec9c844760aec2120c890839c73cf8cb434d320048cb77e354e3871b"
+  },
+  "name": "regression/14460a0925a29d966ce990e4d0dc14e72c507dccd9d7d9e5465bab49a1620e41",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

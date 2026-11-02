@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /participant-executions/{execution_scope_ref}/control",
+  "files": {
+    "request.json": "sha256:bc02c5353b11c3dbd8930d8cc934bb256537dceb754a4cd7e39f647ad94fa527"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

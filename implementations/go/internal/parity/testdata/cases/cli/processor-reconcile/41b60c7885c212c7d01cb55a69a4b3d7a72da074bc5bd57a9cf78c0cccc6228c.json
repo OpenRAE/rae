@@ -1,0 +1,42 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml",
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml": "sha256:43eb7514b410d4d94615cc67019afd86eeb5bd008cf3aad27de5f193cc9394bf"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "actions": {
+        "create": 0,
+        "delete": 0,
+        "unchanged": 0,
+        "update": 0
+      },
+      "baseline": {
+        "diagnostics": [],
+        "scenario_name": "static-family",
+        "snapshot": {
+          "entries": [],
+          "entry_count": 0
+        }
+      },
+      "candidate": {
+        "diagnostics": [],
+        "scenario_name": "static-family"
+      },
+      "operations": [],
+      "snapshot_kind": "planned-state-projection",
+      "status": "reconciled"
+    }
+  },
+  "surface": "cli"
+}

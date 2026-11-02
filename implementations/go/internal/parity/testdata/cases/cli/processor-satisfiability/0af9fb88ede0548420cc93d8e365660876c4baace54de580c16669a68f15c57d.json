@@ -1,0 +1,247 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "input/private.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "input/private.sdl.yaml": "sha256:0d0f65bfc0afd4993d3dd27b82ea716859c1c63e348506490d17330f591f1310"
+  },
+  "name": "regression/3c7b4273d7675cbb0ad0655c103dd464ccd132e2f8165608351a8a83cfff8651",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:6ad7a744b4e4996f90a3eb15e47e49a6373dbbe5b5e9cff4d82f117ac5b9833f"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:6ad7a744b4e4996f90a3eb15e47e49a6373dbbe5b5e9cff4d82f117ac5b9833f"
+        },
+        "clauses": [
+          {
+            "allowed_values": [
+              "x-owner:private-os"
+            ],
+            "clause_id": "domain:d34a569ab7aaa54dacd715ae64953455d86b768846cd0085ef4e9e7471489b7b",
+            "kind": "declared-domain",
+            "source_address": "/variables/family",
+            "symbol_id": "symbol:d34a569ab7aaa54dacd715ae64953455d86b768846cd0085ef4e9e7471489b7b"
+          },
+          {
+            "allowed_values": [
+              "x-owner:private-os"
+            ],
+            "clause_id": "target:c9a611e1693746afbf7c29c14ee7c2eb2d0cb208ea80de4f3f713ffb30e7a65d",
+            "kind": "target-domain",
+            "source_address": "/nodes/host/os",
+            "symbol_id": "symbol:d34a569ab7aaa54dacd715ae64953455d86b768846cd0085ef4e9e7471489b7b"
+          }
+        ],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:0d0f65bfc0afd4993d3dd27b82ea716859c1c63e348506490d17330f591f1310",
+        "symbols": [
+          {
+            "domain": [
+              "x-owner:private-os"
+            ],
+            "sort": "string",
+            "symbol_id": "symbol:d34a569ab7aaa54dacd715ae64953455d86b768846cd0085ef4e9e7471489b7b",
+            "variable": "family"
+          }
+        ],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:0a5c0e3e45e7749820c1ae6aa33587bbeb1f0f98c469f064e01609dc8bb0db3e",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:0d0f65bfc0afd4993d3dd27b82ea716859c1c63e348506490d17330f591f1310",
+        "source_id": "private.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {},
+            "assertions": {},
+            "behavior_specifications": {},
+            "clocks": {},
+            "conditions": {},
+            "content": {},
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "",
+            "entities": {},
+            "events": {},
+            "evidence_requirements": {},
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:6ad7a744b4e4996f90a3eb15e47e49a6373dbbe5b5e9cff4d82f117ac5b9833f"
+              },
+              "bindings": [
+                {
+                  "origin": "provided",
+                  "parameter": [
+                    "family"
+                  ],
+                  "value": "x-owner:private-os"
+                }
+              ],
+              "capability_constraints": [
+                {
+                  "allowed_values": [
+                    "x-owner:private-os"
+                  ],
+                  "field_pointer": "/nodes/host/os",
+                  "kind": "allowed-values",
+                  "parameter": [
+                    "family"
+                  ]
+                }
+              ],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.host.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "constrained",
+                  "model_path": "nodes.host.os",
+                  "parameters": [
+                    [
+                      "family"
+                    ]
+                  ],
+                  "provenance": "processor-derived",
+                  "reason": "parameter/default substitution preserved authored explicitness class"
+                },
+                {
+                  "classification": "constrained",
+                  "model_path": "nodes.host",
+                  "parameters": [
+                    [
+                      "family"
+                    ]
+                  ],
+                  "provenance": "processor-derived",
+                  "reason": "parameter/default substitution preserved authored explicitness class"
+                },
+                {
+                  "classification": "constrained",
+                  "model_path": "nodes",
+                  "parameters": [
+                    [
+                      "family"
+                    ]
+                  ],
+                  "provenance": "processor-derived",
+                  "reason": "parameter/default substitution preserved authored explicitness class"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "variables",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "private-os-domain",
+            "nodes": {
+              "host": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": "x-owner:private-os",
+                "os_distribution": null,
+                "os_version": "",
+                "resources": null,
+                "roles": {},
+                "runtime": null,
+                "services": [],
+                "source": null,
+                "type": "compute"
+              }
+            },
+            "objectives": {},
+            "observation_boundaries": {},
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {},
+            "relationships": {},
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {},
+            "time_domain_mappings": {},
+            "time_domains": {},
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:8e54283a657d68984d3a5354ba6d39dd2a0964f210a4ce3810cfb1df73ec1ade"
+      }
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /apparatus/operational-summary",
+  "files": {
+    "request.json": "sha256:4b27f7bfbffed5f3dc5ad5b8839c7eca14567aa3a59dddac14057beb8b9af730"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

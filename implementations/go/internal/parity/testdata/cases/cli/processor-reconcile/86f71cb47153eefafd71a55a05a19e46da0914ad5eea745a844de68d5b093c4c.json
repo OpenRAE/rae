@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml": "sha256:d1bdc768736d6817a008809658c0cf7406b7544af2208d4aee281d5036e2fd18"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,43 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.yaml": "sha256:43eb7514b410d4d94615cc67019afd86eeb5bd008cf3aad27de5f193cc9394bf"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/empty",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "validate",
+      "payload": {
+        "field_count": 2,
+        "phase": "validated-authoring",
+        "root_type": "object",
+        "scenario_name": "static-family",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,247 @@
+{
+  "args": [
+    "conformance",
+    "processor",
+    "--feature",
+    "runtime-control-plane"
+  ],
+  "command": "conformance processor",
+  "files": {},
+  "name": "regression/9517ce5db981e5e1d053722fd5e8928dcb1827345a6484b2fb8ccd2bc657089c",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "cases": [
+        {
+          "accounted_operations": [],
+          "actual_observation_strengths": [],
+          "capability_feature": null,
+          "claim_bindings": [],
+          "cleanup_verified": null,
+          "configuration_digest": "sha256:538ed923cf3dad84b87ed6d62b991de2219aa72af8b48b4d37856344d9c00197",
+          "contract_name": "processor-manifest-v2",
+          "declared_support_level": null,
+          "diagnostics": [],
+          "effective_support_level": null,
+          "envelope_digest": null,
+          "environment_digest": null,
+          "evidence_origin": "declared",
+          "evidence_refs": [],
+          "execution_basis": "fixture-only",
+          "expected_observation_strengths": [],
+          "expected_operations": [],
+          "explicit_non_claims": [],
+          "finite_scope": null,
+          "limitations": [],
+          "manifest_digest": null,
+          "mixed_binding": null,
+          "modular_control": null,
+          "name": "manifest",
+          "native_state_unchanged": null,
+          "outcome": "passed",
+          "passed": true,
+          "policy_binding": null,
+          "portable_state_unchanged": null,
+          "probe_digest": null,
+          "probe_kind": null,
+          "probe_set_digest": null,
+          "profile_digest": null,
+          "realization_owner": null,
+          "residual_state": [],
+          "target_binding": null,
+          "tool_digest": null,
+          "valid": true,
+          "validation_strength": "structural"
+        },
+        {
+          "accounted_operations": [],
+          "actual_observation_strengths": [],
+          "capability_feature": "runtime-control-plane",
+          "claim_bindings": [],
+          "cleanup_verified": null,
+          "configuration_digest": "sha256:538ed923cf3dad84b87ed6d62b991de2219aa72af8b48b4d37856344d9c00197",
+          "contract_name": "processor-manifest-v2",
+          "declared_support_level": "declared",
+          "diagnostics": [
+            {
+              "address": "processor",
+              "code": "conformance.processor-feature-unverified",
+              "domain": "conformance",
+              "severity": "error"
+            }
+          ],
+          "effective_support_level": null,
+          "envelope_digest": null,
+          "environment_digest": null,
+          "evidence_origin": null,
+          "evidence_refs": [],
+          "execution_basis": "fixture-only",
+          "expected_observation_strengths": [],
+          "expected_operations": [],
+          "explicit_non_claims": [],
+          "finite_scope": null,
+          "limitations": [
+            "No behavioral check is available for this requested feature in this suite."
+          ],
+          "manifest_digest": null,
+          "mixed_binding": null,
+          "modular_control": null,
+          "name": "support-1",
+          "native_state_unchanged": null,
+          "outcome": "unsupported",
+          "passed": false,
+          "policy_binding": null,
+          "portable_state_unchanged": null,
+          "probe_digest": null,
+          "probe_kind": null,
+          "probe_set_digest": null,
+          "profile_digest": null,
+          "realization_owner": null,
+          "residual_state": [],
+          "target_binding": null,
+          "tool_digest": null,
+          "valid": true,
+          "validation_strength": null
+        }
+      ],
+      "claim": {
+        "assurance_axis": null,
+        "assurance_status": "tested",
+        "evidence_boundary": "Only the selected processor inputs, requested features, and planning backend. No full semantic profile or native backend qualification.",
+        "evidence_refs": [
+          "conformance-case:processor-manifest-v2:manifest",
+          "conformance-case:processor-manifest-v2:support-1"
+        ],
+        "evidence_scope": "finite",
+        "explicit_non_claims": [
+          "Does not establish trace equivalence or bisimulation.",
+          "Does not establish strategic, epistemic, probabilistic, timed, or partial-order equivalence.",
+          "Finite generated probes do not establish universal realizability outside the recorded envelope dimensions.",
+          "Fixture-only and hermetic-live execution do not establish native-daemon conformance."
+        ],
+        "left_carrier_ref": "processor-conformance:selected-implementation",
+        "limitations": [
+          "Case results are bounded by the selected profile, corpus revision, target, and execution environment."
+        ],
+        "observation_projection_ref": "backend-conformance-case-report",
+        "observation_projection_revision": "rev1",
+        "quantifier_scope": "finite-cases",
+        "relation_id": "bounded-probe-success",
+        "relation_parameter_profile_ref": null,
+        "relation_parameter_profile_revision": null,
+        "right_carrier_ref": "processor-suite:processor-compile-plan/v1",
+        "subject": "Finite processor compile and plan conformance",
+        "taxonomy_id": "raes-behavioral-relations",
+        "taxonomy_revision": "rev8"
+      },
+      "contract_digests": {
+        "evaluation-plan-v1": "sha256:832ed283e8eb66750be9327830e9b26ff41ec902e87aa7d4ff6931b7687f0297",
+        "operation-receipt-v1": "sha256:6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed",
+        "operation-status-v1": "sha256:980c11cc8980258a94864107f78ebab3f9e654fc5b1ee17a9912c67fbcf75354",
+        "orchestration-plan-v1": "sha256:dab4f20af44c29e6aa7f82f66132315d3ba41a0b1bc59f216ceebf3d5d26f9e5",
+        "processor-manifest-v2": "sha256:eb41344e4392d08e7c4a7e77c7170b863a48624d28a58fb9ea852a7c95d4ada3",
+        "provisioning-plan-v1": "sha256:b18f31a3c3582c688e82cb364850c4c4b212d3bcf0aac74e72d98b2b4bb0849d",
+        "runtime-snapshot-v1": "sha256:cf3d76682683e3b09628616aa0e0fb8a2ad932be406860be53bcaf6d244ea61a",
+        "workflow-cancellation-request-v1": "sha256:50f63d3e9f24a674b7ecc2d8f3a8847e1465d790762319cd47a9ee9477d6295f"
+      },
+      "contract_versions": {
+        "evaluation-plan-v1": "evaluation-plan-v1",
+        "operation-receipt-v1": "operation-receipt-v1",
+        "operation-status-v1": "operation-status-v1",
+        "orchestration-plan-v1": "orchestration-plan-v1",
+        "processor-manifest-v2": "processor-manifest-v2",
+        "provisioning-plan-v1": "provisioning-plan-v1",
+        "runtime-snapshot-v1": "runtime-snapshot-v1",
+        "workflow-cancellation-request-v1": "workflow-cancellation-request-v1"
+      },
+      "diagnostics": [],
+      "native_conformance": false,
+      "passed": false,
+      "probe_set_digest": null,
+      "profile": "processor-compile-plan/v1",
+      "profile_digest": "sha256:6321922ac0a766f9654c0785761f184fcec730d8baf1413c43aa3c2073d5db0e",
+      "profile_version": "v1",
+      "provenance": {
+        "planning_backend_digest": "sha256:538ed923cf3dad84b87ed6d62b991de2219aa72af8b48b4d37856344d9c00197",
+        "requested_features": [
+          "runtime-control-plane"
+        ],
+        "selected_probes": [
+          {
+            "digest": "sha256:8f1fc71f85ec06699da5f4c659d617b1c2aaa6e56b29664d17912894cf9677c9",
+            "name": "valid-scenario",
+            "valid": true
+          },
+          {
+            "digest": "sha256:83eaaff566e9aa5e1a8c519b689ad355c4484713e8705a19868452c0d9ee1a81",
+            "name": "invalid-syntax",
+            "valid": false
+          }
+        ],
+        "semantic_profile": {
+          "digest": "sha256:ea978b911ade9ce4da83bf9f5cb4749e75139bfd99e1ab1d541d8b9ab8716b0f",
+          "id": "reference-stack-v1",
+          "version": "semantic-profile/v1"
+        },
+        "validation_profile_limitation": "Reference for interpreting report checks; no validation disclosure or report-wide achieved strength is asserted.",
+        "validation_profile_reference": {
+          "profile_id": "raes-structural-validation",
+          "profile_version": "v1",
+          "subject_kind": "published_claim"
+        }
+      },
+      "reporter_version": "10.2.0",
+      "required_case_refs": [
+        "conformance-case:processor-manifest-v2:manifest",
+        "conformance-case:processor-manifest-v2:support-1"
+      ],
+      "subject_kind": "processor",
+      "subject_name": "raes-reference-processor",
+      "subject_version": "10.2.0",
+      "summary": {
+        "achieved_profile": null,
+        "checks": {
+          "failed": 0,
+          "passed": 1,
+          "unsupported": 1
+        },
+        "explicit_non_claims": [
+          "Does not establish trace equivalence or bisimulation.",
+          "Does not establish strategic, epistemic, probabilistic, timed, or partial-order equivalence.",
+          "Finite generated probes do not establish universal realizability outside the recorded envelope dimensions.",
+          "Fixture-only and hermetic-live execution do not establish native-daemon conformance."
+        ],
+        "limitations": [
+          "Case results are bounded by the selected profile, corpus revision, target, and execution environment.",
+          "No behavioral check is available for this requested feature in this suite."
+        ],
+        "missing_checks": [],
+        "requested_profile": "processor-compile-plan/v1",
+        "support": [
+          {
+            "check": "conformance-case:processor-manifest-v2:support-1",
+            "declared": "declared",
+            "effective": null,
+            "evidence_origin": null,
+            "feature": "runtime-control-plane",
+            "observed": null
+          }
+        ],
+        "validation_basis": {
+          "evidence_boundary": "Only the selected processor inputs, requested features, and planning backend. No full semantic profile or native backend qualification.",
+          "evidence_scope": "finite",
+          "execution_bases": [
+            "fixture-only"
+          ],
+          "quantifier_scope": "finite-cases"
+        }
+      },
+      "tool_version": "10.2.0",
+      "unsupported_capability_gaps": [
+        "runtime-control-plane"
+      ],
+      "unsupported_contract_gaps": []
+    }
+  },
+  "surface": "cli"
+}
