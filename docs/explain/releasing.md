@@ -94,8 +94,8 @@ building and publication are automated afterward. Feature PRs never touch
 |---|---|---|
 | `feat` | yes | minor |
 | `fix`, `perf` | yes | patch |
-| `feat!` / `fix!` / `BREAKING CHANGE:` footer | yes | major (pre-1.0 demoted to minor) |
-| `docs`, `style`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
+| Any type with `!` / `BREAKING CHANGE:` footer | yes | major (pre-1.0 demoted to minor) |
+| Nonbreaking `docs`, `style`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
 
 The Python Release Please strategy normally includes `docs` in visible release
 notes. `release-please-config.json` explicitly hides that section alongside
@@ -103,6 +103,23 @@ maintenance types, so a documentation-only change does not produce release
 notes and therefore does not propose a release. A later `feat:`, `fix:`, or
 `perf:` can still produce a release and include those changes in its history.
 Use `feat:`/`fix:` for consumer-visible changes so release-please cuts a release.
+
+Breaking changes in hidden maintenance sections still produce a major release
+and a breaking-change entry. For example, `refactor!:` is release-bearing even
+though an ordinary `refactor:` is hidden.
+
+Release PR maintenance uses the exact Git ancestry difference from the manifest
+version's tag to the main head. This includes older-dated feature commits merged
+after that release, which the upstream chronological API walk can omit (#1841).
+The adapter retains upstream PR metadata and refuses incomplete API history;
+it never builds notes from a partial range. The workflow tests this behavior
+against the pinned engine before maintaining release PRs. If main advances
+during a queued run, rerun the workflow for the current main head.
+
+This corrects future release calculation. It does not rewrite already published
+10.4.0/10.5.0 artifacts or historical notes. A corrective release must use a new
+version through the normal reviewed release PR; published tags and distribution
+bytes must not be replaced.
 
 ## Configuration
 

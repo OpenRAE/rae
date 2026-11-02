@@ -48,6 +48,8 @@ from .runtime_platform_application_vocab import (
 from .runtime_secret_service import (
     RuntimeCloudServiceLimit,
     RuntimeSecretConsumer,
+    RuntimeSecretReplica,
+    RuntimeSecretReplication,
     RuntimeSecretSelector,
     RuntimeSecretVersion,
     RuntimeServiceSecret,
@@ -56,6 +58,8 @@ from .runtime_secret_service import (
 __all__ = [
     "RuntimeCloudServiceLimit",
     "RuntimeSecretConsumer",
+    "RuntimeSecretReplica",
+    "RuntimeSecretReplication",
     "RuntimeSecretSelector",
     "RuntimeSecretVersion",
     "RuntimeServiceSecret",

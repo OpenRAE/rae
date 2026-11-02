@@ -137,8 +137,7 @@ uv run --project implementations/tooling/python --frozen --no-default-groups pyt
 
 On a host whose `curl` is older, such as Ubuntu 22.04, pass an archive you
 already have with `--local-input PATH`. The tool admits it only when its size
-and SHA-256 match the lock. An approved mirror is selected explicitly with
-`--locator-ref official-isabelle-cambridge-mirror`. To list every missing proof
+and SHA-256 match the lock. To list every missing proof
 prerequisite without network access or execution, run
 `python -m tools.isabelle_tool preflight`.
 
