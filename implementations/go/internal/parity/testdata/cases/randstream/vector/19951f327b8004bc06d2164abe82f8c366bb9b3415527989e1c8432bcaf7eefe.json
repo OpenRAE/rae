@@ -1,0 +1,19 @@
+{
+  "args": [],
+  "command": "vector",
+  "files": {
+    "vector.json": "61d9d31b910e4fe056cde15511ec170187fab5c45a3384b662267ea1337e44ac"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/negative-int64-singleton",
+  "result": {
+    "address_canonical_bytes_hex": "7b22647261775f707572706f7365223a226f74686572222c226c6f63616c5f636f6f7264696e617465223a302c226e616d657370616365223a226e222c2273656c656374696f6e5f706f6c6963795f6964223a2270222c22747269616c5f636f6f7264696e617465223a7b7d2c22766172696174696f6e5f706f696e745f6964223a2276227d",
+    "draw": {
+      "rejection_attempts": 0,
+      "rejection_exhausted": false,
+      "value": "-9223372036854775809"
+    },
+    "raw_block_hex": "603c8a2cc1ba9d29bd28d13e4fe8e0cf315b326ea231d26537c6348e22e23d94",
+    "stream_key_hex": "39a7b17cae76d0fc6cb1570061a75120f2b674895df48587c4d82853906866fd"
+  },
+  "surface": "randstream"
+}

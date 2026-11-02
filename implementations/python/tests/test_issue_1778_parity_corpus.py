@@ -208,3 +208,5 @@ def test_randstream_cases_reproduce_each_published_vector() -> None:
         if transform is not None:
             assert result["draw"]["rejection_attempts"] == transform["expected_rejection_attempts"]
             assert result["draw"]["rejection_exhausted"] == transform["expected_rejection_exhausted"]
+            expected_value = None if transform["expected_rejection_exhausted"] else transform["outcome"]["value"]
+            assert result["draw"]["value"] == expected_value

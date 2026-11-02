@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "018b93fb59a5dfdaff11c00c4e36bd0002cac186b10133e217d32a6756233a6f"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/wide-exhaustion",
+  "result": {
+    "jcs": null,
+    "sorted_ascii": "sha256:beb85f8ccd5768b9a3e814a8320af37ebd3ae19a8492d6af67991ba73969c0a3",
+    "sorted_unicode": "sha256:beb85f8ccd5768b9a3e814a8320af37ebd3ae19a8492d6af67991ba73969c0a3"
+  },
+  "surface": "canonical"
+}

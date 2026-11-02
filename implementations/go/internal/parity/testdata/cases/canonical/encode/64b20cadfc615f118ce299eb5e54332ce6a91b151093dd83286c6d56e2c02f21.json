@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "02568d24fb7fce022b26f6a10618c4ebf9f9f225acfb09b781d05c202d219ac5"
+  },
+  "name": "contracts/fixtures/random-stream-vectors/blake3-xof-v1/largest-canonical-coordinate",
+  "result": {
+    "jcs": null,
+    "sorted_ascii": "sha256:746988707a83203d93f5ca107ff3b8c6e2eaf25a489b58b9ad15729402f25ee7",
+    "sorted_unicode": "sha256:746988707a83203d93f5ca107ff3b8c6e2eaf25a489b58b9ad15729402f25ee7"
+  },
+  "surface": "canonical"
+}

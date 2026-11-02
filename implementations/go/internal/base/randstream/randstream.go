@@ -36,7 +36,7 @@ type Key [KeyBytes]byte
 // Draw is the outcome of one bounded-integer draw. Attempts counts the
 // rejected candidates. An exhausted draw has no value.
 type Draw struct {
-	Value     int64
+	Value     *big.Int
 	Attempts  int
 	Exhausted bool
 }
@@ -47,8 +47,11 @@ func PublicSeed(encoding, value string) ([]byte, error) {
 	if encoding != "hex-fixed-width" {
 		return nil, fmt.Errorf("%w: unsupported public seed encoding %q", ErrInput, encoding)
 	}
+	if len(value) != 2*KeyBytes {
+		return nil, fmt.Errorf("%w: a public seed must contain exactly %d hexadecimal digits", ErrInput, 2*KeyBytes)
+	}
 	seed, err := hex.DecodeString(value)
-	if err != nil || len(seed) != KeyBytes {
+	if err != nil {
 		return nil, fmt.Errorf("%w: a public seed must decode to exactly %d bytes", ErrInput, KeyBytes)
 	}
 	return seed, nil
@@ -74,6 +77,18 @@ func Block(key Key, address []byte, coordinate, offset int64, length int) ([]byt
 	if length < 1 {
 		return nil, fmt.Errorf("%w: a block length must be positive", ErrInput)
 	}
+	output, err := outputAt(key, address, coordinate, offset)
+	if err != nil {
+		return nil, err
+	}
+	block := make([]byte, length)
+	_, _ = io.ReadFull(output, block) // The output is unbounded, so the read cannot fail.
+	return block, nil
+}
+
+// outputAt makes a private reader for one operation. No cursor is shared
+// between operations, and candidate reads need no multiplying attempt offset.
+func outputAt(key Key, address []byte, coordinate, offset int64) (*blake3.Digest, error) {
 	if coordinate < 0 || offset < 0 || coordinate > (math.MaxInt64-offset)/BlockBytes {
 		return nil, fmt.Errorf("%w: the block position is out of range", ErrInput)
 	}
@@ -84,9 +99,7 @@ func Block(key Key, address []byte, coordinate, offset int64, length int) ([]byt
 	if _, err := output.Seek(coordinate*BlockBytes+offset, io.SeekStart); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInput, err)
 	}
-	block := make([]byte, length)
-	_, _ = io.ReadFull(output, block) // The output is unbounded, so the read cannot fail.
-	return block, nil
+	return output, nil
 }
 
 // BoundedInt draws an unbiased integer in [minimum, maximum] by rejection
@@ -95,11 +108,16 @@ func Block(key Key, address []byte, coordinate, offset int64, length int) ([]byt
 // width that fits those bytes is rejected, and the next candidate is read from
 // the following bytes. After maxAttempts rejections the draw is exhausted; it
 // never falls back to a biased value.
-func BoundedInt(key Key, address []byte, coordinate, minimum, maximum int64, maxAttempts int) (Draw, error) {
-	if maximum < minimum || maxAttempts < 1 {
+// Bounds and the returned value are exact integers; neither bound is changed.
+func BoundedInt(key Key, address []byte, coordinate int64, minimum, maximum *big.Int, maxAttempts int) (Draw, error) {
+	if minimum == nil || maximum == nil || maximum.Cmp(minimum) < 0 || maxAttempts < 1 {
 		return Draw{}, fmt.Errorf("%w: a draw needs maximum >= minimum and at least one attempt", ErrInput)
 	}
-	width := new(big.Int).Sub(big.NewInt(maximum), big.NewInt(minimum))
+	output, err := outputAt(key, address, coordinate, 0)
+	if err != nil {
+		return Draw{}, err
+	}
+	width := new(big.Int).Sub(maximum, minimum)
 	width.Add(width, big.NewInt(1))
 	byteWidth := 1
 	ceiling := big.NewInt(256)
@@ -108,15 +126,13 @@ func BoundedInt(key Key, address []byte, coordinate, minimum, maximum int64, max
 		ceiling.Lsh(ceiling, 8)
 	}
 	limit := new(big.Int).Sub(ceiling, new(big.Int).Mod(ceiling, width))
+	chunk := make([]byte, byteWidth)
 	for attempt := range maxAttempts {
-		chunk, err := Block(key, address, coordinate, int64(attempt*byteWidth), byteWidth)
-		if err != nil {
-			return Draw{}, err
-		}
+		_, _ = io.ReadFull(output, chunk) // The output always fills the buffer.
 		candidate := new(big.Int).SetBytes(chunk)
 		if candidate.Cmp(limit) < 0 {
 			value := candidate.Mod(candidate, width)
-			return Draw{Value: value.Add(value, big.NewInt(minimum)).Int64(), Attempts: attempt}, nil
+			return Draw{Value: value.Add(value, minimum), Attempts: attempt}, nil
 		}
 	}
 	return Draw{Attempts: maxAttempts, Exhausted: true}, nil
