@@ -243,3 +243,36 @@ def test_randstream_cases_reproduce_each_published_vector() -> None:
             assert result["draw"]["rejection_exhausted"] == transform["expected_rejection_exhausted"]
             expected_value = None if transform["expected_rejection_exhausted"] else transform["outcome"]["value"]
             assert result["draw"]["value"] == expected_value
+
+
+def test_primitive_corpus_records_reference_results_and_all_commands() -> None:
+    cases = list(pc.primitive_cases())
+    assert {case.command for case in cases} == {
+        "ingress",
+        "ingress-exception",
+        "uri",
+        "pointer",
+        "tokens",
+        "address",
+        "render",
+        "plan-root",
+    }
+    assert len({case.path for case in cases}) == len(cases)
+    for case in cases:
+        result = pc.run_primitive(case)
+        assert result == pc.run_primitive(case)
+        assert json.loads(pc.encode(result)) == result
+    ingress_codes = {pc.run_primitive(case).get("code") for case in cases if case.command == "ingress"}
+    assert ingress_codes == {
+        None,
+        "input-too-large",
+        "empty-input",
+        "input-too-deep",
+        "invalid-json",
+        "duplicate-member",
+        "non-finite-number",
+        "integer-too-long",
+        "invalid-root",
+    }
+    uri_codes = {pc.run_primitive(case)["code"] for case in cases if case.command == "uri"}
+    assert uri_codes == {"", "absolute", "invalid", "scheme", "credentials", "fragment", "secret"}

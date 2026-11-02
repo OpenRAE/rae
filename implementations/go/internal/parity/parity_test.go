@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	manifest = `{"schema":"raes-parity-corpus/v1","reference":{"python_version":"3.14.7",
+	manifest = `{"schema":"raes-parity-corpus/v1","reference":{"python":"cpython-314","python_version":"3.14.7","unicode":"16.0.0",
         "source_sha256":"0000000000000000000000000000000000000000000000000000000000000000",
         "recorder_sha256":"1111111111111111111111111111111111111111111111111111111111111111",
         "environment_sha256":"2222222222222222222222222222222222222222222222222222222222222222"}}`
@@ -63,9 +63,14 @@ func TestLoadRejectsAnInvalidCorpus(t *testing.T) {
 		"input that does not match its digest": corpus([]byte("changed")),
 	}
 	for name, content := range map[string]string{
-		"unknown schema":       `{"schema": "other/v1"}`,
-		"unknown field":        `{"schema": "raes-parity-corpus/v1", "x": 1}`,
-		"data after the value": manifest + " {}",
+		"missing reference":        `{"schema":"raes-parity-corpus/v1"}`,
+		"invalid reference digest": `{"schema":"raes-parity-corpus/v1","reference":{"source_sha256":"x","recorder_sha256":"y","python":"cpython-314","unicode":"16.0.0"}}`,
+		"short reference digest":   `{"schema":"raes-parity-corpus/v1","reference":{"source_sha256":"ab","recorder_sha256":"ab","python":"cpython-314","unicode":"16.0.0"}}`,
+		"missing Unicode identity": `{"schema":"raes-parity-corpus/v1","reference":{"source_sha256":"ab","recorder_sha256":"ab","python":"cpython-314"}}`,
+		"missing Python identity":  `{"schema":"raes-parity-corpus/v1","reference":{"unicode":"16.0.0"}}`,
+		"unknown schema":           `{"schema": "other/v1"}`,
+		"unknown field":            `{"schema": "raes-parity-corpus/v1", "x": 1}`,
+		"data after the value":     manifest + " {}",
 	} {
 		fsys := corpus([]byte(input))
 		fsys["manifest.json"] = &fstest.MapFile{Data: []byte(content)}
@@ -111,11 +116,14 @@ func TestResultComparisonKeepsExactNumbers(t *testing.T) {
 }
 
 func TestImplementedCommandsCannotBecomeSkipped(t *testing.T) {
-	cases := map[string][]Case{"canonical encode": {{Name: "edge"}}, "randstream vector": {{Name: "vector"}}}
+	cases := map[string][]Case{}
+	for _, key := range implementedCommands() {
+		cases[key] = []Case{{Name: "case"}}
+	}
 	if err := checkRunners(cases, runners(), false); err != nil {
 		t.Fatalf("checkRunners() error = %v, want nil", err)
 	}
-	for _, key := range []string{"canonical encode", "randstream vector"} {
+	for _, key := range implementedCommands() {
 		registered := runners()
 		delete(registered, key)
 		if err := checkRunners(cases, registered, false); err == nil {

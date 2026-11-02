@@ -80,3 +80,66 @@ flowchart LR
 - [RFC 6901: JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901)
 - [Unicode normalization stability policy](https://www.unicode.org/policies/stability_policy.html)
 - Issue #1779
+
+## Review remediation design (PR #1822)
+
+`ingress.Parse` must reject a `Root` other than `Object` or `Array` before
+reading input, using the existing `invalid-root` code. No new public API is
+needed. Explicit limits must never raise the decoder's stack-safety ceiling.
+The existing four owner packages and their interfaces stay in place.
+
+The parity recorder will call the unchanged Python functions for ingress,
+URI safety, pointer tokens/indexes, and addresses. Cases retain both accepted
+values and refusal codes, including duplicate/error precedence, byte encodings,
+limits, and the prior ingress and pointer defects. The Go parity package will
+call the four existing public APIs; its architecture-model imports must name
+those dependencies before implementation. Reference results must not be
+replaced with hand-written Go expectations. Compatibility exceptions require
+an explicit maintainer decision and separately visible reference results.
+
+The standard JSON decoder cannot preserve duplicate detection or the reference
+error precedence without a token adapter, and replaces lone surrogates. A
+streaming token adapter also imposes its 10,000-depth ceiling. The existing
+parser is therefore retained rather than replaced with another parser. The
+standard URI parser rejects malformed percent escapes and accepts different
+scheme/host syntax, so the small compatibility splitter stays isolated in
+`urisafety`; `netip` and the maintained Unicode tables do the complex host and
+normalization work. No network requests or value-bearing logs are added.
+
+Issue #1779 remains the delivery inventory: canonical JSON/digests and random
+streams are earlier slices; this slice supplies ingress, pointers, URI safety,
+and addresses. Timestamps, versions (including Debian/RPM), bounded domains,
+errors/logging, clock, graphs, and secret references remain pending under that
+issue. This slice must reference, rather than close, the parent issue.
+
+The inherited corpus checker must compare JSON numbers exactly: converting
+numbers to `float64` hides adjacent integers above 2^53. Its comparison uses
+`json.Number` and exact rational equality, so equivalent decimal/exponent
+spellings compare equal without losing a unit. An independent inventory of
+implemented commands prevents a deleted runner from silently becoming a skip.
+
+Corpus provenance binds the unchanged Python package source tree and dependency
+lock to a deterministic content hash, and records a separate recorder hash,
+Python ABI and Unicode-table version. The loader rejects missing or malformed
+reference identities; CI re-recording detects source, recorder, dependency or
+environment drift. The complete source identity is independent of the branch
+name or commit used to package the same source.
+
+## Maintainer decision, 2026-11-02
+
+During review of PR #1822, the maintainer explicitly approved retaining strict
+UTF-8, the bounded default decoder depth, and current Unicode tables, with
+reference and Go outcomes recorded explicitly in the corpus. Unpaired surrogate
+inputs therefore remain `invalid-json` in Go; default decoding stops at 65,000
+levels. Explicit limits can lower, but cannot raise, that safety ceiling.
+The Unicode dependency remains at its admitted version. A URI containing the
+new Unicode 17 modifier letter U+A7F1 is included as a boundary example.
+
+The `ingress-exception` cases store the unchanged Python result alongside the
+approved Go refusal and the decision identifier `maintainer-1822-2026-11-02`.
+The checker checks the Go result against that explicit field, rather than
+silently rewriting the reference result. Ordinary cases retain strict parity.
+This decision keeps ingress consistent with the existing Go canonical encoder's
+strict Unicode boundary; it does not change the Python release or published
+schemas, and it does not claim Python's legacy ASCII surrogate encoding exists
+in Go.

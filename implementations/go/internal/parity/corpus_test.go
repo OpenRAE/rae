@@ -57,7 +57,8 @@ func checkCases(t *testing.T, run Runner, cases []Case) {
 			if err != nil {
 				t.Fatalf("run(%s) error = %v", c.Name, err)
 			}
-			if diff := cmp.Diff(decode(t, c.Result), decode(t, got)); diff != "" {
+			expected := expectedResult(t, c)
+			if diff := cmp.Diff(decode(t, expected), decode(t, got)); diff != "" {
 				t.Errorf("run(%s) result mismatch (-want +got):\n%s", c.Name, diff)
 			}
 		})
@@ -82,7 +83,7 @@ func decode(t *testing.T, result json.RawMessage) any {
 // checkRunners binds shipped commands independently of the runner registry.
 // Complete mode is the cutover gate: no recorded command may remain unported.
 func checkRunners(cases map[string][]Case, registered map[string]Runner, complete bool) error {
-	for _, key := range []string{"canonical encode", "randstream vector"} {
+	for _, key := range implementedCommands() {
 		if registered[key] == nil || len(cases[key]) == 0 {
 			return fmt.Errorf("implemented command %q is missing its runner or cases", key)
 		}
@@ -137,4 +138,32 @@ func exactNumber(text string) json.Number {
 	adjustment := big.NewInt(int64(shift))
 	power.Add(power, adjustment)
 	return json.Number(sign + trimmed + "e" + power.String())
+}
+
+// implementedCommands lists shipped commands independently of their registry.
+func implementedCommands() []string {
+	return []string{
+		"canonical encode", "randstream vector", "primitive ingress", "primitive uri",
+		"primitive ingress-exception", "primitive pointer", "primitive tokens", "primitive address", "primitive render", "primitive plan-root",
+	}
+}
+
+func expectedResult(t *testing.T, c Case) json.RawMessage {
+	t.Helper()
+	expected := c.Result
+	if c.Key() == "primitive ingress-exception" {
+		var governed struct {
+			Decision  string          `json:"decision"`
+			Go        json.RawMessage `json:"go"`
+			Reference json.RawMessage `json:"reference"`
+		}
+		if err := json.Unmarshal(expected, &governed); err != nil {
+			t.Fatal(err)
+		}
+		if governed.Decision != "maintainer-1822-2026-11-02" || len(governed.Reference) == 0 {
+			t.Fatal("compatibility case has no approved decision or reference outcome")
+		}
+		expected = governed.Go
+	}
+	return expected
 }

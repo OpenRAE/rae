@@ -60,6 +60,8 @@ func Load(fsys fs.FS) ([]Case, error) {
 			Recorder    string `json:"recorder_sha256"`
 			Environment string `json:"environment_sha256"`
 			Python      string `json:"python_version"`
+			Interpreter string `json:"python"`
+			Unicode     string `json:"unicode"`
 		} `json:"reference"`
 	}
 	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
@@ -68,7 +70,7 @@ func Load(fsys fs.FS) ([]Case, error) {
 	if manifest.Schema != Schema {
 		return nil, fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
 	}
-	if manifest.Reference.Python == "" {
+	if manifest.Reference.Python == "" || manifest.Reference.Interpreter == "" || manifest.Reference.Unicode == "" {
 		return nil, errors.New("manifest.json: missing Python version")
 	}
 	for _, digest := range []string{manifest.Reference.Source, manifest.Reference.Recorder, manifest.Reference.Environment} {
