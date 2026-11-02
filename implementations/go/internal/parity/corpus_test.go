@@ -82,7 +82,7 @@ func decode(t *testing.T, result json.RawMessage) any {
 // checkRunners binds shipped commands independently of the runner registry.
 // Complete mode is the cutover gate: no recorded command may remain unported.
 func checkRunners(cases map[string][]Case, registered map[string]Runner, complete bool) error {
-	for _, key := range []string{"canonical encode"} {
+	for _, key := range []string{"canonical encode", "randstream vector"} {
 		if registered[key] == nil || len(cases[key]) == 0 {
 			return fmt.Errorf("implemented command %q is missing its runner or cases", key)
 		}

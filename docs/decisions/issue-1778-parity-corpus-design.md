@@ -32,7 +32,7 @@ The Go package `internal/parity` loads the corpus and verifies each input agains
 Each Go port adds a runner for the commands that it implements.
 `TestCorpus` compares numbers exactly, including large integers and decimal
 exponents, and fails a runner that has no case. Its independent implemented-command
-inventory requires `canonical encode`; deleting that runner fails the check.
+inventory requires `canonical encode` and `randstream vector`; deleting that runner fails the check.
 `RAES_PARITY_COMPLETE=1` fails any recorded command without a runner and is required
 at cutover. During incremental porting, only genuinely unported commands may skip.
 The manifest binds source identity by the sorted Python package paths and bytes,

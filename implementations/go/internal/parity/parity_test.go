@@ -111,7 +111,7 @@ func TestResultComparisonKeepsExactNumbers(t *testing.T) {
 }
 
 func TestImplementedCommandsCannotBecomeSkipped(t *testing.T) {
-	cases := map[string][]Case{"canonical encode": {{Name: "edge"}}}
+	cases := map[string][]Case{"canonical encode": {{Name: "edge"}}, "randstream vector": {{Name: "vector"}}}
 	if err := checkRunners(cases, runners(), false); err != nil {
 		t.Fatalf("checkRunners() error = %v, want nil", err)
 	}

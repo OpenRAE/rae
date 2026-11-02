@@ -62,3 +62,11 @@ condition = "AND"
 regexTarget = "secret"
 regexes = ['''^dbos-r2-cancel$''']
 paths = ['''(^|/)docs/research/execution-architecture/experiments/probe_dbos\.py$''']
+
+[[allowlists]]
+description = "Issue #1779: the Go random-stream test keeps the derived key of the published zero-heavy-seed-and-address vector as a known answer. The key derives from the public all-zero seed of that vector and is not a credential. Other values, paths and scanner rules remain checked."
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "match"
+regexes = ['''zeroKey\s*=\s*"[0-9a-f]{64}"''']
+paths = ['''(^|/)implementations/go/internal/base/randstream/randstream_test\.go$''']
