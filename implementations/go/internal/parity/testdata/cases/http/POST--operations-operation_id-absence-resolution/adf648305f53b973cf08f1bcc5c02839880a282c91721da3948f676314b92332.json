@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/absence-resolution",
+  "files": {
+    "body.bin": "sha256:f1dec6e9ee608550bd1c39ff2b90134059bac5d02e4e78f6410aed2fbd870bd0",
+    "request.json": "sha256:52eec6976fa44ed86bdbcf189d6bf0ed40079d158dac637ebdb519c77129d602"
+  },
+  "name": "regression/0a358696d3ff94f3667d29dc86b4ab133fb5d86688e0616a52ebd83d4be20c62",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

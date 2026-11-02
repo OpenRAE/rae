@@ -61,15 +61,23 @@ func TestCorpusInventoryRequiresActualCoverage(t *testing.T) {
 		"empty surface":      func(i *corpusInventory) { delete(i.Surfaces, "mcp") },
 		"missing surface":    func(i *corpusInventory) { i.MissingSurface = map[string][]string{"http": {"other"}} },
 		"unrecorded command": func(i *corpusInventory) { i.Surfaces["mcp"] = []string{"other"} },
-		"empty inputs":       func(i *corpusInventory) { i.Inputs = nil },
+		"empty inputs": func(i *corpusInventory) {
+			i.Inputs = nil
+			i.InputDigests = nil
+		},
+		"missing input digest": func(i *corpusInventory) { i.InputDigests = nil },
 		"duplicate inputs": func(i *corpusInventory) {
 			i.Inputs = append(i.Inputs, i.Inputs[0])
 			i.InputDigests["other"] = "invalid"
 		},
-		"unrecorded input":    func(i *corpusInventory) { i.InputDigests[i.Inputs[0]] = strings.Repeat("f", 64) },
-		"regression flag":     func(i *corpusInventory) { i.Regressions.Complete = false },
-		"empty tests":         func(i *corpusInventory) { i.Regressions.TestCount = 0 },
-		"empty regressions":   func(i *corpusInventory) { i.Regressions.InputCount = 0 },
+		"unrecorded input": func(i *corpusInventory) { i.InputDigests[i.Inputs[0]] = "sha256:" + strings.Repeat("f", 64) },
+		"untagged input":   func(i *corpusInventory) { i.InputDigests[i.Inputs[0]] = strings.Repeat("f", 64) },
+		"regression flag":  func(i *corpusInventory) { i.Regressions.Complete = false },
+		"empty tests":      func(i *corpusInventory) { i.Regressions.TestCount = 0 },
+		"empty regressions": func(i *corpusInventory) {
+			i.Regressions.InputCount = 0
+			i.Regressions.Origins = nil
+		},
 		"wrong input count":   func(i *corpusInventory) { i.Regressions.InputCount = 2 },
 		"missing test source": func(i *corpusInventory) { i.Regressions.SourceIdentity.TestTree = "" },
 		"missing product":     func(i *corpusInventory) { i.Regressions.SourceIdentity.PythonTree = "" },

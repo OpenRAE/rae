@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/orchestration",
+  "files": {
+    "body.bin": "sha256:28e77cc766f8ebd9ded313081a1bbf9fa31afec42b5c69c37117df334c468d25",
+    "request.json": "sha256:d083766a55810345f42e65658f3fea51fbff574f5585669bac4e012ba79d3e60"
+  },
+  "name": "regression/af75ee9968b8cd0f5fbaf77c70926aef88b27ffe71a67955164205fa1b3a7e85",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 422
+  },
+  "surface": "http"
+}

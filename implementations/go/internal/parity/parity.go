@@ -171,6 +171,7 @@ func validateManifest(fsys fs.FS) error {
 			RecorderSHA256 string `json:"recorder_sha256"`
 			PythonVersion  string `json:"python_version"`
 			UnicodeVersion string `json:"unicode_version"`
+			HashSeed       string `json:"hash_seed"`
 			LockSHA256     string `json:"lock_sha256"`
 		} `json:"provenance"`
 	}
@@ -201,6 +202,9 @@ func validateManifest(fsys fs.FS) error {
 	}
 	if !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`).MatchString(manifest.Provenance.UnicodeVersion) {
 		return errors.New("manifest.json: invalid unicode_version")
+	}
+	if manifest.Provenance.HashSeed != "0" {
+		return errors.New("manifest.json: hash_seed must be 0")
 	}
 	return nil
 }

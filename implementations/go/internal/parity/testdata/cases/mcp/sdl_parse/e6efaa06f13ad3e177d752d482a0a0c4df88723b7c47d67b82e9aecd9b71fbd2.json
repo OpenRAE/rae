@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:9591cb21e0003c3d6c72d63be4d97c8ecc531509d44482a3cf4f577ab52538ae"
+  },
+  "name": "regression/f87c5355a308ebc3492f3521767a313351ac6dab722a9299dbef08b5e802da7d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/e/services/9/port",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 36
+                },
+                "start": {
+                  "column": 13,
+                  "line": 36
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/e/services/9/port",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 36
+              },
+              "start": {
+                "column": 13,
+                "line": 36
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

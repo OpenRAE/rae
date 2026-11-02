@@ -269,6 +269,10 @@ large corpus exhausts that capacity.
 This changes resource allocation only: all
 changed-line mutants and the existing coverage and efficacy thresholds remain
 mandatory. The upstream release and its source are used unchanged.
+Storage budgets use explicit byte counts, since Go coverage cannot attribute
+compile-time arithmetic to a test. Real gzip fixtures independently exercise
+the 64 MiB decoded boundary and reject one extra byte. Inventory tests also
+reject zero regression inputs even when the origins map is empty.
 
 HTTP input capture retains content-length and transfer-encoding, request-size
 and admission limits, and whether the body was streamed. Replay uses HTTPX's

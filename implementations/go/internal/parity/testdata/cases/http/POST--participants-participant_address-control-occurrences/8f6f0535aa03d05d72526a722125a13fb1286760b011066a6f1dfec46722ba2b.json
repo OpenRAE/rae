@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /participants/{participant_address}/control-occurrences",
+  "files": {
+    "body.bin": "sha256:42125fd7abe002a896ed56305ca15cdf7f559fcc67f4032ebcf66e3154c37e03",
+    "request.json": "sha256:4c288eedac47859a0c14de2b0bd645d87f3554dc0f2e5a542e1712f63c5a51eb"
+  },
+  "name": "regression/ed4af20ea8ef142826e1c52f452ec5d9a4a03328b11fb07ce57a9cc36f273b74",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

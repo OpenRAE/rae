@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /participants/{participant_address}/episodes/{episode_id}/history",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:189f641aa9561aa293fa4d5661dfbe18b138e4040e72088e13340abdd5b679fb"
+  },
+  "name": "regression/55e2a6f9223fd19f7c8af30d9033af2c31dbd4db087426d5d7ddf0e56474a918",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

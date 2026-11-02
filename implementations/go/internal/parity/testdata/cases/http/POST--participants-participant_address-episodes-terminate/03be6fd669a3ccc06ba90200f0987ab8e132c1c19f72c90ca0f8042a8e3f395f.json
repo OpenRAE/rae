@@ -1,0 +1,35 @@
+{
+  "args": [],
+  "command": "POST /participants/{participant_address}/episodes/terminate",
+  "files": {
+    "body.bin": "sha256:db5aa694ec938f05f171c77464dd3895ddb3b460d7a084eb966a84b4ade0e6f1",
+    "request.json": "sha256:d76c7c0f9655d2580e6ee69e555ce324da7c4771d55ba79518c5c5ada32e54c2"
+  },
+  "name": "regression/4517a64c9e65f5c81fef64a74716280459ca4c84cf2c3703033f55e1e4b8b4e6",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "backend-service",
+        "authorization_scope": [
+          "role:backend"
+        ],
+        "operation_kind": "participant-action",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:047c9fb8f039358121ae2e43d8189845787038d9c94f56bb6436191b2d118cb6",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "participant",
+      "operation_id": "db2b9d83-510c-43b1-bc92-5fb1dc25103a",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

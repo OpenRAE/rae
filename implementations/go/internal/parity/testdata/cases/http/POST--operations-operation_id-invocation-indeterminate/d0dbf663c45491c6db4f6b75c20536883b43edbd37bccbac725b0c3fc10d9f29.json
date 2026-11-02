@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/invocation/indeterminate",
+  "files": {
+    "body.bin": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "request.json": "sha256:8dc8da8ca4d3a00b4e6170dc9b5b50fc91ead4b2cf928328a8c2b13e9b598d53"
+  },
+  "name": "regression/a162d1c0ba91055620d9d16d92df27a8175fd95676d6a782ad60232827388377",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

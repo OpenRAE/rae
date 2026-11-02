@@ -136,6 +136,22 @@ func TestBoundedDecompressionChecksTheDecodedSize(t *testing.T) {
 	}
 }
 
+func TestBlobStorageEnforcesThePublishedDecodedBudget(t *testing.T) {
+	// Use the format's byte budget independently of the loader's constant.
+	content := bytes.Repeat([]byte{'x'}, 64*1024*1024+1)
+	for _, length := range []int{64 * 1024 * 1024, len(content)} {
+		fsys, identity := blobFS(content[:length])
+		got, err := readBlob(fsys, identity)
+		if length == 64*1024*1024 {
+			if err != nil || !bytes.Equal(got, content[:length]) {
+				t.Fatalf("readBlob(at the decoded budget) = %d bytes, %v", len(got), err)
+			}
+		} else if err == nil || got != nil {
+			t.Fatal("readBlob(over the decoded budget) must reject the input")
+		}
+	}
+}
+
 func TestPieceIndexesAreValidatedBeforeFilesystemAccess(t *testing.T) {
 	for _, index := range []string{`{"parts": 0}`, `{"parts": -1}`, `{"parts": 513}`} {
 		observed := &observedFS{FS: fstest.MapFS{}}

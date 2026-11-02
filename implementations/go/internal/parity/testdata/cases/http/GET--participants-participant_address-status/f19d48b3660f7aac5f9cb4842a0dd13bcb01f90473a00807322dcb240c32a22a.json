@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /participants/{participant_address}/status",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:a84682fb79cad3e9ee368d2eca7611f92cb6d6c44d4db9e26083568e601ec5b1"
+  },
+  "name": "regression/933f4827c9a1d4ab5b9646744d280afa3a4dfbd65b3518094d0a30ec687c7e04",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

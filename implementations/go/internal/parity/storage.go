@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	pieceLimit = 256 * 1024
-	blobLimit  = 64 * 1024 * 1024
+	pieceLimit = 262_144    // 256 KiB, encoded piece budget of corpus v2.
+	blobLimit  = 67_108_864 // 64 MiB, decoded input budget of corpus v2.
 	partsLimit = 512
 )
 

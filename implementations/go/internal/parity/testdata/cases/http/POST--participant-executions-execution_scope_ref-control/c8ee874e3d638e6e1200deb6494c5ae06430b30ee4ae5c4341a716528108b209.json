@@ -1,0 +1,42 @@
+{
+  "args": [],
+  "command": "POST /participant-executions/{execution_scope_ref}/control",
+  "files": {
+    "body.bin": "sha256:f83f558ef85d55fab50b7073dc1772e99a9b59b2da8050594c0cda2078675aa4",
+    "request.json": "sha256:b969db19c1ee8078bd22da6a3b9a578dc9eadedc738c6ef53e742cb885a9b042"
+  },
+  "name": "regression/67253d2894dc1a8cf423ddff03aae351c17adc605e939a5e39b6ad074928e189",
+  "result": {
+    "body": {
+      "accepted": false,
+      "context": {
+        "actor_id": "backend-service",
+        "authorization_scope": [
+          "role:backend"
+        ],
+        "operation_kind": "participant-action",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:17d0d5f5f4a462f4e4c42b89bf5b5093fb9d52edea01793db4e19b4127149864",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [
+        {
+          "address": "/runtime.control-plane.participant",
+          "code": "runtime.control-plane.rejected",
+          "domain": "runtime",
+          "severity": "error"
+        }
+      ],
+      "domain": "participant",
+      "operation_id": "4c12d333-89e7-440c-b4db-fed4ff1b8b71",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

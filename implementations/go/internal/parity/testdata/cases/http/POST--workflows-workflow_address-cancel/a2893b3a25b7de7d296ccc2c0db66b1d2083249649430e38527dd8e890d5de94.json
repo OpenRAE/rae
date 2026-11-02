@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /workflows/{workflow_address}/cancel",
+  "files": {
+    "body.bin": "sha256:d469a33d4d2603bbc007c643d8d839d91a579450620867e61072944bb10336e4",
+    "request.json": "sha256:9e2acd4d6cb5274f49d216940042820a8445640f3a3d8c7b3199bc91ac0973d1"
+  },
+  "name": "regression/4a097a1629821b32d08ceabe360a087917030dce9a1ffcb85197a5c4714958c5",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 409
+  },
+  "surface": "http"
+}

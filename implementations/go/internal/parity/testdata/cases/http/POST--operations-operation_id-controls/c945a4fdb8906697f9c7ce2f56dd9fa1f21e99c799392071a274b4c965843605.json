@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/controls",
+  "files": {
+    "body.bin": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "request.json": "sha256:f1429af8c9a190cec54de98a639b674e5d5b69309dc60e773e4a9cec92824713"
+  },
+  "name": "regression/eae2fc09277be5883b343de7f7548ec46ad4d149b242f33f0b78c6fbc7ac85e1",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 422
+  },
+  "surface": "http"
+}

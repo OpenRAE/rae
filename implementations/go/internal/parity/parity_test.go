@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	manifest = `{"schema": "raes-parity-corpus/v2", "provenance": {"python_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "python_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "recorder_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "lock_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "python_version": "3.14.7", "unicode_version": "16.0.0"}}`
+	manifest = `{"schema": "raes-parity-corpus/v2", "provenance": {"python_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "python_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "recorder_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "lock_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "python_version": "3.14.7", "unicode_version": "16.0.0", "hash_seed": "0"}}`
 	input    = "name: a\n"
 	caseName = "cases/cli/semantic-validate/examples/a.json"
 )
@@ -92,6 +92,8 @@ func TestLoadRejectsMissingProvenanceAndUnsafeCases(t *testing.T) {
 		{"missing lock", strings.Repeat("d", 64), ""},
 		{"missing version", "3.14.7", ""},
 		{"missing Unicode version", "16.0.0", ""},
+		{"missing hash seed", `, "hash_seed": "0"`, ""},
+		{"wrong hash seed", `"hash_seed": "0"`, `"hash_seed": "1"`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			fsys := corpus([]byte(input))

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "libvirt",
+    "--help"
+  ],
+  "command": "root",
+  "files": {},
+  "name": "regression/c9aa806efa33436b1bec276bc7e426b140461a7b91f84b2862bbe0521001f110",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

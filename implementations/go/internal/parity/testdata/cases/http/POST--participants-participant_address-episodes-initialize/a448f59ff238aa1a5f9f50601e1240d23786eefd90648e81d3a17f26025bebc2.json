@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /participants/{participant_address}/episodes/initialize",
+  "files": {
+    "body.bin": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "request.json": "sha256:b8c03e390e99d897f59a1d780eec022472418e821b43afa8b54ed6e22abfee86"
+  },
+  "name": "regression/be5daf5928908e558e0529490780156d74b91ad11127fb04bc7276c68487df4b",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

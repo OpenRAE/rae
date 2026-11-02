@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-run-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:438f68dba2c6b156e21256979fef883fc4cd80d5dafdd00a8da9da12d7580434"
+  },
+  "name": "regression/915c1c2a1dd8805e97fceacd892d6ad24b38cc9767611011eb26c1297917a22d",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
