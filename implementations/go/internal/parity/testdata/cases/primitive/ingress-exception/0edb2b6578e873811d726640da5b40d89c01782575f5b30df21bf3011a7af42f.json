@@ -1,0 +1,18 @@
+{
+  "args": [],
+  "command": "ingress-exception",
+  "files": {
+    "request.json": "3e716e0adb7bf727f318cebddfbff53dc68cc518996be8d884a93366ece704e9"
+  },
+  "name": "compatibility/encoded-surrogate",
+  "result": {
+    "decision": "maintainer-1822-2026-11-02",
+    "go": {
+      "code": "invalid-json"
+    },
+    "reference": {
+      "sorted": "[\"\\ud800\"]"
+    }
+  },
+  "surface": "primitive"
+}

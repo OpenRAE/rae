@@ -1,6 +1,7 @@
 package parity
 
 import (
+	"encoding/json"
 	"maps"
 	"os"
 	"slices"
@@ -60,7 +61,7 @@ func checkCases(t *testing.T, run Runner, cases []Case) {
 			if err != nil {
 				t.Fatalf("run(%s) error = %v", c.Name, err)
 			}
-			diff, err := compareResults(c.Result, got)
+			diff, err := compareResults(expectedResult(t, c), got)
 			if err != nil {
 				t.Fatalf("compareResults() error = %v", err)
 			}
@@ -69,4 +70,24 @@ func checkCases(t *testing.T, run Runner, cases []Case) {
 			}
 		})
 	}
+}
+
+func expectedResult(t *testing.T, c Case) json.RawMessage {
+	t.Helper()
+	expected := c.Result
+	if c.Surface == "primitive" && c.Command == "ingress-exception" {
+		var governed struct {
+			Decision  string          `json:"decision"`
+			Go        json.RawMessage `json:"go"`
+			Reference json.RawMessage `json:"reference"`
+		}
+		if err := json.Unmarshal(expected, &governed); err != nil {
+			t.Fatal(err)
+		}
+		if governed.Decision != "maintainer-1822-2026-11-02" || len(governed.Reference) == 0 {
+			t.Fatal("compatibility case has no approved decision or reference outcome")
+		}
+		expected = governed.Go
+	}
+	return expected
 }

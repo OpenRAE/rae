@@ -29,6 +29,7 @@ import json
 import shutil
 import subprocess
 import sys
+import unicodedata
 from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
 
@@ -54,6 +55,8 @@ from raes_contracts.json_serialization import sorted_json_text_finite, sorted_js
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
 
+from tools import parity_primitives  # noqa: E402
+from tools.parity_records import case_document  # noqa: E402
 from tools.parity_support import Case, digest, encode, json_output  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
@@ -306,6 +309,22 @@ def run_randstream(case: Case) -> dict[str, object]:
     return result
 
 
+def primitive_cases() -> Iterator[Case]:
+    """Yield reproducible requests for the four input primitives."""
+
+    for command, name, request in (
+        *parity_primitives.primitive_requests(),
+        *parity_primitives.compatibility_requests(),
+    ):
+        yield Case("primitive", command, name, (), {"request.json": encode(request)})
+
+
+def run_primitive(case: Case) -> dict[str, object]:
+    """Record one reference primitive outcome."""
+
+    return parity_primitives.run_primitive(case.command, json.loads(case.files["request.json"]))
+
+
 def all_cases(repo: Path) -> list[Case]:
     """Enumerate the exposed registries, examples, fixtures and regressions."""
     from tools import parity_surfaces as surfaces
@@ -317,6 +336,7 @@ def all_cases(repo: Path) -> list[Case]:
         *schema_cases(repo),
         *canonical_cases(repo),
         *randstream_cases(repo),
+        *primitive_cases(),
     ]
     existing_sdl = {case.name for case in cases if case.command == "semantic parse"}
     for source in sources:
@@ -416,6 +436,8 @@ def run(repo: Path, case: Case) -> dict[str, object]:
     from tools import parity_surfaces as surfaces
 
     with surfaces.recording_context(case.surface + "/" + case.command + "/" + case.name):
+        if case.surface == "primitive":
+            return run_primitive(case)
         if case.surface == "canonical":
             return run_canonical(case)
         if case.surface == "randstream":
@@ -437,19 +459,6 @@ def run(repo: Path, case: Case) -> dict[str, object]:
     raise ValueError(f"unknown parity surface: {case.surface}")
 
 
-def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]:
-    """Return the JSON document that records one case and its result."""
-
-    return {
-        "name": case.name,
-        "surface": case.surface,
-        "command": case.command,
-        "args": list(case.args),
-        "files": {name: digest(content) for name, content in sorted(case.files.items())},
-        "result": dict(result),
-    }
-
-
 def provenance(repo: Path) -> dict[str, str]:
     """Identify the reference source and the locked recording environment."""
 
@@ -468,6 +477,7 @@ def provenance(repo: Path) -> dict[str, str]:
             encode({path.name: digest(path.read_bytes()) for path in sorted(Path(__file__).parent.glob("parity_*.py"))})
         ),
         "python_version": ".".join(map(str, sys.version_info[:3])),
+        "unicode_version": unicodedata.unidata_version,
         "lock_sha256": digest((repo / "implementations/python/uv.lock").read_bytes()),
     }
 

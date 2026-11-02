@@ -15,6 +15,7 @@ PROVENANCE = {
     "python_tree": "b" * 40,
     "recorder_sha256": "c" * 64,
     "python_version": "3.14.7",
+    "unicode_version": "16.0.0",
     "lock_sha256": "d" * 64,
 }
 
@@ -216,6 +217,7 @@ def test_provenance_identifies_the_python_source_and_locked_environment(
     )
     assert result["lock_sha256"] == pc.digest(b"locked environment")
     assert result["python_version"] == ".".join(map(str, pc.sys.version_info[:3]))
+    assert result["unicode_version"] == pc.unicodedata.unidata_version
 
     values = iter(["a" * 40, "b" * 40, "c" * 40])
     with pytest.raises(ValueError, match="does not identify the current Python tree"):
@@ -271,3 +273,36 @@ def test_randstream_cases_reproduce_each_published_vector() -> None:
             assert result["draw"]["rejection_exhausted"] == transform["expected_rejection_exhausted"]
             expected_value = None if transform["expected_rejection_exhausted"] else transform["outcome"]["value"]
             assert result["draw"]["value"] == expected_value
+
+
+def test_primitive_corpus_records_reference_results_and_all_commands() -> None:
+    cases = list(pc.primitive_cases())
+    assert {case.command for case in cases} == {
+        "ingress",
+        "ingress-exception",
+        "uri",
+        "pointer",
+        "tokens",
+        "address",
+        "render",
+        "plan-root",
+    }
+    assert len({case.path for case in cases}) == len(cases)
+    for case in cases:
+        result = pc.run_primitive(case)
+        assert result == pc.run_primitive(case)
+        assert json.loads(pc.encode(result)) == result
+    ingress_codes = {pc.run_primitive(case).get("code") for case in cases if case.command == "ingress"}
+    assert ingress_codes == {
+        None,
+        "input-too-large",
+        "empty-input",
+        "input-too-deep",
+        "invalid-json",
+        "duplicate-member",
+        "non-finite-number",
+        "integer-too-long",
+        "invalid-root",
+    }
+    uri_codes = {pc.run_primitive(case)["code"] for case in cases if case.command == "uri"}
+    assert uri_codes == {"", "absolute", "invalid", "scheme", "credentials", "fragment", "secret"}

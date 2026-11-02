@@ -466,6 +466,7 @@ def complete_inventory(repo: Path, cases: list[Case], regressions: dict[str, obj
         "cli": leaves,
         "canonical": {"encode"},
         "randstream": {"vector"},
+        "primitive": {"ingress", "ingress-exception", "uri", "pointer", "tokens", "address", "render", "plan-root"},
         "mcp": set(mcp_registry()),
         "http": set(http_registry(http_schema())),
         "schema": {path.stem for path in (repo / "contracts/schema-publication/entries").glob("*.json")},

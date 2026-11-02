@@ -95,6 +95,7 @@ the declared surfaces, fixture digests and regression origins have actual cases.
 The implemented inventory includes the canonical JSON and random-stream runners.
 Port issues must add both their runner and its required key in the same change.
 
+The manifest also binds the Unicode table version used by the primitive adapters.
 The manifest records the last commit changing the Python packages, their Git tree
 identity, the recorder SHA-256, Python version, and the SHA-256 of the Python
 lockfile. Reproduction checks preserve the recorded source commit when its tree
@@ -208,3 +209,7 @@ uploading any corpus artifact. The decoder is a standalone standard-library
 module (`tools/parity_storage.py`), so stored inputs remain inspectable without
 the Python product implementation after cutover. The Go loader uses only its
 standard gzip/JSON and digest libraries. No file-size or secret gate is waived.
+
+The primitive adapters and runners from #1822 remain part of the corpus. Approved
+`ingress-exception` cases retain both the unchanged Python result and the Go
+outcome, bound to the maintainer decision documented in the ingress design.

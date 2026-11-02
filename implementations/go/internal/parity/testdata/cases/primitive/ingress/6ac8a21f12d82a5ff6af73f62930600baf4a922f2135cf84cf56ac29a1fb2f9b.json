@@ -1,0 +1,12 @@
+{
+  "args": [],
+  "command": "ingress",
+  "files": {
+    "request.json": "aad120451537e238cb731d38158e25a00125de599fa1acd3c22f970689ae99f9"
+  },
+  "name": "invalid-encoding/2",
+  "result": {
+    "code": "invalid-json"
+  },
+  "surface": "primitive"
+}

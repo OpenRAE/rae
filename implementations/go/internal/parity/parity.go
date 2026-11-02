@@ -169,6 +169,7 @@ func validateManifest(fsys fs.FS) error {
 			PythonTree     string `json:"python_tree"`
 			RecorderSHA256 string `json:"recorder_sha256"`
 			PythonVersion  string `json:"python_version"`
+			UnicodeVersion string `json:"unicode_version"`
 			LockSHA256     string `json:"lock_sha256"`
 		} `json:"provenance"`
 	}
@@ -196,6 +197,9 @@ func validateManifest(fsys fs.FS) error {
 	}
 	if !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`).MatchString(manifest.Provenance.PythonVersion) {
 		return errors.New("manifest.json: invalid python_version")
+	}
+	if !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`).MatchString(manifest.Provenance.UnicodeVersion) {
+		return errors.New("manifest.json: invalid unicode_version")
 	}
 	return nil
 }
