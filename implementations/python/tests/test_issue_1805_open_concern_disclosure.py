@@ -154,7 +154,9 @@ def test_adapter_retains_only_corroborated_successful_reports(reported, observed
     )
 
     def backend(submitted, snapshot):
-        returned = _returned(requirement, submitted, operation, {"mail_services": []} if reported else {}, observed=observed)
+        returned = _returned(
+            requirement, submitted, operation, {"mail_services": []} if reported else {}, observed=observed
+        )
         return ApplyResult(
             True,
             returned.with_entries({**deepcopy(dict(snapshot.entries)), **returned.entries}),
@@ -178,9 +180,12 @@ def test_adapter_retains_only_corroborated_successful_reports(reported, observed
             {"mail_services": []} if reported else {}
         )
         assert result.snapshot.realization_observations == ()
-        assert any(
-            item.requirement_kind == requirement.requirement_kind for item in result.snapshot.realization_provenance
-        ) is observed
+        assert (
+            any(
+                item.requirement_kind == requirement.requirement_kind for item in result.snapshot.realization_provenance
+            )
+            is observed
+        )
     else:
         assert result.snapshot == baseline
         assert result.changed_addresses == []
@@ -230,7 +235,9 @@ def test_cleanup_projection_preserves_original_authority_and_supplied_value_chec
     elif corruption == "closed":
         snapshot.entries[operation.address].payload["node_kind"] = "switch"
     else:
-        snapshot.entries[operation.address].payload["spec"]["node"]["runtime"]["mail_services"] = [{"mail_service_id": "mx"}]
+        snapshot.entries[operation.address].payload["spec"]["node"]["runtime"]["mail_services"] = [
+            {"mail_service_id": "mx"}
+        ]
     original = deepcopy(plan)
 
     diagnostics = realization_cleanup_diagnostics(plan, snapshot, manifest=manifest)
