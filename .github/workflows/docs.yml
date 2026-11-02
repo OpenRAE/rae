@@ -55,14 +55,14 @@ jobs:
           uv run --project implementations/python --frozen --all-extras python implementations/python/tests/crossing_runtime_cases.py --write
           uv run --project implementations/python --frozen python -c 'from implementations.formal.participant_crossing.runtime_mapping_export import OUTPUT_PATH; print(OUTPUT_PATH)' > .runtime-mapping-capture-path
           capture_path="$(cat .runtime-mapping-capture-path)"
-          mkdir .runtime-mapping-capture
-          cp "${capture_path}/manifest.json" "${capture_path}/cases.json" .runtime-mapping-capture/
+          mkdir runtime-mapping-capture
+          cp "${capture_path}/manifest.json" "${capture_path}/cases.json" runtime-mapping-capture/
       - name: Retain current runtime-mapping evidence
         if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 1492
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: runtime-mapping-capture
-          path: .runtime-mapping-capture/
+          path: runtime-mapping-capture/
           if-no-files-found: error
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'

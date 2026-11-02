@@ -76,7 +76,7 @@ Capabilities
 .. automodule:: raes_processor.capabilities
    :members:
 
-Exploit-Path analysis
+Exploit-path analysis
 ---------------------
 
 .. automodule:: raes_processor.exploit_path

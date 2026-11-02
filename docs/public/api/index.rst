@@ -1,4 +1,4 @@
-Use the python API
+Use the Python API
 ==================
 
 Choose the narrowest API for your task. Most authors start with the SDL parser.
