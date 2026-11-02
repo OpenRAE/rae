@@ -23,8 +23,12 @@ type corpusInventory struct {
 		NonProtocolTests []string            `json:"non_protocol_tests"`
 		Origins          map[string][]string `json:"origins"`
 		SourceIdentity   struct {
-			TestTree        string `json:"test_tree"`
-			CollectorSHA256 string `json:"collector_sha256"`
+			TestTree          string `json:"test_tree"`
+			PythonTree        string `json:"python_tree"`
+			ContractsTree     string `json:"contracts_tree"`
+			ExamplesTree      string `json:"examples_tree"`
+			CollectorSHA256   string `json:"collector_sha256"`
+			EnvironmentSHA256 string `json:"environment_sha256"`
 		} `json:"source_identity"`
 	} `json:"regressions"`
 }
@@ -80,8 +84,16 @@ func checkRegressionInventory(inventory corpusInventory, names map[string]bool) 
 	if !regressions.Complete || regressions.TestCount <= 0 || regressions.InputCount <= 0 || regressions.InputCount != len(regressions.Origins) {
 		return errors.New("corpus regression inventory is incomplete")
 	}
-	if !hexDigest(regressions.SourceIdentity.TestTree, 40) || !hexDigest(regressions.SourceIdentity.CollectorSHA256, 64) {
-		return errors.New("corpus regression inventory has invalid provenance")
+	identity := regressions.SourceIdentity
+	for _, tree := range []string{identity.TestTree, identity.PythonTree, identity.ContractsTree, identity.ExamplesTree} {
+		if !hexDigest(tree, 40) {
+			return errors.New("corpus regression inventory has invalid source provenance")
+		}
+	}
+	for _, sum := range []string{identity.CollectorSHA256, identity.EnvironmentSHA256} {
+		if !hexDigest(sum, 64) {
+			return errors.New("corpus regression inventory has invalid environment provenance")
+		}
 	}
 	for identity, origins := range regressions.Origins {
 		if !hexDigest(identity, 64) || !names["regression/"+identity] || len(origins) == 0 || slices.Contains(origins, "") {

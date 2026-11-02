@@ -16,7 +16,11 @@ func inventoryFixture() (corpusInventory, []Case) {
 	var cases []Case
 	for _, surface := range []string{"cli", "mcp", "http", "schema", "canonical", "randstream", "primitive"} {
 		inventory.Surfaces[surface] = []string{"command"}
-		cases = append(cases, Case{Surface: surface, Command: "command", Args: []string{"command"}})
+		argument := "distinct-argument"
+		if surface == "schema" {
+			argument = "command"
+		}
+		cases = append(cases, Case{Surface: surface, Command: "command", Args: []string{argument}})
 	}
 	sum := sha256.Sum256([]byte(input))
 	inventory.Inputs = []string{"examples/source.yaml"}
@@ -29,6 +33,10 @@ func inventoryFixture() (corpusInventory, []Case) {
 	inventory.Regressions.InputCount = 1
 	inventory.Regressions.Origins = map[string][]string{identity: {"tests/test_one.py::test_case"}}
 	inventory.Regressions.SourceIdentity.TestTree = strings.Repeat("b", 40)
+	inventory.Regressions.SourceIdentity.PythonTree = strings.Repeat("b", 40)
+	inventory.Regressions.SourceIdentity.ContractsTree = strings.Repeat("b", 40)
+	inventory.Regressions.SourceIdentity.ExamplesTree = strings.Repeat("b", 40)
+	inventory.Regressions.SourceIdentity.EnvironmentSHA256 = strings.Repeat("c", 64)
 	inventory.Regressions.SourceIdentity.CollectorSHA256 = strings.Repeat("c", 64)
 	return inventory, cases
 }
@@ -64,6 +72,10 @@ func TestCorpusInventoryRequiresActualCoverage(t *testing.T) {
 		"empty regressions":   func(i *corpusInventory) { i.Regressions.InputCount = 0 },
 		"wrong input count":   func(i *corpusInventory) { i.Regressions.InputCount = 2 },
 		"missing test source": func(i *corpusInventory) { i.Regressions.SourceIdentity.TestTree = "" },
+		"missing product":     func(i *corpusInventory) { i.Regressions.SourceIdentity.PythonTree = "" },
+		"missing contracts":   func(i *corpusInventory) { i.Regressions.SourceIdentity.ContractsTree = "" },
+		"missing examples":    func(i *corpusInventory) { i.Regressions.SourceIdentity.ExamplesTree = "" },
+		"missing environment": func(i *corpusInventory) { i.Regressions.SourceIdentity.EnvironmentSHA256 = "" },
 		"missing collector":   func(i *corpusInventory) { i.Regressions.SourceIdentity.CollectorSHA256 = "" },
 		"missing origin":      func(i *corpusInventory) { i.Regressions.Origins[strings.Repeat("a", 64)] = nil },
 		"empty origin":        func(i *corpusInventory) { i.Regressions.Origins[strings.Repeat("a", 64)] = []string{""} },

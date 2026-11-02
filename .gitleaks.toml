@@ -56,6 +56,7 @@ paths = [
   '''(^|/)implementations/go/internal/parity/testdata/.*''',
   '''(^|/)parity-inputs/blobs/[0-9a-f]{64}$''',
   '''(^|/)parity-decoded/[0-9a-f]{64}$''',
+  '''(^|/)parity-corpus/.*''',
 ]
 
 [[allowlists]]

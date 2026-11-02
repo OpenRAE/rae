@@ -42,6 +42,11 @@ func TestBlobStorageReassemblesOpaquePieces(t *testing.T) {
 	if err != nil || !bytes.Equal(got, content) {
 		t.Fatalf("readBlob() = %q, %v; want %q, nil", got, err, content)
 	}
+	fsys["pieces/"+identity+"/0"].Data[0] = 1
+	if _, err := readBlob(fsys, identity); err == nil {
+		t.Error("readBlob(valid gzip with a wrong piece marker) error = nil")
+	}
+	fsys["pieces/"+identity+"/0"].Data[0] = 0
 	delete(fsys, "pieces/"+identity+"/1")
 	if _, err := readBlob(fsys, identity); err == nil {
 		t.Error("readBlob(missing piece) error = nil")
@@ -107,5 +112,89 @@ func TestLoadReadsReferencedDocumentsAndRejectsInvalidReferences(t *testing.T) {
 		if _, err := Load(fsys); err == nil {
 			t.Errorf("Load(reference %s) error = nil", reference)
 		}
+	}
+}
+
+func TestBoundedDecompressionChecksTheDecodedSize(t *testing.T) {
+	content := []byte("12345")
+	for _, limit := range []int64{4, 5, 6} {
+		stream, err := gzip.NewReader(bytes.NewReader(compressed(content)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, readErr := readBounded(stream, limit)
+		if err := stream.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if limit < int64(len(content)) {
+			if readErr == nil || got != nil {
+				t.Errorf("readBounded(%d) = %q, %v; want rejection", limit, got, readErr)
+			}
+		} else if readErr != nil || !bytes.Equal(got, content) {
+			t.Errorf("readBounded(%d) = %q, %v; want exact decoded bytes", limit, got, readErr)
+		}
+	}
+}
+
+func TestPieceIndexesAreValidatedBeforeFilesystemAccess(t *testing.T) {
+	for _, index := range []string{`{"parts": 0}`, `{"parts": -1}`, `{"parts": 513}`} {
+		observed := &observedFS{FS: fstest.MapFS{}}
+		if _, err := readPieces(observed, strings.Repeat("a", 64), []byte(index)); err == nil {
+			t.Errorf("readPieces(%s) error = nil", index)
+		}
+		if len(observed.opened) != 0 {
+			t.Errorf("readPieces(%s) accessed files before rejecting its index", index)
+		}
+	}
+}
+
+func TestPieceIndexesAcceptTheirInclusiveBounds(t *testing.T) {
+	content := []byte(input)
+	for _, count := range []int{1, partsLimit} {
+		fsys, identity := blobFS(content)
+		encoded := fsys["inputs/"+identity].Data
+		fsys["inputs/"+identity].Data = []byte(`{"parts": ` + strconv.Itoa(count) + `}`)
+		for number := range count {
+			piece := []byte{0}
+			if number == 0 {
+				piece = append(piece, encoded...)
+			}
+			fsys["pieces/"+identity+"/"+strconv.Itoa(number)] = &fstest.MapFile{Data: piece}
+		}
+		got, err := readBlob(fsys, identity)
+		if err != nil || !bytes.Equal(got, content) {
+			t.Errorf("readBlob(%d pieces) = %q, %v", count, got, err)
+		}
+	}
+}
+
+func TestFullSizeEncodedPiecesPreserveExactBytes(t *testing.T) {
+	content := bytes.Repeat([]byte{0}, pieceLimit)
+	var buffer bytes.Buffer
+	writer, err := gzip.NewWriterLevel(&buffer, gzip.NoCompression)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = writer.Write(content); err != nil {
+		t.Fatal(err)
+	}
+	if err = writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	encoded := buffer.Bytes()
+	if len(encoded) <= pieceLimit {
+		t.Fatal("fixture must exceed the inline encoding limit")
+	}
+	fsys, identity := blobFS(content)
+	fsys["inputs/"+identity].Data = []byte(`{"parts": 2}`)
+	fsys["pieces/"+identity+"/0"] = &fstest.MapFile{Data: append([]byte{0}, encoded[:pieceLimit]...)}
+	fsys["pieces/"+identity+"/1"] = &fstest.MapFile{Data: append([]byte{0}, encoded[pieceLimit:]...)}
+	got, err := readBlob(fsys, identity)
+	if err != nil || !bytes.Equal(got, content) {
+		t.Fatalf("readBlob(full piece) mismatch: %v", err)
+	}
+	fsys["pieces/"+identity+"/0"].Data = append(fsys["pieces/"+identity+"/0"].Data, 0)
+	if _, err := readPieces(fsys, identity, fsys["inputs/"+identity].Data); err == nil {
+		t.Error("readPieces(oversized encoded piece) error = nil")
 	}
 }

@@ -7,6 +7,7 @@ changed. This module is inert unless RAES_PARITY_INPUT_DIR is explicitly set.
 from __future__ import annotations
 
 import functools
+import json
 import logging
 import os
 import shlex
@@ -16,6 +17,7 @@ import tempfile
 import uuid
 from pathlib import Path
 from threading import RLock
+from typing import get_args
 
 import pytest
 
@@ -222,6 +224,7 @@ class InputCollector:
         from raes_processor.satisfiability import analyze_scenario_file
 
         published = {path.stem for path in (self.repo / "contracts/schema-publication/entries").glob("*.json")}
+        original_initialize = BaseModel.__init__
         original_validate = BaseModel.model_validate.__func__
         original_validate_json = BaseModel.model_validate_json.__func__
 
@@ -229,29 +232,67 @@ class InputCollector:
             if not model.__module__.startswith("raes_contracts"):
                 return None
             field = model.model_fields.get("schema_version")
-            version = field.default if field is not None else None
-            contract = version.replace("/", "-") if isinstance(version, str) else None
-            return contract if contract in published else None
+            if field is None:
+                return None
+            versions = (field.default, *get_args(field.annotation))
+            candidates = {value.replace("/", "-") for value in versions if isinstance(value, str)} & published
+            return next(iter(candidates)) if len(candidates) == 1 else None
 
-        @functools.wraps(original_validate)
-        def validate(model, value, *args, **kwargs):
+        def record_contract(model, value):
             contract = contract_name(model)
             if contract is not None:
                 try:
                     content = encode(value)
-                except TypeError, ValueError:
+                except TypeError, ValueError, RecursionError:
                     self.non_protocol_tests.add(self.nodeid)
                 else:
                     self.add(Case("schema", "validate", "", (contract,), {"payload.json": content}))
+
+        @functools.wraps(original_initialize)
+        def initialize(instance, /, **values):
+            record_contract(type(instance), values)
+            original_initialize(instance, **values)
+
+        @functools.wraps(original_validate)
+        def validate(model, value, *args, **kwargs):
+            record_contract(model, value)
             return original_validate(model, value, *args, **kwargs)
 
         @functools.wraps(original_validate_json)
         def validate_json(model, value, *args, **kwargs):
             contract = contract_name(model)
             if contract is not None and isinstance(value, (str, bytes, bytearray)):
-                content = value.encode() if isinstance(value, str) else bytes(value)
-                self.add(Case("schema", "validate", "", (contract,), {"payload.json": content}))
+                try:
+                    content = value.encode() if isinstance(value, str) else bytes(value)
+                except UnicodeError:
+                    self.non_protocol_tests.add(self.nodeid)
+                else:
+                    self.add(Case("schema", "validate", "", (contract,), {"payload.json": content}))
             return original_validate_json(model, value, *args, **kwargs)
+
+        from jsonschema import Draft202012Validator
+
+        schema_ids = {}
+        for entry in sorted((self.repo / "contracts/schema-publication/entries").glob("*.json")):
+            publication = json.loads(entry.read_bytes())
+            schema = json.loads((self.repo / publication["schema_path"]).read_bytes())
+            if "$id" in schema:
+                schema_ids[schema["$id"]] = entry.stem
+        original_errors = Draft202012Validator.iter_errors
+
+        @functools.wraps(original_errors)
+        def iter_errors(validator, value, *args, **kwargs):
+            schema = args[0] if args else kwargs.get("_schema", validator.schema)
+            schema_id = schema.get("$id") if isinstance(schema, dict) else None
+            contract = schema_ids.get(schema_id) if isinstance(schema_id, str) else None
+            if contract is not None:
+                try:
+                    content = encode(value)
+                except TypeError, ValueError, RecursionError:
+                    self.non_protocol_tests.add(self.nodeid)
+                else:
+                    self.add(Case("schema", "validate", "", (contract,), {"payload.json": content}))
+            return original_errors(validator, value, *args, **kwargs)
 
         def analysis_probe(original, command):
             @functools.wraps(original)
@@ -278,7 +319,7 @@ class InputCollector:
             if name in declared_tools:
                 try:
                     content = encode(arguments)
-                except TypeError, ValueError:
+                except TypeError, ValueError, RecursionError:
                     self.non_protocol_tests.add(self.nodeid)
                 else:
                     self.add(Case("mcp", name, "", (), {"arguments.json": content}))
@@ -402,6 +443,8 @@ class InputCollector:
                         self.patches.setattr(module, attribute, analyze_scenario)
                     elif value is analyze_exploit_path_file:
                         self.patches.setattr(module, attribute, analyze_exploit)
+        self.patches.setattr(BaseModel, "__init__", initialize)
+        self.patches.setattr(Draft202012Validator, "iter_errors", iter_errors)
         self.patches.setattr(BaseModel, "model_validate", classmethod(validate))
         self.patches.setattr(BaseModel, "model_validate_json", classmethod(validate_json))
         self.patches.setattr(uuid, "uuid4", fixture_uuid)

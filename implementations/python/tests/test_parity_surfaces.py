@@ -146,9 +146,11 @@ def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path) ->
     import logging
 
     from hypothesis import settings
+    from jsonschema import Draft202012Validator
     from pydantic import ValidationError
     from raes_cli.main import app
     from raes_contracts.execution_policy import ExecutionPolicy
+    from raes_contracts.observation_demand import ObservationDemandDocument
     from typer.testing import CliRunner
 
     repo = Path(__file__).resolve().parents[3]
@@ -172,7 +174,49 @@ def test_input_observers_preserve_results_logging_and_profile(tmp_path: Path) ->
         assert response.status_code == 401
         with pytest.raises(ValidationError):
             ExecutionPolicy.model_validate({"schema_version": "invalid"})
+        with pytest.raises(ValidationError):
+            ObservationDemandDocument(schema_version="invalid")
+        entry = json.loads((repo / "contracts/schema-publication/entries/observation-demand-v1.json").read_bytes())
+        schema = json.loads((repo / entry["schema_path"]).read_bytes())
+        assert list(Draft202012Validator(schema).iter_errors({"schema_probe": "json-schema"}))
+        observed = [
+            json.loads(collector.blobs[record["files"]["payload.json"]])
+            for record in collector.records.values()
+            if record["surface"] == "schema" and record["args"] == ["observation-demand-v1"]
+        ]
+        assert {"schema_version": "invalid"} in observed
+        assert {"schema_probe": "json-schema"} in observed
         assert {record["surface"] for record in collector.records.values()} >= {"cli", "mcp", "http", "schema"}
     finally:
         collector.close()
     assert settings.get_current_profile_name() == profile
+
+
+def test_regression_identity_binds_product_data_and_environment(tmp_path: Path, monkeypatch) -> None:
+    calls = []
+
+    def git_output(command, *, text):
+        calls.append(command)
+        return "\n".join(character * 40 for character in "abcd") + "\n"
+
+    monkeypatch.setattr(regressions.subprocess, "check_output", git_output)
+    environment = tmp_path / "implementations/python"
+    environment.mkdir(parents=True)
+    (environment / "uv.lock").write_text("locked dependencies")
+    (environment / "pyproject.toml").write_text("test configuration")
+    identity = regressions.source_identity(tmp_path)
+    assert {key: identity[key] for key in ("test_tree", "python_tree", "contracts_tree", "examples_tree")} == {
+        "test_tree": "a" * 40,
+        "python_tree": "b" * 40,
+        "contracts_tree": "c" * 40,
+        "examples_tree": "d" * 40,
+    }
+    assert calls[0][-4:] == [
+        "HEAD:implementations/python/tests",
+        "HEAD:implementations/python/packages",
+        "HEAD:contracts",
+        "HEAD:examples",
+    ]
+    assert len(identity["collector_sha256"]) == len(identity["environment_sha256"]) == 64
+    (environment / "uv.lock").write_text("updated dependencies")
+    assert regressions.source_identity(tmp_path)["environment_sha256"] != identity["environment_sha256"]

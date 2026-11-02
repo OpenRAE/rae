@@ -213,3 +213,9 @@ standard gzip/JSON and digest libraries. No file-size or secret gate is waived.
 The primitive adapters and runners from #1822 remain part of the corpus. Approved
 `ingress-exception` cases retain both the unchanged Python result and the Go
 outcome, bound to the maintainer decision documented in the ingress design.
+
+The regression source identity binds the test, Python package, contract and example
+Git trees, the Python dependency/configuration files and collector helpers. Model
+validation observers include constructors, explicit validation methods and literal
+schema versions without defaults. Published JSON Schema validations are observed
+by their normative schema identity. Original results and exceptions are preserved.

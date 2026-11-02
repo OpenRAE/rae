@@ -15,11 +15,24 @@ FROZEN = Path("implementations/go/internal/parity/testdata/regressions")
 
 
 def source_identity(repo: Path) -> dict[str, str]:
-    tree = subprocess.check_output(
-        ["git", "-C", str(repo), "rev-parse", "HEAD:implementations/python/tests"], text=True
-    ).strip()
+    paths = {
+        "test_tree": "implementations/python/tests",
+        "python_tree": "implementations/python/packages",
+        "contracts_tree": "contracts",
+        "examples_tree": "examples",
+    }
+    trees = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", *("HEAD:" + path for path in paths.values())], text=True
+    ).splitlines()
     collector = {path.name: digest(path.read_bytes()) for path in sorted(Path(__file__).parent.glob("parity_*.py"))}
-    return {"test_tree": tree, "collector_sha256": digest(encode(collector))}
+    environment = {
+        name: digest((repo / "implementations/python" / name).read_bytes()) for name in ("uv.lock", "pyproject.toml")
+    }
+    return {
+        **dict(zip(paths, trees, strict=True)),
+        "collector_sha256": digest(encode(collector)),
+        "environment_sha256": digest(encode(environment)),
+    }
 
 
 def read_inputs(

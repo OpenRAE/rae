@@ -26,13 +26,23 @@ func readLimited(fsys fs.FS, name string, limit int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	content, readErr := io.ReadAll(io.LimitReader(file, limit+1))
+	content, readErr := readBounded(file, limit)
 	closeErr := file.Close()
 	if err := errors.Join(readErr, closeErr); err != nil {
 		return nil, err
 	}
+	return content, nil
+}
+
+// readBounded is shared by file reads and decompression, so both boundaries
+// reject extra bytes without allocating the rest of an untrusted stream.
+func readBounded(reader io.Reader, limit int64) ([]byte, error) {
+	content, err := io.ReadAll(io.LimitReader(reader, limit+1))
+	if err != nil {
+		return nil, err
+	}
 	if int64(len(content)) > limit {
-		return nil, fmt.Errorf("%s exceeds the storage limit", name)
+		return nil, fmt.Errorf("parity data exceeds its %d-byte storage limit", limit)
 	}
 	return content, nil
 }
@@ -55,14 +65,14 @@ func readBlob(fsys fs.FS, identity string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	content, readErr := io.ReadAll(io.LimitReader(stream, blobLimit+1))
+	content, readErr := readBounded(stream, blobLimit)
 	closeErr := stream.Close()
 	if err := errors.Join(readErr, closeErr); err != nil {
 		return nil, err
 	}
 	sum := sha256.Sum256(content)
-	if len(content) > blobLimit || hex.EncodeToString(sum[:]) != identity {
-		return nil, errors.New("parity input is oversized or does not match its digest")
+	if hex.EncodeToString(sum[:]) != identity {
+		return nil, errors.New("parity input does not match its digest")
 	}
 	return content, nil
 }

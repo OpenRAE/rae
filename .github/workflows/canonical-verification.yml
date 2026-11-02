@@ -773,9 +773,11 @@ jobs:
           python -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus" --raw-input-dir "${RUNNER_TEMP}/parity-decoded"
       - name: Scan decoded corpus inputs before retaining compressed data
         id: scan
-        run: >-
-          uv run --project implementations/tooling/python --frozen --no-default-groups
-          python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-decoded"
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups \
+            python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-decoded"
+          uv run --project implementations/tooling/python --frozen --no-default-groups \
+            python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-corpus"
       - name: Enforce corpus reproduction
         if: steps.corpus.outcome != 'success'
         run: exit 1
