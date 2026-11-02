@@ -360,6 +360,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The monolithic verify job is now distributed across deterministic shards and
     # parallel lanes (#935); the reusable graph remains the single full-gate owner.
     assert set(workflow["jobs"]) == {
+        "proof-archive",
         "generic-tool-local-inputs",
         "test-shard",
         "integration",
@@ -395,6 +396,21 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "Admit the carried Isabelle archive with egress denied"
     )
     assert not any(str(step.get("uses", "")).startswith("actions/cache/") for step in proof["steps"])
+
+    # Only the proof-archive job writes the Actions cache. It checks out the
+    # triggering commit, never a caller-selected ref, so code under verification
+    # cannot write the cache (#1836).
+    archive = workflow["jobs"]["proof-archive"]
+    checkout = next(step for step in archive["steps"] if str(step.get("uses", "")).startswith("actions/checkout@"))
+    assert "ref" not in checkout.get("with", {})
+    cache_writers = {
+        name
+        for name, job in workflow["jobs"].items()
+        for step in job.get("steps", [])
+        if str(step.get("uses", "")).startswith(("actions/cache@", "actions/cache/save@"))
+    }
+    assert cache_writers == {"proof-archive"}
+    assert workflow["jobs"]["generic-tool-local-inputs"]["needs"] == "proof-archive"
 
     carrier = _named_step(
         workflow["jobs"]["generic-tool-local-inputs"], "Fetch the locked proof archive with the qualified client"
