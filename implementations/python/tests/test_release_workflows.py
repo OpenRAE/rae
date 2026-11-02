@@ -1662,7 +1662,7 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     """The ADR-121 gates stay in the canonical graph for each Go module."""
 
     go = _load(CANONICAL_PATH)["jobs"]["go"]
-    assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
     assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == [
         "implementations/go",
         "implementations/tooling/go",
@@ -1672,7 +1672,8 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         "install-go public-ubuntu-24.04-x86_64",
         "go mod tidy -diff",
         "go mod verify",
-        "golangci-lint run ./...",
+        'golangci-lint run --config "${GITHUB_WORKSPACE}/implementations/.golangci.yml" ./...',
+        "go build ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
         "go test -v -race -covermode=atomic -coverprofile=cover.out ./...",
         "exit !(total >= 90)",
@@ -1697,7 +1698,7 @@ def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
 
     workflow = _load(CANONICAL_PATH)
     job = workflow["jobs"]["go-architecture"]
-    assert job["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert job["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
     assert "strategy" not in job
     check = _named_step(job, "Check the Go code against the architecture model")
     assert "working-directory" not in check

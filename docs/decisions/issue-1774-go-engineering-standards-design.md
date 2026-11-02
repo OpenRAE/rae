@@ -19,7 +19,7 @@ CI builds each tool from module sources that `go.sum` verifies.
 
 | Rule | Check | Configuration |
 | --- | --- | --- |
-| Each golangci-lint linter is on, and each finding fails | `golangci-lint run` | `implementations/.golangci.yml` |
+| Each golangci-lint linter is on, and each finding fails | `golangci-lint run --config` | `implementations/.golangci.yml` |
 | A suppression names its linter and states a reason | `nolintlint` | `implementations/.golangci.yml` |
 | Deterministic Google style rules that no linter checks | `raesvet` with `getprefix`, `gotwant`, and `wrapverb` | `implementations/tooling/go/lint/` |
 | Tests pass with the race detector | `go test -race` | the CI `go` job |
@@ -88,3 +88,12 @@ flowchart LR
 - [Google Go Style Guide](https://google.github.io/styleguide/go/)
 - [Gremlins](https://gremlins.dev/)
 - Issue #1774
+
+## Module coverage
+
+The required architecture job reconciles declared and discovered Go modules.
+It then runs `tools.check_go_module_inventory`.
+This check requires equal inventories in the Go matrix, OSV, and coverage consumers.
+Each matrix module runs `go build ./...` before the other quality gates.
+`GOWORK=off` prevents a workspace from replacing the module dependency closure.
+See [the coverage design](issue-1858-go-module-verification-design.md).

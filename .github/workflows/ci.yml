@@ -180,6 +180,8 @@ jobs:
           version: "0.13.4"
       - name: Run OSV-scanner (gating)
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s osv_scan
+      - name: Require a report for every scanned closure
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.check_go_module_inventory --scan-reports
       - name: Upload OSV-scanner report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
