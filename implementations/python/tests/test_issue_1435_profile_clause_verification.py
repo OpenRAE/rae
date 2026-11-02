@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import ast
 import re
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from dataclasses import replace
 from pathlib import Path
 
@@ -330,7 +330,7 @@ def test_postgresql_ledger_claims_stay_with_the_submitting_actor() -> None:
     context = record.receipt.context
     other_actor = context.model_copy(update={"actor_id": f"{context.actor_id}-other"})
 
-    with sqlite3.connect(":memory:") as connection:
+    with closing(sqlite3.connect(":memory:")) as connection, connection:
         connection.execute(
             "CREATE TABLE raes_ledger_operations(actor_id, operation_kind, idempotency_key, payload, digest)"
         )

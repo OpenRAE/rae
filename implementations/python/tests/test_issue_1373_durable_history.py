@@ -2,6 +2,7 @@
 
 import json
 import sqlite3
+from contextlib import closing
 
 import pytest
 from participant_control_contract_fixtures import evaluation_payload
@@ -40,7 +41,7 @@ def test_local_append_does_not_visit_old_history_and_reopens_exactly(tmp_path, m
     lease = reopened.admit_runtime(target_scope="target:test", run_scope="run:test")
     try:
         assert reopened.load_snapshot_state().snapshot == candidate
-        with sqlite3.connect(directory / "control-plane.sqlite3") as connection:
+        with closing(sqlite3.connect(directory / "control-plane.sqlite3")) as connection, connection:
             header = json.loads(
                 connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone()[0]
             )
@@ -102,7 +103,7 @@ def test_external_history_change_invalidates_the_sqlite_snapshot_cache(tmp_path)
     try:
         store.save_snapshot(RuntimeSnapshot(evaluation_history={"run": [{"n": 1}]}), expected_revision=0)
         store.load_snapshot_state()
-        with sqlite3.connect(directory / "control-plane.sqlite3") as connection:
+        with closing(sqlite3.connect(directory / "control-plane.sqlite3")) as connection, connection:
             connection.execute("UPDATE snapshot_history SET payload='{}'")
         with pytest.raises(EvidenceIntegrityError, match="integrity"):
             store.load_snapshot_state()
@@ -117,7 +118,7 @@ def test_rejected_scope_does_not_create_projection_schema(tmp_path):
     lease = store.admit_runtime(target_scope="target:test", run_scope="run:test")
     store.close()
     lease.close()
-    with sqlite3.connect(directory / "control-plane.sqlite3") as connection:
+    with closing(sqlite3.connect(directory / "control-plane.sqlite3")) as connection, connection:
         for (name,) in connection.execute("SELECT name FROM sqlite_master WHERE type='trigger'").fetchall():
             assert name.replace("_", "").isalnum()
             connection.execute('DROP TRIGGER "' + name + '"')
@@ -129,7 +130,7 @@ def test_rejected_scope_does_not_create_projection_schema(tmp_path):
     refused = LocalControlPlaneStore(directory)
     with pytest.raises(ConflictError, match="scope"):
         refused.admit_runtime(target_scope="target:other", run_scope="run:other")
-    with sqlite3.connect(directory / "control-plane.sqlite3") as connection:
+    with closing(sqlite3.connect(directory / "control-plane.sqlite3")) as connection, connection:
         assert connection.execute("SELECT type,name,sql FROM sqlite_master ORDER BY type,name").fetchall() == before
 
 

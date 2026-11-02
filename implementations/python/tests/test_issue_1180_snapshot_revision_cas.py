@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 from dataclasses import replace
 from pathlib import Path
 
@@ -396,7 +397,7 @@ def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_chang
     store.close()
     lease.close()
     database_path = store_path / "control-plane.sqlite3"
-    with sqlite3.connect(database_path) as connection:
+    with closing(sqlite3.connect(database_path)) as connection, connection:
         payload_before = connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone()[0]
         portable_payload = json.loads(payload_before)
         assert "revision" not in portable_payload
@@ -411,7 +412,7 @@ def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_chang
         snapshot=RuntimeSnapshot(metadata={"portable": "unchanged"}),
         revision=0,
     )
-    with sqlite3.connect(database_path) as connection:
+    with closing(sqlite3.connect(database_path)) as connection, connection:
         assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
             LOCAL_OPERATION_SCHEMA_VERSION,
         )
@@ -427,7 +428,7 @@ def test_local_store_rejects_corrupt_provider_revision(tmp_path: Path) -> None:
     store = LocalControlPlaneStore(store_path)
     lease = store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     store.save_snapshot(RuntimeSnapshot(), expected_revision=0)
-    with sqlite3.connect(store_path / "control-plane.sqlite3") as connection:
+    with closing(sqlite3.connect(store_path / "control-plane.sqlite3")) as connection, connection:
         connection.execute("UPDATE state SET revision=-1 WHERE key='runtime-snapshot'")
 
     with pytest.raises(EvidenceIntegrityError, match="snapshot revision"):

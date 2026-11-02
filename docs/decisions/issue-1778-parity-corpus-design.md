@@ -240,6 +240,16 @@ full input collection in CI while avoiding a single long-running capture job.
 Two functional durability fixtures use an explicit ten-second store budget.
 They check recovery and readback semantics under CI filesystem contention;
 production defaults and tests of deadline enforcement remain unchanged.
+The deadline-classification regression tests defer timer arming until submission
+has completed, then arm the real adapter callback with an immediately due
+deadline. They verify lane ownership and poisoning without racing a 100–200 ms
+submission budget against CI scheduling. Clock enforcement remains covered by
+the execution-adapter tests.
+The local-store maintenance module owns backup connection lifetime. Use
+`contextlib.closing` around SQLite's transaction context so success and failure
+both close the destination connection. Apply the same ownership repair to raw
+SQLite transaction contexts in tests; preserve commit/rollback behavior. Focused
+backup tests retain the connection and prove that it is closed on both paths.
 
 ## Publishing phase repair found during recording
 

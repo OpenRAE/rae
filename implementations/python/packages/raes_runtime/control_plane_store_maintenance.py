@@ -6,7 +6,7 @@ import os
 import sqlite3
 import tempfile
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -410,7 +410,7 @@ def _validate_working_database(
 
 
 def _backup_connection(source: sqlite3.Connection, destination: Path) -> None:
-    with sqlite3.connect(destination) as target:
+    with closing(sqlite3.connect(destination)) as target, target:
         target.execute("PRAGMA synchronous=FULL")
         source.backup(target)
         target.commit()
