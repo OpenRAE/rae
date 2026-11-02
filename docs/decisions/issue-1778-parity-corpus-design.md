@@ -264,6 +264,8 @@ The ordinary test and fuzz environments retain their existing settings.
 Gremlins v0.6.0 copies the complete module for each worker and leaves copied
 file handles to Go finalizers. CI bounds mutation execution to two workers and
 raises the soft file-descriptor limit to the runner's existing hard limit.
+The mutation process uses `GOGC=10` so file finalizers run before copying the
+large corpus exhausts that capacity.
 This changes resource allocation only: all
 changed-line mutants and the existing coverage and efficacy thresholds remain
 mandatory. The upstream release and its source are used unchanged.
@@ -279,3 +281,9 @@ The CI collector also observes direct control-plane ASGI calls, preserving each
 receive message while retaining consumed body chunks. A context variable avoids
 duplicating requests already observed at HTTPX. This covers raw ingress tests
 which deliberately bypass HTTP clients.
+Raw ASGI replay preserves each frame's completion flag and an observed client
+disconnect. A disconnect can legitimately yield no HTTP response; it must not
+be converted into a synthetic server error. Requesting an unrecorded frame fails
+recording instead of inventing missing input.
+CLI version probes retain their plain version value; help and unstructured
+diagnostic prose remain excluded from machine-output comparison.

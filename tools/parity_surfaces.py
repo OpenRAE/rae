@@ -13,6 +13,7 @@ from functools import lru_cache
 from pathlib import Path
 from unittest.mock import patch
 from urllib.error import URLError
+from urllib.parse import urlsplit
 
 import click
 import httpx
@@ -383,7 +384,11 @@ def send_http(client: TestClient, request: dict[str, object], files: dict[str, b
     payload = {key: request[key] for key in ("json", "content") if key in request}
     if "body_file" in request:
         payload["content"] = files[request["body_file"]]
-    if request.get("streamed") or len(request.get("chunk_sizes", [])) > 1:
+    if "asgi_more_body" in request:
+        response = send_asgi(client, request, headers, payload["content"])
+        if response is None:
+            return {"status_code": None, "headers": {}, "body": None}
+    elif request.get("streamed") or len(request.get("chunk_sizes", [])) > 1:
         body = payload["content"]
         sizes = request["chunk_sizes"]
         if any(type(size) is not int or size < 0 for size in sizes) or sum(sizes) != len(body):
@@ -424,6 +429,52 @@ def send_http(client: TestClient, request: dict[str, object], files: dict[str, b
         },
         "body": output,
     }
+
+
+def send_asgi(client: TestClient, request: dict[str, object], headers: dict[str, str], body: bytes):
+    """Replay the consumed raw ASGI frames, including an observed disconnect."""
+    sizes, flags = request["chunk_sizes"], request["asgi_more_body"]
+    if len(sizes) != len(flags) or any(type(size) is not int or size < 0 for size in sizes) or sum(sizes) != len(body):
+        raise ValueError("invalid recorded ASGI frames")
+    url = urlsplit(request["path"])
+    scope = {
+        "type": "http",
+        "asgi": {"version": "3.0"},
+        "http_version": "1.1",
+        "method": request["method"],
+        "scheme": "http",
+        "path": url.path,
+        "raw_path": url.path.encode(),
+        "query_string": url.query.encode("ascii"),
+        "root_path": "",
+        "headers": [(key.encode("ascii"), value.encode("latin-1")) for key, value in headers.items()],
+        "client": ("127.0.0.1", 1),
+        "server": ("testserver", 80),
+    }
+    messages = []
+    index = offset = 0
+
+    async def receive():
+        nonlocal index, offset
+        if index == len(sizes):
+            if request.get("stream_disconnected") or request.get("stream_complete"):
+                return {"type": "http.disconnect"}
+            raise ValueError("the application requested an unrecorded ASGI frame")
+        size, more = sizes[index], flags[index]
+        chunk = body[offset : offset + size]
+        index += 1
+        offset += size
+        return {"type": "http.request", "body": chunk, "more_body": more}
+
+    async def send(message):
+        messages.append(message)
+
+    client.portal.call(client.app, scope, receive, send)
+    start = next((message for message in messages if message["type"] == "http.response.start"), None)
+    if start is None:
+        return None
+    content = b"".join(message.get("body", b"") for message in messages if message["type"] == "http.response.body")
+    return httpx.Response(start["status"], headers=start.get("headers", []), content=content)
 
 
 @contextmanager

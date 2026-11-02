@@ -408,6 +408,8 @@ def run_cli(case: Case) -> dict[str, object]:
             runner.invoke(app, command, catch_exceptions=False)
         result = runner.invoke(app, list(case.args), input=case.files.get("stdin.bin"), catch_exceptions=False)
         stdout = normalized_output(result.stdout.replace(str(Path.cwd()), "<case>"))
+        if stdout is None and case.command == "root" and {"--version", "-V"}.intersection(case.args):
+            stdout = result.stdout.strip()
         if stdout is None and case.command == "sdl format":
             stdout = machine_text(result.stdout)
         if stdout is None and result.stdout.strip().startswith("control-plane-store-"):

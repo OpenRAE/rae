@@ -528,8 +528,11 @@ class InputCollector:
                 return await original_asgi(application, scope, receive, send)
             query = scope.get("query_string", b"").decode("ascii")
             path = scope["path"] + ("?" + query if query else "")
-            specification = request_specification(application, scope["method"], path, Headers(raw=scope["headers"]))
+            specification = request_specification(
+                application, scope["method"], path, Headers(scope["headers"], encoding="latin-1")
+            )
             specification["streamed"] = True
+            specification["asgi_more_body"] = []
             parts = []
             complete = False
 
@@ -539,6 +542,9 @@ class InputCollector:
                 if message["type"] == "http.request":
                     parts.append(message.get("body", b""))
                     complete = not message.get("more_body", False)
+                    specification["asgi_more_body"].append(not complete)
+                elif message["type"] == "http.disconnect":
+                    specification["stream_disconnected"] = True
                 return message
 
             try:

@@ -611,6 +611,7 @@ jobs:
       - name: Test the mutations of the changed lines
         working-directory: ${{ matrix.path }}
         env:
+          GOGC: "10"
           MERGE_BASE: ${{ steps.base.outputs.merge_base }}
           # gremlins matches the paths of git diff against mutant paths, which
           # are relative to the module. git diff must use the same base.
@@ -621,7 +622,18 @@ jobs:
           # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
           # Use the runner's available descriptor capacity with bounded workers.
           ulimit -Sn "$(ulimit -Hn)"
-          gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
+          if command -v strace >/dev/null; then
+            trace="${RUNNER_TEMP}/mutation-${{ matrix.name }}.trace"
+            status=0
+            strace -f -qq -e trace=%file -e status=failed -o "${trace}" \
+              gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}" || status=$?
+            if [ "${status}" -ne 0 ]; then
+              awk '/= -1 (EMFILE|ENFILE|ENOSPC|EACCES|EROFS)/ { print }' "${trace}" | tail -20
+              exit "${status}"
+            fi
+          else
+            gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
+          fi
       - name: Check that each new regression test fails on the base
         working-directory: ${{ matrix.path }}
         env:

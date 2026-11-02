@@ -166,6 +166,12 @@ def test_direct_asgi_capture_replays_the_consumed_oversized_stream(tmp_path: Pat
     assert request["stream_complete"] is False
     with surfaces.http_client(request) as client:
         assert surfaces.send_http(client, request, files)["status_code"] == 413
+        disconnected = {**request, "chunk_sizes": [], "asgi_more_body": [], "stream_disconnected": True}
+        assert surfaces.send_http(client, disconnected, {"body.bin": b""}) == {
+            "status_code": None,
+            "headers": {},
+            "body": None,
+        }
 
 
 def test_cli_registry_includes_nested_commands_and_real_flag_names() -> None:
@@ -174,6 +180,13 @@ def test_cli_registry_includes_nested_commands_and_real_flag_names() -> None:
     assert "processor exploit-path" in registry
     flags = {option for parameter in registry["semantic parse"] for option in parameter["opts"]}
     assert {"--output", "--contract", "--migration-policy"} <= flags
+
+
+@pytest.mark.parametrize("flag", ["--version", "-V"])
+def test_cli_version_output_is_retained(flag: str, monkeypatch) -> None:
+    monkeypatch.setattr("raes_cli.main._distribution_version", lambda: "1.2.3")
+    result = pc.run_cli(Case("cli", "root", "version", (flag,), {}))
+    assert result == {"exit_code": 0, "stdout": "raes 1.2.3"}
 
 
 def test_input_collector_preserves_local_imports_and_sandbox_paths(tmp_path: Path) -> None:
