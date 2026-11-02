@@ -1,9 +1,9 @@
 {
-  "content_hash": "9b481c7eff03f2d0ed54afacd2f526424f4773c12b3a6b711c02d16ed98b4127",
+  "content_hash": "e0e4d1df2095dc2607cd0fb178e17151c922fdba2b7605ccf75a4f1ee5fed553",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "9b481c7eff03f2d0ed54afacd2f526424f4773c12b3a6b711c02d16ed98b4127",
-    "summary": "Add the socket forwarding source kind for a listening-socket input, for example a local syslog socket or a network syslog port (issue #1836)."
+    "content_hash": "e0e4d1df2095dc2607cd0fb178e17151c922fdba2b7605ccf75a4f1ee5fed553",
+    "summary": "Add explicit provider-qualified secret replication policies, replicas and native encryption key constraints (issue #1848)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
