@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from tools.nox_support.config import OSV_SCAN_TARGETS, REPO_ROOT
 
 
@@ -192,7 +191,6 @@ def test_required_jobs_run_inventory_after_architecture_check() -> None:
 
 def test_missing_scan_report_is_an_error(repo: Path) -> None:
     from raes_contracts.errors import InvalidInputError
-
     from tools.check_go_module_inventory import check_scan_reports
 
     scan = targets(repo)
