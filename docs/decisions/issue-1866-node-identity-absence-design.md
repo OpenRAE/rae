@@ -79,6 +79,13 @@ Existing models and constraint tests supply the architecture checks.
 No stored plan, historical digest, or version file changes in place.
 Old refused plans must be compiled again.
 
+The corrected payload changes compiled model digests.
+Replacement-plan content digests also bind the corrected processor plan references.
+Identity derivation algorithms and coordinate assignments remain unchanged.
+Fresh content-addressed research captures record the changed compiler observations.
+Each capture binds the source and links to an immutable baseline.
+Historical records and shared revision indexes remain unchanged.
+
 ## References and writing review
 
 - [Python 3.14 JSON documentation](https://docs.python.org/3.14/library/json.html), conversion table: `None` serializes as JSON null.
