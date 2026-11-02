@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:06909942f854ebe02bf690c957b81cd31089035d0b3bda4506546a0c5c38bd05"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "red-agent"
+          ],
+          "conditions": [
+            "web-alive"
+          ],
+          "entities": [
+            "red-team",
+            "blue-team"
+          ],
+          "infrastructure": [
+            "lab-network",
+            "web",
+            "workstation"
+          ],
+          "nodes": [
+            "lab-network",
+            "web",
+            "workstation"
+          ],
+          "objectives": [
+            "take-web-offline",
+            "keep-web-online"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "red-agent"
+        ],
+        "conditions": [
+          "web-alive"
+        ],
+        "entities": [
+          "red-team",
+          "blue-team"
+        ],
+        "infrastructure": [
+          "lab-network",
+          "web",
+          "workstation"
+        ],
+        "nodes": [
+          "lab-network",
+          "web",
+          "workstation"
+        ],
+        "objectives": [
+          "take-web-offline",
+          "keep-web-online"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

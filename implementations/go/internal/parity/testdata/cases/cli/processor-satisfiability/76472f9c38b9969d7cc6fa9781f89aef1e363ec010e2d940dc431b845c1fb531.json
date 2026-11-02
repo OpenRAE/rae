@@ -1,0 +1,98 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "input/empty-target-domain.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "input/empty-target-domain.sdl.yaml": "sha256:6e73e421b25cf54d5f5ab7e7199a964bac8577d6a21d31bbf937c9d9fd46fa4b"
+  },
+  "name": "regression/252967154cd2eb6a559e3e1321693fb09c1f4597328c96f5323198da7fd3e4c8",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:38787d4be285790fd4a94fbfcab2c2b88909804621e9318350a1acf559cd3312"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:38787d4be285790fd4a94fbfcab2c2b88909804621e9318350a1acf559cd3312"
+        },
+        "clauses": [
+          {
+            "allowed_values": [
+              0
+            ],
+            "clause_id": "domain:c62d18434681f20e8fd1a63fc468aeaec55b014db3c53bda192459b5c91f6251",
+            "kind": "declared-domain",
+            "source_address": "/variables/copies",
+            "symbol_id": "symbol:c62d18434681f20e8fd1a63fc468aeaec55b014db3c53bda192459b5c91f6251"
+          },
+          {
+            "allowed_values": [],
+            "clause_id": "target:0a90ef7e23d935cec6e64dd150aa0bbfb888a0478647e4e1901de87fb6708fe1",
+            "kind": "target-domain",
+            "source_address": "/infrastructure/target/count",
+            "symbol_id": "symbol:c62d18434681f20e8fd1a63fc468aeaec55b014db3c53bda192459b5c91f6251"
+          }
+        ],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:6e73e421b25cf54d5f5ab7e7199a964bac8577d6a21d31bbf937c9d9fd46fa4b",
+        "symbols": [
+          {
+            "domain": [
+              0
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:c62d18434681f20e8fd1a63fc468aeaec55b014db3c53bda192459b5c91f6251",
+            "variable": "copies"
+          }
+        ],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:e6800b0f2a71792f7d6db15150d292f3415cc1a062fa2cab18a44ce3052c0cc3",
+      "outcome": "unsatisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:6e73e421b25cf54d5f5ab7e7199a964bac8577d6a21d31bbf937c9d9fd46fa4b",
+        "source_id": "empty-target-domain.sdl.yaml"
+      },
+      "unsat_core": {
+        "clause_ids": [
+          "target:0a90ef7e23d935cec6e64dd150aa0bbfb888a0478647e4e1901de87fb6708fe1"
+        ],
+        "minimality": "subset-minimal",
+        "profile": "raes-unsatisfiable-core/v1"
+      },
+      "unsupported": null,
+      "witness": null
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/examples/library/patterns/scenario-reference-integrity.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/examples/library/patterns/scenario-reference-integrity.yaml": "sha256:1fa7ce6630859bd7cbbf6ecbd5ea047f0ac3939c2a94188f55d7528baa2639f9"
+  },
+  "name": "examples/library/patterns/scenario-reference-integrity.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

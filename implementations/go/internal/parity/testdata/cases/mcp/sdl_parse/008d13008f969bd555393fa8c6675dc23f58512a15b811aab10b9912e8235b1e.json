@@ -1,0 +1,447 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:89298d2fe3d45aad65dbcfd39b938e900c41d49683ac1f4c6952001a6f85efbd"
+  },
+  "name": "regression/8cae4df918c594c5e0ca5a6df8b7c9f5dbb6a4dfe8f8ef4d9b961d38fea970d8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/tagged-union[ServiceMaterialization,ServiceSearchIndexSchemaMaterialization]/service-search-index-schema/requirements/field_semantics/key",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/binding_id",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/coordinate",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/owner",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/value",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/provenance",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/target_service_ref",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/interface_profile",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/profile_version",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/requirements",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/readback_assertion_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/evidence_requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/observation_boundary_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 49
+                },
+                "start": {
+                  "column": 7,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/tagged-union[ServiceMaterialization,ServiceSearchIndexSchemaMaterialization]/service-search-index-schema/requirements/field_semantics/key",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/binding_id",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/coordinate",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/owner",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/value",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/provenance",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/target_service_ref",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/interface_profile",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/profile_version",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/requirements",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/readback_assertion_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/evidence_requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/content/messages/service_materialization/function-after[_validate_child_ids(), function-after[_validate_child_ids(), DomainProfileBindingModel]]/observation_boundary_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 49
+              },
+              "start": {
+                "column": 7,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

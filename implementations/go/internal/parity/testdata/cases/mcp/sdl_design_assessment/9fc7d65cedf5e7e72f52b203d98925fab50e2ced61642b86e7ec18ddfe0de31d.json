@@ -1,0 +1,39 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:f056b4066d084645eebbea6a6952a61c8c552e25a71becb49fa582559e219674"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "severity": "error",
+              "stage": "instantiation"
+            }
+          ],
+          "stage": "instantiation",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "severity": "error",
+            "stage": "instantiation"
+          }
+        ],
+        "stage": "instantiation",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,189 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:f0e4ddcf85506a1014854e9b0ba48f7af2e638b77846037ea93426040ee9aabd"
+  },
+  "name": "examples/scenarios/reconciliation-demo-v1.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [
+            {
+              "name": "web",
+              "path": "/nodes/web",
+              "qualified_name": "nodes.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 13
+                },
+                "start": {
+                  "column": 3,
+                  "line": 13
+                }
+              },
+              "section": "nodes"
+            },
+            {
+              "name": "web",
+              "path": "/infrastructure/web",
+              "qualified_name": "infrastructure.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 46
+                },
+                "start": {
+                  "column": 3,
+                  "line": 46
+                }
+              },
+              "section": "infrastructure"
+            }
+          ],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/nodes/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 13
+                },
+                "start": {
+                  "column": 3,
+                  "line": 13
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "mapping_key",
+              "path": "/infrastructure/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 46
+                },
+                "start": {
+                  "column": 3,
+                  "line": 46
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/propositions/health/subjects/0",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 68
+                },
+                "start": {
+                  "column": 9,
+                  "line": 68
+                }
+              },
+              "value": "nodes.web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [
+          {
+            "name": "web",
+            "path": "/nodes/web",
+            "qualified_name": "nodes.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 13
+              },
+              "start": {
+                "column": 3,
+                "line": 13
+              }
+            },
+            "section": "nodes"
+          },
+          {
+            "name": "web",
+            "path": "/infrastructure/web",
+            "qualified_name": "infrastructure.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 46
+              },
+              "start": {
+                "column": 3,
+                "line": 46
+              }
+            },
+            "section": "infrastructure"
+          }
+        ],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/nodes/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 13
+              },
+              "start": {
+                "column": 3,
+                "line": 13
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "mapping_key",
+            "path": "/infrastructure/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 46
+              },
+              "start": {
+                "column": 3,
+                "line": 46
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/propositions/health/subjects/0",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 68
+              },
+              "start": {
+                "column": 9,
+                "line": 68
+              }
+            },
+            "value": "nodes.web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

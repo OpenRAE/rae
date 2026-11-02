@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml": "sha256:56fd670d994057fc4908e35395faf70e3f425fbe50c3a011576dbefa8b8c2558"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

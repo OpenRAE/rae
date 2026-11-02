@@ -1,0 +1,14 @@
+{
+  "args": [
+    "time-runtime-state-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:8bfba3d2130b574f152ef70a38e8f3274759db32a47f2c78bb16480f6d62b6f8"
+  },
+  "name": "regression/64ce1959571ddf287c5f709d388cb761b38a134fb69031d854393dbaf7860078",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

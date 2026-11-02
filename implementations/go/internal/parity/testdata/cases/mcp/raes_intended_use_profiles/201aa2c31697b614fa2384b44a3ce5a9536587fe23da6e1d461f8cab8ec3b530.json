@@ -1,0 +1,1837 @@
+{
+  "args": [],
+  "command": "raes_intended_use_profiles",
+  "files": {
+    "arguments.json": "sha256:f23b5713655819ad239b6463132c52515970de9bdb08e269a5629deb3ce1a1df"
+  },
+  "name": "regression/fb1e91957ed22b9eded6338498d10001c46492cf3e006ae4942e559a02eeb797",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "assessed_on": "2026-10-31",
+          "assessment_revision": "2026-10-31",
+          "profile": {
+            "disposition_counts": {
+              "allowed-underspecified": 11,
+              "excluded": 3,
+              "required": 30
+            },
+            "example_refs": [],
+            "explicit_non_claims": [
+              "Does not claim causal validity, successful execution, adequate power, reproducibility, or backend behavioral equivalence."
+            ],
+            "intended_claim": "The scenario is bound to a pre-run design with controlled variation, allocation, apparatus, timing, capture, and analysis intent.",
+            "next_tools": [
+              "sdl_overview",
+              "sdl_section_reference",
+              "sdl_scaffold",
+              "sdl_diagnostics",
+              "sdl_validate",
+              "sdl_design_assessment",
+              "sdl_plan",
+              "sdl_claims_assessment",
+              "experiment_scaffold",
+              "experiment_get_example",
+              "experiment_validate"
+            ],
+            "profile_id": "controlled-experiment-scenario",
+            "raes_delivery": {
+              "blocking_concern_count": 11,
+              "blocking_concern_ids": [
+                "authored-observed-state-separation",
+                "backend-teardown-reconciliation",
+                "clock-declaration",
+                "credential-intent",
+                "deadlines-and-windows",
+                "host-architecture-constraints",
+                "pacing-and-synchronization",
+                "scoped-specificity-open-world-intent",
+                "temporal-ordering-causality",
+                "time-domain-declaration",
+                "verifier-and-adjudication"
+              ],
+              "complete": false
+            },
+            "required_concerns": [
+              {
+                "binding_obligation": "The scenario and run must reference the same apparatus requirement and realized context identities.",
+                "concern_id": "apparatus-constraints",
+                "definition": "Scientific claims bind to declared apparatus requirements and realized context.",
+                "evidence": [
+                  {
+                    "claim": "Published apparatus constraints and context.",
+                    "contract_id": "experiment-apparatus-context-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-apparatus-context-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Apparatus constraints/context scope claims to a realization; they do not guarantee availability.",
+                "satisfiability_witness_refs": {
+                  "experiment-apparatus-context-v1": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment apparatus",
+                "status": "external-contract",
+                "title": "Apparatus constraints and context"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "assertions",
+                "definition": "Preconditions, invariants, and postconditions reference propositions with explicit polarity.",
+                "evidence": [
+                  {
+                    "claim": "Role-constrained assertion model.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/propositions.py"
+                  },
+                  {
+                    "claim": "Assertion truth-result integrity coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_truth_result_contracts.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Assertion composition is not evaluator lifecycle success or graded scoring.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL assertions",
+                "status": "implemented",
+                "title": "Role-constrained assertions"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "authored-observed-state-separation",
+                "definition": "Authored intent, realized state, observation, and evidence remain distinct claim planes.",
+                "evidence": [
+                  {
+                    "claim": "Defines authored, observed, and evidence planes.",
+                    "contract_id": null,
+                    "kind": "normative-spec",
+                    "path": "specs/sdl/observability-and-evidence.md"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#417"
+                ],
+                "limitation": "Plane separation exists across contracts, but the SDL boundary audit and authored-to-observed binding remain open.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL and experiment evidence",
+                "status": "partial",
+                "title": "Authored and observed state separation"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "backend-teardown-reconciliation",
+                "definition": "Realizers disclose and execute bounded resource cleanup and reconciliation.",
+                "evidence": [
+                  {
+                    "claim": "Runtime-owned startup reconciliation and linked administrative resolution of indeterminate operations.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes_runtime/control_plane_recovery.py"
+                  },
+                  {
+                    "claim": "Startup reconciliation and indeterminate-resolution regressions.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_issue_1179_startup_reconciliation.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#658",
+                  "#967"
+                ],
+                "limitation": "RAES reconciles operations whose effects are unknown, but native teardown belongs to backend distributions (ADR-115). Portable authored cleanup and cross-backend reconciliation guarantees are incomplete.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "backend lifecycle",
+                "status": "partial",
+                "title": "Backend teardown and reconciliation"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "behavioral-relation-taxonomy",
+                "definition": "Conformance, refinement, trace, observational, bisimulation, epistemic, and strategic relations are not conflated.",
+                "evidence": [
+                  {
+                    "claim": "Normative relation definitions, dimensions, claim surfaces, assurance states, and counterexamples.",
+                    "contract_id": null,
+                    "kind": "normative-spec",
+                    "path": "specs/formal/behavioral-relations/README.md"
+                  },
+                  {
+                    "claim": "Published closed contract for the revisioned taxonomy.",
+                    "contract_id": "behavioral-relations-v1",
+                    "kind": "published-schema",
+                    "path": "contracts/schemas/concept-authority/behavioral-relations-v1.json"
+                  },
+                  {
+                    "claim": "Semantic claim-binding and overclaim gate.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "tools/check_behavioral_relation_claims.py"
+                  },
+                  {
+                    "claim": "Backend conformance reports disclose bounded-probe relation, projection, case boundary, and nonclaims.",
+                    "contract_id": null,
+                    "kind": "conformance",
+                    "path": "implementations/python/packages/raes_conformance/conformance/__init__.py"
+                  },
+                  {
+                    "claim": "Catalog, binding, counterexample, and property-based relation tests.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_behavioral_relations.py"
+                  },
+                  {
+                    "claim": "Cross-field report validation binding relation, quantifier, evidence scope, claimed case set, and execution basis before serialization or persistence.",
+                    "contract_id": null,
+                    "kind": "conformance",
+                    "path": "implementations/python/packages/raes_conformance/conformance/report.py"
+                  },
+                  {
+                    "claim": "Claim-surface conflation audit and remediation record.",
+                    "contract_id": null,
+                    "kind": "documentation",
+                    "path": "docs/research/behavioral-relations/conflation-audit-2026-07-13.md"
+                  },
+                  {
+                    "claim": "Finite divergence-preserving branching-bisimulation check boundary, subject identity, and nonclaims for participant-crossing-dpbb-finite-v1@rev2.",
+                    "contract_id": null,
+                    "kind": "normative-spec",
+                    "path": "specs/formal/participant-semantics/participant-crossing-machine-check.md"
+                  },
+                  {
+                    "claim": "Complete-carrier, mutation, source-drift, and claim-promotion refusals for the finite model-check result.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_issue_974_machine_check.py"
+                  },
+                  {
+                    "claim": "The pinned qualified reproduction joins its measurement, execution record, and separate implementation-agent review to the pinned model-check subject.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_issue_975_reproduction_record.py"
+                  },
+                  {
+                    "claim": "Published participant-crossing facts and claim equal the admitted model-check and reproduction records.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_issue_976_crossing_publication.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "The revisioned taxonomy, bindings, finite-evidence gate, and counterexamples are implemented. One reproduced finite model-check result relates the declared initial states over the complete participant-crossing-dpbb-finite-v1@rev2 carrier only; universal simulation, refinement, equivalence, bisimulation, epistemic, strategic, probabilistic, timed, and partial-order proofs remain deliberately unproved or future.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "formal semantics and conformance",
+                "status": "implemented",
+                "title": "Behavioral relation taxonomy"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "clock-declaration",
+                "definition": "Clock identity, origin, rate, and ownership are declared.",
+                "evidence": [
+                  {
+                    "claim": "Bounded experiment clock context.",
+                    "contract_id": "experiment-apparatus-context-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#283",
+                  "#291"
+                ],
+                "limitation": "Clock context exists outside SDL, but portable clock identity/origin/rate authoring is incomplete.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL and runtime clock semantics",
+                "status": "partial",
+                "title": "Clock declaration"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "closed-structural-model",
+                "definition": "Authored fields conform to the published closed SDL document model.",
+                "evidence": [
+                  {
+                    "claim": "Closed Scenario model.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/scenario.py"
+                  },
+                  {
+                    "claim": "Closed-model validation coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_models.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Closed structure permits a name-only fragment and is not a completeness claim.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL document model",
+                "status": "implemented",
+                "title": "Closed structural model"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "condition-probe-binding",
+                "definition": "Executable probes are bindings and do not redefine proposition truth.",
+                "evidence": [
+                  {
+                    "claim": "Explicit condition-to-proposition binding.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/conditions.py"
+                  },
+                  {
+                    "claim": "Backend binding capability and rejection coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_proposition_capabilities.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Conditions are probe realizations and cannot substitute command success for truth.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL conditions and runtime truth results",
+                "status": "implemented",
+                "title": "Condition-to-proposition binding"
+              },
+              {
+                "binding_obligation": "The authoring allocation must bind to study membership and condition assignments for the same scenario-derived run set.",
+                "concern_id": "controlled-allocation",
+                "definition": "Conditions, blocking factors, assignment units, and replication allocation are declared.",
+                "evidence": [
+                  {
+                    "claim": "Pre-run allocation and replication plan.",
+                    "contract_id": "experiment-authoring-input-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                  },
+                  {
+                    "claim": "Archived study allocation and membership coverage.",
+                    "contract_id": "experiment-study-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-study-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-authoring-input-v1",
+                  "experiment-study-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Allocation is an experiment/study concern and does not alter SDL meaning.",
+                "satisfiability_witness_refs": {
+                  "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json",
+                  "experiment-study-v1": "contracts/fixtures/experiment-core/experiment-study-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment authoring and study",
+                "status": "external-contract",
+                "title": "Controlled allocation"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "credential-intent",
+                "definition": "Intentional scenario identities and credential posture are distinct from operator secrets.",
+                "evidence": [
+                  {
+                    "claim": "Current account and credential-posture authoring.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/accounts.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#673",
+                  "#708"
+                ],
+                "limitation": "Account and runtime-value posture exists, but authored credential-bearing setup remains unresolved.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL accounts and runtime values",
+                "status": "partial",
+                "title": "Credential intent"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "deadlines-and-windows",
+                "definition": "Deadlines, evaluation windows, and temporal bounds use declared time domains.",
+                "evidence": [
+                  {
+                    "claim": "Current objective-window analysis.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/semantics/objectives.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#285",
+                  "#288"
+                ],
+                "limitation": "Objective windows exist, but a complete time-domain-bound deadline surface is not published.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "objectives and experiment timing",
+                "status": "partial",
+                "title": "Deadlines and windows"
+              },
+              {
+                "binding_obligation": "Evaluation outcomes must bind to evidence, derived measures, the admitted scenario identity, and the same run provenance.",
+                "concern_id": "evaluation-outcome-evidence",
+                "definition": "Outcome interpretation, measures, evidence, and evaluation results retain provenance.",
+                "evidence": [
+                  {
+                    "claim": "Evidence record contract.",
+                    "contract_id": "experiment-evidence-record-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json"
+                  },
+                  {
+                    "claim": "Derived measure contract.",
+                    "contract_id": "experiment-derived-measure-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-derived-measure-v1.json"
+                  },
+                  {
+                    "claim": "Run identity and evidence binding.",
+                    "contract_id": "experiment-run-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-run-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-evidence-record-v1",
+                  "experiment-derived-measure-v1",
+                  "experiment-run-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Outcome records preserve evidence and interpretation; they do not by themselves prove scientific validity.",
+                "satisfiability_witness_refs": {
+                  "experiment-derived-measure-v1": "contracts/fixtures/experiment-core/experiment-derived-measure-v1/valid/reference.json",
+                  "experiment-evidence-record-v1": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/reference.json",
+                  "experiment-run-v1": "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment evaluation and evidence",
+                "status": "external-contract",
+                "title": "Evaluation outcome evidence"
+              },
+              {
+                "binding_obligation": "Evidence and associated artifacts must bind semantic bytes, parent identity, capture context, and derivation provenance for the same run.",
+                "concern_id": "evidence-provenance",
+                "definition": "Captured evidence, measures, artifacts, and derivations remain attributable and integrity-bound.",
+                "evidence": [
+                  {
+                    "claim": "Evidence provenance contract.",
+                    "contract_id": "experiment-evidence-record-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json"
+                  },
+                  {
+                    "claim": "Associated artifact integrity and parent binding.",
+                    "contract_id": "associated-artifact-manifest-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-evidence-record-v1",
+                  "associated-artifact-manifest-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Evidence provenance supports audit and derivation; it does not turn authored requirements into captured evidence.",
+                "satisfiability_witness_refs": {
+                  "associated-artifact-manifest-v1": "contracts/fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/study.json",
+                  "experiment-evidence-record-v1": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment evidence",
+                "status": "external-contract",
+                "title": "Evidence provenance"
+              },
+              {
+                "binding_obligation": "The completeness bundle must bind the instantiated scenario identity to an experiment authoring input whose declared factors govern the run plan.",
+                "concern_id": "factor-declaration",
+                "definition": "Controlled factors and levels are declared separately from scenario substitution.",
+                "evidence": [
+                  {
+                    "claim": "Published experiment factor and level contract.",
+                    "contract_id": "experiment-authoring-input-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-authoring-input-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Factors belong to experiment authoring, not Scenario.",
+                "satisfiability_witness_refs": {
+                  "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment authoring",
+                "status": "external-contract",
+                "title": "Experimental factor declaration"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "host-architecture-constraints",
+                "definition": "CPU architecture and host-level compatibility requirements are portable constraints.",
+                "evidence": [],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#674"
+                ],
+                "limitation": "Node lacks a portable host CPU architecture constraint.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "apparatus and realization",
+                "status": "missing",
+                "title": "Host architecture constraints"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "pacing-and-synchronization",
+                "definition": "Advancement, pacing, synchronization, and drift policy are explicit.",
+                "evidence": [
+                  {
+                    "claim": "Participant time-management disclosure contract.",
+                    "contract_id": "participant-time-management-context-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/participant-runtime/participant-time-management-context-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#284",
+                  "#287",
+                  "#290"
+                ],
+                "limitation": "Participant time-management records exist; general advancement and synchronization semantics remain open.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "runtime and participant time management",
+                "status": "partial",
+                "title": "Pacing and synchronization"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "parameter-typing",
+                "definition": "Scenario parameters have typed finite or constrained domains and portable bindings.",
+                "evidence": [
+                  {
+                    "claim": "Typed variable binding and instantiation.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/instantiate.py"
+                  },
+                  {
+                    "claim": "Instantiation and closed-phase coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_phase_contracts.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "SDL variables instantiate scenario values; they do not define an experimental factor design.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL variables and instantiation",
+                "status": "implemented",
+                "title": "Parameter typing"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "propositions",
+                "definition": "Claims over stable subjects use typed backend-neutral predicates and evidence bases.",
+                "evidence": [
+                  {
+                    "claim": "Typed proposition model.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/propositions.py"
+                  },
+                  {
+                    "claim": "Predicate, subject, and truth-composition coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_proposition_semantics.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "The model defines claims and truth domains; it does not guarantee a backend can decide them.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL propositions",
+                "status": "implemented",
+                "title": "Backend-neutral propositions"
+              },
+              {
+                "binding_obligation": "The run plan must name the randomization control and preserve it into apparatus and run evidence.",
+                "concern_id": "randomization-policy",
+                "definition": "Random assignment or sampling policy and its scope are declared.",
+                "evidence": [
+                  {
+                    "claim": "Pre-run stochastic and allocation controls.",
+                    "contract_id": "experiment-authoring-input-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-authoring-input-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "A policy reference records the mechanism; it does not prove unbiased execution.",
+                "satisfiability_witness_refs": {
+                  "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment authoring",
+                "status": "external-contract",
+                "title": "Randomization policy"
+              },
+              {
+                "binding_obligation": "The run plan must bind its scenario input, factors, allocation, stochastic controls, and episode intent before execution.",
+                "concern_id": "run-plan",
+                "definition": "Pre-run episode, stochastic, allocation, and stopping intent is versioned.",
+                "evidence": [
+                  {
+                    "claim": "Published pre-run plan contract.",
+                    "contract_id": "experiment-authoring-input-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-authoring-input-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Run planning is an experiment authoring concern and is not embedded in Scenario.",
+                "satisfiability_witness_refs": {
+                  "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment authoring",
+                "status": "external-contract",
+                "title": "Run plan"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "scoped-specificity-open-world-intent",
+                "definition": "Exact, constrained, and open realization posture is explicit at the governed scope.",
+                "evidence": [
+                  {
+                    "claim": "Current explicitness analysis.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/explicitness.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#539"
+                ],
+                "limitation": "Realization envelopes and explicitness semantics exist, but scenario-scoped default and most-specific override authority remain open.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "realization semantics",
+                "status": "partial",
+                "title": "Scoped specificity and open-world intent"
+              },
+              {
+                "binding_obligation": "Every relevant pre-run stochastic control must resolve to the apparatus/run record or disclose why no seed applies.",
+                "concern_id": "seed-preservation",
+                "definition": "Relevant seed, generator, scheduler, and sampling controls are preserved with provenance.",
+                "evidence": [
+                  {
+                    "claim": "Apparatus stochastic-control preservation.",
+                    "contract_id": "experiment-apparatus-context-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                  },
+                  {
+                    "claim": "Run-level stochastic provenance.",
+                    "contract_id": "experiment-run-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-run-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-apparatus-context-v1",
+                  "experiment-run-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Seed preservation supports reproduction attempts but is not a reproducibility proof.",
+                "satisfiability_witness_refs": {
+                  "experiment-apparatus-context-v1": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+                  "experiment-run-v1": "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment apparatus and run",
+                "status": "external-contract",
+                "title": "Seed preservation"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "semantic-reference-integrity",
+                "definition": "Named references and cross-section constraints pass semantic validation.",
+                "evidence": [
+                  {
+                    "claim": "Collect-all semantic validation.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/validator/_core.py"
+                  },
+                  {
+                    "claim": "Cross-section semantic validation coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_validator.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Semantic admission covers declared SDL references, not backend realization.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL semantic validator",
+                "status": "implemented",
+                "title": "Semantic reference integrity"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "source-profile-validity",
+                "definition": "Source uses the governed SDL YAML profile and safe loading rules.",
+                "evidence": [
+                  {
+                    "claim": "Safe YAML ingress and source-profile enforcement.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/_yaml_loader.py"
+                  },
+                  {
+                    "claim": "Source-profile and parser rejection coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_parser.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "Admission proves the governed source profile, not scientific adequacy.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL source and parser",
+                "status": "implemented",
+                "title": "Canonical SDL source profile"
+              },
+              {
+                "binding_obligation": "The study must bind included runs, allocation, research questions, analysis plan, and validity limitations to the same scenario lineage.",
+                "concern_id": "study-record",
+                "definition": "Study questions, membership, allocation, analysis plan, and validity notes are archived.",
+                "evidence": [
+                  {
+                    "claim": "Published study and benchmark record.",
+                    "contract_id": "experiment-study-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-study-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-study-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "A conforming study record preserves design and membership but does not establish adequate analysis or generalizability.",
+                "satisfiability_witness_refs": {
+                  "experiment-study-v1": "contracts/fixtures/experiment-core/experiment-study-v1/valid/reference.json"
+                },
+                "semantic_owner": "experiment study",
+                "status": "external-contract",
+                "title": "Study and benchmark record"
+              },
+              {
+                "binding_obligation": "The scenario snapshot must bind to apparatus constraints and a backend realization envelope that discloses unsupported requirements.",
+                "concern_id": "substrate-constraints",
+                "definition": "Backend, hypervisor, container, network, and apparatus constraints are explicit.",
+                "evidence": [
+                  {
+                    "claim": "Apparatus constraint and realized context contract.",
+                    "contract_id": "experiment-apparatus-context-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                  },
+                  {
+                    "claim": "Backend-relative realizability boundary.",
+                    "contract_id": "realization-envelope-v1",
+                    "kind": "contract",
+                    "path": "contracts/schemas/realization-envelope/realization-envelope-v1.json"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [
+                  "experiment-apparatus-context-v1",
+                  "realization-envelope-v1"
+                ],
+                "issue_refs": [],
+                "limitation": "Substrate constraints are apparatus and realization requirements, not universal SDL fields.",
+                "satisfiability_witness_refs": {
+                  "experiment-apparatus-context-v1": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+                  "realization-envelope-v1": "contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json"
+                },
+                "semantic_owner": "apparatus and realization",
+                "status": "external-contract",
+                "title": "Substrate constraints"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "temporal-ordering-causality",
+                "definition": "Ordering, causality, concurrency, and partial-order claims have governed semantics.",
+                "evidence": [
+                  {
+                    "claim": "Participant concurrency and order invariants.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes_contracts/participant_concurrency.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#285",
+                  "#288"
+                ],
+                "limitation": "Workflow and participant records preserve bounded order, but general causal and partial-order SDL semantics remain open.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "workflow and runtime semantics",
+                "status": "partial",
+                "title": "Temporal ordering and causality"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "time-domain-declaration",
+                "definition": "Wall, monotonic, logical, simulation, and scenario time domains are explicit.",
+                "evidence": [
+                  {
+                    "claim": "Participant time and ordering model.",
+                    "contract_id": null,
+                    "kind": "normative-spec",
+                    "path": "specs/formal/participant-runtime/README.md"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#283",
+                  "#286"
+                ],
+                "limitation": "Experiment and participant contracts carry bounded time context; the SDL time-domain authoring model remains incomplete.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL and experiment time semantics",
+                "status": "partial",
+                "title": "Time-domain declaration"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "topology-and-resource-intent",
+                "definition": "Scenario topology, resources, services, identities, and relationships are authored as intent.",
+                "evidence": [
+                  {
+                    "claim": "Typed scenario topology and resource surfaces.",
+                    "contract_id": null,
+                    "kind": "implementation",
+                    "path": "implementations/python/packages/raes/scenario.py"
+                  },
+                  {
+                    "claim": "Real-world scenario authoring coverage.",
+                    "contract_id": null,
+                    "kind": "test",
+                    "path": "implementations/python/tests/test_sdl_realworld.py"
+                  }
+                ],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [],
+                "limitation": "The SDL expresses intent; realizability remains apparatus and backend relative.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "SDL scenario",
+                "status": "implemented",
+                "title": "Topology and resource intent"
+              },
+              {
+                "binding_obligation": null,
+                "concern_id": "verifier-and-adjudication",
+                "definition": "Verifier, judge, annotation, disagreement, and adjudication assets are governed.",
+                "evidence": [],
+                "exclusion_rationale": null,
+                "external_contract_refs": [],
+                "issue_refs": [
+                  "#325",
+                  "#327",
+                  "#329"
+                ],
+                "limitation": "Portable verifier, judge, annotation, disagreement, and adjudication contracts remain planned.",
+                "satisfiability_witness_refs": {},
+                "semantic_owner": "experiment evaluation",
+                "status": "missing",
+                "title": "Verifier and adjudication"
+              }
+            ],
+            "title": "Controlled experiment scenario"
+          },
+          "profile_family": "scientific-scenario-completeness",
+          "scenario_assessment": {
+            "performed": false,
+            "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+            "status": "not-assessed"
+          },
+          "scope": "raes-delivery-capability",
+          "status": "ok",
+          "taxonomy_revision": "rev1"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "assessed_on": "2026-10-31",
+        "assessment_revision": "2026-10-31",
+        "profile": {
+          "disposition_counts": {
+            "allowed-underspecified": 11,
+            "excluded": 3,
+            "required": 30
+          },
+          "example_refs": [],
+          "explicit_non_claims": [
+            "Does not claim causal validity, successful execution, adequate power, reproducibility, or backend behavioral equivalence."
+          ],
+          "intended_claim": "The scenario is bound to a pre-run design with controlled variation, allocation, apparatus, timing, capture, and analysis intent.",
+          "next_tools": [
+            "sdl_overview",
+            "sdl_section_reference",
+            "sdl_scaffold",
+            "sdl_diagnostics",
+            "sdl_validate",
+            "sdl_design_assessment",
+            "sdl_plan",
+            "sdl_claims_assessment",
+            "experiment_scaffold",
+            "experiment_get_example",
+            "experiment_validate"
+          ],
+          "profile_id": "controlled-experiment-scenario",
+          "raes_delivery": {
+            "blocking_concern_count": 11,
+            "blocking_concern_ids": [
+              "authored-observed-state-separation",
+              "backend-teardown-reconciliation",
+              "clock-declaration",
+              "credential-intent",
+              "deadlines-and-windows",
+              "host-architecture-constraints",
+              "pacing-and-synchronization",
+              "scoped-specificity-open-world-intent",
+              "temporal-ordering-causality",
+              "time-domain-declaration",
+              "verifier-and-adjudication"
+            ],
+            "complete": false
+          },
+          "required_concerns": [
+            {
+              "binding_obligation": "The scenario and run must reference the same apparatus requirement and realized context identities.",
+              "concern_id": "apparatus-constraints",
+              "definition": "Scientific claims bind to declared apparatus requirements and realized context.",
+              "evidence": [
+                {
+                  "claim": "Published apparatus constraints and context.",
+                  "contract_id": "experiment-apparatus-context-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-apparatus-context-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Apparatus constraints/context scope claims to a realization; they do not guarantee availability.",
+              "satisfiability_witness_refs": {
+                "experiment-apparatus-context-v1": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment apparatus",
+              "status": "external-contract",
+              "title": "Apparatus constraints and context"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "assertions",
+              "definition": "Preconditions, invariants, and postconditions reference propositions with explicit polarity.",
+              "evidence": [
+                {
+                  "claim": "Role-constrained assertion model.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/propositions.py"
+                },
+                {
+                  "claim": "Assertion truth-result integrity coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_truth_result_contracts.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Assertion composition is not evaluator lifecycle success or graded scoring.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL assertions",
+              "status": "implemented",
+              "title": "Role-constrained assertions"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "authored-observed-state-separation",
+              "definition": "Authored intent, realized state, observation, and evidence remain distinct claim planes.",
+              "evidence": [
+                {
+                  "claim": "Defines authored, observed, and evidence planes.",
+                  "contract_id": null,
+                  "kind": "normative-spec",
+                  "path": "specs/sdl/observability-and-evidence.md"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#417"
+              ],
+              "limitation": "Plane separation exists across contracts, but the SDL boundary audit and authored-to-observed binding remain open.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL and experiment evidence",
+              "status": "partial",
+              "title": "Authored and observed state separation"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "backend-teardown-reconciliation",
+              "definition": "Realizers disclose and execute bounded resource cleanup and reconciliation.",
+              "evidence": [
+                {
+                  "claim": "Runtime-owned startup reconciliation and linked administrative resolution of indeterminate operations.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes_runtime/control_plane_recovery.py"
+                },
+                {
+                  "claim": "Startup reconciliation and indeterminate-resolution regressions.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_issue_1179_startup_reconciliation.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#658",
+                "#967"
+              ],
+              "limitation": "RAES reconciles operations whose effects are unknown, but native teardown belongs to backend distributions (ADR-115). Portable authored cleanup and cross-backend reconciliation guarantees are incomplete.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "backend lifecycle",
+              "status": "partial",
+              "title": "Backend teardown and reconciliation"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "behavioral-relation-taxonomy",
+              "definition": "Conformance, refinement, trace, observational, bisimulation, epistemic, and strategic relations are not conflated.",
+              "evidence": [
+                {
+                  "claim": "Normative relation definitions, dimensions, claim surfaces, assurance states, and counterexamples.",
+                  "contract_id": null,
+                  "kind": "normative-spec",
+                  "path": "specs/formal/behavioral-relations/README.md"
+                },
+                {
+                  "claim": "Published closed contract for the revisioned taxonomy.",
+                  "contract_id": "behavioral-relations-v1",
+                  "kind": "published-schema",
+                  "path": "contracts/schemas/concept-authority/behavioral-relations-v1.json"
+                },
+                {
+                  "claim": "Semantic claim-binding and overclaim gate.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "tools/check_behavioral_relation_claims.py"
+                },
+                {
+                  "claim": "Backend conformance reports disclose bounded-probe relation, projection, case boundary, and nonclaims.",
+                  "contract_id": null,
+                  "kind": "conformance",
+                  "path": "implementations/python/packages/raes_conformance/conformance/__init__.py"
+                },
+                {
+                  "claim": "Catalog, binding, counterexample, and property-based relation tests.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_behavioral_relations.py"
+                },
+                {
+                  "claim": "Cross-field report validation binding relation, quantifier, evidence scope, claimed case set, and execution basis before serialization or persistence.",
+                  "contract_id": null,
+                  "kind": "conformance",
+                  "path": "implementations/python/packages/raes_conformance/conformance/report.py"
+                },
+                {
+                  "claim": "Claim-surface conflation audit and remediation record.",
+                  "contract_id": null,
+                  "kind": "documentation",
+                  "path": "docs/research/behavioral-relations/conflation-audit-2026-07-13.md"
+                },
+                {
+                  "claim": "Finite divergence-preserving branching-bisimulation check boundary, subject identity, and nonclaims for participant-crossing-dpbb-finite-v1@rev2.",
+                  "contract_id": null,
+                  "kind": "normative-spec",
+                  "path": "specs/formal/participant-semantics/participant-crossing-machine-check.md"
+                },
+                {
+                  "claim": "Complete-carrier, mutation, source-drift, and claim-promotion refusals for the finite model-check result.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_issue_974_machine_check.py"
+                },
+                {
+                  "claim": "The pinned qualified reproduction joins its measurement, execution record, and separate implementation-agent review to the pinned model-check subject.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_issue_975_reproduction_record.py"
+                },
+                {
+                  "claim": "Published participant-crossing facts and claim equal the admitted model-check and reproduction records.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_issue_976_crossing_publication.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "The revisioned taxonomy, bindings, finite-evidence gate, and counterexamples are implemented. One reproduced finite model-check result relates the declared initial states over the complete participant-crossing-dpbb-finite-v1@rev2 carrier only; universal simulation, refinement, equivalence, bisimulation, epistemic, strategic, probabilistic, timed, and partial-order proofs remain deliberately unproved or future.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "formal semantics and conformance",
+              "status": "implemented",
+              "title": "Behavioral relation taxonomy"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "clock-declaration",
+              "definition": "Clock identity, origin, rate, and ownership are declared.",
+              "evidence": [
+                {
+                  "claim": "Bounded experiment clock context.",
+                  "contract_id": "experiment-apparatus-context-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#283",
+                "#291"
+              ],
+              "limitation": "Clock context exists outside SDL, but portable clock identity/origin/rate authoring is incomplete.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL and runtime clock semantics",
+              "status": "partial",
+              "title": "Clock declaration"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "closed-structural-model",
+              "definition": "Authored fields conform to the published closed SDL document model.",
+              "evidence": [
+                {
+                  "claim": "Closed Scenario model.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/scenario.py"
+                },
+                {
+                  "claim": "Closed-model validation coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_models.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Closed structure permits a name-only fragment and is not a completeness claim.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL document model",
+              "status": "implemented",
+              "title": "Closed structural model"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "condition-probe-binding",
+              "definition": "Executable probes are bindings and do not redefine proposition truth.",
+              "evidence": [
+                {
+                  "claim": "Explicit condition-to-proposition binding.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/conditions.py"
+                },
+                {
+                  "claim": "Backend binding capability and rejection coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_proposition_capabilities.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Conditions are probe realizations and cannot substitute command success for truth.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL conditions and runtime truth results",
+              "status": "implemented",
+              "title": "Condition-to-proposition binding"
+            },
+            {
+              "binding_obligation": "The authoring allocation must bind to study membership and condition assignments for the same scenario-derived run set.",
+              "concern_id": "controlled-allocation",
+              "definition": "Conditions, blocking factors, assignment units, and replication allocation are declared.",
+              "evidence": [
+                {
+                  "claim": "Pre-run allocation and replication plan.",
+                  "contract_id": "experiment-authoring-input-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                },
+                {
+                  "claim": "Archived study allocation and membership coverage.",
+                  "contract_id": "experiment-study-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-study-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-authoring-input-v1",
+                "experiment-study-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Allocation is an experiment/study concern and does not alter SDL meaning.",
+              "satisfiability_witness_refs": {
+                "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json",
+                "experiment-study-v1": "contracts/fixtures/experiment-core/experiment-study-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment authoring and study",
+              "status": "external-contract",
+              "title": "Controlled allocation"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "credential-intent",
+              "definition": "Intentional scenario identities and credential posture are distinct from operator secrets.",
+              "evidence": [
+                {
+                  "claim": "Current account and credential-posture authoring.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/accounts.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#673",
+                "#708"
+              ],
+              "limitation": "Account and runtime-value posture exists, but authored credential-bearing setup remains unresolved.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL accounts and runtime values",
+              "status": "partial",
+              "title": "Credential intent"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "deadlines-and-windows",
+              "definition": "Deadlines, evaluation windows, and temporal bounds use declared time domains.",
+              "evidence": [
+                {
+                  "claim": "Current objective-window analysis.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/semantics/objectives.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#285",
+                "#288"
+              ],
+              "limitation": "Objective windows exist, but a complete time-domain-bound deadline surface is not published.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "objectives and experiment timing",
+              "status": "partial",
+              "title": "Deadlines and windows"
+            },
+            {
+              "binding_obligation": "Evaluation outcomes must bind to evidence, derived measures, the admitted scenario identity, and the same run provenance.",
+              "concern_id": "evaluation-outcome-evidence",
+              "definition": "Outcome interpretation, measures, evidence, and evaluation results retain provenance.",
+              "evidence": [
+                {
+                  "claim": "Evidence record contract.",
+                  "contract_id": "experiment-evidence-record-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json"
+                },
+                {
+                  "claim": "Derived measure contract.",
+                  "contract_id": "experiment-derived-measure-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-derived-measure-v1.json"
+                },
+                {
+                  "claim": "Run identity and evidence binding.",
+                  "contract_id": "experiment-run-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-run-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-evidence-record-v1",
+                "experiment-derived-measure-v1",
+                "experiment-run-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Outcome records preserve evidence and interpretation; they do not by themselves prove scientific validity.",
+              "satisfiability_witness_refs": {
+                "experiment-derived-measure-v1": "contracts/fixtures/experiment-core/experiment-derived-measure-v1/valid/reference.json",
+                "experiment-evidence-record-v1": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/reference.json",
+                "experiment-run-v1": "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment evaluation and evidence",
+              "status": "external-contract",
+              "title": "Evaluation outcome evidence"
+            },
+            {
+              "binding_obligation": "Evidence and associated artifacts must bind semantic bytes, parent identity, capture context, and derivation provenance for the same run.",
+              "concern_id": "evidence-provenance",
+              "definition": "Captured evidence, measures, artifacts, and derivations remain attributable and integrity-bound.",
+              "evidence": [
+                {
+                  "claim": "Evidence provenance contract.",
+                  "contract_id": "experiment-evidence-record-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json"
+                },
+                {
+                  "claim": "Associated artifact integrity and parent binding.",
+                  "contract_id": "associated-artifact-manifest-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-evidence-record-v1",
+                "associated-artifact-manifest-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Evidence provenance supports audit and derivation; it does not turn authored requirements into captured evidence.",
+              "satisfiability_witness_refs": {
+                "associated-artifact-manifest-v1": "contracts/fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/study.json",
+                "experiment-evidence-record-v1": "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment evidence",
+              "status": "external-contract",
+              "title": "Evidence provenance"
+            },
+            {
+              "binding_obligation": "The completeness bundle must bind the instantiated scenario identity to an experiment authoring input whose declared factors govern the run plan.",
+              "concern_id": "factor-declaration",
+              "definition": "Controlled factors and levels are declared separately from scenario substitution.",
+              "evidence": [
+                {
+                  "claim": "Published experiment factor and level contract.",
+                  "contract_id": "experiment-authoring-input-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-authoring-input-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Factors belong to experiment authoring, not Scenario.",
+              "satisfiability_witness_refs": {
+                "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment authoring",
+              "status": "external-contract",
+              "title": "Experimental factor declaration"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "host-architecture-constraints",
+              "definition": "CPU architecture and host-level compatibility requirements are portable constraints.",
+              "evidence": [],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#674"
+              ],
+              "limitation": "Node lacks a portable host CPU architecture constraint.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "apparatus and realization",
+              "status": "missing",
+              "title": "Host architecture constraints"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "pacing-and-synchronization",
+              "definition": "Advancement, pacing, synchronization, and drift policy are explicit.",
+              "evidence": [
+                {
+                  "claim": "Participant time-management disclosure contract.",
+                  "contract_id": "participant-time-management-context-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/participant-runtime/participant-time-management-context-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#284",
+                "#287",
+                "#290"
+              ],
+              "limitation": "Participant time-management records exist; general advancement and synchronization semantics remain open.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "runtime and participant time management",
+              "status": "partial",
+              "title": "Pacing and synchronization"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "parameter-typing",
+              "definition": "Scenario parameters have typed finite or constrained domains and portable bindings.",
+              "evidence": [
+                {
+                  "claim": "Typed variable binding and instantiation.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/instantiate.py"
+                },
+                {
+                  "claim": "Instantiation and closed-phase coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_phase_contracts.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "SDL variables instantiate scenario values; they do not define an experimental factor design.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL variables and instantiation",
+              "status": "implemented",
+              "title": "Parameter typing"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "propositions",
+              "definition": "Claims over stable subjects use typed backend-neutral predicates and evidence bases.",
+              "evidence": [
+                {
+                  "claim": "Typed proposition model.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/propositions.py"
+                },
+                {
+                  "claim": "Predicate, subject, and truth-composition coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_proposition_semantics.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "The model defines claims and truth domains; it does not guarantee a backend can decide them.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL propositions",
+              "status": "implemented",
+              "title": "Backend-neutral propositions"
+            },
+            {
+              "binding_obligation": "The run plan must name the randomization control and preserve it into apparatus and run evidence.",
+              "concern_id": "randomization-policy",
+              "definition": "Random assignment or sampling policy and its scope are declared.",
+              "evidence": [
+                {
+                  "claim": "Pre-run stochastic and allocation controls.",
+                  "contract_id": "experiment-authoring-input-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-authoring-input-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "A policy reference records the mechanism; it does not prove unbiased execution.",
+              "satisfiability_witness_refs": {
+                "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment authoring",
+              "status": "external-contract",
+              "title": "Randomization policy"
+            },
+            {
+              "binding_obligation": "The run plan must bind its scenario input, factors, allocation, stochastic controls, and episode intent before execution.",
+              "concern_id": "run-plan",
+              "definition": "Pre-run episode, stochastic, allocation, and stopping intent is versioned.",
+              "evidence": [
+                {
+                  "claim": "Published pre-run plan contract.",
+                  "contract_id": "experiment-authoring-input-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-authoring-input-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Run planning is an experiment authoring concern and is not embedded in Scenario.",
+              "satisfiability_witness_refs": {
+                "experiment-authoring-input-v1": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment authoring",
+              "status": "external-contract",
+              "title": "Run plan"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "scoped-specificity-open-world-intent",
+              "definition": "Exact, constrained, and open realization posture is explicit at the governed scope.",
+              "evidence": [
+                {
+                  "claim": "Current explicitness analysis.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/explicitness.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#539"
+              ],
+              "limitation": "Realization envelopes and explicitness semantics exist, but scenario-scoped default and most-specific override authority remain open.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "realization semantics",
+              "status": "partial",
+              "title": "Scoped specificity and open-world intent"
+            },
+            {
+              "binding_obligation": "Every relevant pre-run stochastic control must resolve to the apparatus/run record or disclose why no seed applies.",
+              "concern_id": "seed-preservation",
+              "definition": "Relevant seed, generator, scheduler, and sampling controls are preserved with provenance.",
+              "evidence": [
+                {
+                  "claim": "Apparatus stochastic-control preservation.",
+                  "contract_id": "experiment-apparatus-context-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                },
+                {
+                  "claim": "Run-level stochastic provenance.",
+                  "contract_id": "experiment-run-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-run-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-apparatus-context-v1",
+                "experiment-run-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Seed preservation supports reproduction attempts but is not a reproducibility proof.",
+              "satisfiability_witness_refs": {
+                "experiment-apparatus-context-v1": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+                "experiment-run-v1": "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment apparatus and run",
+              "status": "external-contract",
+              "title": "Seed preservation"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "semantic-reference-integrity",
+              "definition": "Named references and cross-section constraints pass semantic validation.",
+              "evidence": [
+                {
+                  "claim": "Collect-all semantic validation.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/validator/_core.py"
+                },
+                {
+                  "claim": "Cross-section semantic validation coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_validator.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Semantic admission covers declared SDL references, not backend realization.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL semantic validator",
+              "status": "implemented",
+              "title": "Semantic reference integrity"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "source-profile-validity",
+              "definition": "Source uses the governed SDL YAML profile and safe loading rules.",
+              "evidence": [
+                {
+                  "claim": "Safe YAML ingress and source-profile enforcement.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/_yaml_loader.py"
+                },
+                {
+                  "claim": "Source-profile and parser rejection coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_parser.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "Admission proves the governed source profile, not scientific adequacy.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL source and parser",
+              "status": "implemented",
+              "title": "Canonical SDL source profile"
+            },
+            {
+              "binding_obligation": "The study must bind included runs, allocation, research questions, analysis plan, and validity limitations to the same scenario lineage.",
+              "concern_id": "study-record",
+              "definition": "Study questions, membership, allocation, analysis plan, and validity notes are archived.",
+              "evidence": [
+                {
+                  "claim": "Published study and benchmark record.",
+                  "contract_id": "experiment-study-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-study-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-study-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "A conforming study record preserves design and membership but does not establish adequate analysis or generalizability.",
+              "satisfiability_witness_refs": {
+                "experiment-study-v1": "contracts/fixtures/experiment-core/experiment-study-v1/valid/reference.json"
+              },
+              "semantic_owner": "experiment study",
+              "status": "external-contract",
+              "title": "Study and benchmark record"
+            },
+            {
+              "binding_obligation": "The scenario snapshot must bind to apparatus constraints and a backend realization envelope that discloses unsupported requirements.",
+              "concern_id": "substrate-constraints",
+              "definition": "Backend, hypervisor, container, network, and apparatus constraints are explicit.",
+              "evidence": [
+                {
+                  "claim": "Apparatus constraint and realized context contract.",
+                  "contract_id": "experiment-apparatus-context-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/experiment-core/experiment-apparatus-context-v1.json"
+                },
+                {
+                  "claim": "Backend-relative realizability boundary.",
+                  "contract_id": "realization-envelope-v1",
+                  "kind": "contract",
+                  "path": "contracts/schemas/realization-envelope/realization-envelope-v1.json"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [
+                "experiment-apparatus-context-v1",
+                "realization-envelope-v1"
+              ],
+              "issue_refs": [],
+              "limitation": "Substrate constraints are apparatus and realization requirements, not universal SDL fields.",
+              "satisfiability_witness_refs": {
+                "experiment-apparatus-context-v1": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+                "realization-envelope-v1": "contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json"
+              },
+              "semantic_owner": "apparatus and realization",
+              "status": "external-contract",
+              "title": "Substrate constraints"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "temporal-ordering-causality",
+              "definition": "Ordering, causality, concurrency, and partial-order claims have governed semantics.",
+              "evidence": [
+                {
+                  "claim": "Participant concurrency and order invariants.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes_contracts/participant_concurrency.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#285",
+                "#288"
+              ],
+              "limitation": "Workflow and participant records preserve bounded order, but general causal and partial-order SDL semantics remain open.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "workflow and runtime semantics",
+              "status": "partial",
+              "title": "Temporal ordering and causality"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "time-domain-declaration",
+              "definition": "Wall, monotonic, logical, simulation, and scenario time domains are explicit.",
+              "evidence": [
+                {
+                  "claim": "Participant time and ordering model.",
+                  "contract_id": null,
+                  "kind": "normative-spec",
+                  "path": "specs/formal/participant-runtime/README.md"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#283",
+                "#286"
+              ],
+              "limitation": "Experiment and participant contracts carry bounded time context; the SDL time-domain authoring model remains incomplete.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL and experiment time semantics",
+              "status": "partial",
+              "title": "Time-domain declaration"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "topology-and-resource-intent",
+              "definition": "Scenario topology, resources, services, identities, and relationships are authored as intent.",
+              "evidence": [
+                {
+                  "claim": "Typed scenario topology and resource surfaces.",
+                  "contract_id": null,
+                  "kind": "implementation",
+                  "path": "implementations/python/packages/raes/scenario.py"
+                },
+                {
+                  "claim": "Real-world scenario authoring coverage.",
+                  "contract_id": null,
+                  "kind": "test",
+                  "path": "implementations/python/tests/test_sdl_realworld.py"
+                }
+              ],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [],
+              "limitation": "The SDL expresses intent; realizability remains apparatus and backend relative.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "SDL scenario",
+              "status": "implemented",
+              "title": "Topology and resource intent"
+            },
+            {
+              "binding_obligation": null,
+              "concern_id": "verifier-and-adjudication",
+              "definition": "Verifier, judge, annotation, disagreement, and adjudication assets are governed.",
+              "evidence": [],
+              "exclusion_rationale": null,
+              "external_contract_refs": [],
+              "issue_refs": [
+                "#325",
+                "#327",
+                "#329"
+              ],
+              "limitation": "Portable verifier, judge, annotation, disagreement, and adjudication contracts remain planned.",
+              "satisfiability_witness_refs": {},
+              "semantic_owner": "experiment evaluation",
+              "status": "missing",
+              "title": "Verifier and adjudication"
+            }
+          ],
+          "title": "Controlled experiment scenario"
+        },
+        "profile_family": "scientific-scenario-completeness",
+        "scenario_assessment": {
+          "performed": false,
+          "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+          "status": "not-assessed"
+        },
+        "scope": "raes-delivery-capability",
+        "status": "ok",
+        "taxonomy_revision": "rev1"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:8222e2cd1609a0cc15e41482520f4d0c8f8b9f1ac79d36d7dd4ae0d299968213"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/root.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nimports:\n- path: module.yaml\n  namespace: shared\n  version: 1.0.0\n",
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nimports:\n- path: module.yaml\n  namespace: shared\n  version: 1.0.0\n",
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

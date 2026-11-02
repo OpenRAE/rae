@@ -1,0 +1,99 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/family.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/family.yaml": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:9f2a3e3ecb9fabeacf238535bc2d1b1a9c791d0fafd50b42acdf23b06b23a379"
+      },
+      "diagnostics": [
+        {
+          "address": "/content/payload/path",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        }
+      ],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:9f2a3e3ecb9fabeacf238535bc2d1b1a9c791d0fafd50b42acdf23b06b23a379"
+        },
+        "clauses": [
+          {
+            "allowed_values": [
+              "/opt/a",
+              "/opt/b"
+            ],
+            "clause_id": "domain:b6ac79414e086715cb40418dfe56862194158805a4a97ea4a138e1c03b4d95e7",
+            "kind": "declared-domain",
+            "source_address": "/variables/payload_path",
+            "symbol_id": "symbol:b6ac79414e086715cb40418dfe56862194158805a4a97ea4a138e1c03b4d95e7"
+          }
+        ],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482",
+        "symbols": [
+          {
+            "domain": [
+              "/opt/a",
+              "/opt/b"
+            ],
+            "sort": "string",
+            "symbol_id": "symbol:b6ac79414e086715cb40418dfe56862194158805a4a97ea4a138e1c03b4d95e7",
+            "variable": "payload_path"
+          }
+        ],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:4908c04f55a15e53ccbb6b2c9d5358b95fdcb8dad678d8f28f8e6b309def88b9",
+      "outcome": "unsupported",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482",
+        "source_id": "family.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": {
+        "profile": "raes-satisfiability-unsupported/v1",
+        "reason_codes": [
+          "scenario-satisfiability.unsupported-target"
+        ]
+      },
+      "witness": null
+    }
+  },
+  "surface": "cli"
+}

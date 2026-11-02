@@ -1,0 +1,50 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml": "sha256:56fd670d994057fc4908e35395faf70e3f425fbe50c3a011576dbefa8b8c2558"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.manager",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.manager",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.manager",
+            "code": "realization.unsupported-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "wazuh-third-party-repository",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

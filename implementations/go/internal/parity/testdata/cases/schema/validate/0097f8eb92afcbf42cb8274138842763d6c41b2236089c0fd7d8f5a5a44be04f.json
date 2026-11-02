@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-observation-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:d8db5b01c572878e498dbde597344c6288f9193df918a07634e734c215133a98"
+  },
+  "name": "regression/e34a85e28772c833c0609b8ee6192d9124c54f8c198fa41d75c6533b09964f94",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

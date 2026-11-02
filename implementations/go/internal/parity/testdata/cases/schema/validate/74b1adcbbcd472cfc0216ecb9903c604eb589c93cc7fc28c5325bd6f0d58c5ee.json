@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c3465ce5833da671a6ff206ad956538343375ad514f5a733710eb11d27c8f4f3"
+  },
+  "name": "experiment-authoring-input-v1/routed/contracts/fixtures/experiment-core/experiment-authoring-input-v1/context-invalid/typed-factorial-duplicate-point.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:1435aa854f0dd5f72e42fc1032e07605eac9a6a120bbdadc200cf6f8e5a92bc2"
+  },
+  "name": "regression/749bacf11bb6c89940115b572e65c27f5b479d2d11787d9861d29e98fe81488d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "accounts": [
+            "admin-acct"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "accounts": [
+          "admin-acct"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

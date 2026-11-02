@@ -283,3 +283,40 @@ def test_capture_reducer_requires_every_partition_of_the_full_collection(tmp_pat
         collector.write("shard-" + str(index))
         _, inventory, _ = regressions.read_inputs(tmp_path, identity=identity)
         assert inventory["complete"] is (index == 1)
+
+
+def test_cli_observers_cover_console_entrypoint_and_subprocess_inputs(tmp_path: Path, monkeypatch) -> None:
+    import subprocess
+    import sys
+
+    import raes_cli.entrypoint as entrypoint
+
+    source = tmp_path / "source.yaml"
+    source.write_text("name: subprocess-input\n")
+    outcome = object()
+    calls = []
+
+    def original_run(*args, **kwargs):
+        calls.append((args, kwargs))
+        return outcome
+
+    monkeypatch.setattr(subprocess, "run", original_run)
+    collector = InputCollector(tmp_path / "capture", Path(__file__).resolve().parents[3])
+    collector.nodeid = "tests/test_observers.py::test_console"
+    collector.install()
+    try:
+        monkeypatch.setattr(sys, "argv", ["raes", "-V"])
+        entrypoint.main()
+        assert (
+            subprocess.run(["raes", "semantic", "validate", "source.yaml"], cwd=tmp_path, input="standard input")
+            is outcome
+        )
+    finally:
+        collector.close()
+    records = list(collector.records.values())
+    assert any(record["args"] == ["-V"] for record in records)
+    invocation = next(record for record in records if record["command"] == "semantic validate")
+    assert invocation["args"] == ["semantic", "validate", "input/source.yaml"]
+    assert set(invocation["files"]) == {"input/source.yaml", "stdin.bin"}
+    assert collector.blobs[invocation["files"]["stdin.bin"].removeprefix("sha256:")] == b"standard input"
+    assert calls[-1][1] == {"cwd": tmp_path, "input": "standard input"}

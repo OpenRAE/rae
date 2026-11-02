@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /participants/{participant_address}/episodes/reset",
+  "files": {
+    "body.bin": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "request.json": "sha256:6537d9ca100579514e4e2054eee8b210136f6226c1664cb582d684f5daa22f5c"
+  },
+  "name": "regression/4c716fe4beee943482f61a72548311eda6a7a6015b5df865e59ae5a23b9cc412",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

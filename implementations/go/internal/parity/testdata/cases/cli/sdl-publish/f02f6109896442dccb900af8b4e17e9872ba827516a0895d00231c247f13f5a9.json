@@ -1,0 +1,43 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/module.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/module.yaml": "sha256:d2d1dbf60479004f1725f9e8027654948eb919be6f136b76a527107e9b0901ed"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/module.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "layout/raes_fixture-family-1.0.0.oci/versions/3a551ad78416cf6bc74b-f42bccf8830a4993b021/index.json": {
+        "manifests": [
+          {
+            "annotations": {
+              "io.raes.module.id": "raes/fixture-family",
+              "org.opencontainers.image.ref.name": "1.0.0"
+            },
+            "digest": "sha256:3a551ad78416cf6bc74ba5f8f79bafce7476499a71297157e1f632460d59be6f",
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "size": 508
+          }
+        ],
+        "schemaVersion": 2
+      }
+    },
+    "stdout": {
+      "content_digest": "sha256:bb634ef9f69c39b6b51e61c31219f022efa5e6e89ae4b344a128f438b9220a36",
+      "export_hash": "eaeb8f4d744d62a50fbef345bacc6429652837af1b831f839b28a3995e63d5ba",
+      "layout_dir": "layout/raes_fixture-family-1.0.0.oci/versions/3a551ad78416cf6bc74b-f42bccf8830a4993b021",
+      "manifest_digest": "sha256:3a551ad78416cf6bc74ba5f8f79bafce7476499a71297157e1f632460d59be6f",
+      "module_id": "raes/fixture-family",
+      "module_version": "1.0.0",
+      "signer_id": ""
+    }
+  },
+  "surface": "cli"
+}

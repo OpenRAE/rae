@@ -1,0 +1,52 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml": "sha256:56fd670d994057fc4908e35395faf70e3f425fbe50c3a011576dbefa8b8c2558"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "name": "wazuh-third-party-repository",
+      "nodes": {
+        "manager": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "runtime": {
+            "packages": [
+              {
+                "manager": "apt",
+                "name": "wazuh-agent",
+                "repository": {
+                  "components": [
+                    "main"
+                  ],
+                  "profile_version": "1",
+                  "repository_profile": "apt",
+                  "signing_key": {
+                    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "format": "openpgp-ascii-armored",
+                    "uri": "https://packages.wazuh.com/key/GPG-KEY-WAZUH"
+                  },
+                  "suite": "stable",
+                  "uri": "https://packages.wazuh.com/4.x/apt/"
+                },
+                "version": "4.12.0-1"
+              }
+            ]
+          },
+          "type": "compute"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

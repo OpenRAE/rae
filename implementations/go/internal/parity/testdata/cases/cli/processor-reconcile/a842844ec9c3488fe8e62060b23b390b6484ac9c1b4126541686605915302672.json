@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/techvault.sdl.yaml",
+    "repo/examples/scenarios/techvault.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/techvault.sdl.yaml": "sha256:389a343f50f19b4114de2803a012882b8f71d43f3726c5b00fec15f3abfaa0cf"
+  },
+  "name": "examples/scenarios/techvault.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,141 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:6f0f62b2efadb35efa33e34c6468a6b756d7eedeb53baf5f81e7d17a1f86c160"
+  },
+  "name": "regression/8900b23ab9c1880880258b574ab74bc408aae27297b3db097a67f69b755ba498",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "<<",
+                "<<"
+              ],
+              "code": "sdl.noncanonical_merge",
+              "path": "/nodes/conflict",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 6
+                },
+                "start": {
+                  "column": 5,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "type",
+                "type"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/conflict/type",
+              "range": {
+                "end": {
+                  "column": 9,
+                  "line": 7
+                },
+                "start": {
+                  "column": 5,
+                  "line": 7
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'type'.",
+                  "range": {
+                    "end": {
+                      "column": 9,
+                      "line": 4
+                    },
+                    "start": {
+                      "column": 5,
+                      "line": 4
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "<<",
+              "<<"
+            ],
+            "code": "sdl.noncanonical_merge",
+            "path": "/nodes/conflict",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 6
+              },
+              "start": {
+                "column": 5,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "type",
+              "type"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/conflict/type",
+            "range": {
+              "end": {
+                "column": 9,
+                "line": 7
+              },
+              "start": {
+                "column": 5,
+                "line": 7
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'type'.",
+                "range": {
+                  "end": {
+                    "column": 9,
+                    "line": 4
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 4
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

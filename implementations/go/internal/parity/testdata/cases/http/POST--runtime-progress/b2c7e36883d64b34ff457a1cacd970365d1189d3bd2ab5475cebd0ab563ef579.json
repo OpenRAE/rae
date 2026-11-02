@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /runtime/progress",
+  "files": {
+    "request.json": "sha256:b3dd5cb24f3a0d5f9d1ad976052c06eff18cbd5319f511ed07a8e0fe72d169bf"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

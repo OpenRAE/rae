@@ -1,0 +1,165 @@
+{
+  "args": [],
+  "command": "raes_tool_surface",
+  "files": {
+    "arguments.json": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+  },
+  "name": "regression/63fb9b29ac0d864c1ab53c4befdfd676fe8bf98ce8837489dbc797b438fa9f87",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "boundaries": [
+            "This surface helps design and assess scenarios; it does not expose participant cyber actions such as scan, exploit, SSH, command execution, or hidden-state access.",
+            "Planning is a dry-run against declared manifests. Actual run claims require runtime results, evidence, and provenance.",
+            "Participant skill, causality, visibility, and evidence claims require participant contracts and run evidence beyond basic SDL validity."
+          ],
+          "intent": "Author, parse, validate, inspect, assess, and dry-run RAES scenarios for researchers and range designers.",
+          "recommended_workflow": [
+            "raes_agent_guidance",
+            "raes_intended_use_profiles",
+            "sdl_overview",
+            "sdl_section_reference",
+            "sdl_scaffold or user-authored SDL",
+            "sdl_completions / sdl_diagnostics / sdl_apply_edit while authoring",
+            "sdl_parse",
+            "sdl_validate",
+            "sdl_design_assessment",
+            "sdl_compile",
+            "sdl_plan",
+            "sdl_claims_assessment"
+          ],
+          "surface": "raes",
+          "tool_families": {
+            "assessment": [
+              "sdl_design_assessment",
+              "sdl_claims_assessment"
+            ],
+            "authoring": [
+              "sdl_scaffold",
+              "sdl_validate",
+              "sdl_validate_section",
+              "sdl_instantiate"
+            ],
+            "experiment_authoring": [
+              "experiment_scaffold",
+              "experiment_validate",
+              "experiment_get_example"
+            ],
+            "experiment_operations": [
+              "sdl_compile",
+              "sdl_plan",
+              "raes_reference_manifests"
+            ],
+            "guidance": [
+              "raes_agent_guidance",
+              "raes_intended_use_profiles"
+            ],
+            "inspection": [
+              "sdl_summarize",
+              "sdl_list_elements",
+              "sdl_get_element",
+              "sdl_check_references",
+              "sdl_diagram"
+            ],
+            "language_service": [
+              "sdl_completions",
+              "sdl_references",
+              "sdl_format",
+              "sdl_diagnostics",
+              "sdl_apply_edit"
+            ],
+            "parsing": [
+              "sdl_parse"
+            ],
+            "reference": [
+              "sdl_overview",
+              "sdl_section_reference",
+              "sdl_get_example",
+              "sdl_parser_reference",
+              "sdl_validation_reference"
+            ]
+          }
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "boundaries": [
+          "This surface helps design and assess scenarios; it does not expose participant cyber actions such as scan, exploit, SSH, command execution, or hidden-state access.",
+          "Planning is a dry-run against declared manifests. Actual run claims require runtime results, evidence, and provenance.",
+          "Participant skill, causality, visibility, and evidence claims require participant contracts and run evidence beyond basic SDL validity."
+        ],
+        "intent": "Author, parse, validate, inspect, assess, and dry-run RAES scenarios for researchers and range designers.",
+        "recommended_workflow": [
+          "raes_agent_guidance",
+          "raes_intended_use_profiles",
+          "sdl_overview",
+          "sdl_section_reference",
+          "sdl_scaffold or user-authored SDL",
+          "sdl_completions / sdl_diagnostics / sdl_apply_edit while authoring",
+          "sdl_parse",
+          "sdl_validate",
+          "sdl_design_assessment",
+          "sdl_compile",
+          "sdl_plan",
+          "sdl_claims_assessment"
+        ],
+        "surface": "raes",
+        "tool_families": {
+          "assessment": [
+            "sdl_design_assessment",
+            "sdl_claims_assessment"
+          ],
+          "authoring": [
+            "sdl_scaffold",
+            "sdl_validate",
+            "sdl_validate_section",
+            "sdl_instantiate"
+          ],
+          "experiment_authoring": [
+            "experiment_scaffold",
+            "experiment_validate",
+            "experiment_get_example"
+          ],
+          "experiment_operations": [
+            "sdl_compile",
+            "sdl_plan",
+            "raes_reference_manifests"
+          ],
+          "guidance": [
+            "raes_agent_guidance",
+            "raes_intended_use_profiles"
+          ],
+          "inspection": [
+            "sdl_summarize",
+            "sdl_list_elements",
+            "sdl_get_element",
+            "sdl_check_references",
+            "sdl_diagram"
+          ],
+          "language_service": [
+            "sdl_completions",
+            "sdl_references",
+            "sdl_format",
+            "sdl_diagnostics",
+            "sdl_apply_edit"
+          ],
+          "parsing": [
+            "sdl_parse"
+          ],
+          "reference": [
+            "sdl_overview",
+            "sdl_section_reference",
+            "sdl_get_example",
+            "sdl_parser_reference",
+            "sdl_validation_reference"
+          ]
+        }
+      }
+    }
+  },
+  "surface": "mcp"
+}

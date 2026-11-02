@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-context-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ca1d75dfdbda1911d3bf742d8f353baed939cec5241a0f99ed3e3470cec5f3a9"
+  },
+  "name": "participant-control-context-record-v1/routed/contracts/fixtures/participant-runtime/participant-control-context-record-v1/valid/mid-episode-revision.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,169 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:012ea0705f98cce5257fd82e76070b76b685640d3306ea9227b3a419cbe5a818"
+  },
+  "name": "regression/62c810125cd82b15e17121bf9bd306529848379e5bfd184ddba0bde1bb3cac55",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "test",
+            "populated_sections": {
+              "nodes": 1
+            },
+            "source_diagnostics": [
+              {
+                "authored_keys": [
+                  "Name",
+                  "name"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/name",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 1
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 1
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              },
+              {
+                "authored_keys": [
+                  "Nodes",
+                  "nodes"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/nodes",
+                "range": {
+                  "end": {
+                    "column": 6,
+                    "line": 2
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 2
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              },
+              {
+                "authored_keys": [
+                  "Type",
+                  "type"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/nodes/sw/type",
+                "range": {
+                  "end": {
+                    "column": 9,
+                    "line": 4
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 4
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              }
+            ],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "test",
+          "populated_sections": {
+            "nodes": 1
+          },
+          "source_diagnostics": [
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 1
+                },
+                "start": {
+                  "column": 1,
+                  "line": 1
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "Nodes",
+                "nodes"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/nodes",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 2
+                },
+                "start": {
+                  "column": 1,
+                  "line": 2
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "Type",
+                "type"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/nodes/sw/type",
+              "range": {
+                "end": {
+                  "column": 9,
+                  "line": 4
+                },
+                "start": {
+                  "column": 5,
+                  "line": 4
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,36 @@
+{
+  "args": [],
+  "command": "POST /operations/orchestration",
+  "files": {
+    "request.json": "sha256:b7baf9322e66dc6c932dc395e3d5a7e92e6a2e941cea46a72d0515fc51147e22"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "operator",
+        "authorization_scope": [
+          "role:auditor",
+          "role:backend",
+          "role:operator"
+        ],
+        "operation_kind": "orchestration",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:bb1d239adcf6e3506d001dcb1c59fa95291e882374eb399689302fe34506a332",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "orchestration",
+      "operation_id": "1ed1e761-dc5d-46ff-9694-d06827a4287a",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

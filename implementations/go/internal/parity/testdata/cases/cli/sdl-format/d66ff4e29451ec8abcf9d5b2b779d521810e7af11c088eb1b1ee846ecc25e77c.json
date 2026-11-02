@@ -1,0 +1,45 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "content": {
+        "payload": {
+          "path": "/opt/payload",
+          "target": "web",
+          "type": "file"
+        }
+      },
+      "name": "transformation-reference-case",
+      "nodes": {
+        "peer": {
+          "type": "switch"
+        },
+        "web": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "relationships": {
+        "loop": {
+          "source": "web",
+          "target": "web",
+          "type": "connects_to"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-resource-budget-state-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:e00167e553c4fa5667de8c502d586ed407ee1e48113697800a7686d1df40eec8"
+  },
+  "name": "regression/37b957ebbd4a9c85f2c0b5f0d6796e016dffad55af1c17741e9e9e54f238c071",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:9a3b32f04271487d3bf75f4ef4780cce934a121e554ea4d4b87a9e7884883622"
+  },
+  "name": "regression/a382bd6c779db6be983cde9e09407cc111f7539f3bd290003a035a63bb3c03f3",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "act-607-typed-ref-collisions",
+            "populated_sections": {
+              "accounts": 1,
+              "agents": 1,
+              "conditions": 1,
+              "content": 3,
+              "entities": 1,
+              "nodes": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "act-607-typed-ref-collisions",
+          "populated_sections": {
+            "accounts": 1,
+            "agents": 1,
+            "conditions": 1,
+            "content": 3,
+            "entities": 1,
+            "nodes": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

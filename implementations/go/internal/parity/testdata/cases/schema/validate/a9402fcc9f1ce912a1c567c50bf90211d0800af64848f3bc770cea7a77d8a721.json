@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:da26f002c830f2e3755fe614f23d9ec678fc58c125d32743ad0122c40239ae6f"
+  },
+  "name": "admitted-trial-plan-v1/routed/contracts/fixtures/plans/admitted-trial-plan-v1/valid/parallel-isolated.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

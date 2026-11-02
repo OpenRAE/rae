@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/patterns/task-as-objective-contract.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/patterns/task-as-objective-contract.yaml": "sha256:e4a5893338074acacb6d3a2e7b6141213145ff74a7e84b801b24cfd9f141df61",
+    "setup.json": "sha256:ba8e1fdcbbc5c1a3676cff886e05b8cd0997b5f3cefdae5b96bc28537f8169ea"
+  },
+  "name": "examples/library/patterns/task-as-objective-contract.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/patterns/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

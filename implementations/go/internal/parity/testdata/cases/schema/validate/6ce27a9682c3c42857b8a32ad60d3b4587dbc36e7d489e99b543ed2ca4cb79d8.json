@@ -1,0 +1,14 @@
+{
+  "args": [
+    "external-concept-bindings-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:e93bcef552fd453b3dafc6c5cc84513446112e1151677060d4a1d541d9804b7a"
+  },
+  "name": "external-concept-bindings-v1/routed/contracts/fixtures/concept-authority/external-concept-bindings-v1/valid/fipa-behavior.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

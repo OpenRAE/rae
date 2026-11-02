@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/run/seeded-run-plan.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/run/seeded-run-plan.yaml": "sha256:898d636124d99f2d9215ff096f2a8db96167f8e3f46de2314b4a73f2a9835443",
+    "setup.json": "sha256:8b85c839b1716610577d3efa427e95d58c5fba5f3e9a4c4084a2473e04550994"
+  },
+  "name": "examples/library/templates/run/seeded-run-plan.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/templates/run/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

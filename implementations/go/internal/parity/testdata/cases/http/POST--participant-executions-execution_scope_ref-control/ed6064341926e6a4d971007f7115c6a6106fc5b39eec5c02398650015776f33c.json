@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /participant-executions/{execution_scope_ref}/control",
+  "files": {
+    "request.json": "sha256:ecd62f15a2930c926891f826bbaba9df7773e723e4cd1b69a1a031546ffa2881"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 422
+  },
+  "surface": "http"
+}

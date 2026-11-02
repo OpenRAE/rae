@@ -16,6 +16,7 @@ PROVENANCE = {
     "recorder_sha256": "c" * 64,
     "python_version": "3.14.7",
     "unicode_version": "16.0.0",
+    "hash_seed": "0",
     "lock_sha256": "d" * 64,
 }
 
@@ -191,6 +192,7 @@ def test_duplicate_case_cannot_overwrite_a_recording(repo: Path) -> None:
 def test_provenance_identifies_the_python_source_and_locked_environment(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv("PYTHONHASHSEED", "0")
     _write(tmp_path, {"implementations/python/uv.lock": "locked environment"})
     values = iter(["a" * 40, "b" * 40, "b" * 40])
     commands = []
@@ -218,6 +220,7 @@ def test_provenance_identifies_the_python_source_and_locked_environment(
     assert result["lock_sha256"] == pc.digest(b"locked environment")
     assert result["python_version"] == ".".join(map(str, pc.sys.version_info[:3]))
     assert result["unicode_version"] == pc.unicodedata.unidata_version
+    assert result["hash_seed"] == "0"
 
     values = iter(["a" * 40, "b" * 40, "c" * 40])
     with pytest.raises(ValueError, match="does not identify the current Python tree"):
@@ -334,3 +337,9 @@ def test_recording_failure_identifies_the_case_without_printing_input_values(rep
     error = capsys.readouterr().err
     assert "cli sdl publish (reference-module)" in error
     assert "private input sentinel" not in error
+
+
+def test_provenance_requires_the_recording_hash_seed(repo: Path, monkeypatch) -> None:
+    monkeypatch.setenv("PYTHONHASHSEED", "random")
+    with pytest.raises(ValueError, match="PYTHONHASHSEED=0"):
+        REAL_PROVENANCE(repo)

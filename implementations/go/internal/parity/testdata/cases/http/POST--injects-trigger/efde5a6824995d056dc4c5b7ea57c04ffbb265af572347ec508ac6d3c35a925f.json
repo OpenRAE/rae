@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /injects/trigger",
+  "files": {
+    "body.bin": "sha256:f1dec6e9ee608550bd1c39ff2b90134059bac5d02e4e78f6410aed2fbd870bd0",
+    "request.json": "sha256:710e4ca7bd11e072722dae87d8206babfe3c585c36d1fc8233ef925c971fbd7f"
+  },
+  "name": "regression/c75a8ab5097bfd3486f0b33ca91a72b12e4c4aefaeefed1b7acb4602db98463f",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-joint-action-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:60e0fb4d7b816c8aa6e6d08f42dc1964451ac96fa5537248c550e79dd5a8b7c2"
+  },
+  "name": "regression/cb0ab218b4fc8447cab8b448b65746f08f96804248b598209ec21b5ab9aa5b9d",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

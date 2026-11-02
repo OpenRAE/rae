@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/invalid/unpinned-key.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/invalid/unpinned-key.yaml": "sha256:d9bf1ae94d25b6db9cf75a4874e50fbe58aaf6c87b520c1e01d53f9a47c83284",
+    "setup.json": "sha256:4d1559e59b50de0383e1576f26ef2c586d11ec601965be1b9953150d9e1784b5"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/invalid/unpinned-key.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/runtime-package-repository-v1/invalid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

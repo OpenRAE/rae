@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:2daae20dab56d615ebb0a44f2121dd907da21dcefea73262c8a52d4167c1b23d"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: techvault-guest-certified\ndescription: 'Minimal guest-certified realization scenario. One bounded appliance\n  node boots through the production apply path and is certified from inside the guest\n  - resource allocation, network addressing, file content, and service state are read\n  back from the realized guest, freshness-bound to a per-run challenge, with verified\n  teardown. RAES 7.0.0 used it for the removed libvirt guest certification; a backend\n  distribution can use it for its own proof.\n\n  '\nnodes:\n  guest-net:\n    type: switch\n  guest-vm:\n    type: compute\n    resources:\n      ram: 134217728\n      cpu: 1\n    os: linux\n    services:\n    - port: 9000\n      protocol: tcp\n      name: beacon\ninfrastructure:\n  guest-net:\n    properties:\n      cidr: 192.0.2.0/24\n      gateway: 192.0.2.1\n      internal: true\n  guest-vm:\n    links:\n    - guest-net\ncontent:\n  guest-marker:\n    type: file\n    target: guest-vm\n    path: /etc/raes/marker\n    text: 'guest-certified realization marker\n\n      '\n    sensitive: false\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: techvault-guest-certified\ndescription: 'Minimal guest-certified realization scenario. One bounded appliance\n  node boots through the production apply path and is certified from inside the guest\n  - resource allocation, network addressing, file content, and service state are read\n  back from the realized guest, freshness-bound to a per-run challenge, with verified\n  teardown. RAES 7.0.0 used it for the removed libvirt guest certification; a backend\n  distribution can use it for its own proof.\n\n  '\nnodes:\n  guest-net:\n    type: switch\n  guest-vm:\n    type: compute\n    resources:\n      ram: 134217728\n      cpu: 1\n    os: linux\n    services:\n    - port: 9000\n      protocol: tcp\n      name: beacon\ninfrastructure:\n  guest-net:\n    properties:\n      cidr: 192.0.2.0/24\n      gateway: 192.0.2.1\n      internal: true\n  guest-vm:\n    links:\n    - guest-net\ncontent:\n  guest-marker:\n    type: file\n    target: guest-vm\n    path: /etc/raes/marker\n    text: 'guest-certified realization marker\n\n      '\n    sensitive: false\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

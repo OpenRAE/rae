@@ -1,0 +1,75 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:ed602f2daba1b618d6949fc7cf994e25b89c91e9acf7afcd0673e090d3ea9486"
+  },
+  "name": "regression/b75c5d63614962ddd3f45dcfc00d7ab2e09154b5da3c1b3cebb59a3e3974287d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "mcp-test",
+            "populated_sections": {
+              "accounts": 1,
+              "agents": 1,
+              "conditions": 1,
+              "content": 1,
+              "entities": 2,
+              "events": 1,
+              "features": 2,
+              "infrastructure": 3,
+              "injects": 1,
+              "nodes": 3,
+              "objectives": 1,
+              "relationships": 1,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "mcp-test",
+          "populated_sections": {
+            "accounts": 1,
+            "agents": 1,
+            "conditions": 1,
+            "content": 1,
+            "entities": 2,
+            "events": 1,
+            "features": 2,
+            "infrastructure": 3,
+            "injects": 1,
+            "nodes": 3,
+            "objectives": 1,
+            "relationships": 1,
+            "scripts": 1,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

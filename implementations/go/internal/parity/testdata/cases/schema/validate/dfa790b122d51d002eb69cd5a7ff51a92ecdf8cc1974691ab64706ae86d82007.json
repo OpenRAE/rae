@@ -1,0 +1,14 @@
+{
+  "args": [
+    "orchestration-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:0ef141d640446788e24f347ab8dfe539dad2eefa5a9f7512be71a7648b6d9fad"
+  },
+  "name": "regression/17534a9db73f461f580366f7b00ff4b4ba7eb0c732b605093e44e21ba6dcf714",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

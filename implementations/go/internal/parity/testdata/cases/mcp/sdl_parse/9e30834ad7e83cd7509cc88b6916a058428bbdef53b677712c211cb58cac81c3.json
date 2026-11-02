@@ -1,0 +1,77 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7a3bf97a17932d905c499116ad02c5dc0a1a25acc1f16088de0c407495b15124"
+  },
+  "name": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "port-authority-surge-response",
+            "populated_sections": {
+              "accounts": 7,
+              "action_contracts": 12,
+              "agents": 3,
+              "conditions": 17,
+              "content": 5,
+              "entities": 5,
+              "events": 3,
+              "features": 12,
+              "infrastructure": 21,
+              "injects": 3,
+              "nodes": 21,
+              "objectives": 5,
+              "relationships": 7,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "port-authority-surge-response",
+          "populated_sections": {
+            "accounts": 7,
+            "action_contracts": 12,
+            "agents": 3,
+            "conditions": 17,
+            "content": 5,
+            "entities": 5,
+            "events": 3,
+            "features": 12,
+            "infrastructure": 21,
+            "injects": 3,
+            "nodes": 21,
+            "objectives": 5,
+            "relationships": 7,
+            "scripts": 3,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

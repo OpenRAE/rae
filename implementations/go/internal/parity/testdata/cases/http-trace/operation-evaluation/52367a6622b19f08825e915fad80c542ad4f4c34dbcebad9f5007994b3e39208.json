@@ -1,0 +1,111 @@
+{
+  "args": [],
+  "command": "operation evaluation",
+  "files": {
+    "request.json": "sha256:474730710859026ebe52343a9b9d4bed12ffff41940665fbe7ab6b705d596538"
+  },
+  "name": "reference",
+  "result": {
+    "responses": [
+      {
+        "body": {
+          "accepted": true,
+          "context": {
+            "actor_id": "operator",
+            "authorization_scope": [
+              "role:auditor",
+              "role:backend",
+              "role:operator"
+            ],
+            "operation_kind": "evaluation",
+            "parent_operation_id": null,
+            "request_commitment": "sha256:76e5fa5b68e93c6bd6ae91e0aefc1ee608b2ae393adce85ca54f8e95a1c1036d",
+            "run_scope": "run:default",
+            "target_scope": "target:stub"
+          },
+          "diagnostics": [],
+          "domain": "evaluation",
+          "operation_id": "294fa266-e667-482f-9cd5-19360cc3da1a",
+          "schema_version": "runtime-operation/v1",
+          "submitted_at": "2026-01-01T00:00:00Z"
+        },
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {
+          "changed_addresses": [],
+          "context": {
+            "actor_id": "operator",
+            "authorization_scope": [
+              "role:auditor",
+              "role:backend",
+              "role:operator"
+            ],
+            "operation_kind": "evaluation",
+            "parent_operation_id": null,
+            "request_commitment": "sha256:76e5fa5b68e93c6bd6ae91e0aefc1ee608b2ae393adce85ca54f8e95a1c1036d",
+            "run_scope": "run:default",
+            "target_scope": "target:stub"
+          },
+          "diagnostics": [],
+          "domain": "evaluation",
+          "operation_id": "294fa266-e667-482f-9cd5-19360cc3da1a",
+          "schema_version": "runtime-operation/v1",
+          "state": "succeeded",
+          "submitted_at": "2026-01-01T00:00:00Z",
+          "updated_at": "2026-01-01T00:00:00Z"
+        },
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {
+          "entries": {},
+          "evaluation_history": {},
+          "evaluation_results": {},
+          "information_state_history": {},
+          "joint_action_records": {},
+          "materialization_attestations": [],
+          "metadata": {},
+          "mixed_composition_history": {},
+          "mixed_composition_states": {},
+          "orchestration_history": {},
+          "orchestration_results": {},
+          "participant_autonomous_execution_states": {},
+          "participant_behavior_history": {},
+          "participant_control_evaluation_history": {},
+          "participant_control_history": {},
+          "participant_crossing_history": {},
+          "participant_episode_closure_records": {},
+          "participant_episode_history": {},
+          "participant_episode_results": {},
+          "participant_execution_services": {},
+          "participant_outcome_history": {},
+          "participant_resource_budget_events": {},
+          "participant_resource_budget_states": {},
+          "participant_resource_pool_states": {},
+          "proposition_truth_results": {},
+          "realization_envelope": null,
+          "realization_observations": [],
+          "realization_provenance": [],
+          "schema_version": "runtime-snapshot/v1",
+          "shared_state_history": {},
+          "shared_state_records": {},
+          "time_management_contexts": {},
+          "time_model_state": null
+        },
+        "headers": {
+          "content-type": "application/json",
+          "x-raes-snapshot-revision": "1"
+        },
+        "status_code": 200
+      }
+    ]
+  },
+  "surface": "http-trace"
+}

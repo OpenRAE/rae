@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml": "sha256:11a4d8a3d4d39c5d93eae692d69e59355279dfdcf33864180067737acdddfdff"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

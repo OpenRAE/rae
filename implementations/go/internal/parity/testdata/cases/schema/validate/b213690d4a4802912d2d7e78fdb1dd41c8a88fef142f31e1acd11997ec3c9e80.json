@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-evaluation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:cfa87ccc6fe4bfdc43c947b581054d83caad0a68f56c1b88324628c265a0c7f0"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-evaluation-v1/context-invalid/dishonest",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

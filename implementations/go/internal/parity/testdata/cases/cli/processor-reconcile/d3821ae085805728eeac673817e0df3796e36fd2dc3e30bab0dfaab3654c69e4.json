@@ -1,0 +1,44 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27"
+  },
+  "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.iam",
+            "code": "realization.unsupported-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.secrets",
+            "code": "realization.unsupported-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "cloud-secret-cross-project",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

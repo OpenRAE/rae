@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:867db61814e2ec496b170852e8c0e780960b4f16411f9a6deefcff23616ce823"
+  },
+  "name": "examples/scenarios/techvault-observability-core.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "infrastructure.aptl-grafana-otel -> aptl-tempo, security-net infrastructure.aptl-otel-collector -> security-net infrastructure.aptl-tempo -> security-net"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "infrastructure.aptl-grafana-otel -> aptl-tempo, security-net infrastructure.aptl-otel-collector -> security-net infrastructure.aptl-tempo -> security-net"
+      }
+    }
+  },
+  "surface": "mcp"
+}

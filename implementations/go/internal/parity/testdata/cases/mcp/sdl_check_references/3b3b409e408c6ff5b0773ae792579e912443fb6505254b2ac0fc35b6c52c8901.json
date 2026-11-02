@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:06909942f854ebe02bf690c957b81cd31089035d0b3bda4506546a0c5c38bd05"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.red-agent -> red-team assertions.web-down-at-end -> web-alive assertions.web-up-at-end -> web-alive infrastructure.web -> lab-network infrastructure.workstation -> lab-network nodes.web -> web-alive objectives.keep-web-online -> blue-team, nodes.web.services.http, web-up-at-end objectives.take-web-offline -> nodes.web.services.http, red-agent, stop-web, web-down-at-end propositions.web-alive -> nodes.web.services.http, web-health-evidence"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.red-agent -> red-team assertions.web-down-at-end -> web-alive assertions.web-up-at-end -> web-alive infrastructure.web -> lab-network infrastructure.workstation -> lab-network nodes.web -> web-alive objectives.keep-web-online -> blue-team, nodes.web.services.http, web-up-at-end objectives.take-web-offline -> nodes.web.services.http, red-agent, stop-web, web-down-at-end propositions.web-alive -> nodes.web.services.http, web-health-evidence"
+      }
+    }
+  },
+  "surface": "mcp"
+}

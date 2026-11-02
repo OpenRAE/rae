@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:79012ad1ed6ba3b491f81dcf884508bd49d83594ca029377a52a1ea33a1deec5"
+  },
+  "name": "regression/4649589b5a5bc1441a032841b544953c045d7ae309b3aece402dd4219e7ba973",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "kypo-ctf-training",
+            "populated_sections": {
+              "conditions": 3,
+              "entities": 2,
+              "infrastructure": 3,
+              "nodes": 3
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "kypo-ctf-training",
+          "populated_sections": {
+            "conditions": 3,
+            "entities": 2,
+            "infrastructure": 3,
+            "nodes": 3
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,383 @@
+{
+  "args": [],
+  "command": "sdl_scaffold",
+  "files": {
+    "arguments.json": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+  },
+  "name": "reference",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "accounts": {
+            "db-admin-account": {
+              "node": "db-server",
+              "password_strength": "medium",
+              "username": "dbadmin"
+            },
+            "web-admin-account": {
+              "node": "web-server",
+              "password_strength": "strong",
+              "username": "webadmin"
+            }
+          },
+          "assertions": {
+            "web-healthy": {
+              "proposition": "web-available",
+              "role": "postcondition"
+            }
+          },
+          "conditions": {
+            "web-healthy": {
+              "command": "curl -sf https://localhost/ || exit 1",
+              "interval": 15,
+              "proposition": "web-available"
+            }
+          },
+          "description": "A new SDL scenario",
+          "entities": {
+            "blue-team": {
+              "name": "Blue Team",
+              "role": "Blue"
+            },
+            "red-team": {
+              "name": "Red Team",
+              "role": "Red"
+            }
+          },
+          "evidence_requirements": {
+            "web-health-evidence": {
+              "artifact_role": "proposition_truth_evidence",
+              "boundary_kind": "objective_completion",
+              "channel": "api_response",
+              "description": "Capture evidence used to decide web availability.",
+              "integrity": "checksum",
+              "loss_disclosure": "required",
+              "media_types": [
+                "application/json"
+              ],
+              "redaction": "redact_secrets",
+              "retention": "run_lifetime",
+              "scope_refs": [
+                "nodes.web-server"
+              ],
+              "sensitivity": "plain",
+              "source_refs": [
+                "nodes.web-server.services.https"
+              ]
+            }
+          },
+          "features": {
+            "database": {
+              "source": "postgresql-16",
+              "type": "Service"
+            },
+            "web-app": {
+              "source": "my-webapp",
+              "type": "Service"
+            }
+          },
+          "infrastructure": {
+            "corp-net": {
+              "count": 1,
+              "properties": {
+                "cidr": "10.0.0.0/24",
+                "gateway": "10.0.0.1"
+              }
+            },
+            "db-server": {
+              "count": 1,
+              "links": [
+                "corp-net"
+              ]
+            },
+            "web-server": {
+              "count": 1,
+              "links": [
+                "corp-net"
+              ]
+            }
+          },
+          "name": "my-scenario",
+          "nodes": {
+            "corp-net": {
+              "description": "Corporate network",
+              "type": "Switch"
+            },
+            "db-server": {
+              "features": {
+                "database": "dba"
+              },
+              "os": "linux",
+              "resources": {
+                "cpu": 2,
+                "ram": "4 GiB"
+              },
+              "roles": {
+                "dba": "postgres"
+              },
+              "services": [
+                {
+                  "name": "postgres",
+                  "port": 5432
+                }
+              ],
+              "type": "compute"
+            },
+            "web-server": {
+              "conditions": {
+                "web-healthy": "web-admin"
+              },
+              "features": {
+                "web-app": "web-admin"
+              },
+              "os": "linux",
+              "resources": {
+                "cpu": 2,
+                "ram": "4 GiB"
+              },
+              "roles": {
+                "web-admin": "www-data"
+              },
+              "services": [
+                {
+                  "name": "https",
+                  "port": 443
+                }
+              ],
+              "type": "compute"
+            }
+          },
+          "objectives": {
+            "keep-web-available": {
+              "description": "Keep the web application available",
+              "owner": "blue-team",
+              "success": {
+                "assertions": [
+                  "web-healthy"
+                ]
+              }
+            }
+          },
+          "propositions": {
+            "web-available": {
+              "basis": "observed_state",
+              "description": "The web service reports its availability as healthy.",
+              "evidence_requirements": [
+                "web-health-evidence"
+              ],
+              "predicate": {
+                "expected": true,
+                "kind": "boolean",
+                "operator": "equals",
+                "property": "service-healthy",
+                "semantic_ref": "urn:raes:observable:service-healthy"
+              },
+              "subjects": [
+                "nodes.web-server.services.https"
+              ]
+            }
+          },
+          "relationships": {
+            "web-to-db": {
+              "properties": {
+                "port": "5432",
+                "protocol": "tcp"
+              },
+              "source": "web-app",
+              "target": "database",
+              "type": "connects_to"
+            }
+          }
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "accounts": {
+          "db-admin-account": {
+            "node": "db-server",
+            "password_strength": "medium",
+            "username": "dbadmin"
+          },
+          "web-admin-account": {
+            "node": "web-server",
+            "password_strength": "strong",
+            "username": "webadmin"
+          }
+        },
+        "assertions": {
+          "web-healthy": {
+            "proposition": "web-available",
+            "role": "postcondition"
+          }
+        },
+        "conditions": {
+          "web-healthy": {
+            "command": "curl -sf https://localhost/ || exit 1",
+            "interval": 15,
+            "proposition": "web-available"
+          }
+        },
+        "description": "A new SDL scenario",
+        "entities": {
+          "blue-team": {
+            "name": "Blue Team",
+            "role": "Blue"
+          },
+          "red-team": {
+            "name": "Red Team",
+            "role": "Red"
+          }
+        },
+        "evidence_requirements": {
+          "web-health-evidence": {
+            "artifact_role": "proposition_truth_evidence",
+            "boundary_kind": "objective_completion",
+            "channel": "api_response",
+            "description": "Capture evidence used to decide web availability.",
+            "integrity": "checksum",
+            "loss_disclosure": "required",
+            "media_types": [
+              "application/json"
+            ],
+            "redaction": "redact_secrets",
+            "retention": "run_lifetime",
+            "scope_refs": [
+              "nodes.web-server"
+            ],
+            "sensitivity": "plain",
+            "source_refs": [
+              "nodes.web-server.services.https"
+            ]
+          }
+        },
+        "features": {
+          "database": {
+            "source": "postgresql-16",
+            "type": "Service"
+          },
+          "web-app": {
+            "source": "my-webapp",
+            "type": "Service"
+          }
+        },
+        "infrastructure": {
+          "corp-net": {
+            "count": 1,
+            "properties": {
+              "cidr": "10.0.0.0/24",
+              "gateway": "10.0.0.1"
+            }
+          },
+          "db-server": {
+            "count": 1,
+            "links": [
+              "corp-net"
+            ]
+          },
+          "web-server": {
+            "count": 1,
+            "links": [
+              "corp-net"
+            ]
+          }
+        },
+        "name": "my-scenario",
+        "nodes": {
+          "corp-net": {
+            "description": "Corporate network",
+            "type": "Switch"
+          },
+          "db-server": {
+            "features": {
+              "database": "dba"
+            },
+            "os": "linux",
+            "resources": {
+              "cpu": 2,
+              "ram": "4 GiB"
+            },
+            "roles": {
+              "dba": "postgres"
+            },
+            "services": [
+              {
+                "name": "postgres",
+                "port": 5432
+              }
+            ],
+            "type": "compute"
+          },
+          "web-server": {
+            "conditions": {
+              "web-healthy": "web-admin"
+            },
+            "features": {
+              "web-app": "web-admin"
+            },
+            "os": "linux",
+            "resources": {
+              "cpu": 2,
+              "ram": "4 GiB"
+            },
+            "roles": {
+              "web-admin": "www-data"
+            },
+            "services": [
+              {
+                "name": "https",
+                "port": 443
+              }
+            ],
+            "type": "compute"
+          }
+        },
+        "objectives": {
+          "keep-web-available": {
+            "description": "Keep the web application available",
+            "owner": "blue-team",
+            "success": {
+              "assertions": [
+                "web-healthy"
+              ]
+            }
+          }
+        },
+        "propositions": {
+          "web-available": {
+            "basis": "observed_state",
+            "description": "The web service reports its availability as healthy.",
+            "evidence_requirements": [
+              "web-health-evidence"
+            ],
+            "predicate": {
+              "expected": true,
+              "kind": "boolean",
+              "operator": "equals",
+              "property": "service-healthy",
+              "semantic_ref": "urn:raes:observable:service-healthy"
+            },
+            "subjects": [
+              "nodes.web-server.services.https"
+            ]
+          }
+        },
+        "relationships": {
+          "web-to-db": {
+            "properties": {
+              "port": "5432",
+              "protocol": "tcp"
+            },
+            "source": "web-app",
+            "target": "database",
+            "type": "connects_to"
+          }
+        }
+      }
+    }
+  },
+  "surface": "mcp"
+}

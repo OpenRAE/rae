@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:e46581285fe8054eb8bfa855deb6fa7baddeeabf78b3d3605b51fdfc574812f5"
+  },
+  "name": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.participant-agent -> enterprise-participant assertions.boundary-checks-recorded -> boundary-checks-recorded assertions.participant-observation-recorded -> participant-observation-recorded assertions.policy-decision-recorded -> policy-decision-recorded assertions.wazuh-evidence-recorded -> wazuh-evidence-recorded content.boundary-check-evidence -> red-workbench content.evaluator-notes -> wazuh-manager content.participant-observation -> red-workbench content.policy-decision-log -> participant-policy-gate content.task-brief -> red-workbench content.wazuh-evidence -> wazuh-manager infrastructure.customer-db -> internal-net, wazuh-manager infrastructure.customer-portal -> customer-db, dmz-net, internal-net, wazuh-manager infrastructure.participant-policy-gate -> security-net infrastructure.red-workbench -> dmz-net, redteam-net infrastructure.wazuh-indexer -> security-net infrastructure.wazuh-manager -> internal-net, security-net, wazuh-indexer nodes.wazuh-manager -> wazuh-manager-health objectives.demonstrate-handoff -> boundary-checks-recorded, content.boundary-check-evidence, content.participant-observation, content.policy-decision-log, content.wazuh-evidence, nodes.customer-portal.services.http, participant-agent, participant-observation-recorded, policy-decision-recorded, probe-customer-portal-login, wazuh-evidence-recorded propositions.boundary-checks-recorded -> nodes.redteam-net, objective-truth-evidence propositions.participant-observation-recorded -> nodes.redteam-net, objective-truth-evidence propositions.policy-decision-recorded -> nodes.redteam-net, objective-truth-evidence propositions.wazuh-evidence-recorded -> nodes.redteam-net, objective-truth-evidence"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.participant-agent -> enterprise-participant assertions.boundary-checks-recorded -> boundary-checks-recorded assertions.participant-observation-recorded -> participant-observation-recorded assertions.policy-decision-recorded -> policy-decision-recorded assertions.wazuh-evidence-recorded -> wazuh-evidence-recorded content.boundary-check-evidence -> red-workbench content.evaluator-notes -> wazuh-manager content.participant-observation -> red-workbench content.policy-decision-log -> participant-policy-gate content.task-brief -> red-workbench content.wazuh-evidence -> wazuh-manager infrastructure.customer-db -> internal-net, wazuh-manager infrastructure.customer-portal -> customer-db, dmz-net, internal-net, wazuh-manager infrastructure.participant-policy-gate -> security-net infrastructure.red-workbench -> dmz-net, redteam-net infrastructure.wazuh-indexer -> security-net infrastructure.wazuh-manager -> internal-net, security-net, wazuh-indexer nodes.wazuh-manager -> wazuh-manager-health objectives.demonstrate-handoff -> boundary-checks-recorded, content.boundary-check-evidence, content.participant-observation, content.policy-decision-log, content.wazuh-evidence, nodes.customer-portal.services.http, participant-agent, participant-observation-recorded, policy-decision-recorded, probe-customer-portal-login, wazuh-evidence-recorded propositions.boundary-checks-recorded -> nodes.redteam-net, objective-truth-evidence propositions.participant-observation-recorded -> nodes.redteam-net, objective-truth-evidence propositions.policy-decision-recorded -> nodes.redteam-net, objective-truth-evidence propositions.wazuh-evidence-recorded -> nodes.redteam-net, objective-truth-evidence"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,157 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:b26d28e2ea449641a7907cf9f42ae96be04d1c8d03f9b8988bfc8cc02b43d9cc"
+  },
+  "name": "regression/215e58660a6e4c2ab07eecbbaa849300fa87979f39d36ee55b95bf3f0777e6f3",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [
+            {
+              "name": "app",
+              "path": "/features/app",
+              "qualified_name": "features.app",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 20
+                },
+                "start": {
+                  "column": 3,
+                  "line": 20
+                }
+              },
+              "section": "features"
+            }
+          ],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/nodes/web/features/app",
+              "range": {
+                "end": {
+                  "column": 71,
+                  "line": 11
+                },
+                "start": {
+                  "column": 68,
+                  "line": 11
+                }
+              },
+              "value": "app"
+            },
+            {
+              "kind": "mapping_key",
+              "path": "/features/app",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 20
+                },
+                "start": {
+                  "column": 3,
+                  "line": 20
+                }
+              },
+              "value": "app"
+            },
+            {
+              "kind": "scalar",
+              "path": "/relationships/web-to-db/source",
+              "range": {
+                "end": {
+                  "column": 45,
+                  "line": 100
+                },
+                "start": {
+                  "column": 42,
+                  "line": 100
+                }
+              },
+              "value": "app"
+            }
+          ],
+          "status": "ok",
+          "symbol": "app"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [
+          {
+            "name": "app",
+            "path": "/features/app",
+            "qualified_name": "features.app",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 20
+              },
+              "start": {
+                "column": 3,
+                "line": 20
+              }
+            },
+            "section": "features"
+          }
+        ],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/nodes/web/features/app",
+            "range": {
+              "end": {
+                "column": 71,
+                "line": 11
+              },
+              "start": {
+                "column": 68,
+                "line": 11
+              }
+            },
+            "value": "app"
+          },
+          {
+            "kind": "mapping_key",
+            "path": "/features/app",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 20
+              },
+              "start": {
+                "column": 3,
+                "line": 20
+              }
+            },
+            "value": "app"
+          },
+          {
+            "kind": "scalar",
+            "path": "/relationships/web-to-db/source",
+            "range": {
+              "end": {
+                "column": 45,
+                "line": 100
+              },
+              "start": {
+                "column": 42,
+                "line": 100
+              }
+            },
+            "value": "app"
+          }
+        ],
+        "status": "ok",
+        "symbol": "app"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,128 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+    "repo/examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml": "sha256:f7a8897beec243e188ee081975006fad32725f469f267db6e75a1e1cf5727032"
+  },
+  "name": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.red-workbench",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-db",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.wazuh-manager",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.wazuh-indexer",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.participant-policy-gate",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.red-workbench",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-db",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.wazuh-manager",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.wazuh-indexer",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.participant-policy-gate",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "enterprise-participant-evidence-loop",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

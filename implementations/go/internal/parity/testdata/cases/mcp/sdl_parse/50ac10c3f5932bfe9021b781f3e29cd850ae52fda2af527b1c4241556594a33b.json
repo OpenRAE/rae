@@ -1,0 +1,51 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:fcb2b510d113aee83022c7e2e415a9b8e9f1c176ca4d4ad83c0df7d9d436cc6a"
+  },
+  "name": "regression/c94dc27fcaec275a64a5a73e51e62814241ac57507c54b705f22c68117f2dc6a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "act-617-invalid-controller",
+            "populated_sections": {
+              "agents": 2,
+              "entities": 2,
+              "nodes": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "act-617-invalid-controller",
+          "populated_sections": {
+            "agents": 2,
+            "entities": 2,
+            "nodes": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

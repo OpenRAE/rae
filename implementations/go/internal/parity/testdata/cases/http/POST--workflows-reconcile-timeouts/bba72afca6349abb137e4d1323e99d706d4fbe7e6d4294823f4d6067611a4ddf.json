@@ -1,0 +1,35 @@
+{
+  "args": [],
+  "command": "POST /workflows/reconcile-timeouts",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:26edecd7a21d185a13d435cf2eeca2373ab15e58d99d4ff2f4a437fa66222f51"
+  },
+  "name": "regression/6ed19985e7628a91dfedd93ba3ef5f61dc38cf3b32231889546394c80b5da104",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "backend-service",
+        "authorization_scope": [
+          "role:backend"
+        ],
+        "operation_kind": "workflow-timeout-reconciliation",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:8c9e631b82ab28835db0fde3fdd1a148162883f79003bf760e70f18f0e5f48c9",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "orchestration",
+      "operation_id": "31ae2b5f-97f3-4817-a255-151a075dec86",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-correlation",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:5c1089a1b99046f920e4eaba196b28cdea532eae71f6760d458de24e28dc1a96"
+  },
+  "name": "regression/d4ed36fd74c5fc4cf86435309bd985481875cc6b0f11afd5d7a9f8fa39e23929",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:a97ec907cb65c9bc312c6192fa8b586a1e1397522204f5189be721a47e04c9e5"
+  },
+  "name": "regression/04d8bbe681112f74ae400e1696dd5cabffec82331afeb6b7193b292773f4f6fb",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/red-scan-behavior/extensions",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 124
+                },
+                "start": {
+                  "column": 7,
+                  "line": 122
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/red-scan-behavior/extensions",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 124
+              },
+              "start": {
+                "column": 7,
+                "line": 122
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

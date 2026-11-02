@@ -782,6 +782,8 @@ jobs:
       - name: Check that the Python implementation reproduces the corpus
         id: corpus
         continue-on-error: true
+        env:
+          PYTHONHASHSEED: "0"
         run: >-
           uv run --project implementations/python --all-extras --frozen
           python -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus" --raw-input-dir "${RUNNER_TEMP}/parity-decoded"

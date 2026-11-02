@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:5bf26c8ad98455b448f20ea848901f77f620760c79780d4b0808b4c6b70accb0"
+  },
+  "name": "regression/81d7d9d5aabadf9ab10d15d067cb0954cf21e55d21c42003ef1a680ecf6194b5",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/outcome_interpretation_rules/scan-evidence-objective",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 168
+                },
+                "start": {
+                  "column": 5,
+                  "line": 127
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/outcome_interpretation_rules/scan-evidence-objective",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 168
+              },
+              "start": {
+                "column": 5,
+                "line": 127
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

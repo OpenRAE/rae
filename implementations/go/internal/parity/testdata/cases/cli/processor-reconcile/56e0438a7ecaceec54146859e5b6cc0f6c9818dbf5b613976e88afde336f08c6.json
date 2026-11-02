@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/multiple-documents.yaml",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/multiple-documents.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/multiple-documents.yaml": "sha256:d82db1bece6c1929d8266459ad2323ea541f0d2433021c44c6bdb62c2cad5342"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/multiple-documents.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

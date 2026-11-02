@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/experiments/techvault-red-tactic-sweep.exp.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/experiments/techvault-red-tactic-sweep.exp.yaml": "sha256:bcbbfbbc6158dbaf71e5d734dcb449a14b56a0ffb16bf1e690b93682fce74682",
+    "setup.json": "sha256:70abaf670c18571a8199e37549302b7b79240df559b2baf3b5236b22c427861b"
+  },
+  "name": "examples/experiments/techvault-red-tactic-sweep.exp.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

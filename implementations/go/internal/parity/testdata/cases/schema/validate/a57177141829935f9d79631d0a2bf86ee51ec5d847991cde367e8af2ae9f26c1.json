@@ -1,0 +1,14 @@
+{
+  "args": [
+    "batch-execution-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7e7b7df46b2e8bcb9ec0268a12e003ace5c328b0c1d652ec3a642c1da17c8e18"
+  },
+  "name": "regression/3c726b75b40ef6c50e6d9db5cf034c06662a11343510327b95f4543ae537705b",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

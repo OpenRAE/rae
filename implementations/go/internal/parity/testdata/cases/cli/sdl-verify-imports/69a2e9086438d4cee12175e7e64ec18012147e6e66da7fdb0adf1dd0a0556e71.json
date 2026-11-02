@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/patterns/run-window-with-evidence.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/patterns/run-window-with-evidence.yaml": "sha256:9ad3d335a12da0b1dabd16132748b678027d547edc350070e7a92a8f35a894a2",
+    "setup.json": "sha256:a9f49f408b42520472efb85518e356f14fe2c8bd8bfb46c74c44c3895490adc1"
+  },
+  "name": "examples/library/patterns/run-window-with-evidence.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/patterns/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,171 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:4a35cbfa22a6e3e7d4b1fd04f1a53317f030b73c5bed1f3164622e155ad55727"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 19,
+                "objectives": 5
+              },
+              "orchestration": {
+                "events": 3,
+                "inject_bindings": 0,
+                "injects": 3,
+                "scripts": 3,
+                "stories": 1,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 16,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 4
+              },
+              "provisioning": {
+                "account_placements": 9,
+                "content_placements": 5,
+                "feature_bindings": 12,
+                "networks": 7,
+                "nodes": 11
+              }
+            },
+            "metadata": {
+              "agents": 4,
+              "capability_constraints": 0,
+              "entities": 8,
+              "relationships": 10
+            },
+            "templates": {
+              "conditions": 19,
+              "features": 12,
+              "injects": 3
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 2,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "hospital-ransomware-surgery-day"
+          },
+          "source_diagnostics": [],
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            }
+          ],
+          "status": "compiled"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 19,
+              "objectives": 5
+            },
+            "orchestration": {
+              "events": 3,
+              "inject_bindings": 0,
+              "injects": 3,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 16,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 4
+            },
+            "provisioning": {
+              "account_placements": 9,
+              "content_placements": 5,
+              "feature_bindings": 12,
+              "networks": 7,
+              "nodes": 11
+            }
+          },
+          "metadata": {
+            "agents": 4,
+            "capability_constraints": 0,
+            "entities": 8,
+            "relationships": 10
+          },
+          "templates": {
+            "conditions": 19,
+            "features": 12,
+            "injects": 3
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 2,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "hospital-ransomware-surgery-day"
+        },
+        "source_diagnostics": [],
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          }
+        ],
+        "status": "compiled"
+      }
+    }
+  },
+  "surface": "mcp"
+}

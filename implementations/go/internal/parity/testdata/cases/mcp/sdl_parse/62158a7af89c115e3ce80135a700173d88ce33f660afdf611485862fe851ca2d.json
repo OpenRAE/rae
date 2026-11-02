@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:0fba6a84361d769432b6e9898c1ac628d21b1561d19f2eb3456869b061896cfa"
+  },
+  "name": "regression/54a46d847bfed86783caa3d26cc60107268b6e0b9263193a4a2438d6d3a0f770",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/time_domains/scenario/tick_period_seconds",
+              "range": {
+                "end": {
+                  "column": 59,
+                  "line": 10
+                },
+                "start": {
+                  "column": 26,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/time_domains/scenario/tick_period_seconds",
+            "range": {
+              "end": {
+                "column": 59,
+                "line": 10
+              },
+              "start": {
+                "column": 26,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

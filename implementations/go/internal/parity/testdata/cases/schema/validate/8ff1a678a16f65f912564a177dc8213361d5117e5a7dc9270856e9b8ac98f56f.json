@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:75b7bcb0535af7492472e6e43ed43d2aca293db59cd3ff8edac709d44e9ab0d0"
+  },
+  "name": "backend-manifest-v2/routed/contracts/fixtures/backend-manifest/backend-manifest-v2/valid/feature-support-bounded.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-information-state-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ace85a50920dd015b0fe56b7e8b8adb5ca649676118a8e6bfe9b239a0d55aa95"
+  },
+  "name": "regression/b597a00aa7940d5ec9f180261646f5972be2ba330fa64bd607d0e9263d3346fb",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

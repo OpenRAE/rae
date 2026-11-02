@@ -1,0 +1,103 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/scenarios/techvault-observability-core.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/scenarios/techvault-observability-core.sdl.yaml": "sha256:1bca57381915eed042e554cce17156704f53f1d622062ecafab733df57bc7bcb"
+  },
+  "name": "examples/scenarios/techvault-observability-core.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "description": "Curated TechVault observability-core slice. Declares only the OTEL core observability stack to prove the backend realizes the smallest bounded startup surface from declared SDL content.\n",
+      "infrastructure": {
+        "aptl-grafana-otel": {
+          "dependencies": [
+            "aptl-tempo"
+          ],
+          "links": [
+            "security-net"
+          ]
+        },
+        "aptl-otel-collector": {
+          "links": [
+            "security-net"
+          ]
+        },
+        "aptl-tempo": {
+          "links": [
+            "security-net"
+          ]
+        },
+        "security-net": {
+          "properties": {
+            "cidr": "172.20.0.0/24",
+            "gateway": "172.20.0.1",
+            "internal": false
+          }
+        }
+      },
+      "name": "techvault-observability-core",
+      "nodes": {
+        "aptl-grafana-otel": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "services": [
+            {
+              "name": "grafana",
+              "port": 3000,
+              "protocol": "tcp"
+            }
+          ],
+          "type": "compute"
+        },
+        "aptl-otel-collector": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "services": [
+            {
+              "name": "otlp-grpc",
+              "port": 4317,
+              "protocol": "tcp"
+            },
+            {
+              "name": "otlp-http",
+              "port": 4318,
+              "protocol": "tcp"
+            }
+          ],
+          "type": "compute"
+        },
+        "aptl-tempo": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "services": [
+            {
+              "name": "tempo-http",
+              "port": 3200,
+              "protocol": "tcp"
+            }
+          ],
+          "type": "compute"
+        },
+        "security-net": {
+          "description": "SOC and security tooling network.",
+          "type": "switch"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

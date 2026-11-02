@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-result",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:bd7235e93c3c1b3cea60acccd9ddabb9f9ab11cba78fae7ecd6bfc1b622313fe"
+  },
+  "name": "regression/a955792e04bd3a45bc30fabc888db176d61cc30f73e6efd298c186aaa7a4b4c9",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

@@ -1,0 +1,2512 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "input/symbol-limit.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "input/symbol-limit.sdl.yaml": "sha256:b57ab9f392cfe48235529b471862507e836dda7cebd1112bbabe597b7f823757"
+  },
+  "name": "regression/80577a0d4a5dfa869c1c81f632190fbf9c21606a8c7d72191ffb6146a4d476f2",
+  "result": {
+    "exit_code": 2,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:129536525e27f3f1f8dc4e4744eadab4349e7508517765258d134d6655dc03e5"
+      },
+      "diagnostics": [
+        {
+          "address": "/variables",
+          "code": "scenario-satisfiability.resource-limit",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        }
+      ],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:129536525e27f3f1f8dc4e4744eadab4349e7508517765258d134d6655dc03e5"
+        },
+        "clauses": [
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:02d1b14e722fb0296aa2ff1f24eb847d3e5afe04ae7a632deebad08528e0f6a6",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_080",
+            "symbol_id": "symbol:02d1b14e722fb0296aa2ff1f24eb847d3e5afe04ae7a632deebad08528e0f6a6"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:036d3c0ebba24499e11f3ae68789ee30fb31bf8191875809d78c135fc9dd3d71",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_120",
+            "symbol_id": "symbol:036d3c0ebba24499e11f3ae68789ee30fb31bf8191875809d78c135fc9dd3d71"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:042fc8858ddc4a76449a8daea69a1b5bbbbd36204a8f29eb88de58e5380770bb",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_001",
+            "symbol_id": "symbol:042fc8858ddc4a76449a8daea69a1b5bbbbd36204a8f29eb88de58e5380770bb"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:0819999b39290fd44939301ed16cc111e036aa8a2174c8c899761d3bc58a1069",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_033",
+            "symbol_id": "symbol:0819999b39290fd44939301ed16cc111e036aa8a2174c8c899761d3bc58a1069"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:0860ed1950d3cb2fc04391a44c1a9eb0e24a4d5edcc6e215e47734270c451768",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_068",
+            "symbol_id": "symbol:0860ed1950d3cb2fc04391a44c1a9eb0e24a4d5edcc6e215e47734270c451768"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:0df3a8fc94d34604d4bdac1938ca1626e5b1e3c66312424439669a145a8fe0cd",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_004",
+            "symbol_id": "symbol:0df3a8fc94d34604d4bdac1938ca1626e5b1e3c66312424439669a145a8fe0cd"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:0df7e50e5d7aa9f7084527ef76eb528fb0ca985519768a52cd987040d5465e05",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_029",
+            "symbol_id": "symbol:0df7e50e5d7aa9f7084527ef76eb528fb0ca985519768a52cd987040d5465e05"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:0e0e6a8852db6de72fcb1341d4aac5410774955605eb221ff1d3a0ee8dde7aa9",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_094",
+            "symbol_id": "symbol:0e0e6a8852db6de72fcb1341d4aac5410774955605eb221ff1d3a0ee8dde7aa9"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:11bdf4993e9be51845fdc4a9067ee250ff78eabe24bff3368680e712d466dd70",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_008",
+            "symbol_id": "symbol:11bdf4993e9be51845fdc4a9067ee250ff78eabe24bff3368680e712d466dd70"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:13b4f975cf899c2d43a9c9e08aeec851abe61529d0cd8cdab9fe2cc6efe70fe8",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_037",
+            "symbol_id": "symbol:13b4f975cf899c2d43a9c9e08aeec851abe61529d0cd8cdab9fe2cc6efe70fe8"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:156c81b54eb31ddb39c6e8807859580b83fa4f91a02ec3ab1a34ec273c5180a5",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_071",
+            "symbol_id": "symbol:156c81b54eb31ddb39c6e8807859580b83fa4f91a02ec3ab1a34ec273c5180a5"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:15864c3001a1c9f486445b5d3179cba83c321f1c25bdd1f6daed7b79c5549be1",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_079",
+            "symbol_id": "symbol:15864c3001a1c9f486445b5d3179cba83c321f1c25bdd1f6daed7b79c5549be1"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:16ab791ffd86cf4b4c781a58a153d31131109cda98d7e3523e6f221088be6fea",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_108",
+            "symbol_id": "symbol:16ab791ffd86cf4b4c781a58a153d31131109cda98d7e3523e6f221088be6fea"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:1a8ff27ab9b4b4b9d537184b39e8893797f520f0e5dec8c77c78302373ee84b5",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_002",
+            "symbol_id": "symbol:1a8ff27ab9b4b4b9d537184b39e8893797f520f0e5dec8c77c78302373ee84b5"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:1f3996cff0f8490a7a8d65d4708b9321fd347d33daa403341245880271faaadc",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_095",
+            "symbol_id": "symbol:1f3996cff0f8490a7a8d65d4708b9321fd347d33daa403341245880271faaadc"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:25e48adff737105fb5d750243ed4cbcfe6a92c3a0b6471ef93e06e1c44c12cf7",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_099",
+            "symbol_id": "symbol:25e48adff737105fb5d750243ed4cbcfe6a92c3a0b6471ef93e06e1c44c12cf7"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:2ab1c24aea43f86cdab01c0e86e2ab13ec84bde89640e2e6e09f71e2237901a1",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_035",
+            "symbol_id": "symbol:2ab1c24aea43f86cdab01c0e86e2ab13ec84bde89640e2e6e09f71e2237901a1"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:2b7e2c967188323dfd3e0282754f54054d7ff7ba3deb1f71719803531add845b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_100",
+            "symbol_id": "symbol:2b7e2c967188323dfd3e0282754f54054d7ff7ba3deb1f71719803531add845b"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:2cb9a42688dfb1b1bab2e70ca045e15bbede0c1d74da0ef05da35cfd091430f0",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_025",
+            "symbol_id": "symbol:2cb9a42688dfb1b1bab2e70ca045e15bbede0c1d74da0ef05da35cfd091430f0"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:2e148098b65b7a73ea04fc2a4d1284cdb61f24c82b7204d69f9390865b2617a5",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_091",
+            "symbol_id": "symbol:2e148098b65b7a73ea04fc2a4d1284cdb61f24c82b7204d69f9390865b2617a5"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:2f306d83d14e003637ba53f7ae2115df40e6f1fa99d81e2975e4b7d2be24f06f",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_087",
+            "symbol_id": "symbol:2f306d83d14e003637ba53f7ae2115df40e6f1fa99d81e2975e4b7d2be24f06f"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:306347134f2cad2bbb042f106d47c75a5bc5f06b2571ff597add4aeaf7639817",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_042",
+            "symbol_id": "symbol:306347134f2cad2bbb042f106d47c75a5bc5f06b2571ff597add4aeaf7639817"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:338f6859b86041de2d32ce435b8ae040d766f8982dc526a241791ef9836fd91f",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_109",
+            "symbol_id": "symbol:338f6859b86041de2d32ce435b8ae040d766f8982dc526a241791ef9836fd91f"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:375107f4b0cf61c353a1e6e6ebb7a235babc2a0bb3f707e3627d816a79a7f48b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_040",
+            "symbol_id": "symbol:375107f4b0cf61c353a1e6e6ebb7a235babc2a0bb3f707e3627d816a79a7f48b"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:40c7e3c4e4497c89015ad40be0c7f337075d38286908053b2e88096e082108a1",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_119",
+            "symbol_id": "symbol:40c7e3c4e4497c89015ad40be0c7f337075d38286908053b2e88096e082108a1"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:40f84daad36056f0db6c976f4b44f2bc863bf2c1ed8885aaaaa325e2685ad340",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_010",
+            "symbol_id": "symbol:40f84daad36056f0db6c976f4b44f2bc863bf2c1ed8885aaaaa325e2685ad340"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:4129c7d321c4d62a33d9a83b5d396821935f5902cf1943136491eb101e589e80",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_098",
+            "symbol_id": "symbol:4129c7d321c4d62a33d9a83b5d396821935f5902cf1943136491eb101e589e80"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:42805cdb31bf332e2bbf992c22742cc1ae11eebc45943ff7b3b94e366b317b86",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_005",
+            "symbol_id": "symbol:42805cdb31bf332e2bbf992c22742cc1ae11eebc45943ff7b3b94e366b317b86"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:43fe25053b119f7dc3864a075afa5b9ae1e0f627f23ea8eb29f474b61989ae12",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_074",
+            "symbol_id": "symbol:43fe25053b119f7dc3864a075afa5b9ae1e0f627f23ea8eb29f474b61989ae12"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:48d8fff616371af9725e8db6133e819945741ee7a67661abebe875ba0aceadfd",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_103",
+            "symbol_id": "symbol:48d8fff616371af9725e8db6133e819945741ee7a67661abebe875ba0aceadfd"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:48dc8f7cc3ef75c0cfab317fafa772a4afa99a308777acec857b561ba490e0f2",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_116",
+            "symbol_id": "symbol:48dc8f7cc3ef75c0cfab317fafa772a4afa99a308777acec857b561ba490e0f2"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:4aa359d31380dcc00a88d520b7bbd3eeff2587003497cfcb0e7c911615f184e8",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_022",
+            "symbol_id": "symbol:4aa359d31380dcc00a88d520b7bbd3eeff2587003497cfcb0e7c911615f184e8"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:4aed34179d327124aaea70829e9fc7570e1c9ae5f8c36168261b3156dec592ed",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_086",
+            "symbol_id": "symbol:4aed34179d327124aaea70829e9fc7570e1c9ae5f8c36168261b3156dec592ed"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:4d05dc4a53bfe69fee48cc24d7080d9f85a7e16c3d0a363cc8098598022bbc65",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_075",
+            "symbol_id": "symbol:4d05dc4a53bfe69fee48cc24d7080d9f85a7e16c3d0a363cc8098598022bbc65"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:4d208310aae7ca13cb6c602682f91a4cfa08293b49195f76ad019957d2387890",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_090",
+            "symbol_id": "symbol:4d208310aae7ca13cb6c602682f91a4cfa08293b49195f76ad019957d2387890"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:4e9fad45b03bbc1883143f50b0e6d73c07a99f4838b077e453c4ed2e055f93ca",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_006",
+            "symbol_id": "symbol:4e9fad45b03bbc1883143f50b0e6d73c07a99f4838b077e453c4ed2e055f93ca"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:4fa3bd1ead55ca703892d6f07dde8a36144eb5353d52774d50a1f0a0c0eae458",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_012",
+            "symbol_id": "symbol:4fa3bd1ead55ca703892d6f07dde8a36144eb5353d52774d50a1f0a0c0eae458"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:51fb2418496456f09bdf639fb06165abdb7aa7115d2d77725571e462aaa7c9f7",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_000",
+            "symbol_id": "symbol:51fb2418496456f09bdf639fb06165abdb7aa7115d2d77725571e462aaa7c9f7"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:54a0406bdc32563d628640241ddaf7cd4058c8bdc6f619175fe997113b7bad01",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_092",
+            "symbol_id": "symbol:54a0406bdc32563d628640241ddaf7cd4058c8bdc6f619175fe997113b7bad01"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:55c5510d017bdb09e9898411b184e737f0550625e601d851601911781c3f1e47",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_081",
+            "symbol_id": "symbol:55c5510d017bdb09e9898411b184e737f0550625e601d851601911781c3f1e47"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:5d58bb1e0c2ac8cce8be714ad324335a766b1a5926b2940b77d443ccab8433a9",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_027",
+            "symbol_id": "symbol:5d58bb1e0c2ac8cce8be714ad324335a766b1a5926b2940b77d443ccab8433a9"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:602bcc9d1f89102124f9133a3991f72f1921fdab351e2afdfcb658f941cb70a3",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_044",
+            "symbol_id": "symbol:602bcc9d1f89102124f9133a3991f72f1921fdab351e2afdfcb658f941cb70a3"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:624888abe0e8293a192a257ee6e2f812838c32e23f1b8a38d9a86e1fb322412b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_113",
+            "symbol_id": "symbol:624888abe0e8293a192a257ee6e2f812838c32e23f1b8a38d9a86e1fb322412b"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:62ebc02305017153b198299eb66416357797c54274f4475232bd1e708280f0e0",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_030",
+            "symbol_id": "symbol:62ebc02305017153b198299eb66416357797c54274f4475232bd1e708280f0e0"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:674fe437a88164ccc8d46adaed16b026a0e785e5ee14b0ffaf2ff27bbe27e33e",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_078",
+            "symbol_id": "symbol:674fe437a88164ccc8d46adaed16b026a0e785e5ee14b0ffaf2ff27bbe27e33e"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:679a793665c1d2951e98521daeed541f8a90ff288cc09e261034fb389bc03037",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_015",
+            "symbol_id": "symbol:679a793665c1d2951e98521daeed541f8a90ff288cc09e261034fb389bc03037"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:6924807c62be59ed823b5133a15194171939ae40242ad2ba943698c87d3e7478",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_069",
+            "symbol_id": "symbol:6924807c62be59ed823b5133a15194171939ae40242ad2ba943698c87d3e7478"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:6a3d03fcd3069b7ade1a9465afaa210bfbc8df520c2b55550319a905bbe8cf40",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_065",
+            "symbol_id": "symbol:6a3d03fcd3069b7ade1a9465afaa210bfbc8df520c2b55550319a905bbe8cf40"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:6a46bb2a76f05d82230ba7d6b2ec3f8e5c0da8612433267f2ddd21b7f3ed8b55",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_114",
+            "symbol_id": "symbol:6a46bb2a76f05d82230ba7d6b2ec3f8e5c0da8612433267f2ddd21b7f3ed8b55"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:6ba3fb7fa52254edb5b775ead3eab4f98fb02cc72e7d84c7f656b579f6aef9da",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_038",
+            "symbol_id": "symbol:6ba3fb7fa52254edb5b775ead3eab4f98fb02cc72e7d84c7f656b579f6aef9da"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:6daee52e9d8f1fe198724b7c89a23acd08975bd83209bbc9c65ec358519f9189",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_020",
+            "symbol_id": "symbol:6daee52e9d8f1fe198724b7c89a23acd08975bd83209bbc9c65ec358519f9189"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:6e7968ce1ff60e0c623afec8e6c7f94ac965f26d2b6ee77300411d65977cc2a9",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_083",
+            "symbol_id": "symbol:6e7968ce1ff60e0c623afec8e6c7f94ac965f26d2b6ee77300411d65977cc2a9"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:727d3c0552a0479964833eb3a82cc6a94d4ad220b702a4f24800012f04a593d6",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_124",
+            "symbol_id": "symbol:727d3c0552a0479964833eb3a82cc6a94d4ad220b702a4f24800012f04a593d6"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:7368cbfae9bf770d280e017dd580f6511c883a2ba0993ca4f63e06eae21701d8",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_023",
+            "symbol_id": "symbol:7368cbfae9bf770d280e017dd580f6511c883a2ba0993ca4f63e06eae21701d8"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:772041629634dce52f8b27efc669644ded5e6eb8432587babf43b2df66e1d349",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_057",
+            "symbol_id": "symbol:772041629634dce52f8b27efc669644ded5e6eb8432587babf43b2df66e1d349"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:775fbe1a6d75bdc21735ad59964736a818d1e25442214f7836dc3b8f5563305d",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_043",
+            "symbol_id": "symbol:775fbe1a6d75bdc21735ad59964736a818d1e25442214f7836dc3b8f5563305d"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:78692f6592552fbbbf66b80bdec93c9c48be4a548061441ee74fb81b5dada64c",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_096",
+            "symbol_id": "symbol:78692f6592552fbbbf66b80bdec93c9c48be4a548061441ee74fb81b5dada64c"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:78b0f57a7bca58fc095d4fc82698773248ab93766a2550265a1f5b27667a19a3",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_093",
+            "symbol_id": "symbol:78b0f57a7bca58fc095d4fc82698773248ab93766a2550265a1f5b27667a19a3"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:78c13240f7b6d4f805f3e82b04266b019252e5a721f76a5f7ef664844a53b3a6",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_019",
+            "symbol_id": "symbol:78c13240f7b6d4f805f3e82b04266b019252e5a721f76a5f7ef664844a53b3a6"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:7fc78e13bdbeb53cfb57b680502a819f3f0376d2a196ed3188430dc572373941",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_127",
+            "symbol_id": "symbol:7fc78e13bdbeb53cfb57b680502a819f3f0376d2a196ed3188430dc572373941"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:81457872c29e2654a56b1b1dd574a43b709127ee4144c8d2453ec921842fef6e",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_073",
+            "symbol_id": "symbol:81457872c29e2654a56b1b1dd574a43b709127ee4144c8d2453ec921842fef6e"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:870de0eaf37da2d065e0087dd630d49613ff0acdc61e8a6caaa1c48408bce2ff",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_021",
+            "symbol_id": "symbol:870de0eaf37da2d065e0087dd630d49613ff0acdc61e8a6caaa1c48408bce2ff"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:8753fce16ba8d394c59c897f3a2501958b9f735153acefdd10783cd6e8263521",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_063",
+            "symbol_id": "symbol:8753fce16ba8d394c59c897f3a2501958b9f735153acefdd10783cd6e8263521"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:8bb8bc19b8812241a09d298ed1b46164b0761f02d5be48bc92db2d03fb78bdcb",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_039",
+            "symbol_id": "symbol:8bb8bc19b8812241a09d298ed1b46164b0761f02d5be48bc92db2d03fb78bdcb"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:8ccf959df810931164d9ccb5efd0cbf1788269394d67dd5cba32f97045dc97be",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_055",
+            "symbol_id": "symbol:8ccf959df810931164d9ccb5efd0cbf1788269394d67dd5cba32f97045dc97be"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:8d5c7a5c28fbfb49a74bf7de8fa855e00b6aa9b9612a502a3e15e12f840e8f14",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_085",
+            "symbol_id": "symbol:8d5c7a5c28fbfb49a74bf7de8fa855e00b6aa9b9612a502a3e15e12f840e8f14"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:92d1569d53fc77fd1bc2acc606fec335d4f518f82d6b699c7f225ed1bf8abf8d",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_032",
+            "symbol_id": "symbol:92d1569d53fc77fd1bc2acc606fec335d4f518f82d6b699c7f225ed1bf8abf8d"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:978f75ef633785160e66a390d5b3a0705cf9eefd2f002251cf1d3a83f992ed23",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_046",
+            "symbol_id": "symbol:978f75ef633785160e66a390d5b3a0705cf9eefd2f002251cf1d3a83f992ed23"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:981de1ea65b32d08f0d822740ffb971e9a2043db88fe30aad4ee888e970f5162",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_121",
+            "symbol_id": "symbol:981de1ea65b32d08f0d822740ffb971e9a2043db88fe30aad4ee888e970f5162"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:98c00c02581f88fc5d607703fb3876c46a9e6b3f2e100e05529a0255fa89d2a0",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_047",
+            "symbol_id": "symbol:98c00c02581f88fc5d607703fb3876c46a9e6b3f2e100e05529a0255fa89d2a0"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:9914c210571703965473bf10f70db52276e37843ef2d9aff743f04ebe097553d",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_072",
+            "symbol_id": "symbol:9914c210571703965473bf10f70db52276e37843ef2d9aff743f04ebe097553d"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:9919557eef2fbf2429d4c3b5d10a756120469363040d6ea53684f961f2f9bdd5",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_053",
+            "symbol_id": "symbol:9919557eef2fbf2429d4c3b5d10a756120469363040d6ea53684f961f2f9bdd5"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:9b687dd49c764cca807167f0d59c6b6f05581a2f808a3c7618250fd438ba30e1",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_051",
+            "symbol_id": "symbol:9b687dd49c764cca807167f0d59c6b6f05581a2f808a3c7618250fd438ba30e1"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:9c066b6ca23d713e6c7edefa4246adc1393be5ce70baeed271b815bf023be001",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_011",
+            "symbol_id": "symbol:9c066b6ca23d713e6c7edefa4246adc1393be5ce70baeed271b815bf023be001"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:9f05abed6bc0f7dd0e8d006a5013d5ddf0a6610fbfb02715b84273326b3e1d7e",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_106",
+            "symbol_id": "symbol:9f05abed6bc0f7dd0e8d006a5013d5ddf0a6610fbfb02715b84273326b3e1d7e"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a0dd7bd57c76538d498b24dc9134bd176fbedfbd7e32e4c1528d21bd6764f026",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_115",
+            "symbol_id": "symbol:a0dd7bd57c76538d498b24dc9134bd176fbedfbd7e32e4c1528d21bd6764f026"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a0dfedaa2e1a93082fe8ff5e26e4164b7d2b656f6cfdc35e51eab7d4fef60f90",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_018",
+            "symbol_id": "symbol:a0dfedaa2e1a93082fe8ff5e26e4164b7d2b656f6cfdc35e51eab7d4fef60f90"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a1083da2aa7bdce0fb9c1b76377e59844b9d8708e9625c3686ba32765277049d",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_014",
+            "symbol_id": "symbol:a1083da2aa7bdce0fb9c1b76377e59844b9d8708e9625c3686ba32765277049d"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a3b806da5a0efcea5bc9326d637b06e3894bff1a625ea152f31c779b0ff2b8c1",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_089",
+            "symbol_id": "symbol:a3b806da5a0efcea5bc9326d637b06e3894bff1a625ea152f31c779b0ff2b8c1"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a800d662ae38a9f3ee724d7ff1d627d913de8f81cf43c508729738678c35d705",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_024",
+            "symbol_id": "symbol:a800d662ae38a9f3ee724d7ff1d627d913de8f81cf43c508729738678c35d705"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a837b8836aa418d9cd86b8763a3d1c11367866880b5237335bc75a17c7bd9375",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_007",
+            "symbol_id": "symbol:a837b8836aa418d9cd86b8763a3d1c11367866880b5237335bc75a17c7bd9375"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a8ad3dcb7e58cda445d4ba2ae6c6d0b3c5ae0a889df3fd5c00f0fe9b0763dd29",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_097",
+            "symbol_id": "symbol:a8ad3dcb7e58cda445d4ba2ae6c6d0b3c5ae0a889df3fd5c00f0fe9b0763dd29"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a9052579d953e70b0c601598420725e324f06f00b854fc6c97e1c50b4a0efe15",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_101",
+            "symbol_id": "symbol:a9052579d953e70b0c601598420725e324f06f00b854fc6c97e1c50b4a0efe15"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:a9e0bca7865b46b84c5986a5adcc5a1fd07bf0d8e6bf0ae44ff3799cee2a800b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_036",
+            "symbol_id": "symbol:a9e0bca7865b46b84c5986a5adcc5a1fd07bf0d8e6bf0ae44ff3799cee2a800b"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:aac02d72c2d3f9517a78b012df124326b534f6f200d97180a8f75c111600a1ab",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_048",
+            "symbol_id": "symbol:aac02d72c2d3f9517a78b012df124326b534f6f200d97180a8f75c111600a1ab"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:ab596d69a60a4f67f0d66430939c4d8651eb50fbb6596e514aadab08d125f43d",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_118",
+            "symbol_id": "symbol:ab596d69a60a4f67f0d66430939c4d8651eb50fbb6596e514aadab08d125f43d"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:ad0ef4ce4bb3e6f118c195ce67891181855793e7daab380a3b140c178a43514f",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_059",
+            "symbol_id": "symbol:ad0ef4ce4bb3e6f118c195ce67891181855793e7daab380a3b140c178a43514f"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:af0864ab00346cf777517b0254dbb4838fb006ff15a3f28e77c21c497ba02d13",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_066",
+            "symbol_id": "symbol:af0864ab00346cf777517b0254dbb4838fb006ff15a3f28e77c21c497ba02d13"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:b2e113e9d1fe91bdbc7bb8038eaa33344135a00cee62f2de1144a2b1ba23eac3",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_077",
+            "symbol_id": "symbol:b2e113e9d1fe91bdbc7bb8038eaa33344135a00cee62f2de1144a2b1ba23eac3"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:b88075d0e28f0fabade4e479d2fd54ebcc421ad377fb526bbd70f1d19f216e35",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_070",
+            "symbol_id": "symbol:b88075d0e28f0fabade4e479d2fd54ebcc421ad377fb526bbd70f1d19f216e35"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:b92e53c2f732500629b6a8064b16cb01984a5ac94c965be951bfd68e1bf24764",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_054",
+            "symbol_id": "symbol:b92e53c2f732500629b6a8064b16cb01984a5ac94c965be951bfd68e1bf24764"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:ba3ae7820bd4f5fe3b0f53f64318790565c847ff1eeac5f825e88e8d0610f413",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_058",
+            "symbol_id": "symbol:ba3ae7820bd4f5fe3b0f53f64318790565c847ff1eeac5f825e88e8d0610f413"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:bd59d54e8ca8d6ea9d09f58a21a9cdebe7b6271e65eb19b35d26947755845bc1",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_110",
+            "symbol_id": "symbol:bd59d54e8ca8d6ea9d09f58a21a9cdebe7b6271e65eb19b35d26947755845bc1"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:bf28d8114885fbecb27bf2bee49cb2b9ca09fcb5f94b68e4bb7283ebf74f9db2",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_064",
+            "symbol_id": "symbol:bf28d8114885fbecb27bf2bee49cb2b9ca09fcb5f94b68e4bb7283ebf74f9db2"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:c1c2ff1279543859554c300c8f1304ccfb65cd4fb66458cda0026b3f40a5f462",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_082",
+            "symbol_id": "symbol:c1c2ff1279543859554c300c8f1304ccfb65cd4fb66458cda0026b3f40a5f462"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:c4220a161561c5acb55d6033099355b5176a6a7227ab485d85f8cb55bec833d7",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_123",
+            "symbol_id": "symbol:c4220a161561c5acb55d6033099355b5176a6a7227ab485d85f8cb55bec833d7"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:c4d7e94b47530ad978be0d9a64044617ac20931ae813a25fa34feebe9457fcf6",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_107",
+            "symbol_id": "symbol:c4d7e94b47530ad978be0d9a64044617ac20931ae813a25fa34feebe9457fcf6"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:c4ebd45281e9906559213a8c9e5157b19c80dadf39947df485afd7d7b8ca94b0",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_017",
+            "symbol_id": "symbol:c4ebd45281e9906559213a8c9e5157b19c80dadf39947df485afd7d7b8ca94b0"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:c551ed683447cbdfbbe7ac2ad5206786eef835e70a97c614f0d5b5b62299e36e",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_067",
+            "symbol_id": "symbol:c551ed683447cbdfbbe7ac2ad5206786eef835e70a97c614f0d5b5b62299e36e"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:c95ab3d58e9cc0855f3c0c119e63bea49acc69220ccb87e1617882dbc4f29698",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_045",
+            "symbol_id": "symbol:c95ab3d58e9cc0855f3c0c119e63bea49acc69220ccb87e1617882dbc4f29698"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:cce3922cc0225ab5e5a053ab87fbf8f22d9f97c8b2cf0e778f44c46fc3bb5b38",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_076",
+            "symbol_id": "symbol:cce3922cc0225ab5e5a053ab87fbf8f22d9f97c8b2cf0e778f44c46fc3bb5b38"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:cddefcd7c4e06f502033e52e1f80e12afaab5cf34c755c3dc9582082d9b5a77b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_026",
+            "symbol_id": "symbol:cddefcd7c4e06f502033e52e1f80e12afaab5cf34c755c3dc9582082d9b5a77b"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:ce5afe507ebc86cdd5c664787cef4882b7751e585936aa1d4adbe8291d56772c",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_013",
+            "symbol_id": "symbol:ce5afe507ebc86cdd5c664787cef4882b7751e585936aa1d4adbe8291d56772c"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:d53a5723633948486b06a6543e48b885f57671a6be7cf61376e50442cd1e107a",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_031",
+            "symbol_id": "symbol:d53a5723633948486b06a6543e48b885f57671a6be7cf61376e50442cd1e107a"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:d5f8597be4211adaade0a214b2c1f157537121f87aee46c95e5499131cf78ca0",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_016",
+            "symbol_id": "symbol:d5f8597be4211adaade0a214b2c1f157537121f87aee46c95e5499131cf78ca0"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:d6604f88f3e6ceccf6d9ddfa4037c9cc557326b726c54d5d4067a17b16f189c3",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_102",
+            "symbol_id": "symbol:d6604f88f3e6ceccf6d9ddfa4037c9cc557326b726c54d5d4067a17b16f189c3"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:d6f3be4c4d3fa61ef9903540ac19bc61e0ceffda5e662fa5d32a16e04eb1c221",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_062",
+            "symbol_id": "symbol:d6f3be4c4d3fa61ef9903540ac19bc61e0ceffda5e662fa5d32a16e04eb1c221"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:d7244c3348bc726f516749336d905206b00f370d407e67df835aa26828f97ec0",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_104",
+            "symbol_id": "symbol:d7244c3348bc726f516749336d905206b00f370d407e67df835aa26828f97ec0"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:d8da21450c87f660d2e0eca7cd793134ea2e9fb9f32ae3a6d100da4fb550bafd",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_060",
+            "symbol_id": "symbol:d8da21450c87f660d2e0eca7cd793134ea2e9fb9f32ae3a6d100da4fb550bafd"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:dbe467a4a84e2e9b3a0d2a2cbe8a983c8ce0cbdbc0fc50de6152f97c9579cef3",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_003",
+            "symbol_id": "symbol:dbe467a4a84e2e9b3a0d2a2cbe8a983c8ce0cbdbc0fc50de6152f97c9579cef3"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:e67312cc9d9ad7eeb41ad942ef6a2145c3c8ba6ebbe092c1a68405233c500f0b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_105",
+            "symbol_id": "symbol:e67312cc9d9ad7eeb41ad942ef6a2145c3c8ba6ebbe092c1a68405233c500f0b"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:e86da72758d38a7f1f165fa9a0493907ea5dadba54234d9641146abcac91b136",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_009",
+            "symbol_id": "symbol:e86da72758d38a7f1f165fa9a0493907ea5dadba54234d9641146abcac91b136"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:e8e57e02dd4de671d9b267cb02d9fd5523fe218a01857f1dba50aa514ff644aa",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_112",
+            "symbol_id": "symbol:e8e57e02dd4de671d9b267cb02d9fd5523fe218a01857f1dba50aa514ff644aa"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:e9b3554546412ce1864f9b10c6b22e2a3718b6130cd1f69bac7825ae0944ecca",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_061",
+            "symbol_id": "symbol:e9b3554546412ce1864f9b10c6b22e2a3718b6130cd1f69bac7825ae0944ecca"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:ea75779505b9a1ea82c4fdf326622a3960667cac8b3b47698fda69ced34e8f6b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_050",
+            "symbol_id": "symbol:ea75779505b9a1ea82c4fdf326622a3960667cac8b3b47698fda69ced34e8f6b"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:ec24c3f9bb93c32a1cadb597a873cdbcabfd644d4b11d2af2588180bc52b5137",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_028",
+            "symbol_id": "symbol:ec24c3f9bb93c32a1cadb597a873cdbcabfd644d4b11d2af2588180bc52b5137"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:ec9d7ba21e0490746805b29186d9a7187269cf50595f556d07096ba639a25793",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_041",
+            "symbol_id": "symbol:ec9d7ba21e0490746805b29186d9a7187269cf50595f556d07096ba639a25793"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:f1585e7909165f744c6d378611fe204490107eb7ded503aa476dd4acf8d53950",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_088",
+            "symbol_id": "symbol:f1585e7909165f744c6d378611fe204490107eb7ded503aa476dd4acf8d53950"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:f1e552929a69b49131a7ad01f0e4bce564a61d9f184339ff4533fb477947d25c",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_117",
+            "symbol_id": "symbol:f1e552929a69b49131a7ad01f0e4bce564a61d9f184339ff4533fb477947d25c"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:f54b6aa0405d0798eeee9a38ec058f27c2eb06234e3681002cfc2feae6fe3297",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_034",
+            "symbol_id": "symbol:f54b6aa0405d0798eeee9a38ec058f27c2eb06234e3681002cfc2feae6fe3297"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:f7eb0a368e9903e5018418d00c961f701a300312bb8b20de96109349d71a415f",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_125",
+            "symbol_id": "symbol:f7eb0a368e9903e5018418d00c961f701a300312bb8b20de96109349d71a415f"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:f8f2f440b629d2e269758edea926f2e68b69667b01a36270508cb8b606453170",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_126",
+            "symbol_id": "symbol:f8f2f440b629d2e269758edea926f2e68b69667b01a36270508cb8b606453170"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:fa9d4a66a92613ab8e31d1fb73a2b0330b601600c0c4f6387c5fba9c85f65a74",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_122",
+            "symbol_id": "symbol:fa9d4a66a92613ab8e31d1fb73a2b0330b601600c0c4f6387c5fba9c85f65a74"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:fbd3deb1c103dc17af7bcb55a3eaede66be91f0bbf7f6a1005b379e5a34e9034",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_056",
+            "symbol_id": "symbol:fbd3deb1c103dc17af7bcb55a3eaede66be91f0bbf7f6a1005b379e5a34e9034"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:fc886c1127dea701cd4b44c180f552bf2ccc1cb5abe286ba4f5853c380305ad1",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_052",
+            "symbol_id": "symbol:fc886c1127dea701cd4b44c180f552bf2ccc1cb5abe286ba4f5853c380305ad1"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:fd2fe1a554c52aa55ea15fd13a0754172be01d22f1d4ba521ab35e4541febb88",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_111",
+            "symbol_id": "symbol:fd2fe1a554c52aa55ea15fd13a0754172be01d22f1d4ba521ab35e4541febb88"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:fd83dda2a2b4f2b989f8bba7ad12d5c86ef7a3ed5a494501541dc091bea0d62d",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_049",
+            "symbol_id": "symbol:fd83dda2a2b4f2b989f8bba7ad12d5c86ef7a3ed5a494501541dc091bea0d62d"
+          },
+          {
+            "allowed_values": [
+              false,
+              true
+            ],
+            "clause_id": "domain:fe86e6a0bbdbd9aa641ed36b9dd2af2abbcf547bf5516a28d404b61bf1f5a88b",
+            "kind": "declared-domain",
+            "source_address": "/variables/flag_084",
+            "symbol_id": "symbol:fe86e6a0bbdbd9aa641ed36b9dd2af2abbcf547bf5516a28d404b61bf1f5a88b"
+          }
+        ],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:b57ab9f392cfe48235529b471862507e836dda7cebd1112bbabe597b7f823757",
+        "symbols": [
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:02d1b14e722fb0296aa2ff1f24eb847d3e5afe04ae7a632deebad08528e0f6a6",
+            "variable": "flag_080"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:036d3c0ebba24499e11f3ae68789ee30fb31bf8191875809d78c135fc9dd3d71",
+            "variable": "flag_120"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:042fc8858ddc4a76449a8daea69a1b5bbbbd36204a8f29eb88de58e5380770bb",
+            "variable": "flag_001"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:0819999b39290fd44939301ed16cc111e036aa8a2174c8c899761d3bc58a1069",
+            "variable": "flag_033"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:0860ed1950d3cb2fc04391a44c1a9eb0e24a4d5edcc6e215e47734270c451768",
+            "variable": "flag_068"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:0df3a8fc94d34604d4bdac1938ca1626e5b1e3c66312424439669a145a8fe0cd",
+            "variable": "flag_004"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:0df7e50e5d7aa9f7084527ef76eb528fb0ca985519768a52cd987040d5465e05",
+            "variable": "flag_029"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:0e0e6a8852db6de72fcb1341d4aac5410774955605eb221ff1d3a0ee8dde7aa9",
+            "variable": "flag_094"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:11bdf4993e9be51845fdc4a9067ee250ff78eabe24bff3368680e712d466dd70",
+            "variable": "flag_008"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:13b4f975cf899c2d43a9c9e08aeec851abe61529d0cd8cdab9fe2cc6efe70fe8",
+            "variable": "flag_037"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:156c81b54eb31ddb39c6e8807859580b83fa4f91a02ec3ab1a34ec273c5180a5",
+            "variable": "flag_071"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:15864c3001a1c9f486445b5d3179cba83c321f1c25bdd1f6daed7b79c5549be1",
+            "variable": "flag_079"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:16ab791ffd86cf4b4c781a58a153d31131109cda98d7e3523e6f221088be6fea",
+            "variable": "flag_108"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:1a8ff27ab9b4b4b9d537184b39e8893797f520f0e5dec8c77c78302373ee84b5",
+            "variable": "flag_002"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:1f3996cff0f8490a7a8d65d4708b9321fd347d33daa403341245880271faaadc",
+            "variable": "flag_095"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:25e48adff737105fb5d750243ed4cbcfe6a92c3a0b6471ef93e06e1c44c12cf7",
+            "variable": "flag_099"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:2ab1c24aea43f86cdab01c0e86e2ab13ec84bde89640e2e6e09f71e2237901a1",
+            "variable": "flag_035"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:2b7e2c967188323dfd3e0282754f54054d7ff7ba3deb1f71719803531add845b",
+            "variable": "flag_100"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:2cb9a42688dfb1b1bab2e70ca045e15bbede0c1d74da0ef05da35cfd091430f0",
+            "variable": "flag_025"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:2e148098b65b7a73ea04fc2a4d1284cdb61f24c82b7204d69f9390865b2617a5",
+            "variable": "flag_091"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:2f306d83d14e003637ba53f7ae2115df40e6f1fa99d81e2975e4b7d2be24f06f",
+            "variable": "flag_087"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:306347134f2cad2bbb042f106d47c75a5bc5f06b2571ff597add4aeaf7639817",
+            "variable": "flag_042"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:338f6859b86041de2d32ce435b8ae040d766f8982dc526a241791ef9836fd91f",
+            "variable": "flag_109"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:375107f4b0cf61c353a1e6e6ebb7a235babc2a0bb3f707e3627d816a79a7f48b",
+            "variable": "flag_040"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:40c7e3c4e4497c89015ad40be0c7f337075d38286908053b2e88096e082108a1",
+            "variable": "flag_119"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:40f84daad36056f0db6c976f4b44f2bc863bf2c1ed8885aaaaa325e2685ad340",
+            "variable": "flag_010"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:4129c7d321c4d62a33d9a83b5d396821935f5902cf1943136491eb101e589e80",
+            "variable": "flag_098"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:42805cdb31bf332e2bbf992c22742cc1ae11eebc45943ff7b3b94e366b317b86",
+            "variable": "flag_005"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:43fe25053b119f7dc3864a075afa5b9ae1e0f627f23ea8eb29f474b61989ae12",
+            "variable": "flag_074"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:48d8fff616371af9725e8db6133e819945741ee7a67661abebe875ba0aceadfd",
+            "variable": "flag_103"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:48dc8f7cc3ef75c0cfab317fafa772a4afa99a308777acec857b561ba490e0f2",
+            "variable": "flag_116"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:4aa359d31380dcc00a88d520b7bbd3eeff2587003497cfcb0e7c911615f184e8",
+            "variable": "flag_022"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:4aed34179d327124aaea70829e9fc7570e1c9ae5f8c36168261b3156dec592ed",
+            "variable": "flag_086"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:4d05dc4a53bfe69fee48cc24d7080d9f85a7e16c3d0a363cc8098598022bbc65",
+            "variable": "flag_075"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:4d208310aae7ca13cb6c602682f91a4cfa08293b49195f76ad019957d2387890",
+            "variable": "flag_090"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:4e9fad45b03bbc1883143f50b0e6d73c07a99f4838b077e453c4ed2e055f93ca",
+            "variable": "flag_006"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:4fa3bd1ead55ca703892d6f07dde8a36144eb5353d52774d50a1f0a0c0eae458",
+            "variable": "flag_012"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:51fb2418496456f09bdf639fb06165abdb7aa7115d2d77725571e462aaa7c9f7",
+            "variable": "flag_000"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:54a0406bdc32563d628640241ddaf7cd4058c8bdc6f619175fe997113b7bad01",
+            "variable": "flag_092"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:55c5510d017bdb09e9898411b184e737f0550625e601d851601911781c3f1e47",
+            "variable": "flag_081"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:5d58bb1e0c2ac8cce8be714ad324335a766b1a5926b2940b77d443ccab8433a9",
+            "variable": "flag_027"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:602bcc9d1f89102124f9133a3991f72f1921fdab351e2afdfcb658f941cb70a3",
+            "variable": "flag_044"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:624888abe0e8293a192a257ee6e2f812838c32e23f1b8a38d9a86e1fb322412b",
+            "variable": "flag_113"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:62ebc02305017153b198299eb66416357797c54274f4475232bd1e708280f0e0",
+            "variable": "flag_030"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:674fe437a88164ccc8d46adaed16b026a0e785e5ee14b0ffaf2ff27bbe27e33e",
+            "variable": "flag_078"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:679a793665c1d2951e98521daeed541f8a90ff288cc09e261034fb389bc03037",
+            "variable": "flag_015"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:6924807c62be59ed823b5133a15194171939ae40242ad2ba943698c87d3e7478",
+            "variable": "flag_069"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:6a3d03fcd3069b7ade1a9465afaa210bfbc8df520c2b55550319a905bbe8cf40",
+            "variable": "flag_065"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:6a46bb2a76f05d82230ba7d6b2ec3f8e5c0da8612433267f2ddd21b7f3ed8b55",
+            "variable": "flag_114"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:6ba3fb7fa52254edb5b775ead3eab4f98fb02cc72e7d84c7f656b579f6aef9da",
+            "variable": "flag_038"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:6daee52e9d8f1fe198724b7c89a23acd08975bd83209bbc9c65ec358519f9189",
+            "variable": "flag_020"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:6e7968ce1ff60e0c623afec8e6c7f94ac965f26d2b6ee77300411d65977cc2a9",
+            "variable": "flag_083"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:727d3c0552a0479964833eb3a82cc6a94d4ad220b702a4f24800012f04a593d6",
+            "variable": "flag_124"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:7368cbfae9bf770d280e017dd580f6511c883a2ba0993ca4f63e06eae21701d8",
+            "variable": "flag_023"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:772041629634dce52f8b27efc669644ded5e6eb8432587babf43b2df66e1d349",
+            "variable": "flag_057"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:775fbe1a6d75bdc21735ad59964736a818d1e25442214f7836dc3b8f5563305d",
+            "variable": "flag_043"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:78692f6592552fbbbf66b80bdec93c9c48be4a548061441ee74fb81b5dada64c",
+            "variable": "flag_096"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:78b0f57a7bca58fc095d4fc82698773248ab93766a2550265a1f5b27667a19a3",
+            "variable": "flag_093"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:78c13240f7b6d4f805f3e82b04266b019252e5a721f76a5f7ef664844a53b3a6",
+            "variable": "flag_019"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:7fc78e13bdbeb53cfb57b680502a819f3f0376d2a196ed3188430dc572373941",
+            "variable": "flag_127"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:81457872c29e2654a56b1b1dd574a43b709127ee4144c8d2453ec921842fef6e",
+            "variable": "flag_073"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:870de0eaf37da2d065e0087dd630d49613ff0acdc61e8a6caaa1c48408bce2ff",
+            "variable": "flag_021"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:8753fce16ba8d394c59c897f3a2501958b9f735153acefdd10783cd6e8263521",
+            "variable": "flag_063"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:8bb8bc19b8812241a09d298ed1b46164b0761f02d5be48bc92db2d03fb78bdcb",
+            "variable": "flag_039"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:8ccf959df810931164d9ccb5efd0cbf1788269394d67dd5cba32f97045dc97be",
+            "variable": "flag_055"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:8d5c7a5c28fbfb49a74bf7de8fa855e00b6aa9b9612a502a3e15e12f840e8f14",
+            "variable": "flag_085"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:92d1569d53fc77fd1bc2acc606fec335d4f518f82d6b699c7f225ed1bf8abf8d",
+            "variable": "flag_032"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:978f75ef633785160e66a390d5b3a0705cf9eefd2f002251cf1d3a83f992ed23",
+            "variable": "flag_046"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:981de1ea65b32d08f0d822740ffb971e9a2043db88fe30aad4ee888e970f5162",
+            "variable": "flag_121"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:98c00c02581f88fc5d607703fb3876c46a9e6b3f2e100e05529a0255fa89d2a0",
+            "variable": "flag_047"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:9914c210571703965473bf10f70db52276e37843ef2d9aff743f04ebe097553d",
+            "variable": "flag_072"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:9919557eef2fbf2429d4c3b5d10a756120469363040d6ea53684f961f2f9bdd5",
+            "variable": "flag_053"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:9b687dd49c764cca807167f0d59c6b6f05581a2f808a3c7618250fd438ba30e1",
+            "variable": "flag_051"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:9c066b6ca23d713e6c7edefa4246adc1393be5ce70baeed271b815bf023be001",
+            "variable": "flag_011"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:9f05abed6bc0f7dd0e8d006a5013d5ddf0a6610fbfb02715b84273326b3e1d7e",
+            "variable": "flag_106"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a0dd7bd57c76538d498b24dc9134bd176fbedfbd7e32e4c1528d21bd6764f026",
+            "variable": "flag_115"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a0dfedaa2e1a93082fe8ff5e26e4164b7d2b656f6cfdc35e51eab7d4fef60f90",
+            "variable": "flag_018"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a1083da2aa7bdce0fb9c1b76377e59844b9d8708e9625c3686ba32765277049d",
+            "variable": "flag_014"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a3b806da5a0efcea5bc9326d637b06e3894bff1a625ea152f31c779b0ff2b8c1",
+            "variable": "flag_089"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a800d662ae38a9f3ee724d7ff1d627d913de8f81cf43c508729738678c35d705",
+            "variable": "flag_024"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a837b8836aa418d9cd86b8763a3d1c11367866880b5237335bc75a17c7bd9375",
+            "variable": "flag_007"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a8ad3dcb7e58cda445d4ba2ae6c6d0b3c5ae0a889df3fd5c00f0fe9b0763dd29",
+            "variable": "flag_097"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a9052579d953e70b0c601598420725e324f06f00b854fc6c97e1c50b4a0efe15",
+            "variable": "flag_101"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:a9e0bca7865b46b84c5986a5adcc5a1fd07bf0d8e6bf0ae44ff3799cee2a800b",
+            "variable": "flag_036"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:aac02d72c2d3f9517a78b012df124326b534f6f200d97180a8f75c111600a1ab",
+            "variable": "flag_048"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:ab596d69a60a4f67f0d66430939c4d8651eb50fbb6596e514aadab08d125f43d",
+            "variable": "flag_118"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:ad0ef4ce4bb3e6f118c195ce67891181855793e7daab380a3b140c178a43514f",
+            "variable": "flag_059"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:af0864ab00346cf777517b0254dbb4838fb006ff15a3f28e77c21c497ba02d13",
+            "variable": "flag_066"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:b2e113e9d1fe91bdbc7bb8038eaa33344135a00cee62f2de1144a2b1ba23eac3",
+            "variable": "flag_077"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:b88075d0e28f0fabade4e479d2fd54ebcc421ad377fb526bbd70f1d19f216e35",
+            "variable": "flag_070"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:b92e53c2f732500629b6a8064b16cb01984a5ac94c965be951bfd68e1bf24764",
+            "variable": "flag_054"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:ba3ae7820bd4f5fe3b0f53f64318790565c847ff1eeac5f825e88e8d0610f413",
+            "variable": "flag_058"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:bd59d54e8ca8d6ea9d09f58a21a9cdebe7b6271e65eb19b35d26947755845bc1",
+            "variable": "flag_110"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:bf28d8114885fbecb27bf2bee49cb2b9ca09fcb5f94b68e4bb7283ebf74f9db2",
+            "variable": "flag_064"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:c1c2ff1279543859554c300c8f1304ccfb65cd4fb66458cda0026b3f40a5f462",
+            "variable": "flag_082"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:c4220a161561c5acb55d6033099355b5176a6a7227ab485d85f8cb55bec833d7",
+            "variable": "flag_123"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:c4d7e94b47530ad978be0d9a64044617ac20931ae813a25fa34feebe9457fcf6",
+            "variable": "flag_107"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:c4ebd45281e9906559213a8c9e5157b19c80dadf39947df485afd7d7b8ca94b0",
+            "variable": "flag_017"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:c551ed683447cbdfbbe7ac2ad5206786eef835e70a97c614f0d5b5b62299e36e",
+            "variable": "flag_067"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:c95ab3d58e9cc0855f3c0c119e63bea49acc69220ccb87e1617882dbc4f29698",
+            "variable": "flag_045"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:cce3922cc0225ab5e5a053ab87fbf8f22d9f97c8b2cf0e778f44c46fc3bb5b38",
+            "variable": "flag_076"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:cddefcd7c4e06f502033e52e1f80e12afaab5cf34c755c3dc9582082d9b5a77b",
+            "variable": "flag_026"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:ce5afe507ebc86cdd5c664787cef4882b7751e585936aa1d4adbe8291d56772c",
+            "variable": "flag_013"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:d53a5723633948486b06a6543e48b885f57671a6be7cf61376e50442cd1e107a",
+            "variable": "flag_031"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:d5f8597be4211adaade0a214b2c1f157537121f87aee46c95e5499131cf78ca0",
+            "variable": "flag_016"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:d6604f88f3e6ceccf6d9ddfa4037c9cc557326b726c54d5d4067a17b16f189c3",
+            "variable": "flag_102"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:d6f3be4c4d3fa61ef9903540ac19bc61e0ceffda5e662fa5d32a16e04eb1c221",
+            "variable": "flag_062"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:d7244c3348bc726f516749336d905206b00f370d407e67df835aa26828f97ec0",
+            "variable": "flag_104"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:d8da21450c87f660d2e0eca7cd793134ea2e9fb9f32ae3a6d100da4fb550bafd",
+            "variable": "flag_060"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:dbe467a4a84e2e9b3a0d2a2cbe8a983c8ce0cbdbc0fc50de6152f97c9579cef3",
+            "variable": "flag_003"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:e67312cc9d9ad7eeb41ad942ef6a2145c3c8ba6ebbe092c1a68405233c500f0b",
+            "variable": "flag_105"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:e86da72758d38a7f1f165fa9a0493907ea5dadba54234d9641146abcac91b136",
+            "variable": "flag_009"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:e8e57e02dd4de671d9b267cb02d9fd5523fe218a01857f1dba50aa514ff644aa",
+            "variable": "flag_112"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:e9b3554546412ce1864f9b10c6b22e2a3718b6130cd1f69bac7825ae0944ecca",
+            "variable": "flag_061"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:ea75779505b9a1ea82c4fdf326622a3960667cac8b3b47698fda69ced34e8f6b",
+            "variable": "flag_050"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:ec24c3f9bb93c32a1cadb597a873cdbcabfd644d4b11d2af2588180bc52b5137",
+            "variable": "flag_028"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:ec9d7ba21e0490746805b29186d9a7187269cf50595f556d07096ba639a25793",
+            "variable": "flag_041"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:f1585e7909165f744c6d378611fe204490107eb7ded503aa476dd4acf8d53950",
+            "variable": "flag_088"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:f1e552929a69b49131a7ad01f0e4bce564a61d9f184339ff4533fb477947d25c",
+            "variable": "flag_117"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:f54b6aa0405d0798eeee9a38ec058f27c2eb06234e3681002cfc2feae6fe3297",
+            "variable": "flag_034"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:f7eb0a368e9903e5018418d00c961f701a300312bb8b20de96109349d71a415f",
+            "variable": "flag_125"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:f8f2f440b629d2e269758edea926f2e68b69667b01a36270508cb8b606453170",
+            "variable": "flag_126"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:fa9d4a66a92613ab8e31d1fb73a2b0330b601600c0c4f6387c5fba9c85f65a74",
+            "variable": "flag_122"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:fbd3deb1c103dc17af7bcb55a3eaede66be91f0bbf7f6a1005b379e5a34e9034",
+            "variable": "flag_056"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:fc886c1127dea701cd4b44c180f552bf2ccc1cb5abe286ba4f5853c380305ad1",
+            "variable": "flag_052"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:fd2fe1a554c52aa55ea15fd13a0754172be01d22f1d4ba521ab35e4541febb88",
+            "variable": "flag_111"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:fd83dda2a2b4f2b989f8bba7ad12d5c86ef7a3ed5a494501541dc091bea0d62d",
+            "variable": "flag_049"
+          },
+          {
+            "domain": [
+              false,
+              true
+            ],
+            "sort": "boolean",
+            "symbol_id": "symbol:fe86e6a0bbdbd9aa641ed36b9dd2af2abbcf547bf5516a28d404b61bf1f5a88b",
+            "variable": "flag_084"
+          }
+        ],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:7acbeccb23d835bbb68cdbecf463e009f68e150c0a51cf3e792c5884ed7f14bf",
+      "outcome": "unsupported",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:b57ab9f392cfe48235529b471862507e836dda7cebd1112bbabe597b7f823757",
+        "source_id": "symbol-limit.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": {
+        "profile": "raes-satisfiability-unsupported/v1",
+        "reason_codes": [
+          "scenario-satisfiability.resource-limit"
+        ]
+      },
+      "witness": null
+    }
+  },
+  "surface": "cli"
+}

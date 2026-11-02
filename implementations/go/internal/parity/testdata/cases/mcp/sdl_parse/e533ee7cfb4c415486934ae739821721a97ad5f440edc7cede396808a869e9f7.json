@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:1162e9df8877f08a1cd7fc2709a14ac9e7d6b807ddb753b31e1b6dcb63c7d384"
+  },
+  "name": "regression/bd739a76641023027fa3c6f47fb558db1623fda176aaf3fd08347afd80f1ae09",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/red-briefing/participant_inject_deliveries/briefing/delivery_policy/policy_ref",
+              "range": {
+                "end": {
+                  "column": 25,
+                  "line": 103
+                },
+                "start": {
+                  "column": 23,
+                  "line": 103
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/red-briefing/participant_inject_deliveries/briefing/delivery_policy/policy_ref",
+            "range": {
+              "end": {
+                "column": 25,
+                "line": 103
+              },
+              "start": {
+                "column": 23,
+                "line": 103
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

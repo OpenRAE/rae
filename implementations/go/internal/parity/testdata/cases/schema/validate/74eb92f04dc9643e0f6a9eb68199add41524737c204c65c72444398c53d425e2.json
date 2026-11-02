@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-occurrence-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:3ac8aac684626628959ce7ea4766a997850895f496261409cb878feed15d3a01"
+  },
+  "name": "participant-control-occurrence-v2/routed/contracts/fixtures/participant-runtime/participant-control-occurrence-v2/valid/accepted-handoff.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

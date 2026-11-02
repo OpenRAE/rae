@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:66cebe8f8c4df946e924edd0e3797e3a9f663fb82d985501fd39006110975c9f"
+  },
+  "name": "regression/a2a2cb8683602db510e344050480b113911f949c20edd61f0e0f41fa8464ad0c",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/action_contracts/scan/backend_timing_disclosures/0",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 113
+                },
+                "start": {
+                  "column": 9,
+                  "line": 103
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/action_contracts/scan/backend_timing_disclosures/0",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 113
+              },
+              "start": {
+                "column": 9,
+                "line": 103
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

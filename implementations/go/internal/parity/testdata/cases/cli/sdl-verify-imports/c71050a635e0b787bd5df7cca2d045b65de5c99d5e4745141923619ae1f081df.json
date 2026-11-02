@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml": "sha256:ca92b6fce277cb328290dfeca691d2ef8253d46dce64a47c3b07b67381b114dc",
+    "setup.json": "sha256:22c3b81924207e4aafffbc3cfbd25a7d061cae38b1167e2bb1fb8387a98e6bdf"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

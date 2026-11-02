@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/alias-cycle.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/alias-cycle.yaml": "sha256:ef0af768b766d45144ef989ae0b51b1f1ba5831328f7c59c435c095979dd0b5c",
+    "setup.json": "sha256:fb9553978d2336b3d5c4b45f68798ef11599fd35a0435f65ff519416135d94ea"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/alias-cycle.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

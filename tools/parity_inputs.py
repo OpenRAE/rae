@@ -12,6 +12,7 @@ import logging
 import os
 import shlex
 import stat
+import subprocess
 import sys
 import tempfile
 import uuid
@@ -107,8 +108,13 @@ class InputCollector:
             return b"", recipe
         return content, None
 
-    def cli(self, arguments: object, kwargs: dict[str, object]) -> None:
+    def cli(self, arguments: object, kwargs: dict[str, object], *, working_directory: object = None) -> None:
         from tools.parity_surfaces import local_dependencies
+
+        directory = Path(os.fsdecode(working_directory)) if working_directory is not None else Path.cwd()
+
+        def absolute(value):
+            return Path(os.path.abspath(directory / value))
 
         supplied_tokens = (
             shlex.split(arguments) if isinstance(arguments, str) else [str(value) for value in (arguments or [])]
@@ -134,7 +140,7 @@ class InputCollector:
                 position = tokens.index(option) + 1
                 if position >= len(tokens):
                     continue
-                root = Path(os.path.abspath(tokens[position]))
+                root = absolute(tokens[position])
                 if not (root.is_relative_to(self.repo) or root.is_relative_to(Path(tempfile.gettempdir()))):
                     continue
                 self.candidate_input(root)
@@ -147,7 +153,7 @@ class InputCollector:
                             directory_files.append(path)
         originals: dict[Path, bytes] = {}
         recipes = {}
-        pending = [Path(os.path.abspath(token)) for token in tokens if not token.startswith("-")] + directory_files
+        pending = [absolute(token) for token in tokens if not token.startswith("-")] + directory_files
         while pending:
             path = pending.pop()
             if path in originals:
@@ -172,16 +178,16 @@ class InputCollector:
             )
         rewritten = []
         for token in tokens:
-            absolute = Path(os.path.abspath(token))
-            if absolute in names:
-                rewritten.append(names[absolute])
-            elif absolute in input_directories:
-                rewritten.append("input/" + absolute.relative_to(base).as_posix())
+            resolved = absolute(token)
+            if resolved in names:
+                rewritten.append(names[resolved])
+            elif resolved in input_directories:
+                rewritten.append("input/" + resolved.relative_to(base).as_posix())
             elif Path(token).is_absolute():
                 relative = (
-                    absolute.relative_to(base).as_posix()
-                    if absolute.is_relative_to(base)
-                    else "output/" + absolute.name
+                    resolved.relative_to(base).as_posix()
+                    if resolved.is_relative_to(base)
+                    else "output/" + resolved.name
                 )
                 rewritten.append("input/" + relative)
             else:
@@ -231,6 +237,7 @@ class InputCollector:
         settings.load_profile(self.previous_profile)
 
     def _install(self) -> None:
+        import raes_cli.entrypoint as cli_entrypoint
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
         from httpx import AsyncByteStream, AsyncClient, Client, RequestNotRead, SyncByteStream
         from hypothesis import settings
@@ -266,6 +273,8 @@ class InputCollector:
         declared_tools = set(mcp_registry())
         routes = http_registry(http_schema())
         original_cli = CliRunner.invoke
+        original_entrypoint = cli_entrypoint.main
+        original_process_run = subprocess.run
         original_mcp = FastMCP.call_tool
         original_sync = Client.send
         original_async = AsyncClient.send
@@ -364,6 +373,20 @@ class InputCollector:
             if application is app:
                 self.cli(args, kwargs)
             return original_cli(runner, application, args, **kwargs)
+
+        @functools.wraps(original_entrypoint)
+        def entrypoint(*args, **kwargs):
+            self.cli(sys.argv[1:], {})
+            return original_entrypoint(*args, **kwargs)
+
+        @functools.wraps(original_process_run)
+        def process_run(*popenargs, **kwargs):
+            arguments = popenargs[0] if popenargs else kwargs.get("args")
+            if isinstance(arguments, (list, tuple)) and arguments:
+                executable = os.fsdecode(arguments[0])
+                if Path(executable).name in {"raes", "raes.exe"} and not kwargs.get("shell"):
+                    self.cli(arguments[1:], kwargs, working_directory=kwargs.get("cwd"))
+            return original_process_run(*popenargs, **kwargs)
 
         @functools.wraps(original_mcp)
         async def call_tool(server, name, arguments):
@@ -496,6 +519,7 @@ class InputCollector:
                         self.patches.setattr(module, attribute, analyze_exploit)
         self.aliases_to_restore = [
             (parse, original_parse),
+            (entrypoint, original_entrypoint),
             (fixture_uuid, original_uuid),
             (analyze_scenario, analyze_scenario_file),
             (analyze_exploit, analyze_exploit_path_file),
@@ -507,6 +531,8 @@ class InputCollector:
         self.patches.setattr(uuid, "uuid4", fixture_uuid)
         self.patches.setattr(Ed25519PrivateKey, "generate", staticmethod(fixture_key))
         self.patches.setattr(CliRunner, "invoke", invoke)
+        self.patches.setattr(cli_entrypoint, "main", entrypoint)
+        self.patches.setattr(subprocess, "run", process_run)
         self.patches.setattr(FastMCP, "call_tool", call_tool)
         self.patches.setattr(Client, "send", send)
         self.patches.setattr(AsyncClient, "send", async_send)

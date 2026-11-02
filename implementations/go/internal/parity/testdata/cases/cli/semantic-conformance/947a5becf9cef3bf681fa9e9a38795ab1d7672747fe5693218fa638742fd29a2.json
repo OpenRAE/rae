@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "input/succeeded.json",
+    "--contract",
+    "operation-status-v1",
+    "--output",
+    "json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input/succeeded.json": "sha256:4d0506684c18e379a09a3b91fb7881fc9daba8fcda1ee6d1104e7d6f0e0e897d"
+  },
+  "name": "regression/7f3b1195a4f0c7433ac032581c928734f56613d26d7365e130d7390ecb599f79",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "operation-status-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": true,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

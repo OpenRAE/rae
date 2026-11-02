@@ -1,0 +1,111 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:0c03b7e7c93264b19a1aea36bfb9c2360b208aa919a6ab4a3db63476d8621e7a"
+  },
+  "name": "examples/experiments/techvault-variation-selection.exp.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "fixed-payload-path",
+                "fixed_payload_path"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/run_plan/selection_policies/fixed_payload_path",
+              "range": {
+                "end": {
+                  "column": 23,
+                  "line": 30
+                },
+                "start": {
+                  "column": 5,
+                  "line": 30
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "enumerate-payload-host",
+                "enumerate_payload_host"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/run_plan/selection_policies/enumerate_payload_host",
+              "range": {
+                "end": {
+                  "column": 27,
+                  "line": 39
+                },
+                "start": {
+                  "column": 5,
+                  "line": 39
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "fixed-payload-path",
+              "fixed_payload_path"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/run_plan/selection_policies/fixed_payload_path",
+            "range": {
+              "end": {
+                "column": 23,
+                "line": 30
+              },
+              "start": {
+                "column": 5,
+                "line": 30
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "enumerate-payload-host",
+              "enumerate_payload_host"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/run_plan/selection_policies/enumerate_payload_host",
+            "range": {
+              "end": {
+                "column": 27,
+                "line": 39
+              },
+              "start": {
+                "column": 5,
+                "line": 39
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

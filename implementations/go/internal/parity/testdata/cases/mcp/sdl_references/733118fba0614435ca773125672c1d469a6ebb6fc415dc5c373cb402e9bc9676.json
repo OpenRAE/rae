@@ -1,0 +1,93 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:c45aef5ccda9bb525eb591b8cb582ae4953aa9c5bda635557ec320d7d6b2f685"
+  },
+  "name": "examples/library/templates/scenario/segmented-network-scenario.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/body/nodes/web",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 26
+                },
+                "start": {
+                  "column": 5,
+                  "line": 26
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "mapping_key",
+              "path": "/body/infrastructure/web",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 65
+                },
+                "start": {
+                  "column": 5,
+                  "line": 65
+                }
+              },
+              "value": "web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/body/nodes/web",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 26
+              },
+              "start": {
+                "column": 5,
+                "line": 26
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "mapping_key",
+            "path": "/body/infrastructure/web",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 65
+              },
+              "start": {
+                "column": 5,
+                "line": 65
+              }
+            },
+            "value": "web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/patterns/run-window-with-evidence.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/patterns/run-window-with-evidence.yaml": "sha256:9ad3d335a12da0b1dabd16132748b678027d547edc350070e7a92a8f35a894a2"
+  },
+  "name": "examples/library/patterns/run-window-with-evidence.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

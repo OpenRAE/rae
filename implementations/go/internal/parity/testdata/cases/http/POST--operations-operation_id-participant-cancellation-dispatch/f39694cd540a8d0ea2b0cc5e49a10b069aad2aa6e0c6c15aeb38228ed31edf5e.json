@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/participant-cancellation/dispatch",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:71d0b4e4dc1a6615f7c780787b852c293bc175470cecf7149aae3ee8ccb14df3"
+  },
+  "name": "regression/2ef167c7d242b7feaf73864bd8174b5dbffeaa1b57374900c8d14ed49d9c9253",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

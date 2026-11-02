@@ -1,0 +1,283 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:9bc37b88e7683197af593e1d3f3e775b53aecf41e7454e0a0af47cb74e6eec85"
+  },
+  "name": "examples/scenarios/reconciliation-demo-v1.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "The scenario plans against the reference backend manifest; live execution still requires a concrete target and run evidence.",
+              "severity": "info",
+              "topic": "planning"
+            }
+          ],
+          "diagnostics": [],
+          "plan": {
+            "diagnostic_count": 0,
+            "is_valid": true,
+            "operations": {
+              "evaluation": {
+                "create": 6
+              },
+              "orchestration": {
+                "create": 3
+              },
+              "provisioning": {
+                "create": 4
+              }
+            },
+            "resources": {
+              "evaluation": 6,
+              "orchestration": 3,
+              "provisioning": 4
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.condition.database.health",
+                "evaluation.condition.web.health",
+                "evaluation.proposition.health",
+                "evaluation.assertion.health",
+                "evaluation.assertion.pre-health",
+                "evaluation.objective.initial"
+              ],
+              "orchestration": [
+                "orchestration.event.kickoff",
+                "orchestration.workflow.flow",
+                "orchestration.script.timeline"
+              ]
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 2,
+                "objectives": 1
+              },
+              "orchestration": {
+                "events": 1,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 1,
+                "stories": 0,
+                "workflows": 1
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 0
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 1,
+                "nodes": 3
+              }
+            },
+            "metadata": {
+              "agents": 0,
+              "capability_constraints": 0,
+              "entities": 1,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 1,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "reconciliation-demo",
+            "populated_sections": {
+              "conditions": 1,
+              "entities": 1,
+              "events": 1,
+              "infrastructure": 4,
+              "nodes": 4,
+              "objectives": 1,
+              "scripts": 1,
+              "workflows": 1
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "ready_for_review"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "The scenario plans against the reference backend manifest; live execution still requires a concrete target and run evidence.",
+            "severity": "info",
+            "topic": "planning"
+          }
+        ],
+        "diagnostics": [],
+        "plan": {
+          "diagnostic_count": 0,
+          "is_valid": true,
+          "operations": {
+            "evaluation": {
+              "create": 6
+            },
+            "orchestration": {
+              "create": 3
+            },
+            "provisioning": {
+              "create": 4
+            }
+          },
+          "resources": {
+            "evaluation": 6,
+            "orchestration": 3,
+            "provisioning": 4
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.condition.database.health",
+              "evaluation.condition.web.health",
+              "evaluation.proposition.health",
+              "evaluation.assertion.health",
+              "evaluation.assertion.pre-health",
+              "evaluation.objective.initial"
+            ],
+            "orchestration": [
+              "orchestration.event.kickoff",
+              "orchestration.workflow.flow",
+              "orchestration.script.timeline"
+            ]
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 2,
+              "objectives": 1
+            },
+            "orchestration": {
+              "events": 1,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 1,
+              "stories": 0,
+              "workflows": 1
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 0
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 1,
+              "nodes": 3
+            }
+          },
+          "metadata": {
+            "agents": 0,
+            "capability_constraints": 0,
+            "entities": 1,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 1,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "reconciliation-demo",
+          "populated_sections": {
+            "conditions": 1,
+            "entities": 1,
+            "events": 1,
+            "infrastructure": 4,
+            "nodes": 4,
+            "objectives": 1,
+            "scripts": 1,
+            "workflows": 1
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "ready_for_review"
+      }
+    }
+  },
+  "surface": "mcp"
+}

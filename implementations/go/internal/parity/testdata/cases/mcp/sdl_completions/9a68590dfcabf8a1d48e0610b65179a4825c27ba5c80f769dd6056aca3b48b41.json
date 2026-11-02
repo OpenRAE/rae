@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_completions",
+  "files": {
+    "arguments.json": "sha256:85c62b693b375fd458e37d6bee4026cdd61ea97d3a5e19631a595636f6c1c781"
+  },
+  "name": "regression/3a2094cb020766411a42467121b7832010cc11b526993ea656f5ec95f6940f02",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "context": "reference:features",
+          "items": [
+            {
+              "detail": "features.app",
+              "insert_text": "app",
+              "kind": "reference",
+              "label": "app"
+            },
+            {
+              "detail": "features.pg",
+              "insert_text": "pg",
+              "kind": "reference",
+              "label": "pg"
+            }
+          ],
+          "status": "ok"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "context": "reference:features",
+        "items": [
+          {
+            "detail": "features.app",
+            "insert_text": "app",
+            "kind": "reference",
+            "label": "app"
+          },
+          {
+            "detail": "features.pg",
+            "insert_text": "pg",
+            "kind": "reference",
+            "label": "pg"
+          }
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "surface": "mcp"
+}

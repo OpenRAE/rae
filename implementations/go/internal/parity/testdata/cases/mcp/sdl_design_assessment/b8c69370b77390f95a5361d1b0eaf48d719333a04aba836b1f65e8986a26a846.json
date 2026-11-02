@@ -1,0 +1,311 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:f8fef466e5e5a7b0fd03ba818edd23b01acbfff32fac1179424bc02359df8b15"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-selected-demand.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+              "severity": "warning",
+              "topic": "objectives"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "provision.node.monitor",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.monitor",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.monitor",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.monitor",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.monitor",
+              "code": "realization.unsupported-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 5,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {},
+              "orchestration": {},
+              "provisioning": {
+                "create": 1
+              }
+            },
+            "resources": {
+              "evaluation": 0,
+              "orchestration": 0,
+              "provisioning": 1
+            },
+            "startup_order": {
+              "evaluation": [],
+              "orchestration": []
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 0,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 0
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 0,
+                "nodes": 1
+              }
+            },
+            "metadata": {
+              "agents": 0,
+              "capability_constraints": 0,
+              "entities": 0,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 0,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "observability-plane-conformance",
+            "populated_sections": {
+              "nodes": 1
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+            "severity": "warning",
+            "topic": "objectives"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "provision.node.monitor",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.monitor",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.monitor",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.monitor",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.monitor",
+            "code": "realization.unsupported-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 5,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {},
+            "orchestration": {},
+            "provisioning": {
+              "create": 1
+            }
+          },
+          "resources": {
+            "evaluation": 0,
+            "orchestration": 0,
+            "provisioning": 1
+          },
+          "startup_order": {
+            "evaluation": [],
+            "orchestration": []
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 0,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 0
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 0,
+              "nodes": 1
+            }
+          },
+          "metadata": {
+            "agents": 0,
+            "capability_constraints": 0,
+            "entities": 0,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 0,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "observability-plane-conformance",
+          "populated_sections": {
+            "nodes": 1
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

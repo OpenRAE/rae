@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:5aa7d6d760274fc1241a9f6d9ea8a0035a58a847b6d796ead956f07971953257"
+  },
+  "name": "regression/1238692b1f0266a1bcbe87c027b3bd782e463c0880a8cc4ea24f08083314db2d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/action_contracts/scan/preconditions/0/precondition_class",
+              "range": {
+                "end": {
+                  "column": 42,
+                  "line": 21
+                },
+                "start": {
+                  "column": 29,
+                  "line": 21
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/action_contracts/scan/preconditions/0/precondition_class",
+            "range": {
+              "end": {
+                "column": 42,
+                "line": 21
+              },
+              "start": {
+                "column": 29,
+                "line": 21
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

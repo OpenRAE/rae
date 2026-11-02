@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:67aab629ff80054089610adf6b54aa761aec25ac301623fc2e19060667b2552c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: participant-control-legacy\nversion: '1.0'\ndescription: 'Legacy scenario whose absence of participant crossing policy remains\n  unknown and does not imply enforcement.\n\n  '\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: participant-control-legacy\nversion: '1.0'\ndescription: 'Legacy scenario whose absence of participant crossing policy remains\n  unknown and does not imply enforcement.\n\n  '\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

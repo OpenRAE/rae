@@ -1,0 +1,23 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "restore",
+    "input/backup.sqlite3",
+    "input/restored-store",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:ops"
+  ],
+  "command": "runtime store restore",
+  "files": {
+    "input/backup.sqlite3": "sha256:79dbaef710b896c03c6072b22bb5b536d73388bdc9b1a7e0c5c25efadda36db6"
+  },
+  "name": "regression/868665a199aeee7506322b75f3a393a3cbb2080cf2189739925235670ec8b9ce",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

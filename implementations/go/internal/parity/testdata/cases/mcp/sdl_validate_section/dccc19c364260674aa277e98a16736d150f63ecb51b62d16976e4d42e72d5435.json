@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_validate_section",
+  "files": {
+    "arguments.json": "sha256:d190605694f932a88eacfd90c72f0a28b7a7c61c2e710d3c7fbf5f1cff9246b4"
+  },
+  "name": "regression/af1ea7eb0ae0992f31c9ddd2693c32699ef3ad2949ad94fd8d0161997eb9c250",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Unknown section 'nope'. Valid sections": "accounts, agents, conditions, content, entities, events, features, infrastructure, injects, nodes, objectives, relationships, scripts, stories, variables, workflows"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Unknown section 'nope'. Valid sections": "accounts, agents, conditions, content, entities, events, features, infrastructure, injects, nodes, objectives, relationships, scripts, stories, variables, workflows"
+      }
+    }
+  },
+  "surface": "mcp"
+}

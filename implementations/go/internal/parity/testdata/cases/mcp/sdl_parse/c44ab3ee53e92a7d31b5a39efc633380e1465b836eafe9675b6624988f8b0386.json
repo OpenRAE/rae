@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:99b9044ae40eaec0f85ef19979c32e738e6d572593d45b5af81fd7cff54e6b4a"
+  },
+  "name": "regression/e30866b309b0b3377eeec82be32682ff740bd912b3f98be862bc2b817375faf9",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "techvault-defensive-min",
+            "populated_sections": {
+              "conditions": 1,
+              "features": 1,
+              "infrastructure": 7,
+              "nodes": 7
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "techvault-defensive-min",
+          "populated_sections": {
+            "conditions": 1,
+            "features": 1,
+            "infrastructure": 7,
+            "nodes": 7
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

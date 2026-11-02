@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/merge-conflict.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/merge-conflict.yaml": "sha256:93d836005348e831500182f66cfc0f57c34bbf8bd95cb5729f83e5106844dbb7",
+    "setup.json": "sha256:720132b7478fce26814521a1ec13abf125711b61a55f348b9afefa2a7c6b7533"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/merge-conflict.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

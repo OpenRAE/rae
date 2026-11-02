@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /snapshot",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:6987286aa1eae855f30cb790b9bb89feeb885a0e0d5d7e86e37c3f3fce0a111b"
+  },
+  "name": "regression/ee38b35c4637e057f3fef92dadb89079cfae9abc39d588d578df5a32e675d599",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

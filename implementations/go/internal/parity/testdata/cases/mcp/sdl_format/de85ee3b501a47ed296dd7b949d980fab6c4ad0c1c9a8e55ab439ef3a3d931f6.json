@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:95fced8bf3210c3950af16395f7ead229b09136e40b3e62476da6c53d5470299"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: dependent-declarations-family\nnodes:\n  sync:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n  sensor:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\ninfrastructure:\n  sync:\n    count: 1\n  sensor:\n    count: 1\npersistent_volumes:\n  rules:\n    lifecycle: ephemeral\n    access_mode: read_write_many\n    consumers:\n    - node: sensor\n      mount_destination: /var/lib/rules\n      access_mode: read_only\n    - node: sync\n      mount_destination: /var/lib/rules\n      access_mode: read_write\naccounts:\n  sync-api:\n    username: sync\n    node: sync\nvariation_points:\n  sync-host:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync\n      slot: nodes.presence\n    alternatives:\n      absent:\n        requires:\n        - point: sync-account\n          members:\n          - absent\n        - point: shared-mounts\n          members:\n          - without-sync\n        kind: node-presence\n        present: false\n      present:\n        kind: node-presence\n        present: true\n  sync-account:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync-api\n      slot: accounts.presence\n    alternatives:\n      absent:\n        kind: declaration-presence\n        present: false\n      present:\n        requires:\n        - point: sync-host\n          members:\n          - present\n        kind: declaration-presence\n        present: true\n  shared-mounts:\n    kind: alternative\n    target:\n      kind: structural\n      owner: rules\n      slot: persistent_volumes.consumers\n    alternatives:\n      without-sync:\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n      all:\n        requires:\n        - point: sync-host\n          members:\n          - present\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n        - node: sync\n          mount_destination: /var/lib/rules\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: dependent-declarations-family\nnodes:\n  sync:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n  sensor:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\ninfrastructure:\n  sync:\n    count: 1\n  sensor:\n    count: 1\npersistent_volumes:\n  rules:\n    lifecycle: ephemeral\n    access_mode: read_write_many\n    consumers:\n    - node: sensor\n      mount_destination: /var/lib/rules\n      access_mode: read_only\n    - node: sync\n      mount_destination: /var/lib/rules\n      access_mode: read_write\naccounts:\n  sync-api:\n    username: sync\n    node: sync\nvariation_points:\n  sync-host:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync\n      slot: nodes.presence\n    alternatives:\n      absent:\n        requires:\n        - point: sync-account\n          members:\n          - absent\n        - point: shared-mounts\n          members:\n          - without-sync\n        kind: node-presence\n        present: false\n      present:\n        kind: node-presence\n        present: true\n  sync-account:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync-api\n      slot: accounts.presence\n    alternatives:\n      absent:\n        kind: declaration-presence\n        present: false\n      present:\n        requires:\n        - point: sync-host\n          members:\n          - present\n        kind: declaration-presence\n        present: true\n  shared-mounts:\n    kind: alternative\n    target:\n      kind: structural\n      owner: rules\n      slot: persistent_volumes.consumers\n    alternatives:\n      without-sync:\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n      all:\n        requires:\n        - point: sync-host\n          members:\n          - present\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n        - node: sync\n          mount_destination: /var/lib/rules\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

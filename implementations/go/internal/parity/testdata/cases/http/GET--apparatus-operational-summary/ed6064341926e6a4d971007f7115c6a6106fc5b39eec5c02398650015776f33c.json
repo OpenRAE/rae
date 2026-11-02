@@ -1,0 +1,76 @@
+{
+  "args": [],
+  "command": "GET /apparatus/operational-summary",
+  "files": {
+    "request.json": "sha256:909d35d261df36897d246f93f5ce2d61dd48f5832c3c0cbf6720aad968af2055"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {
+      "audit": {
+        "allowed": 1,
+        "denied": 0,
+        "recent": [
+          {
+            "action": "get_operational_apparatus_summary",
+            "allowed": true,
+            "identity": "operator",
+            "operation_id": "",
+            "reason": "",
+            "target": "target:stub",
+            "timestamp": "2026-01-01T00:00:00Z"
+          }
+        ],
+        "total": 1
+      },
+      "operations": {
+        "by_state": {
+          "accepted": 0,
+          "cancelled": 0,
+          "failed": 0,
+          "indeterminate": 0,
+          "running": 0,
+          "succeeded": 0
+        },
+        "recent": [],
+        "total": 0
+      },
+      "resources": {
+        "by_domain": {
+          "evaluation": 0,
+          "orchestration": 0,
+          "participant": 0,
+          "provisioning": 0
+        },
+        "by_resource_type": {},
+        "by_status": {},
+        "total": 0
+      },
+      "runtime_surfaces": {
+        "evaluation_history": 0,
+        "evaluation_results": 0,
+        "information_state_history": 0,
+        "joint_action_records": 0,
+        "orchestration_history": 0,
+        "orchestration_results": 0,
+        "participant_behavior_history": 0,
+        "participant_crossing_history": 0,
+        "participant_episode_history": 0,
+        "participant_episode_results": 0,
+        "proposition_truth_results": 0,
+        "realization_provenance": 0,
+        "shared_state_history": 0,
+        "shared_state_records": 0,
+        "time_management_contexts": 0,
+        "time_model_clocks": 0
+      },
+      "target": "stub"
+    },
+    "headers": {
+      "content-type": "application/json",
+      "x-raes-snapshot-revision": "0"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

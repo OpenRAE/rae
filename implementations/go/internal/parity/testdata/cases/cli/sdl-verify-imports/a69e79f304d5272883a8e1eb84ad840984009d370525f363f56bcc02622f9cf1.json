@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/experiments/techvault-variation-selection.exp.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/experiments/techvault-variation-selection.exp.yaml": "sha256:4f239201654415490c9516a921e86c0ce90d7706803d69a712e83a9cdcacf45c"
+  },
+  "name": "examples/experiments/techvault-variation-selection.exp.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

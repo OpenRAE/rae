@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:17d157a39f71161223cfa56657b9aeb1edcd406e70a093d09caa85c1e88d5da1"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

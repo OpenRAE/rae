@@ -1,0 +1,343 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:89a6fbc93eb2fbbf7536406911e520bdc469930a0aa4b2d15edc78beea966bba"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+              "severity": "warning",
+              "topic": "objectives"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "provision.node.mail",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "evidence_requirements.company-mail-readback",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "evidence_requirements.job-index-schema-readback",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.mail",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.content.company-mail",
+              "code": "provisioner.unsupported-service-materialization-profile",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.content.job-index-schema",
+              "code": "provisioner.unsupported-service-materialization-profile",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 6,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 4
+              },
+              "orchestration": {},
+              "provisioning": {
+                "create": 3
+              }
+            },
+            "resources": {
+              "evaluation": 4,
+              "orchestration": 0,
+              "provisioning": 3
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.proposition.company-mail-visible",
+                "evaluation.proposition.job-index-schema-visible",
+                "evaluation.assertion.company-mail-visible",
+                "evaluation.assertion.job-index-schema-visible"
+              ],
+              "orchestration": []
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 0,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 2,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 0
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 2,
+                "feature_bindings": 0,
+                "networks": 0,
+                "nodes": 1
+              }
+            },
+            "metadata": {
+              "agents": 0,
+              "capability_constraints": 0,
+              "entities": 0,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 0,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "initial-service-state",
+            "populated_sections": {
+              "content": 2,
+              "nodes": 1,
+              "observation_boundaries": 2
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+            "severity": "warning",
+            "topic": "objectives"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "provision.node.mail",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "evidence_requirements.company-mail-readback",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "evidence_requirements.job-index-schema-readback",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.mail",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.content.company-mail",
+            "code": "provisioner.unsupported-service-materialization-profile",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.content.job-index-schema",
+            "code": "provisioner.unsupported-service-materialization-profile",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 6,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 4
+            },
+            "orchestration": {},
+            "provisioning": {
+              "create": 3
+            }
+          },
+          "resources": {
+            "evaluation": 4,
+            "orchestration": 0,
+            "provisioning": 3
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.proposition.company-mail-visible",
+              "evaluation.proposition.job-index-schema-visible",
+              "evaluation.assertion.company-mail-visible",
+              "evaluation.assertion.job-index-schema-visible"
+            ],
+            "orchestration": []
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 0,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 2,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 0
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 2,
+              "feature_bindings": 0,
+              "networks": 0,
+              "nodes": 1
+            }
+          },
+          "metadata": {
+            "agents": 0,
+            "capability_constraints": 0,
+            "entities": 0,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 0,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "initial-service-state",
+          "populated_sections": {
+            "content": 2,
+            "nodes": 1,
+            "observation_boundaries": 2
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

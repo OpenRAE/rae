@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/subject.sdl.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/subject.sdl.yaml": "sha256:fdb7d6ae1174f157b9c1ee074190684556c89fc9b9dbe12f3fc46a02888d8826"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/subject.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

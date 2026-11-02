@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scientific-completeness-taxonomy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c184e266a904093b658d8fd93d1a4245bb955604b38808328304bc4d4a81c894"
+  },
+  "name": "scientific-completeness-taxonomy-v1/routed/contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

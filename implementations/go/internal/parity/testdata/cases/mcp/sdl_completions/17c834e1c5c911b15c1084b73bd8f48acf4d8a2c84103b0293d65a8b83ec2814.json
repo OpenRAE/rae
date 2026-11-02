@@ -1,0 +1,499 @@
+{
+  "args": [],
+  "command": "sdl_completions",
+  "files": {
+    "arguments.json": "sha256:78270d1f702f5c986d4fb05bbe941c682d363ad113c129b31873479286907ee6"
+  },
+  "name": "examples/scenarios/participant-tools/twice-imported.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "context": "top-level",
+          "items": [
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "version: ",
+              "kind": "field",
+              "label": "version"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "description: ",
+              "kind": "field",
+              "label": "description"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "semantic_revision: ",
+              "kind": "field",
+              "label": "semantic_revision"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "infrastructure: ",
+              "kind": "field",
+              "label": "infrastructure"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "features: ",
+              "kind": "field",
+              "label": "features"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "conditions: ",
+              "kind": "field",
+              "label": "conditions"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "propositions: ",
+              "kind": "field",
+              "label": "propositions"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "assertions: ",
+              "kind": "field",
+              "label": "assertions"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "injects: ",
+              "kind": "field",
+              "label": "injects"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "events: ",
+              "kind": "field",
+              "label": "events"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "scripts: ",
+              "kind": "field",
+              "label": "scripts"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "stories: ",
+              "kind": "field",
+              "label": "stories"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "generated_artifacts: ",
+              "kind": "field",
+              "label": "generated_artifacts"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "persistent_volumes: ",
+              "kind": "field",
+              "label": "persistent_volumes"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "accounts: ",
+              "kind": "field",
+              "label": "accounts"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "identity_domains: ",
+              "kind": "field",
+              "label": "identity_domains"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "identity_forests: ",
+              "kind": "field",
+              "label": "identity_forests"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "identity_facades: ",
+              "kind": "field",
+              "label": "identity_facades"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "deployment_tenants: ",
+              "kind": "field",
+              "label": "deployment_tenants"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "deployment_cells: ",
+              "kind": "field",
+              "label": "deployment_cells"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "relationships: ",
+              "kind": "field",
+              "label": "relationships"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "forwarding_agents: ",
+              "kind": "field",
+              "label": "forwarding_agents"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "control_context_assets: ",
+              "kind": "field",
+              "label": "control_context_assets"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "action_contracts: ",
+              "kind": "field",
+              "label": "action_contracts"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "outcome_interpretation_rules: ",
+              "kind": "field",
+              "label": "outcome_interpretation_rules"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "evidence_requirements: ",
+              "kind": "field",
+              "label": "evidence_requirements"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "execution_policy: ",
+              "kind": "field",
+              "label": "execution_policy"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "augmentation_scope: ",
+              "kind": "field",
+              "label": "augmentation_scope"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "time_domains: ",
+              "kind": "field",
+              "label": "time_domains"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "clocks: ",
+              "kind": "field",
+              "label": "clocks"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "time_domain_mappings: ",
+              "kind": "field",
+              "label": "time_domain_mappings"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "time_progression_policies: ",
+              "kind": "field",
+              "label": "time_progression_policies"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "temporal_constraints: ",
+              "kind": "field",
+              "label": "temporal_constraints"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "objectives: ",
+              "kind": "field",
+              "label": "objectives"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "workflows: ",
+              "kind": "field",
+              "label": "workflows"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "module: ",
+              "kind": "field",
+              "label": "module"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "realization: ",
+              "kind": "field",
+              "label": "realization"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "variables: ",
+              "kind": "field",
+              "label": "variables"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "variation_points: ",
+              "kind": "field",
+              "label": "variation_points"
+            }
+          ],
+          "status": "ok"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "context": "top-level",
+        "items": [
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "version: ",
+            "kind": "field",
+            "label": "version"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "description: ",
+            "kind": "field",
+            "label": "description"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "semantic_revision: ",
+            "kind": "field",
+            "label": "semantic_revision"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "infrastructure: ",
+            "kind": "field",
+            "label": "infrastructure"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "features: ",
+            "kind": "field",
+            "label": "features"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "conditions: ",
+            "kind": "field",
+            "label": "conditions"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "propositions: ",
+            "kind": "field",
+            "label": "propositions"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "assertions: ",
+            "kind": "field",
+            "label": "assertions"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "injects: ",
+            "kind": "field",
+            "label": "injects"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "events: ",
+            "kind": "field",
+            "label": "events"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "scripts: ",
+            "kind": "field",
+            "label": "scripts"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "stories: ",
+            "kind": "field",
+            "label": "stories"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "generated_artifacts: ",
+            "kind": "field",
+            "label": "generated_artifacts"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "persistent_volumes: ",
+            "kind": "field",
+            "label": "persistent_volumes"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "accounts: ",
+            "kind": "field",
+            "label": "accounts"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "identity_domains: ",
+            "kind": "field",
+            "label": "identity_domains"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "identity_forests: ",
+            "kind": "field",
+            "label": "identity_forests"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "identity_facades: ",
+            "kind": "field",
+            "label": "identity_facades"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "deployment_tenants: ",
+            "kind": "field",
+            "label": "deployment_tenants"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "deployment_cells: ",
+            "kind": "field",
+            "label": "deployment_cells"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "relationships: ",
+            "kind": "field",
+            "label": "relationships"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "forwarding_agents: ",
+            "kind": "field",
+            "label": "forwarding_agents"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "control_context_assets: ",
+            "kind": "field",
+            "label": "control_context_assets"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "action_contracts: ",
+            "kind": "field",
+            "label": "action_contracts"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "outcome_interpretation_rules: ",
+            "kind": "field",
+            "label": "outcome_interpretation_rules"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "evidence_requirements: ",
+            "kind": "field",
+            "label": "evidence_requirements"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "execution_policy: ",
+            "kind": "field",
+            "label": "execution_policy"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "augmentation_scope: ",
+            "kind": "field",
+            "label": "augmentation_scope"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "time_domains: ",
+            "kind": "field",
+            "label": "time_domains"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "clocks: ",
+            "kind": "field",
+            "label": "clocks"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "time_domain_mappings: ",
+            "kind": "field",
+            "label": "time_domain_mappings"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "time_progression_policies: ",
+            "kind": "field",
+            "label": "time_progression_policies"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "temporal_constraints: ",
+            "kind": "field",
+            "label": "temporal_constraints"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "objectives: ",
+            "kind": "field",
+            "label": "objectives"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "workflows: ",
+            "kind": "field",
+            "label": "workflows"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "module: ",
+            "kind": "field",
+            "label": "module"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "realization: ",
+            "kind": "field",
+            "label": "realization"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "variables: ",
+            "kind": "field",
+            "label": "variables"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "variation_points: ",
+            "kind": "field",
+            "label": "variation_points"
+          }
+        ],
+        "status": "ok"
+      }
+    }
+  },
+  "surface": "mcp"
+}

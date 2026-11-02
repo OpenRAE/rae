@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:b3d6d53f7ccf1295d827b27ea43f98a2122abdcafe81e53b20201654db218114"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.red-agent -> red-team content.briefing -> web events.briefing-event -> briefing-inject scripts.briefing-script -> briefing-event stories.briefing-story -> briefing-script"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.red-agent -> red-team content.briefing -> web events.briefing-event -> briefing-inject scripts.briefing-script -> briefing-event stories.briefing-story -> briefing-script"
+      }
+    }
+  },
+  "surface": "mcp"
+}

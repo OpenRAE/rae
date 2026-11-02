@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-execution-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:27073fcbc57dac23f2e264375317cc16ece9235d9311950f1aac7b89ec990b4a"
+  },
+  "name": "mixed-backend-execution-binding-v1/routed/contracts/fixtures/control-plane/mixed-backend-execution-binding-v1/context-invalid/foreign-bridge.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,101 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/module.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/module.yaml": "sha256:d2d1dbf60479004f1725f9e8027654948eb919be6f136b76a527107e9b0901ed"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/module.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "content": {
+        "payload": {
+          "path": "/opt/payload",
+          "target": "primary",
+          "type": "file"
+        }
+      },
+      "module": {
+        "exports": {
+          "content": [
+            "payload"
+          ],
+          "nodes": [
+            "primary",
+            "secondary"
+          ],
+          "variation_points": [
+            "payload-host"
+          ]
+        },
+        "id": "raes/fixture-family",
+        "version": "1.0.0"
+      },
+      "name": "fixture-module",
+      "nodes": {
+        "primary": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        },
+        "secondary": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "variation_points": {
+        "payload-host": {
+          "alternatives": {
+            "primary-host": {
+              "reference": "primary",
+              "requires": [
+                {
+                  "members": [
+                    "primary-host"
+                  ],
+                  "point": "private-host"
+                }
+              ]
+            },
+            "secondary-host": {
+              "reference": "secondary"
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "reference",
+            "owner": "payload",
+            "slot": "content.target"
+          }
+        },
+        "private-host": {
+          "alternatives": {
+            "primary-host": {
+              "reference": "primary"
+            },
+            "secondary-host": {
+              "reference": "secondary"
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "reference",
+            "owner": "payload",
+            "slot": "content.target"
+          }
+        }
+      },
+      "version": "1.0.0"
+    }
+  },
+  "surface": "cli"
+}

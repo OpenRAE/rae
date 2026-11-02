@@ -1,0 +1,507 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:105aa0978f2d889f7a9a55e7e720dde36243fac6c4ccf9d9c202e89acecbe155"
+  },
+  "name": "examples/scenarios/techvault-enterprise-web.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+              "severity": "warning",
+              "topic": "objectives"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "provision.node.webapp",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.db",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.ad",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.workstation",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.wazuh-manager",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.wazuh-indexer",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.aptl-otel-collector",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.aptl-tempo",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.aptl-grafana-otel",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.webapp",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.db",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.ad",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.workstation",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.wazuh-manager",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.wazuh-indexer",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.aptl-otel-collector",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.aptl-tempo",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.aptl-grafana-otel",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 18,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 1
+              },
+              "orchestration": {},
+              "provisioning": {
+                "create": 12
+              }
+            },
+            "resources": {
+              "evaluation": 1,
+              "orchestration": 0,
+              "provisioning": 12
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.condition.wazuh-manager.wazuh-manager-health"
+              ],
+              "orchestration": []
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 1,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 0
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 3,
+                "nodes": 9
+              }
+            },
+            "metadata": {
+              "agents": 0,
+              "capability_constraints": 0,
+              "entities": 0,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 1,
+              "features": 1,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "techvault-enterprise-web",
+            "populated_sections": {
+              "conditions": 1,
+              "features": 1,
+              "infrastructure": 12,
+              "nodes": 12
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+            "severity": "warning",
+            "topic": "objectives"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "provision.node.webapp",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.db",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.ad",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.workstation",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.wazuh-manager",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.wazuh-indexer",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.aptl-otel-collector",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.aptl-tempo",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.aptl-grafana-otel",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.webapp",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.db",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.ad",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.workstation",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.wazuh-manager",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.wazuh-indexer",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.aptl-otel-collector",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.aptl-tempo",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.aptl-grafana-otel",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 18,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 1
+            },
+            "orchestration": {},
+            "provisioning": {
+              "create": 12
+            }
+          },
+          "resources": {
+            "evaluation": 1,
+            "orchestration": 0,
+            "provisioning": 12
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.condition.wazuh-manager.wazuh-manager-health"
+            ],
+            "orchestration": []
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 1,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 0
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 3,
+              "nodes": 9
+            }
+          },
+          "metadata": {
+            "agents": 0,
+            "capability_constraints": 0,
+            "entities": 0,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 1,
+            "features": 1,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "techvault-enterprise-web",
+          "populated_sections": {
+            "conditions": 1,
+            "features": 1,
+            "infrastructure": 12,
+            "nodes": 12
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

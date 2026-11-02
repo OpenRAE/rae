@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml": "sha256:f586fd21961fce86c468c68156ac20e877705b835719f9d166adf52efd144217"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

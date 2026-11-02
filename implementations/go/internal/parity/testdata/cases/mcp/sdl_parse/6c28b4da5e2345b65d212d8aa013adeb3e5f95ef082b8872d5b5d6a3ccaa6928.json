@@ -1,0 +1,77 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:54299df85fa43d00dcce83aecc1d4167d5f17a6c4993dbfc8d4f48684f2b0057"
+  },
+  "name": "regression/245457d7bae8a001bd824569594d8bcae25e49c5281fed1431b5288e9e97e315",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "mcp-test",
+            "populated_sections": {
+              "accounts": 1,
+              "action_contracts": 1,
+              "agents": 1,
+              "conditions": 1,
+              "content": 1,
+              "entities": 2,
+              "events": 1,
+              "features": 2,
+              "infrastructure": 3,
+              "injects": 1,
+              "nodes": 3,
+              "objectives": 1,
+              "relationships": 1,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "mcp-test",
+          "populated_sections": {
+            "accounts": 1,
+            "action_contracts": 1,
+            "agents": 1,
+            "conditions": 1,
+            "content": 1,
+            "entities": 2,
+            "events": 1,
+            "features": 2,
+            "infrastructure": 3,
+            "injects": 1,
+            "nodes": 3,
+            "objectives": 1,
+            "relationships": 1,
+            "scripts": 1,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

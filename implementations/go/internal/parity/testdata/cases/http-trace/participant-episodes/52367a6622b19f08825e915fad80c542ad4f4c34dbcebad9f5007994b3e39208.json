@@ -1,0 +1,332 @@
+{
+  "args": [],
+  "command": "participant episodes",
+  "files": {
+    "request.json": "sha256:aff0af4b29ee12cf8179d78389f312657e3cc0f4c0e428235f304990d891989f"
+  },
+  "name": "reference",
+  "result": {
+    "responses": [
+      {
+        "body": {
+          "accepted": true,
+          "context": {
+            "actor_id": "operator",
+            "authorization_scope": [
+              "role:auditor",
+              "role:backend",
+              "role:operator"
+            ],
+            "operation_kind": "participant-action",
+            "parent_operation_id": null,
+            "request_commitment": "sha256:1cfc4754223728e741636902bbec9daed9e48eb1ba95c80f72f9f815f80d8bb7",
+            "run_scope": "run:default",
+            "target_scope": "target:stub"
+          },
+          "diagnostics": [],
+          "domain": "participant",
+          "operation_id": "981392e8-1aaf-4f69-bf7d-092dd6bf5cd4",
+          "schema_version": "runtime-operation/v1",
+          "submitted_at": "2026-01-01T00:00:00Z"
+        },
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {
+          "episode_id": "parity-episode",
+          "episode_state": {
+            "initialized_at": "2026-01-01T00:00:00Z",
+            "last_control_action": "initialize",
+            "previous_episode_id": null,
+            "sequence_number": 0,
+            "state_schema_version": "participant-episode-state/v1",
+            "status": "running",
+            "terminal_reason": null,
+            "terminated_at": null,
+            "updated_at": "2026-01-01T00:00:00Z"
+          },
+          "generated_at": "2026-01-01T00:00:00Z",
+          "marking_definition_refs": [],
+          "open_operation_refs": [],
+          "participant_address": "participant.parity",
+          "redaction_policy_ref": null,
+          "source_snapshot_ref": "runtime.snapshot.revision.1",
+          "view_id": "runtime.participant-view.status.participant.parity.parity-episode",
+          "visibility_projection_ref": "runtime.visibility-projection.status.participant.parity.v1"
+        },
+        "headers": {
+          "content-type": "application/json",
+          "x-raes-snapshot-revision": "1"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {
+          "behavior_history": [],
+          "completeness": "complete",
+          "completeness_basis": null,
+          "episode_history": [
+            {
+              "control_action": "initialize",
+              "details": {},
+              "event_type": "episode_initialized",
+              "sequence_number": 0,
+              "terminal_reason": null,
+              "timestamp": "2026-01-01T00:00:00Z"
+            },
+            {
+              "control_action": null,
+              "details": {},
+              "event_type": "episode_running",
+              "sequence_number": 0,
+              "terminal_reason": null,
+              "timestamp": "2026-01-01T00:00:00Z"
+            }
+          ],
+          "episode_id": "parity-episode",
+          "generated_at": "2026-01-01T00:00:00Z",
+          "marking_definition_refs": [],
+          "participant_address": "participant.parity",
+          "redaction_policy_ref": null,
+          "source_snapshot_ref": "runtime.snapshot.revision.1",
+          "view_id": "runtime.participant-view.history.participant.parity.parity-episode",
+          "visibility_projection_ref": "runtime.visibility-projection.history.participant.parity.v1"
+        },
+        "headers": {
+          "content-type": "application/json",
+          "x-raes-snapshot-revision": "1"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {},
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status_code": 422
+      },
+      {
+        "body": {
+          "accepted": true,
+          "context": {
+            "actor_id": "operator",
+            "authorization_scope": [
+              "role:auditor",
+              "role:backend",
+              "role:operator"
+            ],
+            "operation_kind": "participant-action",
+            "parent_operation_id": null,
+            "request_commitment": "sha256:1e45607d020f029f1556f4d1cbc50bd8fb50621898cdbb4938fc814955a3ba31",
+            "run_scope": "run:default",
+            "target_scope": "target:stub"
+          },
+          "diagnostics": [],
+          "domain": "participant",
+          "operation_id": "ce6cbc75-5bb4-405a-add2-85e1866ebccf",
+          "schema_version": "runtime-operation/v1",
+          "submitted_at": "2026-01-01T00:00:00Z"
+        },
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {
+          "accepted": true,
+          "context": {
+            "actor_id": "operator",
+            "authorization_scope": [
+              "role:auditor",
+              "role:backend",
+              "role:operator"
+            ],
+            "operation_kind": "participant-action",
+            "parent_operation_id": null,
+            "request_commitment": "sha256:5ade71b9d5a73603e8f6ff1f8259d49e55ed06a0281ed80d627b7e2a33343d62",
+            "run_scope": "run:default",
+            "target_scope": "target:stub"
+          },
+          "diagnostics": [],
+          "domain": "participant",
+          "operation_id": "d441a96b-ba2c-4f9d-b63c-d0db191cf8d8",
+          "schema_version": "runtime-operation/v1",
+          "submitted_at": "2026-01-01T00:00:00Z"
+        },
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {
+          "accepted": true,
+          "context": {
+            "actor_id": "operator",
+            "authorization_scope": [
+              "role:auditor",
+              "role:backend",
+              "role:operator"
+            ],
+            "operation_kind": "participant-action",
+            "parent_operation_id": null,
+            "request_commitment": "sha256:2b58a530c2e2e09bc0221556faff9040ca107cafeabc5420b6b77397141dc5ab",
+            "run_scope": "run:default",
+            "target_scope": "target:stub"
+          },
+          "diagnostics": [],
+          "domain": "participant",
+          "operation_id": "8ec40e45-a07a-4de6-8b4c-17912ca9e371",
+          "schema_version": "runtime-operation/v1",
+          "submitted_at": "2026-01-01T00:00:00Z"
+        },
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status_code": 200
+      },
+      {
+        "body": {
+          "entries": {},
+          "evaluation_history": {},
+          "evaluation_results": {},
+          "information_state_history": {},
+          "joint_action_records": {},
+          "materialization_attestations": [],
+          "metadata": {},
+          "mixed_composition_history": {},
+          "mixed_composition_states": {},
+          "orchestration_history": {},
+          "orchestration_results": {},
+          "participant_autonomous_execution_states": {},
+          "participant_behavior_history": {},
+          "participant_control_evaluation_history": {},
+          "participant_control_history": {},
+          "participant_crossing_history": {},
+          "participant_episode_closure_records": {},
+          "participant_episode_history": {
+            "participant.parity": [
+              {
+                "control_action": "initialize",
+                "details": {},
+                "episode_id": "parity-episode",
+                "event_type": "episode_initialized",
+                "participant_address": "participant.parity",
+                "sequence_number": 0,
+                "terminal_reason": null,
+                "timestamp": "2026-01-01T00:00:00Z"
+              },
+              {
+                "control_action": null,
+                "details": {},
+                "episode_id": "parity-episode",
+                "event_type": "episode_running",
+                "participant_address": "participant.parity",
+                "sequence_number": 0,
+                "terminal_reason": null,
+                "timestamp": "2026-01-01T00:00:00Z"
+              },
+              {
+                "control_action": "reset",
+                "details": {
+                  "previous_episode_id": "parity-episode",
+                  "reason": "parity reset"
+                },
+                "episode_id": "participant.parity-episode-1",
+                "event_type": "episode_reset",
+                "participant_address": "participant.parity",
+                "sequence_number": 1,
+                "terminal_reason": null,
+                "timestamp": "2026-01-01T00:00:00Z"
+              },
+              {
+                "control_action": null,
+                "details": {},
+                "episode_id": "participant.parity-episode-1",
+                "event_type": "episode_running",
+                "participant_address": "participant.parity",
+                "sequence_number": 1,
+                "terminal_reason": null,
+                "timestamp": "2026-01-01T00:00:00Z"
+              },
+              {
+                "control_action": null,
+                "details": {
+                  "detail": "terminated by operator"
+                },
+                "episode_id": "participant.parity-episode-1",
+                "event_type": "episode_completed",
+                "participant_address": "participant.parity",
+                "sequence_number": 1,
+                "terminal_reason": "completed",
+                "timestamp": "2026-01-01T00:00:00Z"
+              },
+              {
+                "control_action": "restart",
+                "details": {
+                  "previous_episode_id": "participant.parity-episode-1",
+                  "reason": "restarted by operator"
+                },
+                "episode_id": "participant.parity-episode-2",
+                "event_type": "episode_restarted",
+                "participant_address": "participant.parity",
+                "sequence_number": 2,
+                "terminal_reason": null,
+                "timestamp": "2026-01-01T00:00:00Z"
+              },
+              {
+                "control_action": null,
+                "details": {},
+                "episode_id": "participant.parity-episode-2",
+                "event_type": "episode_running",
+                "participant_address": "participant.parity",
+                "sequence_number": 2,
+                "terminal_reason": null,
+                "timestamp": "2026-01-01T00:00:00Z"
+              }
+            ]
+          },
+          "participant_episode_results": {
+            "participant.parity": {
+              "episode_id": "participant.parity-episode-2",
+              "initialized_at": "2026-01-01T00:00:00Z",
+              "last_control_action": "restart",
+              "participant_address": "participant.parity",
+              "previous_episode_id": "participant.parity-episode-1",
+              "sequence_number": 2,
+              "state_schema_version": "participant-episode-state/v1",
+              "status": "running",
+              "terminal_reason": null,
+              "terminated_at": null,
+              "updated_at": "2026-01-01T00:00:00Z"
+            }
+          },
+          "participant_execution_services": {},
+          "participant_outcome_history": {},
+          "participant_resource_budget_events": {},
+          "participant_resource_budget_states": {},
+          "participant_resource_pool_states": {},
+          "proposition_truth_results": {},
+          "realization_envelope": null,
+          "realization_observations": [],
+          "realization_provenance": [],
+          "schema_version": "runtime-snapshot/v1",
+          "shared_state_history": {},
+          "shared_state_records": {},
+          "time_management_contexts": {},
+          "time_model_state": null
+        },
+        "headers": {
+          "content-type": "application/json",
+          "x-raes-snapshot-revision": "4"
+        },
+        "status_code": 200
+      }
+    ]
+  },
+  "surface": "http-trace"
+}

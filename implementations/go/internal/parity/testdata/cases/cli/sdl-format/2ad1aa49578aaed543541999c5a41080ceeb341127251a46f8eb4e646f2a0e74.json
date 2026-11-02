@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/library/patterns/participant-behavior-contract-binding.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/library/patterns/participant-behavior-contract-binding.yaml": "sha256:13562ff6b1191201041810e70822e3c8529c9f9f285582ca8f3ebb13d3353be1"
+  },
+  "name": "examples/library/patterns/participant-behavior-contract-binding.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

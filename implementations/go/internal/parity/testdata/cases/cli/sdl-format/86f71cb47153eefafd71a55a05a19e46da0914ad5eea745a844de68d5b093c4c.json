@@ -1,0 +1,203 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml": "sha256:d1bdc768736d6817a008809658c0cf7406b7544af2208d4aee281d5036e2fd18"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "agents": {
+        "red-agent": {
+          "affiliations": [
+            "red-team"
+          ],
+          "observation_boundaries": [
+            "red-view"
+          ]
+        }
+      },
+      "behavior_specifications": {
+        "red-briefing": {
+          "observation_boundary_refs": [
+            "red-view"
+          ],
+          "participant_inject_deliveries": {
+            "leak": {
+              "delivery_kind": "disclosure",
+              "delivery_policy": {
+                "audience_scope_ref": "audience.participant.red-agent",
+                "disclosure_basis_ref": "disclosures.answer-key.v1",
+                "exposure_policy_ref": "exposure-policy.red.v1",
+                "policy_ref": "projection-policy.red.v1",
+                "policy_revision": "1.0.0",
+                "visibility_basis_ref": "visibility-bases.answer-key.v1"
+              },
+              "evidence_requirement_refs": [
+                "delivery-evidence"
+              ],
+              "failure_disposition": "reject-no-delivery",
+              "inject_ref": "environment-inject",
+              "observation_boundary_ref": "red-view",
+              "occurrence": {
+                "event_ref": "environment-event",
+                "script_ref": "environment-script",
+                "story_ref": "environment-story"
+              },
+              "order_basis": "orchestration-occurrence-and-shared-time",
+              "participant_ref": "red-agent",
+              "result_item_ref": "content.answer-key",
+              "source_item_ref": "content.answer-key",
+              "temporal_constraint_refs": [
+                "delivery-window"
+              ]
+            }
+          },
+          "participant_refs": [
+            "red-agent"
+          ],
+          "semantic_version": "1.0.0"
+        }
+      },
+      "clocks": {
+        "exercise-clock": {
+          "authority_kind": "runtime",
+          "authority_ref": "runtime.scheduler",
+          "description": "exercise scheduler clock",
+          "monotonicity": "non_decreasing",
+          "time_domain_ref": "exercise-time"
+        }
+      },
+      "content": {
+        "answer-key": {
+          "path": "/opt/answer-key.txt",
+          "sensitive": true,
+          "target": "web",
+          "text": "hidden adjudication content",
+          "type": "file"
+        }
+      },
+      "entities": {
+        "red-team": {
+          "role": "red"
+        }
+      },
+      "events": {
+        "environment-event": {
+          "injects": [
+            "environment-inject"
+          ]
+        }
+      },
+      "evidence_requirements": {
+        "delivery-evidence": {
+          "artifact_role": "delivery_evidence",
+          "channel": "log",
+          "description": "capture attempted delivery evidence",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "web"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "behavior_specifications.red-briefing.participant_inject_deliveries.leak"
+          ],
+          "window": "attempted delivery window"
+        }
+      },
+      "injects": {
+        "environment-inject": {
+          "description": "environment-only effect",
+          "environment": [
+            "set-exercise-banner"
+          ]
+        }
+      },
+      "name": "dsl-142-hidden-leakage",
+      "nodes": {
+        "web": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "observation_boundaries": {
+        "red-view": {
+          "hidden_refs": [
+            "content.answer-key"
+          ],
+          "latency_profile": "delivery-order bound",
+          "observable_refs": [
+            "nodes.web"
+          ],
+          "projection_basis": "participant-local hidden-answer view",
+          "redaction_policy": "hidden answer remains hidden",
+          "view_rules": [
+            {
+              "boundary_class": "private_answer_key",
+              "disposition": "hidden",
+              "information_ref": "content.answer-key",
+              "visibility_basis": "adjudication-only hidden truth"
+            }
+          ]
+        }
+      },
+      "scripts": {
+        "environment-script": {
+          "end_time": 10,
+          "events": {
+            "environment-event": 5
+          },
+          "speed": 1.0,
+          "start_time": 0
+        }
+      },
+      "stories": {
+        "environment-story": {
+          "scripts": [
+            "environment-script"
+          ]
+        }
+      },
+      "temporal_constraints": {
+        "delivery-window": {
+          "clock_ref": "exercise-clock",
+          "constraint_kind": "window",
+          "description": "attempted delivery window",
+          "end": {
+            "tick": 6
+          },
+          "start": {
+            "tick": 4
+          },
+          "subject_refs": [
+            "behavior_specifications.red-briefing.participant_inject_deliveries.leak"
+          ]
+        }
+      },
+      "time_domains": {
+        "exercise-time": {
+          "description": "exercise logical time",
+          "epoch": "scenario_start",
+          "kind": "logical",
+          "tick_period_seconds": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "visibility": "participant_visible"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

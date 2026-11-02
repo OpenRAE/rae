@@ -1,0 +1,201 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "agents": {
+        "red-agent": {
+          "affiliations": [
+            "red-team"
+          ],
+          "observation_boundaries": [
+            "red-view"
+          ]
+        }
+      },
+      "behavior_specifications": {
+        "red-briefing": {
+          "observation_boundary_refs": [
+            "red-view"
+          ],
+          "participant_inject_deliveries": {
+            "briefing": {
+              "delivery_kind": "disclosure",
+              "delivery_policy": {
+                "audience_scope_ref": "audience.participant.red-agent",
+                "disclosure_basis_ref": "disclosures.briefing.v1",
+                "exposure_policy_ref": "exposure-policy.red.v1",
+                "policy_ref": "projection-policy.red.v1",
+                "policy_revision": "1.0.0",
+                "visibility_basis_ref": "visibility-bases.briefing.v1"
+              },
+              "evidence_requirement_refs": [
+                "briefing-delivery-evidence"
+              ],
+              "failure_disposition": "reject-no-delivery",
+              "inject_ref": "briefing-inject",
+              "observation_boundary_ref": "red-view",
+              "occurrence": {
+                "event_ref": "briefing-event",
+                "script_ref": "briefing-script",
+                "story_ref": "briefing-story"
+              },
+              "order_basis": "orchestration-occurrence-and-shared-time",
+              "participant_ref": "red-agent",
+              "result_item_ref": "content.briefing",
+              "source_item_ref": "content.briefing",
+              "temporal_constraint_refs": [
+                "briefing-window"
+              ]
+            }
+          },
+          "participant_refs": [
+            "red-agent"
+          ],
+          "semantic_version": "1.0.0"
+        }
+      },
+      "clocks": {
+        "exercise-clock": {
+          "authority_kind": "runtime",
+          "authority_ref": "runtime.scheduler",
+          "description": "exercise scheduler clock",
+          "monotonicity": "non_decreasing",
+          "time_domain_ref": "exercise-time"
+        }
+      },
+      "content": {
+        "briefing": {
+          "path": "/opt/briefing.txt",
+          "sensitive": true,
+          "target": "web",
+          "text": "governed participant briefing",
+          "type": "file"
+        }
+      },
+      "entities": {
+        "red-team": {
+          "role": "red"
+        }
+      },
+      "events": {
+        "briefing-event": {
+          "injects": [
+            "briefing-inject"
+          ]
+        }
+      },
+      "evidence_requirements": {
+        "briefing-delivery-evidence": {
+          "artifact_role": "delivery_evidence",
+          "channel": "log",
+          "description": "capture governed participant delivery evidence",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "web"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "behavior_specifications.red-briefing.participant_inject_deliveries.briefing"
+          ],
+          "window": "briefing delivery window"
+        }
+      },
+      "injects": {
+        "briefing-inject": {
+          "description": "orchestration briefing",
+          "environment": [
+            "set-exercise-banner"
+          ]
+        }
+      },
+      "name": "dsl-142",
+      "nodes": {
+        "web": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "observation_boundaries": {
+        "red-view": {
+          "latency_profile": "delivery-order bound",
+          "observable_refs": [
+            "content.briefing"
+          ],
+          "projection_basis": "participant-local governed briefing view",
+          "redaction_policy": "hidden refs remain hidden",
+          "view_rules": [
+            {
+              "boundary_class": "instruction",
+              "disclosure_rule": "disclosures.briefing.v1",
+              "disposition": "disclosed",
+              "information_ref": "content.briefing",
+              "visibility_basis": "visibility-bases.briefing.v1"
+            }
+          ]
+        }
+      },
+      "scripts": {
+        "briefing-script": {
+          "end_time": 10,
+          "events": {
+            "briefing-event": 5
+          },
+          "speed": 1.0,
+          "start_time": 0
+        }
+      },
+      "stories": {
+        "briefing-story": {
+          "scripts": [
+            "briefing-script"
+          ]
+        }
+      },
+      "temporal_constraints": {
+        "briefing-window": {
+          "clock_ref": "exercise-clock",
+          "constraint_kind": "window",
+          "description": "participant briefing delivery window",
+          "end": {
+            "tick": 6
+          },
+          "start": {
+            "tick": 4
+          },
+          "subject_refs": [
+            "behavior_specifications.red-briefing.participant_inject_deliveries.briefing"
+          ]
+        }
+      },
+      "time_domains": {
+        "exercise-time": {
+          "description": "exercise logical time",
+          "epoch": "scenario_start",
+          "kind": "logical",
+          "tick_period_seconds": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "visibility": "participant_visible"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,129 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:e46581285fe8054eb8bfa855deb6fa7baddeeabf78b3d3605b51fdfc574812f5"
+  },
+  "name": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "participant-agent"
+          ],
+          "conditions": [
+            "wazuh-manager-health",
+            "participant-observation-recorded",
+            "wazuh-evidence-recorded",
+            "policy-decision-recorded",
+            "boundary-checks-recorded"
+          ],
+          "content": [
+            "task-brief",
+            "participant-observation",
+            "wazuh-evidence",
+            "policy-decision-log",
+            "boundary-check-evidence",
+            "evaluator-notes"
+          ],
+          "entities": [
+            "enterprise-participant",
+            "enterprise-defender",
+            "enterprise-evaluator"
+          ],
+          "infrastructure": [
+            "redteam-net",
+            "dmz-net",
+            "internal-net",
+            "security-net",
+            "red-workbench",
+            "customer-portal",
+            "customer-db",
+            "wazuh-manager",
+            "wazuh-indexer",
+            "participant-policy-gate"
+          ],
+          "nodes": [
+            "redteam-net",
+            "dmz-net",
+            "internal-net",
+            "security-net",
+            "red-workbench",
+            "customer-portal",
+            "customer-db",
+            "wazuh-manager",
+            "wazuh-indexer",
+            "participant-policy-gate"
+          ],
+          "objectives": [
+            "demonstrate-handoff"
+          ],
+          "workflows": [
+            "reference-handoff"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "participant-agent"
+        ],
+        "conditions": [
+          "wazuh-manager-health",
+          "participant-observation-recorded",
+          "wazuh-evidence-recorded",
+          "policy-decision-recorded",
+          "boundary-checks-recorded"
+        ],
+        "content": [
+          "task-brief",
+          "participant-observation",
+          "wazuh-evidence",
+          "policy-decision-log",
+          "boundary-check-evidence",
+          "evaluator-notes"
+        ],
+        "entities": [
+          "enterprise-participant",
+          "enterprise-defender",
+          "enterprise-evaluator"
+        ],
+        "infrastructure": [
+          "redteam-net",
+          "dmz-net",
+          "internal-net",
+          "security-net",
+          "red-workbench",
+          "customer-portal",
+          "customer-db",
+          "wazuh-manager",
+          "wazuh-indexer",
+          "participant-policy-gate"
+        ],
+        "nodes": [
+          "redteam-net",
+          "dmz-net",
+          "internal-net",
+          "security-net",
+          "red-workbench",
+          "customer-portal",
+          "customer-db",
+          "wazuh-manager",
+          "wazuh-indexer",
+          "participant-policy-gate"
+        ],
+        "objectives": [
+          "demonstrate-handoff"
+        ],
+        "workflows": [
+          "reference-handoff"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

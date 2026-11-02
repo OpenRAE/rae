@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:d4aed2bde92fc5cf1c1953ac84038b89dc016055bedcf1bc4a5813cdf8497aba"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\ndescription: 'Minimal guest-certified realization scenario. One bounded appliance\n  node boots through the production apply path and is certified from inside the guest\n  - resource allocation, network addressing, file content, and service state are read\n  back from the realized guest, freshness-bound to a per-run challenge, with verified\n  teardown. RAES 7.0.0 used it for the removed libvirt guest certification; a backend\n  distribution can use it for its own proof.\n\n  '\nnodes:\n  guest-net:\n    type: switch\n  guest-vm:\n    type: compute\n    os: linux\n    resources:\n      ram: 128 MiB\n      cpu: 1\n    services:\n    - name: beacon\n      port: 9000\n      protocol: tcp\ncontent:\n  guest-marker:\n    type: file\n    target: guest-vm\n    path: /etc/raes/marker\n    text: 'guest-certified realization marker\n\n      '\n    sensitive: false\ninfrastructure:\n  guest-net:\n    properties:\n      cidr: 192.0.2.0/24\n      gateway: 192.0.2.1\n      internal: true\n  guest-vm:\n    links:\n    - guest-net\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\ndescription: 'Minimal guest-certified realization scenario. One bounded appliance\n  node boots through the production apply path and is certified from inside the guest\n  - resource allocation, network addressing, file content, and service state are read\n  back from the realized guest, freshness-bound to a per-run challenge, with verified\n  teardown. RAES 7.0.0 used it for the removed libvirt guest certification; a backend\n  distribution can use it for its own proof.\n\n  '\nnodes:\n  guest-net:\n    type: switch\n  guest-vm:\n    type: compute\n    os: linux\n    resources:\n      ram: 128 MiB\n      cpu: 1\n    services:\n    - name: beacon\n      port: 9000\n      protocol: tcp\ncontent:\n  guest-marker:\n    type: file\n    target: guest-vm\n    path: /etc/raes/marker\n    text: 'guest-certified realization marker\n\n      '\n    sensitive: false\ninfrastructure:\n  guest-net:\n    properties:\n      cidr: 192.0.2.0/24\n      gateway: 192.0.2.1\n      internal: true\n  guest-vm:\n    links:\n    - guest-net\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

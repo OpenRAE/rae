@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-configuration-result-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:38ed8016e880e1637746813e3518d45d40b456bde3bfa499f55b07c356fae628"
+  },
+  "name": "regression/c8bdc91cbb3aab868e86dfde98681f7374a70881702c4c8982b507e770d727ec",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

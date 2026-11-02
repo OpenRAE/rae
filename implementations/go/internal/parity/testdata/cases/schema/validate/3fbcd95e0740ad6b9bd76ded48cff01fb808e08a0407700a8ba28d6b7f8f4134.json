@@ -1,0 +1,14 @@
+{
+  "args": [
+    "runtime-fact-binding-plane-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:498e50c751cdd1353c3abcab726a951283808575d537247cd237bf9363d93b0e"
+  },
+  "name": "regression/e23b19261196179602529550bd9046ea50a3fa16a7493c6e29f749ffafe11426",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

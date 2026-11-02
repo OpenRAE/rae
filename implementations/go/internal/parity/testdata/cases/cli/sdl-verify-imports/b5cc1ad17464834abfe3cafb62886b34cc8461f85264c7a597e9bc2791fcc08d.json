@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml": "sha256:d1bdc768736d6817a008809658c0cf7406b7544af2208d4aee281d5036e2fd18",
+    "setup.json": "sha256:8ddd6027869f99c15bd190c08e67e093fa73fd9a2588b16f53044ee58adb0383"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

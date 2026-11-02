@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:2418556fb9fe5f0187254a8e95582367f4f4c6e270ebb2aa5a9cb1b825995f38"
+  },
+  "name": "regression/de936ab9537696ed529e8e94f1999d40abb7804921c8dac618d94d5d77c968ca",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/action_contracts/probe-customer-portal-login/temporal_contracts/0",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 182
+                },
+                "start": {
+                  "column": 7,
+                  "line": 159
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/action_contracts/probe-customer-portal-login/temporal_contracts/0",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 182
+              },
+              "start": {
+                "column": 7,
+                "line": 159
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

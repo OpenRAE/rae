@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-trigger-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:3e390d59303a11388a9ef1848ffb19c05dc8c414158f11d957f018563227a4f5"
+  },
+  "name": "contracts/fixtures/control-plane/inject-trigger-request-v1/context-invalid/foreign-binding",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

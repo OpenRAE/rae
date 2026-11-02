@@ -1,0 +1,76 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml",
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml": "sha256:11a4d8a3d4d39c5d93eae692d69e59355279dfdcf33864180067737acdddfdff"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "actions": {
+        "create": 0,
+        "delete": 0,
+        "unchanged": 2,
+        "update": 0
+      },
+      "baseline": {
+        "diagnostics": [],
+        "scenario_name": "cross-backend-minimal",
+        "snapshot": {
+          "entries": [
+            {
+              "address": "provision.network.lab",
+              "domain": "provisioning",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [],
+              "resource_type": "network"
+            },
+            {
+              "address": "provision.node.workload",
+              "domain": "provisioning",
+              "ordering_dependencies": [
+                "provision.network.lab"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "provision.network.lab"
+              ],
+              "resource_type": "node"
+            }
+          ],
+          "entry_count": 2
+        }
+      },
+      "candidate": {
+        "diagnostics": [],
+        "scenario_name": "cross-backend-minimal"
+      },
+      "operations": [
+        {
+          "action": "unchanged",
+          "address": "provision.network.lab",
+          "domain": "provisioning",
+          "resource_type": "network"
+        },
+        {
+          "action": "unchanged",
+          "address": "provision.node.workload",
+          "domain": "provisioning",
+          "resource_type": "node"
+        }
+      ],
+      "snapshot_kind": "planned-state-projection",
+      "status": "reconciled"
+    }
+  },
+  "surface": "cli"
+}

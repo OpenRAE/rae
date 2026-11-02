@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-status-view-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:bb2fc51139e73dfb3608b281c11374e4971d49908facf69e876f2ba107d24860"
+  },
+  "name": "regression/92338aebe019bd9b154bfacab6eb9b01a89721c6fa069fd3b30e1f3fb6e751dc",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,44 @@
+{
+  "args": [
+    "semantic",
+    "parse",
+    "input/succeeded.json",
+    "--contract",
+    "operation-status-v1",
+    "--output",
+    "json"
+  ],
+  "command": "semantic parse",
+  "files": {
+    "input/succeeded.json": "sha256:4d0506684c18e379a09a3b91fb7881fc9daba8fcda1ee6d1104e7d6f0e0e897d"
+  },
+  "name": "regression/950af1f78c63c972f99de0abe6c9df504702035702de85f6b9a38836e764750f",
+  "result": {
+    "exit_code": 3,
+    "stdout": {
+      "contract_id": "operation-status-v1",
+      "diagnostics": [
+        {
+          "address": "",
+          "code": "cli.operation-unsupported",
+          "domain": "cli",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "parse",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "unsupported",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

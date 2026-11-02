@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /runtime/progress",
+  "files": {
+    "request.json": "sha256:5b482e78a8955e6f60c18edd313b1ba05bf74a8e063f2716defcb54771621dea"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 422
+  },
+  "surface": "http"
+}

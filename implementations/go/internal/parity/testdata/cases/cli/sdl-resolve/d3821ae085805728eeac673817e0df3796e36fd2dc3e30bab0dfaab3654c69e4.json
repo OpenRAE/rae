@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27"
+  },
+  "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/cloud-resources/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

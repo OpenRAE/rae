@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:f3065ec75d3bff010acc25a08345751ec15c9b59e2a5cb6075028106559b0a72"
+  },
+  "name": "inject-occurrence-outcome-v1/routed/contracts/fixtures/control-plane/inject-occurrence-outcome-v1/context-invalid/unproven-refusal.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_instantiate",
+  "files": {
+    "arguments.json": "sha256:f056b4066d084645eebbea6a6952a61c8c552e25a71becb49fa582559e219674"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "INSTANTIATION ERRORS (1)": [
+            "Scenario has unresolved variation points; recorded selection integration is required before instantiation."
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "INSTANTIATION ERRORS (1)": [
+          "Scenario has unresolved variation points; recorded selection integration is required before instantiation."
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

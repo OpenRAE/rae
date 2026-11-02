@@ -1,0 +1,14 @@
+{
+  "args": [
+    "materialized-scenario-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:81baaeeb35793afef36d810b2ebf521eaf789661ed2bcb9978d5f9244bf2545f"
+  },
+  "name": "regression/157b3e73dd974c1e31d585e844536ca60f032409e76b7482727590cab01368df",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,319 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:5969eaa8b3836e3ecafe934960db0eb48dd9fe33de7f65de1552f3de8ca1ef39"
+  },
+  "name": "examples/library/templates/task/single-objective-task.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "template: raes-library-template\nversion: 1\nid: single-objective-task\nsurface: task\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/limitations.md\nsummary: Task template using current SDL objectives and conditions as the materialized\n  task boundary.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-task-template\n  description: Task-oriented SDL wrapper using a single objective and success condition.\n  nodes:\n    target:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 22\n        name: ssh\n  conditions:\n    task-complete:\n      proposition: task-complete\n      command: test -f /tmp/raes-task-complete\n      interval: 15\n  entities:\n    participant:\n      role: blue\n  agents:\n    task-agent:\n      affiliations:\n      - participant\n  propositions:\n    task-complete:\n      description: The governed task-complete observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.target.services.ssh\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: task-complete\n        semantic_ref: urn:raes:observable:task-complete\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    task-complete:\n      proposition: task-complete\n      role: postcondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.target.services.ssh\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    complete-service-check-task:\n      assigned_participant: task-agent\n      targets:\n      - nodes.target.services.ssh\n      success:\n        assertions:\n        - task-complete\n  workflows:\n    task-flow:\n      start: perform-task\n      steps:\n        perform-task:\n          type: objective\n          objective: complete-service-check-task\n          on_success: done\n        done:\n          type: end\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/template",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 1
+                },
+                "start": {
+                  "column": 11,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 26,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 17,
+                  "line": 11
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 21
+                },
+                "start": {
+                  "column": 1,
+                  "line": 13
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/body",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 99
+                },
+                "start": {
+                  "column": 3,
+                  "line": 22
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "template: raes-library-template\nversion: 1\nid: single-objective-task\nsurface: task\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/limitations.md\nsummary: Task template using current SDL objectives and conditions as the materialized\n  task boundary.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-task-template\n  description: Task-oriented SDL wrapper using a single objective and success condition.\n  nodes:\n    target:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 22\n        name: ssh\n  conditions:\n    task-complete:\n      proposition: task-complete\n      command: test -f /tmp/raes-task-complete\n      interval: 15\n  entities:\n    participant:\n      role: blue\n  agents:\n    task-agent:\n      affiliations:\n      - participant\n  propositions:\n    task-complete:\n      description: The governed task-complete observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.target.services.ssh\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: task-complete\n        semantic_ref: urn:raes:observable:task-complete\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    task-complete:\n      proposition: task-complete\n      role: postcondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.target.services.ssh\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    complete-service-check-task:\n      assigned_participant: task-agent\n      targets:\n      - nodes.target.services.ssh\n      success:\n        assertions:\n        - task-complete\n  workflows:\n    task-flow:\n      start: perform-task\n      steps:\n        perform-task:\n          type: objective\n          objective: complete-service-check-task\n          on_success: done\n        done:\n          type: end\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/template",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 1
+              },
+              "start": {
+                "column": 11,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 26,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 17,
+                "line": 11
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 21
+              },
+              "start": {
+                "column": 1,
+                "line": 13
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/body",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 99
+              },
+              "start": {
+                "column": 3,
+                "line": 22
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

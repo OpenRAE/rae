@@ -1,0 +1,1353 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "repo/contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml": "sha256:56fd670d994057fc4908e35395faf70e3f425fbe50c3a011576dbefa8b8c2558"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "diagnostics": [
+        {
+          "address": "provision.node.manager",
+          "code": "provisioner.unsupported-operating-system",
+          "domain": "provisioning",
+          "severity": "error"
+        },
+        {
+          "address": "provision.node.manager",
+          "code": "realization.under-observed-exact-requirement",
+          "domain": "runtime-realization",
+          "severity": "error"
+        },
+        {
+          "address": "provision.node.manager",
+          "code": "realization.unsupported-exact-requirement",
+          "domain": "runtime-realization",
+          "severity": "error"
+        }
+      ],
+      "evaluation": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operations": [],
+        "run_id": null,
+        "startup_order": []
+      },
+      "orchestration": {
+        "diagnostics": [],
+        "observation_demands": [],
+        "operations": [],
+        "startup_order": []
+      },
+      "provisioning": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operation_id": null,
+        "operations": [
+          {
+            "action": "create",
+            "address": "provision.node.manager",
+            "ordering_dependencies": [],
+            "payload": {
+              "architecture": "",
+              "count": null,
+              "domain_topology": null,
+              "name": "manager",
+              "network_namespace_target": "",
+              "node_kind": "compute",
+              "node_name": "manager",
+              "os_distribution": "",
+              "os_family": "linux",
+              "os_version": "",
+              "spec": {
+                "infrastructure": {},
+                "node": {
+                  "asset_value": null,
+                  "conditions": {},
+                  "description": "",
+                  "endpoint_persona": null,
+                  "features": {},
+                  "injects": {},
+                  "os": "linux",
+                  "resources": {
+                    "cpu": 1,
+                    "ram": 1073741824
+                  },
+                  "roles": {},
+                  "runtime": {
+                    "container": null,
+                    "environment_files": [],
+                    "network": null,
+                    "operational_policy": null,
+                    "packages": [
+                      {
+                        "architecture": "",
+                        "manager": "apt",
+                        "name": "wazuh-agent",
+                        "purl": "",
+                        "repository": {
+                          "components": [
+                            "main"
+                          ],
+                          "profile_version": "1",
+                          "repository_profile": "apt",
+                          "signing_key": {
+                            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                            "format": "openpgp-ascii-armored",
+                            "uri": "https://packages.wazuh.com/key/GPG-KEY-WAZUH"
+                          },
+                          "suite": "stable",
+                          "uri": "https://packages.wazuh.com/4.x/apt/"
+                        },
+                        "source": "",
+                        "version": "4.12.0-1"
+                      }
+                    ]
+                  },
+                  "services": [],
+                  "source": null,
+                  "type": "compute"
+                }
+              }
+            },
+            "refresh_dependencies": [],
+            "resource_type": "node"
+          }
+        ],
+        "realization_authority": [
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "constraint_binding": "sha256:c05719378dbe6b888bd2e7a1956dc00d108dbe5778a8bf5fadf3c3861a778068",
+            "constraint_document": {
+              "contract_id": "recursive-realization-constraint-v1",
+              "default_closure": {
+                "posture": "undefined",
+                "profile": null,
+                "universe": null
+              },
+              "definitions": {},
+              "root": {
+                "kind": "literal",
+                "origin": "author",
+                "presence": "required",
+                "value": "compute"
+              },
+              "scopes": [],
+              "semantic_profile": "raes/node-type/v1"
+            },
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.type",
+            "governing_scope": "#/nodes/manager/type",
+            "mode": "exact",
+            "payload_pointer": "/node_kind",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "node-type",
+            "source": "authored-leaf",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "constraint_binding": "sha256:fb35a1fb951547d7a2f77935809b7fdc8518f5008c1843e623da808c846d9b60",
+            "constraint_document": {
+              "contract_id": "recursive-realization-constraint-v1",
+              "default_closure": {
+                "posture": "undefined",
+                "profile": null,
+                "universe": null
+              },
+              "definitions": {},
+              "root": {
+                "kind": "literal",
+                "origin": "author",
+                "presence": "required",
+                "value": "linux"
+              },
+              "scopes": [],
+              "semantic_profile": "raes/os-family/v1"
+            },
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.os",
+            "governing_scope": "#/nodes/manager/os",
+            "mode": "exact",
+            "payload_pointer": "/os_family",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "os-family",
+            "source": "authored-leaf",
+            "verification_scope": "presence"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.os_distribution",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/os_distribution",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "os-distribution",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.os_version",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/os_version",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "os-version",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.architecture",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/architecture",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "node-architecture",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.environment",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/environment",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-environment",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.mounts",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/mounts",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-mounts",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.linux_capabilities",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/linux_capabilities",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "linux-capabilities",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.operational_policy.resource_limits.process_limits",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/process_limits",
+            "provenance": "author-declared",
+            "required_observation_strength": "guest-observed",
+            "requirement_kind": "process-resource-limits",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.network.published_ports",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/published_ports",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "published-ports",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.forwarding_agents",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/forwarding_agents",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "forwarding-agents",
+            "source": "legacy-default",
+            "verification_scope": "presence"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.service_listeners",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/service_listeners",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "service-listeners",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.filesystem_inventory",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/filesystem_inventory",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-filesystem-inventory",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.local_control_interfaces",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/local_control_interfaces",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-local-control-interfaces",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.processes",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/processes",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-processes",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.operational_policy.restart",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/restart",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-restart-policy",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.operational_policy.resource_limits.memory",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/memory",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-memory-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.operational_policy.resource_limits.memory_swap",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/memory_swap",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-memory-swap-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.operational_policy.resource_limits.cpu",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/cpu",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-cpu-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.operational_policy.resource_limits.pids",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/pids",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-node-pids-limit",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.entrypoint",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/entrypoint",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-entrypoint",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.command",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/command",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-command",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.log_driver",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/log_driver",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-log-driver",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.log_options",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/log_options",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-log-options",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.namespaces",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/namespaces",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-namespaces",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.privileged",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/privileged",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-privileged",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.read_only_rootfs",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/read_only_rootfs",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-read-only-rootfs",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.publish_all_ports",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/publish_all_ports",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-publish-all-ports",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.autoremove",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/autoremove",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-autoremove",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.shm_size",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/shm_size",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-shm-size",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.masked_paths",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/masked_paths",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-masked-paths",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.read_only_paths",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/read_only_paths",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-read-only-paths",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.cgroup_parent",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/cgroup_parent",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-cgroup-parent",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.runtime_name",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/runtime_name",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-runtime-name",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.init_process",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/init_process",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-init-process",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.devices",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/devices",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-devices",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.device_cgroup_rules",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/device_cgroup_rules",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-device-cgroup-rules",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.seccomp_profile",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/seccomp_profile",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-seccomp-profile",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.security_opt",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/security_opt",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-security-opt",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.extra_hosts",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/extra_hosts",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-extra-hosts",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.dns",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/dns",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-dns",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.dns_options",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/dns_options",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-dns-options",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.dns_search",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/dns_search",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-dns-search",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.container.group_add",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/container/group_add",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-container-group-add",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.local_identity",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/local_identity",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-local-identity",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.identity_authorities",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/identity_authorities",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-identity-authorities",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.file_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/file_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-file-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.mail_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/mail_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-mail-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.network.hostname",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/hostname",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-hostname",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.network.domainname",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/domainname",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-domainname",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.network.endpoints",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network/endpoints",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-endpoints",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.applications",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/applications",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-applications",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.database_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/database_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-database-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.dns_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/dns_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-dns-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.network_sensors",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network_sensors",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-sensors",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.network_detection_engines",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/network_detection_engines",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-network-detection-engines",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.security_monitoring_managers",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/security_monitoring_managers",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-security-monitoring-managers",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.ssh_servers",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/ssh_servers",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-ssh-servers",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.datastore_services",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/datastore_services",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-datastore-services",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.platform_applications",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/platform_applications",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-platform-applications",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.orchestration_authorities",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/orchestration_authorities",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-orchestration-authorities",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.app_authorizations",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/app_authorizations",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-app-authorizations",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.scheduled_jobs",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/scheduled_jobs",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-scheduled-jobs",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.service_manager_units",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/service_manager_units",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-service-manager-units",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "constraint_binding": "sha256:9d38bb3ce0f1ea3121f89b2fa8820ed275806e3a34449091d55f2942356422ec",
+            "constraint_document": {
+              "contract_id": "recursive-realization-constraint-v1",
+              "default_closure": {
+                "posture": "closed",
+                "profile": "raes/runtime-packages/v1",
+                "universe": "runtime-packages"
+              },
+              "definitions": {},
+              "root": {
+                "aliases": [],
+                "closure": {
+                  "posture": "closed",
+                  "profile": "raes/runtime-packages/v1",
+                  "universe": "runtime-packages"
+                },
+                "collection_kind": "runtime-packages",
+                "identity_fields": [
+                  "manager",
+                  "name"
+                ],
+                "kind": "keyed-collection",
+                "max_items": 4096,
+                "members": [
+                  {
+                    "constraint": {
+                      "closure": {
+                        "posture": "undefined",
+                        "profile": null,
+                        "universe": null
+                      },
+                      "fields": {
+                        "architecture": {
+                          "kind": "literal",
+                          "origin": "default",
+                          "presence": "optional",
+                          "value": ""
+                        },
+                        "manager": {
+                          "kind": "literal",
+                          "origin": "author",
+                          "presence": "required",
+                          "value": "apt"
+                        },
+                        "name": {
+                          "kind": "literal",
+                          "origin": "author",
+                          "presence": "required",
+                          "value": "wazuh-agent"
+                        },
+                        "purl": {
+                          "kind": "literal",
+                          "origin": "default",
+                          "presence": "optional",
+                          "value": ""
+                        },
+                        "repository": {
+                          "closure": {
+                            "posture": "undefined",
+                            "profile": null,
+                            "universe": null
+                          },
+                          "fields": {
+                            "components": {
+                              "closure": {
+                                "posture": "undefined",
+                                "profile": null,
+                                "universe": null
+                              },
+                              "items": [
+                                {
+                                  "kind": "literal",
+                                  "origin": "author",
+                                  "presence": "required",
+                                  "value": "main"
+                                }
+                              ],
+                              "kind": "sequence",
+                              "max_items": 4096,
+                              "min_items": 0,
+                              "origin": "author",
+                              "presence": "required"
+                            },
+                            "profile_version": {
+                              "kind": "literal",
+                              "origin": "author",
+                              "presence": "required",
+                              "value": "1"
+                            },
+                            "repository_profile": {
+                              "kind": "literal",
+                              "origin": "author",
+                              "presence": "required",
+                              "value": "apt"
+                            },
+                            "signing_key": {
+                              "closure": {
+                                "posture": "undefined",
+                                "profile": null,
+                                "universe": null
+                              },
+                              "fields": {
+                                "digest": {
+                                  "kind": "literal",
+                                  "origin": "author",
+                                  "presence": "required",
+                                  "value": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                                },
+                                "format": {
+                                  "kind": "literal",
+                                  "origin": "author",
+                                  "presence": "required",
+                                  "value": "openpgp-ascii-armored"
+                                },
+                                "uri": {
+                                  "kind": "literal",
+                                  "origin": "author",
+                                  "presence": "required",
+                                  "value": "https://packages.wazuh.com/key/GPG-KEY-WAZUH"
+                                }
+                              },
+                              "kind": "recursive-record",
+                              "origin": "author",
+                              "presence": "required"
+                            },
+                            "suite": {
+                              "kind": "literal",
+                              "origin": "author",
+                              "presence": "required",
+                              "value": "stable"
+                            },
+                            "uri": {
+                              "kind": "literal",
+                              "origin": "author",
+                              "presence": "required",
+                              "value": "https://packages.wazuh.com/4.x/apt/"
+                            }
+                          },
+                          "kind": "recursive-record",
+                          "origin": "author",
+                          "presence": "required"
+                        },
+                        "source": {
+                          "kind": "literal",
+                          "origin": "default",
+                          "presence": "optional",
+                          "value": ""
+                        },
+                        "version": {
+                          "kind": "literal",
+                          "origin": "author",
+                          "presence": "required",
+                          "value": "4.12.0-1"
+                        }
+                      },
+                      "kind": "recursive-record",
+                      "origin": "author",
+                      "presence": "required"
+                    },
+                    "identity": [
+                      "apt",
+                      "wazuh-agent"
+                    ]
+                  }
+                ],
+                "min_items": 0,
+                "origin": "author",
+                "presence": "required"
+              },
+              "scopes": [
+                {
+                  "closure": {
+                    "posture": "closed",
+                    "profile": "raes/runtime-packages/v1",
+                    "universe": "runtime-packages"
+                  },
+                  "field_pointer": "",
+                  "origin": "author"
+                },
+                {
+                  "closure": {
+                    "posture": "closed",
+                    "profile": "raes/runtime-packages/v1",
+                    "universe": "runtime-packages"
+                  },
+                  "field_pointer": "/@sha256:3e69ddf8cb79bde9c2df39f7ab3ca26cd2a738d3a6207781072af002fc8dc7c0",
+                  "origin": "author"
+                },
+                {
+                  "closure": {
+                    "posture": "closed",
+                    "profile": "raes/runtime-packages/v1",
+                    "universe": "runtime-packages"
+                  },
+                  "field_pointer": "/@sha256:3e69ddf8cb79bde9c2df39f7ab3ca26cd2a738d3a6207781072af002fc8dc7c0/repository",
+                  "origin": "author"
+                },
+                {
+                  "closure": {
+                    "posture": "closed",
+                    "profile": "raes/runtime-packages/v1",
+                    "universe": "runtime-packages"
+                  },
+                  "field_pointer": "/@sha256:3e69ddf8cb79bde9c2df39f7ab3ca26cd2a738d3a6207781072af002fc8dc7c0/repository/components",
+                  "origin": "author"
+                },
+                {
+                  "closure": {
+                    "posture": "closed",
+                    "profile": "raes/runtime-packages/v1",
+                    "universe": "runtime-packages"
+                  },
+                  "field_pointer": "/@sha256:3e69ddf8cb79bde9c2df39f7ab3ca26cd2a738d3a6207781072af002fc8dc7c0/repository/signing_key",
+                  "origin": "author"
+                }
+              ],
+              "semantic_profile": "raes/runtime-packages/v1"
+            },
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.packages",
+            "governing_scope": "#/nodes/manager/runtime/packages",
+            "mode": "exact",
+            "payload_pointer": "/spec/node/runtime/packages",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-packages",
+            "source": "authored-leaf",
+            "verification_scope": "configuration"
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.repository_state",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/repository_state",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-repository-state",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.software_components",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/software_components",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-software-components",
+            "source": "legacy-default",
+            "verification_scope": null
+          },
+          {
+            "address": "provision.node.manager",
+            "bounds": [],
+            "domain": "runtime-realization",
+            "field_path": "nodes.manager.runtime.dependency_manifests",
+            "governing_scope": null,
+            "mode": "closed",
+            "payload_pointer": "/spec/node/runtime/dependency_manifests",
+            "provenance": "author-declared",
+            "required_observation_strength": null,
+            "requirement_kind": "runtime-dependency-manifests",
+            "source": "legacy-default",
+            "verification_scope": "configuration"
+          }
+        ],
+        "realization_constraints": [
+          {
+            "address": "provision.node.manager",
+            "concern": "compute-substrate",
+            "field_path": "nodes.manager.realization.compute-substrate",
+            "governing_scope": "#/nodes/manager",
+            "posture": "open",
+            "provenance": "author-declared",
+            "value_domain": null
+          }
+        ],
+        "realization_envelope": null,
+        "run_id": null
+      },
+      "scenario_name": "wazuh-third-party-repository"
+    }
+  },
+  "surface": "cli"
+}

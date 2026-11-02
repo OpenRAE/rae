@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-selection-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ee8c7901e443db9cd3d529d818bb6717e128b1b39bb3645f749492d0d2e7cdc3"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-control-selection-v2/context-invalid/owner-missing-promise",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

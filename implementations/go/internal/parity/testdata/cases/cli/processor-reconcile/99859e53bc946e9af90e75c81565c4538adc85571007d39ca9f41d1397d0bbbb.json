@@ -1,0 +1,42 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml": "sha256:0ca8aaab2a483a9a678816540b975dcc74fbfe446923d0c642bd17c801597480"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "actions": {
+        "create": 0,
+        "delete": 0,
+        "unchanged": 0,
+        "update": 0
+      },
+      "baseline": {
+        "diagnostics": [],
+        "scenario_name": "participant-control-legacy",
+        "snapshot": {
+          "entries": [],
+          "entry_count": 0
+        }
+      },
+      "candidate": {
+        "diagnostics": [],
+        "scenario_name": "participant-control-legacy"
+      },
+      "operations": [],
+      "snapshot_kind": "planned-state-projection",
+      "status": "reconciled"
+    }
+  },
+  "surface": "cli"
+}

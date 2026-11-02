@@ -1,0 +1,14 @@
+{
+  "args": [
+    "processor-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7c9d4e2edfeac38417f878366cb70da339de5d1534157049589be5b1f0cf88a5"
+  },
+  "name": "regression/7a60089c454ebad4278cff4e735234cef1ca786e8a08bb776bfebe2587b5e93d",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

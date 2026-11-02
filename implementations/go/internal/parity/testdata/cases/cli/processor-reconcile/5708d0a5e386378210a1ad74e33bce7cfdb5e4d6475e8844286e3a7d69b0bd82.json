@@ -1,0 +1,38 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml",
+    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec"
+  },
+  "name": "examples/scenarios/participant-tools/tool-kit.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "participant.tool-profiles",
+            "code": "participant.tool-support-insufficient",
+            "domain": "participant",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "scanner-toolkit",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

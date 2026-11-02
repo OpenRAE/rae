@@ -1,0 +1,47 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml": "sha256:aa405292dc7ece76b5020c7b140489c4fa3a7c60102f6a2508ff2c1e221ea04e"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "diagnostics": [],
+      "evaluation": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operations": [],
+        "run_id": null,
+        "startup_order": []
+      },
+      "orchestration": {
+        "diagnostics": [],
+        "observation_demands": [],
+        "operations": [],
+        "startup_order": []
+      },
+      "provisioning": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operation_id": null,
+        "operations": [],
+        "realization_authority": [],
+        "realization_constraints": [],
+        "realization_envelope": null,
+        "run_id": null
+      },
+      "scenario_name": "static-family"
+    }
+  },
+  "surface": "cli"
+}

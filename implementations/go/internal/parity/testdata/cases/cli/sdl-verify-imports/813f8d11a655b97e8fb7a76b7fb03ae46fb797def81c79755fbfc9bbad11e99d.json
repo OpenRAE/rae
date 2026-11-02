@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-opt-in-after.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-opt-in-after.yaml": "sha256:0ca8aaab2a483a9a678816540b975dcc74fbfe446923d0c642bd17c801597480",
+    "setup.json": "sha256:0c6e8dc71f39f35faa07da6c4d244125f90966f61200072b6682e2e196cb1258"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-opt-in-after.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

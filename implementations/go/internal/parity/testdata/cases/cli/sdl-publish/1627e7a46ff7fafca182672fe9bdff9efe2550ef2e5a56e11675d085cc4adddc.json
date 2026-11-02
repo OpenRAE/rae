@@ -1,0 +1,43 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf"
+  },
+  "name": "examples/scenarios/participant-control-context/context-kit.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "layout/examples_context-kit-1.0.0.oci/versions/f3c5f9c70d2c86f6a1ce-aac31f996b7345f2b920/index.json": {
+        "manifests": [
+          {
+            "annotations": {
+              "io.raes.module.id": "examples/context-kit",
+              "org.opencontainers.image.ref.name": "1.0.0"
+            },
+            "digest": "sha256:f3c5f9c70d2c86f6a1ced8b50f9d23a972e547a24971a498571bfff9e0e17a8a",
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "size": 509
+          }
+        ],
+        "schemaVersion": 2
+      }
+    },
+    "stdout": {
+      "content_digest": "sha256:006293021089ec0b93f1065a5b8cfd5af696c738c159f8c9744bbbbfc21536e4",
+      "export_hash": "555cddc6a82e44c2606b71e0a05c2e1bd88fbfcd237956e6a827ec617cc7bd7c",
+      "layout_dir": "layout/examples_context-kit-1.0.0.oci/versions/f3c5f9c70d2c86f6a1ce-aac31f996b7345f2b920",
+      "manifest_digest": "sha256:f3c5f9c70d2c86f6a1ced8b50f9d23a972e547a24971a498571bfff9e0e17a8a",
+      "module_id": "examples/context-kit",
+      "module_version": "1.0.0",
+      "signer_id": ""
+    }
+  },
+  "surface": "cli"
+}

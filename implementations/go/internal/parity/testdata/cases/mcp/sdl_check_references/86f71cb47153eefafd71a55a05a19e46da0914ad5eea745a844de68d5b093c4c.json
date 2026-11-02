@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:46b9f04c1a8226b1504141d3e29f868692a8cc65f959e728e8d6cdc459de68ac"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.red-agent -> red-team content.answer-key -> web events.environment-event -> environment-inject scripts.environment-script -> environment-event stories.environment-story -> environment-script"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.red-agent -> red-team content.answer-key -> web events.environment-event -> environment-inject scripts.environment-script -> environment-event stories.environment-story -> environment-script"
+      }
+    }
+  },
+  "surface": "mcp"
+}

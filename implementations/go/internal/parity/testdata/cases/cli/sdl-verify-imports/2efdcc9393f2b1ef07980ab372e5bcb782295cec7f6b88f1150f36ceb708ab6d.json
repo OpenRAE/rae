@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/directive.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/directive.yaml": "sha256:a45c79b9c161e133b97a55949a9c0e4a97e6cdacf57479841ca4332030ac173c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/directive.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

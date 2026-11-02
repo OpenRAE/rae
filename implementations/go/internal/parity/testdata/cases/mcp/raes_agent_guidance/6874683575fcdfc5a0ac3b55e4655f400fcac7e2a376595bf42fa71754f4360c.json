@@ -1,0 +1,485 @@
+{
+  "args": [],
+  "command": "raes_agent_guidance",
+  "files": {
+    "arguments.json": "sha256:ccd95fa8334381dabc9b46c86a8971239e2f564ee1ef5d184b073c1494dd8c57"
+  },
+  "name": "regression/f209a71c5716d9a837e36c3bde9ac62f883a2bf6c6b3cbe2c7e8584b5511d7e4",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "audience": "operator",
+          "guidance": {
+            "invariants": [
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "validate-before-return",
+                "source_refs": [
+                  "docs/explain/sdl/language-service.md",
+                  "docs/explain/sdl/validation.md"
+                ],
+                "statement": "SDL content returned by an agent must be checked with parser, diagnostic, format, and semantic-validation tools appropriate to the edit size.",
+                "surfaces": [
+                  "mcp",
+                  "sdl"
+                ]
+              },
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "claim-evidence-boundary",
+                "source_refs": [
+                  "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
+                  "implementations/python/packages/raes_mcp/tools/operation_support.py"
+                ],
+                "statement": "Major maturity, portability, backend, provenance, participant-skill, or run-success claims require explicit evidence. Internal consistency alone is not enough.",
+                "surfaces": [
+                  "assessment",
+                  "docs",
+                  "releases"
+                ]
+              }
+            ],
+            "review_priorities": [
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "security-and-secret-exposure",
+                "source_refs": [
+                  ".gc/plan-rules.md",
+                  "docs/explain/reference/documentation-style-guide.md"
+                ],
+                "statement": "Prioritize auth boundaries, secret exposure, command examples, error payload leakage, process argv, generated diagnostics, and examples that might normalize unsafe behavior.",
+                "surfaces": [
+                  "mcp",
+                  "cli",
+                  "control-plane",
+                  "docs"
+                ]
+              },
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "claim-discipline",
+                "source_refs": [
+                  "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
+                  "docs/explain/sdl/limitations.md",
+                  "specs/sdl/scientific-scenario-completeness.md"
+                ],
+                "statement": "Review whether every supported claim is backed by current source, tests, contracts, or evidence, and whether unsupported claims are named as unsupported.",
+                "surfaces": [
+                  "assessment",
+                  "docs",
+                  "releases"
+                ]
+              }
+            ],
+            "safe_operating_expectations": [
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "small-structured-edits",
+                "source_refs": [
+                  "docs/explain/sdl/language-service.md",
+                  "implementations/python/packages/raes/language_service.py"
+                ],
+                "statement": "Prefer small structured edits, completion checks, reference lookup, and diagnostics over broad YAML rewrites when modifying SDL.",
+                "surfaces": [
+                  "mcp",
+                  "sdl"
+                ]
+              },
+              {
+                "audience": [
+                  "operator"
+                ],
+                "id": "no-participant-actions-through-guidance",
+                "source_refs": [
+                  "implementations/python/packages/raes_mcp/tools/operations.py",
+                  "docs/public/quickstart.md"
+                ],
+                "statement": "Guidance and authoring tools must not be used as a route to scan, exploit, SSH, execute commands, reveal hidden state, or bypass backend controls.",
+                "surfaces": [
+                  "mcp",
+                  "backend"
+                ]
+              },
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "do-not-carry-secrets",
+                "source_refs": [
+                  ".gc/plan-rules.md",
+                  "docs/explain/reference/documentation-style-guide.md"
+                ],
+                "statement": "Do not place real credentials, bearer tokens, private keys, customer data, environment dumps, or live infrastructure identifiers in SDL, docs, examples, diagnostics, logs, or issue comments.",
+                "surfaces": [
+                  "docs",
+                  "examples",
+                  "diagnostics",
+                  "logs"
+                ]
+              },
+              {
+                "audience": [
+                  "operator"
+                ],
+                "id": "qualify-before-claiming",
+                "source_refs": [
+                  "implementations/python/packages/raes_mcp/tools/operations.py",
+                  "docs/public/quickstart.md"
+                ],
+                "statement": "Use design assessment, dry-run planning, and claims assessment before presenting an SDL scenario as ready, portable, executed, or evidence backed.",
+                "surfaces": [
+                  "assessment",
+                  "reports"
+                ]
+              }
+            ],
+            "scope_boundaries": [
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "sdl-authoring-not-execution",
+                "source_refs": [
+                  "implementations/python/packages/raes_mcp/tools/operations.py",
+                  "docs/public/quickstart.md",
+                  "docs/explain/sdl/language-service.md"
+                ],
+                "statement": "RAES authoring and MCP tools describe, validate, inspect, compile, and dry-run SDL scenarios. They do not execute participant cyber actions or start a live range.",
+                "surfaces": [
+                  "mcp",
+                  "sdl",
+                  "processor"
+                ]
+              },
+              {
+                "audience": [
+                  "operator"
+                ],
+                "id": "dry-run-not-runtime-evidence",
+                "source_refs": [
+                  "implementations/python/packages/raes_mcp/tools/operations.py",
+                  "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md"
+                ],
+                "statement": "Planning against the reference stub backend can support capability and planning claims. It is not evidence that a live range ran or that a participant demonstrated skill.",
+                "surfaces": [
+                  "processor",
+                  "backend",
+                  "assessment"
+                ]
+              },
+              {
+                "audience": [
+                  "contributor",
+                  "operator"
+                ],
+                "id": "valid-sdl-not-scientific-completeness",
+                "source_refs": [
+                  "specs/sdl/scientific-scenario-completeness.md",
+                  "contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json",
+                  "contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json"
+                ],
+                "statement": "Structural and semantic SDL validity establishes only the valid-fragment profile. Do not describe a scenario as deployable, participant-ready, controlled, reproducible, conformant, or behaviorally equivalent unless the separately versioned scientific-completeness assessment supports that exact claim and its required external bindings.",
+                "surfaces": [
+                  "mcp",
+                  "sdl",
+                  "assessment",
+                  "docs"
+                ]
+              }
+            ]
+          },
+          "profile": "raes-agent-guidance",
+          "recommended_workflow": [
+            "raes_tool_surface",
+            "raes_agent_guidance",
+            "raes_intended_use_profiles",
+            "sdl_overview",
+            "sdl_section_reference",
+            "sdl_completions",
+            "sdl_apply_edit",
+            "sdl_diagnostics",
+            "sdl_format",
+            "sdl_validate",
+            "sdl_design_assessment",
+            "sdl_plan",
+            "sdl_claims_assessment"
+          ],
+          "requirement_refs": [
+            "AUT-811"
+          ],
+          "source_refs": [
+            "AGENTS.md",
+            ".gc/plan-rules.md",
+            "docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md",
+            "docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md",
+            "docs/decisions/adrs/adr-018-classification-based-assurance-policy.md",
+            "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
+            "docs/explain/reference/coding-standards.md",
+            "docs/explain/reference/documentation-style-guide.md",
+            "docs/explain/reference/normative-artifact-authority.md",
+            "docs/explain/sdl/language-service.md",
+            "specs/sdl/scientific-scenario-completeness.md"
+          ],
+          "status": "ok",
+          "version": 1
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "audience": "operator",
+        "guidance": {
+          "invariants": [
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "validate-before-return",
+              "source_refs": [
+                "docs/explain/sdl/language-service.md",
+                "docs/explain/sdl/validation.md"
+              ],
+              "statement": "SDL content returned by an agent must be checked with parser, diagnostic, format, and semantic-validation tools appropriate to the edit size.",
+              "surfaces": [
+                "mcp",
+                "sdl"
+              ]
+            },
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "claim-evidence-boundary",
+              "source_refs": [
+                "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
+                "implementations/python/packages/raes_mcp/tools/operation_support.py"
+              ],
+              "statement": "Major maturity, portability, backend, provenance, participant-skill, or run-success claims require explicit evidence. Internal consistency alone is not enough.",
+              "surfaces": [
+                "assessment",
+                "docs",
+                "releases"
+              ]
+            }
+          ],
+          "review_priorities": [
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "security-and-secret-exposure",
+              "source_refs": [
+                ".gc/plan-rules.md",
+                "docs/explain/reference/documentation-style-guide.md"
+              ],
+              "statement": "Prioritize auth boundaries, secret exposure, command examples, error payload leakage, process argv, generated diagnostics, and examples that might normalize unsafe behavior.",
+              "surfaces": [
+                "mcp",
+                "cli",
+                "control-plane",
+                "docs"
+              ]
+            },
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "claim-discipline",
+              "source_refs": [
+                "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
+                "docs/explain/sdl/limitations.md",
+                "specs/sdl/scientific-scenario-completeness.md"
+              ],
+              "statement": "Review whether every supported claim is backed by current source, tests, contracts, or evidence, and whether unsupported claims are named as unsupported.",
+              "surfaces": [
+                "assessment",
+                "docs",
+                "releases"
+              ]
+            }
+          ],
+          "safe_operating_expectations": [
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "small-structured-edits",
+              "source_refs": [
+                "docs/explain/sdl/language-service.md",
+                "implementations/python/packages/raes/language_service.py"
+              ],
+              "statement": "Prefer small structured edits, completion checks, reference lookup, and diagnostics over broad YAML rewrites when modifying SDL.",
+              "surfaces": [
+                "mcp",
+                "sdl"
+              ]
+            },
+            {
+              "audience": [
+                "operator"
+              ],
+              "id": "no-participant-actions-through-guidance",
+              "source_refs": [
+                "implementations/python/packages/raes_mcp/tools/operations.py",
+                "docs/public/quickstart.md"
+              ],
+              "statement": "Guidance and authoring tools must not be used as a route to scan, exploit, SSH, execute commands, reveal hidden state, or bypass backend controls.",
+              "surfaces": [
+                "mcp",
+                "backend"
+              ]
+            },
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "do-not-carry-secrets",
+              "source_refs": [
+                ".gc/plan-rules.md",
+                "docs/explain/reference/documentation-style-guide.md"
+              ],
+              "statement": "Do not place real credentials, bearer tokens, private keys, customer data, environment dumps, or live infrastructure identifiers in SDL, docs, examples, diagnostics, logs, or issue comments.",
+              "surfaces": [
+                "docs",
+                "examples",
+                "diagnostics",
+                "logs"
+              ]
+            },
+            {
+              "audience": [
+                "operator"
+              ],
+              "id": "qualify-before-claiming",
+              "source_refs": [
+                "implementations/python/packages/raes_mcp/tools/operations.py",
+                "docs/public/quickstart.md"
+              ],
+              "statement": "Use design assessment, dry-run planning, and claims assessment before presenting an SDL scenario as ready, portable, executed, or evidence backed.",
+              "surfaces": [
+                "assessment",
+                "reports"
+              ]
+            }
+          ],
+          "scope_boundaries": [
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "sdl-authoring-not-execution",
+              "source_refs": [
+                "implementations/python/packages/raes_mcp/tools/operations.py",
+                "docs/public/quickstart.md",
+                "docs/explain/sdl/language-service.md"
+              ],
+              "statement": "RAES authoring and MCP tools describe, validate, inspect, compile, and dry-run SDL scenarios. They do not execute participant cyber actions or start a live range.",
+              "surfaces": [
+                "mcp",
+                "sdl",
+                "processor"
+              ]
+            },
+            {
+              "audience": [
+                "operator"
+              ],
+              "id": "dry-run-not-runtime-evidence",
+              "source_refs": [
+                "implementations/python/packages/raes_mcp/tools/operations.py",
+                "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md"
+              ],
+              "statement": "Planning against the reference stub backend can support capability and planning claims. It is not evidence that a live range ran or that a participant demonstrated skill.",
+              "surfaces": [
+                "processor",
+                "backend",
+                "assessment"
+              ]
+            },
+            {
+              "audience": [
+                "contributor",
+                "operator"
+              ],
+              "id": "valid-sdl-not-scientific-completeness",
+              "source_refs": [
+                "specs/sdl/scientific-scenario-completeness.md",
+                "contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json",
+                "contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json"
+              ],
+              "statement": "Structural and semantic SDL validity establishes only the valid-fragment profile. Do not describe a scenario as deployable, participant-ready, controlled, reproducible, conformant, or behaviorally equivalent unless the separately versioned scientific-completeness assessment supports that exact claim and its required external bindings.",
+              "surfaces": [
+                "mcp",
+                "sdl",
+                "assessment",
+                "docs"
+              ]
+            }
+          ]
+        },
+        "profile": "raes-agent-guidance",
+        "recommended_workflow": [
+          "raes_tool_surface",
+          "raes_agent_guidance",
+          "raes_intended_use_profiles",
+          "sdl_overview",
+          "sdl_section_reference",
+          "sdl_completions",
+          "sdl_apply_edit",
+          "sdl_diagnostics",
+          "sdl_format",
+          "sdl_validate",
+          "sdl_design_assessment",
+          "sdl_plan",
+          "sdl_claims_assessment"
+        ],
+        "requirement_refs": [
+          "AUT-811"
+        ],
+        "source_refs": [
+          "AGENTS.md",
+          ".gc/plan-rules.md",
+          "docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md",
+          "docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md",
+          "docs/decisions/adrs/adr-018-classification-based-assurance-policy.md",
+          "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
+          "docs/explain/reference/coding-standards.md",
+          "docs/explain/reference/documentation-style-guide.md",
+          "docs/explain/reference/normative-artifact-authority.md",
+          "docs/explain/sdl/language-service.md",
+          "specs/sdl/scientific-scenario-completeness.md"
+        ],
+        "status": "ok",
+        "version": 1
+      }
+    }
+  },
+  "surface": "mcp"
+}

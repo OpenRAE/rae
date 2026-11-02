@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-derived-measure-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7cc2d575a77da15d844572b15c0927a5cf962c1dcffbcceb79d100d3affcf16f"
+  },
+  "name": "regression/f99d9bbcaf7ab8aa3ffa130bf2410fb29f88cae3b0fd1e15af72f0c4377cb009",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,20 @@
+{
+  "args": [],
+  "command": "GET /health/ready",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:754654e1618fd3fb12b18d29e64a955eaab4ebf59537199d844ed6eae862443d"
+  },
+  "name": "regression/31c9743baa1454480025d802ab8ec29bf4631ac40d994fa984ebbc27ecf00a10",
+  "result": {
+    "body": {
+      "reasons": [],
+      "status": "ready"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

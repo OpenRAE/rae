@@ -1,0 +1,169 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml": "sha256:4ec12fd62034012ab756239028f552e5d1fa5901b6d56eb7a6f93c478239f6b2"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "accounts": {
+        "sync-api": {
+          "node": "sync",
+          "username": "sync"
+        }
+      },
+      "infrastructure": {
+        "sensor": {
+          "count": 1
+        },
+        "sync": {
+          "count": 1
+        }
+      },
+      "name": "dependent-declarations-family",
+      "nodes": {
+        "sensor": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        },
+        "sync": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "persistent_volumes": {
+        "rules": {
+          "access_mode": "read_write_many",
+          "consumers": [
+            {
+              "access_mode": "read_only",
+              "mount_destination": "/var/lib/rules",
+              "node": "sensor"
+            },
+            {
+              "access_mode": "read_write",
+              "mount_destination": "/var/lib/rules",
+              "node": "sync"
+            }
+          ],
+          "lifecycle": "ephemeral"
+        }
+      },
+      "variation_points": {
+        "shared-mounts": {
+          "alternatives": {
+            "all": {
+              "consumers": [
+                {
+                  "mount_destination": "/var/lib/rules",
+                  "node": "sensor"
+                },
+                {
+                  "mount_destination": "/var/lib/rules",
+                  "node": "sync"
+                }
+              ],
+              "kind": "resource-consumers",
+              "requires": [
+                {
+                  "members": [
+                    "present"
+                  ],
+                  "point": "sync-host"
+                }
+              ]
+            },
+            "without-sync": {
+              "consumers": [
+                {
+                  "mount_destination": "/var/lib/rules",
+                  "node": "sensor"
+                }
+              ],
+              "kind": "resource-consumers"
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "structural",
+            "owner": "rules",
+            "slot": "persistent_volumes.consumers"
+          }
+        },
+        "sync-account": {
+          "alternatives": {
+            "absent": {
+              "kind": "declaration-presence",
+              "present": false
+            },
+            "present": {
+              "kind": "declaration-presence",
+              "present": true,
+              "requires": [
+                {
+                  "members": [
+                    "present"
+                  ],
+                  "point": "sync-host"
+                }
+              ]
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "structural",
+            "owner": "sync-api",
+            "slot": "accounts.presence"
+          }
+        },
+        "sync-host": {
+          "alternatives": {
+            "absent": {
+              "kind": "node-presence",
+              "present": false,
+              "requires": [
+                {
+                  "members": [
+                    "absent"
+                  ],
+                  "point": "sync-account"
+                },
+                {
+                  "members": [
+                    "without-sync"
+                  ],
+                  "point": "shared-mounts"
+                }
+              ]
+            },
+            "present": {
+              "kind": "node-presence",
+              "present": true
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "structural",
+            "owner": "sync",
+            "slot": "nodes.presence"
+          }
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

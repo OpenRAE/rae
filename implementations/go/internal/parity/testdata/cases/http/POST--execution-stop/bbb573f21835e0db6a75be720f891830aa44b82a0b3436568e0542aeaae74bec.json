@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /execution/stop",
+  "files": {
+    "request.json": "sha256:49017358445d0a07cba0f2d52b7a2b4d4c01cf6c0bcfe680ccfa7e4e19c24276"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

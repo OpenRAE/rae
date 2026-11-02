@@ -1,0 +1,59 @@
+{
+  "args": [],
+  "command": "experiment_get_example",
+  "files": {
+    "arguments.json": "sha256:19dfadfd5566095dcc4d5a5580538d681ffe8b145dd06657a3c556d23a3aab39"
+  },
+  "name": "reference",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "description": "Minimal deterministic design: five runs of the TechVault task to smoke-test the apparatus before a full comparison sweep.",
+          "run_plan": {
+            "episode_control": {
+              "max_steps": 100,
+              "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+              "turn_order": "sequential"
+            },
+            "target_run_count": 5
+          },
+          "schema_version": "experiment-authoring-input/v1",
+          "spec_id": "spec-techvault-smoke-run-v1",
+          "spec_version": "1.0.0",
+          "task_ref": {
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_kind": "task",
+            "ref_version": "1.0.0"
+          },
+          "title": "TechVault smoke run"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "description": "Minimal deterministic design: five runs of the TechVault task to smoke-test the apparatus before a full comparison sweep.",
+        "run_plan": {
+          "episode_control": {
+            "max_steps": 100,
+            "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+            "turn_order": "sequential"
+          },
+          "target_run_count": 5
+        },
+        "schema_version": "experiment-authoring-input/v1",
+        "spec_id": "spec-techvault-smoke-run-v1",
+        "spec_version": "1.0.0",
+        "task_ref": {
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_kind": "task",
+          "ref_version": "1.0.0"
+        },
+        "title": "TechVault smoke run"
+      }
+    }
+  },
+  "surface": "mcp"
+}

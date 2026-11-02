@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/resolution",
+  "files": {
+    "body.bin": "sha256:fa774b183dc52d30b63c237e816ce19554ca782689303c88a3eb64b10abfa18c",
+    "request.json": "sha256:37d5e4c51ede3df3119bed171441339d155b11217b2b5be200d89251bfe8dfb4"
+  },
+  "name": "regression/35799ccc5cbcb860e6ad79c7aa6c96b2fda5d1f4c638a615f48560d738ace76c",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

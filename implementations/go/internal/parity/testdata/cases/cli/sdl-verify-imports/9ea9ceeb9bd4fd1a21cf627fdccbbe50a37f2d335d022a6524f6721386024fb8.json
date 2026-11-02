@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml": "sha256:b8a6885f3f40d64db70735ebb570bdf8439061f45f89615644bf84ef3b98e233"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

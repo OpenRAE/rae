@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /runtime/progress",
+  "files": {
+    "body.bin": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "request.json": "sha256:9763054ea8b31a4388c5e1917a28a7f16b90d59f9effa6d7131606a8e061c7ac"
+  },
+  "name": "regression/26fb8e2b84bf8feff9207ae62199b22ea67e995b1bb0ef73f98ef644bc4e694d",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

@@ -1,0 +1,36 @@
+{
+  "args": [],
+  "command": "POST /operations/evaluation",
+  "files": {
+    "request.json": "sha256:f23ae7ee159ed28feb118d6c9d84e42f31d85d4e334f53b49658ee05cfac0b0c"
+  },
+  "name": "empty-plan",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "operator",
+        "authorization_scope": [
+          "role:auditor",
+          "role:backend",
+          "role:operator"
+        ],
+        "operation_kind": "evaluation",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:76e5fa5b68e93c6bd6ae91e0aefc1ee608b2ae393adce85ca54f8e95a1c1036d",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "evaluation",
+      "operation_id": "7d62476e-907b-466d-9eb4-8d093e59ff33",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

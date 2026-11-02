@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:d5e34a2fe8ac0115656c26f9d4de99626981a12a936c76a38021dc8704583adb"
+  },
+  "name": "regression/32f8c2a185f3c3ca2c9e7ed627ffca9c8d40ad4eb0cd9b0571f27a829f858312",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "goal-step",
+            "populated_sections": {
+              "action_contracts": 1,
+              "entities": 1,
+              "objectives": 1,
+              "observation_boundaries": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "goal-step",
+          "populated_sections": {
+            "action_contracts": 1,
+            "entities": 1,
+            "objectives": 1,
+            "observation_boundaries": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

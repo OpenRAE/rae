@@ -1,0 +1,98 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 18,
+        "reference_bindings": {
+          "agents.alice": [
+            "agents.alice"
+          ],
+          "agents.bob": [
+            "agents.bob"
+          ],
+          "alice": [
+            "agents.alice"
+          ],
+          "bob": [
+            "agents.bob"
+          ],
+          "competition": [
+            "relationships.competition"
+          ],
+          "cooperation": [
+            "relationships.cooperation"
+          ],
+          "coordination": [
+            "relationships.coordination"
+          ],
+          "delegation": [
+            "relationships.delegation"
+          ],
+          "entities.team-a": [
+            "entities.team-a"
+          ],
+          "entities.team-b": [
+            "entities.team-b"
+          ],
+          "relationships.competition": [
+            "relationships.competition"
+          ],
+          "relationships.cooperation": [
+            "relationships.cooperation"
+          ],
+          "relationships.coordination": [
+            "relationships.coordination"
+          ],
+          "relationships.delegation": [
+            "relationships.delegation"
+          ],
+          "relationships.supervision": [
+            "relationships.supervision"
+          ],
+          "supervision": [
+            "relationships.supervision"
+          ],
+          "team-a": [
+            "entities.team-a"
+          ],
+          "team-b": [
+            "entities.team-b"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "abstract-participant-relationships"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

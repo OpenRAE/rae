@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "experiment_validate",
+  "files": {
+    "arguments.json": "sha256:cb768ce2abe5ebd53158bf910d4915ef421b3b8f51367b6c15b69fee6f33976b"
+  },
+  "name": "examples/experiments/techvault-red-tactic-sweep.exp.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

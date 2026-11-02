@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:4e5b4145e3e600a69543e0a5be7f06a4f09e668dea2a60617ba04eceed57c2ca"
+  },
+  "name": "regression/633b1077dad18c86a9006dca32095db137ed91a08fc6e319c5077e8eb47adfe1",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "shared-boundary-toolkit",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 2,
+              "content": 2,
+              "entities": 2,
+              "nodes": 1,
+              "observation_boundaries": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "shared-boundary-toolkit",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 2,
+            "content": 2,
+            "entities": 2,
+            "nodes": 1,
+            "observation_boundaries": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml": "sha256:93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239"
+  },
+  "name": "examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/temporal-profiles/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

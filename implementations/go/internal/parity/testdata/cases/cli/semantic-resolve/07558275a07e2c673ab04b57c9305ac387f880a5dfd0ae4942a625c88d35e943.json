@@ -1,0 +1,92 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input.yaml": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 16,
+        "reference_bindings": {
+          "content.payload": [
+            "content.payload"
+          ],
+          "nodes.primary": [
+            "nodes.primary"
+          ],
+          "nodes.secondary": [
+            "nodes.secondary"
+          ],
+          "payload": [
+            "content.payload"
+          ],
+          "payload-host": [
+            "variation_points.payload-host"
+          ],
+          "payload-host.primary-host": [
+            "variation_points.payload-host.alternatives.primary-host"
+          ],
+          "payload-host.secondary-host": [
+            "variation_points.payload-host.alternatives.secondary-host"
+          ],
+          "payload-path": [
+            "variation_points.payload-path"
+          ],
+          "payload_path": [
+            "variables.payload_path"
+          ],
+          "primary": [
+            "nodes.primary"
+          ],
+          "secondary": [
+            "nodes.secondary"
+          ],
+          "variables.payload_path": [
+            "variables.payload_path"
+          ],
+          "variation_points.payload-host": [
+            "variation_points.payload-host"
+          ],
+          "variation_points.payload-host.alternatives.primary-host": [
+            "variation_points.payload-host.alternatives.primary-host"
+          ],
+          "variation_points.payload-host.alternatives.secondary-host": [
+            "variation_points.payload-host.alternatives.secondary-host"
+          ],
+          "variation_points.payload-path": [
+            "variation_points.payload-path"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "fixture-family"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

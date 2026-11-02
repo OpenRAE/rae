@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:bb799374127633fc71e3d803c9e6a1512ee87704ca85ab5cb4063e6cf34d65af"
+  },
+  "name": "regression/c3f3fe363b5f12c4899cac3646b13b9dd52df63174b08c3283ff1e64f9e88bcb",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/outcome_interpretation_rules/scan-evidence-objective/participant_scope",
+              "range": {
+                "end": {
+                  "column": 37,
+                  "line": 110
+                },
+                "start": {
+                  "column": 24,
+                  "line": 110
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/outcome_interpretation_rules/scan-evidence-objective/participant_scope",
+            "range": {
+              "end": {
+                "column": 37,
+                "line": 110
+              },
+              "start": {
+                "column": 24,
+                "line": 110
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

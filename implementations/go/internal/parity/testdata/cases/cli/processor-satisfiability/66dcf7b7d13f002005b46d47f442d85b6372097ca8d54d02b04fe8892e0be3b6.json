@@ -1,0 +1,2976 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/scenarios/participant-control-context/twice-imported.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+    "repo/examples/scenarios/participant-control-context/twice-imported.sdl.yaml": "sha256:4f88a37b6778a7360d6d71dc2094adfefe77bda7cbb74abe6b6af6bfedd8ff9d"
+  },
+  "name": "examples/scenarios/participant-control-context/twice-imported.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:b8421957d213971957ce4189b01264da1e7c7decbe2ec44aba3760fd7c04579e"
+      },
+      "diagnostics": [],
+      "imports": [
+        {
+          "bindings": [],
+          "content_digest": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+          "export_hash": "sha256:555cddc6a82e44c2606b71e0a05c2e1bd88fbfcd237956e6a827ec617cc7bd7c",
+          "manifest_digest": "",
+          "module_id": "examples/context-kit",
+          "module_version": "1.0.0",
+          "namespace": [
+            "alpha"
+          ],
+          "requested_digest": "",
+          "requested_source": "local:context-kit.sdl.yaml",
+          "requested_version": "*",
+          "resolved_source": "context-kit.sdl.yaml",
+          "signer_id": ""
+        },
+        {
+          "bindings": [],
+          "content_digest": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+          "export_hash": "sha256:555cddc6a82e44c2606b71e0a05c2e1bd88fbfcd237956e6a827ec617cc7bd7c",
+          "manifest_digest": "",
+          "module_id": "examples/context-kit",
+          "module_version": "1.0.0",
+          "namespace": [
+            "bravo"
+          ],
+          "requested_digest": "",
+          "requested_source": "local:context-kit.sdl.yaml",
+          "requested_version": "*",
+          "resolved_source": "context-kit.sdl.yaml",
+          "signer_id": ""
+        }
+      ],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:b8421957d213971957ce4189b01264da1e7c7decbe2ec44aba3760fd7c04579e"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:4f88a37b6778a7360d6d71dc2094adfefe77bda7cbb74abe6b6af6bfedd8ff9d",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:111dcaec10f44a3bea51a663e1dcae1689fa2d4faac38d937c8aa8d88be25b59",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:4f88a37b6778a7360d6d71dc2094adfefe77bda7cbb74abe6b6af6bfedd8ff9d",
+        "source_id": "twice-imported.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {
+              "alpha.blue": {
+                "actions": [],
+                "affiliations": [],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "control_context": {
+                  "briefing": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a",
+                      "asset_id": "privacy-instruction",
+                      "asset_version": "one"
+                    },
+                    "declaration_ref": "alpha.shared",
+                    "disposition": "withheld"
+                  },
+                  "rules": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:c2517111fa289e5c45be2c6cfa7e69efaa154f8e5389385ff0d687fded355ac1",
+                      "asset_id": "operating-policy",
+                      "asset_version": "one"
+                    },
+                    "declaration_ref": "alpha.policy",
+                    "disposition": "selected"
+                  }
+                },
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [],
+                "operating_scope": [],
+                "role": "blue",
+                "starting_accounts": [],
+                "starting_assertions": []
+              },
+              "alpha.red": {
+                "actions": [],
+                "affiliations": [],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "control_context": {
+                  "briefing": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a",
+                      "asset_id": "privacy-instruction",
+                      "asset_version": "one"
+                    },
+                    "declaration_ref": "alpha.shared",
+                    "disposition": "selected"
+                  }
+                },
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [],
+                "operating_scope": [],
+                "role": "red",
+                "starting_accounts": [],
+                "starting_assertions": []
+              },
+              "bravo.blue": {
+                "actions": [],
+                "affiliations": [],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "control_context": {
+                  "briefing": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a",
+                      "asset_id": "privacy-instruction",
+                      "asset_version": "one"
+                    },
+                    "declaration_ref": "bravo.shared",
+                    "disposition": "withheld"
+                  },
+                  "rules": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:c2517111fa289e5c45be2c6cfa7e69efaa154f8e5389385ff0d687fded355ac1",
+                      "asset_id": "operating-policy",
+                      "asset_version": "one"
+                    },
+                    "declaration_ref": "bravo.policy",
+                    "disposition": "selected"
+                  }
+                },
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [],
+                "operating_scope": [],
+                "role": "blue",
+                "starting_accounts": [],
+                "starting_assertions": []
+              },
+              "bravo.red": {
+                "actions": [],
+                "affiliations": [],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "control_context": {
+                  "briefing": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a",
+                      "asset_id": "privacy-instruction",
+                      "asset_version": "one"
+                    },
+                    "declaration_ref": "bravo.shared",
+                    "disposition": "selected"
+                  }
+                },
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [],
+                "operating_scope": [],
+                "role": "red",
+                "starting_accounts": [],
+                "starting_assertions": []
+              }
+            },
+            "assertions": {},
+            "behavior_specifications": {
+              "alpha.followup": {
+                "action_contract_refs": [],
+                "authority_scope_refs": [],
+                "autonomous_execution": null,
+                "backend_feature_support_refs": [],
+                "behavior_mode": null,
+                "control_context": {
+                  "followup": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:59bd1d08df2416bd6a58e2038b21e3c311a7b01bddabccfe693ef87e2b418ba4",
+                      "asset_id": "privacy-instruction",
+                      "asset_version": "two"
+                    },
+                    "declaration_ref": "alpha.revised",
+                    "disposition": "selected"
+                  }
+                },
+                "evidence_contract_refs": [],
+                "extension_policy": "governed-extension",
+                "extensions": {},
+                "lifecycle_state": "active",
+                "mixed_control": null,
+                "observation_boundary_refs": [],
+                "outcome_interpretation_rule_refs": [],
+                "participant_inject_deliveries": {},
+                "participant_refs": [
+                  "alpha.red"
+                ],
+                "participant_role_refs": [],
+                "realization_profile_ref": null,
+                "semantic_version": "1",
+                "tool_affordances": {}
+              },
+              "bravo.followup": {
+                "action_contract_refs": [],
+                "authority_scope_refs": [],
+                "autonomous_execution": null,
+                "backend_feature_support_refs": [],
+                "behavior_mode": null,
+                "control_context": {
+                  "followup": {
+                    "asset_ref": {
+                      "asset_digest": "sha256:59bd1d08df2416bd6a58e2038b21e3c311a7b01bddabccfe693ef87e2b418ba4",
+                      "asset_id": "privacy-instruction",
+                      "asset_version": "two"
+                    },
+                    "declaration_ref": "bravo.revised",
+                    "disposition": "selected"
+                  }
+                },
+                "evidence_contract_refs": [],
+                "extension_policy": "governed-extension",
+                "extensions": {},
+                "lifecycle_state": "active",
+                "mixed_control": null,
+                "observation_boundary_refs": [],
+                "outcome_interpretation_rule_refs": [],
+                "participant_inject_deliveries": {},
+                "participant_refs": [
+                  "bravo.red"
+                ],
+                "participant_role_refs": [],
+                "realization_profile_ref": null,
+                "semantic_version": "1",
+                "tool_affordances": {}
+              }
+            },
+            "clocks": {},
+            "conditions": {},
+            "content": {},
+            "control_context_assets": {
+              "alpha.policy": {
+                "asset_id": "operating-policy",
+                "asset_version": "one",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "policy",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              },
+              "alpha.revised": {
+                "asset_id": "privacy-instruction",
+                "asset_version": "two",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "directive",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              },
+              "alpha.shared": {
+                "asset_id": "privacy-instruction",
+                "asset_version": "one",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "instruction",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              },
+              "alpha.unselected": {
+                "asset_id": "unselected-guidance",
+                "asset_version": "one",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "guidance",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              },
+              "bravo.policy": {
+                "asset_id": "operating-policy",
+                "asset_version": "one",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "policy",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              },
+              "bravo.revised": {
+                "asset_id": "privacy-instruction",
+                "asset_version": "two",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "directive",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              },
+              "bravo.shared": {
+                "asset_id": "privacy-instruction",
+                "asset_version": "one",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "instruction",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              },
+              "bravo.unselected": {
+                "asset_id": "unselected-guidance",
+                "asset_version": "one",
+                "content": {
+                  "artifact_id": "instruction-one",
+                  "checksum": {
+                    "algorithm": "sha256",
+                    "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                  },
+                  "created_at": "2026-10-26T00:00:00Z",
+                  "description": null,
+                  "media_type": "text/plain",
+                  "role": "documentation",
+                  "satisfies_refs": [],
+                  "sensitivity": "restricted",
+                  "size_bytes": 34,
+                  "source": "publisher-reference",
+                  "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+                },
+                "kind": "guidance",
+                "participant_addresses": [],
+                "provenance_refs": [
+                  "provenance.authoring"
+                ],
+                "publication_authority_ref": "authorities.publisher",
+                "retention_policy_ref": "retention.governed",
+                "role_refs": [
+                  "red",
+                  "blue"
+                ],
+                "schema_version": "participant-control-context-asset/v1"
+              }
+            },
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "",
+            "entities": {},
+            "events": {},
+            "evidence_requirements": {},
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:b8421957d213971957ce4189b01264da1e7c7decbe2ec44aba3760fd7c04579e"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "features",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "conditions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "injects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "events",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "stories",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "generated_artifacts",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "persistent_volumes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "accounts",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "identity_domains",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "identity_forests",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "identity_facades",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "deployment_tenants",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "deployment_cells",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "forwarding_agents",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.shared",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.revised",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.alpha.unselected",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.shared",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.revised",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.schema_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.artifact_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.media_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.uri",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.checksum.algorithm",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.checksum.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.checksum",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.size_bytes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.created_at",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.satisfies_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.participant_addresses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.role_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.role_refs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.role_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.publication_authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.retention_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.provenance_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected.provenance_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets.bravo.unselected",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "control_context_assets",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context.briefing.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context.briefing.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context.briefing.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context.briefing.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context.briefing.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context.briefing.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context.briefing",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.control_context",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.red",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.briefing.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.briefing.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.briefing.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.briefing.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.briefing.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.briefing.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.briefing",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.rules.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.rules.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.rules.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.rules.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.rules.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.rules.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context.rules",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.control_context",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.alpha.blue",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context.briefing.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context.briefing.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context.briefing.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context.briefing.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context.briefing.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context.briefing.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context.briefing",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.control_context",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.red",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.briefing.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.briefing.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.briefing.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.briefing.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.briefing.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.briefing.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.briefing",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.rules.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.rules.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.rules.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.rules.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.rules.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.rules.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context.rules",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.control_context",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.bravo.blue",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "outcome_interpretation_rules",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.semantic_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context.followup.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context.followup.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context.followup.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context.followup.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context.followup.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context.followup.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context.followup",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.control_context",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.participant_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup.participant_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.alpha.followup",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.semantic_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context.followup.declaration_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context.followup.asset_ref.asset_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context.followup.asset_ref.asset_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context.followup.asset_ref.asset_digest",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context.followup.asset_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context.followup.disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context.followup",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.control_context",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.participant_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup.participant_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.bravo.followup",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domain_mappings",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_progression_policies",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "objectives",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "workflows",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "variables",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "variation_points",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                }
+              ],
+              "imports": [
+                {
+                  "bindings": [],
+                  "content_digest": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+                  "export_hash": "sha256:555cddc6a82e44c2606b71e0a05c2e1bd88fbfcd237956e6a827ec617cc7bd7c",
+                  "manifest_digest": "",
+                  "module_id": "examples/context-kit",
+                  "module_version": "1.0.0",
+                  "namespace": [
+                    "alpha"
+                  ],
+                  "requested_digest": "",
+                  "requested_source": "local:context-kit.sdl.yaml",
+                  "requested_version": "*",
+                  "resolved_source": "context-kit.sdl.yaml",
+                  "signer_id": ""
+                },
+                {
+                  "bindings": [],
+                  "content_digest": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+                  "export_hash": "sha256:555cddc6a82e44c2606b71e0a05c2e1bd88fbfcd237956e6a827ec617cc7bd7c",
+                  "manifest_digest": "",
+                  "module_id": "examples/context-kit",
+                  "module_version": "1.0.0",
+                  "namespace": [
+                    "bravo"
+                  ],
+                  "requested_digest": "",
+                  "requested_source": "local:context-kit.sdl.yaml",
+                  "requested_version": "*",
+                  "resolved_source": "context-kit.sdl.yaml",
+                  "signer_id": ""
+                }
+              ],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "two-context-kits",
+            "nodes": {},
+            "objectives": {},
+            "observation_boundaries": {},
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {},
+            "relationships": {},
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {},
+            "time_domain_mappings": {},
+            "time_domains": {},
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:4ca3acbab182fbca558e1dea22513223d399fa85b746e177b8a44db0316aeac7"
+      }
+    }
+  },
+  "surface": "cli"
+}

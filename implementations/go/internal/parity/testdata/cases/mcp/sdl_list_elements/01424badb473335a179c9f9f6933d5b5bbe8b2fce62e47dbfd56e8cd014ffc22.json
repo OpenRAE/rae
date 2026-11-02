@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:cd132c0178c64ad66c838347c4f4f36cc7f6e7dd4ae8d73e242f7a30d35bcf14"
+  },
+  "name": "examples/scenarios/enterprise-identity-tenancy.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "accounts": [
+            "domain-admin"
+          ],
+          "nodes": [
+            "dc",
+            "idp",
+            "carrier",
+            "workforce",
+            "inference"
+          ],
+          "relationships": [
+            "dc-role",
+            "workforce-federation",
+            "workforce-placement",
+            "shared-inference"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "accounts": [
+          "domain-admin"
+        ],
+        "nodes": [
+          "dc",
+          "idp",
+          "carrier",
+          "workforce",
+          "inference"
+        ],
+        "relationships": [
+          "dc-role",
+          "workforce-federation",
+          "workforce-placement",
+          "shared-inference"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

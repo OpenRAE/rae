@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/library/templates/scenario/minimal-validated-scenario.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/library/templates/scenario/minimal-validated-scenario.yaml": "sha256:cbe8d4f18ad81a389300591de82ff5f91c02a36184b1cf52ea1e6226368f723f"
+  },
+  "name": "examples/library/templates/scenario/minimal-validated-scenario.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/library/templates/scenario/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

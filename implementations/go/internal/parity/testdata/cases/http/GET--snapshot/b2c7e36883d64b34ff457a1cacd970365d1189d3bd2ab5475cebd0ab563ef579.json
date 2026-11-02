@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /snapshot",
+  "files": {
+    "request.json": "sha256:6ff0a67b793cc59513978cf96455a4562701a98174a36afa4bbc922c6a2aee82"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

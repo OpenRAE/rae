@@ -1,0 +1,17 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/library/patterns/task-as-objective-contract.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/library/patterns/task-as-objective-contract.yaml": "sha256:e4a5893338074acacb6d3a2e7b6141213145ff74a7e84b801b24cfd9f141df61"
+  },
+  "name": "examples/library/patterns/task-as-objective-contract.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

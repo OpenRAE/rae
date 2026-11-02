@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:b3d6d53f7ccf1295d827b27ea43f98a2122abdcafe81e53b20201654db218114"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "red-agent"
+          ],
+          "content": [
+            "briefing"
+          ],
+          "entities": [
+            "red-team"
+          ],
+          "events": [
+            "briefing-event"
+          ],
+          "injects": [
+            "briefing-inject"
+          ],
+          "nodes": [
+            "web"
+          ],
+          "scripts": [
+            "briefing-script"
+          ],
+          "stories": [
+            "briefing-story"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "red-agent"
+        ],
+        "content": [
+          "briefing"
+        ],
+        "entities": [
+          "red-team"
+        ],
+        "events": [
+          "briefing-event"
+        ],
+        "injects": [
+          "briefing-inject"
+        ],
+        "nodes": [
+          "web"
+        ],
+        "scripts": [
+          "briefing-script"
+        ],
+        "stories": [
+          "briefing-story"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

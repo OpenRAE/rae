@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:63ac7637305a2adabb0ecaf532920ee557c1e7eafad2f496aacf5ea6a890d53e"
+  },
+  "name": "random-stream-vector-v1/routed/contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-exhaustion.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

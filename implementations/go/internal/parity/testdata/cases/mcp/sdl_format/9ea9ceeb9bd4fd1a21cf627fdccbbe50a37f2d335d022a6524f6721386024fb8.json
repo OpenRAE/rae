@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:95631c53b5dbc8c881dccae5ce5521017204f45557c26fa344df697989d924fc"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/nested-references.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: transformation-nested-reference-case\nnodes:\n  lan:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    services:\n    - port: 80\n      name: http\n    runtime:\n      service_listeners:\n      - service_listener_id: telemetry\n        port: 9100\nentities:\n  red-team:\n    role: red\ncontent:\n  bundle:\n    type: dataset\n    target: web\n    items:\n    - name: report\nagents:\n  red-agent:\n    affiliations:\n    - red-team\n    actions:\n    - probe\n    operating_scope:\n    - nodes.web.services.http\n    - content.bundle.items.report\naction_contracts:\n  probe:\n    semantic_version: 1.0.0\n    behavioral_granularity: atomic\n    procedure_basis: probe the web service\n    realization_profile: backend-declared\n    fidelity_claim: records probe intent\n    preconditions:\n    - precondition_id: in-scope\n      precondition_class: authority\n      description: the web service is in scope\n    effects:\n    - effect_id: observed\n      effect_class: observation_effect\n      description: probe observation\n      evidence_refs:\n      - evidence.probe-output\n    failure_classes:\n    - unknown\nbehavior_specifications:\n  probe-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - red-agent\n    action_contract_refs:\n    - probe\n    authority_scope_refs:\n    - nodes.web.services.http\n    - nodes.web.runtime.service_listeners.telemetry\n    - content.bundle.items.report\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: transformation-nested-reference-case\nnodes:\n  lan:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    services:\n    - port: 80\n      name: http\n    runtime:\n      service_listeners:\n      - service_listener_id: telemetry\n        port: 9100\nentities:\n  red-team:\n    role: red\ncontent:\n  bundle:\n    type: dataset\n    target: web\n    items:\n    - name: report\nagents:\n  red-agent:\n    affiliations:\n    - red-team\n    actions:\n    - probe\n    operating_scope:\n    - nodes.web.services.http\n    - content.bundle.items.report\naction_contracts:\n  probe:\n    semantic_version: 1.0.0\n    behavioral_granularity: atomic\n    procedure_basis: probe the web service\n    realization_profile: backend-declared\n    fidelity_claim: records probe intent\n    preconditions:\n    - precondition_id: in-scope\n      precondition_class: authority\n      description: the web service is in scope\n    effects:\n    - effect_id: observed\n      effect_class: observation_effect\n      description: probe observation\n      evidence_refs:\n      - evidence.probe-output\n    failure_classes:\n    - unknown\nbehavior_specifications:\n  probe-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - red-agent\n    action_contract_refs:\n    - probe\n    authority_scope_refs:\n    - nodes.web.services.http\n    - nodes.web.runtime.service_listeners.telemetry\n    - content.bundle.items.report\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

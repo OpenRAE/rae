@@ -1,0 +1,779 @@
+{
+  "args": [],
+  "command": "sdl_plan",
+  "files": {
+    "arguments.json": "sha256:4a35cbfa22a6e3e7d4b1fd04f1a53317f030b73c5bed1f3164622e155ad55727"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "claim_boundary": "This is a reference-manifest dry run. It supports capability and planning claims, not claims that a live range actually ran.",
+          "diagnostics": [
+            {
+              "address": "provision.node.mail-gateway",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.vpn-gateway",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ad01",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.exchange01",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ehr-frontend",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ehr-db",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.pacs01",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.med-gateway",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.backup-vault",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.siem01",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.vendor-jump",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "evidence_requirements.objective-truth-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.mail-gateway",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.vpn-gateway",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ad01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.exchange01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ehr-frontend",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ehr-db",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.pacs01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.med-gateway",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.backup-vault",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.siem01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.vendor-jump",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ad01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.exchange01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.vendor-jump",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ad01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.exchange01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.vendor-jump",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "provision.node.ad01",
+              "code": "realization.unsupported-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "planning"
+            }
+          ],
+          "manifest": {
+            "backend": "stub",
+            "supported_contract_versions": [
+              "artifact-requirement-v1",
+              "backend-manifest-v2",
+              "evaluation-history-event-stream-v1",
+              "evaluation-plan-v1",
+              "evaluation-result-envelope-v1",
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1",
+              "operation-receipt-v1",
+              "operation-status-v1",
+              "orchestration-plan-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-control-evaluation-v1",
+              "participant-control-evaluation-v2",
+              "participant-control-occurrence-v1",
+              "participant-control-selection-v1",
+              "participant-control-selection-v2",
+              "participant-crossing-occurrence-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-episode-state-envelope-v1",
+              "participant-execution-binding-v1",
+              "participant-execution-control-v1",
+              "participant-execution-service-state-v1",
+              "participant-flow-control-relation-v1",
+              "participant-joint-action-record-v1",
+              "participant-lifecycle-event-v1",
+              "participant-observation-envelope-v1",
+              "participant-outcome-report-v1",
+              "participant-resource-budget-event-v1",
+              "participant-resource-budget-policy-v1",
+              "participant-resource-budget-state-v1",
+              "participant-resource-pool-capacity-v1",
+              "participant-shared-state-record-v1",
+              "participant-time-management-context-v1",
+              "proposition-truth-result-v1",
+              "provisioning-plan-v1",
+              "runtime-snapshot-v1",
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1",
+              "workflow-history-event-stream-v1",
+              "workflow-result-envelope-v1"
+            ],
+            "version": "10.2.0"
+          },
+          "plan": {
+            "diagnostic_count": 30,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 45
+              },
+              "orchestration": {
+                "create": 10
+              },
+              "provisioning": {
+                "create": 45
+              }
+            },
+            "resources": {
+              "evaluation": 45,
+              "orchestration": 10,
+              "provisioning": 45
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.condition.ad01.domain-auth-healthy",
+                "evaluation.condition.ad01.sso-healthy",
+                "evaluation.condition.backup-vault.restore-runbook-ready",
+                "evaluation.condition.ehr-db.ehr-db-healthy",
+                "evaluation.condition.exchange01.exchange-owa-healthy",
+                "evaluation.condition.mail-gateway.mail-queue-healthy",
+                "evaluation.condition.med-gateway.device-mesh-healthy",
+                "evaluation.condition.vendor-jump.vendor-jump-online",
+                "evaluation.condition.vpn-gateway.vpn-auth-healthy",
+                "evaluation.proposition.backup-catalog-intact",
+                "evaluation.proposition.clinical-disruption-observed",
+                "evaluation.proposition.ehr-api-healthy",
+                "evaluation.proposition.pacs-archive-healthy",
+                "evaluation.proposition.phi-staging-observed",
+                "evaluation.proposition.phish-mail-delivered",
+                "evaluation.proposition.radiology-workflow-delayed",
+                "evaluation.proposition.soc-pipeline-up",
+                "evaluation.proposition.triage-case-submitted",
+                "evaluation.proposition.vendor-session-established",
+                "evaluation.assertion.backup-catalog-intact",
+                "evaluation.condition.backup-vault.backup-catalog-intact",
+                "evaluation.assertion.clinical-disruption-observed",
+                "evaluation.assertion.pre-clinical-disruption-observed",
+                "evaluation.condition.ehr-frontend.clinical-disruption-observed",
+                "evaluation.assertion.ehr-api-healthy",
+                "evaluation.condition.ehr-frontend.ehr-api-healthy",
+                "evaluation.assertion.pacs-archive-healthy",
+                "evaluation.condition.pacs01.pacs-archive-healthy",
+                "evaluation.assertion.phi-staging-observed",
+                "evaluation.condition.ehr-db.phi-staging-observed",
+                "evaluation.assertion.pre-phish-mail-delivered",
+                "evaluation.condition.exchange01.phish-mail-delivered",
+                "evaluation.assertion.radiology-workflow-delayed",
+                "evaluation.condition.pacs01.radiology-workflow-delayed",
+                "evaluation.assertion.soc-pipeline-up",
+                "evaluation.condition.siem01.soc-pipeline-up",
+                "evaluation.assertion.triage-case-submitted",
+                "evaluation.condition.siem01.triage-case-submitted",
+                "evaluation.assertion.vendor-session-established",
+                "evaluation.condition.vpn-gateway.vendor-session-established",
+                "evaluation.objective.blue-detect-and-triage",
+                "evaluation.objective.red-establish-foothold",
+                "evaluation.objective.red-stage-phi",
+                "evaluation.objective.red-disrupt-radiology",
+                "evaluation.objective.blue-restore-clinical-services"
+              ],
+              "orchestration": [
+                "orchestration.inject.phishing-wave",
+                "orchestration.inject.surgery-escalation",
+                "orchestration.inject.vendor-advisory",
+                "orchestration.event.phishing-delivery",
+                "orchestration.event.surgery-pressure",
+                "orchestration.event.morning-advisory",
+                "orchestration.script.live-clinic",
+                "orchestration.script.recovery-window",
+                "orchestration.script.pre-surgery",
+                "orchestration.story.surgery-day"
+              ]
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 2,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "hospital-ransomware-surgery-day"
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "planned_with_errors"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "claim_boundary": "This is a reference-manifest dry run. It supports capability and planning claims, not claims that a live range actually ran.",
+        "diagnostics": [
+          {
+            "address": "provision.node.mail-gateway",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.vpn-gateway",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ad01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.exchange01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ehr-frontend",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ehr-db",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.pacs01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.med-gateway",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.backup-vault",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.siem01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.mail-gateway",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.vpn-gateway",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ad01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.exchange01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ehr-frontend",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ehr-db",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.pacs01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.med-gateway",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.backup-vault",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.siem01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ad01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.exchange01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ad01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.exchange01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "provision.node.ad01",
+            "code": "realization.unsupported-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "planning"
+          }
+        ],
+        "manifest": {
+          "backend": "stub",
+          "supported_contract_versions": [
+            "artifact-requirement-v1",
+            "backend-manifest-v2",
+            "evaluation-history-event-stream-v1",
+            "evaluation-plan-v1",
+            "evaluation-result-envelope-v1",
+            "experiment-capture-spec-v1",
+            "experiment-derived-measure-v1",
+            "experiment-evidence-record-v1",
+            "experiment-run-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "orchestration-plan-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-control-evaluation-v1",
+            "participant-control-evaluation-v2",
+            "participant-control-occurrence-v1",
+            "participant-control-selection-v1",
+            "participant-control-selection-v2",
+            "participant-crossing-occurrence-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-execution-binding-v1",
+            "participant-execution-control-v1",
+            "participant-execution-service-state-v1",
+            "participant-flow-control-relation-v1",
+            "participant-joint-action-record-v1",
+            "participant-lifecycle-event-v1",
+            "participant-observation-envelope-v1",
+            "participant-outcome-report-v1",
+            "participant-resource-budget-event-v1",
+            "participant-resource-budget-policy-v1",
+            "participant-resource-budget-state-v1",
+            "participant-resource-pool-capacity-v1",
+            "participant-shared-state-record-v1",
+            "participant-time-management-context-v1",
+            "proposition-truth-result-v1",
+            "provisioning-plan-v1",
+            "runtime-snapshot-v1",
+            "trial-cleanup-plan-v1",
+            "trial-cleanup-receipt-v1",
+            "workflow-history-event-stream-v1",
+            "workflow-result-envelope-v1"
+          ],
+          "version": "10.2.0"
+        },
+        "plan": {
+          "diagnostic_count": 30,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 45
+            },
+            "orchestration": {
+              "create": 10
+            },
+            "provisioning": {
+              "create": 45
+            }
+          },
+          "resources": {
+            "evaluation": 45,
+            "orchestration": 10,
+            "provisioning": 45
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.condition.ad01.domain-auth-healthy",
+              "evaluation.condition.ad01.sso-healthy",
+              "evaluation.condition.backup-vault.restore-runbook-ready",
+              "evaluation.condition.ehr-db.ehr-db-healthy",
+              "evaluation.condition.exchange01.exchange-owa-healthy",
+              "evaluation.condition.mail-gateway.mail-queue-healthy",
+              "evaluation.condition.med-gateway.device-mesh-healthy",
+              "evaluation.condition.vendor-jump.vendor-jump-online",
+              "evaluation.condition.vpn-gateway.vpn-auth-healthy",
+              "evaluation.proposition.backup-catalog-intact",
+              "evaluation.proposition.clinical-disruption-observed",
+              "evaluation.proposition.ehr-api-healthy",
+              "evaluation.proposition.pacs-archive-healthy",
+              "evaluation.proposition.phi-staging-observed",
+              "evaluation.proposition.phish-mail-delivered",
+              "evaluation.proposition.radiology-workflow-delayed",
+              "evaluation.proposition.soc-pipeline-up",
+              "evaluation.proposition.triage-case-submitted",
+              "evaluation.proposition.vendor-session-established",
+              "evaluation.assertion.backup-catalog-intact",
+              "evaluation.condition.backup-vault.backup-catalog-intact",
+              "evaluation.assertion.clinical-disruption-observed",
+              "evaluation.assertion.pre-clinical-disruption-observed",
+              "evaluation.condition.ehr-frontend.clinical-disruption-observed",
+              "evaluation.assertion.ehr-api-healthy",
+              "evaluation.condition.ehr-frontend.ehr-api-healthy",
+              "evaluation.assertion.pacs-archive-healthy",
+              "evaluation.condition.pacs01.pacs-archive-healthy",
+              "evaluation.assertion.phi-staging-observed",
+              "evaluation.condition.ehr-db.phi-staging-observed",
+              "evaluation.assertion.pre-phish-mail-delivered",
+              "evaluation.condition.exchange01.phish-mail-delivered",
+              "evaluation.assertion.radiology-workflow-delayed",
+              "evaluation.condition.pacs01.radiology-workflow-delayed",
+              "evaluation.assertion.soc-pipeline-up",
+              "evaluation.condition.siem01.soc-pipeline-up",
+              "evaluation.assertion.triage-case-submitted",
+              "evaluation.condition.siem01.triage-case-submitted",
+              "evaluation.assertion.vendor-session-established",
+              "evaluation.condition.vpn-gateway.vendor-session-established",
+              "evaluation.objective.blue-detect-and-triage",
+              "evaluation.objective.red-establish-foothold",
+              "evaluation.objective.red-stage-phi",
+              "evaluation.objective.red-disrupt-radiology",
+              "evaluation.objective.blue-restore-clinical-services"
+            ],
+            "orchestration": [
+              "orchestration.inject.phishing-wave",
+              "orchestration.inject.surgery-escalation",
+              "orchestration.inject.vendor-advisory",
+              "orchestration.event.phishing-delivery",
+              "orchestration.event.surgery-pressure",
+              "orchestration.event.morning-advisory",
+              "orchestration.script.live-clinic",
+              "orchestration.script.recovery-window",
+              "orchestration.script.pre-surgery",
+              "orchestration.story.surgery-day"
+            ]
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 2,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "hospital-ransomware-surgery-day"
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "planned_with_errors"
+      }
+    }
+  },
+  "surface": "mcp"
+}

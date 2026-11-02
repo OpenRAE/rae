@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml": "sha256:398f42b002b27d85195b750ea73e57f3ce520fcd6b79e267f2c4752e251a34d4",
+    "setup.json": "sha256:5076c5e0169e32cf0bf9b2a91165148e6def1a004034f6804218b868a25bc87c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

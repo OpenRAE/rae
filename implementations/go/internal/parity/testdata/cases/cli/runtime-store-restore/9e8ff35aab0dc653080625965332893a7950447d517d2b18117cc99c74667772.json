@@ -1,0 +1,23 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "restore",
+    "input/value-sentinel-r1-1678.sqlite3",
+    "input/output/restored",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:ops"
+  ],
+  "command": "runtime store restore",
+  "files": {
+    "input/value-sentinel-r1-1678.sqlite3": "sha256:a2e659dacb4691e887ac0139f8893d04764ee197d70fb73d3190d56113d18e3e"
+  },
+  "name": "regression/6e172d1fa0302e455fcef8498037b5f7c05856e8d01a64b423afa3b020858dbc",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

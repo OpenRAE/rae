@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "sha256:4ec12fd62034012ab756239028f552e5d1fa5901b6d56eb7a6f93c478239f6b2"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: dependent-declarations-family\nnodes:\n  sync:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n  sensor:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\ninfrastructure:\n  sync:\n    count: 1\n  sensor:\n    count: 1\npersistent_volumes:\n  rules:\n    lifecycle: ephemeral\n    access_mode: read_write_many\n    consumers:\n    - node: sensor\n      mount_destination: /var/lib/rules\n      access_mode: read_only\n    - node: sync\n      mount_destination: /var/lib/rules\n      access_mode: read_write\naccounts:\n  sync-api:\n    username: sync\n    node: sync\nvariation_points:\n  sync-host:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync\n      slot: nodes.presence\n    alternatives:\n      absent:\n        requires:\n        - point: sync-account\n          members:\n          - absent\n        - point: shared-mounts\n          members:\n          - without-sync\n        kind: node-presence\n        present: false\n      present:\n        kind: node-presence\n        present: true\n  sync-account:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync-api\n      slot: accounts.presence\n    alternatives:\n      absent:\n        kind: declaration-presence\n        present: false\n      present:\n        requires:\n        - point: sync-host\n          members:\n          - present\n        kind: declaration-presence\n        present: true\n  shared-mounts:\n    kind: alternative\n    target:\n      kind: structural\n      owner: rules\n      slot: persistent_volumes.consumers\n    alternatives:\n      without-sync:\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n      all:\n        requires:\n        - point: sync-host\n          members:\n          - present\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n        - node: sync\n          mount_destination: /var/lib/rules\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:c436ce541a73b07b4166371422b6a741e9f23f09d5f9b574a551de8ea700074d"
+        },
+        "field_count": 6,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "dependent-declarations-family",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

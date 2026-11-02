@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/examples/library/templates/study/observational-study-protocol.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/examples/library/templates/study/observational-study-protocol.yaml": "sha256:f7a126ac0487faee4226a5e5fdce04be4fbbed271162e040c6a8d9e29d45de1d"
+  },
+  "name": "examples/library/templates/study/observational-study-protocol.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

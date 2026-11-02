@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:89a6fbc93eb2fbbf7536406911e520bdc469930a0aa4b2d15edc78beea966bba"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "assertions.company-mail-visible -> company-mail-visible assertions.job-index-schema-visible -> job-index-schema-visible content.company-mail -> mail content.job-index-schema -> mail propositions.company-mail-visible -> company-mail-readback, content.company-mail propositions.job-index-schema-visible -> content.job-index-schema, job-index-schema-readback"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "assertions.company-mail-visible -> company-mail-visible assertions.job-index-schema-visible -> job-index-schema-visible content.company-mail -> mail content.job-index-schema -> mail propositions.company-mail-visible -> company-mail-readback, content.company-mail propositions.job-index-schema-visible -> content.job-index-schema, job-index-schema-readback"
+      }
+    }
+  },
+  "surface": "mcp"
+}

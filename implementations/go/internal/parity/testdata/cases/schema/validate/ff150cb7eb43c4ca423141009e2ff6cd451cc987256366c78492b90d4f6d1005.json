@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:9e63e32d242c25bfa673507079afd6cf6f8cb5bed65d25da94609d88ace05ff7"
+  },
+  "name": "backend-operation-response-v1/routed/contracts/fixtures/control-plane/backend-operation-response-v1/valid/mixed-handoff-01.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

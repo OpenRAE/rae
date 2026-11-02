@@ -1,0 +1,171 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:a7d6ee8c1d0d4bdd0beafbc6cad9cf629ff9589bc665458e1ea2c8d0f6ae3646"
+  },
+  "name": "regression/f71e17ae527a664c7f4100e8de82eca7aafa4c3ce98ef27cee374af20a0bcc98",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "ram",
+                "RAM"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/third/resources/ram",
+              "range": {
+                "end": {
+                  "column": 10,
+                  "line": 11
+                },
+                "start": {
+                  "column": 7,
+                  "line": 11
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'ram'.",
+                  "range": {
+                    "end": {
+                      "column": 10,
+                      "line": 6
+                    },
+                    "start": {
+                      "column": 7,
+                      "line": 6
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "cpu",
+                "CPU"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/third/resources/cpu",
+              "range": {
+                "end": {
+                  "column": 10,
+                  "line": 12
+                },
+                "start": {
+                  "column": 7,
+                  "line": 12
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'cpu'.",
+                  "range": {
+                    "end": {
+                      "column": 10,
+                      "line": 7
+                    },
+                    "start": {
+                      "column": 7,
+                      "line": 7
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "ram",
+              "RAM"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/third/resources/ram",
+            "range": {
+              "end": {
+                "column": 10,
+                "line": 11
+              },
+              "start": {
+                "column": 7,
+                "line": 11
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'ram'.",
+                "range": {
+                  "end": {
+                    "column": 10,
+                    "line": 6
+                  },
+                  "start": {
+                    "column": 7,
+                    "line": 6
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "cpu",
+              "CPU"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/third/resources/cpu",
+            "range": {
+              "end": {
+                "column": 10,
+                "line": 12
+              },
+              "start": {
+                "column": 7,
+                "line": 12
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'cpu'.",
+                "range": {
+                  "end": {
+                    "column": 10,
+                    "line": 7
+                  },
+                  "start": {
+                    "column": 7,
+                    "line": 7
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

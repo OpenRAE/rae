@@ -1,0 +1,42 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml",
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf"
+  },
+  "name": "examples/scenarios/participant-control-context/context-kit.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "actions": {
+        "create": 0,
+        "delete": 0,
+        "unchanged": 0,
+        "update": 0
+      },
+      "baseline": {
+        "diagnostics": [],
+        "scenario_name": "context-example",
+        "snapshot": {
+          "entries": [],
+          "entry_count": 0
+        }
+      },
+      "candidate": {
+        "diagnostics": [],
+        "scenario_name": "context-example"
+      },
+      "operations": [],
+      "snapshot_kind": "planned-state-projection",
+      "status": "reconciled"
+    }
+  },
+  "surface": "cli"
+}

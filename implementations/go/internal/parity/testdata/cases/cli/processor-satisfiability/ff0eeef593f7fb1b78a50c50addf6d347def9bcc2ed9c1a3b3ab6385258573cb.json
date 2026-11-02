@@ -1,0 +1,85 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml": "sha256:93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239"
+  },
+  "name": "examples/scenarios/temporal-profiles/automation-dwell.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:5465c7f78913b624d4d7a396680991ac1445238a68e6effeb149f533dd564fd4"
+      },
+      "diagnostics": [
+        {
+          "address": "/behavior_specifications/participant-behavior/autonomous_execution/max_action_attempts",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/variables/attempts",
+          "code": "scenario-satisfiability.unsupported-domain",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        }
+      ],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:5465c7f78913b624d4d7a396680991ac1445238a68e6effeb149f533dd564fd4"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:7568f3a00f0eb9f73bd349f62fefeae9179bf8de9ad79b77d6b1f4366ee6d3af",
+      "outcome": "unsupported",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:93af6a628ebae78df5e25358775f56d6eb80b1904b623d8ec626b9c8d673e239",
+        "source_id": "automation-dwell.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": {
+        "profile": "raes-satisfiability-unsupported/v1",
+        "reason_codes": [
+          "scenario-satisfiability.unsupported-domain",
+          "scenario-satisfiability.unsupported-target"
+        ]
+      },
+      "witness": null
+    }
+  },
+  "surface": "cli"
+}

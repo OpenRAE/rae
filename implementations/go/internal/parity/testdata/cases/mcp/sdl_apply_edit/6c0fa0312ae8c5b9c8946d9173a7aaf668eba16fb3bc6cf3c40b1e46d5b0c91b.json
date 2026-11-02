@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:a1e649ff5f36ca842e537ba46700502c3a13ecc3e588d29479bd04c9f59a5129"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/minimal.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

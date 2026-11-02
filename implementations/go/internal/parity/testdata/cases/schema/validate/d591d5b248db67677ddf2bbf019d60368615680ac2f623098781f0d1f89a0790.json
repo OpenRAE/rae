@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-trigger-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:5f4845cc60373962a910fad05d9ef92e025e7b2c6f8cb3c1c3a016d58b47776e"
+  },
+  "name": "inject-trigger-request-v1/routed/contracts/fixtures/control-plane/inject-trigger-request-v1/context-invalid/namespaced-binding.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

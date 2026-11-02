@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-shared-state-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:5b6a39ed16f1127dcb5d6078bba6f066c33994b40901038abba100f346fe4c60"
+  },
+  "name": "regression/da357026b9d2aa67082eae37bc636599759b298287c4e375b9122896755ba24d",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,77 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7102b8008b2420933236bdb7217dc0c14ccb13000afa746444a2becdd095d998"
+  },
+  "name": "regression/75702ee209c988949fc7dcdcd20b24a970214c7a2b344a899162960accdd062d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "satcom-release-poisoning",
+            "populated_sections": {
+              "accounts": 7,
+              "action_contracts": 12,
+              "agents": 3,
+              "conditions": 21,
+              "content": 4,
+              "entities": 5,
+              "events": 3,
+              "features": 14,
+              "infrastructure": 22,
+              "injects": 3,
+              "nodes": 22,
+              "objectives": 6,
+              "relationships": 9,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "satcom-release-poisoning",
+          "populated_sections": {
+            "accounts": 7,
+            "action_contracts": 12,
+            "agents": 3,
+            "conditions": 21,
+            "content": 4,
+            "entities": 5,
+            "events": 3,
+            "features": 14,
+            "infrastructure": 22,
+            "injects": 3,
+            "nodes": 22,
+            "objectives": 6,
+            "relationships": 9,
+            "scripts": 3,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

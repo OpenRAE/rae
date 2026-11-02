@@ -1,0 +1,319 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:f660998bf6573801de0f9d5945f37bbdd7f34dcaf15e3b4ad026a8f25aa98366"
+  },
+  "name": "examples/library/templates/run/seeded-run-plan.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "template: raes-library-template\nversion: 1\nid: seeded-run-plan\nsurface: run\nrequirement_refs:\n- AUT-806\n- EXP-736\nsource_refs:\n- docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md\n- examples/experiments/techvault-smoke-run.exp.yaml\nsummary: Pre-run experiment specification for repeated, seeded runs of one task with\n  sequential turns and a step limit.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the YAML reader\n    of the experiment authoring-input loader, which rejects duplicate keys, aliases,\n    and << merge keys. It passes the body to parse_experiment_spec and fails on any\n    error that it reports.\n- command: uv run --project implementations/python --frozen python -c \"import sys;\n    from pathlib import Path; from raes_contracts.experiment_spec import load_experiment_spec;\n    print(load_experiment_spec(Path(sys.argv[1])).spec_id)\" my-experiment.exp.yaml\n  expected: With the body saved as my-experiment.exp.yaml, prints its spec_id and\n    exits 0. An invalid document raises ExperimentSpecValidationError and exits 1.\nbody:\n  schema_version: experiment-authoring-input/v1\n  spec_id: library-seeded-run-plan\n  spec_version: 1.0.0\n  title: Seeded run plan\n  description: Ten seeded runs of one task with sequential turns and a fixed step\n    limit.\n  task_ref:\n    ref_kind: task\n    ref_id: task-example-v1\n    ref_version: 1.0.0\n  run_plan:\n    stochastic_controls:\n    - control_id: base-seed\n      role: seed\n      value: 1234\n      description: Base seed for the plan. How each run derives its seed is not declared\n        here.\n    episode_control:\n      turn_order: sequential\n      max_steps: 50\n      termination_rule: End each episode after 50 logical steps.\n    target_run_count: 10\n  validity_notes:\n  - category: reproducibility\n    note: The seed is descriptive. It does not make this plan an executable random-stream\n      contract.\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/template",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 1
+                },
+                "start": {
+                  "column": 11,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 20,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 13,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 8
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 11
+                },
+                "start": {
+                  "column": 1,
+                  "line": 9
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 37,
+                  "line": 12
+                },
+                "start": {
+                  "column": 10,
+                  "line": 11
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 24
+                },
+                "start": {
+                  "column": 1,
+                  "line": 14
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/body",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 51
+                },
+                "start": {
+                  "column": 3,
+                  "line": 25
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "template: raes-library-template\nversion: 1\nid: seeded-run-plan\nsurface: run\nrequirement_refs:\n- AUT-806\n- EXP-736\nsource_refs:\n- docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md\n- examples/experiments/techvault-smoke-run.exp.yaml\nsummary: Pre-run experiment specification for repeated, seeded runs of one task with\n  sequential turns and a step limit.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the YAML reader\n    of the experiment authoring-input loader, which rejects duplicate keys, aliases,\n    and << merge keys. It passes the body to parse_experiment_spec and fails on any\n    error that it reports.\n- command: uv run --project implementations/python --frozen python -c \"import sys;\n    from pathlib import Path; from raes_contracts.experiment_spec import load_experiment_spec;\n    print(load_experiment_spec(Path(sys.argv[1])).spec_id)\" my-experiment.exp.yaml\n  expected: With the body saved as my-experiment.exp.yaml, prints its spec_id and\n    exits 0. An invalid document raises ExperimentSpecValidationError and exits 1.\nbody:\n  schema_version: experiment-authoring-input/v1\n  spec_id: library-seeded-run-plan\n  spec_version: 1.0.0\n  title: Seeded run plan\n  description: Ten seeded runs of one task with sequential turns and a fixed step\n    limit.\n  task_ref:\n    ref_kind: task\n    ref_id: task-example-v1\n    ref_version: 1.0.0\n  run_plan:\n    stochastic_controls:\n    - control_id: base-seed\n      role: seed\n      value: 1234\n      description: Base seed for the plan. How each run derives its seed is not declared\n        here.\n    episode_control:\n      turn_order: sequential\n      max_steps: 50\n      termination_rule: End each episode after 50 logical steps.\n    target_run_count: 10\n  validity_notes:\n  - category: reproducibility\n    note: The seed is descriptive. It does not make this plan an executable random-stream\n      contract.\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/template",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 1
+              },
+              "start": {
+                "column": 11,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 20,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 13,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 8
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 11
+              },
+              "start": {
+                "column": 1,
+                "line": 9
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 37,
+                "line": 12
+              },
+              "start": {
+                "column": 10,
+                "line": 11
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 24
+              },
+              "start": {
+                "column": 1,
+                "line": 14
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/body",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 51
+              },
+              "start": {
+                "column": 3,
+                "line": 25
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

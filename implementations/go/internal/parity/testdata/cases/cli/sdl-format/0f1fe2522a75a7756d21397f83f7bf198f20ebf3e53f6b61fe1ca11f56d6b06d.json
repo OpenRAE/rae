@@ -1,0 +1,169 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml": "sha256:24e7df1eb3f4b5ddfeb44c08449821af7c9bae32a690ce503593b32d87011abf"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "agents": {
+        "red-agent": {
+          "affiliations": [
+            "red-team"
+          ],
+          "authority_anchors": [
+            "entities.red-team"
+          ],
+          "operating_scope": [
+            "nodes.web"
+          ]
+        },
+        "supervisor-agent": {
+          "affiliations": [
+            "blue-team"
+          ],
+          "authority_anchors": [
+            "entities.blue-team"
+          ],
+          "operating_scope": [
+            "nodes.web"
+          ]
+        }
+      },
+      "behavior_specifications": {
+        "controlled-red": {
+          "authority_scope_refs": [
+            "nodes.web"
+          ],
+          "behavior_mode": "mixed-control",
+          "extension_policy": "closed",
+          "mixed_control": {
+            "controller_states": {
+              "autonomous": {
+                "authority_basis_refs": [
+                  "entities.red-team"
+                ],
+                "authority_status": "active",
+                "controller_ref": "self",
+                "evidence_refs": [
+                  "entities.red-team"
+                ],
+                "policy_revision": "1.0.0",
+                "scope_refs": [
+                  "nodes.web"
+                ],
+                "valid_from_order": 0,
+                "valid_until_order": 10
+              },
+              "pending": {
+                "authority_basis_refs": [
+                  "entities.red-team"
+                ],
+                "authority_status": "active",
+                "controller_ref": "self",
+                "evidence_refs": [
+                  "entities.red-team"
+                ],
+                "policy_revision": "1.0.0",
+                "scope_refs": [
+                  "nodes.web"
+                ],
+                "valid_from_order": 10,
+                "valid_until_order": 11
+              },
+              "supervised": {
+                "authority_basis_refs": [
+                  "entities.blue-team"
+                ],
+                "authority_status": "active",
+                "controller_ref": "blue",
+                "evidence_refs": [
+                  "entities.blue-team"
+                ],
+                "policy_revision": "1.0.0",
+                "scope_refs": [
+                  "nodes.web"
+                ],
+                "valid_from_order": 11,
+                "valid_until_order": 99
+              }
+            },
+            "dispositions": {
+              "concurrent": "order-then-revalidate",
+              "conflict": "reject-no-state-change",
+              "duplicate": "idempotent-if-equivalent",
+              "late": "reject-no-state-change",
+              "revoked": "reject-no-state-change",
+              "stale": "reject-no-state-change"
+            },
+            "initial_state_ref": "autonomous",
+            "order_strategy": "total-effective-order",
+            "participant_ref": "red-agent",
+            "policy_revision": "1.0.0",
+            "transitions": {
+              "approve_supervision": {
+                "effective_order": 11,
+                "evidence_refs": [
+                  "entities.blue-team"
+                ],
+                "expected_state_revision": 1,
+                "from_state_ref": "pending",
+                "policy_revision": "1.0.0",
+                "proposal_ref": "propose_supervision",
+                "proposal_revision": 1,
+                "resulting_state_revision": 2,
+                "to_state_ref": "supervised",
+                "transition_kind": "approval",
+                "valid_from_order": 0,
+                "valid_until_order": 11
+              },
+              "propose_supervision": {
+                "effective_order": 10,
+                "evidence_refs": [
+                  "entities.red-team"
+                ],
+                "expected_state_revision": 0,
+                "from_state_ref": "autonomous",
+                "policy_revision": "1.0.0",
+                "resulting_state_revision": 1,
+                "to_state_ref": "pending",
+                "transition_kind": "proposal",
+                "valid_from_order": 0,
+                "valid_until_order": 10
+              }
+            }
+          },
+          "participant_refs": [
+            "red-agent"
+          ],
+          "semantic_version": "1.0.0"
+        }
+      },
+      "entities": {
+        "blue-team": {
+          "role": "blue"
+        },
+        "red-team": {
+          "role": "red"
+        }
+      },
+      "name": "act-617-invalid-controller",
+      "nodes": {
+        "web": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

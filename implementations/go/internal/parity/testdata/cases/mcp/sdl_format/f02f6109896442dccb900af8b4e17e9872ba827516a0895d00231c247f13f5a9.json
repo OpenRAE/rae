@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:a3021bf16cce64668a7099ca504adc7eca2b205acafcafdbf3d0be6ae93f52ba"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/module.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: fixture-module\nversion: 1.0.0\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: /opt/payload\nmodule:\n  id: raes/fixture-family\n  version: 1.0.0\n  exports:\n    nodes:\n    - primary\n    - secondary\n    content:\n    - payload\n    variation_points:\n    - payload-host\nvariation_points:\n  private-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        requires:\n        - point: private-host\n          members:\n          - primary-host\n        reference: primary\n      secondary-host:\n        reference: secondary\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: fixture-module\nversion: 1.0.0\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: /opt/payload\nmodule:\n  id: raes/fixture-family\n  version: 1.0.0\n  exports:\n    nodes:\n    - primary\n    - secondary\n    content:\n    - payload\n    variation_points:\n    - payload-host\nvariation_points:\n  private-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        requires:\n        - point: private-host\n          members:\n          - primary-host\n        reference: primary\n      secondary-host:\n        reference: secondary\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

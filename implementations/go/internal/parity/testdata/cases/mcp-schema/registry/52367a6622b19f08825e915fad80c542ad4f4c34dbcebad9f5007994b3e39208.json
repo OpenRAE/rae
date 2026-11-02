@@ -1,0 +1,847 @@
+{
+  "args": [],
+  "command": "registry",
+  "files": {},
+  "name": "reference",
+  "result": {
+    "tools": {
+      "experiment_get_example": {
+        "inputSchema": {
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
+        "name": "experiment_get_example",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "experiment_scaffold": {
+        "inputSchema": {
+          "properties": {
+            "complexity": {
+              "default": "minimal",
+              "type": "string"
+            },
+            "spec_id": {
+              "default": "my-experiment-spec",
+              "type": "string"
+            },
+            "task_ref_id": {
+              "default": "task-example-v1",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "name": "experiment_scaffold",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "experiment_validate": {
+        "inputSchema": {
+          "properties": {
+            "spec_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "spec_content"
+          ],
+          "type": "object"
+        },
+        "name": "experiment_validate",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "raes_agent_guidance": {
+        "inputSchema": {
+          "properties": {
+            "audience": {
+              "default": "all",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "name": "raes_agent_guidance",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "raes_intended_use_profiles": {
+        "inputSchema": {
+          "properties": {
+            "profile_id": {
+              "default": "",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "name": "raes_intended_use_profiles",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "raes_reference_manifests": {
+        "inputSchema": {
+          "properties": {},
+          "type": "object"
+        },
+        "name": "raes_reference_manifests",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "raes_tool_surface": {
+        "inputSchema": {
+          "properties": {},
+          "type": "object"
+        },
+        "name": "raes_tool_surface",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_apply_edit": {
+        "inputSchema": {
+          "properties": {
+            "operation": {
+              "type": "string"
+            },
+            "pointer": {
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            },
+            "value_json": {
+              "default": "null",
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content",
+            "operation",
+            "pointer"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_apply_edit",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_check_references": {
+        "inputSchema": {
+          "properties": {
+            "element_name": {
+              "default": "",
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_check_references",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_claims_assessment": {
+        "inputSchema": {
+          "properties": {
+            "parameters_json": {
+              "default": "{}",
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_claims_assessment",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_compile": {
+        "inputSchema": {
+          "properties": {
+            "accept_migration_syntax": {
+              "default": false,
+              "type": "boolean"
+            },
+            "parameters_json": {
+              "default": "{}",
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_compile",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_completions": {
+        "inputSchema": {
+          "properties": {
+            "cursor_path": {
+              "default": "",
+              "type": "string"
+            },
+            "prefix": {
+              "default": "",
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_completions",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_design_assessment": {
+        "inputSchema": {
+          "properties": {
+            "parameters_json": {
+              "default": "{}",
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_design_assessment",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_diagnostics": {
+        "inputSchema": {
+          "properties": {
+            "sdl_content": {
+              "type": "string"
+            },
+            "semantic_validation": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_diagnostics",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_diagram": {
+        "inputSchema": {
+          "properties": {
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_diagram",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_format": {
+        "inputSchema": {
+          "properties": {
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_format",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_get_element": {
+        "inputSchema": {
+          "properties": {
+            "element_name": {
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content",
+            "element_name"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_get_element",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_get_example": {
+        "inputSchema": {
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_get_example",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_instantiate": {
+        "inputSchema": {
+          "properties": {
+            "parameters_json": {
+              "default": "{}",
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_instantiate",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_list_elements": {
+        "inputSchema": {
+          "properties": {
+            "sdl_content": {
+              "type": "string"
+            },
+            "section": {
+              "default": "all",
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_list_elements",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_overview": {
+        "inputSchema": {
+          "properties": {},
+          "type": "object"
+        },
+        "name": "sdl_overview",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_parse": {
+        "inputSchema": {
+          "properties": {
+            "accept_migration_syntax": {
+              "default": false,
+              "type": "boolean"
+            },
+            "sdl_content": {
+              "type": "string"
+            },
+            "semantic_validation": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_parse",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_parser_reference": {
+        "inputSchema": {
+          "properties": {},
+          "type": "object"
+        },
+        "name": "sdl_parser_reference",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_plan": {
+        "inputSchema": {
+          "properties": {
+            "parameters_json": {
+              "default": "{}",
+              "type": "string"
+            },
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_plan",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_references": {
+        "inputSchema": {
+          "properties": {
+            "sdl_content": {
+              "type": "string"
+            },
+            "symbol": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content",
+            "symbol"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_references",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_scaffold": {
+        "inputSchema": {
+          "properties": {
+            "complexity": {
+              "default": "standard",
+              "type": "string"
+            },
+            "description": {
+              "default": "A new SDL scenario",
+              "type": "string"
+            },
+            "scenario_name": {
+              "default": "my-scenario",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "name": "sdl_scaffold",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_section_reference": {
+        "inputSchema": {
+          "properties": {
+            "section": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "section"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_section_reference",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_summarize": {
+        "inputSchema": {
+          "properties": {
+            "sdl_content": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_summarize",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_validate": {
+        "inputSchema": {
+          "properties": {
+            "accept_migration_syntax": {
+              "default": false,
+              "type": "boolean"
+            },
+            "sdl_content": {
+              "type": "string"
+            },
+            "structural_only": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "sdl_content"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_validate",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_validate_section": {
+        "inputSchema": {
+          "properties": {
+            "context_yaml": {
+              "default": "",
+              "type": "string"
+            },
+            "section": {
+              "type": "string"
+            },
+            "section_yaml": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "section",
+            "section_yaml"
+          ],
+          "type": "object"
+        },
+        "name": "sdl_validate_section",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      },
+      "sdl_validation_reference": {
+        "inputSchema": {
+          "properties": {},
+          "type": "object"
+        },
+        "name": "sdl_validation_reference",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  },
+  "surface": "mcp-schema"
+}

@@ -1,0 +1,59 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:90da0d93548b79c893d63cea8a44637ffe63db5a9692dba7b578c5ac90352f21"
+  },
+  "name": "examples/scenarios/temporal-profiles/user-deadline.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "participant-agent"
+          ],
+          "content": [
+            "participant-observation"
+          ],
+          "entities": [
+            "enterprise-participant"
+          ],
+          "infrastructure": [
+            "customer-portal"
+          ],
+          "nodes": [
+            "customer-portal"
+          ],
+          "variables": [
+            "attempts"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "participant-agent"
+        ],
+        "content": [
+          "participant-observation"
+        ],
+        "entities": [
+          "enterprise-participant"
+        ],
+        "infrastructure": [
+          "customer-portal"
+        ],
+        "nodes": [
+          "customer-portal"
+        ],
+        "variables": [
+          "attempts"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

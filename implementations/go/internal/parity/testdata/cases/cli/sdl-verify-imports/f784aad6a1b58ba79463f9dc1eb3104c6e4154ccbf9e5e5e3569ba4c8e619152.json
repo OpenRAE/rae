@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/study/two-condition-study-design.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/study/two-condition-study-design.yaml": "sha256:a5361c156ea2e75cf8726a2c9baf5220d957b9eb844acb3a6d1a27e247e88f19"
+  },
+  "name": "examples/library/templates/study/two-condition-study-design.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

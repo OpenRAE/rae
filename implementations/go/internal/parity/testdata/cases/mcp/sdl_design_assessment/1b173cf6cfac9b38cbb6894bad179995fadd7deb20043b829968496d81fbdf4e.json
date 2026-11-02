@@ -1,0 +1,323 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:895c74a4c8626db587a39581bb84ce2daf192823126b0e3909582aa944e5d5fd"
+  },
+  "name": "regression/a16338b452f7c646cbfaa48e942e0c2dbea40eb63435f048d5e5bab1e49cdd5b",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "Agents declare action names without action contracts; do not treat action names as behavior semantics.",
+              "severity": "warning",
+              "topic": "participant_actions"
+            },
+            {
+              "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+              "severity": "warning",
+              "topic": "participant_visibility"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "evidence_requirements.web-health-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 1,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 4
+              },
+              "orchestration": {
+                "create": 5
+              },
+              "provisioning": {
+                "create": 7
+              }
+            },
+            "resources": {
+              "evaluation": 4,
+              "orchestration": 5,
+              "provisioning": 7
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.proposition.web-alive",
+                "evaluation.assertion.web-alive",
+                "evaluation.condition.web.alive",
+                "evaluation.objective.red-access"
+              ],
+              "orchestration": [
+                "orchestration.inject.brief",
+                "orchestration.workflow.flow",
+                "orchestration.event.attack",
+                "orchestration.script.timeline",
+                "orchestration.story.exercise"
+              ]
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 1,
+                "objectives": 1
+              },
+              "orchestration": {
+                "events": 1,
+                "inject_bindings": 0,
+                "injects": 1,
+                "scripts": 1,
+                "stories": 1,
+                "workflows": 1
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 1
+              },
+              "provisioning": {
+                "account_placements": 1,
+                "content_placements": 1,
+                "feature_bindings": 2,
+                "networks": 1,
+                "nodes": 2
+              }
+            },
+            "metadata": {
+              "agents": 1,
+              "capability_constraints": 0,
+              "entities": 3,
+              "relationships": 1
+            },
+            "templates": {
+              "conditions": 1,
+              "features": 2,
+              "injects": 1
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 1,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "mcp-test",
+            "populated_sections": {
+              "accounts": 1,
+              "agents": 1,
+              "conditions": 1,
+              "content": 1,
+              "entities": 2,
+              "events": 1,
+              "features": 2,
+              "infrastructure": 3,
+              "injects": 1,
+              "nodes": 3,
+              "objectives": 1,
+              "relationships": 1,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "Agents declare action names without action contracts; do not treat action names as behavior semantics.",
+            "severity": "warning",
+            "topic": "participant_actions"
+          },
+          {
+            "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+            "severity": "warning",
+            "topic": "participant_visibility"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "evidence_requirements.web-health-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 1,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 4
+            },
+            "orchestration": {
+              "create": 5
+            },
+            "provisioning": {
+              "create": 7
+            }
+          },
+          "resources": {
+            "evaluation": 4,
+            "orchestration": 5,
+            "provisioning": 7
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.proposition.web-alive",
+              "evaluation.assertion.web-alive",
+              "evaluation.condition.web.alive",
+              "evaluation.objective.red-access"
+            ],
+            "orchestration": [
+              "orchestration.inject.brief",
+              "orchestration.workflow.flow",
+              "orchestration.event.attack",
+              "orchestration.script.timeline",
+              "orchestration.story.exercise"
+            ]
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 1,
+              "objectives": 1
+            },
+            "orchestration": {
+              "events": 1,
+              "inject_bindings": 0,
+              "injects": 1,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 1
+            },
+            "provisioning": {
+              "account_placements": 1,
+              "content_placements": 1,
+              "feature_bindings": 2,
+              "networks": 1,
+              "nodes": 2
+            }
+          },
+          "metadata": {
+            "agents": 1,
+            "capability_constraints": 0,
+            "entities": 3,
+            "relationships": 1
+          },
+          "templates": {
+            "conditions": 1,
+            "features": 2,
+            "injects": 1
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 1,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "mcp-test",
+          "populated_sections": {
+            "accounts": 1,
+            "agents": 1,
+            "conditions": 1,
+            "content": 1,
+            "entities": 2,
+            "events": 1,
+            "features": 2,
+            "infrastructure": 3,
+            "injects": 1,
+            "nodes": 3,
+            "objectives": 1,
+            "relationships": 1,
+            "scripts": 1,
+            "stories": 1,
+            "workflows": 1
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

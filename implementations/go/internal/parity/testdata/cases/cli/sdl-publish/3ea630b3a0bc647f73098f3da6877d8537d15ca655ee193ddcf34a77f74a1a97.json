@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/examples/library/patterns/observable-study-conditions.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/examples/library/patterns/observable-study-conditions.yaml": "sha256:89b9d2c59b11438e84070e365b497277d494bc6e80f8509d7506e7ba16f4cb12"
+  },
+  "name": "examples/library/patterns/observable-study-conditions.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

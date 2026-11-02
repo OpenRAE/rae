@@ -1,0 +1,58 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml": "sha256:398f42b002b27d85195b750ea73e57f3ce520fcd6b79e267f2c4752e251a34d4"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "actions": {
+        "create": 0,
+        "delete": 0,
+        "unchanged": 1,
+        "update": 0
+      },
+      "baseline": {
+        "diagnostics": [],
+        "scenario_name": "core-scalars",
+        "snapshot": {
+          "entries": [
+            {
+              "address": "provision.network.on",
+              "domain": "provisioning",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [],
+              "resource_type": "network"
+            }
+          ],
+          "entry_count": 1
+        }
+      },
+      "candidate": {
+        "diagnostics": [],
+        "scenario_name": "core-scalars"
+      },
+      "operations": [
+        {
+          "action": "unchanged",
+          "address": "provision.network.on",
+          "domain": "provisioning",
+          "resource_type": "network"
+        }
+      ],
+      "snapshot_kind": "planned-state-projection",
+      "status": "reconciled"
+    }
+  },
+  "surface": "cli"
+}

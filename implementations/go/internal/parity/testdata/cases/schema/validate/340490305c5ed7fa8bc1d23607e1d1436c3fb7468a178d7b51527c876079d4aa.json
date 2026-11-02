@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-owner-flow-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:fa2af31e2cc82769cd094ef44c65cb42e00c678378dedd2bb90d9dca63a76ed5"
+  },
+  "name": "regression/69d4b2c51efcc0ad1a02cbdb8c25d5dd37539ef8d99f6ea0186a7a61f336ff31",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

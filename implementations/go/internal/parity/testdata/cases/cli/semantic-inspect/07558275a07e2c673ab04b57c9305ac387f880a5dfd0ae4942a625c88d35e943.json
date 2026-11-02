@@ -1,0 +1,121 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 9,
+        "declarations": [
+          {
+            "address": "content.payload",
+            "kind": "content",
+            "model_path": "content.payload",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.primary",
+            "kind": "node",
+            "model_path": "nodes.primary",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.secondary",
+            "kind": "node",
+            "model_path": "nodes.secondary",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.fixture-family",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "variables.payload_path",
+            "kind": "variable",
+            "model_path": "variables.payload_path",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.payload-host",
+            "kind": "variation_points",
+            "model_path": "variation_points.payload-host",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "variation_points.payload-host.alternatives.primary-host",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.payload-host.alternatives.primary-host",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.payload-host.alternatives.secondary-host",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.payload-host.alternatives.secondary-host",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.payload-path",
+            "kind": "variation_points",
+            "model_path": "variation_points.payload-path",
+            "referenceable": true,
+            "targetable": true
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "fixture-family",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "content",
+              "nodes",
+              "variables",
+              "variation_points"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/techvault-defensive-min.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/techvault-defensive-min.sdl.yaml": "sha256:116003d8297639f1ce4673454d1b2befd801b6d4fe802aecd8162ccd6d8933cd"
+  },
+  "name": "examples/scenarios/techvault-defensive-min.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

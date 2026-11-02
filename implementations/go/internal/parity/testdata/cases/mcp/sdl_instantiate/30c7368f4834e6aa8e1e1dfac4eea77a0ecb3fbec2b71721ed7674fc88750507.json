@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_instantiate",
+  "files": {
+    "arguments.json": "sha256:b7da29bf64190c0215d1cebe461a950f68ca79cb368c77379bfcdaf443db5e2f"
+  },
+  "name": "regression/3dc6e453695526c8aa369b91a64941d367701744b026e617a3541c49dc895db6",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Invalid JSON in parameters_json": "the document exceeds the decoder limits."
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Invalid JSON in parameters_json": "the document exceeds the decoder limits."
+      }
+    }
+  },
+  "surface": "mcp"
+}

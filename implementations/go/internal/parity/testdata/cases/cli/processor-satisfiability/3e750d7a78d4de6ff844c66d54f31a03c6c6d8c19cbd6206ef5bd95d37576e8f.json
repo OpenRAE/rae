@@ -1,0 +1,17 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml": "sha256:ca92b6fce277cb328290dfeca691d2ef8253d46dce64a47c3b07b67381b114dc"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

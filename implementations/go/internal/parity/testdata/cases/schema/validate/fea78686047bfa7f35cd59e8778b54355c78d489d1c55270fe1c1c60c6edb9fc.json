@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-cleanup-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:a4d44d248955a364316a201d96d0c49d108ba0de4a9ce6bb691bd18e6aa2bed5"
+  },
+  "name": "trial-cleanup-plan-v1/routed/contracts/fixtures/plans/trial-cleanup-plan-v1/valid/fresh-range.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

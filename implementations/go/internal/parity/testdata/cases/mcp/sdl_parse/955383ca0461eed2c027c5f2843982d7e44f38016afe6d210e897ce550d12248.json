@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:d2ca90a85ce43443c7cf01adddaa78c3326057af5bf46994dcee31fe258438ff"
+  },
+  "name": "regression/65de28fc8d02bc22ef3ede34ea4ddd28ba2d9d8cb27ad542370e260319b00a7c",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/identity_forests/enterprise/domain_refs",
+              "range": {
+                "end": {
+                  "column": 20,
+                  "line": 47
+                },
+                "start": {
+                  "column": 18,
+                  "line": 47
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/identity_forests/enterprise/domain_refs",
+            "range": {
+              "end": {
+                "column": 20,
+                "line": 47
+              },
+              "start": {
+                "column": 18,
+                "line": 47
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

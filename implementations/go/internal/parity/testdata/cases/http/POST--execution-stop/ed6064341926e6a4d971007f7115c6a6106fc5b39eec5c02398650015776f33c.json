@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "POST /execution/stop",
+  "files": {
+    "request.json": "sha256:471618b04f525c0fcad2689b7bd315dbb744cae1bd33d484fa75a0926428eea2"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": null,
+    "headers": {},
+    "status_code": 204
+  },
+  "surface": "http"
+}

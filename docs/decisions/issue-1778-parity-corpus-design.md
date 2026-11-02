@@ -249,3 +249,14 @@ the descriptor from the normalized authoring root using the existing parser and
 `Scenario` model. Missing descriptors retain the governed import refusal. Tests
 cover both publishing a local module graph and refusing a graph whose root has
 no descriptor. The corpus provenance binds this repaired Python reference.
+
+CLI observation also covers direct console-entry calls and installed `raes`
+subprocess invocations. Subprocess working directories and standard input are
+retained without changing execution arguments, environment, return values or
+exceptions. Performance probes and unrelated subprocesses are left to their
+original execution paths.
+
+Reference recording additionally fixes `PYTHONHASHSEED=0` before interpreter
+startup. The recorder refuses other seeds and records the seed in provenance,
+so hash-dependent iteration cannot vary between recording and reproduction.
+The ordinary test and fuzz environments retain their existing settings.

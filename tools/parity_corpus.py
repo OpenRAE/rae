@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -467,6 +468,9 @@ def run(repo: Path, case: Case) -> dict[str, object]:
 def provenance(repo: Path) -> dict[str, str]:
     """Identify the reference source and the locked recording environment."""
 
+    hash_seed = os.environ.get("PYTHONHASHSEED")
+    if hash_seed != "0":
+        raise ValueError("reference recording requires PYTHONHASHSEED=0")
     source = "implementations/python/packages"
     commit = subprocess.check_output(
         ["git", "-C", str(repo), "log", "-1", "--format=%H", "--", source], text=True
@@ -483,6 +487,7 @@ def provenance(repo: Path) -> dict[str, str]:
         ),
         "python_version": ".".join(map(str, sys.version_info[:3])),
         "unicode_version": unicodedata.unidata_version,
+        "hash_seed": hash_seed,
         "lock_sha256": digest((repo / "implementations/python/uv.lock").read_bytes()),
     }
 

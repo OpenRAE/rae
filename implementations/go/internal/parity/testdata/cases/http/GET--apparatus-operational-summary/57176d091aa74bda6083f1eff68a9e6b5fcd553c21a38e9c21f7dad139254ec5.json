@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /apparatus/operational-summary",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:87a5932e481e14e97a3d832bf22a252966839c4972f6476b56a243bbdaf87c50"
+  },
+  "name": "regression/309dca694718bb02f17ce47c65886ad53e5d775713be148cf4920d583a2081c6",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

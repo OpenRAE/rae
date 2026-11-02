@@ -1,0 +1,43 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:269280520e23cd9578822b39396a7de0d122ffad8edcad80ac995bd0fa2be3c3"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": [
+            "payload"
+          ],
+          "nodes": [
+            "primary",
+            "secondary"
+          ],
+          "variables": [
+            "payload_path"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": [
+          "payload"
+        ],
+        "nodes": [
+          "primary",
+          "secondary"
+        ],
+        "variables": [
+          "payload_path"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

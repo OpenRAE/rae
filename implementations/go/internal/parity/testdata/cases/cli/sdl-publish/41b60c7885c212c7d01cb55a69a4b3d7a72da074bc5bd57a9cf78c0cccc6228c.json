@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml": "sha256:43eb7514b410d4d94615cc67019afd86eeb5bd008cf3aad27de5f193cc9394bf"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

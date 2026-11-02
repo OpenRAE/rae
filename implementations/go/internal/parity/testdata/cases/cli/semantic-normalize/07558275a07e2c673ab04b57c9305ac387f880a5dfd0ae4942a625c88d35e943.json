@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: fixture-family\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: ${payload_path}\nvariables:\n  payload_path:\n    type: string\n    allowed_values:\n    - /opt/a\n    - /opt/b\nvariation_points:\n  payload-path:\n    kind: parameter\n    target:\n      kind: variable\n      variable: payload_path\n    domain:\n      kind: enum\n      values:\n      - /opt/a\n      - /opt/b\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:9f2a3e3ecb9fabeacf238535bc2d1b1a9c791d0fafd50b42acdf23b06b23a379"
+        },
+        "field_count": 5,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "fixture-family",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

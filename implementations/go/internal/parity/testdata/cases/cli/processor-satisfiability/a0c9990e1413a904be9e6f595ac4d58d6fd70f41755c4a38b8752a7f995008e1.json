@@ -1,0 +1,115 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml": "sha256:144f39d33776b16b6057eb66038778d3446c8c6ae512b07774051abcb37e1e20"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:dcae6fbcba15d8e52885c962b2d4425f298017fe6686998d466f616a9d0078ca"
+      },
+      "diagnostics": [
+        {
+          "address": "/scripts/live-clinic/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/pre-surgery/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/recovery-window/end_time",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/scripts/recovery-window/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/stories/surgery-day/speed",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/variables/recovery_window",
+          "code": "scenario-satisfiability.unsupported-domain",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/variables/surgery_day_speed",
+          "code": "scenario-satisfiability.unsupported-domain",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        }
+      ],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:dcae6fbcba15d8e52885c962b2d4425f298017fe6686998d466f616a9d0078ca"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:144f39d33776b16b6057eb66038778d3446c8c6ae512b07774051abcb37e1e20",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:2f12900538b40f7f3e361982741f2f34315d67c0dfe6d09b0ba5bd7c40803338",
+      "outcome": "unsupported",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:144f39d33776b16b6057eb66038778d3446c8c6ae512b07774051abcb37e1e20",
+        "source_id": "hospital-ransomware-surgery-day.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": {
+        "profile": "raes-satisfiability-unsupported/v1",
+        "reason_codes": [
+          "scenario-satisfiability.unsupported-domain",
+          "scenario-satisfiability.unsupported-target"
+        ]
+      },
+      "witness": null
+    }
+  },
+  "surface": "cli"
+}

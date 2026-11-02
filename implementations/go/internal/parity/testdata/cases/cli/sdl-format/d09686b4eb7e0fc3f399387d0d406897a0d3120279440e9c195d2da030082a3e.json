@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "--check",
+    "input/first-scenario.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "input/first-scenario.sdl.yaml": "sha256:bf2b1416fa2117a7e0a49a616f480f9ceb6853db6d2080b5856b209e58ac70a5"
+  },
+  "name": "regression/2cf92840ac90606b8e66463b3206b5432932ef253a2977fb1a00bfc9a6991f1e",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

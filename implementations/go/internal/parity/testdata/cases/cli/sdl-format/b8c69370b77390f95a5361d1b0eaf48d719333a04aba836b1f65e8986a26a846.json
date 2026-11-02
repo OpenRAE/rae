@@ -1,0 +1,90 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-selected-demand.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-selected-demand.yaml": "sha256:4e0507e382050b6720e111b878ff4c233f7f7d1fa5da6604ca14ce6953b5bede"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-selected-demand.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "evidence_requirements": {
+        "listener-events": {
+          "channel": "api_response",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "observation_demand": {
+            "collection": "require",
+            "export": "disable",
+            "integrity": "checksum",
+            "mode": "selected",
+            "purpose": "experimental",
+            "redaction": "redact-sensitive",
+            "retention": "disable",
+            "rule_id": "listener-events",
+            "scope": "/nodes/monitor",
+            "selector": {
+              "data_kind": "stream",
+              "names": [
+                "listener-events"
+              ],
+              "semantic_scope": "/nodes/monitor"
+            }
+          },
+          "redaction": "redact_sensitive",
+          "retention": "not_retained",
+          "scope_refs": [
+            "nodes.monitor"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "nodes.monitor.runtime.service_listeners.telemetry"
+          ],
+          "window": "run"
+        }
+      },
+      "name": "observability-plane-conformance",
+      "nodes": {
+        "monitor": {
+          "os": "linux",
+          "os_distribution": "ubuntu",
+          "os_version": "24.04",
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "runtime": {
+            "service_listeners": [
+              {
+                "address": "0.0.0.0",
+                "address_family": "ipv4",
+                "port": 80,
+                "protocol": "tcp",
+                "scope": "wildcard",
+                "service": "http",
+                "service_listener_id": "telemetry"
+              }
+            ]
+          },
+          "services": [
+            {
+              "name": "http",
+              "port": 80,
+              "protocol": "tcp"
+            }
+          ],
+          "source": {
+            "name": "exact-monitor-image",
+            "version": "*"
+          },
+          "type": "compute"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}
