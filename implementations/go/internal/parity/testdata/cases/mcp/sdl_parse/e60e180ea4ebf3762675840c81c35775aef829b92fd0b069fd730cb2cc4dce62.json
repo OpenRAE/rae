@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:c5b079897664497c547d440c820d98de079681c519ce692271cfbea3bdbc6e77"
+  },
+  "name": "regression/532dace5f2db32f2a9f3104f2e37e21e7365432db23cc73269b0a12fbf0beb46",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "cyborg-cage1",
+            "populated_sections": {
+              "entities": 2,
+              "features": 1,
+              "infrastructure": 7,
+              "nodes": 7
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "cyborg-cage1",
+          "populated_sections": {
+            "entities": 2,
+            "features": 1,
+            "infrastructure": 7,
+            "nodes": 7
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

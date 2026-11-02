@@ -1,0 +1,36 @@
+{
+  "args": [],
+  "command": "POST /operations/provisioning",
+  "files": {
+    "body.bin": "sha256:be58b0859eb172c03acf743ef24476c4a5b7f82efeb968d31a64339fc3bdcf7f",
+    "request.json": "sha256:717479f672920f4f450f9f6f604ec9a5d1c79a250f2e4089ae7ea37ec28808a8"
+  },
+  "name": "regression/de2dfe6ef842b0e1d4ddacdff335f9ae414f5488c2cd75f1e23e58dc9d874eb4",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "operator",
+        "authorization_scope": [
+          "role:auditor",
+          "role:operator"
+        ],
+        "operation_kind": "provisioning",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:eff763cf90d618b6436c05aaf5ba3f0efa332cd9700313d19405be1e29e49afc",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "provisioning",
+      "operation_id": "417eaacc-732c-426f-8964-130fd22c1990",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

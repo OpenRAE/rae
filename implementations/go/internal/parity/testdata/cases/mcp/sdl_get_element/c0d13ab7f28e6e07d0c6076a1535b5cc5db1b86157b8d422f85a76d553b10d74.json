@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:7066ffb595dd869e6cd8ea54d107c20a9ba6c0e1176335ca1cf027a94b177dff"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/explicit-tag.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

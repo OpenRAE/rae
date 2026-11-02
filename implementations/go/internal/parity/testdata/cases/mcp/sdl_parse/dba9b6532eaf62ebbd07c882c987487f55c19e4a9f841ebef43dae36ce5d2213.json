@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:73596507aed3d29b6f318647e68f7edf07fe1c3aef1dddaf2bc7242548baa7e9"
+  },
+  "name": "regression/73d6128e9a03cb9a278cc907842dd2b6996f89c9a8c241d6df753d37dc8c5d3d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "ui",
+                "ui"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/ui",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'ui'.",
+                  "range": {
+                    "end": {
+                      "column": 5,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "ui",
+              "ui"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/ui",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'ui'.",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

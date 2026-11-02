@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/library/templates/scenario/parameterized-scenario.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/library/templates/scenario/parameterized-scenario.yaml": "sha256:23691bae33a8aa6b85e109755f8462d048b93c43dd9ada34b80954137dee51cb"
+  },
+  "name": "examples/library/templates/scenario/parameterized-scenario.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

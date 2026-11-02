@@ -1,0 +1,97 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:1726be15b019b63572646600436c9b7faf50612f194f7335823a23c75c3b690a"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [
+            {
+              "name": "web",
+              "path": "/nodes/web",
+              "qualified_name": "nodes.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 3
+                },
+                "start": {
+                  "column": 3,
+                  "line": 3
+                }
+              },
+              "section": "nodes"
+            }
+          ],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/nodes/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 3
+                },
+                "start": {
+                  "column": 3,
+                  "line": 3
+                }
+              },
+              "value": "web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [
+          {
+            "name": "web",
+            "path": "/nodes/web",
+            "qualified_name": "nodes.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 3
+              },
+              "start": {
+                "column": 3,
+                "line": 3
+              }
+            },
+            "section": "nodes"
+          }
+        ],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/nodes/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 3
+              },
+              "start": {
+                "column": 3,
+                "line": 3
+              }
+            },
+            "value": "web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

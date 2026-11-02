@@ -1,0 +1,49 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml": "sha256:11a4d8a3d4d39c5d93eae692d69e59355279dfdcf33864180067737acdddfdff"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "description": "Smallest scenario that resolves inside more than one provisioning backend's realization envelope, for use as the shared input to cross-backend parity checks. Compute intent is authored without a virtualization mechanism or an operating system, so each backend selects a compatible substrate instead of contradicting an authored value.",
+      "infrastructure": {
+        "lab": {
+          "count": 1,
+          "properties": {
+            "cidr": "10.10.0.0/24",
+            "gateway": "10.10.0.1",
+            "internal": true
+          }
+        },
+        "workload": {
+          "count": 1,
+          "links": [
+            "lab"
+          ]
+        }
+      },
+      "name": "cross-backend-minimal",
+      "nodes": {
+        "lab": {
+          "type": "switch"
+        },
+        "workload": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "version": "1.0.0"
+    }
+  },
+  "surface": "cli"
+}

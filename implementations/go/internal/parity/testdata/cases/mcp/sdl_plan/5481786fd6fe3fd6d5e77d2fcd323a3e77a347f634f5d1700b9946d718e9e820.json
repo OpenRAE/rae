@@ -1,0 +1,279 @@
+{
+  "args": [],
+  "command": "sdl_plan",
+  "files": {
+    "arguments.json": "sha256:90da0d93548b79c893d63cea8a44637ffe63db5a9692dba7b578c5ac90352f21"
+  },
+  "name": "examples/scenarios/temporal-profiles/user-deadline.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "claim_boundary": "This is a reference-manifest dry run. It supports capability and planning claims, not claims that a live range actually ran.",
+          "diagnostics": [
+            {
+              "address": "time.model",
+              "code": "time.unsupported-capability",
+              "domain": "time",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "participant.autonomous-execution",
+              "code": "participant.autonomous-execution-unsupported",
+              "domain": "participant",
+              "severity": "error",
+              "stage": "planning"
+            },
+            {
+              "address": "participant.behavior-specification.participant-behavior",
+              "code": "participant.feature-support-insufficient",
+              "domain": "participant",
+              "severity": "error",
+              "stage": "planning"
+            }
+          ],
+          "manifest": {
+            "backend": "stub",
+            "supported_contract_versions": [
+              "artifact-requirement-v1",
+              "backend-manifest-v2",
+              "evaluation-history-event-stream-v1",
+              "evaluation-plan-v1",
+              "evaluation-result-envelope-v1",
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1",
+              "operation-receipt-v1",
+              "operation-status-v1",
+              "orchestration-plan-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-control-evaluation-v1",
+              "participant-control-evaluation-v2",
+              "participant-control-occurrence-v1",
+              "participant-control-selection-v1",
+              "participant-control-selection-v2",
+              "participant-crossing-occurrence-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-episode-state-envelope-v1",
+              "participant-execution-binding-v1",
+              "participant-execution-control-v1",
+              "participant-execution-service-state-v1",
+              "participant-flow-control-relation-v1",
+              "participant-joint-action-record-v1",
+              "participant-lifecycle-event-v1",
+              "participant-observation-envelope-v1",
+              "participant-outcome-report-v1",
+              "participant-resource-budget-event-v1",
+              "participant-resource-budget-policy-v1",
+              "participant-resource-budget-state-v1",
+              "participant-resource-pool-capacity-v1",
+              "participant-shared-state-record-v1",
+              "participant-time-management-context-v1",
+              "proposition-truth-result-v1",
+              "provisioning-plan-v1",
+              "runtime-snapshot-v1",
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1",
+              "workflow-history-event-stream-v1",
+              "workflow-result-envelope-v1"
+            ],
+            "version": "10.2.0"
+          },
+          "plan": {
+            "diagnostic_count": 3,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {},
+              "orchestration": {},
+              "provisioning": {
+                "create": 2
+              }
+            },
+            "resources": {
+              "evaluation": 0,
+              "orchestration": 0,
+              "provisioning": 2
+            },
+            "startup_order": {
+              "evaluation": [],
+              "orchestration": []
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 1,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "user-deadline"
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "planned_with_errors"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "claim_boundary": "This is a reference-manifest dry run. It supports capability and planning claims, not claims that a live range actually ran.",
+        "diagnostics": [
+          {
+            "address": "time.model",
+            "code": "time.unsupported-capability",
+            "domain": "time",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "participant.autonomous-execution",
+            "code": "participant.autonomous-execution-unsupported",
+            "domain": "participant",
+            "severity": "error",
+            "stage": "planning"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error",
+            "stage": "planning"
+          }
+        ],
+        "manifest": {
+          "backend": "stub",
+          "supported_contract_versions": [
+            "artifact-requirement-v1",
+            "backend-manifest-v2",
+            "evaluation-history-event-stream-v1",
+            "evaluation-plan-v1",
+            "evaluation-result-envelope-v1",
+            "experiment-capture-spec-v1",
+            "experiment-derived-measure-v1",
+            "experiment-evidence-record-v1",
+            "experiment-run-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "orchestration-plan-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-control-evaluation-v1",
+            "participant-control-evaluation-v2",
+            "participant-control-occurrence-v1",
+            "participant-control-selection-v1",
+            "participant-control-selection-v2",
+            "participant-crossing-occurrence-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-execution-binding-v1",
+            "participant-execution-control-v1",
+            "participant-execution-service-state-v1",
+            "participant-flow-control-relation-v1",
+            "participant-joint-action-record-v1",
+            "participant-lifecycle-event-v1",
+            "participant-observation-envelope-v1",
+            "participant-outcome-report-v1",
+            "participant-resource-budget-event-v1",
+            "participant-resource-budget-policy-v1",
+            "participant-resource-budget-state-v1",
+            "participant-resource-pool-capacity-v1",
+            "participant-shared-state-record-v1",
+            "participant-time-management-context-v1",
+            "proposition-truth-result-v1",
+            "provisioning-plan-v1",
+            "runtime-snapshot-v1",
+            "trial-cleanup-plan-v1",
+            "trial-cleanup-receipt-v1",
+            "workflow-history-event-stream-v1",
+            "workflow-result-envelope-v1"
+          ],
+          "version": "10.2.0"
+        },
+        "plan": {
+          "diagnostic_count": 3,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {},
+            "orchestration": {},
+            "provisioning": {
+              "create": 2
+            }
+          },
+          "resources": {
+            "evaluation": 0,
+            "orchestration": 0,
+            "provisioning": 2
+          },
+          "startup_order": {
+            "evaluation": [],
+            "orchestration": []
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 1,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "user-deadline"
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "planned_with_errors"
+      }
+    }
+  },
+  "surface": "mcp"
+}

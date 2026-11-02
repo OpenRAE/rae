@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:e4d89339fcdbd5828825358dc548f234651f8df6446d0ace92f6f20a815f53ab"
+  },
+  "name": "regression/be56bd66ac048d4defb29acca6a065cbdce8eba3f71de9ea0948bf880517d470",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "techvault-enterprise-web",
+            "populated_sections": {
+              "conditions": 1,
+              "features": 1,
+              "infrastructure": 12,
+              "nodes": 12
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "techvault-enterprise-web",
+          "populated_sections": {
+            "conditions": 1,
+            "features": 1,
+            "infrastructure": 12,
+            "nodes": 12
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

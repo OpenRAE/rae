@@ -1,0 +1,277 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:c5fee6733b6fc3bc1c2a0b0f79f6cd316e459a64575af723be7d1bfd5befb1e8"
+  },
+  "name": "examples/scenarios/participant-tools/tool-kit.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+              "severity": "warning",
+              "topic": "objectives"
+            },
+            {
+              "message": "Participant action and observation contract surfaces are present for semantic review.",
+              "severity": "info",
+              "topic": "participant_semantics"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "participant.tool-profiles",
+              "code": "participant.tool-support-insufficient",
+              "domain": "participant",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 1,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {},
+              "orchestration": {},
+              "provisioning": {
+                "create": 4
+              }
+            },
+            "resources": {
+              "evaluation": 0,
+              "orchestration": 0,
+              "provisioning": 4
+            },
+            "startup_order": {
+              "evaluation": [],
+              "orchestration": []
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 0,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 1,
+                "observation_boundaries": 1,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 1
+              },
+              "provisioning": {
+                "account_placements": 1,
+                "content_placements": 1,
+                "feature_bindings": 0,
+                "networks": 1,
+                "nodes": 1
+              }
+            },
+            "metadata": {
+              "agents": 1,
+              "capability_constraints": 0,
+              "entities": 1,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 0,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "scanner-toolkit",
+            "populated_sections": {
+              "accounts": 1,
+              "action_contracts": 1,
+              "agents": 1,
+              "content": 1,
+              "entities": 1,
+              "nodes": 2,
+              "observation_boundaries": 1
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+            "severity": "warning",
+            "topic": "objectives"
+          },
+          {
+            "message": "Participant action and observation contract surfaces are present for semantic review.",
+            "severity": "info",
+            "topic": "participant_semantics"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "participant.tool-profiles",
+            "code": "participant.tool-support-insufficient",
+            "domain": "participant",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 1,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {},
+            "orchestration": {},
+            "provisioning": {
+              "create": 4
+            }
+          },
+          "resources": {
+            "evaluation": 0,
+            "orchestration": 0,
+            "provisioning": 4
+          },
+          "startup_order": {
+            "evaluation": [],
+            "orchestration": []
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 0,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 1,
+              "observation_boundaries": 1,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 1
+            },
+            "provisioning": {
+              "account_placements": 1,
+              "content_placements": 1,
+              "feature_bindings": 0,
+              "networks": 1,
+              "nodes": 1
+            }
+          },
+          "metadata": {
+            "agents": 1,
+            "capability_constraints": 0,
+            "entities": 1,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 0,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "scanner-toolkit",
+          "populated_sections": {
+            "accounts": 1,
+            "action_contracts": 1,
+            "agents": 1,
+            "content": 1,
+            "entities": 1,
+            "nodes": 2,
+            "observation_boundaries": 1
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

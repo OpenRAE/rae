@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:dc3e2226ef78dceecac118d65bff6349ad63c20b87dc3647fd4d891df7bab8c9"
+  },
+  "name": "regression/80b6a872193da34c5063dbdd0e3896189822e25dc2d394fee298c6ddb8ce1a6a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/thehive/runtime/environment/0",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 11
+                },
+                "start": {
+                  "column": 11,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/thehive/runtime/environment/0",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 11
+              },
+              "start": {
+                "column": 11,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

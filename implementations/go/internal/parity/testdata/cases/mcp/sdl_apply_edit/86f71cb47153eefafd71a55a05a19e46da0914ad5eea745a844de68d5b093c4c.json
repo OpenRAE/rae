@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:a2eb808fb6396797797475fdb0f4b00ac29a4917ec16d0de646a0330df23f3b0"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/invalid/environment-only-leakage.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 gib\n      cpu: 1\nentities:\n  red-team:\n    role: red\ncontent:\n  answer-key:\n    type: file\n    target: web\n    path: /opt/answer-key.txt\n    text: hidden adjudication content\n    sensitive: true\ninjects:\n  environment-inject:\n    description: environment-only effect\n    environment:\n    - set-exercise-banner\nevents:\n  environment-event:\n    injects:\n    - environment-inject\nscripts:\n  environment-script:\n    start_time: 0\n    end_time: 10\n    speed: 1\n    events:\n      environment-event: 5\nstories:\n  environment-story:\n    scripts:\n    - environment-script\ntime_domains:\n  exercise-time:\n    kind: logical\n    tick_period_seconds:\n      numerator: 1\n      denominator: 1\n    epoch: scenario_start\n    visibility: participant_visible\n    description: exercise logical time\nclocks:\n  exercise-clock:\n    time_domain_ref: exercise-time\n    authority_kind: runtime\n    authority_ref: runtime.scheduler\n    monotonicity: non_decreasing\n    description: exercise scheduler clock\ntemporal_constraints:\n  delivery-window:\n    constraint_kind: window\n    clock_ref: exercise-clock\n    subject_refs:\n    - behavior_specifications.red-briefing.participant_inject_deliveries.leak\n    start:\n      tick: 4\n    end:\n      tick: 6\n    description: attempted delivery window\nevidence_requirements:\n  delivery-evidence:\n    description: capture attempted delivery evidence\n    source_refs:\n    - behavior_specifications.red-briefing.participant_inject_deliveries.leak\n    scope_refs:\n    - web\n    window: attempted delivery window\n    channel: log\n    artifact_role: delivery_evidence\n    sensitivity: plain\n    redaction: none\n    integrity: checksum\n    retention: study_lifetime\n    loss_disclosure: required\nobservation_boundaries:\n  red-view:\n    projection_basis: participant-local hidden-answer view\n    observable_refs:\n    - nodes.web\n    hidden_refs:\n    - content.answer-key\n    redaction_policy: hidden answer remains hidden\n    latency_profile: delivery-order bound\n    view_rules:\n    - information_ref: content.answer-key\n      boundary_class: private_answer_key\n      disposition: hidden\n      visibility_basis: adjudication-only hidden truth\nagents:\n  red-agent:\n    affiliations:\n    - red-team\n    observation_boundaries:\n    - red-view\nbehavior_specifications:\n  red-briefing:\n    semantic_version: 1.0.0\n    participant_refs:\n    - red-agent\n    observation_boundary_refs:\n    - red-view\n    participant_inject_deliveries:\n      leak:\n        participant_ref: red-agent\n        inject_ref: environment-inject\n        occurrence:\n          event_ref: environment-event\n          script_ref: environment-script\n          story_ref: environment-story\n        source_item_ref: content.answer-key\n        result_item_ref: content.answer-key\n        observation_boundary_ref: red-view\n        delivery_kind: disclosure\n        delivery_policy:\n          policy_ref: projection-policy.red.v1\n          policy_revision: 1.0.0\n          exposure_policy_ref: exposure-policy.red.v1\n          audience_scope_ref: audience.participant.red-agent\n          visibility_basis_ref: visibility-bases.answer-key.v1\n          disclosure_basis_ref: disclosures.answer-key.v1\n        order_basis: orchestration-occurrence-and-shared-time\n        temporal_constraint_refs:\n        - delivery-window\n        evidence_requirement_refs:\n        - delivery-evidence\n        failure_disposition: reject-no-delivery\n",
+          "diagnostics": [
+            {
+              "code": "sdl.semantic",
+              "severity": "error",
+              "stage": "semantic_validation"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 gib\n      cpu: 1\nentities:\n  red-team:\n    role: red\ncontent:\n  answer-key:\n    type: file\n    target: web\n    path: /opt/answer-key.txt\n    text: hidden adjudication content\n    sensitive: true\ninjects:\n  environment-inject:\n    description: environment-only effect\n    environment:\n    - set-exercise-banner\nevents:\n  environment-event:\n    injects:\n    - environment-inject\nscripts:\n  environment-script:\n    start_time: 0\n    end_time: 10\n    speed: 1\n    events:\n      environment-event: 5\nstories:\n  environment-story:\n    scripts:\n    - environment-script\ntime_domains:\n  exercise-time:\n    kind: logical\n    tick_period_seconds:\n      numerator: 1\n      denominator: 1\n    epoch: scenario_start\n    visibility: participant_visible\n    description: exercise logical time\nclocks:\n  exercise-clock:\n    time_domain_ref: exercise-time\n    authority_kind: runtime\n    authority_ref: runtime.scheduler\n    monotonicity: non_decreasing\n    description: exercise scheduler clock\ntemporal_constraints:\n  delivery-window:\n    constraint_kind: window\n    clock_ref: exercise-clock\n    subject_refs:\n    - behavior_specifications.red-briefing.participant_inject_deliveries.leak\n    start:\n      tick: 4\n    end:\n      tick: 6\n    description: attempted delivery window\nevidence_requirements:\n  delivery-evidence:\n    description: capture attempted delivery evidence\n    source_refs:\n    - behavior_specifications.red-briefing.participant_inject_deliveries.leak\n    scope_refs:\n    - web\n    window: attempted delivery window\n    channel: log\n    artifact_role: delivery_evidence\n    sensitivity: plain\n    redaction: none\n    integrity: checksum\n    retention: study_lifetime\n    loss_disclosure: required\nobservation_boundaries:\n  red-view:\n    projection_basis: participant-local hidden-answer view\n    observable_refs:\n    - nodes.web\n    hidden_refs:\n    - content.answer-key\n    redaction_policy: hidden answer remains hidden\n    latency_profile: delivery-order bound\n    view_rules:\n    - information_ref: content.answer-key\n      boundary_class: private_answer_key\n      disposition: hidden\n      visibility_basis: adjudication-only hidden truth\nagents:\n  red-agent:\n    affiliations:\n    - red-team\n    observation_boundaries:\n    - red-view\nbehavior_specifications:\n  red-briefing:\n    semantic_version: 1.0.0\n    participant_refs:\n    - red-agent\n    observation_boundary_refs:\n    - red-view\n    participant_inject_deliveries:\n      leak:\n        participant_ref: red-agent\n        inject_ref: environment-inject\n        occurrence:\n          event_ref: environment-event\n          script_ref: environment-script\n          story_ref: environment-story\n        source_item_ref: content.answer-key\n        result_item_ref: content.answer-key\n        observation_boundary_ref: red-view\n        delivery_kind: disclosure\n        delivery_policy:\n          policy_ref: projection-policy.red.v1\n          policy_revision: 1.0.0\n          exposure_policy_ref: exposure-policy.red.v1\n          audience_scope_ref: audience.participant.red-agent\n          visibility_basis_ref: visibility-bases.answer-key.v1\n          disclosure_basis_ref: disclosures.answer-key.v1\n        order_basis: orchestration-occurrence-and-shared-time\n        temporal_constraint_refs:\n        - delivery-window\n        evidence_requirement_refs:\n        - delivery-evidence\n        failure_disposition: reject-no-delivery\n",
+        "diagnostics": [
+          {
+            "code": "sdl.semantic",
+            "severity": "error",
+            "stage": "semantic_validation"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

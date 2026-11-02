@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/examples/scenarios/initial-service-state.sdl.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/examples/scenarios/initial-service-state.sdl.yaml": "sha256:daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

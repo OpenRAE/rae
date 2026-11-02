@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:f1e2e2ef53fccecd23d48b6b37cf821407f538a648b59d7c463e4fd2c9ef7548"
+  },
+  "name": "regression/9b439e0a69af95958a944fa89c3b81d7d3bcdac0e2c159b78cefc5f59931956f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "reference-eligibility",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 2,
+              "conditions": 1,
+              "entities": 1,
+              "injects": 1,
+              "nodes": 1,
+              "objectives": 1,
+              "observation_boundaries": 1,
+              "relationships": 2
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "reference-eligibility",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 2,
+            "conditions": 1,
+            "entities": 1,
+            "injects": 1,
+            "nodes": 1,
+            "objectives": 1,
+            "observation_boundaries": 1,
+            "relationships": 2
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

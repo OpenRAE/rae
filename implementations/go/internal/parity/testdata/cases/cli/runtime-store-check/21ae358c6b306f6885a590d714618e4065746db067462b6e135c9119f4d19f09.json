@@ -1,0 +1,20 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "check",
+    "input/output/secret-store-path-1186",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:wrong"
+  ],
+  "command": "runtime store check",
+  "files": {},
+  "name": "regression/042aecfb527f0de2684acf870aac492f7e56449e3b53322dccd2b5810c885df3",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

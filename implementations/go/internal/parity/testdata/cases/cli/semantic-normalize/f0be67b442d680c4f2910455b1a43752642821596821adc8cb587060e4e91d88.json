@@ -1,0 +1,44 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "input/succeeded.json",
+    "--contract",
+    "operation-status-v1",
+    "--output",
+    "json"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input/succeeded.json": "sha256:4d0506684c18e379a09a3b91fb7881fc9daba8fcda1ee6d1104e7d6f0e0e897d"
+  },
+  "name": "regression/d8f50710d50aa2816a2b6f5e86d7648a15a72143f7e71b02c41c7902c15d8301",
+  "result": {
+    "exit_code": 3,
+    "stdout": {
+      "contract_id": "operation-status-v1",
+      "diagnostics": [
+        {
+          "address": "",
+          "code": "cli.operation-unsupported",
+          "domain": "cli",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "normalize",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "unsupported",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

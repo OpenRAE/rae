@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml": "sha256:bdbfecf178c9cde8adaf0c68481ce91b060e72f3b58325c77fa8e5fd4c6825e4"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/collision.sdl.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

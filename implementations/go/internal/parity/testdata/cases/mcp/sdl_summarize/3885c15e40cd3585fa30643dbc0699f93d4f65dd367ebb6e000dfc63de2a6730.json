@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_summarize",
+  "files": {
+    "arguments.json": "sha256:e249289a21a80d20e50c90122eda3e9343d58f48830b5c50df3ecffd0c60020b"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

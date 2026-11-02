@@ -1,0 +1,44 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "input/SECRET-MARKER.yaml",
+    "--contract",
+    "sdl-yaml/v1",
+    "--output",
+    "json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input/SECRET-MARKER.yaml": "sha256:939cba2aec9c844760aec2120c890839c73cf8cb434d320048cb77e354e3871b"
+  },
+  "name": "regression/2c3f7b73b72d2aff605be1c2bea2e993acb200f8602c56c9535ecb17cfaf7c64",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [
+        {
+          "address": "",
+          "code": "sdl.parse",
+          "domain": "sdl-parse",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "validate",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

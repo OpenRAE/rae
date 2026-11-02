@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/controls/{control_id}",
+  "files": {
+    "request.json": "sha256:8ef24b923b22b4891262e405f928b266dc423410d45709af1567a80e4f30278b"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

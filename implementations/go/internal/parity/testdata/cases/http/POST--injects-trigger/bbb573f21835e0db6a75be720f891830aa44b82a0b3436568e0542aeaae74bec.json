@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /injects/trigger",
+  "files": {
+    "request.json": "sha256:4afe99af308e2bb368d62f68cff5ebf821816a84ede3dfd503e5bcb4d18211f1"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

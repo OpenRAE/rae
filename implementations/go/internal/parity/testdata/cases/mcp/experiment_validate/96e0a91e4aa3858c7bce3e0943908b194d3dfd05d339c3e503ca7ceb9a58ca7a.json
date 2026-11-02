@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "experiment_validate",
+  "files": {
+    "arguments.json": "sha256:1028a18e578a831f16a0c06c246003331554988e7b8e7e2a103b859618476f79"
+  },
+  "name": "examples/experiments/techvault-smoke-run.exp.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

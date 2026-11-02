@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-implementation-manifest-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:66a4f01a72b1303b2b7e793a72856f72bdb49d848d274a445cf0624b04b6fee0"
+  },
+  "name": "regression/3883280a1c3d72b400a6295c2f326b361ed1db0a13493e16f022ea247d8b2c79",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

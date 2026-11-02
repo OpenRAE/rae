@@ -1,0 +1,77 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:8c728656cad0357b8b63b61b5d37437f8d52e6dad8412131d73a87ad5793e1e4"
+  },
+  "name": "regression/43096e4a942f919f0948c5deb1733b34a477d6a9c44fa1cd4e8faeaac13ced37",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "port-authority-surge-response",
+            "populated_sections": {
+              "accounts": 7,
+              "action_contracts": 12,
+              "agents": 3,
+              "conditions": 17,
+              "content": 5,
+              "entities": 5,
+              "events": 3,
+              "features": 12,
+              "infrastructure": 21,
+              "injects": 3,
+              "nodes": 21,
+              "objectives": 5,
+              "relationships": 7,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "port-authority-surge-response",
+          "populated_sections": {
+            "accounts": 7,
+            "action_contracts": 12,
+            "agents": 3,
+            "conditions": 17,
+            "content": 5,
+            "entities": 5,
+            "events": 3,
+            "features": 12,
+            "infrastructure": 21,
+            "injects": 3,
+            "nodes": 21,
+            "objectives": 5,
+            "relationships": 7,
+            "scripts": 3,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

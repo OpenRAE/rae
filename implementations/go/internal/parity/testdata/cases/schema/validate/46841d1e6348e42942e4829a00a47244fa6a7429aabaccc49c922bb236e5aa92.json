@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:44760e94397b95056294d07c2db9e59c8dfbfaabdb3377f5f3e02af682086013"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/context-invalid/undeclared-condition-factor",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

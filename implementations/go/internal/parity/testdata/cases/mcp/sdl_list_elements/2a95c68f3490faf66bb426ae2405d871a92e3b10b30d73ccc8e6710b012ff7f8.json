@@ -1,0 +1,45 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:2daae20dab56d615ebb0a44f2121dd907da21dcefea73262c8a52d4167c1b23d"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": [
+            "guest-marker"
+          ],
+          "infrastructure": [
+            "guest-net",
+            "guest-vm"
+          ],
+          "nodes": [
+            "guest-net",
+            "guest-vm"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": [
+          "guest-marker"
+        ],
+        "infrastructure": [
+          "guest-net",
+          "guest-vm"
+        ],
+        "nodes": [
+          "guest-net",
+          "guest-vm"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

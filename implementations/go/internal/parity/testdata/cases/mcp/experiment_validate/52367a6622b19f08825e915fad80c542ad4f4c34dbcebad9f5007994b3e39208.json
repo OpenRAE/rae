@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "experiment_validate",
+  "files": {
+    "arguments.json": "sha256:e637c5445c17f7ff35231d71fba383cd0024ed11ea83fb2d0901844773532fef"
+  },
+  "name": "reference",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

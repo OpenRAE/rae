@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:03dbba27145ad2a9b2ec5988271b9d20aa68f29a7dc6565a730d87d672799bc9"
+  },
+  "name": "regression/8a415046dfed3695a1b5d2edae64802d40e94bb98be76190baffe4eebb97e283",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "jwpx4n",
+                "jwpx4n"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/jwpx4n",
+              "range": {
+                "end": {
+                  "column": 9,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'jwpx4n'.",
+                  "range": {
+                    "end": {
+                      "column": 9,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "jwpx4n",
+              "jwpx4n"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/jwpx4n",
+            "range": {
+              "end": {
+                "column": 9,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'jwpx4n'.",
+                "range": {
+                  "end": {
+                    "column": 9,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

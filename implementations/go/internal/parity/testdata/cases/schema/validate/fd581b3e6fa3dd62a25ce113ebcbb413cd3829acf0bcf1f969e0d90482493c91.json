@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-decision-surface-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:5966453ec58654e65d3538eb51a38bbe8d04eafcfa0be97ec7b72227eac86ca2"
+  },
+  "name": "participant-decision-surface-v1/routed/contracts/fixtures/control-plane/participant-decision-surface-v1/valid/script-form.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:af0f1c97572c0d56e0c5166c0e0bf6912364a6d9c7fda19eda173159219f32a3"
+  },
+  "name": "regression/e83ccb107a722eb6641847a81c342f23fc0a1efdd35e5e25f15ddb0b67a7f74d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.mapping_key_type",
+              "path": "/nodes/vm/roles/1",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 8
+                },
+                "start": {
+                  "column": 7,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.mapping_key_type",
+            "path": "/nodes/vm/roles/1",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 8
+              },
+              "start": {
+                "column": 7,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

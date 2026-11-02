@@ -1,0 +1,335 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:bef33d5bc4e1a3c0aec995920b634e857713b1aedee4e1e8e9c845762adf2496",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc",
+        "source_id": "references.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {},
+            "assertions": {},
+            "behavior_specifications": {},
+            "clocks": {},
+            "conditions": {},
+            "content": {
+              "payload": {
+                "description": "",
+                "destination": "",
+                "format": "",
+                "items": [],
+                "path": "/opt/payload",
+                "sensitive": false,
+                "service_materialization": null,
+                "source": null,
+                "tags": [],
+                "target": "web",
+                "text": null,
+                "type": "file"
+              }
+            },
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "",
+            "entities": {},
+            "events": {},
+            "evidence_requirements": {},
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.resources.ram",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.resources.cpu",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.resources",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.peer.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.peer",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.payload.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.payload.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.payload.path",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.payload",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.loop.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.loop.source",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.loop.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships.loop",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "relationships",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "transformation-reference-case",
+            "nodes": {
+              "peer": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": null,
+                "roles": {},
+                "runtime": null,
+                "services": [],
+                "source": null,
+                "type": "switch"
+              },
+              "web": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": {
+                  "cpu": 1,
+                  "ram": 1073741824
+                },
+                "roles": {},
+                "runtime": null,
+                "services": [],
+                "source": null,
+                "type": "compute"
+              }
+            },
+            "objectives": {},
+            "observation_boundaries": {},
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {},
+            "relationships": {
+              "loop": {
+                "carrier_placement": null,
+                "database_access": null,
+                "description": "",
+                "domain_controller": null,
+                "domain_join": null,
+                "forest_trust": null,
+                "forwarding_edge": null,
+                "identity_federation": null,
+                "mail_access": null,
+                "participant": null,
+                "properties": {},
+                "proxy_upstream": null,
+                "service_integration": null,
+                "shared_service": null,
+                "source": "web",
+                "target": "web",
+                "type": "connects_to"
+              }
+            },
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {},
+            "time_domain_mappings": {},
+            "time_domains": {},
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:e6d1df8f2f62412a8ffb6594fd31fa69d46af60670a9b89c7e0e2bf135364d1e"
+      }
+    }
+  },
+  "surface": "cli"
+}

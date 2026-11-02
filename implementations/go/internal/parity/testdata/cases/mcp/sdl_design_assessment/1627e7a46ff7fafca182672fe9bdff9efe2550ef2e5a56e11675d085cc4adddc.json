@@ -1,0 +1,265 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:d4164de7391ef5d91791699b815b795a8f33d0c8cf9a136163344a21b871970f"
+  },
+  "name": "examples/scenarios/participant-control-context/context-kit.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+              "severity": "warning",
+              "topic": "objectives"
+            },
+            {
+              "message": "Agents declare action names without action contracts; do not treat action names as behavior semantics.",
+              "severity": "warning",
+              "topic": "participant_actions"
+            },
+            {
+              "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+              "severity": "warning",
+              "topic": "participant_visibility"
+            },
+            {
+              "message": "The scenario plans against the reference backend manifest; live execution still requires a concrete target and run evidence.",
+              "severity": "info",
+              "topic": "planning"
+            }
+          ],
+          "diagnostics": [],
+          "plan": {
+            "diagnostic_count": 0,
+            "is_valid": true,
+            "operations": {
+              "evaluation": {},
+              "orchestration": {},
+              "provisioning": {}
+            },
+            "resources": {
+              "evaluation": 0,
+              "orchestration": 0,
+              "provisioning": 0
+            },
+            "startup_order": {
+              "evaluation": [],
+              "orchestration": []
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 0,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 2
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 0,
+                "nodes": 0
+              }
+            },
+            "metadata": {
+              "agents": 2,
+              "capability_constraints": 0,
+              "entities": 0,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 0,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "context-example",
+            "populated_sections": {
+              "agents": 2
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "ready_for_review"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+            "severity": "warning",
+            "topic": "objectives"
+          },
+          {
+            "message": "Agents declare action names without action contracts; do not treat action names as behavior semantics.",
+            "severity": "warning",
+            "topic": "participant_actions"
+          },
+          {
+            "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+            "severity": "warning",
+            "topic": "participant_visibility"
+          },
+          {
+            "message": "The scenario plans against the reference backend manifest; live execution still requires a concrete target and run evidence.",
+            "severity": "info",
+            "topic": "planning"
+          }
+        ],
+        "diagnostics": [],
+        "plan": {
+          "diagnostic_count": 0,
+          "is_valid": true,
+          "operations": {
+            "evaluation": {},
+            "orchestration": {},
+            "provisioning": {}
+          },
+          "resources": {
+            "evaluation": 0,
+            "orchestration": 0,
+            "provisioning": 0
+          },
+          "startup_order": {
+            "evaluation": [],
+            "orchestration": []
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 0,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 2
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 0,
+              "nodes": 0
+            }
+          },
+          "metadata": {
+            "agents": 2,
+            "capability_constraints": 0,
+            "entities": 0,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 0,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "context-example",
+          "populated_sections": {
+            "agents": 2
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "ready_for_review"
+      }
+    }
+  },
+  "surface": "mcp"
+}

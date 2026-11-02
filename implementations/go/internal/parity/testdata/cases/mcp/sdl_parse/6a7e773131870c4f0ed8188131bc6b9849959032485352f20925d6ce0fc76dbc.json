@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:5abfd41883371610652599cfcbabe5f1005daec47a32bf4e869d302dc653a9f4"
+  },
+  "name": "regression/b8cb6efee48f4e81cbf5479571949e5702df34b2d0043250e60a366bdb66799f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "library-study-template",
+            "populated_sections": {
+              "agents": 1,
+              "conditions": 1,
+              "entities": 1,
+              "nodes": 1,
+              "objectives": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "library-study-template",
+          "populated_sections": {
+            "agents": 1,
+            "conditions": 1,
+            "entities": 1,
+            "nodes": 1,
+            "objectives": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

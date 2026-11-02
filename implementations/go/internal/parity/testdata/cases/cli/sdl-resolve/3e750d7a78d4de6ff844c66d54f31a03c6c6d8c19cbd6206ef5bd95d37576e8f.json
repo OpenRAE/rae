@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml": "sha256:ca92b6fce277cb328290dfeca691d2ef8253d46dce64a47c3b07b67381b114dc"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/participant-relationships-v1/invalid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

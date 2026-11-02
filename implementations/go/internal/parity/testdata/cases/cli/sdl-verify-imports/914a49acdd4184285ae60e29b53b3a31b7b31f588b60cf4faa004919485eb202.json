@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/reconciliation-demo-v2.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/reconciliation-demo-v2.sdl.yaml": "sha256:a2f61a76ef03da8d9abf163197a8ca8a7c2b522725eb89ac62ec8443263295dc",
+    "setup.json": "sha256:1923fee82014f83161a8e26fe8dac23293fb4f375466d384d6d3c9e93f321a2e"
+  },
+  "name": "examples/scenarios/reconciliation-demo-v2.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

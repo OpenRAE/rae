@@ -1,0 +1,31 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:f1d1b741cf2609f2cbfac15e674ec3f93a599343e55934180c82ae652c3b3bf3"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

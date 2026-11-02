@@ -1,0 +1,1591 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27"
+  },
+  "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:cfc9970b889d56af1d3e6e6e5316b73d6a6337bd858478926de3982496b9d299"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:cfc9970b889d56af1d3e6e6e5316b73d6a6337bd858478926de3982496b9d299"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:5a88367bfaf2cddb48c9922569c5586d7b346dca75371d04300db9a989918b04",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27",
+        "source_id": "cloud-secret-cross-project.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {},
+            "assertions": {},
+            "behavior_specifications": {},
+            "clocks": {},
+            "conditions": {},
+            "content": {},
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "Synthetic ownership, identity and secret-state description. Evidence references are illustrative. This example makes no cloud deployment or access proof claim.",
+            "entities": {},
+            "events": {},
+            "evidence_requirements": {},
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:cfc9970b889d56af1d3e6e6e5316b73d6a6337bd858478926de3982496b9d299"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.worker.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.worker",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_authority_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[0].subject_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[0].kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[0].name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[0].resource_scope_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[1].subject_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[1].kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[1].name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[1].resource_scope_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].subjects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].policy_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].policy_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.attachment_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].binding_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].principal_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].principal_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].resource_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].resource_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].actions[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].actions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0].effect",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].binding_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].principal_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].principal_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].resource_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].resource_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].actions[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].actions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1].effect",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access.bindings",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0].resource_access",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].policy_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].policy_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.attachment_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].binding_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].principal_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].principal_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].resource_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].resource_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].actions[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].actions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0].effect",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access.bindings",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1].resource_access",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[2].policy_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[2].policy_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[2].resource_access.attachment_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[2].resource_access.inherited_from_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[2].resource_access",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies[2]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].policies",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[0].scope_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[0].provider",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[0].scope_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[0].native_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].scope_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].provider",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].scope_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].native_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_uses[0].use_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_uses[0].workload_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_uses[0].principal_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_uses[0].mode",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_uses[0].source_principal_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_uses[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].identity_uses",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0].observation_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0].principal_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0].action",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0].resource_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0].outcome",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0].evidence_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0].evidence_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1].observation_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1].principal_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1].action",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1].resource_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1].outcome",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1].evidence_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1].evidence_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].access_observations",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.services[0].port",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.services[0].protocol",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.services[0].name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.services[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.services",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].platform_application_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].service",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].product",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].secret_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].resource_scope_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].native_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[0].version_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[0].native_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[0].state",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[1].version_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[1].native_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[1].state",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[2].version_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[2].native_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[2].state",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions[2]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].versions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[0].selection_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[0].consumer_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[0].version_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].selection_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].consumer_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].selector.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].selector.value",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].selector",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].resolved_version_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].resolution_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].resolution_evidence_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1].resolution_evidence_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].consumers",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "cloud-secret-cross-project",
+            "nodes": {
+              "iam": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": null,
+                "roles": {},
+                "runtime": {
+                  "app_authorizations": [],
+                  "applications": [],
+                  "container": null,
+                  "database_services": [],
+                  "datastore_services": [],
+                  "dependency_manifests": [],
+                  "dns_services": [],
+                  "environment": [],
+                  "environment_files": [],
+                  "file_services": [],
+                  "filesystem_inventory": [],
+                  "forwarding_agents": [],
+                  "identity_authorities": [
+                    {
+                      "access_observations": [
+                        {
+                          "action": "secretmanager.secrets.get",
+                          "context_refs": [],
+                          "description": "",
+                          "evidence_refs": [
+                            "urn:example:metadata-attempt"
+                          ],
+                          "observation_id": "metadata-read",
+                          "outcome": "allowed",
+                          "principal_ref": "nodes.iam.runtime.identity_authorities.cloud.subjects.worker",
+                          "resource_ref": "nodes.secrets.runtime.platform_applications.manager.secrets.database"
+                        },
+                        {
+                          "action": "secretmanager.versions.access",
+                          "context_refs": [],
+                          "description": "",
+                          "evidence_refs": [
+                            "urn:example:denied-attempt"
+                          ],
+                          "observation_id": "denied-version",
+                          "outcome": "denied",
+                          "principal_ref": "nodes.iam.runtime.identity_authorities.cloud.subjects.worker",
+                          "resource_ref": "nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v2"
+                        }
+                      ],
+                      "base_dn": "",
+                      "description": "",
+                      "domain_name": "",
+                      "identity_authority_id": "cloud",
+                      "identity_uses": [
+                        {
+                          "description": "",
+                          "mode": "impersonated",
+                          "principal_ref": "nodes.iam.runtime.identity_authorities.cloud.subjects.worker",
+                          "source_principal_ref": "nodes.iam.runtime.identity_authorities.cloud.subjects.requester",
+                          "use_id": "worker-use",
+                          "workload_ref": "nodes.worker"
+                        }
+                      ],
+                      "issuer": "",
+                      "kind": "cloud_iam",
+                      "name": "",
+                      "namespace": "",
+                      "policies": [
+                        {
+                          "applies_to_refs": [],
+                          "description": "",
+                          "name": "",
+                          "policy_id": "reader",
+                          "policy_kind": "access",
+                          "resource_access": {
+                            "attachment_ref": "nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-b",
+                            "bindings": [
+                              {
+                                "actions": [
+                                  "secretmanager.secrets.get"
+                                ],
+                                "binding_id": "metadata",
+                                "condition": null,
+                                "description": "",
+                                "effect": "allow",
+                                "principal_refs": [
+                                  "nodes.iam.runtime.identity_authorities.cloud.subjects.worker"
+                                ],
+                                "resource_refs": [
+                                  "nodes.secrets.runtime.platform_applications.manager.secrets.database"
+                                ],
+                                "role_ref": ""
+                              },
+                              {
+                                "actions": [
+                                  "secretmanager.versions.access"
+                                ],
+                                "binding_id": "read",
+                                "condition": null,
+                                "description": "",
+                                "effect": "allow",
+                                "principal_refs": [
+                                  "nodes.iam.runtime.identity_authorities.cloud.subjects.worker"
+                                ],
+                                "resource_refs": [
+                                  "nodes.secrets.runtime.platform_applications.manager.secrets.database"
+                                ],
+                                "role_ref": ""
+                              }
+                            ],
+                            "inherited_from_ref": ""
+                          },
+                          "settings": []
+                        },
+                        {
+                          "applies_to_refs": [],
+                          "description": "",
+                          "name": "",
+                          "policy_id": "identity-use",
+                          "policy_kind": "access",
+                          "resource_access": {
+                            "attachment_ref": "nodes.iam.runtime.identity_authorities.cloud.subjects.worker",
+                            "bindings": [
+                              {
+                                "actions": [
+                                  "iam.serviceAccounts.getAccessToken"
+                                ],
+                                "binding_id": "impersonate",
+                                "condition": null,
+                                "description": "",
+                                "effect": "allow",
+                                "principal_refs": [
+                                  "nodes.iam.runtime.identity_authorities.cloud.subjects.requester"
+                                ],
+                                "resource_refs": [
+                                  "nodes.iam.runtime.identity_authorities.cloud.subjects.worker"
+                                ],
+                                "role_ref": ""
+                              }
+                            ],
+                            "inherited_from_ref": ""
+                          },
+                          "settings": []
+                        },
+                        {
+                          "applies_to_refs": [],
+                          "description": "",
+                          "name": "",
+                          "policy_id": "inherited-secret",
+                          "policy_kind": "access",
+                          "resource_access": {
+                            "attachment_ref": "nodes.secrets.runtime.platform_applications.manager.secrets.database",
+                            "bindings": [],
+                            "inherited_from_ref": "nodes.iam.runtime.identity_authorities.cloud.policies.reader"
+                          },
+                          "settings": []
+                        }
+                      ],
+                      "realm": "",
+                      "relationships": [],
+                      "resource_scopes": [
+                        {
+                          "description": "",
+                          "incarnation_id": "",
+                          "name": "",
+                          "native_id": "project-a",
+                          "parent_ref": "",
+                          "provider": "gcp",
+                          "scope_id": "project-a",
+                          "scope_kind": "project"
+                        },
+                        {
+                          "description": "",
+                          "incarnation_id": "",
+                          "name": "",
+                          "native_id": "project-b",
+                          "parent_ref": "",
+                          "provider": "gcp",
+                          "scope_id": "project-b",
+                          "scope_kind": "project"
+                        }
+                      ],
+                      "services": [],
+                      "subjects": [
+                        {
+                          "attributes": [],
+                          "description": "",
+                          "display_name": "",
+                          "distinguished_name": "",
+                          "domain": "",
+                          "enabled": null,
+                          "kind": "service_account",
+                          "name": "worker",
+                          "origin": "unknown",
+                          "principal_name": "",
+                          "resource_scope_ref": "nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-a",
+                          "service_principal_names": [],
+                          "subject_id": "worker"
+                        },
+                        {
+                          "attributes": [],
+                          "description": "",
+                          "display_name": "",
+                          "distinguished_name": "",
+                          "domain": "",
+                          "enabled": null,
+                          "kind": "user",
+                          "name": "requester",
+                          "origin": "unknown",
+                          "principal_name": "",
+                          "resource_scope_ref": "nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-a",
+                          "service_principal_names": [],
+                          "subject_id": "requester"
+                        }
+                      ],
+                      "tenant_id": ""
+                    }
+                  ],
+                  "linux_capabilities": null,
+                  "local_control_interfaces": [],
+                  "local_identity": null,
+                  "mail_services": [],
+                  "mounts": [],
+                  "network": null,
+                  "network_detection_engines": [],
+                  "network_sensors": [],
+                  "operational_policy": null,
+                  "orchestration_authorities": [],
+                  "packages": [],
+                  "platform_applications": [],
+                  "processes": [],
+                  "repository_state": null,
+                  "scheduled_jobs": [],
+                  "security_monitoring_managers": [],
+                  "service_listeners": [],
+                  "service_manager_units": [],
+                  "software_components": [],
+                  "ssh_servers": []
+                },
+                "services": [],
+                "source": null,
+                "type": "compute"
+              },
+              "secrets": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": null,
+                "roles": {},
+                "runtime": {
+                  "app_authorizations": [],
+                  "applications": [],
+                  "container": null,
+                  "database_services": [],
+                  "datastore_services": [],
+                  "dependency_manifests": [],
+                  "dns_services": [],
+                  "environment": [],
+                  "environment_files": [],
+                  "file_services": [],
+                  "filesystem_inventory": [],
+                  "forwarding_agents": [],
+                  "identity_authorities": [],
+                  "linux_capabilities": null,
+                  "local_control_interfaces": [],
+                  "local_identity": null,
+                  "mail_services": [],
+                  "mounts": [],
+                  "network": null,
+                  "network_detection_engines": [],
+                  "network_sensors": [],
+                  "operational_policy": null,
+                  "orchestration_authorities": [],
+                  "packages": [],
+                  "platform_applications": [
+                    {
+                      "authorization_ref": "",
+                      "capabilities": [],
+                      "cloud_limits": [],
+                      "connectors": [],
+                      "content_objects": [],
+                      "description": "",
+                      "execution_policy": null,
+                      "markings": [],
+                      "name": "",
+                      "organizations": [],
+                      "platform_application_id": "manager",
+                      "platform_kind": "unknown",
+                      "product": "GCP Secret Manager",
+                      "resource_scope_ref": "",
+                      "secrets": [
+                        {
+                          "consumers": [
+                            {
+                              "consumer_ref": "nodes.worker",
+                              "description": "",
+                              "resolution_basis": null,
+                              "resolution_evidence_refs": [],
+                              "resolved_version_ref": "",
+                              "selection_id": "exact-version",
+                              "selector": null,
+                              "version_ref": "nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v2"
+                            },
+                            {
+                              "consumer_ref": "nodes.worker",
+                              "description": "",
+                              "resolution_basis": "observed",
+                              "resolution_evidence_refs": [
+                                "urn:example:alias-resolution"
+                              ],
+                              "resolved_version_ref": "nodes.secrets.runtime.platform_applications.manager.secrets.database.versions.v1",
+                              "selection_id": "alias-report",
+                              "selector": {
+                                "kind": "alias",
+                                "value": "latest"
+                              },
+                              "version_ref": ""
+                            }
+                          ],
+                          "deletion_owner_ref": "",
+                          "description": "",
+                          "encryption_key_ref": "",
+                          "location": "",
+                          "native_id": "database",
+                          "replica_locations": [],
+                          "reset_owner_ref": "",
+                          "resource_scope_ref": "nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-b",
+                          "secret_id": "database",
+                          "versions": [
+                            {
+                              "description": "",
+                              "native_id": "1",
+                              "native_state": "",
+                              "payload_content_ref": "",
+                              "state": "enabled",
+                              "version_id": "v1"
+                            },
+                            {
+                              "description": "",
+                              "native_id": "2",
+                              "native_state": "",
+                              "payload_content_ref": "",
+                              "state": "disabled",
+                              "version_id": "v2"
+                            },
+                            {
+                              "description": "",
+                              "native_id": "3",
+                              "native_state": "",
+                              "payload_content_ref": "",
+                              "state": "destroyed",
+                              "version_id": "v3"
+                            }
+                          ]
+                        }
+                      ],
+                      "service": "api",
+                      "settings": [],
+                      "tenants": [],
+                      "upstream_bindings": [],
+                      "version": ""
+                    }
+                  ],
+                  "processes": [],
+                  "repository_state": null,
+                  "scheduled_jobs": [],
+                  "security_monitoring_managers": [],
+                  "service_listeners": [],
+                  "service_manager_units": [],
+                  "software_components": [],
+                  "ssh_servers": []
+                },
+                "services": [
+                  {
+                    "description": "",
+                    "name": "api",
+                    "port": 443,
+                    "protocol": "tcp"
+                  }
+                ],
+                "source": null,
+                "type": "compute"
+              },
+              "worker": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": null,
+                "roles": {},
+                "runtime": null,
+                "services": [],
+                "source": null,
+                "type": "compute"
+              }
+            },
+            "objectives": {},
+            "observation_boundaries": {},
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {},
+            "relationships": {},
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {},
+            "time_domain_mappings": {},
+            "time_domains": {},
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:20077a05cfc963234dc1d2b505d41a8af1005b328bf3c4154fc16e01d6d6aa07"
+      }
+    }
+  },
+  "surface": "cli"
+}

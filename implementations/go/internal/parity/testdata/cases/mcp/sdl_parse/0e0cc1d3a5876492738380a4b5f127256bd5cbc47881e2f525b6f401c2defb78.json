@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:1f7a52024086aee63f3bd264ecda2c4279926016f564f33ecef1505fcf9cff05"
+  },
+  "name": "regression/aba26812eeec4ff80a5e8496d0f6ce688b67e8895c75aa3cc02ee15b2405c94a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "authorization-gate",
+            "populated_sections": {
+              "conditions": 1,
+              "entities": 1,
+              "nodes": 1,
+              "objectives": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "authorization-gate",
+          "populated_sections": {
+            "conditions": 1,
+            "entities": 1,
+            "nodes": 1,
+            "objectives": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:0595220ff2b4c7d591d7bdd55d005ec076e380ae0304f6dafd827be0e0a2d34f"
+  },
+  "name": "examples/library/patterns/run-window-with-evidence.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

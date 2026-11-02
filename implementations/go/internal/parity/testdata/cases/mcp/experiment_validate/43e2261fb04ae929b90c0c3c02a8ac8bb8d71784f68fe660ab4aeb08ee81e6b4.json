@@ -1,0 +1,12 @@
+{
+  "args": [],
+  "command": "experiment_validate",
+  "files": {
+    "arguments.json": "sha256:747c11e5b3a77e149f244e518361f8eefbbaa303346f026f5dff402339e73996"
+  },
+  "name": "invalid-arguments",
+  "result": {
+    "is_error": true
+  },
+  "surface": "mcp"
+}

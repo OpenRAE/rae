@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:67022a8cd7a505e7ca55c5a85d748765390ed9937558ce6b5386133655f38fde"
+  },
+  "name": "regression/bc687d2f4b1d4d008da510fb21baa4cbd064a4d0a2b79d857709f0680fdd6cc4",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "cpu",
+                "cpu"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/second/resources/cpu",
+              "range": {
+                "end": {
+                  "column": 10,
+                  "line": 12
+                },
+                "start": {
+                  "column": 7,
+                  "line": 12
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'cpu'.",
+                  "range": {
+                    "end": {
+                      "column": 10,
+                      "line": 7
+                    },
+                    "start": {
+                      "column": 7,
+                      "line": 7
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "cpu",
+              "cpu"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/second/resources/cpu",
+            "range": {
+              "end": {
+                "column": 10,
+                "line": 12
+              },
+              "start": {
+                "column": 7,
+                "line": 12
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'cpu'.",
+                "range": {
+                  "end": {
+                    "column": 10,
+                    "line": 7
+                  },
+                  "start": {
+                    "column": 7,
+                    "line": 7
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

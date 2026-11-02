@@ -1,0 +1,35 @@
+{
+  "args": [],
+  "command": "POST /operations/provisioning",
+  "files": {
+    "body.bin": "sha256:be58b0859eb172c03acf743ef24476c4a5b7f82efeb968d31a64339fc3bdcf7f",
+    "request.json": "sha256:ce46be7364e70cae7de54e847af7f37d8ef8f7826879462abd557786588a83f4"
+  },
+  "name": "regression/98a1161626c26458b9288bf11aa04243f1a81c2c80c74a7a12eaa3e11f747bb8",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "backend-service",
+        "authorization_scope": [
+          "role:backend"
+        ],
+        "operation_kind": "provisioning",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:eff763cf90d618b6436c05aaf5ba3f0efa332cd9700313d19405be1e29e49afc",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "provisioning",
+      "operation_id": "8fc9f16a-b324-4255-919a-9ba46b4eaeb6",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

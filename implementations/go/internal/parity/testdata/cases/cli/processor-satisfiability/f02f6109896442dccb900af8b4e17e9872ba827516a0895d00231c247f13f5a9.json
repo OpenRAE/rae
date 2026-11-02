@@ -1,0 +1,17 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/module.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/composition/module.yaml": "sha256:d2d1dbf60479004f1725f9e8027654948eb919be6f136b76a527107e9b0901ed"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/module.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/cross-backend-minimal.sdl.yaml": "sha256:11a4d8a3d4d39c5d93eae692d69e59355279dfdcf33864180067737acdddfdff",
+    "setup.json": "sha256:e3917d93838448f483d20637973b92e5bed3c341643df2a4ea2ef8aada0d0b7a"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

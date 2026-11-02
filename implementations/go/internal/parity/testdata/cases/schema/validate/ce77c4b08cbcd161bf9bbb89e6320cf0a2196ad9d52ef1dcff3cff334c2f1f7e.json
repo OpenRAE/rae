@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:29e11677f7536c22d69add61a4b52096426457760597279a2e63b7c84ca74b4f"
+  },
+  "name": "experiment-authoring-input-v1/routed/contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/typed-factorial-selection-only.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

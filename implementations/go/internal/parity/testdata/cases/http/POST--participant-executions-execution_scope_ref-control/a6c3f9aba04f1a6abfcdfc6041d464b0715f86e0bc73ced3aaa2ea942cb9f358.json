@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /participant-executions/{execution_scope_ref}/control",
+  "files": {
+    "body.bin": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "request.json": "sha256:4fb73d9d9eed113440387e76c4230dc059c125c0df3e1cfd356a4ab805f39518"
+  },
+  "name": "regression/0b5edd1873ac769c12e80c6954ea6448ab891c836349976ab933230109844b21",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

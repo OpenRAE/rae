@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml": "sha256:f586fd21961fce86c468c68156ac20e877705b835719f9d166adf52efd144217",
+    "setup.json": "sha256:752e2c6a46822dce99084e4f2e8f89053d4d54f7b75b5caaa30c77ec97b15c0a"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/migration/merge-key.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

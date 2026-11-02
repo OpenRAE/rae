@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:9bf3174f7ef3f22c3cdef6e5e536be9930ffbe8795ff23226d3c2463ba93fd8d"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  sync:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n  sensor:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\ninfrastructure:\n  sync:\n    count: 1\n  sensor:\n    count: 1\naccounts:\n  sync-api:\n    username: sync\n    node: sync\npersistent_volumes:\n  rules:\n    lifecycle: ephemeral\n    access_mode: read_write_many\n    consumers:\n    - node: sensor\n      mount_destination: /var/lib/rules\n      access_mode: read_only\n    - node: sync\n      mount_destination: /var/lib/rules\n      access_mode: read_write\nvariation_points:\n  sync-host:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync\n      slot: nodes.presence\n    alternatives:\n      absent:\n        kind: node-presence\n        present: false\n        requires:\n        - point: sync-account\n          members:\n          - absent\n        - point: shared-mounts\n          members:\n          - without-sync\n      present:\n        kind: node-presence\n        present: true\n  sync-account:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync-api\n      slot: accounts.presence\n    alternatives:\n      absent:\n        kind: declaration-presence\n        present: false\n      present:\n        kind: declaration-presence\n        present: true\n        requires:\n        - point: sync-host\n          members:\n          - present\n  shared-mounts:\n    kind: alternative\n    target:\n      kind: structural\n      owner: rules\n      slot: persistent_volumes.consumers\n    alternatives:\n      without-sync:\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n      all:\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n        - node: sync\n          mount_destination: /var/lib/rules\n        requires:\n        - point: sync-host\n          members:\n          - present\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  sync:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n  sensor:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\ninfrastructure:\n  sync:\n    count: 1\n  sensor:\n    count: 1\naccounts:\n  sync-api:\n    username: sync\n    node: sync\npersistent_volumes:\n  rules:\n    lifecycle: ephemeral\n    access_mode: read_write_many\n    consumers:\n    - node: sensor\n      mount_destination: /var/lib/rules\n      access_mode: read_only\n    - node: sync\n      mount_destination: /var/lib/rules\n      access_mode: read_write\nvariation_points:\n  sync-host:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync\n      slot: nodes.presence\n    alternatives:\n      absent:\n        kind: node-presence\n        present: false\n        requires:\n        - point: sync-account\n          members:\n          - absent\n        - point: shared-mounts\n          members:\n          - without-sync\n      present:\n        kind: node-presence\n        present: true\n  sync-account:\n    kind: alternative\n    target:\n      kind: structural\n      owner: sync-api\n      slot: accounts.presence\n    alternatives:\n      absent:\n        kind: declaration-presence\n        present: false\n      present:\n        kind: declaration-presence\n        present: true\n        requires:\n        - point: sync-host\n          members:\n          - present\n  shared-mounts:\n    kind: alternative\n    target:\n      kind: structural\n      owner: rules\n      slot: persistent_volumes.consumers\n    alternatives:\n      without-sync:\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n      all:\n        kind: resource-consumers\n        consumers:\n        - node: sensor\n          mount_destination: /var/lib/rules\n        - node: sync\n          mount_destination: /var/lib/rules\n        requires:\n        - point: sync-host\n          members:\n          - present\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

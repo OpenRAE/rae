@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml": "sha256:24e7df1eb3f4b5ddfeb44c08449821af7c9bae32a690ce503593b32d87011abf",
+    "setup.json": "sha256:4b2319857df3caf2d7f66a9560d29f66cb4a21b8656ce4e58914dea4d1f85637"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

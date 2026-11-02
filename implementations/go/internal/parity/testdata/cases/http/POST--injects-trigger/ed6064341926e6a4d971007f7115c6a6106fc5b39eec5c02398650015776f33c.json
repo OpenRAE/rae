@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /injects/trigger",
+  "files": {
+    "request.json": "sha256:9833d155e50ed9389dab3fc4a3680dc4a0c25e915998fcc74057463e1abcd756"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 422
+  },
+  "surface": "http"
+}

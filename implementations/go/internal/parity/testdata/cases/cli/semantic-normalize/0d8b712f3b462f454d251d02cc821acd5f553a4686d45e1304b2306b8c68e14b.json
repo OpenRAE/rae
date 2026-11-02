@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "sha256:dab33c31c9202875d218833f39bd9e468a7f4604557a254ef584d442d91c3ab3"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: autonomous-behavior-binding-subject\nentities:\n  automation-team:\n    role: blue\nagents:\n  autonomous-service:\n    affiliations:\n    - automation-team\nbehavior_specifications:\n  service-publication:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - autonomous-service\n    behavior_mode: autonomous\n    extension_policy: closed\n  agent-request:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - autonomous-service\n    behavior_mode: autonomous\n    extension_policy: closed\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:78a5982f347b4772bb58fa4fa7802594092fbbad1503d97dcf8d840a1ba61def"
+        },
+        "field_count": 4,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "autonomous-behavior-binding-subject",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

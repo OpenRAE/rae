@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:10769aaab2acaedf82fd3bc2f3f76ef24fa790b16a39d98ddd3d344dd757111a"
+  },
+  "name": "regression/5b6b47b280ac4a5a011853f41ca510fe3e6977ba0d6bd237913465abbf479c4d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "ccdc-2007-burnsodyne",
+            "populated_sections": {
+              "conditions": 6,
+              "entities": 3,
+              "features": 8,
+              "infrastructure": 6,
+              "nodes": 6
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "ccdc-2007-burnsodyne",
+          "populated_sections": {
+            "conditions": 6,
+            "entities": 3,
+            "features": 8,
+            "infrastructure": 6,
+            "nodes": 6
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

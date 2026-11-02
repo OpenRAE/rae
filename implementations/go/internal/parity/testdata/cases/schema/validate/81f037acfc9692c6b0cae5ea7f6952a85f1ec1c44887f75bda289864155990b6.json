@@ -1,0 +1,14 @@
+{
+  "args": [
+    "validation-basis-disclosure-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:9b00b0cf22786a096c0d77559a81083c32094c9117c5d4815a7dcb2b76e97c28"
+  },
+  "name": "regression/7e0cdb079b0e8c6c8f1bc185a455b05fab6b0e7b011dbee56d257bdcef18a46d",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

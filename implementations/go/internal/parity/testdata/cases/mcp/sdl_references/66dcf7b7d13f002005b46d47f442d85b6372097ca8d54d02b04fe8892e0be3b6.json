@@ -1,0 +1,31 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:2e166fc656596cfbe3be9b45d0d5c3ee3c05b20aad8c24a1ea32f83a06eb2c47"
+  },
+  "name": "examples/scenarios/participant-control-context/twice-imported.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

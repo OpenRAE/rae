@@ -1,0 +1,14 @@
+{
+  "args": [
+    "operation-status-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c64692de42a69dd20a02fc7708c9dcf52998e31878cb2fa57f5492d5ebc19e60"
+  },
+  "name": "regression/814f6c52f312764e8763c16f048086e1292d82bb357cfa75dc00c07de312b9ce",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

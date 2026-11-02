@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:d38a413155293cbe353023d8dcf99099703f59198d55424bf069f54d3deccd84"
+  },
+  "name": "regression/72ddfcf05a4bd10e7cf8e08ea6f7bf347183081610ecbbeb0c0d96b5bdc12f5d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/relationships/workstation-placement/carrier_placement/kernel_boundary",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 99
+                },
+                "start": {
+                  "column": 24,
+                  "line": 99
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/relationships/workstation-placement/carrier_placement/kernel_boundary",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 99
+              },
+              "start": {
+                "column": 24,
+                "line": 99
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

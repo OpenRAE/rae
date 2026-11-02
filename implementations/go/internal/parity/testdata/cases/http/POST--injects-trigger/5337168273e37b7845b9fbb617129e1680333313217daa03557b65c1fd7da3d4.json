@@ -1,0 +1,42 @@
+{
+  "args": [],
+  "command": "POST /injects/trigger",
+  "files": {
+    "body.bin": "sha256:5e8b0b3b0f8631cfc4aa0e58ddb3672109c09992f501a7b4872ff0c8a1e9c574",
+    "request.json": "sha256:8f9bc24c5b638316860e1294980a960ecf961c12384de92b55b09ed1f02ad383"
+  },
+  "name": "regression/9e79503e63bc9f334f66b1ce1bcdffdcda78c9cad7912da13d31ac26ab6989da",
+  "result": {
+    "body": {
+      "accepted": false,
+      "context": {
+        "actor_id": "operator",
+        "authorization_scope": [
+          "role:operator"
+        ],
+        "operation_kind": "orchestration",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:e0c7ff542bd739465e6fc3a5d1921593607f42db4b707a6c606967cb40f1e0b1",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [
+        {
+          "address": "/runtime.control-plane.inject",
+          "code": "runtime.inject.admission-refused",
+          "domain": "runtime",
+          "severity": "error"
+        }
+      ],
+      "domain": "orchestration",
+      "operation_id": "74e9fcb6-e572-4f97-8310-2a83a2992935",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

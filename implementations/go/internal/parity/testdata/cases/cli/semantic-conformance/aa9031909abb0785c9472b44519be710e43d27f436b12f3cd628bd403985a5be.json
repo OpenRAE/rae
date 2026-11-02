@@ -1,0 +1,37 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.yaml": "sha256:bdbfecf178c9cde8adaf0c68481ce91b060e72f3b58325c77fa8e5fd4c6825e4"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/collision.sdl",
+  "result": {
+    "exit_code": 3,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "conformance",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "unsupported",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

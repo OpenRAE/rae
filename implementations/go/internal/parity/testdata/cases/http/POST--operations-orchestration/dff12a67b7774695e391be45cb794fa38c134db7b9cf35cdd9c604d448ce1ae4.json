@@ -1,0 +1,36 @@
+{
+  "args": [],
+  "command": "POST /operations/orchestration",
+  "files": {
+    "request.json": "sha256:f86aa66d3931f60d6c9a5793901dc78b8a3c7fe174b53de1c64746bba4ec4b37"
+  },
+  "name": "empty-plan",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "operator",
+        "authorization_scope": [
+          "role:auditor",
+          "role:backend",
+          "role:operator"
+        ],
+        "operation_kind": "orchestration",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:bb1d239adcf6e3506d001dcb1c59fa95291e882374eb399689302fe34506a332",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "orchestration",
+      "operation_id": "10cd1cbd-786b-4d33-b67d-fe4e881bfe16",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

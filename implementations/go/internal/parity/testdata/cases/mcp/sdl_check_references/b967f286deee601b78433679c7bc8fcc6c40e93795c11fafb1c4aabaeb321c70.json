@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:8c373745912192e20195c70cf022cd32e70a7927de9238051542e2832c02065b"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/nonfinite.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

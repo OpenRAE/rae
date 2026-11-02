@@ -1,0 +1,14 @@
+{
+  "args": [
+    "attack-enterprise-tactics-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:4438bd586874650390c483966efc6ecf8b72f79f5b588e14d0959c173139b60e"
+  },
+  "name": "attack-enterprise-tactics-source-v1/routed/contracts/concept-authority/attack-enterprise-tactics-source-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

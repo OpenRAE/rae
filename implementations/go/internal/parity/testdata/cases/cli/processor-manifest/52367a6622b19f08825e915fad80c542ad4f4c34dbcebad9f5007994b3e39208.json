@@ -1,0 +1,92 @@
+{
+  "args": [
+    "processor",
+    "manifest"
+  ],
+  "command": "processor manifest",
+  "files": {},
+  "name": "reference",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "capabilities": {
+        "participant_tools": {
+          "feature_support": [
+            {
+              "constraint_refs": [],
+              "disclosure_refs": [],
+              "evidence_refs": [
+                "tests:ACT-619",
+                "tests:API-414"
+              ],
+              "feature": "tool_affordances",
+              "limitation_refs": [],
+              "support_level": "exact"
+            },
+            {
+              "constraint_refs": [],
+              "disclosure_refs": [],
+              "evidence_refs": [
+                "tests:ACT-619",
+                "tests:API-414"
+              ],
+              "feature": "scoped_tool_affordances",
+              "limitation_refs": [],
+              "support_level": "exact"
+            }
+          ],
+          "max_bindings_per_profile": null,
+          "max_participants_per_binding": null,
+          "semantic_versions": [
+            "participant-tool-profile/v1"
+          ]
+        },
+        "supported_features": [
+          "compilation",
+          "planning",
+          "orchestration-coordination",
+          "evaluation-coordination",
+          "workflow-semantics",
+          "objective-window-consistency",
+          "dependency-ordering",
+          "runtime-control-plane"
+        ],
+        "supported_sdl_versions": [
+          "sdl-authoring-input-v1"
+        ]
+      },
+      "compatibility": {
+        "backends": [
+          "stub"
+        ]
+      },
+      "concept_bindings": [
+        {
+          "family": "scenarios",
+          "scope": "capabilities.supported_sdl_versions"
+        },
+        {
+          "family": "apparatus-declarations",
+          "scope": "capabilities.supported_features"
+        }
+      ],
+      "constraints": {},
+      "identity": {
+        "name": "raes-reference-processor",
+        "version": "10.2.0"
+      },
+      "schema_version": "processor-manifest/v2",
+      "supported_contract_versions": [
+        "processor-manifest-v2",
+        "provisioning-plan-v1",
+        "orchestration-plan-v1",
+        "evaluation-plan-v1",
+        "workflow-cancellation-request-v1",
+        "operation-receipt-v1",
+        "operation-status-v1",
+        "runtime-snapshot-v1"
+      ]
+    }
+  },
+  "surface": "cli"
+}

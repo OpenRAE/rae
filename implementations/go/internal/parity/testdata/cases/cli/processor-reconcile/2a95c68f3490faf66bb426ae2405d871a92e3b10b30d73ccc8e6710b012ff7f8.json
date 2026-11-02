@@ -1,0 +1,44 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/techvault-guest-certified.sdl.yaml",
+    "repo/examples/scenarios/techvault-guest-certified.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/techvault-guest-certified.sdl.yaml": "sha256:99c69fd34eb13f8633818c9a78341d351e2dc942e5ff51d5925a36ee02387eec"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.guest-vm",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.guest-vm",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "techvault-guest-certified",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

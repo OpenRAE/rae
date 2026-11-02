@@ -1,0 +1,14 @@
+{
+  "args": [
+    "behavioral-relation-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:764f73efbb07e92ae95d791003218a5998987f1958f65ac628ad917b38852f1c"
+  },
+  "name": "regression/f30d8063f22e1d2d78ac49f0b902ea14bd1bfbce968fb6367bf21800860a9a0c",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

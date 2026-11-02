@@ -1,0 +1,68 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:a5361c156ea2e75cf8726a2c9baf5220d957b9eb844acb3a6d1a27e247e88f19"
+  },
+  "name": "examples/library/templates/study/two-condition-study-design",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [
+        {
+          "address": "/body/factors/guidance_level",
+          "code": "sdl.noncanonical_field",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/body/run_plan/allocation/condition_assignments/cond_baseline",
+          "code": "sdl.noncanonical_field",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/body/run_plan/allocation/condition_assignments/cond_baseline/factor_levels/guidance_level",
+          "code": "sdl.noncanonical_field",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/body/run_plan/allocation/condition_assignments/cond_with_hints",
+          "code": "sdl.noncanonical_field",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/body/run_plan/allocation/condition_assignments/cond_with_hints/factor_levels/guidance_level",
+          "code": "sdl.noncanonical_field",
+          "domain": "sdl-parse",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

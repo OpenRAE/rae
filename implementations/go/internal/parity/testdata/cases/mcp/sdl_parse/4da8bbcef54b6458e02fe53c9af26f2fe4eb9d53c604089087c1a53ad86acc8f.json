@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:897b2dfd09bd2313f191a77394a5feb71deb1564cf3a26f9d42ac954f4f6cffd"
+  },
+  "name": "regression/c096fda208207e73f774b7bb0f2cbd467de23b32d06f3bbdaea6eba595ed89f9",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "enterprise-participant-evidence-loop",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 2,
+              "conditions": 5,
+              "content": 6,
+              "entities": 3,
+              "infrastructure": 10,
+              "nodes": 10,
+              "objectives": 1,
+              "observation_boundaries": 1
+            },
+            "source_diagnostics": [],
+            "version": "1.0"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "enterprise-participant-evidence-loop",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 2,
+            "conditions": 5,
+            "content": 6,
+            "entities": 3,
+            "infrastructure": 10,
+            "nodes": 10,
+            "objectives": 1,
+            "observation_boundaries": 1
+          },
+          "source_diagnostics": [],
+          "version": "1.0"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

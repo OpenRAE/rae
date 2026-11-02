@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:00634fbd70917bddee57f89f17c2845ee934064c497517f042aa3d2351cd147c"
+  },
+  "name": "regression/a6e04e0d5e663a3f137c7c2bbcc23c3392114aa419cfed39aaaa8560365a8d7d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/evidence_requirements/network-trace",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 45
+                },
+                "start": {
+                  "column": 9,
+                  "line": 31
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/evidence_requirements/network-trace",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 45
+              },
+              "start": {
+                "column": 9,
+                "line": 31
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

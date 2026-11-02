@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:309e2604b74a92bcdd40f17046396690ea3e375b819bfa9f5c2f06cc4eeba1eb"
+  },
+  "name": "regression/5a79775b9e2d95f2654b43cc07d1e283f1582fe4ca856974ca6d05a71c219d62",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "accounts.admin-acct -> web agents.red-agent -> red-team assertions.web-alive -> web-alive content.seed -> db events.attack -> brief infrastructure.db -> corp-net infrastructure.web -> corp-net injects.brief -> blue-team, red-team nodes.db -> pg nodes.web -> alive, app objectives.red-access -> red-agent, scan, web, web-alive propositions.web-alive -> nodes.web, web-health-evidence relationships.web-to-db -> app, pg scripts.timeline -> attack stories.exercise -> timeline"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "accounts.admin-acct -> web agents.red-agent -> red-team assertions.web-alive -> web-alive content.seed -> db events.attack -> brief infrastructure.db -> corp-net infrastructure.web -> corp-net injects.brief -> blue-team, red-team nodes.db -> pg nodes.web -> alive, app objectives.red-access -> red-agent, scan, web, web-alive propositions.web-alive -> nodes.web, web-health-evidence relationships.web-to-db -> app, pg scripts.timeline -> attack stories.exercise -> timeline"
+      }
+    }
+  },
+  "surface": "mcp"
+}

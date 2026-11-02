@@ -1,0 +1,59 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:2ab866d15821b309d3d120edb2983816f6c8aa8ab941270ac6976e1674b97edb"
+  },
+  "name": "regression/ebbe75ec91d96a883a4960d647516155e2c62e6a245aa5b558fc208d95bd44d5",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "windows",
+            "populated_sections": {
+              "conditions": 1,
+              "entities": 1,
+              "events": 1,
+              "nodes": 1,
+              "objectives": 1,
+              "scripts": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "windows",
+          "populated_sections": {
+            "conditions": 1,
+            "entities": 1,
+            "events": 1,
+            "nodes": 1,
+            "objectives": 1,
+            "scripts": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

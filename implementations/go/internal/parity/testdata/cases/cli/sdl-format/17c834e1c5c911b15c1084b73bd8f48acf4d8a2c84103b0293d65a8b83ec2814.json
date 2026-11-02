@@ -1,0 +1,133 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/scenarios/participant-tools/twice-imported.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec",
+    "repo/examples/scenarios/participant-tools/twice-imported.sdl.yaml": "sha256:51a493e7da1910673edfd8753369f7923d007ca056d6906878fd75e11f27c10e"
+  },
+  "name": "examples/scenarios/participant-tools/twice-imported.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "agents": {
+        "auditor": {
+          "affiliations": [
+            "audit"
+          ],
+          "observation_boundaries": [
+            "operator-view"
+          ]
+        },
+        "operator": {
+          "actions": [
+            "alpha.scan"
+          ],
+          "affiliations": [
+            "oversight"
+          ],
+          "interactive_access": {
+            "console": {
+              "channel": "rdp",
+              "target_ref": "alpha.web"
+            }
+          },
+          "observation_boundaries": [
+            "operator-view"
+          ]
+        }
+      },
+      "behavior_specifications": {
+        "operator-scan": {
+          "action_contract_refs": [
+            "alpha.scan"
+          ],
+          "authority_scope_refs": [
+            "nodes.alpha.web.services.http"
+          ],
+          "lifecycle_state": "draft",
+          "observation_boundary_refs": [
+            "operator-view"
+          ],
+          "participant_role_refs": [
+            "blue"
+          ],
+          "semantic_version": "1.0.0",
+          "tool_affordances": {
+            "shared-scanner": {
+              "action_contract_refs": [
+                "alpha.scan"
+              ],
+              "observation_boundary_refs": [
+                "operator-view"
+              ],
+              "tool_ref": "alpha.scanner-package"
+            }
+          }
+        }
+      },
+      "content": {
+        "scanner-package": {
+          "path": "/opt/console/scanner",
+          "target": "console-host",
+          "type": "file"
+        }
+      },
+      "entities": {
+        "audit": {
+          "role": "white"
+        },
+        "oversight": {
+          "role": "blue"
+        }
+      },
+      "imports": [
+        {
+          "namespace": "alpha",
+          "source": "local:tool-kit.sdl.yaml",
+          "version": "2.1.0"
+        },
+        {
+          "namespace": "bravo",
+          "source": "local:tool-kit.sdl.yaml",
+          "version": ">=2,<3"
+        }
+      ],
+      "name": "operator-console",
+      "nodes": {
+        "console-host": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "observation_boundaries": {
+        "operator-view": {
+          "evidence_refs": [
+            "evidence.scan-output"
+          ],
+          "latency_profile": "immediate",
+          "observable_refs": [
+            "behavior_specifications.operator-scan.tool_affordances.shared-scanner"
+          ],
+          "projection_basis": "operator view of the shared scanner",
+          "redaction_policy": "no hidden refs are disclosed",
+          "view_rules": [
+            {
+              "boundary_class": "observable_resource",
+              "disposition": "observable",
+              "information_ref": "behavior_specifications.operator-scan.tool_affordances.shared-scanner",
+              "visibility_basis": "authored participant-local affordance"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/invocation",
+  "files": {
+    "request.json": "sha256:29c4af506edc4fef7469b87d304dc2545148a8046d61219c69c388c283ccdb4c"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

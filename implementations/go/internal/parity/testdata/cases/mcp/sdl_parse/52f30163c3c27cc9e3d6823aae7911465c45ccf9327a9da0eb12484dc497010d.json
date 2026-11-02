@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:476f46052cee436c5f3a2dfd113296ecf9ae5d22f9f0817a77d78455848ef7b8"
+  },
+  "name": "regression/6d55ebda426c403b18a7781c78d256a1d5460f3b063a46bdf81e5343cfc7fa27",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/controlled-red/mixed_control/mixed-control-policy-occurrence~1rev1/form",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 129
+                },
+                "start": {
+                  "column": 7,
+                  "line": 43
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/controlled-red/mixed_control/mixed-control-policy-occurrence~1rev1/form",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 129
+              },
+              "start": {
+                "column": 7,
+                "line": 43
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

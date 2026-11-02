@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:222896ae54f75ae68e2ac2e669f17342180e68b64d60e2be55abc9ca153bd9f2"
+  },
+  "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/context-invalid/typed-factorial-source-level",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,319 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:b4d65df57663d902625a397a1cf2830c13db58159db7147dbe58fcf2b0ed2b80"
+  },
+  "name": "examples/library/templates/scenario/minimal-validated-scenario.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "template: raes-library-template\nversion: 1\nid: minimal-validated-scenario\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Minimal current-SDL scenario with a target, participant, objective, and workflow.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-scenario-template\n  description: Minimal scenario template exercising identity, target, objective, and\n    workflow refs.\n  nodes:\n    app:\n      type: compute\n      architecture: x86_64\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 443\n        name: https\n  conditions:\n    app-healthy:\n      proposition: app-healthy\n      command: curl -fsS https://app/health\n      interval: 30\n  entities:\n    blue-team:\n      role: blue\n  agents:\n    operator:\n      affiliations:\n      - blue-team\n  propositions:\n    app-healthy:\n      description: The governed app-healthy observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.app.services.https\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: app-healthy\n        semantic_ref: urn:raes:observable:app-healthy\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    app-healthy:\n      proposition: app-healthy\n      role: postcondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.app.services.https\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    verify-app-health:\n      assigned_participant: operator\n      targets:\n      - nodes.app.services.https\n      success:\n        assertions:\n        - app-healthy\n  workflows:\n    baseline-check:\n      start: verify\n      steps:\n        verify:\n          type: objective\n          objective: verify-app-health\n          on_success: done\n        done:\n          type: end\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/template",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 1
+                },
+                "start": {
+                  "column": 11,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 31,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 91,
+                  "line": 10
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 20
+                },
+                "start": {
+                  "column": 1,
+                  "line": 12
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/body",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 100
+                },
+                "start": {
+                  "column": 3,
+                  "line": 21
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "template: raes-library-template\nversion: 1\nid: minimal-validated-scenario\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Minimal current-SDL scenario with a target, participant, objective, and workflow.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-scenario-template\n  description: Minimal scenario template exercising identity, target, objective, and\n    workflow refs.\n  nodes:\n    app:\n      type: compute\n      architecture: x86_64\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 443\n        name: https\n  conditions:\n    app-healthy:\n      proposition: app-healthy\n      command: curl -fsS https://app/health\n      interval: 30\n  entities:\n    blue-team:\n      role: blue\n  agents:\n    operator:\n      affiliations:\n      - blue-team\n  propositions:\n    app-healthy:\n      description: The governed app-healthy observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.app.services.https\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: app-healthy\n        semantic_ref: urn:raes:observable:app-healthy\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    app-healthy:\n      proposition: app-healthy\n      role: postcondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.app.services.https\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    verify-app-health:\n      assigned_participant: operator\n      targets:\n      - nodes.app.services.https\n      success:\n        assertions:\n        - app-healthy\n  workflows:\n    baseline-check:\n      start: verify\n      steps:\n        verify:\n          type: objective\n          objective: verify-app-health\n          on_success: done\n        done:\n          type: end\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/template",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 1
+              },
+              "start": {
+                "column": 11,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 31,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 91,
+                "line": 10
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 20
+              },
+              "start": {
+                "column": 1,
+                "line": 12
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/body",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 100
+              },
+              "start": {
+                "column": 3,
+                "line": 21
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

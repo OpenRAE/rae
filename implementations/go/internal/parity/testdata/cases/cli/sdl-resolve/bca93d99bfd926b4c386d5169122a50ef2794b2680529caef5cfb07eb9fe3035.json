@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [
+    "semantic",
+    "parse",
+    "input/guided-web-probe.sdl.yaml"
+  ],
+  "command": "semantic parse",
+  "files": {
+    "input/guided-web-probe.sdl.yaml": "sha256:a352cd1b94060d8801f39eab65c2765aeddf483abad641358a7e10b989f8bbf3"
+  },
+  "name": "regression/16b0a8437bf146e89b681e8d8fb1b975adb1d50860cd1b2c10bd103149d08d83",
+  "result": {
+    "exit_code": 0,
+    "stdout": null
+  },
+  "surface": "cli"
+}

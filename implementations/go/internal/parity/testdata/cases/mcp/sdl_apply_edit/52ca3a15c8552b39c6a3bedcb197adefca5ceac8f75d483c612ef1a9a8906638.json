@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:6ca4b350882a4e0195283234fb470f7f3519cb5826cef85e205930831951bb36"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  manager:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n    runtime:\n      packages:\n      - manager: apt\n        name: wazuh-agent\n        version: 4.12.0-1\n        repository:\n          repository_profile: apt\n          profile_version: '1'\n          uri: https://packages.wazuh.com/4.x/apt/\n          suite: stable\n          components:\n          - main\n          signing_key:\n            uri: https://packages.wazuh.com/key/GPG-KEY-WAZUH\n            format: openpgp-ascii-armored\n            digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  manager:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n    runtime:\n      packages:\n      - manager: apt\n        name: wazuh-agent\n        version: 4.12.0-1\n        repository:\n          repository_profile: apt\n          profile_version: '1'\n          uri: https://packages.wazuh.com/4.x/apt/\n          suite: stable\n          components:\n          - main\n          signing_key:\n            uri: https://packages.wazuh.com/key/GPG-KEY-WAZUH\n            format: openpgp-ascii-armored\n            digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

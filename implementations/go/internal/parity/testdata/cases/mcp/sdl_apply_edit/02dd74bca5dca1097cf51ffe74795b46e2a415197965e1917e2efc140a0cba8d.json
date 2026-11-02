@@ -1,0 +1,319 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:1f4777a74f87a95b4bd7edb2522ac7442feeb3db4ce2c00f61779244457e3e1a"
+  },
+  "name": "examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "template: raes-library-template\nversion: 1\nid: action-contract-observation-boundary\nsurface: participant_behavior\nrequirement_refs:\n- AUT-806\n- ACT-606\nsource_refs:\n- docs/explain/sdl/validation.md\n- implementations/python/tests/test_sem_208_participant_behavior.py\nsummary: Participant behavior template binding an agent action to an action contract,\n  observation boundary, and behavior specification.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-participant-behavior-template\n  description: Participant behavior template with governed action and observation\n    semantics.\n  nodes:\n    web:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 80\n        name: http\n  entities:\n    red-team:\n      role: red\n  action_contracts:\n    scan:\n      semantic_version: 1.0.0\n      lifecycle_state: active\n      behavioral_granularity: atomic\n      procedure_basis: nmap service discovery\n      realization_profile: backend-declared\n      fidelity_claim: records participant discovery intent and terminal observation\n      preconditions:\n      - precondition_id: authority-in-scope\n        precondition_class: authority\n        description: red participant is authorized to scan the web service\n        support_refs:\n        - agents.red-agent\n        - nodes.web.services.http\n      - precondition_id: target-service-present\n        precondition_class: target\n        description: target service exists in the participant action scope\n        support_refs:\n        - nodes.web.services.http\n      - precondition_id: backend-can-realize-scan\n        precondition_class: realization\n        description: backend can realize the scan action contract\n        support_refs:\n        - backend.participant-runtime\n      effects:\n      - effect_id: discover-network-services\n        effect_class: intended_effect\n        description: discover network services\n        target_refs:\n        - nodes.web.services.http\n      - effect_id: participant-service-knowledge-update\n        effect_class: side_effect\n        description: participant-local service knowledge changes\n        target_refs:\n        - nodes.web.services.http\n      - effect_id: terminal-scan-observation\n        effect_class: observation_effect\n        description: terminal scan observation\n        evidence_refs:\n        - evidence.scan-output\n      - effect_id: participant-view-discovers-node\n        effect_class: visibility_effect\n        description: participant view marks the web node discovered\n        target_refs:\n        - nodes.web\n      - effect_id: scan-output-evidence\n        effect_class: evidence_effect\n        description: scan output is retained as evidence\n        evidence_refs:\n        - evidence.scan-output\n      - effect_id: no-hidden-truth-effect\n        effect_class: no_effect\n        description: scan does not disclose hidden adjudication material\n      state_transition_effects:\n      - participant knowledge expands\n      observation_expectations:\n      - terminal scan result\n      evidence_expectations:\n      - tool output\n      failure_classes:\n      - target_unavailable\n      - precondition_unsatisfied\n      - backend_error\n      - unknown\n      backend_failure_mappings:\n      - backend_error_code: backend.target-unreachable\n        failure_class: target_unavailable\n        diagnostic: backend target unreachable\n  observation_boundaries:\n    red-view:\n      projection_basis: participant-local projection over observed services\n      observable_refs: []\n      hidden_refs:\n      - nodes.web\n      - content.private-answer-key\n      evidence_refs:\n      - evidence.scan-output\n      redaction_policy: hidden refs never project without explicit disclosure\n      latency_profile: terminal observation emitted after state transition commit\n      observer_effects:\n      - tool execution may affect telemetry\n      realized_view_disclosure: backend reports terminal scan output only\n      view_rules:\n      - information_ref: nodes.web\n        boundary_class: observable_resource\n        disposition: hidden\n        visibility_basis: service is not known before terminal scan output\n        latency_profile: terminal observation latency\n      - information_ref: content.private-answer-key\n        boundary_class: private_answer_key\n        disposition: hidden\n        visibility_basis: adjudication-only hidden truth\n      - information_ref: evidence.scan-output\n        boundary_class: archival_evidence\n        disposition: evidence_only\n        visibility_basis: archival run evidence reference\n        evidence_refs:\n        - evidence.scan-output\n      view_transitions:\n      - transition_id: discover-web-service\n        transition_kind: discovery\n        information_ref: nodes.web\n        trigger: scan terminal observation\n        effective_from: episode-step:scan-0001:terminal-observation\n        effective_order: 30\n        history_event_type: observation_emitted\n        action_instance_id: scan-0001\n        from_disposition: hidden\n        to_disposition: discovered\n        evidence_refs:\n        - evidence.scan-output\n        certainty: high\n        latency_profile: terminal observation latency\n  agents:\n    red-agent:\n      affiliations:\n      - red-team\n      actions:\n      - scan\n      observation_boundaries:\n      - red-view\n  behavior_specifications:\n    red-scan-behavior:\n      semantic_version: 1.0.0\n      lifecycle_state: active\n      participant_refs:\n      - red-agent\n      participant_role_refs:\n      - red\n      action_contract_refs:\n      - scan\n      observation_boundary_refs:\n      - red-view\n      authority_scope_refs:\n      - nodes.web.services.http\n      behavior_mode: policy-directed\n      realization_profile_ref: participant-implementation-manifest:red-agent\n      backend_feature_support_refs:\n      - behavior_history\n      evidence_contract_refs:\n      - participant-behavior-history-event-stream-v1\n      extension_policy: governed-extension\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/template",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 1
+                },
+                "start": {
+                  "column": 11,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 41,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 8
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 11
+                },
+                "start": {
+                  "column": 1,
+                  "line": 9
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 52,
+                  "line": 12
+                },
+                "start": {
+                  "column": 10,
+                  "line": 11
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 22
+                },
+                "start": {
+                  "column": 1,
+                  "line": 14
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/body",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 181
+                },
+                "start": {
+                  "column": 3,
+                  "line": 23
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "template: raes-library-template\nversion: 1\nid: action-contract-observation-boundary\nsurface: participant_behavior\nrequirement_refs:\n- AUT-806\n- ACT-606\nsource_refs:\n- docs/explain/sdl/validation.md\n- implementations/python/tests/test_sem_208_participant_behavior.py\nsummary: Participant behavior template binding an agent action to an action contract,\n  observation boundary, and behavior specification.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-participant-behavior-template\n  description: Participant behavior template with governed action and observation\n    semantics.\n  nodes:\n    web:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 80\n        name: http\n  entities:\n    red-team:\n      role: red\n  action_contracts:\n    scan:\n      semantic_version: 1.0.0\n      lifecycle_state: active\n      behavioral_granularity: atomic\n      procedure_basis: nmap service discovery\n      realization_profile: backend-declared\n      fidelity_claim: records participant discovery intent and terminal observation\n      preconditions:\n      - precondition_id: authority-in-scope\n        precondition_class: authority\n        description: red participant is authorized to scan the web service\n        support_refs:\n        - agents.red-agent\n        - nodes.web.services.http\n      - precondition_id: target-service-present\n        precondition_class: target\n        description: target service exists in the participant action scope\n        support_refs:\n        - nodes.web.services.http\n      - precondition_id: backend-can-realize-scan\n        precondition_class: realization\n        description: backend can realize the scan action contract\n        support_refs:\n        - backend.participant-runtime\n      effects:\n      - effect_id: discover-network-services\n        effect_class: intended_effect\n        description: discover network services\n        target_refs:\n        - nodes.web.services.http\n      - effect_id: participant-service-knowledge-update\n        effect_class: side_effect\n        description: participant-local service knowledge changes\n        target_refs:\n        - nodes.web.services.http\n      - effect_id: terminal-scan-observation\n        effect_class: observation_effect\n        description: terminal scan observation\n        evidence_refs:\n        - evidence.scan-output\n      - effect_id: participant-view-discovers-node\n        effect_class: visibility_effect\n        description: participant view marks the web node discovered\n        target_refs:\n        - nodes.web\n      - effect_id: scan-output-evidence\n        effect_class: evidence_effect\n        description: scan output is retained as evidence\n        evidence_refs:\n        - evidence.scan-output\n      - effect_id: no-hidden-truth-effect\n        effect_class: no_effect\n        description: scan does not disclose hidden adjudication material\n      state_transition_effects:\n      - participant knowledge expands\n      observation_expectations:\n      - terminal scan result\n      evidence_expectations:\n      - tool output\n      failure_classes:\n      - target_unavailable\n      - precondition_unsatisfied\n      - backend_error\n      - unknown\n      backend_failure_mappings:\n      - backend_error_code: backend.target-unreachable\n        failure_class: target_unavailable\n        diagnostic: backend target unreachable\n  observation_boundaries:\n    red-view:\n      projection_basis: participant-local projection over observed services\n      observable_refs: []\n      hidden_refs:\n      - nodes.web\n      - content.private-answer-key\n      evidence_refs:\n      - evidence.scan-output\n      redaction_policy: hidden refs never project without explicit disclosure\n      latency_profile: terminal observation emitted after state transition commit\n      observer_effects:\n      - tool execution may affect telemetry\n      realized_view_disclosure: backend reports terminal scan output only\n      view_rules:\n      - information_ref: nodes.web\n        boundary_class: observable_resource\n        disposition: hidden\n        visibility_basis: service is not known before terminal scan output\n        latency_profile: terminal observation latency\n      - information_ref: content.private-answer-key\n        boundary_class: private_answer_key\n        disposition: hidden\n        visibility_basis: adjudication-only hidden truth\n      - information_ref: evidence.scan-output\n        boundary_class: archival_evidence\n        disposition: evidence_only\n        visibility_basis: archival run evidence reference\n        evidence_refs:\n        - evidence.scan-output\n      view_transitions:\n      - transition_id: discover-web-service\n        transition_kind: discovery\n        information_ref: nodes.web\n        trigger: scan terminal observation\n        effective_from: episode-step:scan-0001:terminal-observation\n        effective_order: 30\n        history_event_type: observation_emitted\n        action_instance_id: scan-0001\n        from_disposition: hidden\n        to_disposition: discovered\n        evidence_refs:\n        - evidence.scan-output\n        certainty: high\n        latency_profile: terminal observation latency\n  agents:\n    red-agent:\n      affiliations:\n      - red-team\n      actions:\n      - scan\n      observation_boundaries:\n      - red-view\n  behavior_specifications:\n    red-scan-behavior:\n      semantic_version: 1.0.0\n      lifecycle_state: active\n      participant_refs:\n      - red-agent\n      participant_role_refs:\n      - red\n      action_contract_refs:\n      - scan\n      observation_boundary_refs:\n      - red-view\n      authority_scope_refs:\n      - nodes.web.services.http\n      behavior_mode: policy-directed\n      realization_profile_ref: participant-implementation-manifest:red-agent\n      backend_feature_support_refs:\n      - behavior_history\n      evidence_contract_refs:\n      - participant-behavior-history-event-stream-v1\n      extension_policy: governed-extension\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/template",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 1
+              },
+              "start": {
+                "column": 11,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 41,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 8
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 11
+              },
+              "start": {
+                "column": 1,
+                "line": 9
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 52,
+                "line": 12
+              },
+              "start": {
+                "column": 10,
+                "line": 11
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 22
+              },
+              "start": {
+                "column": 1,
+                "line": 14
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/body",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 181
+              },
+              "start": {
+                "column": 3,
+                "line": 23
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

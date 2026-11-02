@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:e0057440015fbb1873b65d3ad07a784daaeb245703b7f75e0bf8706130f8801d"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/valid/mixed-control-participant.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

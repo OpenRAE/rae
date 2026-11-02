@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/scenarios/techvault-guest-certified.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/scenarios/techvault-guest-certified.sdl.yaml": "sha256:99c69fd34eb13f8633818c9a78341d351e2dc942e5ff51d5925a36ee02387eec"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+    "setup.json": "sha256:29a6bc9badb84f1a84c81ec0aefe1e4e6de5516c2631a511ab9255457be6bd36"
+  },
+  "name": "examples/scenarios/participant-control-context/context-kit.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/participant-control-context/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

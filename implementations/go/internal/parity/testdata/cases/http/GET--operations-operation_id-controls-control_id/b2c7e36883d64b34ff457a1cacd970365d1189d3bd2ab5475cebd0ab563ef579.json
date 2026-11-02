@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/controls/{control_id}",
+  "files": {
+    "request.json": "sha256:2f15bc8d069b94811fad219926c8c5702ac9149692a648b37bfdd64e6bc5fa58"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

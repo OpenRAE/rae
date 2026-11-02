@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /participants/{participant_address}/episodes/{episode_id}/history",
+  "files": {
+    "request.json": "sha256:2828807844994ad3549b0cfece8b6c4abe98337616c341457ad3c5e8c79f8ac8"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

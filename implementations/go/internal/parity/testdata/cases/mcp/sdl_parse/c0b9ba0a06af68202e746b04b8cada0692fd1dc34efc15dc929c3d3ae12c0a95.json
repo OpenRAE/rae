@@ -1,0 +1,49 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:61250b730d58efff24aba3d9ac203d7f94b73a4789060db946bee7f4edac9e82"
+  },
+  "name": "regression/f83b4fbfefef2e70cd3dadc393271586bf5a51a5ac02659d6707bcc66348dfca",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "techvault-runtime-parity",
+            "populated_sections": {
+              "infrastructure": 3,
+              "nodes": 3
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "techvault-runtime-parity",
+          "populated_sections": {
+            "infrastructure": 3,
+            "nodes": 3
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

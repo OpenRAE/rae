@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/absence-resolution",
+  "files": {
+    "request.json": "sha256:714993f25ba1c260a80760f1eb635b41d8788883d4a4f78f0eaf45f9c4f36cb9"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

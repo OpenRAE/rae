@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/invocation/indeterminate",
+  "files": {
+    "request.json": "sha256:93e6a5acbe39901bc207fd7ce4e7f5e79bc256bb0d31d1788e73be87dad9e203"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

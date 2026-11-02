@@ -1,0 +1,141 @@
+{
+  "args": [],
+  "command": "sdl_claims_assessment",
+  "files": {
+    "arguments.json": "sha256:a352db566edf4ef4f30be92f61f0aa72c889800874d275aaa865173efefeed28"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/merge-conflict.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "<<",
+                "<<"
+              ],
+              "code": "sdl.noncanonical_merge",
+              "path": "/nodes/conflict",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 6
+                },
+                "start": {
+                  "column": 5,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "type",
+                "type"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/conflict/type",
+              "range": {
+                "end": {
+                  "column": 9,
+                  "line": 7
+                },
+                "start": {
+                  "column": 5,
+                  "line": 7
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'type'.",
+                  "range": {
+                    "end": {
+                      "column": 9,
+                      "line": 4
+                    },
+                    "start": {
+                      "column": 5,
+                      "line": 4
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "<<",
+              "<<"
+            ],
+            "code": "sdl.noncanonical_merge",
+            "path": "/nodes/conflict",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 6
+              },
+              "start": {
+                "column": 5,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "type",
+              "type"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/conflict/type",
+            "range": {
+              "end": {
+                "column": 9,
+                "line": 7
+              },
+              "start": {
+                "column": 5,
+                "line": 7
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'type'.",
+                "range": {
+                  "end": {
+                    "column": 9,
+                    "line": 4
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 4
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

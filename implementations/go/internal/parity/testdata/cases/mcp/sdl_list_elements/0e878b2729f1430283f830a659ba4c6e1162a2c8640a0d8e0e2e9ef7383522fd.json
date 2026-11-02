@@ -1,0 +1,39 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:1b631b01d2aeb551ae58c979f3142006c9277d8d6a8f679ea2ad98c34cc6ed51"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "infrastructure": [
+            "lab",
+            "workload"
+          ],
+          "nodes": [
+            "lab",
+            "workload"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "infrastructure": [
+          "lab",
+          "workload"
+        ],
+        "nodes": [
+          "lab",
+          "workload"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

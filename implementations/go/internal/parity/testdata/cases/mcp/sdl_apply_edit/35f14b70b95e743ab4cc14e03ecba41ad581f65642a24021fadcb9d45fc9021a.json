@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:0ced07d3aa66f58f0def9316e1bcf659590cc50093b11b3042492eeccd13878c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/alias-cycle.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.alias_cycle",
+              "path": "/nodes/switch/roles",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 6
+                },
+                "start": {
+                  "column": 8,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.alias_cycle",
+            "path": "/nodes/switch/roles",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 6
+              },
+              "start": {
+                "column": 8,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

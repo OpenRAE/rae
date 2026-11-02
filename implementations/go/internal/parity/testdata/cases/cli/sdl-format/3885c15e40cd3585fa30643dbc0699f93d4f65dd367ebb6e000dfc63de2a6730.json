@@ -1,0 +1,81 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "agents": {
+        "alice": {
+          "affiliations": [
+            "team-a"
+          ]
+        },
+        "bob": {
+          "affiliations": [
+            "team-b"
+          ]
+        }
+      },
+      "entities": {
+        "team-a": {
+          "role": "red"
+        },
+        "team-b": {
+          "role": "blue"
+        }
+      },
+      "name": "abstract-participant-relationships",
+      "relationships": {
+        "competition": {
+          "participant": {
+            "kind": "competition"
+          },
+          "source": "agents.alice",
+          "target": "bob",
+          "type": "participant"
+        },
+        "cooperation": {
+          "participant": {
+            "kind": "cooperation"
+          },
+          "source": "agents.alice",
+          "target": "bob",
+          "type": "participant"
+        },
+        "coordination": {
+          "participant": {
+            "kind": "coordination"
+          },
+          "source": "agents.alice",
+          "target": "bob",
+          "type": "participant"
+        },
+        "delegation": {
+          "participant": {
+            "kind": "delegation"
+          },
+          "source": "agents.alice",
+          "target": "bob",
+          "type": "participant"
+        },
+        "supervision": {
+          "participant": {
+            "kind": "supervision"
+          },
+          "source": "agents.alice",
+          "target": "bob",
+          "type": "participant"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

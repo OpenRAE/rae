@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:b288527fe2aaaeeafcb4c2b882a07a22726a68d67a499863fa0490ed93ad48f4"
+  },
+  "name": "regression/383b31cd60d2bd13d0dc7f93304c076361c528b4fc63fe3fef9b2e10724ce465",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/agents/red-agent/reward_calculator",
+              "range": {
+                "end": {
+                  "column": 33,
+                  "line": 9
+                },
+                "start": {
+                  "column": 24,
+                  "line": 9
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/agents/red-agent/reward_calculator",
+            "range": {
+              "end": {
+                "column": 33,
+                "line": 9
+              },
+              "start": {
+                "column": 24,
+                "line": 9
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

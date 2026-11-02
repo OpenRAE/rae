@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /participant-executions/{execution_scope_ref}",
+  "files": {
+    "request.json": "sha256:95eb3bbab64c3039cb04d5338bb0f93b90d4f7267e282352b116103662ba6e6a"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

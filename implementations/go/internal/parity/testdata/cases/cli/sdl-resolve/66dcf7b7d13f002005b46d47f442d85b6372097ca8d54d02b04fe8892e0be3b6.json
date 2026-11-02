@@ -1,0 +1,49 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/scenarios/participant-control-context/twice-imported.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/scenarios/participant-control-context/context-kit.sdl.yaml": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+    "repo/examples/scenarios/participant-control-context/twice-imported.sdl.yaml": "sha256:4f88a37b6778a7360d6d71dc2094adfefe77bda7cbb74abe6b6af6bfedd8ff9d"
+  },
+  "name": "examples/scenarios/participant-control-context/twice-imported.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/participant-control-context/raes.lock.json": {
+        "imports": [
+          {
+            "content_digest": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+            "export_hash": "555cddc6a82e44c2606b71e0a05c2e1bd88fbfcd237956e6a827ec617cc7bd7c",
+            "manifest_digest": "",
+            "module_id": "examples/context-kit",
+            "module_version": "1.0.0",
+            "namespace": "alpha",
+            "requested_version": "*",
+            "resolved_source": "context-kit.sdl.yaml",
+            "signer_id": "",
+            "source": "local:context-kit.sdl.yaml"
+          },
+          {
+            "content_digest": "sha256:284e8d56b674a26415ef0df7fc68a02dc70da698f624a9ca14af54554001acaf",
+            "export_hash": "555cddc6a82e44c2606b71e0a05c2e1bd88fbfcd237956e6a827ec617cc7bd7c",
+            "manifest_digest": "",
+            "module_id": "examples/context-kit",
+            "module_version": "1.0.0",
+            "namespace": "bravo",
+            "requested_version": "*",
+            "resolved_source": "context-kit.sdl.yaml",
+            "signer_id": "",
+            "source": "local:context-kit.sdl.yaml"
+          }
+        ],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

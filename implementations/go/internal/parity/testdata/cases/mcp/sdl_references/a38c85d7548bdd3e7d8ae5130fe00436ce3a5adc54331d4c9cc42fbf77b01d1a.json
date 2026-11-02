@@ -1,0 +1,31 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:3c1b9f744f70b4edb150c3ce87df5cb71664f05347cb6a4b31f72ab5573af3cf"
+  },
+  "name": "examples/scenarios/techvault-enterprise-web.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

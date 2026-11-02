@@ -1,0 +1,383 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:2b31ee0e382ad71bd378f3c0fcb057fa78dd9303a331f37f1881129bc0e72679"
+  },
+  "name": "examples/library/patterns/task-as-objective-contract.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "pattern: raes-library-pattern\nversion: 1\nid: task-as-objective-contract\nsurface: task\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/limitations.md\nsummary: Represent current task templates as objective contracts with explicit actors,\n  targets, and success criteria.\nintent: 'Provide a reusable task authoring path using current SDL surfaces while the\n  repository does not expose a first-class tasks section.\n\n  '\nuse_when:\n- A user-facing task can be expressed as one objective with measurable success.\n- The task target can be named through existing SDL target references.\nauthoring_steps:\n- Create or reuse the participant agent that owns the task.\n- Define the task target as a targetable SDL reference.\n- Reference a postcondition assertion over a completion proposition from objective\n  success.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Place the objective in a workflow when task order matters.\nvalidation:\n- command: parse_sdl_file\n  expected: objective actor, target, and success references resolve.\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/pattern",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 1
+                },
+                "start": {
+                  "column": 10,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 31,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 33,
+                  "line": 11
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/intent",
+              "range": {
+                "end": {
+                  "column": 4,
+                  "line": 15
+                },
+                "start": {
+                  "column": 9,
+                  "line": 12
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/use_when",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 19
+                },
+                "start": {
+                  "column": 1,
+                  "line": 17
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/authoring_steps",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 26
+                },
+                "start": {
+                  "column": 1,
+                  "line": 20
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 29
+                },
+                "start": {
+                  "column": 1,
+                  "line": 27
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "pattern: raes-library-pattern\nversion: 1\nid: task-as-objective-contract\nsurface: task\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/limitations.md\nsummary: Represent current task templates as objective contracts with explicit actors,\n  targets, and success criteria.\nintent: 'Provide a reusable task authoring path using current SDL surfaces while the\n  repository does not expose a first-class tasks section.\n\n  '\nuse_when:\n- A user-facing task can be expressed as one objective with measurable success.\n- The task target can be named through existing SDL target references.\nauthoring_steps:\n- Create or reuse the participant agent that owns the task.\n- Define the task target as a targetable SDL reference.\n- Reference a postcondition assertion over a completion proposition from objective\n  success.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Place the objective in a workflow when task order matters.\nvalidation:\n- command: parse_sdl_file\n  expected: objective actor, target, and success references resolve.\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/pattern",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 1
+              },
+              "start": {
+                "column": 10,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 31,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 33,
+                "line": 11
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/intent",
+            "range": {
+              "end": {
+                "column": 4,
+                "line": 15
+              },
+              "start": {
+                "column": 9,
+                "line": 12
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/use_when",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 19
+              },
+              "start": {
+                "column": 1,
+                "line": 17
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/authoring_steps",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 26
+              },
+              "start": {
+                "column": 1,
+                "line": 20
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 29
+              },
+              "start": {
+                "column": 1,
+                "line": 27
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

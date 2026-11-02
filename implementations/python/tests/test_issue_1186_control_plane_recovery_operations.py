@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import asdict, replace
 from pathlib import Path
 from threading import Event
@@ -306,7 +307,7 @@ def test_check_does_not_initialize_an_unbound_existing_database(tmp_path: Path) 
     store_path = tmp_path / "unbound-store"
     store_path.mkdir(mode=0o700)
     database = store_path / "control-plane.sqlite3"
-    with sqlite3.connect(database):
+    with closing(sqlite3.connect(database)):
         pass
     database.chmod(0o600)
     original_bytes = database.read_bytes()
@@ -322,7 +323,7 @@ def test_check_does_not_initialize_an_unbound_existing_database(tmp_path: Path) 
 
     assert type(caught.value) is OperationalError
     assert database.read_bytes() == original_bytes
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall() == []
 
 
@@ -334,7 +335,7 @@ def test_maintenance_refuses_a_source_not_in_wal_mode_without_mutating_it(
     source = tmp_path / "source-store"
     _create_local_store(source)
     database = source / "control-plane.sqlite3"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute("PRAGMA journal_mode=DELETE").fetchone() == ("delete",)
 
     with pytest.raises(OperationalError, match="WAL"):
@@ -346,7 +347,7 @@ def test_maintenance_refuses_a_source_not_in_wal_mode_without_mutating_it(
             run_scope="run:ops",
         )
 
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute("PRAGMA journal_mode").fetchone() == ("delete",)
     assert not (tmp_path / "backup.sqlite3").exists()
 
@@ -438,7 +439,7 @@ def test_restore_migrates_a_working_copy_without_mutating_the_supplied_backup(tm
         target_name="stub",
         run_scope="run:ops",
     )
-    with sqlite3.connect(backup) as connection:
+    with closing(sqlite3.connect(backup)) as connection, connection:
         connection.execute("UPDATE metadata SET value='4' WHERE key='schema-version'")
     predecessor_bytes = backup.read_bytes()
 
@@ -451,7 +452,7 @@ def test_restore_migrates_a_working_copy_without_mutating_the_supplied_backup(tm
     )
 
     assert backup.read_bytes() == predecessor_bytes
-    with sqlite3.connect(restored / "control-plane.sqlite3") as connection:
+    with closing(sqlite3.connect(restored / "control-plane.sqlite3")) as connection, connection:
         assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
             LOCAL_OPERATION_SCHEMA_VERSION,
         )
@@ -470,7 +471,7 @@ def test_failed_restore_keeps_the_backup_and_destination_authoritative(tmp_path:
         target_name="stub",
         run_scope="run:ops",
     )
-    with sqlite3.connect(backup) as connection:
+    with closing(sqlite3.connect(backup)) as connection, connection:
         connection.execute("UPDATE metadata SET value='4' WHERE key='schema-version'")
         payload = asdict(
             AuditEvent(
@@ -541,7 +542,7 @@ def test_restore_publication_failure_preserves_existing_wal_store(
 
     assert str(caught.value.__cause__) == "injected publication failure"
     assert database.read_bytes() == original_bytes
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute("PRAGMA journal_mode").fetchone() == ("wal",)
     assert len(list(restored.glob("pre-restore-*.sqlite3"))) == 1
 
@@ -600,7 +601,7 @@ def test_restore_fsync_failure_rolls_back_published_destination(
 
     assert str(caught.value.__cause__) == "injected fsync failure"
     assert failed
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute("PRAGMA journal_mode").fetchone() == ("wal",)
         assert connection.execute("SELECT count(*) FROM audit_events").fetchone() == (2,)
     maintain_local_control_plane_store(
@@ -921,7 +922,7 @@ def test_schema_v4_audit_history_is_validated_before_v5_upgrade(
     store_path = tmp_path / "store"
     _create_local_store(store_path)
     database = store_path / "control-plane.sqlite3"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.execute("UPDATE metadata SET value='4' WHERE key='schema-version'")
         payload = asdict(
             AuditEvent(
@@ -941,7 +942,7 @@ def test_schema_v4_audit_history_is_validated_before_v5_upgrade(
     with pytest.raises(EvidenceIntegrityError, match="audit event failed its durable contract check"):
         RuntimeControlPlane(target, store=store, run_scope="run:ops")
 
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("4",)
         persisted = connection.execute("SELECT payload FROM audit_events").fetchone()
         assert persisted is not None
@@ -952,7 +953,7 @@ def test_valid_schema_v4_audit_history_advances_to_v5(tmp_path: Path) -> None:
     store_path = tmp_path / "store"
     _create_local_store(store_path)
     database = store_path / "control-plane.sqlite3"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.execute("UPDATE metadata SET value='4' WHERE key='schema-version'")
 
     reopened = RuntimeControlPlane(
@@ -962,7 +963,7 @@ def test_valid_schema_v4_audit_history_advances_to_v5(tmp_path: Path) -> None:
     )
     reopened.close()
 
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
             LOCAL_OPERATION_SCHEMA_VERSION,
         )

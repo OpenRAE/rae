@@ -1,0 +1,43 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:67aab629ff80054089610adf6b54aa761aec25ac301623fc2e19060667b2552c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/migration/participant-control-legacy-before.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "participant-control-legacy",
+            "populated_sections": {},
+            "source_diagnostics": [],
+            "version": "1.0"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "participant-control-legacy",
+          "populated_sections": {},
+          "source_diagnostics": [],
+          "version": "1.0"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

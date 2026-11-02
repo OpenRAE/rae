@@ -1,0 +1,20 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "check",
+    "input/output/damaged",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:ops"
+  ],
+  "command": "runtime store check",
+  "files": {},
+  "name": "regression/7af12f88efcb18dd13e5be2e288d2a92bb7f009326439552ca4f5c51bc66c947",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

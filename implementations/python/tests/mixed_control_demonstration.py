@@ -7,6 +7,7 @@ import hashlib
 import json
 import platform
 import sys
+from dataclasses import replace
 from importlib.metadata import version
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -21,6 +22,7 @@ from raes_conformance.conformance import (
     run_modular_control_conformance,
 )
 from raes_contracts.canonical import canonical_json_digest
+from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 from test_issue_1069_participant_control_effects import _target
 from test_issue_1071_effect_conformance import handoff_case
 from test_issue_1071_modular_conformance import Harness, case_for
@@ -48,6 +50,11 @@ def source_identity():
     return {"digest": canonical_json_digest(files), "file_count": len(files)}
 
 
+def _durable_case(case):
+    # These probes verify effects/readback, not filesystem performance.
+    return replace(case, options={**case.options, "supervision": OperationSupervisionConfiguration(commit_ms=10_000)})
+
+
 def collect(directory: Path):
     """Execute the fixed test selection in a new, caller-selected directory."""
 
@@ -62,13 +69,13 @@ def collect(directory: Path):
         harness = DemonstrationHarness(Path(stores), canonical_json_digest(environment))
         mixed = run_mixed_backend_conformance(harness)
         effect = run_modular_control_conformance(
-            _target(), harness=Harness(handoff_case()), obligations=(), effect_kinds=("handoff",)
+            _target(), harness=Harness(_durable_case(handoff_case())), obligations=(), effect_kinds=("handoff",)
         )
         denial_owner = Resolver()
         denial_owner.decision = "deny"
         denial = run_modular_control_conformance(
             _target(),
-            harness=Harness(case_for("strict-denial", owner=denial_owner, disposition="deny", calls=0)),
+            harness=Harness(_durable_case(case_for("strict-denial", owner=denial_owner, disposition="deny", calls=0))),
             obligations=("strict-denial",),
         )
         evidence = {

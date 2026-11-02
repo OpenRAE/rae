@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:981d6c61fb6713319a31f0a81d47ca92ba2d0e7d457d9ffd2a5fd46bb000725b"
+  },
+  "name": "examples/scenarios/techvault-operational.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "infrastructure.ad -> internal-net, wazuh-manager infrastructure.aptl-grafana-otel -> aptl-tempo, security-net infrastructure.aptl-otel-collector -> security-net infrastructure.aptl-tempo -> security-net infrastructure.cortex -> security-net, thehive-es infrastructure.db -> internal-net infrastructure.dns -> dmz-net, internal-net, security-net, wazuh-manager infrastructure.fileshare -> internal-net, wazuh-manager infrastructure.kali -> dmz-net, internal-net, redteam-net infrastructure.kali-capture -> kali infrastructure.misp -> misp-db, misp-redis, security-net infrastructure.misp-db -> security-net infrastructure.misp-redis -> security-net infrastructure.misp-suricata-sync -> misp, security-net, suricata infrastructure.shuffle-backend -> security-net, shuffle-opensearch infrastructure.shuffle-frontend -> security-net, shuffle-backend infrastructure.shuffle-opensearch -> security-net infrastructure.shuffle-orborus -> security-net, shuffle-backend infrastructure.suricata -> dmz-net, internal-net, security-net infrastructure.thehive -> cortex, security-net, thehive-cassandra, thehive-es infrastructure.thehive-cassandra -> security-net infrastructure.thehive-es -> security-net infrastructure.victim -> internal-net, wazuh-manager infrastructure.wazuh-dashboard -> security-net, wazuh-indexer, wazuh-manager infrastructure.wazuh-indexer -> security-net, wazuh-manager infrastructure.wazuh-manager -> dmz-net, internal-net, security-net infrastructure.wazuh-sidecar-db -> db, security-net, wazuh-manager infrastructure.wazuh-sidecar-suricata -> security-net, suricata, wazuh-manager infrastructure.webapp -> db, dmz-net, internal-net, wazuh-manager infrastructure.workstation -> internal-net, wazuh-manager nodes.wazuh-manager -> wazuh-manager-health"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "infrastructure.ad -> internal-net, wazuh-manager infrastructure.aptl-grafana-otel -> aptl-tempo, security-net infrastructure.aptl-otel-collector -> security-net infrastructure.aptl-tempo -> security-net infrastructure.cortex -> security-net, thehive-es infrastructure.db -> internal-net infrastructure.dns -> dmz-net, internal-net, security-net, wazuh-manager infrastructure.fileshare -> internal-net, wazuh-manager infrastructure.kali -> dmz-net, internal-net, redteam-net infrastructure.kali-capture -> kali infrastructure.misp -> misp-db, misp-redis, security-net infrastructure.misp-db -> security-net infrastructure.misp-redis -> security-net infrastructure.misp-suricata-sync -> misp, security-net, suricata infrastructure.shuffle-backend -> security-net, shuffle-opensearch infrastructure.shuffle-frontend -> security-net, shuffle-backend infrastructure.shuffle-opensearch -> security-net infrastructure.shuffle-orborus -> security-net, shuffle-backend infrastructure.suricata -> dmz-net, internal-net, security-net infrastructure.thehive -> cortex, security-net, thehive-cassandra, thehive-es infrastructure.thehive-cassandra -> security-net infrastructure.thehive-es -> security-net infrastructure.victim -> internal-net, wazuh-manager infrastructure.wazuh-dashboard -> security-net, wazuh-indexer, wazuh-manager infrastructure.wazuh-indexer -> security-net, wazuh-manager infrastructure.wazuh-manager -> dmz-net, internal-net, security-net infrastructure.wazuh-sidecar-db -> db, security-net, wazuh-manager infrastructure.wazuh-sidecar-suricata -> security-net, suricata, wazuh-manager infrastructure.webapp -> db, dmz-net, internal-net, wazuh-manager infrastructure.workstation -> internal-net, wazuh-manager nodes.wazuh-manager -> wazuh-manager-health"
+      }
+    }
+  },
+  "surface": "mcp"
+}

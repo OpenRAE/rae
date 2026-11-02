@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import replace
 from threading import Barrier
 
@@ -357,7 +358,7 @@ def test_v3_store_migration_builds_composite_claims_and_quarantines_opaque_parti
     lease.close()
 
     database = store_path / "control-plane.sqlite3"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.execute("DROP INDEX operations_idempotency_claim")
         for column in (
             "legacy_opaque_claim",
@@ -378,7 +379,7 @@ def test_v3_store_migration_builds_composite_claims_and_quarantines_opaque_parti
     try:
         migrated_record = migrated.load_records()[legacy.receipt.operation_id]
         assert migrated_record.request_fingerprint == legacy.receipt.context.request_commitment
-        with sqlite3.connect(database) as connection:
+        with closing(sqlite3.connect(database)) as connection, connection:
             row = connection.execute("SELECT actor_id, operation_kind, legacy_opaque_claim FROM operations").fetchone()
             assert row == ("operator-a", "participant-control", 1)
             assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
@@ -423,7 +424,7 @@ def test_v3_store_migration_preserves_ordinary_claim_replay(tmp_path) -> None:
     payload.pop("legacy_request_commitment")
     content, digest = encode_payload(payload)
     database = store_path / "control-plane.sqlite3"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.execute(
             "UPDATE operations SET payload=?, digest=? WHERE operation_id=?",
             (content, digest, legacy.receipt.operation_id),

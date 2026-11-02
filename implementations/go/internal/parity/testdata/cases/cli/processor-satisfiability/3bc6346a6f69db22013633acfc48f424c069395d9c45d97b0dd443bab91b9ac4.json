@@ -1,0 +1,344 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml": "sha256:e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e"
+  },
+  "name": "examples/scenarios/techvault-bounded-native.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:fb98f76638e9f04396166c902a22aeaa4ce70cdbd8f74eadce413caf0df34763"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:fb98f76638e9f04396166c902a22aeaa4ce70cdbd8f74eadce413caf0df34763"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:ea25ee6f60cc38aaab3dca798bad2af7a36942e4547fb6dcf63d25c3453d9158",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e",
+        "source_id": "techvault-bounded-native.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {},
+            "assertions": {},
+            "behavior_specifications": {},
+            "clocks": {},
+            "conditions": {},
+            "content": {},
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "Bounded TechVault libvirt substrate used to certify exact VM/network realization without guest image, placement, service, ACL, or SOC claims.",
+            "entities": {},
+            "events": {},
+            "evidence_requirements": {},
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {
+              "demo": {
+                "acls": [],
+                "count": 1,
+                "dependencies": [],
+                "description": "",
+                "links": [
+                  "lab"
+                ],
+                "properties": null
+              },
+              "lab": {
+                "acls": [],
+                "count": 1,
+                "dependencies": [],
+                "description": "",
+                "links": [],
+                "properties": {
+                  "cidr": "192.0.2.0/24",
+                  "gateway": "192.0.2.1",
+                  "internal": true
+                }
+              }
+            },
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:fb98f76638e9f04396166c902a22aeaa4ce70cdbd8f74eadce413caf0df34763"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.lab.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.lab",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.demo.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.demo.resources.ram",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.demo.resources.cpu",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.demo.resources",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.demo.os",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.demo.services",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored empty structure"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.demo",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.lab.properties.cidr",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.lab.properties.gateway",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.lab.properties.internal",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.lab.properties",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.lab",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.demo.links[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.demo.links",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure.demo",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "infrastructure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "techvault-bounded-native",
+            "nodes": {
+              "demo": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": "linux",
+                "os_distribution": null,
+                "os_version": "",
+                "resources": {
+                  "cpu": 1,
+                  "ram": 134217728
+                },
+                "roles": {},
+                "runtime": null,
+                "services": [],
+                "source": null,
+                "type": "compute"
+              },
+              "lab": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": null,
+                "roles": {},
+                "runtime": null,
+                "services": [],
+                "source": null,
+                "type": "switch"
+              }
+            },
+            "objectives": {},
+            "observation_boundaries": {},
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {},
+            "relationships": {},
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {},
+            "time_domain_mappings": {},
+            "time_domains": {},
+            "time_progression_policies": {},
+            "version": "1.0.0",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:2046090b9446117555bf5ad95454f9adfff5be452b51f02d063494ecefe24d87"
+      }
+    }
+  },
+  "surface": "cli"
+}

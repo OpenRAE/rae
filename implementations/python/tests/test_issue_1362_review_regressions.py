@@ -2,6 +2,8 @@
 
 import asyncio
 from threading import Event, Thread
+from time import monotonic
+from unittest.mock import patch
 
 import pytest
 from raes_contracts.errors import OperationalError
@@ -88,13 +90,23 @@ def test_failed_reacquisition_does_not_grant_a_second_writer(asynchronous):
     assert queued_entered.is_set()
 
 
+def submit_with_due_deadline(plane):
+    """Arm the real callback after admission, independently of runner speed."""
+    with patch.object(plane._execution_adapter, "arm_deadline") as deadline:
+        receipt = plane.submit_provisioning(ProvisioningPlan())
+    deadline.assert_called_once()
+    key, _, callback, *args = deadline.call_args.args
+    plane._execution_adapter.arm_deadline(key, monotonic(), callback, *args, **deadline.call_args.kwargs)
+    return receipt
+
+
 def test_deadline_classification_can_use_the_single_store_slot():
     provider, dispatcher = Provider(), Dispatcher()
     plane = RuntimeControlPlane(
         target(provider),
         operation_evidence=Evidence(),
         distributed_execution=dispatcher,
-        supervision=OperationSupervisionConfiguration(execution_ms=200, store_capacity=1),
+        supervision=OperationSupervisionConfiguration(store_capacity=1),
     )
     expired, failures = Event(), []
     original = plane._expire_backend_invocation
@@ -110,7 +122,7 @@ def test_deadline_classification_can_use_the_single_store_slot():
 
     plane._expire_backend_invocation = expiry
     try:
-        receipt = plane.submit_provisioning(ProvisioningPlan())
+        receipt = submit_with_due_deadline(plane)
         # The callback has a five-second admission budget of its own. Allow
         # that budget and runner scheduling time before checking settlement.
         assert expired.wait(10)
@@ -128,7 +140,6 @@ def test_failed_deadline_classification_closes_runtime_authority():
         target(provider),
         operation_evidence=Evidence(),
         distributed_execution=dispatcher,
-        supervision=OperationSupervisionConfiguration(execution_ms=100),
     )
     poisoned = Event()
     original = plane._poison_runtime_durability
@@ -143,8 +154,8 @@ def test_failed_deadline_classification_closes_runtime_authority():
     plane._poison_runtime_durability = poison
     plane._expire_backend_invocation = fail
     try:
-        plane.submit_provisioning(ProvisioningPlan())
-        assert poisoned.wait(1)
+        submit_with_due_deadline(plane)
+        assert poisoned.wait(10)
         assert plane._durability_poisoned
         rejected_plan = ProvisioningPlan()
         with pytest.raises(OperationalError):

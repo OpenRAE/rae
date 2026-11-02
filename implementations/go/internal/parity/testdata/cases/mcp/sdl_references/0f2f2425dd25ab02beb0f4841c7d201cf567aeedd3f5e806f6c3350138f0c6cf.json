@@ -1,0 +1,31 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:7390fd61a166a926f588d4f38ffda45860006d87ee17400ff0e93ba27536639d"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

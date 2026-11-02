@@ -1,0 +1,31 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:5915ff5efe9f9539d46e333f45b612d5136a423ca79619e29f635123601e144f"
+  },
+  "name": "examples/library/patterns/task-as-objective-contract.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

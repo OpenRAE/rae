@@ -1,0 +1,445 @@
+{
+  "args": [],
+  "command": "sdl_claims_assessment",
+  "files": {
+    "arguments.json": "sha256:e46581285fe8054eb8bfa855deb6fa7baddeeabf78b3d3605b51fdfc574812f5"
+  },
+  "name": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "claims": {
+            "conditional": [
+              {
+                "basis": "Planning produced diagnostics that must be resolved.",
+                "claim": "The scenario can be planned against the reference stub backend manifest.",
+                "id": "reference-planning"
+              },
+              {
+                "basis": "Outcome interpretation rules are present; run evidence is still required for realized outcomes.",
+                "claim": "Participant-local outcomes can be mapped into scenario/evaluation/evidence layers.",
+                "id": "outcome-interpretation"
+              }
+            ],
+            "missing_evidence_for_stronger_claims": [
+              {
+                "basis": "Needed for live execution and backend compatibility claims beyond the reference dry run.",
+                "claim": "Concrete backend identity, manifest, realization support, and runtime result envelopes.",
+                "id": "backend-provenance"
+              },
+              {
+                "basis": "Needed for participant behavior, visibility, and skill claims.",
+                "claim": "Participant episode history, behavior history, observations, and scaffold exposure record.",
+                "id": "participant-history"
+              },
+              {
+                "basis": "Needed for defensible outcome and causality claims.",
+                "claim": "Observation/evidence references with capture basis, loss/redaction, ordering, and observer effects.",
+                "id": "evidence-record"
+              }
+            ],
+            "supported": [
+              {
+                "basis": "parse_sdl completed successfully.",
+                "claim": "SDL YAML parses into the closed RAES SDL model.",
+                "id": "authoring-syntax"
+              },
+              {
+                "basis": "parse_sdl completed with semantic validation enabled.",
+                "claim": "Static SDL semantic validation passed.",
+                "id": "semantic-validation"
+              },
+              {
+                "basis": "instantiate_scenario completed successfully.",
+                "claim": "Variables/defaults can be resolved into a concrete scenario.",
+                "id": "instantiation"
+              },
+              {
+                "basis": "compile_runtime_model completed successfully.",
+                "claim": "The scenario can be compiled into the RAES runtime model.",
+                "id": "runtime-compilation"
+              },
+              {
+                "basis": "Action contracts, observation boundaries, and participant behavior bindings are compiled.",
+                "claim": "Participant actions and observations can be reviewed as semantic contracts.",
+                "id": "participant-contract-review"
+              }
+            ],
+            "unsupported_without_more_evidence": [
+              {
+                "basis": "Requires control-plane operation results, runtime snapshots, and backend provenance.",
+                "claim": "The scenario has run successfully in a real range.",
+                "id": "live-execution"
+              },
+              {
+                "basis": "Requires evidence-labeled attribution, ordering support, observation support, and run evidence.",
+                "claim": "A participant action caused a detection, state change, or outcome.",
+                "id": "causal-attribution"
+              },
+              {
+                "basis": "Requires participant action/observation contracts, scaffold disclosure, trajectory/history, and evaluation evidence.",
+                "claim": "A participant or agent demonstrated portable cyber skill.",
+                "id": "participant-skill"
+              },
+              {
+                "basis": "Per ADR-073 the SDL no longer authors scoring/reward surfaces; graded scoring and evaluation results live in the experiment/evaluator plane (ADR-055/064/069).",
+                "claim": "The scenario supports scoring or assessment-result claims.",
+                "id": "assessment-result"
+              }
+            ]
+          },
+          "diagnostics": [
+            {
+              "address": "provision.node.red-workbench",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.customer-portal",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.customer-db",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.wazuh-manager",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.wazuh-indexer",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.participant-policy-gate",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "participant.behavior-specification.participant-behavior",
+              "code": "participant.feature-support-insufficient",
+              "domain": "participant",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "participant.behavior-specification.participant-behavior",
+              "code": "participant.feature-support-insufficient",
+              "domain": "participant",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "participant.behavior-specification.participant-behavior",
+              "code": "participant.feature-support-insufficient",
+              "domain": "participant",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "evidence_requirements.objective-truth-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.red-workbench",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.customer-portal",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.customer-db",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.wazuh-manager",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.wazuh-indexer",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "claims"
+            },
+            {
+              "address": "provision.node.participant-policy-gate",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "claims"
+            }
+          ],
+          "scenario": {
+            "name": "enterprise-participant-evidence-loop",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 1,
+              "conditions": 5,
+              "content": 6,
+              "entities": 3,
+              "infrastructure": 10,
+              "nodes": 10,
+              "objectives": 1,
+              "observation_boundaries": 1,
+              "outcome_interpretation_rules": 1,
+              "workflows": 1
+            }
+          },
+          "status": "assessed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "claims": {
+          "conditional": [
+            {
+              "basis": "Planning produced diagnostics that must be resolved.",
+              "claim": "The scenario can be planned against the reference stub backend manifest.",
+              "id": "reference-planning"
+            },
+            {
+              "basis": "Outcome interpretation rules are present; run evidence is still required for realized outcomes.",
+              "claim": "Participant-local outcomes can be mapped into scenario/evaluation/evidence layers.",
+              "id": "outcome-interpretation"
+            }
+          ],
+          "missing_evidence_for_stronger_claims": [
+            {
+              "basis": "Needed for live execution and backend compatibility claims beyond the reference dry run.",
+              "claim": "Concrete backend identity, manifest, realization support, and runtime result envelopes.",
+              "id": "backend-provenance"
+            },
+            {
+              "basis": "Needed for participant behavior, visibility, and skill claims.",
+              "claim": "Participant episode history, behavior history, observations, and scaffold exposure record.",
+              "id": "participant-history"
+            },
+            {
+              "basis": "Needed for defensible outcome and causality claims.",
+              "claim": "Observation/evidence references with capture basis, loss/redaction, ordering, and observer effects.",
+              "id": "evidence-record"
+            }
+          ],
+          "supported": [
+            {
+              "basis": "parse_sdl completed successfully.",
+              "claim": "SDL YAML parses into the closed RAES SDL model.",
+              "id": "authoring-syntax"
+            },
+            {
+              "basis": "parse_sdl completed with semantic validation enabled.",
+              "claim": "Static SDL semantic validation passed.",
+              "id": "semantic-validation"
+            },
+            {
+              "basis": "instantiate_scenario completed successfully.",
+              "claim": "Variables/defaults can be resolved into a concrete scenario.",
+              "id": "instantiation"
+            },
+            {
+              "basis": "compile_runtime_model completed successfully.",
+              "claim": "The scenario can be compiled into the RAES runtime model.",
+              "id": "runtime-compilation"
+            },
+            {
+              "basis": "Action contracts, observation boundaries, and participant behavior bindings are compiled.",
+              "claim": "Participant actions and observations can be reviewed as semantic contracts.",
+              "id": "participant-contract-review"
+            }
+          ],
+          "unsupported_without_more_evidence": [
+            {
+              "basis": "Requires control-plane operation results, runtime snapshots, and backend provenance.",
+              "claim": "The scenario has run successfully in a real range.",
+              "id": "live-execution"
+            },
+            {
+              "basis": "Requires evidence-labeled attribution, ordering support, observation support, and run evidence.",
+              "claim": "A participant action caused a detection, state change, or outcome.",
+              "id": "causal-attribution"
+            },
+            {
+              "basis": "Requires participant action/observation contracts, scaffold disclosure, trajectory/history, and evaluation evidence.",
+              "claim": "A participant or agent demonstrated portable cyber skill.",
+              "id": "participant-skill"
+            },
+            {
+              "basis": "Per ADR-073 the SDL no longer authors scoring/reward surfaces; graded scoring and evaluation results live in the experiment/evaluator plane (ADR-055/064/069).",
+              "claim": "The scenario supports scoring or assessment-result claims.",
+              "id": "assessment-result"
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "address": "provision.node.red-workbench",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.customer-db",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.wazuh-manager",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.wazuh-indexer",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.participant-policy-gate",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "participant.behavior-specification.participant-behavior",
+            "code": "participant.feature-support-insufficient",
+            "domain": "participant",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.red-workbench",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.customer-db",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.wazuh-manager",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.wazuh-indexer",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "claims"
+          },
+          {
+            "address": "provision.node.participant-policy-gate",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "claims"
+          }
+        ],
+        "scenario": {
+          "name": "enterprise-participant-evidence-loop",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 1,
+            "conditions": 5,
+            "content": 6,
+            "entities": 3,
+            "infrastructure": 10,
+            "nodes": 10,
+            "objectives": 1,
+            "observation_boundaries": 1,
+            "outcome_interpretation_rules": 1,
+            "workflows": 1
+          }
+        },
+        "status": "assessed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

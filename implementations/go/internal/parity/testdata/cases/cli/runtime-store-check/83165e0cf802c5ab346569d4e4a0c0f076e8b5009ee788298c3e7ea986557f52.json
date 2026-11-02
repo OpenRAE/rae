@@ -1,0 +1,20 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "check",
+    "input/output/value-sentinel-r1-1678",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:ops"
+  ],
+  "command": "runtime store check",
+  "files": {},
+  "name": "regression/602b1366a9977849bb1e18150ba39a58778e47a887a35f4389f014c5653c6a1a",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

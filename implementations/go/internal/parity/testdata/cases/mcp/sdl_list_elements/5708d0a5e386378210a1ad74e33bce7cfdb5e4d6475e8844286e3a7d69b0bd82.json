@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:c5fee6733b6fc3bc1c2a0b0f79f6cd316e459a64575af723be7d1bfd5befb1e8"
+  },
+  "name": "examples/scenarios/participant-tools/tool-kit.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "accounts": [
+            "operator"
+          ],
+          "agents": [
+            "red-agent"
+          ],
+          "content": [
+            "scanner-package"
+          ],
+          "entities": [
+            "red-team"
+          ],
+          "nodes": [
+            "lan",
+            "web"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "accounts": [
+          "operator"
+        ],
+        "agents": [
+          "red-agent"
+        ],
+        "content": [
+          "scanner-package"
+        ],
+        "entities": [
+          "red-team"
+        ],
+        "nodes": [
+          "lan",
+          "web"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

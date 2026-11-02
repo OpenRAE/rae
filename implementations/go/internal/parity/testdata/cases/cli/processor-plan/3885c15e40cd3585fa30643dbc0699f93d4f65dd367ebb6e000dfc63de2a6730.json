@@ -1,0 +1,47 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "diagnostics": [],
+      "evaluation": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operations": [],
+        "run_id": null,
+        "startup_order": []
+      },
+      "orchestration": {
+        "diagnostics": [],
+        "observation_demands": [],
+        "operations": [],
+        "startup_order": []
+      },
+      "provisioning": {
+        "diagnostics": [],
+        "instantiation_id": null,
+        "observation_demands": [],
+        "operation_id": null,
+        "operations": [],
+        "realization_authority": [],
+        "realization_constraints": [],
+        "realization_envelope": null,
+        "run_id": null
+      },
+      "scenario_name": "abstract-participant-relationships"
+    }
+  },
+  "surface": "cli"
+}

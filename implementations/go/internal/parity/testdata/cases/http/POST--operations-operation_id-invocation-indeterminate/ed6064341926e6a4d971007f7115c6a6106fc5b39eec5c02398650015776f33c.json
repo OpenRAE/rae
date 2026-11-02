@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/invocation/indeterminate",
+  "files": {
+    "request.json": "sha256:eb8fa9e32db44bcfa94cf3ccd6d4c72775b63e136e54a4718bc33ca3ef84e420"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 422
+  },
+  "surface": "http"
+}

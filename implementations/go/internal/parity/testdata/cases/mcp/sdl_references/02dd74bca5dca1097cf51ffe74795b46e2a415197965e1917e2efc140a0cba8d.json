@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:7632f9f2ffb5abb42bb10f876129033826ac0ab4860524314e4e7bcc1584871a"
+  },
+  "name": "examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/body/nodes/web",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 19
+                },
+                "start": {
+                  "column": 5,
+                  "line": 19
+                }
+              },
+              "value": "web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/body/nodes/web",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 19
+              },
+              "start": {
+                "column": 5,
+                "line": 19
+              }
+            },
+            "value": "web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

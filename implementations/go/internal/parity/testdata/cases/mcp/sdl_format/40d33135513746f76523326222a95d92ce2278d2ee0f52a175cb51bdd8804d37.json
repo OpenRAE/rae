@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:943a92ed8aaa9c19698aaf1a85cf4324103d7c67a491a44cd1feb07f8d7e885e"
+  },
+  "name": "examples/library/templates/study/observational-study-protocol.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

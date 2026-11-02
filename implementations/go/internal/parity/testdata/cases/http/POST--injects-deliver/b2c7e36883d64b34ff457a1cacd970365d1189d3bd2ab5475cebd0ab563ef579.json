@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /injects/deliver",
+  "files": {
+    "request.json": "sha256:af49cd24bb8d7b8ed300ebcab59f6b7a85b82788e59826955c248fe8f97a681b"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

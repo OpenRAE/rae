@@ -1144,6 +1144,7 @@ def test_restart_classifies_interrupted_tool_claims_without_replay(tmp_path) -> 
 
     from raes_contracts.runtime_state import OperationState
     from raes_runtime.control_plane_store import LocalControlPlaneStore
+    from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
     store_path = tmp_path / "control-plane"
     crashed_path = tmp_path / "crashed"
@@ -1165,7 +1166,9 @@ def test_restart_classifies_interrupted_tool_claims_without_replay(tmp_path) -> 
         manifest=_tool_manifest(compile_runtime_model(scenario)),
         participant_runtime=runtime,
     )
-    manager = RuntimeManager(target, store=LocalControlPlaneStore(store_path))
+    # Recovery semantics do not impose a two-second SQLite performance target.
+    supervision = OperationSupervisionConfiguration(commit_ms=10_000)
+    manager = RuntimeManager(target, store=LocalControlPlaneStore(store_path), supervision=supervision)
     manager.apply(manager.plan(scenario))
     manager.close()
 
@@ -1174,7 +1177,7 @@ def test_restart_classifies_interrupted_tool_claims_without_replay(tmp_path) -> 
         manifest=_tool_manifest(compile_runtime_model(scenario)),
         participant_runtime=_ToolRuntime(),
     )
-    restarted = RuntimeManager(restarted_target, store=LocalControlPlaneStore(crashed_path))
+    restarted = RuntimeManager(restarted_target, store=LocalControlPlaneStore(crashed_path), supervision=supervision)
 
     assert restarted.get_operation(claims["admitted"]).state is OperationState.CANCELLED
     assert restarted.get_operation(claims["dispatched"]).state is OperationState.INDETERMINATE

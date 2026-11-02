@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "sha256:3cc2cbed579f8f003c7eb67647b26767e7c95a6f33fe9c24639f9b66cd1894f0"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: node-inventory-family\nnodes:\n  worker:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    runtime:\n      scheduled_jobs:\n      - scheduled_job_id: baseline\n        name: Baseline job\n      - scheduled_job_id: extra\n        name: Extra job\ninfrastructure:\n  worker:\n    count: 1\nvariation_points:\n  worker-state:\n    kind: alternative\n    target:\n      kind: structural\n      owner: worker\n      slot: nodes.presence\n    alternatives:\n      absent:\n        kind: node-presence\n        present: false\n      baseline:\n        kind: node-presence\n        present: true\n        inventory:\n          nodes.runtime.scheduled_jobs:\n          - nodes.worker.runtime.scheduled_jobs.baseline\n      complete:\n        kind: node-presence\n        present: true\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:baf8c8aa8e7be9bb558eda3eb0dcda485a1d78b8c83e1820de114621f3f7a68f"
+        },
+        "field_count": 4,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "node-inventory-family",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

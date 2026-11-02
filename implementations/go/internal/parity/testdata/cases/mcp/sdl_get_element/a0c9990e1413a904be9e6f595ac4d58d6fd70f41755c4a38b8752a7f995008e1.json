@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:f4f38c1a145ac3effa57f11c96005a174be82f9852a129e7016100843a019101"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,773 @@
+{
+  "args": [],
+  "command": "sdl_scaffold",
+  "files": {
+    "arguments.json": "sha256:9723a847208f94536091f3226f9a13c291541c27ce7b5a4f3ae32e654d73c64f"
+  },
+  "name": "regression/6ab3b6f547a64dfa0a848f7304d36ffc6408167fc04c60fa7aabd46aeb06dfcc",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "accounts": {
+            "db-admin-account": {
+              "node": "db-server",
+              "password_strength": "medium",
+              "username": "dbadmin"
+            },
+            "web-admin-account": {
+              "node": "web-server",
+              "password_strength": "${admin_password_strength}",
+              "username": "webadmin"
+            }
+          },
+          "action_contracts": {
+            "exploit": {
+              "behavioral_granularity": "atomic",
+              "effects": [
+                {
+                  "description": "declared action intent",
+                  "effect_class": "intended_effect",
+                  "effect_id": "intent",
+                  "target_refs": [
+                    "nodes.web-server"
+                  ]
+                }
+              ],
+              "failure_classes": [
+                "authority_denied",
+                "unknown"
+              ],
+              "fidelity_claim": "intent only, no backend realization claim",
+              "preconditions": [
+                {
+                  "description": "independently authorized action",
+                  "precondition_class": "authority",
+                  "precondition_id": "authorized"
+                }
+              ],
+              "procedure_basis": "authored action intent",
+              "realization_profile": "abstract",
+              "semantic_version": "1.0.0"
+            },
+            "scan": {
+              "behavioral_granularity": "atomic",
+              "effects": [
+                {
+                  "description": "declared action intent",
+                  "effect_class": "intended_effect",
+                  "effect_id": "intent",
+                  "target_refs": [
+                    "nodes.web-server"
+                  ]
+                }
+              ],
+              "failure_classes": [
+                "authority_denied",
+                "unknown"
+              ],
+              "fidelity_claim": "intent only, no backend realization claim",
+              "preconditions": [
+                {
+                  "description": "independently authorized action",
+                  "precondition_class": "authority",
+                  "precondition_id": "authorized"
+                }
+              ],
+              "procedure_basis": "authored action intent",
+              "realization_profile": "abstract",
+              "semantic_version": "1.0.0"
+            }
+          },
+          "agents": {
+            "red-agent": {
+              "actions": [
+                "scan",
+                "exploit"
+              ],
+              "affiliations": [
+                "red-team"
+              ],
+              "initial_knowledge": {
+                "hosts": [
+                  "web-server"
+                ],
+                "services": [
+                  "https"
+                ],
+                "subnets": [
+                  "corp-net"
+                ]
+              }
+            }
+          },
+          "assertions": {
+            "web-healthy": {
+              "proposition": "web-available",
+              "role": "postcondition"
+            }
+          },
+          "conditions": {
+            "web-healthy": {
+              "command": "curl -sf https://localhost/ || exit 1",
+              "interval": 15,
+              "proposition": "web-available"
+            }
+          },
+          "content": {
+            "seed-data": {
+              "format": "sql",
+              "source": "seed-data-pkg",
+              "target": "db-server",
+              "type": "dataset"
+            }
+          },
+          "description": "A new SDL scenario",
+          "entities": {
+            "blue-team": {
+              "entities": {
+                "web-ops": {
+                  "name": "Web Operations"
+                }
+              },
+              "name": "Blue Team",
+              "role": "Blue"
+            },
+            "red-team": {
+              "name": "Red Team",
+              "role": "Red"
+            }
+          },
+          "events": {
+            "attack-start": {
+              "injects": [
+                "attack-brief"
+              ]
+            }
+          },
+          "evidence_requirements": {
+            "web-health-evidence": {
+              "artifact_role": "proposition_truth_evidence",
+              "boundary_kind": "objective_completion",
+              "channel": "api_response",
+              "description": "Capture evidence used to decide web availability.",
+              "integrity": "checksum",
+              "loss_disclosure": "required",
+              "media_types": [
+                "application/json"
+              ],
+              "redaction": "redact_secrets",
+              "retention": "run_lifetime",
+              "scope_refs": [
+                "nodes.web-server"
+              ],
+              "sensitivity": "plain",
+              "source_refs": [
+                "nodes.web-server.services.https"
+              ]
+            }
+          },
+          "features": {
+            "database": {
+              "source": "postgresql-16",
+              "type": "Service"
+            },
+            "web-app": {
+              "source": "my-webapp",
+              "type": "Service"
+            }
+          },
+          "infrastructure": {
+            "corp-net": {
+              "count": 1,
+              "properties": {
+                "cidr": "10.0.0.0/24",
+                "gateway": "10.0.0.1"
+              }
+            },
+            "db-server": {
+              "count": 1,
+              "links": [
+                "corp-net"
+              ]
+            },
+            "web-server": {
+              "count": 1,
+              "links": [
+                "corp-net"
+              ]
+            }
+          },
+          "injects": {
+            "attack-brief": {
+              "from_entity": "red-team",
+              "source": "attack-briefing-doc",
+              "to_entities": [
+                "blue-team"
+              ]
+            }
+          },
+          "name": "my-scenario",
+          "nodes": {
+            "corp-net": {
+              "description": "Corporate network",
+              "type": "Switch"
+            },
+            "db-server": {
+              "asset_value": {
+                "confidentiality": "high",
+                "integrity": "high"
+              },
+              "features": {
+                "database": "dba"
+              },
+              "os": "linux",
+              "resources": {
+                "cpu": 2,
+                "ram": "4 GiB"
+              },
+              "roles": {
+                "dba": "postgres"
+              },
+              "services": [
+                {
+                  "name": "postgres",
+                  "port": 5432
+                }
+              ],
+              "type": "compute"
+            },
+            "web-server": {
+              "conditions": {
+                "web-healthy": "web-admin"
+              },
+              "features": {
+                "web-app": "web-admin"
+              },
+              "os": "linux",
+              "resources": {
+                "cpu": 2,
+                "ram": "4 GiB"
+              },
+              "roles": {
+                "web-admin": {
+                  "entities": [
+                    "blue-team.web-ops"
+                  ],
+                  "username": "www-data"
+                }
+              },
+              "services": [
+                {
+                  "name": "https",
+                  "port": 443
+                }
+              ],
+              "type": "compute"
+            }
+          },
+          "objectives": {
+            "blue-defend": {
+              "depends_on": [
+                "red-access"
+              ],
+              "owner": "blue-team",
+              "success": {
+                "assertions": [
+                  "web-healthy"
+                ]
+              }
+            },
+            "red-access": {
+              "actions": [
+                "scan",
+                "exploit"
+              ],
+              "assigned_participant": "red-agent",
+              "success": {
+                "assertions": [
+                  "web-healthy"
+                ]
+              },
+              "targets": [
+                "web-server",
+                "sqli"
+              ],
+              "window": {
+                "stories": [
+                  "exercise"
+                ]
+              }
+            }
+          },
+          "propositions": {
+            "web-available": {
+              "basis": "observed_state",
+              "description": "The web service reports its availability as healthy.",
+              "evidence_requirements": [
+                "web-health-evidence"
+              ],
+              "predicate": {
+                "expected": true,
+                "kind": "boolean",
+                "operator": "equals",
+                "property": "service-healthy",
+                "semantic_ref": "urn:raes:observable:service-healthy"
+              },
+              "subjects": [
+                "nodes.web-server.services.https"
+              ]
+            }
+          },
+          "relationships": {
+            "web-to-db": {
+              "properties": {
+                "port": "5432",
+                "protocol": "tcp"
+              },
+              "source": "web-app",
+              "target": "database",
+              "type": "connects_to"
+            }
+          },
+          "scripts": {
+            "main-timeline": {
+              "end_time": "4 hour",
+              "events": {
+                "attack-start": "30 min"
+              },
+              "speed": "${exercise_speed}",
+              "start_time": 0
+            }
+          },
+          "stories": {
+            "exercise": {
+              "scripts": [
+                "main-timeline"
+              ],
+              "speed": "${exercise_speed}"
+            }
+          },
+          "variables": {
+            "admin_password_strength": {
+              "allowed_values": [
+                "weak",
+                "medium",
+                "strong"
+              ],
+              "default": "strong",
+              "type": "string"
+            },
+            "exercise_speed": {
+              "default": 1.0,
+              "description": "Story playback speed multiplier",
+              "type": "number"
+            }
+          },
+          "workflows": {
+            "exercise-flow": {
+              "start": "run-attack",
+              "steps": {
+                "done": {
+                  "type": "end"
+                },
+                "run-attack": {
+                  "objective": "red-access",
+                  "on_success": "run-defense",
+                  "type": "objective"
+                },
+                "run-defense": {
+                  "objective": "blue-defend",
+                  "on_success": "done",
+                  "type": "objective"
+                }
+              }
+            }
+          }
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "accounts": {
+          "db-admin-account": {
+            "node": "db-server",
+            "password_strength": "medium",
+            "username": "dbadmin"
+          },
+          "web-admin-account": {
+            "node": "web-server",
+            "password_strength": "${admin_password_strength}",
+            "username": "webadmin"
+          }
+        },
+        "action_contracts": {
+          "exploit": {
+            "behavioral_granularity": "atomic",
+            "effects": [
+              {
+                "description": "declared action intent",
+                "effect_class": "intended_effect",
+                "effect_id": "intent",
+                "target_refs": [
+                  "nodes.web-server"
+                ]
+              }
+            ],
+            "failure_classes": [
+              "authority_denied",
+              "unknown"
+            ],
+            "fidelity_claim": "intent only, no backend realization claim",
+            "preconditions": [
+              {
+                "description": "independently authorized action",
+                "precondition_class": "authority",
+                "precondition_id": "authorized"
+              }
+            ],
+            "procedure_basis": "authored action intent",
+            "realization_profile": "abstract",
+            "semantic_version": "1.0.0"
+          },
+          "scan": {
+            "behavioral_granularity": "atomic",
+            "effects": [
+              {
+                "description": "declared action intent",
+                "effect_class": "intended_effect",
+                "effect_id": "intent",
+                "target_refs": [
+                  "nodes.web-server"
+                ]
+              }
+            ],
+            "failure_classes": [
+              "authority_denied",
+              "unknown"
+            ],
+            "fidelity_claim": "intent only, no backend realization claim",
+            "preconditions": [
+              {
+                "description": "independently authorized action",
+                "precondition_class": "authority",
+                "precondition_id": "authorized"
+              }
+            ],
+            "procedure_basis": "authored action intent",
+            "realization_profile": "abstract",
+            "semantic_version": "1.0.0"
+          }
+        },
+        "agents": {
+          "red-agent": {
+            "actions": [
+              "scan",
+              "exploit"
+            ],
+            "affiliations": [
+              "red-team"
+            ],
+            "initial_knowledge": {
+              "hosts": [
+                "web-server"
+              ],
+              "services": [
+                "https"
+              ],
+              "subnets": [
+                "corp-net"
+              ]
+            }
+          }
+        },
+        "assertions": {
+          "web-healthy": {
+            "proposition": "web-available",
+            "role": "postcondition"
+          }
+        },
+        "conditions": {
+          "web-healthy": {
+            "command": "curl -sf https://localhost/ || exit 1",
+            "interval": 15,
+            "proposition": "web-available"
+          }
+        },
+        "content": {
+          "seed-data": {
+            "format": "sql",
+            "source": "seed-data-pkg",
+            "target": "db-server",
+            "type": "dataset"
+          }
+        },
+        "description": "A new SDL scenario",
+        "entities": {
+          "blue-team": {
+            "entities": {
+              "web-ops": {
+                "name": "Web Operations"
+              }
+            },
+            "name": "Blue Team",
+            "role": "Blue"
+          },
+          "red-team": {
+            "name": "Red Team",
+            "role": "Red"
+          }
+        },
+        "events": {
+          "attack-start": {
+            "injects": [
+              "attack-brief"
+            ]
+          }
+        },
+        "evidence_requirements": {
+          "web-health-evidence": {
+            "artifact_role": "proposition_truth_evidence",
+            "boundary_kind": "objective_completion",
+            "channel": "api_response",
+            "description": "Capture evidence used to decide web availability.",
+            "integrity": "checksum",
+            "loss_disclosure": "required",
+            "media_types": [
+              "application/json"
+            ],
+            "redaction": "redact_secrets",
+            "retention": "run_lifetime",
+            "scope_refs": [
+              "nodes.web-server"
+            ],
+            "sensitivity": "plain",
+            "source_refs": [
+              "nodes.web-server.services.https"
+            ]
+          }
+        },
+        "features": {
+          "database": {
+            "source": "postgresql-16",
+            "type": "Service"
+          },
+          "web-app": {
+            "source": "my-webapp",
+            "type": "Service"
+          }
+        },
+        "infrastructure": {
+          "corp-net": {
+            "count": 1,
+            "properties": {
+              "cidr": "10.0.0.0/24",
+              "gateway": "10.0.0.1"
+            }
+          },
+          "db-server": {
+            "count": 1,
+            "links": [
+              "corp-net"
+            ]
+          },
+          "web-server": {
+            "count": 1,
+            "links": [
+              "corp-net"
+            ]
+          }
+        },
+        "injects": {
+          "attack-brief": {
+            "from_entity": "red-team",
+            "source": "attack-briefing-doc",
+            "to_entities": [
+              "blue-team"
+            ]
+          }
+        },
+        "name": "my-scenario",
+        "nodes": {
+          "corp-net": {
+            "description": "Corporate network",
+            "type": "Switch"
+          },
+          "db-server": {
+            "asset_value": {
+              "confidentiality": "high",
+              "integrity": "high"
+            },
+            "features": {
+              "database": "dba"
+            },
+            "os": "linux",
+            "resources": {
+              "cpu": 2,
+              "ram": "4 GiB"
+            },
+            "roles": {
+              "dba": "postgres"
+            },
+            "services": [
+              {
+                "name": "postgres",
+                "port": 5432
+              }
+            ],
+            "type": "compute"
+          },
+          "web-server": {
+            "conditions": {
+              "web-healthy": "web-admin"
+            },
+            "features": {
+              "web-app": "web-admin"
+            },
+            "os": "linux",
+            "resources": {
+              "cpu": 2,
+              "ram": "4 GiB"
+            },
+            "roles": {
+              "web-admin": {
+                "entities": [
+                  "blue-team.web-ops"
+                ],
+                "username": "www-data"
+              }
+            },
+            "services": [
+              {
+                "name": "https",
+                "port": 443
+              }
+            ],
+            "type": "compute"
+          }
+        },
+        "objectives": {
+          "blue-defend": {
+            "depends_on": [
+              "red-access"
+            ],
+            "owner": "blue-team",
+            "success": {
+              "assertions": [
+                "web-healthy"
+              ]
+            }
+          },
+          "red-access": {
+            "actions": [
+              "scan",
+              "exploit"
+            ],
+            "assigned_participant": "red-agent",
+            "success": {
+              "assertions": [
+                "web-healthy"
+              ]
+            },
+            "targets": [
+              "web-server",
+              "sqli"
+            ],
+            "window": {
+              "stories": [
+                "exercise"
+              ]
+            }
+          }
+        },
+        "propositions": {
+          "web-available": {
+            "basis": "observed_state",
+            "description": "The web service reports its availability as healthy.",
+            "evidence_requirements": [
+              "web-health-evidence"
+            ],
+            "predicate": {
+              "expected": true,
+              "kind": "boolean",
+              "operator": "equals",
+              "property": "service-healthy",
+              "semantic_ref": "urn:raes:observable:service-healthy"
+            },
+            "subjects": [
+              "nodes.web-server.services.https"
+            ]
+          }
+        },
+        "relationships": {
+          "web-to-db": {
+            "properties": {
+              "port": "5432",
+              "protocol": "tcp"
+            },
+            "source": "web-app",
+            "target": "database",
+            "type": "connects_to"
+          }
+        },
+        "scripts": {
+          "main-timeline": {
+            "end_time": "4 hour",
+            "events": {
+              "attack-start": "30 min"
+            },
+            "speed": "${exercise_speed}",
+            "start_time": 0
+          }
+        },
+        "stories": {
+          "exercise": {
+            "scripts": [
+              "main-timeline"
+            ],
+            "speed": "${exercise_speed}"
+          }
+        },
+        "variables": {
+          "admin_password_strength": {
+            "allowed_values": [
+              "weak",
+              "medium",
+              "strong"
+            ],
+            "default": "strong",
+            "type": "string"
+          },
+          "exercise_speed": {
+            "default": 1.0,
+            "description": "Story playback speed multiplier",
+            "type": "number"
+          }
+        },
+        "workflows": {
+          "exercise-flow": {
+            "start": "run-attack",
+            "steps": {
+              "done": {
+                "type": "end"
+              },
+              "run-attack": {
+                "objective": "red-access",
+                "on_success": "run-defense",
+                "type": "objective"
+              },
+              "run-defense": {
+                "objective": "blue-defend",
+                "on_success": "done",
+                "type": "objective"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "surface": "mcp"
+}

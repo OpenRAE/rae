@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:4364bd4c095581c4b7d0931a0d9e45f5c2ba9fa452fe8b6ab13070d09bfa72e2"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/multiple-documents.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "path": "",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 3
+                },
+                "start": {
+                  "column": 1,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "path": "",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 3
+              },
+              "start": {
+                "column": 1,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

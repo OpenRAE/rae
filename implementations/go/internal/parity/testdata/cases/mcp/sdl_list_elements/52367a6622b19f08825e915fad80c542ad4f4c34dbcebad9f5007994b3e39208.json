@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:cd33e433d37f956e0d830b10221857e34766ff6e6cb931e2b86a6026a05cab80"
+  },
+  "name": "reference",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "nodes": [
+            "web"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "nodes": [
+          "web"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

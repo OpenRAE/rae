@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-occurrence",
+  "files": {
+    "request.json": "sha256:2c09aacef51777e4c7672a2f21e55eb33704f413b7d75daf95c0db18cc87d5f4"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

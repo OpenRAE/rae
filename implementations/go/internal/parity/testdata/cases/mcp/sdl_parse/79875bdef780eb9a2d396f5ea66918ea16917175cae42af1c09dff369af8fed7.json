@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:6e29d7c72e44bf21b769bd5443da314a44fd1e2daa6750a30bdfa8dc06f3fc85"
+  },
+  "name": "regression/6ab0b75c3551f2bc01cbb21e3e17ed97d546c18326821d46b6138746a3cabec9",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "caldera-ransack",
+            "populated_sections": {
+              "conditions": 1,
+              "entities": 1,
+              "infrastructure": 3,
+              "nodes": 3
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "caldera-ransack",
+          "populated_sections": {
+            "conditions": 1,
+            "entities": 1,
+            "infrastructure": 3,
+            "nodes": 3
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

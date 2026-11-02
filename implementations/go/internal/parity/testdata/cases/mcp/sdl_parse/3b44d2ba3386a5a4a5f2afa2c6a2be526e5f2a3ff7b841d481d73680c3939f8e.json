@@ -1,0 +1,169 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:0d7f4cad0e9dac3849e66daca89e465df4c08d695d667f1721b3ba5670ff5651"
+  },
+  "name": "regression/e0127ac8637c6e7fd236887c8dcee7ecd6f312dc3d9fa7bd82992b0b2ddce4b8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "equivalent",
+            "populated_sections": {
+              "nodes": 1
+            },
+            "source_diagnostics": [
+              {
+                "authored_keys": [
+                  "Description",
+                  "description"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/description",
+                "range": {
+                  "end": {
+                    "column": 12,
+                    "line": 2
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 2
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              },
+              {
+                "authored_keys": [
+                  "Name",
+                  "name"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/name",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 3
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              },
+              {
+                "authored_keys": [
+                  "Type",
+                  "type"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/nodes/web/type",
+                "range": {
+                  "end": {
+                    "column": 13,
+                    "line": 5
+                  },
+                  "start": {
+                    "column": 9,
+                    "line": 5
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              }
+            ],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "equivalent",
+          "populated_sections": {
+            "nodes": 1
+          },
+          "source_diagnostics": [
+            {
+              "authored_keys": [
+                "Description",
+                "description"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/description",
+              "range": {
+                "end": {
+                  "column": 12,
+                  "line": 2
+                },
+                "start": {
+                  "column": 1,
+                  "line": 2
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 3
+                },
+                "start": {
+                  "column": 1,
+                  "line": 3
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "Type",
+                "type"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/nodes/web/type",
+              "range": {
+                "end": {
+                  "column": 13,
+                  "line": 5
+                },
+                "start": {
+                  "column": 9,
+                  "line": 5
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

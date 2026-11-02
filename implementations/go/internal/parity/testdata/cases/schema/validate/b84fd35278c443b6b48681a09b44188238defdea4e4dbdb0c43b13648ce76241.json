@@ -1,0 +1,14 @@
+{
+  "args": [
+    "evaluation-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c865e73ac241f6025ad963205995c56e2bdbb0a3c15a89f7ba9d8674f6eb21bf"
+  },
+  "name": "regression/be6b4b006c4b06990f4e8e473501aa6ad5e60265c7f08f5555918a1da83ccb87",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

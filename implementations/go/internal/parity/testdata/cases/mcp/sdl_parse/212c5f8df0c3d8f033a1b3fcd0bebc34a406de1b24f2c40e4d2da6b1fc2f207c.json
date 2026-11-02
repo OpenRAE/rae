@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:680c3e937a996faa4bd57e366f4964ae4fb518da74b9e214fc6b07a36030179a"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/noncanonical-field.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 1
+                },
+                "start": {
+                  "column": 1,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "Name",
+              "name"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/name",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 1
+              },
+              "start": {
+                "column": 1,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

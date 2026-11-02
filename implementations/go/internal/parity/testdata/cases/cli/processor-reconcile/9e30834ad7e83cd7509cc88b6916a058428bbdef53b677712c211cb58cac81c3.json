@@ -1,0 +1,218 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/port-authority-surge-response.sdl.yaml",
+    "repo/examples/scenarios/port-authority-surge-response.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/port-authority-surge-response.sdl.yaml": "sha256:0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f"
+  },
+  "name": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.shipping-portal",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.manifest-db",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.terminal-ops",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.port-idp",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customs-gateway",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.crane-plc",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.camera-analytics",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.historian01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.soc01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.backup-vault",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.shipping-portal",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.manifest-db",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.terminal-ops",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.port-idp",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customs-gateway",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.crane-plc",
+            "code": "realization.unsupported-open-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.camera-analytics",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.historian01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.soc01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.backup-vault",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "port-authority-surge-response",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

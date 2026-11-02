@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:cec82e9339b9bb8142a6e62f958f26d9dbb69643862e8befc29a199f05b38c9f"
+  },
+  "name": "regression/71c7af15b5f4ecd4adf69732c25761c328f63b30c50a13d378ef1ad788fe1392",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "cyris-dmz-topology",
+            "populated_sections": {
+              "conditions": 2,
+              "features": 4,
+              "infrastructure": 7,
+              "nodes": 7
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "cyris-dmz-topology",
+          "populated_sections": {
+            "conditions": 2,
+            "features": 4,
+            "infrastructure": 7,
+            "nodes": 7
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -474,11 +474,17 @@ jobs:
           if-no-files-found: error
 
   # Prove the shards form a complete, disjoint partition of a fresh collection,
-  # then combine shard + integration coverage once and enforce the 90% floor. Runs
-  # only when both coverage producers succeed, so partial coverage is never
-  # reported.
+  # then combine shard, integration and recorder coverage once and enforce the
+  # 90% floor. Test producers must succeed and recorder data must be present;
+  # a corpus difference remains an independent gate failure.
   coverage-reduce:
-    needs: [test-shard, integration]
+    needs: [test-shard, integration, parity-corpus]
+    # A corpus difference still fails the gate, but its completed recording can
+    # supply coverage. Failed test producers must never yield a partial report.
+    if: >-
+      always() && !cancelled()
+      && needs.test-shard.result == 'success'
+      && needs.integration.result == 'success'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -503,6 +509,11 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: coverage-integration-${{ inputs.ref }}
+          path: ${{ runner.temp }}/reduce
+      - name: Receive recorder coverage data
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-parity-${{ inputs.ref }}
           path: ${{ runner.temp }}/reduce
       - name: Prove completeness and combine coverage
         env:
@@ -579,7 +590,12 @@ jobs:
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |
-          go test -race -covermode=atomic -coverprofile=cover.out ./...
+          log="${RUNNER_TEMP}/go-test-${{ matrix.name }}.log"
+          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... > "${log}" 2>&1; then
+            cat "${log}"
+            exit 1
+          fi
+          awk '/no Go runner covers/ || /^ok[[:space:]]/ { print }' "${log}"
           total="$(go tool cover -func=cover.out | awk '/^total:/ { sub(/%/, "", $3); print $3 }')"
           if ! awk -v total="${total}" 'BEGIN { exit !(total >= 90) }'; then
             echo "Go statement coverage ${total}% is below the 90% floor (ADR-121)" >&2
@@ -606,13 +622,18 @@ jobs:
       - name: Test the mutations of the changed lines
         working-directory: ${{ matrix.path }}
         env:
+          GOGC: "10"
           MERGE_BASE: ${{ steps.base.outputs.merge_base }}
           # gremlins matches the paths of git diff against mutant paths, which
           # are relative to the module. git diff must use the same base.
           GIT_CONFIG_COUNT: "1"
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
-        run: gremlins unleash --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
+        run: |
+          # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
+          # Use the runner's available descriptor capacity with bounded workers.
+          ulimit -Sn "$(ulimit -Hn)"
+          gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"
       - name: Check that each new regression test fails on the base
         working-directory: ${{ matrix.path }}
         env:
@@ -625,14 +646,32 @@ jobs:
           path: ${{ matrix.path }}/cover.out
           if-no-files-found: error
 
-  # The golden parity corpus of the Go port (issue #1778). The Python
-  # implementation must reproduce the committed corpus. When it does not, the
-  # job uploads the corpus that it recorded.
-  parity-corpus:
+  # Capture public regression inputs only when their source or collector changes.
+  # The ordinary shards, integration and fuzz jobs retain their normal environments.
+  parity-inputs:
+    needs: generic-tool-local-inputs
     runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    services:
+      ledger:
+        # Disposable fixture credentials; no production data or identities.
+        image: docker.io/library/postgres@sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df
+        env:
+          POSTGRES_DB: rae_ledger
+          POSTGRES_USER: rae_ledger
+          POSTGRES_PASSWORD: integration-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U rae_ledger -d rae_ledger"
+          --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          fetch-depth: 0
           persist-credentials: false
           ref: ${{ inputs.ref }}
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -643,12 +682,148 @@ jobs:
         with:
           enable-cache: false
           version: "0.13.4"
-      - name: Check that the Python implementation reproduces the corpus
+      - name: Decide whether regression inputs need collection
+        id: capture
+        run: |
+          if uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current; then
+            if [ "${{ matrix.shard }}" = "0" ]; then
+              mkdir -p "${RUNNER_TEMP}/parity-inputs"
+              cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
+              cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
+              if [ -d implementations/go/internal/parity/testdata/pieces ]; then
+                cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
+              fi
+            fi
+            echo "needed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "needed=true" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Receive locked generic-tool inputs
+        if: steps.capture.outputs.needed == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+      - name: Install locked generic tools from local inputs
+        if: steps.capture.outputs.needed == 'true'
         run: >-
-          uv run --project implementations/python --frozen
-          python -m tools.parity_corpus check --output-dir "${RUNNER_TEMP}/parity-corpus"
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
+      - name: Fetch and verify the locked Temporal test server
+        if: steps.capture.outputs.needed == 'true'
+        run: |
+          mkdir -p implementations/tooling/.cache/runtime-integration-inputs
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.bootstrap_profile fetch-inputs \
+            public-ubuntu-24.04-x86_64 implementations/tooling/.cache/runtime-integration-inputs --artifact-id temporal-cli-runtime-test
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m implementations.tooling.runtime_execution_ci \
+            implementations/tooling/.cache/runtime-integration-inputs/archives/temporal-cli-runtime-test/temporal_cli_1.9.1_linux_amd64.tar.gz \
+            implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+      - name: Collect public inputs from the Python tests
+        if: steps.capture.outputs.needed == 'true'
+        working-directory: implementations/python
+        env:
+          RAES_PARITY_INPUT_DIR: ${{ runner.temp }}/parity-inputs
+          PYTEST_PLUGINS: tools.parity_inputs,tools.pytest_shard_plugin
+          RAES_PARITY_SHARD_INDEX: ${{ matrix.shard }}
+          PYTHONPATH: ${{ github.workspace }}
+          RAES_EXECUTION_INTEGRATION: "1"
+          RAES_TEST_PG_HOST: "127.0.0.1"
+          RAES_TEMPORAL_CLI: ${{ github.workspace }}/implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+        run: |
+          if [ "${{ matrix.shard }}" = "0" ]; then
+            uv run --all-extras --frozen python -m pytest -q -o addopts= \
+            tests/test_parity_surfaces.py tests/test_parity_storage.py tests/test_issue_1778_parity_corpus.py \
+            tests/test_issue_1678_sweep_r1.py \
+            tests/test_issue_1678_sweep_t.py::test_crossing_cli_reports_a_damaged_catalog_revision_as_failed_validation \
+            tests/test_issue_1678_operational_logging.py::test_application_handler_reports_a_failed_write_without_values \
+            tests/test_sdl_module_registry.py::test_publish_preserves_the_authoring_descriptor_after_import_expansion \
+            tests/test_sdl_module_registry.py::test_publish_refuses_an_importing_root_without_a_module_descriptor
+          fi
+          uv run --all-extras --frozen python -m pytest -q -n auto --maxprocesses=4 --dist=loadfile -o addopts= \
+            --shard-count=8 --shard-index="${{ matrix.shard }}" tests
+      - name: Check captured inputs for credentials before upload
+        if: steps.capture.outputs.needed == 'true'
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-inputs"
+      - name: Retain public regression inputs
+        if: steps.capture.outputs.needed == 'true' || matrix.shard == 0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: parity-inputs-${{ matrix.shard }}-${{ inputs.ref }}
+          path: |
+            ${{ runner.temp }}/parity-inputs
+            ${{ runner.temp }}/inputs
+            ${{ runner.temp }}/pieces
+          if-no-files-found: error
+          retention-days: 1
+
+  # The golden parity corpus of the Go port (issue #1778). The Python
+  # implementation must reproduce the committed corpus. When it does not, the
+  # job uploads the corpus that it recorded.
+  parity-corpus:
+    needs: parity-inputs
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Receive public regression inputs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: parity-inputs-*-${{ inputs.ref }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/parity-recording-inputs
+      - name: Receive locked scanner inputs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+      - name: Install the locked scanner
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
+      - name: Check that the Python implementation reproduces the corpus
+        id: corpus
+        continue-on-error: true
+        env:
+          PYTHONHASHSEED: "0"
+        run: >-
+          uv run --project implementations/python --all-extras --frozen
+          python -m coverage run --rcfile=implementations/python/pyproject.toml --source=tools --data-file="${RUNNER_TEMP}/.coverage.parity" -m tools.parity_corpus check --regression-inputs "${RUNNER_TEMP}/parity-recording-inputs/parity-inputs" --require-complete --output-dir "${RUNNER_TEMP}/parity-corpus" --raw-input-dir "${RUNNER_TEMP}/parity-decoded"
+      - name: Retain recorder coverage data
+        if: always() && steps.corpus.outcome != 'skipped'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-parity-${{ inputs.ref }}
+          path: ${{ runner.temp }}/.coverage.parity
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+      - name: Scan decoded corpus inputs before retaining compressed data
+        id: scan
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups \
+            python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-decoded"
+          uv run --project implementations/tooling/python --frozen --no-default-groups \
+            python -m tools.parity_storage scan "${RUNNER_TEMP}/parity-corpus"
+      - name: Enforce corpus reproduction
+        if: steps.corpus.outcome != 'success'
+        run: exit 1
       - name: Upload the recorded corpus
-        if: failure()
+        if: failure() && steps.scan.outcome == 'success'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: parity-corpus-${{ inputs.ref }}

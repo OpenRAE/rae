@@ -1,0 +1,37 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "input/root.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "input/nodes/shared.yaml": "sha256:6cd9bc2664a4da46ef1e981abd58a53d1085199181c03c50105d17edd20e3d42",
+    "input/root.yaml": "sha256:c284d626c25f19c95c8f3b2c6d917b03a0176dcae967f1e59155ed611c4fcd3f"
+  },
+  "name": "regression/8cca337f8d439fb17474761dcdbdb00fa6e25867dbd3678aa76950023c3952e9",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "input/raes.lock.json": {
+        "imports": [
+          {
+            "content_digest": "sha256:6cd9bc2664a4da46ef1e981abd58a53d1085199181c03c50105d17edd20e3d42",
+            "export_hash": "70e8ba69d3ec6818965cf0abf280b104ed81c9725167c74f79f489a0f052b7e9",
+            "manifest_digest": "",
+            "module_id": "acme/shared",
+            "module_version": "1.2.3",
+            "namespace": "shared",
+            "requested_version": "*",
+            "resolved_source": "nodes/shared.yaml",
+            "signer_id": "",
+            "source": "local:nodes/shared.yaml"
+          }
+        ],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

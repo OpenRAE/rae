@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_diagnostics",
+  "files": {
+    "arguments.json": "sha256:b7780a937f4edaba6fe2013e74fb3c27476e298c37e596372a42ebfe352740e6"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "stage": "semantic_validation",
+          "status": "valid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "stage": "semantic_validation",
+        "status": "valid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

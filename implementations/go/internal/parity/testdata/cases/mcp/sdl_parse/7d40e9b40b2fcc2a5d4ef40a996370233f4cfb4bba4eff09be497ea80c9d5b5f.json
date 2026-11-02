@@ -1,0 +1,89 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:f82785095e5f8ead9f0e52a5547b4f5300252c10284e99622e952fd3aac1045d"
+  },
+  "name": "regression/7e5f2fd28fd9d1c83666c22d4923cf6f2c5dfcfd71033d4b22cc500524b82350",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "merge-migration",
+            "populated_sections": {
+              "nodes": 2
+            },
+            "source_diagnostics": [
+              {
+                "authored_keys": [
+                  "<<",
+                  "<<"
+                ],
+                "code": "sdl.noncanonical_merge",
+                "path": "/nodes/inherited",
+                "range": {
+                  "end": {
+                    "column": 7,
+                    "line": 7
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 7
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              }
+            ],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "merge-migration",
+          "populated_sections": {
+            "nodes": 2
+          },
+          "source_diagnostics": [
+            {
+              "authored_keys": [
+                "<<",
+                "<<"
+              ],
+              "code": "sdl.noncanonical_merge",
+              "path": "/nodes/inherited",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 7
+                },
+                "start": {
+                  "column": 5,
+                  "line": 7
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

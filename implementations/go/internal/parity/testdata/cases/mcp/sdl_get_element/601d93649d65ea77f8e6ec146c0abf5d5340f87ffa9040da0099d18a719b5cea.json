@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:68d07685594cd5fb056dc88e0e856058cf2a23372c01f1ce1e720d6638eb8e66"
+  },
+  "name": "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

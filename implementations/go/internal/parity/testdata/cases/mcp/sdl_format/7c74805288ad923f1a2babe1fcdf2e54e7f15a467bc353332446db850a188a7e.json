@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:da9c7c50508ac42de9fc7d5641077a75ff3380bd541a2ed230515b5fdf1c8eea"
+  },
+  "name": "examples/library/catalog.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

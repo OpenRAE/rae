@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:e0a798156758a4946cf4b4c2159a2e463057980376d1dfc1a18aee9efbd750e1"
+  },
+  "name": "regression/8f8421671f3686d866a288a8bcd5a003135e97738ae6b42bd7a23396681dfc64",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "two-role-toolkit",
+            "populated_sections": {
+              "action_contracts": 2,
+              "agents": 2,
+              "content": 1,
+              "entities": 2,
+              "nodes": 1,
+              "observation_boundaries": 2
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "two-role-toolkit",
+          "populated_sections": {
+            "action_contracts": 2,
+            "agents": 2,
+            "content": 1,
+            "entities": 2,
+            "nodes": 1,
+            "observation_boundaries": 2
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

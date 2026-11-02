@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_completions",
+  "files": {
+    "arguments.json": "sha256:47a63f6e67ef915b55d35f506aa766bec26040cfd5d679b98a1e2e2327360037"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "name",
+                "name"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 2
+                },
+                "start": {
+                  "column": 1,
+                  "line": 2
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'name'.",
+                  "range": {
+                    "end": {
+                      "column": 5,
+                      "line": 1
+                    },
+                    "start": {
+                      "column": 1,
+                      "line": 1
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "name",
+              "name"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/name",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 2
+              },
+              "start": {
+                "column": 1,
+                "line": 2
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'name'.",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 1
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 1
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

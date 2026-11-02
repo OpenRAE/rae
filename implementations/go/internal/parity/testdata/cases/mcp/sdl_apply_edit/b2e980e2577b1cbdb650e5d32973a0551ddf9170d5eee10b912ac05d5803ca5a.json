@@ -1,0 +1,383 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:2bade1e7561d072d1b88ed72a601f040b1957e5dc6ea843537e02bde8935a9fe"
+  },
+  "name": "examples/library/patterns/scenario-reference-integrity.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "pattern: raes-library-pattern\nversion: 1\nid: scenario-reference-integrity\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n- docs/explain/sdl/validation.md\nsummary: Keep scenario examples useful by making every cross-reference resolve through\n  the current SDL validator.\nintent: 'Authors can copy a scenario skeleton and replace names while preserving the\n  parser-backed relationship between nodes, entities, agents, objectives, and workflows.\n\n  '\nuse_when:\n- Building a new scenario from a small validated starting point.\n- Reviewing whether a scenario example is still a positive corpus artifact.\nauthoring_steps:\n- Start with a complete SDL document that parses without semantic errors.\n- Give every reusable surface a stable identifier before adding references.\n- Add objective and workflow references only after the target sections exist.\n- Validate with parse_sdl_file or the example-library policy checker.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: catalog and template bodies pass with no policy failures.\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/pattern",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 1
+                },
+                "start": {
+                  "column": 10,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 33,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 29,
+                  "line": 11
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/intent",
+              "range": {
+                "end": {
+                  "column": 4,
+                  "line": 15
+                },
+                "start": {
+                  "column": 9,
+                  "line": 12
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/use_when",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 19
+                },
+                "start": {
+                  "column": 1,
+                  "line": 17
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/authoring_steps",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 24
+                },
+                "start": {
+                  "column": 1,
+                  "line": 20
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 27
+                },
+                "start": {
+                  "column": 1,
+                  "line": 25
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "pattern: raes-library-pattern\nversion: 1\nid: scenario-reference-integrity\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n- docs/explain/sdl/validation.md\nsummary: Keep scenario examples useful by making every cross-reference resolve through\n  the current SDL validator.\nintent: 'Authors can copy a scenario skeleton and replace names while preserving the\n  parser-backed relationship between nodes, entities, agents, objectives, and workflows.\n\n  '\nuse_when:\n- Building a new scenario from a small validated starting point.\n- Reviewing whether a scenario example is still a positive corpus artifact.\nauthoring_steps:\n- Start with a complete SDL document that parses without semantic errors.\n- Give every reusable surface a stable identifier before adding references.\n- Add objective and workflow references only after the target sections exist.\n- Validate with parse_sdl_file or the example-library policy checker.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: catalog and template bodies pass with no policy failures.\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/pattern",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 1
+              },
+              "start": {
+                "column": 10,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 33,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 29,
+                "line": 11
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/intent",
+            "range": {
+              "end": {
+                "column": 4,
+                "line": 15
+              },
+              "start": {
+                "column": 9,
+                "line": 12
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/use_when",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 19
+              },
+              "start": {
+                "column": 1,
+                "line": 17
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/authoring_steps",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 24
+              },
+              "start": {
+                "column": 1,
+                "line": 20
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 27
+              },
+              "start": {
+                "column": 1,
+                "line": 25
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

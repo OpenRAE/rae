@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/invocation/responses",
+  "files": {
+    "request.json": "sha256:e66029170ca06a1d019009182e5847eb60b31ca10e675a98eef37ce1a2b6e35e"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

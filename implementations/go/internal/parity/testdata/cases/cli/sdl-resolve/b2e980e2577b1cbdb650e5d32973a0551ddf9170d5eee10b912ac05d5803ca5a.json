@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/library/patterns/scenario-reference-integrity.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/library/patterns/scenario-reference-integrity.yaml": "sha256:1fa7ce6630859bd7cbbf6ecbd5ea047f0ac3939c2a94188f55d7528baa2639f9"
+  },
+  "name": "examples/library/patterns/scenario-reference-integrity.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/library/patterns/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,1856 @@
+{
+  "args": [],
+  "command": "registry",
+  "files": {},
+  "name": "reference",
+  "result": {
+    "commands": {
+      "": [
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": true,
+          "hidden": false,
+          "is_flag": true,
+          "multiple": false,
+          "name": "version",
+          "nargs": 1,
+          "opts": [
+            "--version",
+            "-V"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "boolean",
+            "param_type": "Bool"
+          }
+        },
+        {
+          "count": false,
+          "default": "WARNING",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "log_level",
+          "nargs": 1,
+          "opts": [
+            "--log-level"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": false,
+            "choices": [
+              "DEBUG",
+              "INFO",
+              "WARNING",
+              "ERROR",
+              "CRITICAL"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": true,
+          "hidden": false,
+          "is_flag": true,
+          "multiple": false,
+          "name": "install_completion",
+          "nargs": 1,
+          "opts": [
+            "--install-completion"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "boolean",
+            "param_type": "Bool"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": true,
+          "hidden": false,
+          "is_flag": true,
+          "multiple": false,
+          "name": "show_completion",
+          "nargs": 1,
+          "opts": [
+            "--show-completion"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "boolean",
+            "param_type": "Bool"
+          }
+        }
+      ],
+      "conformance": [],
+      "conformance backend": [
+        {
+          "count": false,
+          "default": "orchestration-evaluation",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "profile",
+          "nargs": 1,
+          "opts": [
+            "--profile"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "fixtures_root",
+          "nargs": 1,
+          "opts": [
+            "--fixtures-root"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "profiles_root",
+          "nargs": 1,
+          "opts": [
+            "--profiles-root"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": "json",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output_format",
+          "nargs": 1,
+          "opts": [
+            "--format"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "json",
+              "text"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "conformance processor": [
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": true,
+          "name": "features",
+          "nargs": 1,
+          "opts": [
+            "--feature"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "manifest_path",
+          "nargs": 1,
+          "opts": [
+            "--manifest"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": "json",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output_format",
+          "nargs": 1,
+          "opts": [
+            "--format"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "json",
+              "text"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "processor": [],
+      "processor exploit-path": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "input_json",
+          "nargs": 1,
+          "opts": [
+            "input_json"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": "raes-exploit-path-analysis-v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "profile",
+          "nargs": 1,
+          "opts": [
+            "--profile"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        }
+      ],
+      "processor manifest": [],
+      "processor plan": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "sdl",
+          "nargs": 1,
+          "opts": [
+            "sdl"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "manifest_path",
+          "nargs": 1,
+          "opts": [
+            "--manifest"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output_format",
+          "nargs": 1,
+          "opts": [
+            "--format"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "processor reconcile": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "baseline",
+          "nargs": 1,
+          "opts": [
+            "baseline"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "candidate",
+          "nargs": 1,
+          "opts": [
+            "candidate"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "manifest_path",
+          "nargs": 1,
+          "opts": [
+            "--manifest"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output_format",
+          "nargs": 1,
+          "opts": [
+            "--format"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "processor satisfiability": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "sdl",
+          "nargs": 1,
+          "opts": [
+            "sdl"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": "raes-finite-domain-satisfiability-v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "profile",
+          "nargs": 1,
+          "opts": [
+            "--profile"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        }
+      ],
+      "runtime": [],
+      "runtime store": [],
+      "runtime store backup": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "store_path",
+          "nargs": 1,
+          "opts": [
+            "store_path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "backup_path",
+          "nargs": 1,
+          "opts": [
+            "backup_path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "target",
+          "nargs": 1,
+          "opts": [
+            "--target"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "run_scope",
+          "nargs": 1,
+          "opts": [
+            "--run-scope"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": false,
+          "envvar": null,
+          "flag_value": true,
+          "hidden": false,
+          "is_flag": true,
+          "multiple": false,
+          "name": "replace",
+          "nargs": 1,
+          "opts": [
+            "--replace"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "boolean",
+            "param_type": "Bool"
+          }
+        }
+      ],
+      "runtime store check": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "store_path",
+          "nargs": 1,
+          "opts": [
+            "store_path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "target",
+          "nargs": 1,
+          "opts": [
+            "--target"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "run_scope",
+          "nargs": 1,
+          "opts": [
+            "--run-scope"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        }
+      ],
+      "runtime store restore": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "backup_path",
+          "nargs": 1,
+          "opts": [
+            "backup_path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "store_path",
+          "nargs": 1,
+          "opts": [
+            "store_path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "target",
+          "nargs": 1,
+          "opts": [
+            "--target"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "run_scope",
+          "nargs": 1,
+          "opts": [
+            "--run-scope"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": false,
+          "envvar": null,
+          "flag_value": true,
+          "hidden": false,
+          "is_flag": true,
+          "multiple": false,
+          "name": "replace",
+          "nargs": 1,
+          "opts": [
+            "--replace"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "boolean",
+            "param_type": "Bool"
+          }
+        }
+      ],
+      "sdl": [],
+      "sdl format": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "path",
+          "nargs": 1,
+          "opts": [
+            "path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": false,
+          "envvar": null,
+          "flag_value": true,
+          "hidden": false,
+          "is_flag": true,
+          "multiple": false,
+          "name": "write",
+          "nargs": 1,
+          "opts": [
+            "--write"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "boolean",
+            "param_type": "Bool"
+          }
+        },
+        {
+          "count": false,
+          "default": false,
+          "envvar": null,
+          "flag_value": true,
+          "hidden": false,
+          "is_flag": true,
+          "multiple": false,
+          "name": "check",
+          "nargs": 1,
+          "opts": [
+            "--check"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "boolean",
+            "param_type": "Bool"
+          }
+        }
+      ],
+      "sdl publish": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "path",
+          "nargs": 1,
+          "opts": [
+            "path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": "dist",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output_dir",
+          "nargs": 1,
+          "opts": [
+            "--output-dir"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": "",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "signer_id",
+          "nargs": 1,
+          "opts": [
+            "--signer-id"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "private_key",
+          "nargs": 1,
+          "opts": [
+            "--private-key"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        }
+      ],
+      "sdl resolve": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "path",
+          "nargs": 1,
+          "opts": [
+            "path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "lockfile",
+          "nargs": 1,
+          "opts": [
+            "--lockfile"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": false,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        }
+      ],
+      "sdl verify-imports": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "path",
+          "nargs": 1,
+          "opts": [
+            "path"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "allow_dash": false,
+            "dir_okay": true,
+            "exists": true,
+            "file_okay": true,
+            "name": "path",
+            "param_type": "TyperPath",
+            "readable": true,
+            "writable": false
+          }
+        }
+      ],
+      "semantic": [],
+      "semantic compile": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "semantic conformance": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "semantic inspect": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "semantic normalize": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "semantic parse": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "semantic resolve": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "semantic transform": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": null,
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "transform",
+          "nargs": 1,
+          "opts": [
+            "--transform"
+          ],
+          "param_type_name": "option",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "canonical",
+              "format"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ],
+      "semantic validate": [
+        {
+          "default": null,
+          "envvar": null,
+          "multiple": false,
+          "name": "source",
+          "nargs": 1,
+          "opts": [
+            "source"
+          ],
+          "param_type_name": "argument",
+          "required": true,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "sdl-yaml/v1",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "contract",
+          "nargs": 1,
+          "opts": [
+            "--contract"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "name": "text",
+            "param_type": "String"
+          }
+        },
+        {
+          "count": false,
+          "default": "human",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "output",
+          "nargs": 1,
+          "opts": [
+            "--output"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "human",
+              "json"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        },
+        {
+          "count": false,
+          "default": "reject",
+          "envvar": null,
+          "flag_value": null,
+          "hidden": false,
+          "is_flag": false,
+          "multiple": false,
+          "name": "migration_policy",
+          "nargs": 1,
+          "opts": [
+            "--migration-policy"
+          ],
+          "param_type_name": "option",
+          "required": false,
+          "secondary_opts": [],
+          "type": {
+            "case_sensitive": true,
+            "choices": [
+              "reject",
+              "accept"
+            ],
+            "name": "choice",
+            "param_type": "TyperChoice"
+          }
+        }
+      ]
+    }
+  },
+  "surface": "cli-schema"
+}

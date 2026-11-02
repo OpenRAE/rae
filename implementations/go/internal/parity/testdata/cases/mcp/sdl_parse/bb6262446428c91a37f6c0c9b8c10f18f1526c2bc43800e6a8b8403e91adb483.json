@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7e933b95074a3cd80032d763ab1d2da89242209abe4a3981a62530c706a68626"
+  },
+  "name": "regression/65ed0a84f536c3fef1f614289b59dc35f30687f28e074fac3aa712f79b5084d3",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/agents/blue-participant/interactive_access/console/credential",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 35
+                },
+                "start": {
+                  "column": 21,
+                  "line": 35
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/agents/blue-participant/interactive_access/console/credential",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 35
+              },
+              "start": {
+                "column": 21,
+                "line": 35
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

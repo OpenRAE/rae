@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/resolution",
+  "files": {
+    "request.json": "sha256:7a277243ed768b4f62c1b19d3c2a07fd6b2513dd0b2f10fda2bd7815ce16f448"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

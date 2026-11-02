@@ -1,0 +1,255 @@
+{
+  "args": [],
+  "command": "sdl_claims_assessment",
+  "files": {
+    "arguments.json": "sha256:56b3782574c1ea124830e19bdf18c279a5e446d8755d48ae070bfb6b2e226fd3"
+  },
+  "name": "examples/experiments/techvault-smoke-run.exp.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 26
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/schema_version",
+              "range": {
+                "end": {
+                  "column": 46,
+                  "line": 6
+                },
+                "start": {
+                  "column": 17,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/spec_id",
+              "range": {
+                "end": {
+                  "column": 37,
+                  "line": 7
+                },
+                "start": {
+                  "column": 10,
+                  "line": 7
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/spec_version",
+              "range": {
+                "end": {
+                  "column": 20,
+                  "line": 8
+                },
+                "start": {
+                  "column": 15,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/title",
+              "range": {
+                "end": {
+                  "column": 27,
+                  "line": 9
+                },
+                "start": {
+                  "column": 8,
+                  "line": 9
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/task_ref",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 19
+                },
+                "start": {
+                  "column": 3,
+                  "line": 15
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/run_plan",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 26
+                },
+                "start": {
+                  "column": 3,
+                  "line": 20
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/name",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 26
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/schema_version",
+            "range": {
+              "end": {
+                "column": 46,
+                "line": 6
+              },
+              "start": {
+                "column": 17,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/spec_id",
+            "range": {
+              "end": {
+                "column": 37,
+                "line": 7
+              },
+              "start": {
+                "column": 10,
+                "line": 7
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/spec_version",
+            "range": {
+              "end": {
+                "column": 20,
+                "line": 8
+              },
+              "start": {
+                "column": 15,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/title",
+            "range": {
+              "end": {
+                "column": 27,
+                "line": 9
+              },
+              "start": {
+                "column": 8,
+                "line": 9
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/task_ref",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 19
+              },
+              "start": {
+                "column": 3,
+                "line": 15
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/run_plan",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 26
+              },
+              "start": {
+                "column": 3,
+                "line": 20
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

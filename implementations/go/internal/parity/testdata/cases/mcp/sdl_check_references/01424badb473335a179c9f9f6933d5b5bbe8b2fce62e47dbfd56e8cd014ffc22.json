@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:cd132c0178c64ad66c838347c4f4f36cc7f6e7dd4ae8d73e242f7a30d35bcf14"
+  },
+  "name": "examples/scenarios/enterprise-identity-tenancy.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "accounts.domain-admin -> dc relationships.dc-role -> corp, dc relationships.shared-inference -> nodes.inference.services.inference-api, range-a relationships.workforce-federation -> enterprise, workforce-oidc relationships.workforce-placement -> carrier, workforce"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "accounts.domain-admin -> dc relationships.dc-role -> corp, dc relationships.shared-inference -> nodes.inference.services.inference-api, range-a relationships.workforce-federation -> enterprise, workforce-oidc relationships.workforce-placement -> carrier, workforce"
+      }
+    }
+  },
+  "surface": "mcp"
+}

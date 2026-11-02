@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:56b3782574c1ea124830e19bdf18c279a5e446d8755d48ae070bfb6b2e226fd3"
+  },
+  "name": "examples/experiments/techvault-smoke-run.exp.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

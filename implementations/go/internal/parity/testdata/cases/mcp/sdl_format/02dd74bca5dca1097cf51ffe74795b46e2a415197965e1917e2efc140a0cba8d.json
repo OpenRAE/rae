@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:bfc6c1ea2c8c4b7e2f99bfe597f0855e77897f2616bed5fa618df1bf23390f0f"
+  },
+  "name": "examples/library/templates/participant_behavior/action-contract-observation-boundary.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

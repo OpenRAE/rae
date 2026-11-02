@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml": "sha256:a4f1922eee529656b804f3f0d389906847eb5fe5275feefa06c67101f4a2f226"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

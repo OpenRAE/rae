@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-run-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:211316cefa82cd6b4bb917294da9476520ba00155d0046ae0904656c33ca8aee"
+  },
+  "name": "experiment-run-v1/routed/contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

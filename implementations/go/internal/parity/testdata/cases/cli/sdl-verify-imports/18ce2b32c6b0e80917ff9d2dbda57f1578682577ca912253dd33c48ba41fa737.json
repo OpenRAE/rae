@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/noncanonical-field.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/noncanonical-field.yaml": "sha256:f8b251e31db299e49f45ab020351a96b5549040b4fb7f85fc6d700a186e421bf",
+    "setup.json": "sha256:b2134b074e6a44ee9f4411a9027d13ca3dffcefdfb249f81e140214871b121e3"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/noncanonical-field.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

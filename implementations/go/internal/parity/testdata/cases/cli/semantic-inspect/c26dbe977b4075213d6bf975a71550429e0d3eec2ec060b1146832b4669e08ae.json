@@ -1,0 +1,183 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 16,
+        "declarations": [
+          {
+            "address": "agents.red-agent",
+            "kind": "agents",
+            "model_path": "agents.red-agent",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "behavior_specifications.red-briefing",
+            "kind": "behavior_specifications",
+            "model_path": "behavior_specifications.red-briefing",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing",
+            "kind": "participant-inject-delivery",
+            "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "clocks.exercise-clock",
+            "kind": "clocks",
+            "model_path": "clocks.exercise-clock",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "content.briefing",
+            "kind": "content",
+            "model_path": "content.briefing",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "entities.red-team",
+            "kind": "entity",
+            "model_path": "entities.red-team",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "events.briefing-event",
+            "kind": "events",
+            "model_path": "events.briefing-event",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "evidence_requirements.briefing-delivery-evidence",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.briefing-delivery-evidence",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "injects.briefing-inject",
+            "kind": "injects",
+            "model_path": "injects.briefing-inject",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.web",
+            "kind": "node",
+            "model_path": "nodes.web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "observation_boundaries.red-view",
+            "kind": "observation_boundaries",
+            "model_path": "observation_boundaries.red-view",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.dsl-142",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "scripts.briefing-script",
+            "kind": "scripts",
+            "model_path": "scripts.briefing-script",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "stories.briefing-story",
+            "kind": "stories",
+            "model_path": "stories.briefing-story",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "temporal_constraints.briefing-window",
+            "kind": "temporal_constraints",
+            "model_path": "temporal_constraints.briefing-window",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "time_domains.exercise-time",
+            "kind": "time_domains",
+            "model_path": "time_domains.exercise-time",
+            "referenceable": true,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "dsl-142",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "agents",
+              "behavior_specifications",
+              "clocks",
+              "content",
+              "entities",
+              "events",
+              "injects",
+              "nodes",
+              "observation_boundaries",
+              "scripts",
+              "stories",
+              "temporal_constraints",
+              "time_domains"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {
+            "briefing-delivery-evidence": {
+              "source": "legacy-evidence-requirement"
+            }
+          }
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

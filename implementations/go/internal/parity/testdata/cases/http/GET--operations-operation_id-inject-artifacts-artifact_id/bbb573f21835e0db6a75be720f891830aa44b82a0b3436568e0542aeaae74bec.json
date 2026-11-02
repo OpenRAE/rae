@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-artifacts/{artifact_id}",
+  "files": {
+    "request.json": "sha256:7623e829da9da25c8555639f852ce05606c81b0e184b7df6ca112be75ba59e44"
+  },
+  "name": "auditor/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

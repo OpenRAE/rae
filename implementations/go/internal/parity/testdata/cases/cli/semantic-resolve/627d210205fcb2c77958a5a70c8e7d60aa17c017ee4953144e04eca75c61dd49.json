@@ -1,0 +1,50 @@
+{
+  "args": [
+    "semantic",
+    "resolve",
+    "input/scenario.sdl.yaml",
+    "--contract",
+    "sdl-yaml/v1",
+    "--output",
+    "json"
+  ],
+  "command": "semantic resolve",
+  "files": {
+    "input/scenario.sdl.yaml": "sha256:548e11291b4465d226010a325fa37d738a80e49a678d28cca8fe55615a111d95"
+  },
+  "name": "regression/b2d63904678a1741722b29912ebc95e02810102335b2972589102c4cafb517ba",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "resolve",
+      "payload": {
+        "phase": "resolved-references",
+        "reference_binding_count": 2,
+        "reference_bindings": {
+          "network": [
+            "nodes.network"
+          ],
+          "nodes.network": [
+            "nodes.network"
+          ]
+        },
+        "root_type": "object",
+        "scenario_name": "semantic-cli"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

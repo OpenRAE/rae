@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-correlation",
+  "files": {
+    "request.json": "sha256:01f03b3f02cb86f7cb721dc1b501e9a69ebbdb6d126f86b0843afd5749dde248"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

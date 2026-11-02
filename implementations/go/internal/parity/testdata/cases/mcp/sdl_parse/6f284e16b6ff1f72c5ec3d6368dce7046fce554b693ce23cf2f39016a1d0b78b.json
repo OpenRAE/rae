@@ -1,0 +1,75 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:c236cb195a8fc5f46c84e4b04d4ba59cdd7f6963536163268537b332397f3e64"
+  },
+  "name": "regression/820962f2573c27ba670b81d4b49d25de364b349f939559dc4492537e7e01e416",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "hospital-ransomware-surgery-day",
+            "populated_sections": {
+              "accounts": 9,
+              "action_contracts": 16,
+              "agents": 4,
+              "conditions": 19,
+              "content": 5,
+              "entities": 4,
+              "events": 3,
+              "features": 12,
+              "infrastructure": 18,
+              "injects": 3,
+              "nodes": 18,
+              "objectives": 5,
+              "relationships": 10,
+              "scripts": 3,
+              "stories": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "hospital-ransomware-surgery-day",
+          "populated_sections": {
+            "accounts": 9,
+            "action_contracts": 16,
+            "agents": 4,
+            "conditions": 19,
+            "content": 5,
+            "entities": 4,
+            "events": 3,
+            "features": 12,
+            "infrastructure": 18,
+            "injects": 3,
+            "nodes": 18,
+            "objectives": 5,
+            "relationships": 10,
+            "scripts": 3,
+            "stories": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

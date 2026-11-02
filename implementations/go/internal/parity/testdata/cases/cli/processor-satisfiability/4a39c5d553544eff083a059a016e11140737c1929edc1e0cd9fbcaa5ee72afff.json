@@ -1,0 +1,17 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/library/templates/run/seeded-run-plan.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/library/templates/run/seeded-run-plan.yaml": "sha256:898d636124d99f2d9215ff096f2a8db96167f8e3f46de2314b4a73f2a9835443"
+  },
+  "name": "examples/library/templates/run/seeded-run-plan.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

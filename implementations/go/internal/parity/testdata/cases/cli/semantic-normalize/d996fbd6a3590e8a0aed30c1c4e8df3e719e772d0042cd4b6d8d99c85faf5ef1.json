@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "sha256:f3cf1f9bb6a964de45fc1324faae437471e3d2ba14c3232713d3162f92003a93"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: abstract-participant-relationships\nentities:\n  team-a:\n    role: red\n  team-b:\n    role: blue\nrelationships:\n  coordination:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: coordination\n  delegation:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: delegation\n  cooperation:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: cooperation\n  competition:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: competition\n  supervision:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: supervision\nagents:\n  alice:\n    affiliations:\n    - team-a\n  bob:\n    affiliations:\n    - team-b\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:87b6398e98e4709784a782b04ac2cd3e7521df043bde8c7f96e692caaf65d8b8"
+        },
+        "field_count": 4,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "abstract-participant-relationships",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

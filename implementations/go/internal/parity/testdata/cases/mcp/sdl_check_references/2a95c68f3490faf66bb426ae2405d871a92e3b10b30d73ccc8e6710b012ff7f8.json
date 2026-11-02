@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:2daae20dab56d615ebb0a44f2121dd907da21dcefea73262c8a52d4167c1b23d"
+  },
+  "name": "examples/scenarios/techvault-guest-certified.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "content.guest-marker -> guest-vm infrastructure.guest-vm -> guest-net"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "content.guest-marker -> guest-vm infrastructure.guest-vm -> guest-net"
+      }
+    }
+  },
+  "surface": "mcp"
+}

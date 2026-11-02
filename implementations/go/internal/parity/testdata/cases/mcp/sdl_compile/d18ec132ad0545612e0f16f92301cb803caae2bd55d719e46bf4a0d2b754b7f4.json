@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:fd71ddca8da494d1d72f02bfb5cb1ea2d11c177e4589ad9c239cbe863a1dcbe9"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/migration/field-alias.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 1
+                },
+                "start": {
+                  "column": 1,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "Name",
+              "name"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/name",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 1
+              },
+              "start": {
+                "column": 1,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

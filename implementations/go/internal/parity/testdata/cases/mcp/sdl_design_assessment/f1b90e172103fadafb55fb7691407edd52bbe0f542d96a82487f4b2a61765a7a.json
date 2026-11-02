@@ -1,0 +1,793 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:5af3519409fbf8eb64350753acb9ce1db42f94c604659d916085e6d9f033ddc6"
+  },
+  "name": "examples/scenarios/satcom-release-poisoning.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+              "severity": "warning",
+              "topic": "participant_visibility"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "provision.node.git-forge",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.ci-runner",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.artifact-registry",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.signing-hsm",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.control-api",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.edge-gateway-east",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.edge-gateway-west",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.telemetry-broker",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.analytics-lake",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.customer-portal",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.support-bastion",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.siem01",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.vendor-idp",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.customer-idp",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "evidence_requirements.objective-truth-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.git-forge",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.ci-runner",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.artifact-registry",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.signing-hsm",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.control-api",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.edge-gateway-east",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.edge-gateway-west",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.telemetry-broker",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.analytics-lake",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.customer-portal",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.support-bastion",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.siem01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.vendor-idp",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.customer-idp",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 29,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 41
+              },
+              "orchestration": {
+                "create": 11
+              },
+              "provisioning": {
+                "create": 47
+              }
+            },
+            "resources": {
+              "evaluation": 41,
+              "orchestration": 11,
+              "provisioning": 47
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.condition.analytics-lake.analytics-ingest-healthy",
+                "evaluation.condition.ci-runner.pipeline-green",
+                "evaluation.condition.control-api.control-plane-healthy",
+                "evaluation.condition.control-api.rollback-complete",
+                "evaluation.condition.customer-idp.customer-federation-healthy",
+                "evaluation.condition.customer-portal.portal-sso-healthy",
+                "evaluation.condition.edge-gateway-east.edge-east-healthy",
+                "evaluation.condition.edge-gateway-west.edge-west-healthy",
+                "evaluation.condition.edge-gateway-west.edge-west-poisoned",
+                "evaluation.condition.git-forge.repo-integrity-healthy",
+                "evaluation.condition.siem01.release-incident-ticketed",
+                "evaluation.condition.siem01.security-pipeline-healthy",
+                "evaluation.condition.signing-hsm.signing-health",
+                "evaluation.condition.support-bastion.support-bastion-online",
+                "evaluation.condition.vendor-idp.vendor-federation-healthy",
+                "evaluation.proposition.edge-east-poisoned",
+                "evaluation.proposition.release-signature-valid",
+                "evaluation.proposition.rogue-release-promoted",
+                "evaluation.proposition.rollback-package-ready",
+                "evaluation.proposition.telemetry-flowing",
+                "evaluation.proposition.tenant-isolation-healthy",
+                "evaluation.assertion.edge-east-poisoned",
+                "evaluation.assertion.pre-edge-east-poisoned",
+                "evaluation.condition.edge-gateway-east.edge-east-poisoned",
+                "evaluation.assertion.release-signature-valid",
+                "evaluation.condition.artifact-registry.release-signature-valid",
+                "evaluation.assertion.pre-rogue-release-promoted",
+                "evaluation.assertion.rogue-release-promoted",
+                "evaluation.condition.ci-runner.rogue-release-promoted",
+                "evaluation.assertion.rollback-package-ready",
+                "evaluation.condition.artifact-registry.rollback-package-ready",
+                "evaluation.assertion.telemetry-flowing",
+                "evaluation.condition.telemetry-broker.telemetry-flowing",
+                "evaluation.assertion.tenant-isolation-healthy",
+                "evaluation.condition.customer-portal.tenant-isolation-healthy",
+                "evaluation.objective.blue-validate-release",
+                "evaluation.objective.red-compromise-build",
+                "evaluation.objective.blue-revoke-artifact",
+                "evaluation.objective.red-poison-release",
+                "evaluation.objective.red-reach-edge",
+                "evaluation.objective.blue-preserve-service"
+              ],
+              "orchestration": [
+                "orchestration.inject.customer-telemetry-ticket",
+                "orchestration.inject.exec-rollback-brief",
+                "orchestration.inject.release-freeze-brief",
+                "orchestration.workflow.release-response",
+                "orchestration.event.canary-cutover-event",
+                "orchestration.event.rollback-order-event",
+                "orchestration.event.freeze-window",
+                "orchestration.script.canary-rollout",
+                "orchestration.script.incident-rollback",
+                "orchestration.script.release-prep",
+                "orchestration.story.release-day"
+              ]
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 21,
+                "objectives": 6
+              },
+              "orchestration": {
+                "events": 3,
+                "inject_bindings": 0,
+                "injects": 3,
+                "scripts": 3,
+                "stories": 1,
+                "workflows": 1
+              },
+              "participant": {
+                "action_contracts": 12,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 3
+              },
+              "provisioning": {
+                "account_placements": 7,
+                "content_placements": 4,
+                "feature_bindings": 14,
+                "networks": 8,
+                "nodes": 14
+              }
+            },
+            "metadata": {
+              "agents": 3,
+              "capability_constraints": 0,
+              "entities": 8,
+              "relationships": 9
+            },
+            "templates": {
+              "conditions": 21,
+              "features": 14,
+              "injects": 3
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 4,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "satcom-release-poisoning",
+            "populated_sections": {
+              "accounts": 7,
+              "action_contracts": 12,
+              "agents": 3,
+              "conditions": 21,
+              "content": 4,
+              "entities": 5,
+              "events": 3,
+              "features": 14,
+              "infrastructure": 22,
+              "injects": 3,
+              "nodes": 22,
+              "objectives": 6,
+              "relationships": 9,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+            "severity": "warning",
+            "topic": "participant_visibility"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "provision.node.git-forge",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.ci-runner",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.artifact-registry",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.signing-hsm",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.control-api",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.edge-gateway-east",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.edge-gateway-west",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.telemetry-broker",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.analytics-lake",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.support-bastion",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.siem01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.vendor-idp",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.customer-idp",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.git-forge",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.ci-runner",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.artifact-registry",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.signing-hsm",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.control-api",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.edge-gateway-east",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.edge-gateway-west",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.telemetry-broker",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.analytics-lake",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.support-bastion",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.siem01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.vendor-idp",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.customer-idp",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 29,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 41
+            },
+            "orchestration": {
+              "create": 11
+            },
+            "provisioning": {
+              "create": 47
+            }
+          },
+          "resources": {
+            "evaluation": 41,
+            "orchestration": 11,
+            "provisioning": 47
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.condition.analytics-lake.analytics-ingest-healthy",
+              "evaluation.condition.ci-runner.pipeline-green",
+              "evaluation.condition.control-api.control-plane-healthy",
+              "evaluation.condition.control-api.rollback-complete",
+              "evaluation.condition.customer-idp.customer-federation-healthy",
+              "evaluation.condition.customer-portal.portal-sso-healthy",
+              "evaluation.condition.edge-gateway-east.edge-east-healthy",
+              "evaluation.condition.edge-gateway-west.edge-west-healthy",
+              "evaluation.condition.edge-gateway-west.edge-west-poisoned",
+              "evaluation.condition.git-forge.repo-integrity-healthy",
+              "evaluation.condition.siem01.release-incident-ticketed",
+              "evaluation.condition.siem01.security-pipeline-healthy",
+              "evaluation.condition.signing-hsm.signing-health",
+              "evaluation.condition.support-bastion.support-bastion-online",
+              "evaluation.condition.vendor-idp.vendor-federation-healthy",
+              "evaluation.proposition.edge-east-poisoned",
+              "evaluation.proposition.release-signature-valid",
+              "evaluation.proposition.rogue-release-promoted",
+              "evaluation.proposition.rollback-package-ready",
+              "evaluation.proposition.telemetry-flowing",
+              "evaluation.proposition.tenant-isolation-healthy",
+              "evaluation.assertion.edge-east-poisoned",
+              "evaluation.assertion.pre-edge-east-poisoned",
+              "evaluation.condition.edge-gateway-east.edge-east-poisoned",
+              "evaluation.assertion.release-signature-valid",
+              "evaluation.condition.artifact-registry.release-signature-valid",
+              "evaluation.assertion.pre-rogue-release-promoted",
+              "evaluation.assertion.rogue-release-promoted",
+              "evaluation.condition.ci-runner.rogue-release-promoted",
+              "evaluation.assertion.rollback-package-ready",
+              "evaluation.condition.artifact-registry.rollback-package-ready",
+              "evaluation.assertion.telemetry-flowing",
+              "evaluation.condition.telemetry-broker.telemetry-flowing",
+              "evaluation.assertion.tenant-isolation-healthy",
+              "evaluation.condition.customer-portal.tenant-isolation-healthy",
+              "evaluation.objective.blue-validate-release",
+              "evaluation.objective.red-compromise-build",
+              "evaluation.objective.blue-revoke-artifact",
+              "evaluation.objective.red-poison-release",
+              "evaluation.objective.red-reach-edge",
+              "evaluation.objective.blue-preserve-service"
+            ],
+            "orchestration": [
+              "orchestration.inject.customer-telemetry-ticket",
+              "orchestration.inject.exec-rollback-brief",
+              "orchestration.inject.release-freeze-brief",
+              "orchestration.workflow.release-response",
+              "orchestration.event.canary-cutover-event",
+              "orchestration.event.rollback-order-event",
+              "orchestration.event.freeze-window",
+              "orchestration.script.canary-rollout",
+              "orchestration.script.incident-rollback",
+              "orchestration.script.release-prep",
+              "orchestration.story.release-day"
+            ]
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 21,
+              "objectives": 6
+            },
+            "orchestration": {
+              "events": 3,
+              "inject_bindings": 0,
+              "injects": 3,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "participant": {
+              "action_contracts": 12,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 3
+            },
+            "provisioning": {
+              "account_placements": 7,
+              "content_placements": 4,
+              "feature_bindings": 14,
+              "networks": 8,
+              "nodes": 14
+            }
+          },
+          "metadata": {
+            "agents": 3,
+            "capability_constraints": 0,
+            "entities": 8,
+            "relationships": 9
+          },
+          "templates": {
+            "conditions": 21,
+            "features": 14,
+            "injects": 3
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 4,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "satcom-release-poisoning",
+          "populated_sections": {
+            "accounts": 7,
+            "action_contracts": 12,
+            "agents": 3,
+            "conditions": 21,
+            "content": 4,
+            "entities": 5,
+            "events": 3,
+            "features": 14,
+            "infrastructure": 22,
+            "injects": 3,
+            "nodes": 22,
+            "objectives": 6,
+            "relationships": 9,
+            "scripts": 3,
+            "stories": 1,
+            "workflows": 1
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

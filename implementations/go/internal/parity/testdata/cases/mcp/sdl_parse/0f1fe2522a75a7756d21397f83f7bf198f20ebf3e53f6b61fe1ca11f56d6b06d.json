@@ -1,0 +1,51 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:ab77d6dd9e4e0d7ef176292535c010703a1b641ab72a4947f36fdd50dcb2cb4b"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "act-617-invalid-controller",
+            "populated_sections": {
+              "agents": 2,
+              "entities": 2,
+              "nodes": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "act-617-invalid-controller",
+          "populated_sections": {
+            "agents": 2,
+            "entities": 2,
+            "nodes": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

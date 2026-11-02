@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-evaluation-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:2dd311d6c47df0b834d3f8d3e06ae121778bbae977eeaed1d23eb83ceb7cc172"
+  },
+  "name": "participant-control-evaluation-v2/routed/contracts/fixtures/participant-runtime/participant-control-evaluation-v2/context-invalid/missing-obligation.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

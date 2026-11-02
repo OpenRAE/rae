@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:de9d5f43756c03ca6f876c16f7a6d8d5a96c005fc6bbccf7cd30ad4d44d3301b"
+  },
+  "name": "regression/fa6cff2966fd56d82d3eaaf723cae1df34625351b8c93c003c2a562af8b41e37",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/workflows/flow/steps/first/type",
+              "range": {
+                "end": {
+                  "column": 44,
+                  "line": 6
+                },
+                "start": {
+                  "column": 21,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/workflows/flow/steps/first/type",
+            "range": {
+              "end": {
+                "column": 44,
+                "line": 6
+              },
+              "start": {
+                "column": 21,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

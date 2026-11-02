@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:5ed37f2bca958e9f2e15f55cd2ac1173b2e8dd0f3468ef3caa947feada319846"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

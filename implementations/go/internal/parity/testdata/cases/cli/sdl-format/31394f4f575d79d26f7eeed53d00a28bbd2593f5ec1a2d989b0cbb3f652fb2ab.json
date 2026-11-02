@@ -1,0 +1,25 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml": "sha256:398f42b002b27d85195b750ea73e57f3ce520fcd6b79e267f2c4752e251a34d4"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/core-scalars.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "description": "yes",
+      "name": "core-scalars",
+      "nodes": {
+        "on": {
+          "type": "switch"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,383 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:9e985525fe53387449dd5889c4a5f2db803dc6d0372042064bad6e9125b2d1a2"
+  },
+  "name": "examples/library/patterns/workflow-explicit-control-graph.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "pattern: raes-library-pattern\nversion: 1\nid: workflow-explicit-control-graph\nsurface: workflow\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/explain/sdl/sections.md\nsummary: Model workflow behavior as explicit objective, branch, join, retry, call,\n  and end nodes.\nintent: 'Keep workflow templates reusable by relying on named control-flow steps and\n  existing workflow semantic validation instead of prose-only sequencing.\n\n  '\nuse_when:\n- Translating an exercise procedure into workflow steps.\n- Making branch convergence or terminal states reviewable.\nauthoring_steps:\n- Define the objective names the workflow will execute.\n- Choose the smallest workflow step type that represents each transition.\n- Name joins explicitly when using parallel branches.\n- End every reachable path in an end step or a validated terminal transition.\nvalidation:\n- command: parse_sdl_file\n  expected: workflow graph is acyclic and all reachable step references resolve.\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/pattern",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 1
+                },
+                "start": {
+                  "column": 10,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 36,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 17,
+                  "line": 11
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/intent",
+              "range": {
+                "end": {
+                  "column": 4,
+                  "line": 15
+                },
+                "start": {
+                  "column": 9,
+                  "line": 12
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/use_when",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 19
+                },
+                "start": {
+                  "column": 1,
+                  "line": 17
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/authoring_steps",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 24
+                },
+                "start": {
+                  "column": 1,
+                  "line": 20
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 27
+                },
+                "start": {
+                  "column": 1,
+                  "line": 25
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "pattern: raes-library-pattern\nversion: 1\nid: workflow-explicit-control-graph\nsurface: workflow\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/explain/sdl/sections.md\nsummary: Model workflow behavior as explicit objective, branch, join, retry, call,\n  and end nodes.\nintent: 'Keep workflow templates reusable by relying on named control-flow steps and\n  existing workflow semantic validation instead of prose-only sequencing.\n\n  '\nuse_when:\n- Translating an exercise procedure into workflow steps.\n- Making branch convergence or terminal states reviewable.\nauthoring_steps:\n- Define the objective names the workflow will execute.\n- Choose the smallest workflow step type that represents each transition.\n- Name joins explicitly when using parallel branches.\n- End every reachable path in an end step or a validated terminal transition.\nvalidation:\n- command: parse_sdl_file\n  expected: workflow graph is acyclic and all reachable step references resolve.\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/pattern",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 1
+              },
+              "start": {
+                "column": 10,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 36,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 17,
+                "line": 11
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/intent",
+            "range": {
+              "end": {
+                "column": 4,
+                "line": 15
+              },
+              "start": {
+                "column": 9,
+                "line": 12
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/use_when",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 19
+              },
+              "start": {
+                "column": 1,
+                "line": 17
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/authoring_steps",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 24
+              },
+              "start": {
+                "column": 1,
+                "line": 20
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 27
+              },
+              "start": {
+                "column": 1,
+                "line": 25
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

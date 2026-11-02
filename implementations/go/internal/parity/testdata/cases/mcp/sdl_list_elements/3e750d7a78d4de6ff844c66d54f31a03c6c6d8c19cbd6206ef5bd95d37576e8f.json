@@ -1,0 +1,45 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:d85ca8d145856c70d170afc70c35649fac378bd0a5d80cd84b514cce2f8b47a3"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "alice",
+            "bob"
+          ],
+          "entities": [
+            "team-a",
+            "team-b"
+          ],
+          "relationships": [
+            "work"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "alice",
+          "bob"
+        ],
+        "entities": [
+          "team-a",
+          "team-b"
+        ],
+        "relationships": [
+          "work"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

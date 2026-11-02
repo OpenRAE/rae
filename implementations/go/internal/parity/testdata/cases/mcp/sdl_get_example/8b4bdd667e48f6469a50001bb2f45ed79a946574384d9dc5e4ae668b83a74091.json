@@ -1,0 +1,323 @@
+{
+  "args": [],
+  "command": "sdl_get_example",
+  "files": {
+    "arguments.json": "sha256:04e9a2d3a1f5f1f27eda01761c415615d5adaafff6ca40f7479f85f1c19cdabb"
+  },
+  "name": "regression/e779e30dba5ca971592bd19d6f85838be732e822dff196f46dff6fa322cc0930",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "accounts": {
+            "db-admin": {
+              "node": "database",
+              "password_strength": "weak",
+              "username": "admin"
+            }
+          },
+          "assertions": {
+            "web-alive": {
+              "proposition": "web-available",
+              "role": "postcondition"
+            }
+          },
+          "conditions": {
+            "web-alive": {
+              "command": "curl -sf http://localhost:8080/ || exit 1",
+              "interval": 15,
+              "proposition": "web-available"
+            }
+          },
+          "description": "Web app with SQL injection targeting a database",
+          "entities": {
+            "blue-team": {
+              "name": "Blue Team",
+              "role": "Blue"
+            },
+            "red-team": {
+              "name": "Red Team",
+              "role": "Red"
+            }
+          },
+          "features": {
+            "flask-app": {
+              "source": "vulnerable-flask-app",
+              "type": "Service"
+            },
+            "postgres": {
+              "source": "postgresql-16",
+              "type": "Service"
+            }
+          },
+          "infrastructure": {
+            "database": {
+              "count": 1,
+              "links": [
+                "lab-net"
+              ]
+            },
+            "lab-net": {
+              "count": 1,
+              "properties": {
+                "cidr": "10.0.0.0/24",
+                "gateway": "10.0.0.1"
+              }
+            },
+            "webapp": {
+              "count": 1,
+              "links": [
+                "lab-net"
+              ]
+            }
+          },
+          "name": "simple-pentest-lab",
+          "nodes": {
+            "database": {
+              "asset_value": {
+                "confidentiality": "high"
+              },
+              "features": [
+                "postgres"
+              ],
+              "os": "linux",
+              "resources": {
+                "cpu": 1,
+                "ram": "1 GiB"
+              },
+              "services": [
+                {
+                  "name": "postgresql",
+                  "port": 5432
+                }
+              ],
+              "type": "compute"
+            },
+            "lab-net": {
+              "description": "Lab network",
+              "type": "Switch"
+            },
+            "webapp": {
+              "features": [
+                "flask-app"
+              ],
+              "os": "linux",
+              "resources": {
+                "cpu": 1,
+                "ram": "2 GiB"
+              },
+              "services": [
+                {
+                  "name": "http",
+                  "port": 8080
+                }
+              ],
+              "type": "compute"
+            }
+          },
+          "objectives": {
+            "keep-web-alive": {
+              "description": "Keep the web application available",
+              "owner": "blue-team",
+              "success": {
+                "assertions": [
+                  "web-alive"
+                ]
+              }
+            }
+          },
+          "propositions": {
+            "web-available": {
+              "basis": "declared_state",
+              "description": "The web service reports its availability as healthy.",
+              "predicate": {
+                "kind": "presence",
+                "operator": "exists",
+                "property": "service",
+                "semantic_ref": "urn:raes:declared-property:service"
+              },
+              "subjects": [
+                "nodes.web.services.http"
+              ]
+            }
+          },
+          "relationships": {
+            "app-to-db": {
+              "properties": {
+                "port": "5432",
+                "protocol": "tcp"
+              },
+              "source": "flask-app",
+              "target": "postgres",
+              "type": "connects_to"
+            }
+          },
+          "variables": {
+            "lab_cidr": {
+              "default": "10.0.0.0/24",
+              "description": "Lab network CIDR block",
+              "type": "string"
+            }
+          }
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "accounts": {
+          "db-admin": {
+            "node": "database",
+            "password_strength": "weak",
+            "username": "admin"
+          }
+        },
+        "assertions": {
+          "web-alive": {
+            "proposition": "web-available",
+            "role": "postcondition"
+          }
+        },
+        "conditions": {
+          "web-alive": {
+            "command": "curl -sf http://localhost:8080/ || exit 1",
+            "interval": 15,
+            "proposition": "web-available"
+          }
+        },
+        "description": "Web app with SQL injection targeting a database",
+        "entities": {
+          "blue-team": {
+            "name": "Blue Team",
+            "role": "Blue"
+          },
+          "red-team": {
+            "name": "Red Team",
+            "role": "Red"
+          }
+        },
+        "features": {
+          "flask-app": {
+            "source": "vulnerable-flask-app",
+            "type": "Service"
+          },
+          "postgres": {
+            "source": "postgresql-16",
+            "type": "Service"
+          }
+        },
+        "infrastructure": {
+          "database": {
+            "count": 1,
+            "links": [
+              "lab-net"
+            ]
+          },
+          "lab-net": {
+            "count": 1,
+            "properties": {
+              "cidr": "10.0.0.0/24",
+              "gateway": "10.0.0.1"
+            }
+          },
+          "webapp": {
+            "count": 1,
+            "links": [
+              "lab-net"
+            ]
+          }
+        },
+        "name": "simple-pentest-lab",
+        "nodes": {
+          "database": {
+            "asset_value": {
+              "confidentiality": "high"
+            },
+            "features": [
+              "postgres"
+            ],
+            "os": "linux",
+            "resources": {
+              "cpu": 1,
+              "ram": "1 GiB"
+            },
+            "services": [
+              {
+                "name": "postgresql",
+                "port": 5432
+              }
+            ],
+            "type": "compute"
+          },
+          "lab-net": {
+            "description": "Lab network",
+            "type": "Switch"
+          },
+          "webapp": {
+            "features": [
+              "flask-app"
+            ],
+            "os": "linux",
+            "resources": {
+              "cpu": 1,
+              "ram": "2 GiB"
+            },
+            "services": [
+              {
+                "name": "http",
+                "port": 8080
+              }
+            ],
+            "type": "compute"
+          }
+        },
+        "objectives": {
+          "keep-web-alive": {
+            "description": "Keep the web application available",
+            "owner": "blue-team",
+            "success": {
+              "assertions": [
+                "web-alive"
+              ]
+            }
+          }
+        },
+        "propositions": {
+          "web-available": {
+            "basis": "declared_state",
+            "description": "The web service reports its availability as healthy.",
+            "predicate": {
+              "kind": "presence",
+              "operator": "exists",
+              "property": "service",
+              "semantic_ref": "urn:raes:declared-property:service"
+            },
+            "subjects": [
+              "nodes.web.services.http"
+            ]
+          }
+        },
+        "relationships": {
+          "app-to-db": {
+            "properties": {
+              "port": "5432",
+              "protocol": "tcp"
+            },
+            "source": "flask-app",
+            "target": "postgres",
+            "type": "connects_to"
+          }
+        },
+        "variables": {
+          "lab_cidr": {
+            "default": "10.0.0.0/24",
+            "description": "Lab network CIDR block",
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "surface": "mcp"
+}

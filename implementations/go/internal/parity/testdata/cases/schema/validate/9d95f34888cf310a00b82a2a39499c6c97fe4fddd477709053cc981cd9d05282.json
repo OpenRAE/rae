@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realization-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:d01d24e8b86a26f984d04fbd10adb9eb1127d948321f6e28ee9bef9c4322b731"
+  },
+  "name": "regression/62891523a5ae7718d5e9b0abdd71b3e4d1124ee5b083dc1504dca80347f6a94d",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

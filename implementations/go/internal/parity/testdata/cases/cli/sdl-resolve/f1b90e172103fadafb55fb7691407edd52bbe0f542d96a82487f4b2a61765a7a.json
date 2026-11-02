@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/scenarios/satcom-release-poisoning.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/scenarios/satcom-release-poisoning.sdl.yaml": "sha256:cc29a410842ae0c4483f7809c74d639308046d0e8be8641898e4855639570572"
+  },
+  "name": "examples/scenarios/satcom-release-poisoning.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

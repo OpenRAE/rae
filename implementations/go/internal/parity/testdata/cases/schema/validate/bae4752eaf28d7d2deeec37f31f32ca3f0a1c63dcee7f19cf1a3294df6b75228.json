@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-time-management-context-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:de3f34a57f28cbf6f1c60be3ecdbd2a26b4ef66b7b68b77ebb4d3f06d29247b6"
+  },
+  "name": "participant-time-management-context-v1/routed/contracts/fixtures/participant-runtime/participant-time-management-context-v1/valid/backend-serialized-logical-clock.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

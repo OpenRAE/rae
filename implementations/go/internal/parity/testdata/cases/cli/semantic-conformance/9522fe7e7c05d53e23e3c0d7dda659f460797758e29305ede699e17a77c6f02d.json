@@ -1,0 +1,37 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.yaml": "sha256:e4a5893338074acacb6d3a2e7b6141213145ff74a7e84b801b24cfd9f141df61"
+  },
+  "name": "examples/library/patterns/task-as-objective-contract",
+  "result": {
+    "exit_code": 3,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "conformance",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "unsupported",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

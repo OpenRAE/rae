@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-manifest-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c05883048e3d34002638116ce1a23ccf3f825d28300affd35e70ea931656a51e"
+  },
+  "name": "regression/c84293a95b1d4515967f7442e4493337fa1f0b6f7ad9c115dfc65f37fe4d4054",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

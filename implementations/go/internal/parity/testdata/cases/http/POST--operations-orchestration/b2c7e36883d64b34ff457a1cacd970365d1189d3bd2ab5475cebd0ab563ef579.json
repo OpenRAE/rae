@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /operations/orchestration",
+  "files": {
+    "request.json": "sha256:3ffb270b4bde6e91b71d4e73cd2716847c9baedd9c817acc36ed113538cb50d1"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

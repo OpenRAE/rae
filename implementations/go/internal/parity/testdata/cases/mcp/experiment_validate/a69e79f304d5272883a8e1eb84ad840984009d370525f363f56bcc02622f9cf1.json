@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "experiment_validate",
+  "files": {
+    "arguments.json": "sha256:926a6f44498cfd0c1e349b8e92a07ac9fb6e5de10d5bad53633f007fc50c4259"
+  },
+  "name": "examples/experiments/techvault-variation-selection.exp.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

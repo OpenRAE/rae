@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_instantiate",
+  "files": {
+    "arguments.json": "sha256:cbec5e8889334da018d67b0f4f15290b4ea46e2b14359531e875545f071fc86e"
+  },
+  "name": "regression/5177b1de162ff66b10f47e55b2b2890e13a1293e96892010b377cc7a478c9697",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "INSTANTIATION ERRORS (1)": [
+            "Variable 'greeting' is required and has no provided value or default."
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "INSTANTIATION ERRORS (1)": [
+          "Variable 'greeting' is required and has no provided value or default."
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

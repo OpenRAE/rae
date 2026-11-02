@@ -1,0 +1,98 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:f7b3b6013ba94dc5be7a1cf04ecc8df84f01a8c48775280a3e717db3079b2907"
+  },
+  "name": "examples/library/templates/participant_behavior/action-contract-observation-boundary",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [
+        {
+          "address": "/name",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/version",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/template",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/id",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/surface",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/requirement_refs",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/source_refs",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/summary",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/validation",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        },
+        {
+          "address": "/body",
+          "code": "sdl.model.invalid",
+          "domain": "sdl-parse",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {},
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": null
+    }
+  },
+  "surface": "cli"
+}

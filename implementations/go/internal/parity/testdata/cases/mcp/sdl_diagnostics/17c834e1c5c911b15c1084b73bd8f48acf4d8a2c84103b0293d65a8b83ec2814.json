@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_diagnostics",
+  "files": {
+    "arguments.json": "sha256:78270d1f702f5c986d4fb05bbe941c682d363ad113c129b31873479286907ee6"
+  },
+  "name": "examples/scenarios/participant-tools/twice-imported.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,39 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:f2a1c1170cbca74f6428f21f6d6bcb0d34eb8e1107928e0e020f553a2bb18824"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/root.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

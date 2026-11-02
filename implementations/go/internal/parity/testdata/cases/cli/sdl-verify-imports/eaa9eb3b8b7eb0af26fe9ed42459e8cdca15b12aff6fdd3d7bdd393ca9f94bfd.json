@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml": "sha256:e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e",
+    "setup.json": "sha256:5bc288d7a8312610161e82928e0bb2804dc7176545ebfc9ce7411335c9b6100d"
+  },
+  "name": "examples/scenarios/techvault-bounded-native.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

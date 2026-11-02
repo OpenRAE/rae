@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-inject-delivery-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:892e739ab1136442a7d2c2c421866ea9a8a480f6fbf219e8158a37df44b5984b"
+  },
+  "name": "participant-inject-delivery-v1/routed/contracts/fixtures/control-plane/participant-inject-delivery-v1/context-invalid/coordinate-mismatch.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

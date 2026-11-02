@@ -1,0 +1,35 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:17b907ccd663225dd82e92589e94e7f570dcd04c8b6458f6ae5fe94d96b85ada"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": [
+            "payload"
+          ],
+          "nodes": [
+            "primary"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": [
+          "payload"
+        ],
+        "nodes": [
+          "primary"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

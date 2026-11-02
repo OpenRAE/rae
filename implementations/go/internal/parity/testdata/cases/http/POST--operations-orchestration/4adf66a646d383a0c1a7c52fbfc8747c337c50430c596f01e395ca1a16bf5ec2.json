@@ -1,0 +1,35 @@
+{
+  "args": [],
+  "command": "POST /operations/orchestration",
+  "files": {
+    "body.bin": "sha256:27564d157c5b856a159c7de7d985902883e15fee28d9270d641b1357b21f12d4",
+    "request.json": "sha256:23ba0ae92e1d75f3c5250cd33a400bc21324df782fd944a7508bbd394616552e"
+  },
+  "name": "regression/d7af780b46ed217bd98e1a8c96ef7006283e7124b265d7e68b062d052c3f5262",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "backend",
+        "authorization_scope": [
+          "role:backend"
+        ],
+        "operation_kind": "orchestration",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:bb1d239adcf6e3506d001dcb1c59fa95291e882374eb399689302fe34506a332",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "orchestration",
+      "operation_id": "4f1f1b51-269c-4d6c-bb8f-311777643def",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

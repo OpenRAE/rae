@@ -1,0 +1,61 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:2b63960b60b70e7a8478155be2cd8e8d9e9dbd85c0994232648891b7d6e93b4a"
+  },
+  "name": "regression/22756e6b678240b0a251c308fc9c8ba49928f7b5ec7acf54e094d76b62073150",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "reconciliation-demo",
+            "populated_sections": {
+              "conditions": 1,
+              "entities": 1,
+              "events": 1,
+              "infrastructure": 4,
+              "nodes": 4,
+              "objectives": 1,
+              "scripts": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "1.0.0"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "reconciliation-demo",
+          "populated_sections": {
+            "conditions": 1,
+            "entities": 1,
+            "events": 1,
+            "infrastructure": 4,
+            "nodes": 4,
+            "objectives": 1,
+            "scripts": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "1.0.0"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

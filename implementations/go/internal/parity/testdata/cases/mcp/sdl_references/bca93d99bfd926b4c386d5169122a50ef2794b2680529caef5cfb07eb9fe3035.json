@@ -1,0 +1,157 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:2211f63fdcafe69ccf4b149ee9396bba819858089ebfbc1ec9eedbae80a9f08c"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [
+            {
+              "name": "web",
+              "path": "/nodes/web",
+              "qualified_name": "nodes.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 3
+                },
+                "start": {
+                  "column": 3,
+                  "line": 3
+                }
+              },
+              "section": "nodes"
+            }
+          ],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/nodes/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 3
+                },
+                "start": {
+                  "column": 3,
+                  "line": 3
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/content/briefing/target",
+              "range": {
+                "end": {
+                  "column": 16,
+                  "line": 12
+                },
+                "start": {
+                  "column": 13,
+                  "line": 12
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/evidence_requirements/briefing-delivery-evidence/scope_refs/0",
+              "range": {
+                "end": {
+                  "column": 21,
+                  "line": 61
+                },
+                "start": {
+                  "column": 18,
+                  "line": 61
+                }
+              },
+              "value": "web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [
+          {
+            "name": "web",
+            "path": "/nodes/web",
+            "qualified_name": "nodes.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 3
+              },
+              "start": {
+                "column": 3,
+                "line": 3
+              }
+            },
+            "section": "nodes"
+          }
+        ],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/nodes/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 3
+              },
+              "start": {
+                "column": 3,
+                "line": 3
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/content/briefing/target",
+            "range": {
+              "end": {
+                "column": 16,
+                "line": 12
+              },
+              "start": {
+                "column": 13,
+                "line": 12
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/evidence_requirements/briefing-delivery-evidence/scope_refs/0",
+            "range": {
+              "end": {
+                "column": 21,
+                "line": 61
+              },
+              "start": {
+                "column": 18,
+                "line": 61
+              }
+            },
+            "value": "web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,37 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:89a6fbc93eb2fbbf7536406911e520bdc469930a0aa4b2d15edc78beea966bba"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": [
+            "company-mail",
+            "job-index-schema"
+          ],
+          "nodes": [
+            "mail"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": [
+          "company-mail",
+          "job-index-schema"
+        ],
+        "nodes": [
+          "mail"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

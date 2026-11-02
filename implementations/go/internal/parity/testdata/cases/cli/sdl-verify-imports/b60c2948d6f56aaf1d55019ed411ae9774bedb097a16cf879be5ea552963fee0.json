@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml": "sha256:9e541184d9dcd003db1c42ee8384aaef2dcd8810d908ead7b5d3ccd983fe26f5",
+    "setup.json": "sha256:eb6b4d41a622247c7944c0ce49942cd8338eb4ca23b4c40fd320b21ff8dc91a3"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/sdl-yaml-v1/valid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

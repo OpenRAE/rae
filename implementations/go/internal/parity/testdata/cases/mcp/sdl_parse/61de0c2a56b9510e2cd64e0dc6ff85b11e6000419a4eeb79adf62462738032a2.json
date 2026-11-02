@@ -1,0 +1,75 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:d2e38a0afda2f0c34af27595e02fed548af32b2edffb2010e90907cf5b6fe523"
+  },
+  "name": "regression/173113e28a63e3f54337a397d6eb135026d39a1247e7e7dae1d953889787349e",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "hospital-ransomware-surgery-day",
+            "populated_sections": {
+              "accounts": 9,
+              "action_contracts": 16,
+              "agents": 4,
+              "conditions": 19,
+              "content": 5,
+              "entities": 4,
+              "events": 3,
+              "features": 12,
+              "infrastructure": 18,
+              "injects": 3,
+              "nodes": 18,
+              "objectives": 5,
+              "relationships": 10,
+              "scripts": 3,
+              "stories": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "hospital-ransomware-surgery-day",
+          "populated_sections": {
+            "accounts": 9,
+            "action_contracts": 16,
+            "agents": 4,
+            "conditions": 19,
+            "content": 5,
+            "entities": 4,
+            "events": 3,
+            "features": 12,
+            "infrastructure": 18,
+            "injects": 3,
+            "nodes": 18,
+            "objectives": 5,
+            "relationships": 10,
+            "scripts": 3,
+            "stories": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/directive.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/directive.yaml": "sha256:a45c79b9c161e133b97a55949a9c0e4a97e6cdacf57479841ca4332030ac173c"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/directive.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

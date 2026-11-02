@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-semantic-migration-context-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:2773ffc3e34edf458fc1b7be7ec3177bb8bb6937d9dedad66aa4d3403677925c"
+  },
+  "name": "regression/87f94ad27981feef0e0fdc54645280f7ba73a724981cd96ab5cc6ccd68e7397c",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

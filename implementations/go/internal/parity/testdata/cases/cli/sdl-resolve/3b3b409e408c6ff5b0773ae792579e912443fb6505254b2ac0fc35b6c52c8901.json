@@ -1,0 +1,23 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/scenarios/guided-web-probe.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/scenarios/guided-web-probe.sdl.yaml": "sha256:9b7acc3f4c8a1731600ee6152e34e09d1d84e9bc12b45c9047e27092b8239b7e"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

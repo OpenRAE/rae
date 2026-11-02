@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:3c0776e6a588c6280564c1da9b525a34865e44fc509157d5f1c7c0f8ba00b669"
+  },
+  "name": "regression/7d28eb3046115c2150d34034f90c5e05b684e547bd2f30ed2cc77ce1a0be6683",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "k884epxf54xpdoy871",
+                "k884epxf54xpdoy871"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/k884epxf54xpdoy871",
+              "range": {
+                "end": {
+                  "column": 21,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'k884epxf54xpdoy871'.",
+                  "range": {
+                    "end": {
+                      "column": 21,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "k884epxf54xpdoy871",
+              "k884epxf54xpdoy871"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/k884epxf54xpdoy871",
+            "range": {
+              "end": {
+                "column": 21,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'k884epxf54xpdoy871'.",
+                "range": {
+                  "end": {
+                    "column": 21,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

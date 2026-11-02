@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/provisioning",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:85b16e78560c74228a1ee3de3f2f662a4723acb2aad6a17aba9c229d1a7e92f1"
+  },
+  "name": "regression/c81ba50e28a9dd37e098226d6751c8327e0b0f04bedfe550b47be079ade54ebe",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 413
+  },
+  "surface": "http"
+}

@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:8885f6f5ff3f9decfe898dfa621795a2192be5468a711d231c5c2db3d33960d0"
+  },
+  "name": "regression/14f868af215d1316eb747ac0cbe90ac75fb22fd5d43bd4f611cadadc5aea4b28",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/controlled-red/mixed_control/mixed-control-policy-occurrence~1rev1/script_steps/0/valid_until_order",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 137
+                },
+                "start": {
+                  "column": 7,
+                  "line": 43
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/controlled-red/mixed_control/mixed-control-policy-occurrence~1rev1/script_steps/0/valid_until_order",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 137
+              },
+              "start": {
+                "column": 7,
+                "line": 43
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

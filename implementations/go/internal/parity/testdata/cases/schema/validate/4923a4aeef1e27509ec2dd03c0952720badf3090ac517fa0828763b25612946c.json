@@ -1,0 +1,14 @@
+{
+  "args": [
+    "instantiated-scenario-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:727531b76a5aac93e33ad62195d03764542e9eef34e87ed261b82632564f325d"
+  },
+  "name": "instantiated-scenario-v1/routed/contracts/fixtures/sdl/instantiated-scenario-v1/valid/minimal.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

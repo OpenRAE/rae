@@ -1,0 +1,35 @@
+{
+  "args": [],
+  "command": "POST /operations/evaluation",
+  "files": {
+    "body.bin": "sha256:a657e22748126a37e2d18801ebb932b8380b17b94cb9c3ef05aebe5a09a6e72b",
+    "request.json": "sha256:094b4af16fe62328dd0256656a9fe29f4e68aa619ab7a6181cbf9029359b2b6e"
+  },
+  "name": "regression/a9442aa2b2100d9893b49235cb1306f168c31128683ed0d6fdeafa709c7b13d2",
+  "result": {
+    "body": {
+      "accepted": true,
+      "context": {
+        "actor_id": "backend",
+        "authorization_scope": [
+          "role:backend"
+        ],
+        "operation_kind": "evaluation",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:76e5fa5b68e93c6bd6ae91e0aefc1ee608b2ae393adce85ca54f8e95a1c1036d",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [],
+      "domain": "evaluation",
+      "operation_id": "52cacae5-7841-4677-b32e-da4ae8e618a6",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

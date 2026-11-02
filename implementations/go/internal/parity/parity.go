@@ -16,18 +16,17 @@ package parity
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
-	"path"
+	"regexp"
+	"strings"
 )
 
 // Schema is the schema identifier of the corpus manifest.
-const Schema = "raes-parity-corpus/v1"
+const Schema = "raes-parity-corpus/v2"
 
 // Case is one recorded invocation of a surface command.
 type Case struct {
@@ -53,30 +52,11 @@ type Runner func(ctx context.Context, c Case) (json.RawMessage, error)
 // Load returns the cases of the corpus in fsys. It rejects an unknown schema,
 // unknown fields, and an input file whose content does not match its digest.
 func Load(fsys fs.FS) ([]Case, error) {
-	var manifest struct {
-		Schema    string `json:"schema"`
-		Reference *struct {
-			Source   string `json:"source_sha256"`
-			Recorder string `json:"recorder_sha256"`
-			Python   string `json:"python"`
-			Unicode  string `json:"unicode"`
-		} `json:"reference"`
-	}
-	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
+	if err := validateManifest(fsys); err != nil {
 		return nil, err
 	}
-	if manifest.Schema != Schema {
-		return nil, fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
-	}
-	if manifest.Reference == nil || manifest.Reference.Python == "" || manifest.Reference.Unicode == "" {
-		return nil, errors.New("manifest.json: missing reference identity")
-	}
-	for _, sum := range []string{manifest.Reference.Source, manifest.Reference.Recorder} {
-		if decoded, err := hex.DecodeString(sum); err != nil || len(decoded) != sha256.Size {
-			return nil, errors.New("manifest.json: invalid reference digest")
-		}
-	}
 	var cases []Case
+	seen := map[string]bool{}
 	err := fs.WalkDir(fsys, "cases", func(name string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -88,11 +68,19 @@ func Load(fsys fs.FS) ([]Case, error) {
 		if err != nil {
 			return err
 		}
+		identity := c.Key() + "/" + c.Name
+		if seen[identity] {
+			return fmt.Errorf("%s: duplicate case %q", name, identity)
+		}
+		seen[identity] = true
 		cases = append(cases, c)
 		return nil
 	})
 	if err != nil {
 		return nil, err
+	}
+	if len(cases) == 0 {
+		return nil, errors.New("corpus contains no cases")
 	}
 	return cases, nil
 }
@@ -109,14 +97,24 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 	if err := decodeFile(fsys, name, &record); err != nil {
 		return Case{}, err
 	}
+	if strings.TrimSpace(record.Name) == "" || strings.TrimSpace(record.Surface) == "" || strings.TrimSpace(record.Command) == "" {
+		return Case{}, fmt.Errorf("%s: missing case identity", name)
+	}
+	if len(record.Result) == 0 || bytes.Equal(record.Result, []byte("null")) {
+		return Case{}, fmt.Errorf("%s: missing result", name)
+	}
 	files := make(map[string][]byte, len(record.Files))
-	for fileName, digest := range record.Files {
-		content, err := fs.ReadFile(fsys, path.Join("inputs", digest))
+	for fileName, reference := range record.Files {
+		if !fs.ValidPath(fileName) || strings.Contains(fileName, "\\") || strings.Contains(fileName, ":") {
+			return Case{}, fmt.Errorf("%s: unsafe input name %q", name, fileName)
+		}
+		digest, tagged := strings.CutPrefix(reference, "sha256:")
+		if !tagged {
+			return Case{}, fmt.Errorf("%s: invalid input digest", name)
+		}
+		content, err := readBlob(fsys, digest)
 		if err != nil {
 			return Case{}, fmt.Errorf("%s: input %s: %w", name, fileName, err)
-		}
-		if sum := sha256.Sum256(content); hex.EncodeToString(sum[:]) != digest {
-			return Case{}, fmt.Errorf("%s: input %s does not match its digest", name, fileName)
 		}
 		files[fileName] = content
 	}
@@ -132,10 +130,14 @@ func loadCase(fsys fs.FS, name string) (Case, error) {
 
 // decodeFile decodes the single JSON value in the file name into v.
 func decodeFile(fsys fs.FS, name string, v any) error {
-	content, err := fs.ReadFile(fsys, name)
+	content, err := documentBytes(fsys, name)
 	if err != nil {
 		return err
 	}
+	return decodeJSON(content, name, v)
+}
+
+func decodeJSON(content []byte, name string, v any) error {
 	decoder := json.NewDecoder(bytes.NewReader(content))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(v); err != nil {
@@ -143,6 +145,66 @@ func decodeFile(fsys fs.FS, name string, v any) error {
 	}
 	if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
 		return fmt.Errorf("decode %s: data follows the value", name)
+	}
+	return nil
+}
+
+// hexDigest accepts only a lowercase hexadecimal digest of the given length.
+func hexDigest(value string, length int) bool {
+	if len(value) != length {
+		return false
+	}
+	for _, digit := range value {
+		if (digit < '0' || digit > '9') && (digit < 'a' || digit > 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+func validateManifest(fsys fs.FS) error {
+	var manifest struct {
+		Schema     string `json:"schema"`
+		Provenance struct {
+			PythonCommit   string `json:"python_commit"`
+			PythonTree     string `json:"python_tree"`
+			RecorderSHA256 string `json:"recorder_sha256"`
+			PythonVersion  string `json:"python_version"`
+			UnicodeVersion string `json:"unicode_version"`
+			HashSeed       string `json:"hash_seed"`
+			LockSHA256     string `json:"lock_sha256"`
+		} `json:"provenance"`
+	}
+	if err := decodeFile(fsys, "manifest.json", &manifest); err != nil {
+		return err
+	}
+	if manifest.Schema != Schema {
+		return fmt.Errorf("manifest.json: schema is %q, want %q", manifest.Schema, Schema)
+	}
+	for name, value := range map[string]string{
+		"python_commit": manifest.Provenance.PythonCommit,
+		"python_tree":   manifest.Provenance.PythonTree,
+	} {
+		if !hexDigest(value, 40) {
+			return fmt.Errorf("manifest.json: invalid %s", name)
+		}
+	}
+	for name, value := range map[string]string{
+		"recorder_sha256": manifest.Provenance.RecorderSHA256,
+		"lock_sha256":     manifest.Provenance.LockSHA256,
+	} {
+		if !hexDigest(value, 64) {
+			return fmt.Errorf("manifest.json: invalid %s", name)
+		}
+	}
+	if !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`).MatchString(manifest.Provenance.PythonVersion) {
+		return errors.New("manifest.json: invalid python_version")
+	}
+	if !regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`).MatchString(manifest.Provenance.UnicodeVersion) {
+		return errors.New("manifest.json: invalid unicode_version")
+	}
+	if manifest.Provenance.HashSeed != "0" {
+		return errors.New("manifest.json: hash_seed must be 0")
 	}
 	return nil
 }

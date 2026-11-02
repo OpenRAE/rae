@@ -1,0 +1,49 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "repo/examples/scenarios/participant-tools/twice-imported.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec",
+    "repo/examples/scenarios/participant-tools/twice-imported.sdl.yaml": "sha256:51a493e7da1910673edfd8753369f7923d007ca056d6906878fd75e11f27c10e"
+  },
+  "name": "examples/scenarios/participant-tools/twice-imported.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/participant-tools/raes.lock.json": {
+        "imports": [
+          {
+            "content_digest": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec",
+            "export_hash": "3f7a65ceb6efe7a81e04c995e0e799a81de718be935adc4b74da90e1843eb866",
+            "manifest_digest": "",
+            "module_id": "acme/scanner-toolkit",
+            "module_version": "2.1.0",
+            "namespace": "alpha",
+            "requested_version": "2.1.0",
+            "resolved_source": "tool-kit.sdl.yaml",
+            "signer_id": "",
+            "source": "local:tool-kit.sdl.yaml"
+          },
+          {
+            "content_digest": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec",
+            "export_hash": "3f7a65ceb6efe7a81e04c995e0e799a81de718be935adc4b74da90e1843eb866",
+            "manifest_digest": "",
+            "module_id": "acme/scanner-toolkit",
+            "module_version": "2.1.0",
+            "namespace": "bravo",
+            "requested_version": ">=2,<3",
+            "resolved_source": "tool-kit.sdl.yaml",
+            "signer_id": "",
+            "source": "local:tool-kit.sdl.yaml"
+          }
+        ],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

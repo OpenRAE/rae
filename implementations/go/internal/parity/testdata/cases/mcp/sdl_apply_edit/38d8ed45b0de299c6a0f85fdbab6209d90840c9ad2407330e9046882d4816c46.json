@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:7a7909f8fb18dd87f449d92fd4aae4c9c192dd90dfc757208f648797f3db015d"
+  },
+  "name": "examples/scenarios/techvault-observability-core.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\ndescription: 'Curated TechVault observability-core slice. Declares only the OTEL core\n  observability stack to prove the backend realizes the smallest bounded startup surface\n  from declared SDL content.\n\n  '\nnodes:\n  security-net:\n    type: switch\n    description: SOC and security tooling network.\n  aptl-otel-collector:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n    - name: otlp-grpc\n      port: 4317\n      protocol: tcp\n    - name: otlp-http\n      port: 4318\n      protocol: tcp\n  aptl-tempo:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n    - name: tempo-http\n      port: 3200\n      protocol: tcp\n  aptl-grafana-otel:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n    - name: grafana\n      port: 3000\n      protocol: tcp\ninfrastructure:\n  security-net:\n    properties:\n      cidr: 172.20.0.0/24\n      gateway: 172.20.0.1\n      internal: false\n  aptl-otel-collector:\n    links:\n    - security-net\n  aptl-tempo:\n    links:\n    - security-net\n  aptl-grafana-otel:\n    links:\n    - security-net\n    dependencies:\n    - aptl-tempo\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\ndescription: 'Curated TechVault observability-core slice. Declares only the OTEL core\n  observability stack to prove the backend realizes the smallest bounded startup surface\n  from declared SDL content.\n\n  '\nnodes:\n  security-net:\n    type: switch\n    description: SOC and security tooling network.\n  aptl-otel-collector:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n    - name: otlp-grpc\n      port: 4317\n      protocol: tcp\n    - name: otlp-http\n      port: 4318\n      protocol: tcp\n  aptl-tempo:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n    - name: tempo-http\n      port: 3200\n      protocol: tcp\n  aptl-grafana-otel:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n    - name: grafana\n      port: 3000\n      protocol: tcp\ninfrastructure:\n  security-net:\n    properties:\n      cidr: 172.20.0.0/24\n      gateway: 172.20.0.1\n      internal: false\n  aptl-otel-collector:\n    links:\n    - security-net\n  aptl-tempo:\n    links:\n    - security-net\n  aptl-grafana-otel:\n    links:\n    - security-net\n    dependencies:\n    - aptl-tempo\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

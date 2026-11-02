@@ -1,0 +1,14 @@
+{
+  "args": [
+    "authoring-adapter-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:28dca375fccfc4a6d62d941a23b2257a97410cd139aef9ef417f1f7d1aa275aa"
+  },
+  "name": "authoring-adapter-vector-v1/routed/contracts/fixtures/authoring-adapters-v1/cases/rename-collision.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

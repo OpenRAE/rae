@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:072c15138f7de9e4341711ea487c354c14d0cbdb936c3bd5db71b0fb43298b87"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: wazuh-third-party-repository\nnodes:\n  manager:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    runtime:\n      packages:\n      - manager: apt\n        name: wazuh-agent\n        version: 4.12.0-1\n        repository:\n          repository_profile: apt\n          profile_version: '1'\n          uri: https://packages.wazuh.com/4.x/apt/\n          suite: stable\n          components:\n          - main\n          signing_key:\n            uri: https://packages.wazuh.com/key/GPG-KEY-WAZUH\n            format: openpgp-ascii-armored\n            digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: wazuh-third-party-repository\nnodes:\n  manager:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    runtime:\n      packages:\n      - manager: apt\n        name: wazuh-agent\n        version: 4.12.0-1\n        repository:\n          repository_profile: apt\n          profile_version: '1'\n          uri: https://packages.wazuh.com/4.x/apt/\n          suite: stable\n          components:\n          - main\n          signing_key:\n            uri: https://packages.wazuh.com/key/GPG-KEY-WAZUH\n            format: openpgp-ascii-armored\n            digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:4a00038514630a9f58fb29a9caf1b91661e1e7dd5500bb18955c3e5defe4cd04"
+  },
+  "name": "regression/e84c77f0414b893f3326f27a5c6bb5e33243f9d23387661527780346b9180ae8",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "sw",
+                "sw"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/sw",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'sw'.",
+                  "range": {
+                    "end": {
+                      "column": 5,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "sw",
+              "sw"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/sw",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'sw'.",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

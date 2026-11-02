@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:b63c3f8f6430a3849a40c8f57d9da1903015ba107b570ac7ea0a806379d4455b"
+  },
+  "name": "regression/b5d33796339d6bbf63556026601950a88fbb933daf67eb517b7fe09bf7b79827",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "name",
+                "name"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 2
+                },
+                "start": {
+                  "column": 1,
+                  "line": 2
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'name'.",
+                  "range": {
+                    "end": {
+                      "column": 5,
+                      "line": 1
+                    },
+                    "start": {
+                      "column": 1,
+                      "line": 1
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "name",
+              "name"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/name",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 2
+              },
+              "start": {
+                "column": 1,
+                "line": 2
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'name'.",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 1
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 1
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

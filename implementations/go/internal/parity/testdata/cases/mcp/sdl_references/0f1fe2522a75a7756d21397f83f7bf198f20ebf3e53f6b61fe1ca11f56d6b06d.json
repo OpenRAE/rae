@@ -1,0 +1,277 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:c366d93a0b32637b3fe28f5db1d9dc94e92515d41ba88b38ef18473f2c2c31f6"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [
+            {
+              "name": "web",
+              "path": "/nodes/web",
+              "qualified_name": "nodes.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 3
+                },
+                "start": {
+                  "column": 3,
+                  "line": 3
+                }
+              },
+              "section": "nodes"
+            }
+          ],
+          "occurrences": [
+            {
+              "kind": "mapping_key",
+              "path": "/nodes/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 3
+                },
+                "start": {
+                  "column": 3,
+                  "line": 3
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/agents/red-agent/operating_scope/0",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 13
+                },
+                "start": {
+                  "column": 23,
+                  "line": 13
+                }
+              },
+              "value": "nodes.web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/agents/supervisor-agent/operating_scope/0",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 17
+                },
+                "start": {
+                  "column": 23,
+                  "line": 17
+                }
+              },
+              "value": "nodes.web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/behavior_specifications/controlled-red/authority_scope_refs/0",
+              "range": {
+                "end": {
+                  "column": 37,
+                  "line": 22
+                },
+                "start": {
+                  "column": 28,
+                  "line": 22
+                }
+              },
+              "value": "nodes.web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/behavior_specifications/controlled-red/mixed_control/controller_states/autonomous/scope_refs/0",
+              "range": {
+                "end": {
+                  "column": 33,
+                  "line": 40
+                },
+                "start": {
+                  "column": 24,
+                  "line": 40
+                }
+              },
+              "value": "nodes.web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/behavior_specifications/controlled-red/mixed_control/controller_states/pending/scope_refs/0",
+              "range": {
+                "end": {
+                  "column": 33,
+                  "line": 49
+                },
+                "start": {
+                  "column": 24,
+                  "line": 49
+                }
+              },
+              "value": "nodes.web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/behavior_specifications/controlled-red/mixed_control/controller_states/supervised/scope_refs/0",
+              "range": {
+                "end": {
+                  "column": 33,
+                  "line": 58
+                },
+                "start": {
+                  "column": 24,
+                  "line": 58
+                }
+              },
+              "value": "nodes.web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [
+          {
+            "name": "web",
+            "path": "/nodes/web",
+            "qualified_name": "nodes.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 3
+              },
+              "start": {
+                "column": 3,
+                "line": 3
+              }
+            },
+            "section": "nodes"
+          }
+        ],
+        "occurrences": [
+          {
+            "kind": "mapping_key",
+            "path": "/nodes/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 3
+              },
+              "start": {
+                "column": 3,
+                "line": 3
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/agents/red-agent/operating_scope/0",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 13
+              },
+              "start": {
+                "column": 23,
+                "line": 13
+              }
+            },
+            "value": "nodes.web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/agents/supervisor-agent/operating_scope/0",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 17
+              },
+              "start": {
+                "column": 23,
+                "line": 17
+              }
+            },
+            "value": "nodes.web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/behavior_specifications/controlled-red/authority_scope_refs/0",
+            "range": {
+              "end": {
+                "column": 37,
+                "line": 22
+              },
+              "start": {
+                "column": 28,
+                "line": 22
+              }
+            },
+            "value": "nodes.web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/behavior_specifications/controlled-red/mixed_control/controller_states/autonomous/scope_refs/0",
+            "range": {
+              "end": {
+                "column": 33,
+                "line": 40
+              },
+              "start": {
+                "column": 24,
+                "line": 40
+              }
+            },
+            "value": "nodes.web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/behavior_specifications/controlled-red/mixed_control/controller_states/pending/scope_refs/0",
+            "range": {
+              "end": {
+                "column": 33,
+                "line": 49
+              },
+              "start": {
+                "column": 24,
+                "line": 49
+              }
+            },
+            "value": "nodes.web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/behavior_specifications/controlled-red/mixed_control/controller_states/supervised/scope_refs/0",
+            "range": {
+              "end": {
+                "column": 33,
+                "line": 58
+              },
+              "start": {
+                "column": 24,
+                "line": 58
+              }
+            },
+            "value": "nodes.web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

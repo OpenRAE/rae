@@ -1,0 +1,319 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:a054174b7d7d755611b813c1e2ca1b58b8b6ea2eb5d6fc198540091f545049cc"
+  },
+  "name": "examples/library/templates/workflow/parallel-objective-workflow.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "template: raes-library-template\nversion: 1\nid: parallel-objective-workflow\nsurface: workflow\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Parallel workflow template with explicit branch convergence through a join\n  step.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-workflow-template\n  description: Workflow template showing parallel objective branches converging at\n    an explicit join.\n  nodes:\n    service:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 443\n        name: https\n  conditions:\n    patch-applied:\n      proposition: patch-applied\n      command: test -f /var/lib/raes/patch-applied\n      interval: 30\n    service-verified:\n      proposition: service-verified\n      command: curl -fsS https://service/health\n      interval: 30\n  entities:\n    blue-team:\n      role: blue\n  agents:\n    operator:\n      affiliations:\n      - blue-team\n  propositions:\n    patch-applied:\n      description: The governed patch-applied observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.service\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: patch-applied\n        semantic_ref: urn:raes:observable:patch-applied\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n    service-verified:\n      description: The governed service-verified observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.service.services.https\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: service-verified\n        semantic_ref: urn:raes:observable:service-verified\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    patch-applied:\n      proposition: patch-applied\n      role: postcondition\n      polarity: positive\n    service-verified:\n      proposition: service-verified\n      role: postcondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.service.services.https\n      - nodes.service\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    apply-patch:\n      assigned_participant: operator\n      targets:\n      - nodes.service\n      success:\n        assertions:\n        - patch-applied\n    verify-service:\n      assigned_participant: operator\n      targets:\n      - nodes.service.services.https\n      success:\n        assertions:\n        - service-verified\n  workflows:\n    parallel-remediation:\n      start: fan-out\n      steps:\n        fan-out:\n          type: parallel\n          branches:\n          - patch-step\n          - verify-step\n          join: converge\n        patch-step:\n          type: objective\n          objective: apply-patch\n          on_success: converge\n        verify-step:\n          type: objective\n          objective: verify-service\n          on_success: converge\n        converge:\n          type: join\n          next: done\n        done:\n          type: end\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/template",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 1
+                },
+                "start": {
+                  "column": 11,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 11
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 21
+                },
+                "start": {
+                  "column": 1,
+                  "line": 13
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/body",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 143
+                },
+                "start": {
+                  "column": 3,
+                  "line": 22
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "template: raes-library-template\nversion: 1\nid: parallel-objective-workflow\nsurface: workflow\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Parallel workflow template with explicit branch convergence through a join\n  step.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-workflow-template\n  description: Workflow template showing parallel objective branches converging at\n    an explicit join.\n  nodes:\n    service:\n      type: compute\n      resources:\n        ram: 1 GiB\n        cpu: 1\n      services:\n      - port: 443\n        name: https\n  conditions:\n    patch-applied:\n      proposition: patch-applied\n      command: test -f /var/lib/raes/patch-applied\n      interval: 30\n    service-verified:\n      proposition: service-verified\n      command: curl -fsS https://service/health\n      interval: 30\n  entities:\n    blue-team:\n      role: blue\n  agents:\n    operator:\n      affiliations:\n      - blue-team\n  propositions:\n    patch-applied:\n      description: The governed patch-applied observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.service\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: patch-applied\n        semantic_ref: urn:raes:observable:patch-applied\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n    service-verified:\n      description: The governed service-verified observation is true for the addressed\n        scenario subject.\n      subjects:\n      - nodes.service.services.https\n      basis: observed_state\n      predicate:\n        kind: boolean\n        property: service-verified\n        semantic_ref: urn:raes:observable:service-verified\n        operator: equals\n        expected: true\n      evidence_requirements:\n      - objective-truth-evidence\n  assertions:\n    patch-applied:\n      proposition: patch-applied\n      role: postcondition\n      polarity: positive\n    service-verified:\n      proposition: service-verified\n      role: postcondition\n      polarity: positive\n  evidence_requirements:\n    objective-truth-evidence:\n      description: Capture evidence used to decide authored proposition assertions.\n      source_refs:\n      - nodes.service.services.https\n      - nodes.service\n      scope: authored assertion evaluation\n      boundary_kind: assertion_evaluation\n      channel: log\n      artifact_role: proposition_truth_evidence\n      media_types:\n      - application/json\n      sensitivity: plain\n      redaction: redact_secrets\n      integrity: checksum\n      retention: study_lifetime\n      loss_disclosure: required\n  objectives:\n    apply-patch:\n      assigned_participant: operator\n      targets:\n      - nodes.service\n      success:\n        assertions:\n        - patch-applied\n    verify-service:\n      assigned_participant: operator\n      targets:\n      - nodes.service.services.https\n      success:\n        assertions:\n        - service-verified\n  workflows:\n    parallel-remediation:\n      start: fan-out\n      steps:\n        fan-out:\n          type: parallel\n          branches:\n          - patch-step\n          - verify-step\n          join: converge\n        patch-step:\n          type: objective\n          objective: apply-patch\n          on_success: converge\n        verify-step:\n          type: objective\n          objective: verify-service\n          on_success: converge\n        converge:\n          type: join\n          next: done\n        done:\n          type: end\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/template",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 1
+              },
+              "start": {
+                "column": 11,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 11
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 21
+              },
+              "start": {
+                "column": 1,
+                "line": 13
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/body",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 143
+              },
+              "start": {
+                "column": 3,
+                "line": 22
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

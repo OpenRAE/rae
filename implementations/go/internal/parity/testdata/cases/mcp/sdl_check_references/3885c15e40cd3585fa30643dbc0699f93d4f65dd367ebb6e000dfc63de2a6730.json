@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:e249289a21a80d20e50c90122eda3e9343d58f48830b5c50df3ecffd0c60020b"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.alice -> team-a agents.bob -> team-b relationships.competition -> agents.alice, bob relationships.cooperation -> agents.alice, bob relationships.coordination -> agents.alice, bob relationships.delegation -> agents.alice, bob relationships.supervision -> agents.alice, bob"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.alice -> team-a agents.bob -> team-b relationships.competition -> agents.alice, bob relationships.cooperation -> agents.alice, bob relationships.coordination -> agents.alice, bob relationships.delegation -> agents.alice, bob relationships.supervision -> agents.alice, bob"
+      }
+    }
+  },
+  "surface": "mcp"
+}

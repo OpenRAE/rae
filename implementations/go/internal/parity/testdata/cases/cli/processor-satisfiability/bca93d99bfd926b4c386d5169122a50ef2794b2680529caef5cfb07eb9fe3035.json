@@ -1,0 +1,1314 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:677dd15f974c8d2f7e214869cb623a74902b59c0f2bec16374e36075d220a294"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:677dd15f974c8d2f7e214869cb623a74902b59c0f2bec16374e36075d220a294"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:0e149c41921c850f116be1b9f70559d6473642deb290d33c4f8537ab98dbbfca",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef",
+        "source_id": "participant-directed.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {
+              "red-agent": {
+                "actions": [],
+                "affiliations": [
+                  "red-team"
+                ],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [
+                  "red-view"
+                ],
+                "operating_scope": [],
+                "role": null,
+                "starting_accounts": [],
+                "starting_assertions": []
+              }
+            },
+            "assertions": {},
+            "behavior_specifications": {
+              "red-briefing": {
+                "action_contract_refs": [],
+                "authority_scope_refs": [],
+                "autonomous_execution": null,
+                "backend_feature_support_refs": [],
+                "behavior_mode": null,
+                "evidence_contract_refs": [],
+                "extension_policy": "governed-extension",
+                "extensions": {},
+                "lifecycle_state": "active",
+                "mixed_control": null,
+                "observation_boundary_refs": [
+                  "red-view"
+                ],
+                "outcome_interpretation_rule_refs": [],
+                "participant_inject_deliveries": {
+                  "briefing": {
+                    "control": null,
+                    "control_authority_scope_refs": [],
+                    "control_effective_order": null,
+                    "control_evidence_refs": [],
+                    "control_transition_ref": null,
+                    "control_valid_from_order": null,
+                    "control_valid_until_order": null,
+                    "controller_ref": null,
+                    "delivery_kind": "disclosure",
+                    "delivery_policy": {
+                      "audience_scope_ref": "audience.participant.red-agent",
+                      "disclosure_basis_ref": "disclosures.briefing.v1",
+                      "exposure_policy_ref": "exposure-policy.red.v1",
+                      "policy_ref": "projection-policy.red.v1",
+                      "policy_revision": "1.0.0",
+                      "visibility_basis_ref": "visibility-bases.briefing.v1"
+                    },
+                    "evidence_requirement_refs": [
+                      "briefing-delivery-evidence"
+                    ],
+                    "failure_disposition": "reject-no-delivery",
+                    "inject_ref": "briefing-inject",
+                    "observation_boundary_ref": "red-view",
+                    "occurrence": {
+                      "event_ref": "briefing-event",
+                      "script_ref": "briefing-script",
+                      "story_ref": "briefing-story"
+                    },
+                    "order_basis": "orchestration-occurrence-and-shared-time",
+                    "participant_ref": "red-agent",
+                    "result_item_ref": "content.briefing",
+                    "source_item_ref": "content.briefing",
+                    "temporal_constraint_refs": [
+                      "briefing-window"
+                    ]
+                  }
+                },
+                "participant_refs": [
+                  "red-agent"
+                ],
+                "participant_role_refs": [],
+                "realization_profile_ref": null,
+                "semantic_version": "1.0.0",
+                "tool_affordances": {}
+              }
+            },
+            "clocks": {
+              "exercise-clock": {
+                "authority_kind": "runtime",
+                "authority_ref": "runtime.scheduler",
+                "description": "exercise scheduler clock",
+                "monotonicity": "non_decreasing",
+                "supports_jump": false,
+                "supports_pause": false,
+                "supports_reset": false,
+                "time_domain_ref": "exercise-time"
+              }
+            },
+            "conditions": {},
+            "content": {
+              "briefing": {
+                "description": "",
+                "destination": "",
+                "format": "",
+                "items": [],
+                "path": "/opt/briefing.txt",
+                "sensitive": true,
+                "service_materialization": null,
+                "source": null,
+                "tags": [],
+                "target": "web",
+                "text": "governed participant briefing",
+                "type": "file"
+              }
+            },
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "",
+            "entities": {
+              "red-team": {
+                "description": "",
+                "entities": {},
+                "events": [],
+                "facts": {},
+                "mission": "",
+                "name": "",
+                "role": "red"
+              }
+            },
+            "events": {
+              "briefing-event": {
+                "assertions": [],
+                "description": "",
+                "injects": [
+                  "briefing-inject"
+                ],
+                "name": "",
+                "source": null
+              }
+            },
+            "evidence_requirements": {
+              "briefing-delivery-evidence": {
+                "artifact_role": "delivery_evidence",
+                "boundary_kind": "",
+                "boundary_ref": "",
+                "capture_requirement_ref": "",
+                "capture_spec_ref": "",
+                "channel": "log",
+                "channel_refs": [],
+                "description": "capture governed participant delivery evidence",
+                "field_selectors": [],
+                "integrity": "checksum",
+                "loss_disclosure": "required",
+                "media_types": [],
+                "notes": [],
+                "observation_demand": null,
+                "output_contract": "",
+                "redaction": "none",
+                "retention": "study_lifetime",
+                "scope": "",
+                "scope_refs": [
+                  "web"
+                ],
+                "sensitivity": "plain",
+                "source_class": null,
+                "source_refs": [
+                  "behavior_specifications.red-briefing.participant_inject_deliveries.briefing"
+                ],
+                "trigger_ref": "",
+                "window": "briefing delivery window"
+              }
+            },
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {
+              "briefing-inject": {
+                "description": "orchestration briefing",
+                "environment": [
+                  "set-exercise-banner"
+                ],
+                "from_entity": "",
+                "name": "",
+                "source": null,
+                "to_entities": []
+              }
+            },
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:677dd15f974c8d2f7e214869cb623a74902b59c0f2bec16374e36075d220a294"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.resources.ram",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.resources.cpu",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web.resources",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.web",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.red-team.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.red-team",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "injects.briefing-inject.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "injects.briefing-inject.environment[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "injects.briefing-inject.environment",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "injects.briefing-inject",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "injects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "events.briefing-event.injects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "events.briefing-event.injects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "events.briefing-event",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "events",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts.briefing-script.start_time",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts.briefing-script.end_time",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts.briefing-script.speed",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts.briefing-script.events.briefing-event",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts.briefing-script.events",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts.briefing-script",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "scripts",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "stories.briefing-story.scripts[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "stories.briefing-story.scripts",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "stories.briefing-story",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "stories",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.briefing.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.briefing.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.briefing.path",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.briefing.text",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.briefing.sensitive",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.briefing",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.red-agent.affiliations[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.red-agent.affiliations",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.red-agent.observation_boundaries[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.red-agent.observation_boundaries",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.red-agent",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.projection_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.observable_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.observable_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.redaction_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.latency_profile",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.view_rules[0].information_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.view_rules[0].boundary_class",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.view_rules[0].disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.view_rules[0].visibility_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.view_rules[0].disclosure_rule",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.view_rules[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view.view_rules",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.red-view",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.semantic_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.observation_boundary_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.observation_boundary_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.participant_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.inject_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.occurrence.event_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.occurrence.script_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.occurrence.story_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.occurrence",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.source_item_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.result_item_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.observation_boundary_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_policy.policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_policy.policy_revision",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_policy.exposure_policy_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_policy.audience_scope_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_policy.visibility_basis_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_policy.disclosure_basis_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.delivery_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.order_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.temporal_constraint_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.temporal_constraint_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.evidence_requirement_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.evidence_requirement_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing.failure_disposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries.briefing",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing.participant_inject_deliveries",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.red-briefing",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.source_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.source_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.scope_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.scope_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.window",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.channel",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.artifact_role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.redaction",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.integrity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.retention",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence.loss_disclosure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.briefing-delivery-evidence",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time.tick_period_seconds.numerator",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time.tick_period_seconds.denominator",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time.tick_period_seconds",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time.epoch",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time.visibility",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.exercise-time",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.exercise-clock.time_domain_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.exercise-clock.authority_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.exercise-clock.authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.exercise-clock.monotonicity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.exercise-clock.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.exercise-clock",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.constraint_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.clock_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.subject_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.subject_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.start.tick",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.start",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.end.tick",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.end",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.briefing-window",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "dsl-142",
+            "nodes": {
+              "web": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": {
+                  "cpu": 1,
+                  "ram": 1073741824
+                },
+                "roles": {},
+                "runtime": null,
+                "services": [],
+                "source": null,
+                "type": "compute"
+              }
+            },
+            "objectives": {},
+            "observation_boundaries": {
+              "red-view": {
+                "evidence_refs": [],
+                "hidden_refs": [],
+                "latency_profile": "delivery-order bound",
+                "observable_refs": [
+                  "content.briefing"
+                ],
+                "observer_effects": [],
+                "projection_basis": "participant-local governed briefing view",
+                "realized_view_disclosure": null,
+                "redaction_policy": "hidden refs remain hidden",
+                "view_rules": [
+                  {
+                    "boundary_class": "instruction",
+                    "certainty": null,
+                    "disclosure_rule": "disclosures.briefing.v1",
+                    "disposition": "disclosed",
+                    "effective_from": null,
+                    "evidence_refs": [],
+                    "information_ref": "content.briefing",
+                    "latency_profile": null,
+                    "realized_backend_disclosure": null,
+                    "visibility_basis": "visibility-bases.briefing.v1"
+                  }
+                ],
+                "view_transitions": []
+              }
+            },
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {},
+            "relationships": {},
+            "scripts": {
+              "briefing-script": {
+                "description": "",
+                "end_time": 10,
+                "events": {
+                  "briefing-event": 5
+                },
+                "name": "",
+                "speed": 1.0,
+                "start_time": 0
+              }
+            },
+            "stories": {
+              "briefing-story": {
+                "description": "",
+                "name": "",
+                "scripts": [
+                  "briefing-script"
+                ],
+                "speed": 1.0
+              }
+            },
+            "temporal_constraints": {
+              "briefing-window": {
+                "cadence_ticks": null,
+                "clock_ref": "exercise-clock",
+                "constraint_kind": "window",
+                "description": "participant briefing delivery window",
+                "duration_ticks": null,
+                "end": {
+                  "microstep": 0,
+                  "tick": 6
+                },
+                "start": {
+                  "microstep": 0,
+                  "tick": 4
+                },
+                "subject_refs": [
+                  "behavior_specifications.red-briefing.participant_inject_deliveries.briefing"
+                ]
+              }
+            },
+            "time_domain_mappings": {},
+            "time_domains": {
+              "exercise-time": {
+                "description": "exercise logical time",
+                "epoch": "scenario_start",
+                "kind": "logical",
+                "tick_period_seconds": {
+                  "denominator": 1,
+                  "numerator": 1
+                },
+                "visibility": "participant_visible"
+              }
+            },
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:9095088d2e6be6432b8ec2a240b559b1312ab72432afe59f4aea17724d6ac32e"
+      }
+    }
+  },
+  "surface": "cli"
+}

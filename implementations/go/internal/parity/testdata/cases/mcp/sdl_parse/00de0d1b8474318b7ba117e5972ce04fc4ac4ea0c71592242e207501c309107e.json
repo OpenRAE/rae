@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:04d251d65455718392cd637832e6d561ff5e00cb4ad2b5a66d50d08a2828d981"
+  },
+  "name": "regression/6dc8a27c4f129dda0191754bc341e8d9d7ec20f47088b1a6bd15cec1dccd1038",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "enterprise-ad-lab",
+            "populated_sections": {
+              "conditions": 1,
+              "features": 4,
+              "infrastructure": 10,
+              "nodes": 10
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "enterprise-ad-lab",
+          "populated_sections": {
+            "conditions": 1,
+            "features": 4,
+            "infrastructure": 10,
+            "nodes": 10
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

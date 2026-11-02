@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/catalog.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/catalog.yaml": "sha256:4d93f9fae12ecebc06caa12273a9d332af578d1911cee1cbf4045e7842d80cc5",
+    "setup.json": "sha256:b8452e4db5c9590196b4cf7079a2386a2f8b72fd51ba93fa121075544ba2fb82"
+  },
+  "name": "examples/library/catalog.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/examples/library/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

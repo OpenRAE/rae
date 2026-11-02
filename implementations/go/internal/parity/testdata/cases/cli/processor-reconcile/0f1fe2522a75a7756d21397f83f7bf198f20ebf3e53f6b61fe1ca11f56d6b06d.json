@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml",
+    "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml": "sha256:24e7df1eb3f4b5ddfeb44c08449821af7c9bae32a690ce503593b32d87011abf"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:35abfdfd0e8c87427a9dbf89ed2b317c7009bf7afd0e38f7bff53e5e19a86411"
+  },
+  "name": "regression/56ada0f5efb9c5be441a39d9c50771af3e095c32f8eb3787078039c45779f53e",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "m9",
+                "m9"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/m9",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'm9'.",
+                  "range": {
+                    "end": {
+                      "column": 5,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "m9",
+              "m9"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/m9",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'm9'.",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

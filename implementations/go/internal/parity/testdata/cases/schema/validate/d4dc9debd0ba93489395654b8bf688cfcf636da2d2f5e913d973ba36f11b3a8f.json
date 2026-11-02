@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-evidence-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c6d13ae2e07cc2bd7ccf21d6daca9c87a5b610860abb72f839cef588188eda4c"
+  },
+  "name": "regression/823e17d530750681290cb426205642a55f053f0028e5f7a1f080205c323116de",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

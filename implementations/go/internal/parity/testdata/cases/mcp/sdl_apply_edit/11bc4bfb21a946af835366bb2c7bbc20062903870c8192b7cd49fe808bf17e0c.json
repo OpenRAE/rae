@@ -1,0 +1,319 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:7a728e966230ed77072f38ffa665e7cf47282e91851cd08e3b0807cf1f925291"
+  },
+  "name": "examples/library/templates/scenario/parameterized-scenario.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "template: raes-library-template\nversion: 1\nid: parameterized-scenario\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Scenario template whose host operating system, size, instance count, and\n  service port come from declared variables.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator, which reject a placeholder that names an undeclared\n    variable, and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-parameterized-template\n  description: Scenario whose host operating system, size, instance count, and service\n    port come from declared variables with defaults.\n  variables:\n    web_os:\n      type: string\n      default: linux\n      allowed_values:\n      - linux\n      - windows\n      description: Operating system of each web host.\n    web_ram:\n      type: string\n      default: 1 GiB\n      description: Memory for each web host.\n    web_cpu:\n      type: integer\n      default: 1\n      description: CPU count for each web host.\n    web_count:\n      type: integer\n      default: 2\n      description: Number of web hosts.\n    https_port:\n      type: integer\n      default: 443\n      description: Port of the HTTPS service on each web host.\n  nodes:\n    app-net:\n      type: switch\n    web:\n      type: compute\n      os: ${web_os}\n      resources:\n        ram: ${web_ram}\n        cpu: ${web_cpu}\n      services:\n      - port: ${https_port}\n        protocol: tcp\n        name: https\n  infrastructure:\n    app-net:\n      count: 1\n      properties:\n        cidr: 10.30.0.0/24\n        gateway: 10.30.0.1\n        internal: true\n    web:\n      count: ${web_count}\n      links:\n      - app-net\nname: changed\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/version",
+              "range": {
+                "end": {
+                  "column": 11,
+                  "line": 2
+                },
+                "start": {
+                  "column": 10,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/template",
+              "range": {
+                "end": {
+                  "column": 32,
+                  "line": 1
+                },
+                "start": {
+                  "column": 11,
+                  "line": 1
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/id",
+              "range": {
+                "end": {
+                  "column": 27,
+                  "line": 3
+                },
+                "start": {
+                  "column": 5,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/surface",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 4
+                },
+                "start": {
+                  "column": 10,
+                  "line": 4
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/requirement_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 7
+                },
+                "start": {
+                  "column": 1,
+                  "line": 6
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/source_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 10
+                },
+                "start": {
+                  "column": 1,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/summary",
+              "range": {
+                "end": {
+                  "column": 45,
+                  "line": 11
+                },
+                "start": {
+                  "column": 10,
+                  "line": 10
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/validation",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 22
+                },
+                "start": {
+                  "column": 1,
+                  "line": 13
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/body",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 74
+                },
+                "start": {
+                  "column": 3,
+                  "line": 23
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "template: raes-library-template\nversion: 1\nid: parameterized-scenario\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- docs/explain/sdl/sections.md\n- docs/explain/sdl/validation.md\nsummary: Scenario template whose host operating system, size, instance count, and\n  service port come from declared variables.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: Exits 0 with no output. The gate reads this file with the sdl-yaml/v1\n    loader, which rejects duplicate keys and merge keys. It parses the body with the\n    SDL parser and semantic validator, which reject a placeholder that names an undeclared\n    variable, and fails on any error or advisory.\n- command: uv run --project implementations/python --frozen raes semantic validate\n    my-scenario.sdl.yaml\n  expected: 'With the body saved as my-scenario.sdl.yaml, prints \"validate: success\"\n    and exits 0. This command does not report semantic-validator advisories.'\nbody:\n  name: library-parameterized-template\n  description: Scenario whose host operating system, size, instance count, and service\n    port come from declared variables with defaults.\n  variables:\n    web_os:\n      type: string\n      default: linux\n      allowed_values:\n      - linux\n      - windows\n      description: Operating system of each web host.\n    web_ram:\n      type: string\n      default: 1 GiB\n      description: Memory for each web host.\n    web_cpu:\n      type: integer\n      default: 1\n      description: CPU count for each web host.\n    web_count:\n      type: integer\n      default: 2\n      description: Number of web hosts.\n    https_port:\n      type: integer\n      default: 443\n      description: Port of the HTTPS service on each web host.\n  nodes:\n    app-net:\n      type: switch\n    web:\n      type: compute\n      os: ${web_os}\n      resources:\n        ram: ${web_ram}\n        cpu: ${web_cpu}\n      services:\n      - port: ${https_port}\n        protocol: tcp\n        name: https\n  infrastructure:\n    app-net:\n      count: 1\n      properties:\n        cidr: 10.30.0.0/24\n        gateway: 10.30.0.1\n        internal: true\n    web:\n      count: ${web_count}\n      links:\n      - app-net\nname: changed\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/version",
+            "range": {
+              "end": {
+                "column": 11,
+                "line": 2
+              },
+              "start": {
+                "column": 10,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/template",
+            "range": {
+              "end": {
+                "column": 32,
+                "line": 1
+              },
+              "start": {
+                "column": 11,
+                "line": 1
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/id",
+            "range": {
+              "end": {
+                "column": 27,
+                "line": 3
+              },
+              "start": {
+                "column": 5,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/surface",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 4
+              },
+              "start": {
+                "column": 10,
+                "line": 4
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/requirement_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 7
+              },
+              "start": {
+                "column": 1,
+                "line": 6
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/source_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 10
+              },
+              "start": {
+                "column": 1,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/summary",
+            "range": {
+              "end": {
+                "column": 45,
+                "line": 11
+              },
+              "start": {
+                "column": 10,
+                "line": 10
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/validation",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 22
+              },
+              "start": {
+                "column": 1,
+                "line": 13
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/body",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 74
+              },
+              "start": {
+                "column": 3,
+                "line": 23
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,120 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:3cc2cbed579f8f003c7eb67647b26767e7c95a6f33fe9c24639f9b66cd1894f0"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 9,
+        "declarations": [
+          {
+            "address": "infrastructure.worker",
+            "kind": "infrastructure",
+            "model_path": "infrastructure.worker",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.worker",
+            "kind": "node",
+            "model_path": "nodes.worker",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.worker.runtime.scheduled_jobs.baseline",
+            "kind": "runtime-scheduled_jobs",
+            "model_path": "nodes.worker.runtime.scheduled_jobs.0.scheduled_job_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.worker.runtime.scheduled_jobs.extra",
+            "kind": "runtime-scheduled_jobs",
+            "model_path": "nodes.worker.runtime.scheduled_jobs.1.scheduled_job_id",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.node-inventory-family",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.worker-state",
+            "kind": "variation_points",
+            "model_path": "variation_points.worker-state",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "variation_points.worker-state.alternatives.absent",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.worker-state.alternatives.absent",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.worker-state.alternatives.baseline",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.worker-state.alternatives.baseline",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "variation_points.worker-state.alternatives.complete",
+            "kind": "variation-alternative",
+            "model_path": "variation_points.worker-state.alternatives.complete",
+            "referenceable": true,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "node-inventory-family",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "infrastructure",
+              "nodes",
+              "variation_points"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

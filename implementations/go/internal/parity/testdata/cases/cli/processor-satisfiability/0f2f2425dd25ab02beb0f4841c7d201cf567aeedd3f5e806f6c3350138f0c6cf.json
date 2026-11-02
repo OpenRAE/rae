@@ -1,0 +1,1323 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/examples/scenarios/initial-service-state.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/examples/scenarios/initial-service-state.sdl.yaml": "sha256:daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7"
+  },
+  "name": "examples/scenarios/initial-service-state.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:a3c4e7db9b08d07d4117749c60b0cb3b3d2fec424042489d20ea791122cbede6"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:a3c4e7db9b08d07d4117749c60b0cb3b3d2fec424042489d20ea791122cbede6"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:a26e94159e3e8d7991bd8f10f39d97d47e03b9a91de291597f6129e26253a01d",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:daa4ef499b27d40ad880606be556793c9e1dc1f95972f7c3f0a03148ba0886d7",
+        "source_id": "initial-service-state.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {},
+            "agents": {},
+            "assertions": {
+              "company-mail-visible": {
+                "description": "",
+                "polarity": "positive",
+                "proposition": "company-mail-visible",
+                "role": "postcondition"
+              },
+              "job-index-schema-visible": {
+                "description": "",
+                "polarity": "positive",
+                "proposition": "job-index-schema-visible",
+                "role": "postcondition"
+              }
+            },
+            "behavior_specifications": {},
+            "clocks": {},
+            "conditions": {},
+            "content": {
+              "company-mail": {
+                "description": "",
+                "destination": "",
+                "format": "message-set-v1",
+                "items": [
+                  {
+                    "description": "",
+                    "display_name": "Welcome to the company",
+                    "name": "welcome-message",
+                    "tags": []
+                  }
+                ],
+                "path": "",
+                "sensitive": false,
+                "service_materialization": {
+                  "evidence_requirement_refs": [
+                    "company-mail-readback"
+                  ],
+                  "interface_profile": "service-content",
+                  "observation_boundary_refs": [
+                    "participant-mail-view"
+                  ],
+                  "ordering_content_refs": [],
+                  "profile_version": "1",
+                  "readback_assertion_refs": [
+                    "company-mail-visible"
+                  ],
+                  "requirements": {
+                    "conflict_policy": "reject-unowned-collision",
+                    "operation": "ensure-owned-items",
+                    "readback": "canonical-content-digest"
+                  },
+                  "shared_service_relationship_ref": "",
+                  "target_service_ref": "nodes.mail.services.imap"
+                },
+                "source": null,
+                "tags": [],
+                "target": "mail",
+                "text": null,
+                "type": "dataset"
+              },
+              "job-index-schema": {
+                "description": "",
+                "destination": "",
+                "format": "",
+                "items": [],
+                "path": "",
+                "sensitive": false,
+                "service_materialization": {
+                  "evidence_requirement_refs": [
+                    "job-index-schema-readback"
+                  ],
+                  "interface_profile": "service-search-index-schema",
+                  "observation_boundary_refs": [
+                    "participant-search-view"
+                  ],
+                  "ordering_content_refs": [],
+                  "profile_version": "1",
+                  "readback_assertion_refs": [
+                    "job-index-schema-visible"
+                  ],
+                  "requirements": {
+                    "conflict_policy": "reject-unowned-collision",
+                    "field_semantics": {
+                      "key": "exact-token",
+                      "relations": "exact-token",
+                      "status": "exact-token"
+                    },
+                    "operation": "ensure-search-index-field-schema",
+                    "readback": "canonical-portable-field-schema-digest"
+                  },
+                  "shared_service_relationship_ref": "",
+                  "target_service_ref": "nodes.mail.services.search"
+                },
+                "source": null,
+                "tags": [],
+                "target": "mail",
+                "text": null,
+                "type": "dataset"
+              }
+            },
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "Provider-neutral initial content materialized through a named service.",
+            "entities": {},
+            "events": {},
+            "evidence_requirements": {
+              "company-mail-readback": {
+                "artifact_role": "service_materialization_readback",
+                "boundary_kind": "participant_equivalent",
+                "boundary_ref": "",
+                "capture_requirement_ref": "",
+                "capture_spec_ref": "",
+                "channel": "api_response",
+                "channel_refs": [],
+                "description": "",
+                "field_selectors": [],
+                "integrity": "checksum",
+                "loss_disclosure": "required",
+                "media_types": [
+                  "application/json"
+                ],
+                "notes": [],
+                "observation_demand": null,
+                "output_contract": "",
+                "redaction": "redact_secrets",
+                "retention": "run_lifetime",
+                "scope": "native service readback",
+                "scope_refs": [],
+                "sensitivity": "plain",
+                "source_class": null,
+                "source_refs": [
+                  "content.company-mail"
+                ],
+                "trigger_ref": "",
+                "window": ""
+              },
+              "job-index-schema-readback": {
+                "artifact_role": "service_materialization_readback",
+                "boundary_kind": "participant_equivalent",
+                "boundary_ref": "",
+                "capture_requirement_ref": "",
+                "capture_spec_ref": "",
+                "channel": "api_response",
+                "channel_refs": [],
+                "description": "",
+                "field_selectors": [],
+                "integrity": "checksum",
+                "loss_disclosure": "required",
+                "media_types": [
+                  "application/json"
+                ],
+                "notes": [],
+                "observation_demand": null,
+                "output_contract": "",
+                "redaction": "redact_secrets",
+                "retention": "run_lifetime",
+                "scope": "fresh native schema readback projected to portable field semantics",
+                "scope_refs": [],
+                "sensitivity": "plain",
+                "source_class": null,
+                "source_refs": [
+                  "content.job-index-schema"
+                ],
+                "trigger_ref": "",
+                "window": ""
+              }
+            },
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:a3c4e7db9b08d07d4117749c60b0cb3b3d2fec424042489d20ea791122cbede6"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.resources.ram",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.resources.cpu",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.resources",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.os",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.services[0].port",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.services[0].name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.services[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.services[1].port",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.services[1].name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.services[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail.services",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.mail",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.subjects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.subjects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.predicate.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.predicate.property",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.predicate.semantic_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.predicate.expected",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.predicate",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.evidence_requirements[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible.evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.company-mail-visible",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.subjects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.subjects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.predicate.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.predicate.property",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.predicate.semantic_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.predicate.expected",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.predicate",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.evidence_requirements[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible.evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.job-index-schema-visible",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.company-mail-visible.proposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.company-mail-visible.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.company-mail-visible",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.job-index-schema-visible.proposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.job-index-schema-visible.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.job-index-schema-visible",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.format",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.items[0].name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.items[0].display_name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.items[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.items",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.target_service_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.readback_assertion_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.readback_assertion_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.evidence_requirement_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.evidence_requirement_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.observation_boundary_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.observation_boundary_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.interface_profile",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.profile_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.requirements.operation",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.requirements.conflict_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.requirements.readback",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization.requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail.service_materialization",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.company-mail",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.target",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.target_service_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.readback_assertion_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.readback_assertion_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.evidence_requirement_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.evidence_requirement_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.observation_boundary_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.observation_boundary_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.interface_profile",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.profile_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements.operation",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements.conflict_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements.readback",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements.field_semantics.key",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements.field_semantics.status",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements.field_semantics.relations",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements.field_semantics",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization.requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema.service_materialization",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content.job-index-schema",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "content",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-mail-view.projection_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-mail-view.observable_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-mail-view.observable_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-mail-view.redaction_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-mail-view.latency_profile",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-mail-view",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-search-view.projection_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-search-view.observable_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-search-view.observable_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-search-view.redaction_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-search-view.latency_profile",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries.participant-search-view",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "observation_boundaries",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.source_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.source_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.scope",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.boundary_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.channel",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.artifact_role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.media_types[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.media_types",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.redaction",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.integrity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.retention",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback.loss_disclosure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.company-mail-readback",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.source_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.source_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.scope",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.boundary_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.channel",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.artifact_role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.media_types[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.media_types",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.redaction",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.integrity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.retention",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback.loss_disclosure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.job-index-schema-readback",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "initial-service-state",
+            "nodes": {
+              "mail": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": "linux",
+                "os_distribution": null,
+                "os_version": "",
+                "resources": {
+                  "cpu": 2,
+                  "ram": 2147483648
+                },
+                "roles": {},
+                "runtime": null,
+                "services": [
+                  {
+                    "description": "",
+                    "name": "imap",
+                    "port": 143,
+                    "protocol": "tcp"
+                  },
+                  {
+                    "description": "",
+                    "name": "search",
+                    "port": 9200,
+                    "protocol": "tcp"
+                  }
+                ],
+                "source": null,
+                "type": "compute"
+              }
+            },
+            "objectives": {},
+            "observation_boundaries": {
+              "participant-mail-view": {
+                "evidence_refs": [],
+                "hidden_refs": [],
+                "latency_profile": "available before participant admission",
+                "observable_refs": [
+                  "content.company-mail"
+                ],
+                "observer_effects": [],
+                "projection_basis": "ordinary participant access to the named mail service",
+                "realized_view_disclosure": null,
+                "redaction_policy": "preserve participant-visible message fields",
+                "view_rules": [],
+                "view_transitions": []
+              },
+              "participant-search-view": {
+                "evidence_refs": [],
+                "hidden_refs": [],
+                "latency_profile": "available before participant admission",
+                "observable_refs": [
+                  "content.job-index-schema"
+                ],
+                "observer_effects": [],
+                "projection_basis": "ordinary participant access through the named search service",
+                "realized_view_disclosure": null,
+                "redaction_policy": "preserve declared portable field semantics",
+                "view_rules": [],
+                "view_transitions": []
+              }
+            },
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {
+              "company-mail-visible": {
+                "basis": "observed_state",
+                "description": "The authored message set is visible through the named service.",
+                "evidence_requirements": [
+                  "company-mail-readback"
+                ],
+                "predicate": {
+                  "expected": true,
+                  "kind": "boolean",
+                  "operator": "equals",
+                  "property": "service-content-visible",
+                  "semantic_ref": "urn:raes:observable:service-content-visible"
+                },
+                "quantifier": "all",
+                "subjects": [
+                  "content.company-mail"
+                ],
+                "threshold": null
+              },
+              "job-index-schema-visible": {
+                "basis": "observed_state",
+                "description": "The declared search-index fields have exact portable semantics.",
+                "evidence_requirements": [
+                  "job-index-schema-readback"
+                ],
+                "predicate": {
+                  "expected": true,
+                  "kind": "boolean",
+                  "operator": "equals",
+                  "property": "service-search-index-schema-visible",
+                  "semantic_ref": "urn:raes:observable:service-search-index-schema-visible"
+                },
+                "quantifier": "all",
+                "subjects": [
+                  "content.job-index-schema"
+                ],
+                "threshold": null
+              }
+            },
+            "relationships": {},
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {},
+            "time_domain_mappings": {},
+            "time_domains": {},
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:6227faca383d8d815d3f43a92672766c3b82b151e05f4a8fb75e48fe0fce5f37"
+      }
+    }
+  },
+  "surface": "cli"
+}

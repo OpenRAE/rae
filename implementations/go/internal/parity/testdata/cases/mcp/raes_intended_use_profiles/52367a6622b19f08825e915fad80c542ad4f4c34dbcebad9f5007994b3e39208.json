@@ -1,0 +1,353 @@
+{
+  "args": [],
+  "command": "raes_intended_use_profiles",
+  "files": {
+    "arguments.json": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+  },
+  "name": "reference",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "assessed_on": "2026-10-31",
+          "assessment_revision": "2026-10-31",
+          "next_action": "Select one profile_id before authoring or making readiness claims.",
+          "profile_family": "scientific-scenario-completeness",
+          "profiles": [
+            {
+              "disposition_counts": {
+                "allowed-underspecified": 16,
+                "excluded": 25,
+                "required": 3
+              },
+              "example_refs": [
+                "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml"
+              ],
+              "explicit_non_claims": [
+                "Does not claim deployability, realization, experimental control, reproducibility, backend conformance, or behavioral equivalence."
+              ],
+              "intended_claim": "The document is admitted as a structurally and semantically valid SDL authoring fragment.",
+              "profile_id": "valid-sdl-fragment",
+              "raes_delivery": {
+                "blocking_concern_count": 0,
+                "blocking_concern_ids": [],
+                "complete": true
+              },
+              "title": "Valid SDL fragment"
+            },
+            {
+              "disposition_counts": {
+                "allowed-underspecified": 18,
+                "excluded": 14,
+                "required": 12
+              },
+              "example_refs": [],
+              "explicit_non_claims": [
+                "Does not claim that every backend can realize the scenario, that deployment succeeded, or that realized behavior is equivalent."
+              ],
+              "intended_claim": "The authored scenario carries sufficient portable intent to request realization subject to an explicit apparatus and backend envelope.",
+              "profile_id": "deployable-scenario-intent",
+              "raes_delivery": {
+                "blocking_concern_count": 4,
+                "blocking_concern_ids": [
+                  "authored-observed-state-separation",
+                  "backend-teardown-reconciliation",
+                  "credential-intent",
+                  "scoped-specificity-open-world-intent"
+                ],
+                "complete": false
+              },
+              "title": "Deployable scenario intent"
+            },
+            {
+              "disposition_counts": {
+                "allowed-underspecified": 13,
+                "excluded": 1,
+                "required": 30
+              },
+              "example_refs": [],
+              "explicit_non_claims": [
+                "Does not claim participant implementations are strategically equivalent, that hidden global state is visible, or that finite probes prove bisimulation."
+              ],
+              "intended_claim": "The scenario and bound experiment contracts define participant-visible work, perception, action, episode control, and outcome evidence for evaluation.",
+              "profile_id": "participant-evaluation-scenario",
+              "raes_delivery": {
+                "blocking_concern_count": 15,
+                "blocking_concern_ids": [
+                  "authored-observed-state-separation",
+                  "backend-teardown-reconciliation",
+                  "clock-declaration",
+                  "credential-intent",
+                  "deadlines-and-windows",
+                  "flexible-step-tooling",
+                  "pacing-and-synchronization",
+                  "participant-action-observation",
+                  "participant-budgets",
+                  "participant-episode-reset",
+                  "portable-behavior-contracts",
+                  "scoped-specificity-open-world-intent",
+                  "temporal-ordering-causality",
+                  "time-domain-declaration",
+                  "verifier-and-adjudication"
+                ],
+                "complete": false
+              },
+              "title": "Participant-evaluation scenario"
+            },
+            {
+              "disposition_counts": {
+                "allowed-underspecified": 11,
+                "excluded": 3,
+                "required": 30
+              },
+              "example_refs": [],
+              "explicit_non_claims": [
+                "Does not claim causal validity, successful execution, adequate power, reproducibility, or backend behavioral equivalence."
+              ],
+              "intended_claim": "The scenario is bound to a pre-run design with controlled variation, allocation, apparatus, timing, capture, and analysis intent.",
+              "profile_id": "controlled-experiment-scenario",
+              "raes_delivery": {
+                "blocking_concern_count": 11,
+                "blocking_concern_ids": [
+                  "authored-observed-state-separation",
+                  "backend-teardown-reconciliation",
+                  "clock-declaration",
+                  "credential-intent",
+                  "deadlines-and-windows",
+                  "host-architecture-constraints",
+                  "pacing-and-synchronization",
+                  "scoped-specificity-open-world-intent",
+                  "temporal-ordering-causality",
+                  "time-domain-declaration",
+                  "verifier-and-adjudication"
+                ],
+                "complete": false
+              },
+              "title": "Controlled experiment scenario"
+            },
+            {
+              "disposition_counts": {
+                "allowed-underspecified": 2,
+                "excluded": 1,
+                "required": 41
+              },
+              "example_refs": [],
+              "explicit_non_claims": [
+                "Does not guarantee bitwise replay, equal outcomes, scientific validity, generalizability, or behavioral equivalence across apparatuses."
+              ],
+              "intended_claim": "The scenario and governed experiment bundle preserve sufficient design, apparatus, participant, evidence, lineage, and analysis context for a bounded reproduction attempt.",
+              "profile_id": "reproducible-benchmark-study-input",
+              "raes_delivery": {
+                "blocking_concern_count": 20,
+                "blocking_concern_ids": [
+                  "authored-observed-state-separation",
+                  "backend-teardown-reconciliation",
+                  "clock-declaration",
+                  "credential-intent",
+                  "credential-materialization",
+                  "deadlines-and-windows",
+                  "flexible-step-tooling",
+                  "hidden-benchmark-assets",
+                  "host-architecture-constraints",
+                  "pacing-and-synchronization",
+                  "participant-action-observation",
+                  "participant-budgets",
+                  "participant-episode-reset",
+                  "portable-behavior-contracts",
+                  "reference-trajectories",
+                  "scoped-specificity-open-world-intent",
+                  "temporal-ordering-causality",
+                  "time-domain-declaration",
+                  "verifier-and-adjudication",
+                  "weakness-exploitability-semantics"
+                ],
+                "complete": false
+              },
+              "title": "Reproducible benchmark or study input"
+            }
+          ],
+          "scenario_assessment": {
+            "performed": false,
+            "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+            "status": "not-assessed"
+          },
+          "scope": "raes-delivery-capability",
+          "status": "ok",
+          "taxonomy_revision": "rev1"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "assessed_on": "2026-10-31",
+        "assessment_revision": "2026-10-31",
+        "next_action": "Select one profile_id before authoring or making readiness claims.",
+        "profile_family": "scientific-scenario-completeness",
+        "profiles": [
+          {
+            "disposition_counts": {
+              "allowed-underspecified": 16,
+              "excluded": 25,
+              "required": 3
+            },
+            "example_refs": [
+              "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml"
+            ],
+            "explicit_non_claims": [
+              "Does not claim deployability, realization, experimental control, reproducibility, backend conformance, or behavioral equivalence."
+            ],
+            "intended_claim": "The document is admitted as a structurally and semantically valid SDL authoring fragment.",
+            "profile_id": "valid-sdl-fragment",
+            "raes_delivery": {
+              "blocking_concern_count": 0,
+              "blocking_concern_ids": [],
+              "complete": true
+            },
+            "title": "Valid SDL fragment"
+          },
+          {
+            "disposition_counts": {
+              "allowed-underspecified": 18,
+              "excluded": 14,
+              "required": 12
+            },
+            "example_refs": [],
+            "explicit_non_claims": [
+              "Does not claim that every backend can realize the scenario, that deployment succeeded, or that realized behavior is equivalent."
+            ],
+            "intended_claim": "The authored scenario carries sufficient portable intent to request realization subject to an explicit apparatus and backend envelope.",
+            "profile_id": "deployable-scenario-intent",
+            "raes_delivery": {
+              "blocking_concern_count": 4,
+              "blocking_concern_ids": [
+                "authored-observed-state-separation",
+                "backend-teardown-reconciliation",
+                "credential-intent",
+                "scoped-specificity-open-world-intent"
+              ],
+              "complete": false
+            },
+            "title": "Deployable scenario intent"
+          },
+          {
+            "disposition_counts": {
+              "allowed-underspecified": 13,
+              "excluded": 1,
+              "required": 30
+            },
+            "example_refs": [],
+            "explicit_non_claims": [
+              "Does not claim participant implementations are strategically equivalent, that hidden global state is visible, or that finite probes prove bisimulation."
+            ],
+            "intended_claim": "The scenario and bound experiment contracts define participant-visible work, perception, action, episode control, and outcome evidence for evaluation.",
+            "profile_id": "participant-evaluation-scenario",
+            "raes_delivery": {
+              "blocking_concern_count": 15,
+              "blocking_concern_ids": [
+                "authored-observed-state-separation",
+                "backend-teardown-reconciliation",
+                "clock-declaration",
+                "credential-intent",
+                "deadlines-and-windows",
+                "flexible-step-tooling",
+                "pacing-and-synchronization",
+                "participant-action-observation",
+                "participant-budgets",
+                "participant-episode-reset",
+                "portable-behavior-contracts",
+                "scoped-specificity-open-world-intent",
+                "temporal-ordering-causality",
+                "time-domain-declaration",
+                "verifier-and-adjudication"
+              ],
+              "complete": false
+            },
+            "title": "Participant-evaluation scenario"
+          },
+          {
+            "disposition_counts": {
+              "allowed-underspecified": 11,
+              "excluded": 3,
+              "required": 30
+            },
+            "example_refs": [],
+            "explicit_non_claims": [
+              "Does not claim causal validity, successful execution, adequate power, reproducibility, or backend behavioral equivalence."
+            ],
+            "intended_claim": "The scenario is bound to a pre-run design with controlled variation, allocation, apparatus, timing, capture, and analysis intent.",
+            "profile_id": "controlled-experiment-scenario",
+            "raes_delivery": {
+              "blocking_concern_count": 11,
+              "blocking_concern_ids": [
+                "authored-observed-state-separation",
+                "backend-teardown-reconciliation",
+                "clock-declaration",
+                "credential-intent",
+                "deadlines-and-windows",
+                "host-architecture-constraints",
+                "pacing-and-synchronization",
+                "scoped-specificity-open-world-intent",
+                "temporal-ordering-causality",
+                "time-domain-declaration",
+                "verifier-and-adjudication"
+              ],
+              "complete": false
+            },
+            "title": "Controlled experiment scenario"
+          },
+          {
+            "disposition_counts": {
+              "allowed-underspecified": 2,
+              "excluded": 1,
+              "required": 41
+            },
+            "example_refs": [],
+            "explicit_non_claims": [
+              "Does not guarantee bitwise replay, equal outcomes, scientific validity, generalizability, or behavioral equivalence across apparatuses."
+            ],
+            "intended_claim": "The scenario and governed experiment bundle preserve sufficient design, apparatus, participant, evidence, lineage, and analysis context for a bounded reproduction attempt.",
+            "profile_id": "reproducible-benchmark-study-input",
+            "raes_delivery": {
+              "blocking_concern_count": 20,
+              "blocking_concern_ids": [
+                "authored-observed-state-separation",
+                "backend-teardown-reconciliation",
+                "clock-declaration",
+                "credential-intent",
+                "credential-materialization",
+                "deadlines-and-windows",
+                "flexible-step-tooling",
+                "hidden-benchmark-assets",
+                "host-architecture-constraints",
+                "pacing-and-synchronization",
+                "participant-action-observation",
+                "participant-budgets",
+                "participant-episode-reset",
+                "portable-behavior-contracts",
+                "reference-trajectories",
+                "scoped-specificity-open-world-intent",
+                "temporal-ordering-causality",
+                "time-domain-declaration",
+                "verifier-and-adjudication",
+                "weakness-exploitability-semantics"
+              ],
+              "complete": false
+            },
+            "title": "Reproducible benchmark or study input"
+          }
+        ],
+        "scenario_assessment": {
+          "performed": false,
+          "reason": "This tool reports whether RAES delivers the concerns required by an intended-use profile. It does not inspect or certify an individual scenario, experiment, backend, or run.",
+          "status": "not-assessed"
+        },
+        "scope": "raes-delivery-capability",
+        "status": "ok",
+        "taxonomy_revision": "rev1"
+      }
+    }
+  },
+  "surface": "mcp"
+}

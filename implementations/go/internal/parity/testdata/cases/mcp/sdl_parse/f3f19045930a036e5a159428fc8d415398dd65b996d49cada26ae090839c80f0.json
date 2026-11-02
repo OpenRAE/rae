@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:befd4ce5fcc71d06e455664b7819450a21f73988e75b14d0089695abb67c76ba"
+  },
+  "name": "regression/e0c26d7ebc36fb795b90c21afc2aab5961103b6b09ea8cfe8705c423f79fa70d",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/web/roles",
+              "range": {
+                "end": {
+                  "column": 54,
+                  "line": 3
+                },
+                "start": {
+                  "column": 31,
+                  "line": 3
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/web/roles",
+            "range": {
+              "end": {
+                "column": 54,
+                "line": 3
+              },
+              "start": {
+                "column": 31,
+                "line": 3
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_validate",
+  "files": {
+    "arguments.json": "sha256:1b631b01d2aeb551ae58c979f3142006c9277d8d6a8f679ea2ad98c34cc6ed51"
+  },
+  "name": "examples/scenarios/cross-backend-minimal.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

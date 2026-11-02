@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:32c882fc9c6b5b56d582bbb7a550c2de5bdf4426da28a9a615385027bf243b31"
+  },
+  "name": "regression/8c788be24ba4cfefe966090b5b358f72796264fc3b83a633463caf324fd71937",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "h",
+                "h"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/h",
+              "range": {
+                "end": {
+                  "column": 4,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'h'.",
+                  "range": {
+                    "end": {
+                      "column": 4,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "h",
+              "h"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/h",
+            "range": {
+              "end": {
+                "column": 4,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'h'.",
+                "range": {
+                  "end": {
+                    "column": 4,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

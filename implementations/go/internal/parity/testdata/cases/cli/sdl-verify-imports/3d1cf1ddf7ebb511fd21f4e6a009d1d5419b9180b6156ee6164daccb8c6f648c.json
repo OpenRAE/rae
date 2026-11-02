@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml": "sha256:5792f0023a0c6ec875f9ebeb095c299d8945435e3c2cfd45508ac53f1b79c947",
+    "setup.json": "sha256:50803cf87c83022d40bafebccba64558fc71e3584863dbe6ae950c8a45dc36b3"
+  },
+  "name": "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/completeness/rev1/valid-sdl-fragment/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

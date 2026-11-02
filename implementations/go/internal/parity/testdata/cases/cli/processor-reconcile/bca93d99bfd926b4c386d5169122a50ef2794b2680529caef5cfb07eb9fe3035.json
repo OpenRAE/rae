@@ -1,0 +1,44 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml": "sha256:88a83f75b0fecd4a4d85b30c249c28b3ab5984b6707656a124f19eac3a5effef"
+  },
+  "name": "contracts/fixtures/sdl/participant-inject-delivery-v1/valid/participant-directed.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "time.model",
+            "code": "time.unsupported-capability",
+            "domain": "time",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.briefing-delivery-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "dsl-142",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

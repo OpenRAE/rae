@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}/inject-capture",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:4eecd6f73f5893d526113a2fe45f6643454eafabb8a5fe1dd475c4af4e2ed729"
+  },
+  "name": "regression/1071fdf4815b486e92d57a724034411ea7dd3f59869f89e351dfda00ff4ba395",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 403
+  },
+  "surface": "http"
+}

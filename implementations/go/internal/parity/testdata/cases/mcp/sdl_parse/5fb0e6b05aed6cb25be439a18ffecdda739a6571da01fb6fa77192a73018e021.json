@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:51f39e836332d5844b9041d58c2580b7e96991d1eebbca76c99584b1f938134c"
+  },
+  "name": "regression/1bc2817a7f440e90a285cb53ff515d378022a9ac44478b75ff8a9a84cee76ba9",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/controlled-red/mixed_control/mixed-control-policy-occurrence~1rev1/permitted_transitions/approve",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 132
+                },
+                "start": {
+                  "column": 7,
+                  "line": 43
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/controlled-red/mixed_control/mixed-control-policy-occurrence~1rev1/permitted_transitions/approve",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 132
+              },
+              "start": {
+                "column": 7,
+                "line": 43
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

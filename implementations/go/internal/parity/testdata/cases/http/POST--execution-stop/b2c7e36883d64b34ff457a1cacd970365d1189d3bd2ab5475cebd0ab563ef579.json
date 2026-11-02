@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /execution/stop",
+  "files": {
+    "request.json": "sha256:6924408478dc3be00d03a27407ca30f34ddc85bba634ab87d926dc68eec6a172"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

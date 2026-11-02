@@ -1,0 +1,44 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml",
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/techvault-bounded-native.sdl.yaml": "sha256:e20e33b37b53a297d99c64315a8f004413c202b2ce3acb7b70acb523c85af34e"
+  },
+  "name": "examples/scenarios/techvault-bounded-native.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.demo",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.demo",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "techvault-bounded-native",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

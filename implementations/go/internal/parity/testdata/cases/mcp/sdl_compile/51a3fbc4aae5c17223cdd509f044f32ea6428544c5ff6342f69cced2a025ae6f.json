@@ -1,0 +1,213 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:90fee0053669546cccb1a59e2cf2729f19d6105f885e5ce5db1331dbbd1bed96"
+  },
+  "name": "regression/5a070a168f561e7d5fc66b750d85c71bfbb562a723fcebbdb87a5bf46a30ce61",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 0,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 0
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 0,
+                "nodes": 0
+              }
+            },
+            "metadata": {
+              "agents": 0,
+              "capability_constraints": 0,
+              "entities": 0,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 0,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "migrated"
+          },
+          "source_diagnostics": [
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 1
+                },
+                "start": {
+                  "column": 1,
+                  "line": 1
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            }
+          ],
+          "status": "compiled"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 0,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 0
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 0,
+              "nodes": 0
+            }
+          },
+          "metadata": {
+            "agents": 0,
+            "capability_constraints": 0,
+            "entities": 0,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 0,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "migrated"
+        },
+        "source_diagnostics": [
+          {
+            "authored_keys": [
+              "Name",
+              "name"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/name",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 1
+              },
+              "start": {
+                "column": 1,
+                "line": 1
+              }
+            },
+            "severity": "warning",
+            "stage": "parse"
+          }
+        ],
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          }
+        ],
+        "status": "compiled"
+      }
+    }
+  },
+  "surface": "mcp"
+}

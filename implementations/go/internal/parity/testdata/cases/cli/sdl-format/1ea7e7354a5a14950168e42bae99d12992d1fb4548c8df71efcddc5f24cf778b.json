@@ -1,0 +1,83 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/family.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/valid/family.yaml": "sha256:5e955d06d65fc050eed44de332feb051618c813e3459d65458fec4b13626b482"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "content": {
+        "payload": {
+          "path": "${payload_path}",
+          "target": "primary",
+          "type": "file"
+        }
+      },
+      "name": "fixture-family",
+      "nodes": {
+        "primary": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        },
+        "secondary": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "type": "compute"
+        }
+      },
+      "variables": {
+        "payload_path": {
+          "allowed_values": [
+            "/opt/a",
+            "/opt/b"
+          ],
+          "type": "string"
+        }
+      },
+      "variation_points": {
+        "payload-host": {
+          "alternatives": {
+            "primary-host": {
+              "reference": "primary"
+            },
+            "secondary-host": {
+              "reference": "secondary"
+            }
+          },
+          "kind": "alternative",
+          "target": {
+            "kind": "reference",
+            "owner": "payload",
+            "slot": "content.target"
+          }
+        },
+        "payload-path": {
+          "domain": {
+            "kind": "enum",
+            "values": [
+              "/opt/a",
+              "/opt/b"
+            ]
+          },
+          "kind": "parameter",
+          "target": {
+            "kind": "variable",
+            "variable": "payload_path"
+          }
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

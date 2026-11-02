@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:31cacc2f2a3518184e809cbda72672b32cf6e3956e07e76f7aee715814f3de23"
+  },
+  "name": "random-stream-vector-v1/routed/contracts/fixtures/random-stream-vectors/blake3-xof-v1/bounded-integer-rejection-then-accept.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

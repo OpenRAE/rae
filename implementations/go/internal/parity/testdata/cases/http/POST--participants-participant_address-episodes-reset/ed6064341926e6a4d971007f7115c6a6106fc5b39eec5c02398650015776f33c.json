@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "POST /participants/{participant_address}/episodes/reset",
+  "files": {
+    "request.json": "sha256:16a9415fd5ffb66a2bfaf634d681a10d9f9a934da7e2267166c265180206177f"
+  },
+  "name": "operator/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 409
+  },
+  "surface": "http"
+}

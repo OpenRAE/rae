@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import replace
 from multiprocessing import get_context
 from pathlib import Path
@@ -57,7 +58,7 @@ def test_runtime_admission_binds_and_reopens_one_immutable_scope(tmp_path: Path)
     first = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path), run_scope="run:first")
     first.close()
 
-    with sqlite3.connect(store_path / "control-plane.sqlite3") as connection:
+    with closing(sqlite3.connect(store_path / "control-plane.sqlite3")) as connection, connection:
         assert dict(
             connection.execute("SELECT key, value FROM metadata WHERE key IN ('target-scope', 'run-scope')").fetchall()
         ) == {"target-scope": f"target:{target.name}", "run-scope": "run:first"}
@@ -102,7 +103,7 @@ def test_unscoped_store_is_adopted_once_and_partial_scope_fails_closed(tmp_path:
     unscoped_path = tmp_path / "unscoped"
     unscoped_path.mkdir(mode=0o700)
     unscoped_database = unscoped_path / "control-plane.sqlite3"
-    with sqlite3.connect(unscoped_database) as connection:
+    with closing(sqlite3.connect(unscoped_database)) as connection, connection:
         connection.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
     if os.name != "nt":
         unscoped_database.chmod(0o600)
@@ -113,7 +114,7 @@ def test_unscoped_store_is_adopted_once_and_partial_scope_fails_closed(tmp_path:
         run_scope="run:adopted",
     )
     adopted.close()
-    with sqlite3.connect(unscoped_database) as connection:
+    with closing(sqlite3.connect(unscoped_database)) as connection, connection:
         assert dict(
             connection.execute("SELECT key, value FROM metadata WHERE key IN ('target-scope', 'run-scope')").fetchall()
         ) == {"target-scope": "target:stub", "run-scope": "run:adopted"}
@@ -121,7 +122,7 @@ def test_unscoped_store_is_adopted_once_and_partial_scope_fails_closed(tmp_path:
     partial_path = tmp_path / "partial"
     partial_path.mkdir(mode=0o700)
     partial_database = partial_path / "control-plane.sqlite3"
-    with sqlite3.connect(partial_database) as connection:
+    with closing(sqlite3.connect(partial_database)) as connection, connection:
         connection.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
         connection.execute("INSERT INTO metadata(key, value) VALUES ('target-scope', 'target:stub')")
     if os.name != "nt":
@@ -137,7 +138,7 @@ def test_duplicate_scope_metadata_fails_closed_before_store_reads(tmp_path: Path
     store_path = tmp_path / "duplicate"
     store_path.mkdir(mode=0o700)
     database = store_path / "control-plane.sqlite3"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.execute("CREATE TABLE metadata (key TEXT NOT NULL, value TEXT NOT NULL)")
         connection.executemany(
             "INSERT INTO metadata(key, value) VALUES (?, ?)",

@@ -17,12 +17,6 @@ The ``cli`` surface runs the ``raes`` command. Its result is the exit code and
 the JSON standard output. The free-text ``message`` of each diagnostic is not
 parity data, so the recording drops it. The ``schema`` surface validates each
 contract fixture against its published schema, and its result is the verdict.
-The ``canonical`` surface encodes each JSON fixture and each edge input in the
-RFC 8785 form and in the two sorted ``json.dumps`` forms. Its result is the
-digest of each encoding, or ``null`` when the encoding refuses the input. The
-``randstream`` surface runs the random-stream engine on each published vector:
-its result is the stream key, the canonical address bytes, the raw block, and
-the bounded draw of the vector.
 
 ``record`` writes the corpus. ``check`` records into memory and fails when the
 committed corpus differs, and it can write the fresh corpus for review.
@@ -32,8 +26,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
+import subprocess
 import sys
+import unicodedata
 from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
 
@@ -55,43 +52,22 @@ from raes_contracts.contracts.random_stream import (  # noqa: E402
     StreamAddressModel,
 )
 from raes_contracts.digests import sha256_digest  # noqa: E402
-from raes_contracts.json_serialization import (  # noqa: E402
-    sorted_json_text_finite,
-    sorted_json_text_unicode_finite,
-)
+from raes_contracts.json_serialization import sorted_json_text_finite, sorted_json_text_unicode_finite  # noqa: E402
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
 
 from tools import parity_primitives  # noqa: E402
-from tools.parity_records import Case, case_document, digest, encode, reference_identity  # noqa: E402
+from tools.parity_records import case_document  # noqa: E402
+from tools.parity_support import Case, digest, encode, json_output  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
-SCHEMA = "raes-parity-corpus/v1"
+SCHEMA = "raes-parity-corpus/v2"
 JSON_FILES = "*.json"
-# The input file of each canonical case.
+
 CANONICAL_VALUE = "value.json"
-# The input file of each random-stream case.
+
 RANDSTREAM_VECTOR = "vector.json"
-SDL_CONTRACT = "sdl-yaml/v1"
-SDL_COMMANDS = (
-    "parse",
-    "validate",
-    "normalize",
-    "resolve",
-    "compile",
-    "inspect",
-    "conformance",
-)
-SDL_TRANSFORMS = ("canonical", "format")
-PORTABLE_COMMANDS = ("validate", "inspect", "conformance")
-# A portable contract rejects these commands in the same way for each contract.
-UNSUPPORTED_PORTABLE_COMMANDS = ("parse", "normalize", "resolve", "compile")
-MANIFEST = Path("manifest.json")
-PUBLICATION_ENTRIES = Path("contracts/schema-publication/entries")
-# JSON texts at the edges of the canonical forms: number notation, the exact
-# integer range of RFC 8785, the integer digit limit of Python, string escapes,
-# and the two key orders. Each input file ends with a newline, which JSON reads
-# as whitespace, so that the corpus meets the repository text hygiene.
+
 CANONICAL_EDGE_TEXTS = (
     "1.0",
     "1e16",
@@ -126,6 +102,23 @@ CANONICAL_EDGE_TEXTS = (
     "-" + "9" * 4300,
     "9" * 4301,
 )
+
+SDL_CONTRACT = "sdl-yaml/v1"
+SDL_COMMANDS = (
+    "parse",
+    "validate",
+    "normalize",
+    "resolve",
+    "compile",
+    "inspect",
+    "conformance",
+)
+SDL_TRANSFORMS = ("canonical", "format")
+PORTABLE_COMMANDS = ("validate", "inspect", "conformance")
+# A portable contract rejects these commands in the same way for each contract.
+UNSUPPORTED_PORTABLE_COMMANDS = ("parse", "normalize", "resolve", "compile")
+MANIFEST = Path("manifest.json")
+PUBLICATION_ENTRIES = Path("contracts/schema-publication/entries")
 
 
 def semantic_case(command: str, contract: str, source: Path, repo: Path, *options: str, name: str = "") -> Case:
@@ -182,9 +175,14 @@ def contract_fixtures(repo: Path, contracts: Iterable[str]) -> Iterator[tuple[st
     root = repo / "contracts" / "fixtures"
     for contract in sorted(contracts):
         for directory in sorted(path for path in root.rglob(contract) if path.is_dir()):
-            for kind in ("valid", "invalid"):
-                for fixture in sorted((directory / kind).glob(JSON_FILES)):
-                    yield contract, fixture
+            for fixture in sorted(
+                directory.rglob(JSON_FILES),
+                key=lambda path: (
+                    {"valid": 0, "invalid": 1}.get(path.relative_to(directory).parts[0], 2),
+                    path.as_posix(),
+                ),
+            ):
+                yield contract, fixture
 
 
 def portable_cases(repo: Path, contracts: Iterable[str]) -> Iterator[Case]:
@@ -251,80 +249,8 @@ def randstream_cases(repo: Path) -> Iterator[Case]:
     for vector in sorted((repo / "contracts" / "fixtures" / "random-stream-vectors").rglob(JSON_FILES)):
         name = vector.relative_to(repo).with_suffix("").as_posix()
         yield Case(
-            surface="randstream",
-            command="vector",
-            name=name,
-            args=(),
-            files={RANDSTREAM_VECTOR: vector.read_bytes()},
+            surface="randstream", command="vector", name=name, args=(), files={RANDSTREAM_VECTOR: vector.read_bytes()}
         )
-
-
-def primitive_cases() -> Iterator[Case]:
-    """Yield reproducible requests for the four input primitives."""
-
-    for command, name, request in (
-        *parity_primitives.primitive_requests(),
-        *parity_primitives.compatibility_requests(),
-    ):
-        yield Case("primitive", command, name, (), {"request.json": encode(request)})
-
-
-def run_primitive(case: Case) -> dict[str, object]:
-    """Record one reference primitive outcome."""
-
-    return parity_primitives.run_primitive(case.command, json.loads(case.files["request.json"]))
-
-
-def all_cases(repo: Path) -> list[Case]:
-    """Return every case of the corpus, sorted by case path."""
-
-    cases = [
-        *sdl_cases(repo),
-        *portable_cases(repo, supported_contracts()),
-        *schema_cases(repo),
-        *canonical_cases(repo),
-        *randstream_cases(repo),
-        *primitive_cases(),
-    ]
-    return sorted(cases, key=lambda case: case.path)
-
-
-def normalized_output(stdout: str) -> object:
-    """Return JSON standard output without diagnostic messages, or ``None`` for other output."""
-
-    try:
-        output = json.loads(stdout)
-    except ValueError:
-        return None
-    if isinstance(output, dict) and isinstance(output.get("diagnostics"), list):
-        for diagnostic in output["diagnostics"]:
-            if isinstance(diagnostic, dict):
-                diagnostic.pop("message", None)
-    return output
-
-
-def run_cli(case: Case) -> dict[str, object]:
-    """Run one CLI case in an isolated directory and return its exit code and output."""
-
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        for name, content in case.files.items():
-            Path(name).write_bytes(content)
-        result = runner.invoke(app, list(case.args), catch_exceptions=False)
-    return {"exit_code": result.exit_code, "stdout": normalized_output(result.stdout)}
-
-
-def run_schema(repo: Path, case: Case) -> dict[str, object]:
-    """Validate the payload of a schema case against the published schema of its contract."""
-
-    (contract,) = case.args
-    entry = json.loads((repo / PUBLICATION_ENTRIES / f"{contract}.json").read_text(encoding="utf-8"))
-    schema = json.loads((repo / entry["schema_path"]).read_text(encoding="utf-8"))
-    try:
-        payload = json.loads(case.files["payload.json"])
-    except ValueError:
-        return {"valid": False}
-    return {"valid": Draft202012Validator(schema).is_valid(payload)}
 
 
 def _reject_constant(constant: str) -> object:
@@ -384,27 +310,219 @@ def run_randstream(case: Case) -> dict[str, object]:
     return result
 
 
+def primitive_cases() -> Iterator[Case]:
+    """Yield reproducible requests for the four input primitives."""
+
+    for command, name, request in (
+        *parity_primitives.primitive_requests(),
+        *parity_primitives.compatibility_requests(),
+    ):
+        yield Case("primitive", command, name, (), {"request.json": encode(request)})
+
+
+def run_primitive(case: Case) -> dict[str, object]:
+    """Record one reference primitive outcome."""
+
+    return parity_primitives.run_primitive(case.command, json.loads(case.files["request.json"]))
+
+
+def all_cases(repo: Path) -> list[Case]:
+    """Enumerate the exposed registries, examples, fixtures and regressions."""
+    from tools import parity_surfaces as surfaces
+
+    sources = [path for path in surfaces.data_inputs(repo) if path.suffix in {".yaml", ".yml"}]
+    cases = [
+        *sdl_cases(repo),
+        *portable_cases(repo, supported_contracts()),
+        *schema_cases(repo),
+        *canonical_cases(repo),
+        *randstream_cases(repo),
+        *primitive_cases(),
+    ]
+    existing_sdl = {case.name for case in cases if case.command == "semantic parse"}
+    for source in sources:
+        if source.relative_to(repo).with_suffix("").as_posix() not in existing_sdl:
+            for command in SDL_COMMANDS:
+                cases.append(semantic_case(command, SDL_CONTRACT, source, repo))
+    cases.extend(surfaces.extended_cli_cases(repo, sources))
+    cases.extend(surfaces.schema_source_cases(repo))
+    cases.extend(surfaces.mcp_cases(repo, sources, surfaces.mcp_registry()))
+    cases.extend(surfaces.http_cases(surfaces.http_schema()))
+    cases.extend(surfaces.http_trace_cases())
+    for surface in ("cli-schema", "mcp-schema", "http-schema"):
+        cases.append(Case(surface, "registry", "reference", (), {}))
+    return sorted(cases, key=lambda case: case.path)
+
+
+def normalized_output(stdout: str) -> object:
+    """Retain machine-readable output without free diagnostic wording."""
+    return json_output(stdout)
+
+
+def case_path(name: str) -> Path:
+    target = Path(name)
+    if target.is_absolute() or ".." in target.parts:
+        raise ValueError("a corpus input path escapes its case")
+    return target
+
+
+def recipe_content(recipe: dict[str, str]) -> bytes:
+    if recipe["kind"] == "invalid-key":
+        return b"not a private key\n"
+    if recipe["kind"] != "public-test-ed25519":
+        raise ValueError("unknown input recipe")
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    return Ed25519PrivateKey.from_private_bytes(bytes.fromhex(digest(recipe["seed_id"].encode()))).private_bytes(
+        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
+    )
+
+
+def materialize_case(case: Case) -> None:
+    for name, content in case.files.items():
+        target = case_path(name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+    for name, recipe in json.loads(case.files.get("input-recipes.json", b"{}")).items():
+        target = case_path(name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(recipe_content(recipe))
+
+
+def prepare_cli(runner: CliRunner, case: Case) -> None:
+    setup = json.loads(case.files.get("setup.json", b"{}"))
+    for directory in setup.get("directories", []):
+        case_path(directory).mkdir(parents=True, exist_ok=True)
+    if "store" in setup:
+        from raes_runtime.control_plane_store import LocalControlPlaneStore
+
+        store = LocalControlPlaneStore(Path(setup["store"]))
+        owner = store.admit_runtime(target_scope="target:stub", run_scope="run:parity")
+        store.close()
+        owner.close()
+    for command in setup.get("commands", []):
+        runner.invoke(app, command, catch_exceptions=False)
+
+
+def cli_stdout(case: Case, text: str) -> object:
+    from tools.parity_surfaces import machine_text
+
+    stdout = normalized_output(text.replace(str(Path.cwd()), "<case>"))
+    if stdout is None and case.command == "root" and {"--version", "-V"}.intersection(case.args):
+        stdout = text.strip()
+    if stdout is None and case.command == "sdl format":
+        stdout = machine_text(text)
+    if stdout is None and text.strip().startswith("control-plane-store-"):
+        stdout = text.strip()
+    return stdout
+
+
+def generated_outputs(case: Case) -> dict[str, object]:
+    generated = {}
+    for target in sorted(Path(".").rglob(JSON_FILES)):
+        name = target.as_posix()
+        content = target.read_bytes()
+        if name not in case.files or case.files[name] != content:
+            generated[name] = normalized_output(content.decode("utf-8").replace(str(Path.cwd()), "<case>"))
+    return generated
+
+
+def run_cli(case: Case) -> dict[str, object]:
+    """Run a CLI case, its explicit setup, and observe generated JSON files."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        materialize_case(case)
+        prepare_cli(runner, case)
+        result = runner.invoke(app, list(case.args), input=case.files.get("stdin.bin"), catch_exceptions=False)
+        output = {"exit_code": result.exit_code, "stdout": cli_stdout(case, result.stdout)}
+        generated = generated_outputs(case)
+        if generated:
+            output["generated_files"] = generated
+    return output
+
+
+def run_schema(repo: Path, case: Case) -> dict[str, object]:
+    """Validate the payload of a schema case against the published schema of its contract."""
+
+    (contract,) = case.args
+    entry = json.loads((repo / PUBLICATION_ENTRIES / f"{contract}.json").read_text(encoding="utf-8"))
+    schema = json.loads((repo / entry["schema_path"]).read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(case.files["payload.json"].decode("utf-8"), parse_constant=_reject_constant)
+    except ValueError:
+        return {"valid": False}
+    return {"valid": Draft202012Validator(schema).is_valid(payload)}
+
+
 def run(repo: Path, case: Case) -> dict[str, object]:
-    """Return the result of one case."""
+    """Invoke only the adapter explicitly named by the case."""
+    from tools import parity_surfaces as surfaces
 
-    runners = {
-        "cli": run_cli,
-        "canonical": run_canonical,
-        "randstream": run_randstream,
-        "primitive": run_primitive,
+    recorders = {
+        "primitive": lambda: run_primitive(case),
+        "canonical": lambda: run_canonical(case),
+        "randstream": lambda: run_randstream(case),
+        "cli": lambda: run_cli(case),
+        "schema": lambda: run_schema(repo, case),
+        "mcp": lambda: surfaces.run_mcp(case),
+        "http": lambda: surfaces.run_http(case),
+        "http-trace": lambda: surfaces.run_http(case),
+        "cli-schema": lambda: {"commands": surfaces.cli_registry()},
+        "mcp-schema": lambda: {"tools": surfaces.mcp_registry()},
+        "http-schema": surfaces.http_schema,
     }
-    if case.surface in runners:
-        return runners[case.surface](case)
-    return run_schema(repo, case)
+    if case.surface not in recorders:
+        raise ValueError(f"unknown parity surface: {case.surface}")
+    with surfaces.recording_context(case.surface + "/" + case.command + "/" + case.name):
+        return recorders[case.surface]()
 
 
-def build_corpus(repo: Path, cases: Iterable[Case]) -> dict[Path, bytes]:
+def provenance(repo: Path) -> dict[str, str]:
+    """Identify the reference source and the locked recording environment."""
+
+    hash_seed = os.environ.get("PYTHONHASHSEED")
+    if hash_seed != "0":
+        raise ValueError("reference recording requires PYTHONHASHSEED=0")
+    source = "implementations/python/packages"
+    commit = subprocess.check_output(
+        ["git", "-C", str(repo), "log", "-1", "--format=%H", "--", source], text=True
+    ).strip()
+    tree = subprocess.check_output(["git", "-C", str(repo), "rev-parse", f"{commit}:{source}"], text=True).strip()
+    current_tree = subprocess.check_output(["git", "-C", str(repo), "rev-parse", f"HEAD:{source}"], text=True).strip()
+    if tree != current_tree:
+        raise ValueError("Python source commit does not identify the current Python tree")
+    return {
+        "python_commit": commit,
+        "python_tree": tree,
+        "recorder_sha256": digest(
+            encode({path.name: digest(path.read_bytes()) for path in sorted(Path(__file__).parent.glob("parity_*.py"))})
+        ),
+        "python_version": ".".join(map(str, sys.version_info[:3])),
+        "unicode_version": unicodedata.unidata_version,
+        "hash_seed": hash_seed,
+        "lock_sha256": digest((repo / "implementations/python/uv.lock").read_bytes()),
+    }
+
+
+def build_corpus(
+    repo: Path, cases: Iterable[Case], *, inventory: Mapping[str, object] | None = None
+) -> dict[Path, bytes]:
     """Record each case and return the corpus files by path."""
 
-    reference = reference_identity(REPO_ROOT)
-    files = {MANIFEST: encode({"schema": SCHEMA, "reference": reference})}
-    for case in cases:
-        files[case.path] = encode(case_document(case, run(repo, case)))
+    files = {MANIFEST: encode({"schema": SCHEMA, "provenance": provenance(repo)})}
+    if inventory is not None:
+        files[Path("inventory.json")] = encode(inventory)
+    for index, case in enumerate(cases, start=1):
+        if index % 250 == 0:
+            print(f"parity corpus: recording case {index}", file=sys.stderr, flush=True)
+        if case.path in files:
+            raise ValueError(f"duplicate corpus case: {case.path}")
+        try:
+            files[case.path] = encode(case_document(case, run(repo, case)))
+        except Exception:
+            print(f"parity corpus: failed {case.surface} {case.command} ({case.name})", file=sys.stderr, flush=True)
+            raise
         for content in case.files.values():
             files[Path("inputs", digest(content))] = content
     return files
@@ -447,6 +565,9 @@ def parse_args(argv: Iterable[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Record or check the golden parity corpus.")
     parser.add_argument("mode", choices=("record", "check"))
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
+    parser.add_argument("--regression-inputs", type=Path)
+    parser.add_argument("--require-complete", action="store_true")
+    parser.add_argument("--raw-input-dir", type=Path)
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -458,12 +579,55 @@ def parse_args(argv: Iterable[str] | None) -> argparse.Namespace:
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv)
     repo = args.repo_root.resolve()
-    recorded = build_corpus(repo, all_cases(repo))
+    from tools import parity_regressions as regressions
+    from tools.parity_surfaces import complete_inventory
+
+    cases = all_cases(repo)
+    frozen_root = args.regression_inputs or (repo / regressions.FROZEN)
+    identity = (
+        regressions.source_identity(repo)
+        if (frozen_root / "manifest.json").is_file() or args.regression_inputs
+        else None
+    )
+    captured, coverage, frozen = regressions.read_inputs(frozen_root, identity=identity)
+    cases.extend(captured)
+    inventory = complete_inventory(repo, cases, coverage)
+    if args.require_complete and not inventory["complete"]:
+        if args.output_dir is not None:
+            write_corpus(args.output_dir, {Path("inventory.json"): encode(inventory)})
+        print(
+            "parity corpus: incomplete inventory: "
+            + json.dumps(
+                {
+                    "missing_surfaces": inventory["missing_surfaces"],
+                    "missing_inputs": inventory["missing_inputs"],
+                    "regression_complete": coverage["complete"],
+                }
+            ),
+            file=sys.stderr,
+        )
+        return 1
+    recorded = build_corpus(repo, cases, inventory=inventory)
+    recorded.update(
+        {Path("regressions", name): content for name, content in frozen.items() if name.parts[0] != "blobs"}
+    )
+    from tools.parity_storage import pack
+
+    recorded, raw_blobs = pack(recorded)
+    if args.raw_input_dir is not None:
+        args.raw_input_dir.mkdir(parents=True, exist_ok=True)
+        for identity, content in raw_blobs.items():
+            (args.raw_input_dir / identity).write_bytes(content)
     if args.mode == "record":
         write_corpus(repo / CORPUS_DIR, recorded)
         print(f"parity corpus: recorded {len(recorded)} files")
         return 0
-    differences = corpus_differences(recorded, read_corpus(repo / CORPUS_DIR))
+    return check_recording(recorded, repo / CORPUS_DIR, args.output_dir)
+
+
+def check_recording(recorded: Mapping[Path, bytes], committed_root: Path, output_dir: Path | None) -> int:
+    """Compare the complete generated recording and retain differences for CI."""
+    differences = corpus_differences(recorded, read_corpus(committed_root))
     if not differences:
         print(f"parity corpus: {len(recorded)} files match")
         return 0
@@ -473,8 +637,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         f"parity corpus: {len(differences)} files differ; record the corpus again",
         file=sys.stderr,
     )
-    if args.output_dir is not None:
-        write_corpus(args.output_dir, recorded)
+    if output_dir is not None:
+        write_corpus(output_dir, recorded)
     return 1
 
 

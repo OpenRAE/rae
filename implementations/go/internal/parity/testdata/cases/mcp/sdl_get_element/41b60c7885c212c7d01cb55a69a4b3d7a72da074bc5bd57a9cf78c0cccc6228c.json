@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:10a94a6717810faeb5c43c5ad75cd76c8d6c73018218c08218a8a6cbb4a88741"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/empty.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

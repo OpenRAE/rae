@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:e249289a21a80d20e50c90122eda3e9343d58f48830b5c50df3ecffd0c60020b"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/valid/abstract-relations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: abstract-participant-relationships\nentities:\n  team-a:\n    role: red\n  team-b:\n    role: blue\nrelationships:\n  coordination:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: coordination\n  delegation:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: delegation\n  cooperation:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: cooperation\n  competition:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: competition\n  supervision:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: supervision\nagents:\n  alice:\n    affiliations:\n    - team-a\n  bob:\n    affiliations:\n    - team-b\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: abstract-participant-relationships\nentities:\n  team-a:\n    role: red\n  team-b:\n    role: blue\nrelationships:\n  coordination:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: coordination\n  delegation:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: delegation\n  cooperation:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: cooperation\n  competition:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: competition\n  supervision:\n    type: participant\n    source: agents.alice\n    target: bob\n    participant:\n      kind: supervision\nagents:\n  alice:\n    affiliations:\n    - team-a\n  bob:\n    affiliations:\n    - team-b\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

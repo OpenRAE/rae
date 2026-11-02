@@ -371,6 +371,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "go",
         "go-architecture",
         "parity-corpus",
+        "parity-inputs",
         "sonar",
         "gate",
     }
@@ -440,9 +441,13 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     assert "test -d /etc/fonts" in sandbox
     assert "test -d /usr/share/fonts" in sandbox
 
-    # Coverage is combined once, after a completeness proof, gated on both producers.
+    # Coverage is combined once after shard completeness and real recorder execution.
     reduce = workflow["jobs"]["coverage-reduce"]
-    assert reduce["needs"] == ["test-shard", "integration"]
+    assert reduce["needs"] == ["test-shard", "integration", "parity-corpus"]
+    assert "needs.test-shard.result == 'success'" in reduce["if"]
+    assert "needs.integration.result == 'success'" in reduce["if"]
+    recorder_coverage = _named_step(reduce, "Receive recorder coverage data")
+    assert recorder_coverage["with"]["name"] == "coverage-parity-${{ inputs.ref }}"
     reduce_run = _named_step(reduce, "Prove completeness and combine coverage")["run"]
     assert "nox -f noxfile.py -s verify-coverage-reduce" in reduce_run
     coverage = _named_step(reduce, "Upload combined coverage report")
@@ -1669,11 +1674,11 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         "go mod verify",
         "golangci-lint run ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
-        "go test -race -covermode=atomic -coverprofile=cover.out ./...",
+        "go test -v -race -covermode=atomic -coverprofile=cover.out ./...",
         "exit !(total >= 90)",
         "go test -list '^Fuzz' ./...",
         '-fuzztime 20s "${package}" || exit 1',
-        'gremlins unleash --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"',
+        'gremlins unleash --workers 2 --config "${GITHUB_WORKSPACE}/implementations/.gremlins.yaml" --diff "${MERGE_BASE}"',
         'regressiontest -base "${MERGE_BASE}"',
     ):
         assert command in scripts, command
@@ -1708,7 +1713,30 @@ def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> No
     workflow = _load(CANONICAL_PATH)
     job = workflow["jobs"]["parity-corpus"]
     check = _named_step(job, "Check that the Python implementation reproduces the corpus")
-    assert "python -m tools.parity_corpus check" in check["run"]
+    assert "python -m coverage run" in check["run"]
+    assert "-m tools.parity_corpus check" in check["run"]
+    assert '--data-file="${RUNNER_TEMP}/.coverage.parity"' in check["run"]
+    coverage = _named_step(job, "Retain recorder coverage data")
+    assert coverage["with"]["name"] == "coverage-parity-${{ inputs.ref }}"
+    assert coverage["with"]["include-hidden-files"] is True
+    assert coverage["with"]["if-no-files-found"] == "error"
     upload = _named_step(job, "Upload the recorded corpus")
-    assert upload["if"] == "failure()"
+    assert upload["if"] == "failure() && steps.scan.outcome == 'success'"
+    assert check["continue-on-error"] is True
+    assert "--require-complete" in check["run"]
+    assert "--raw-input-dir" in check["run"]
+    assert job["needs"] == "parity-inputs"
+    inputs = workflow["jobs"]["parity-inputs"]
+    assert inputs["strategy"]["matrix"]["shard"] == list(range(8))
+    capture = _named_step(inputs, "Collect public inputs from the Python tests")
+    assert "tools.pytest_shard_plugin" in capture["env"]["PYTEST_PLUGINS"]
+    assert "--shard-count=8" in capture["run"]
+    receive = _named_step(job, "Receive public regression inputs")
+    assert receive["with"]["merge-multiple"] is True
+    assert receive["with"]["pattern"] == "parity-inputs-*-${{ inputs.ref }}"
+    scan = _named_step(job, "Scan decoded corpus inputs before retaining compressed data")
+    assert "tools.parity_storage scan" in scan["run"]
+    enforce = _named_step(job, "Enforce corpus reproduction")
+    assert enforce["if"] == "steps.corpus.outcome != 'success'"
+    assert enforce["run"] == "exit 1"
     assert "parity-corpus" in workflow["jobs"]["gate"]["needs"]

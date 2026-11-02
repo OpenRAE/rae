@@ -1,0 +1,59 @@
+{
+  "args": [],
+  "command": "experiment_scaffold",
+  "files": {
+    "arguments.json": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+  },
+  "name": "reference",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "description": "A minimal single-condition experiment design.",
+          "run_plan": {
+            "episode_control": {
+              "max_steps": 100,
+              "termination_rule": "Terminate each episode after 100 logical steps.",
+              "turn_order": "sequential"
+            },
+            "target_run_count": 10
+          },
+          "schema_version": "experiment-authoring-input/v1",
+          "spec_id": "my-experiment-spec",
+          "spec_version": "1.0.0",
+          "task_ref": {
+            "ref_id": "task-example-v1",
+            "ref_kind": "task",
+            "ref_version": "1.0.0"
+          },
+          "title": "My experiment"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "description": "A minimal single-condition experiment design.",
+        "run_plan": {
+          "episode_control": {
+            "max_steps": 100,
+            "termination_rule": "Terminate each episode after 100 logical steps.",
+            "turn_order": "sequential"
+          },
+          "target_run_count": 10
+        },
+        "schema_version": "experiment-authoring-input/v1",
+        "spec_id": "my-experiment-spec",
+        "spec_version": "1.0.0",
+        "task_ref": {
+          "ref_id": "task-example-v1",
+          "ref_kind": "task",
+          "ref_version": "1.0.0"
+        },
+        "title": "My experiment"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:7facc7132b266dd1bcddd57474a0012e397872af04c156c75a4e71264bd695b2"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/family.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nvariables:\n  payload_path:\n    type: string\n    allowed_values:\n    - /opt/a\n    - /opt/b\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: ${payload_path}\nvariation_points:\n  payload-path:\n    kind: parameter\n    target:\n      kind: variable\n      variable: payload_path\n    domain:\n      kind: enum\n      values:\n      - /opt/a\n      - /opt/b\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nvariables:\n  payload_path:\n    type: string\n    allowed_values:\n    - /opt/a\n    - /opt/b\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: ${payload_path}\nvariation_points:\n  payload-path:\n    kind: parameter\n    target:\n      kind: variable\n      variable: payload_path\n    domain:\n      kind: enum\n      values:\n      - /opt/a\n      - /opt/b\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-boundary-flow-policy-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:20cc8024b699d64d0454560ad74f7e84c9d39cb926740812879affed9c24aa71"
+  },
+  "name": "regression/7cf2203e24a53c82f88bfd39f119c7b911bef8844d4b1f57f206edcca6bfd0f5",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

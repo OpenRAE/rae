@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml": "sha256:5792f0023a0c6ec875f9ebeb095c299d8945435e3c2cfd45508ac53f1b79c947"
+  },
+  "name": "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "name": "rev1-minimal-valid-fragment"
+    }
+  },
+  "surface": "cli"
+}

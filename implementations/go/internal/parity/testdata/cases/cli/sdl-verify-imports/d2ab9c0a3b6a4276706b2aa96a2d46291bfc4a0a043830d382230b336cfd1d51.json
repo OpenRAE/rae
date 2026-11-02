@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/scenarios/temporal-profiles/user-deadline.sdl.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/scenarios/temporal-profiles/user-deadline.sdl.yaml": "sha256:1549bf308d7e6f8c711f8f16ce44831b82bf2a65d82080c8e774d6b4dd9475f4",
+    "setup.json": "sha256:77152ae74bfa6f65e25fb35d4b427375ce3a83d97ffb09700f779b5c54258b04"
+  },
+  "name": "examples/scenarios/temporal-profiles/user-deadline.sdl.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/examples/scenarios/temporal-profiles/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

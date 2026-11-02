@@ -1,0 +1,14 @@
+{
+  "args": [
+    "runtime-snapshot-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7d345a2c8cec6cbaab0a4680ae4eb443d8ad4bfdd313ce40f0009250563b022f"
+  },
+  "name": "contracts/fixtures/snapshots/runtime-snapshot-v1/migration/participant-control-opt-in-after",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

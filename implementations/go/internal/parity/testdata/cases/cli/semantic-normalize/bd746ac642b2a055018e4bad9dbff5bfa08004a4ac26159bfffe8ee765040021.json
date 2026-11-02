@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "normalize",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic normalize",
+  "files": {
+    "input.yaml": "sha256:56fd670d994057fc4908e35395faf70e3f425fbe50c3a011576dbefa8b8c2558"
+  },
+  "name": "contracts/fixtures/sdl/runtime-package-repository-v1/valid/wazuh",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "normalize",
+      "payload": {
+        "content": "name: wazuh-third-party-repository\nnodes:\n  manager:\n    type: compute\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    runtime:\n      packages:\n      - manager: apt\n        name: wazuh-agent\n        version: 4.12.0-1\n        repository:\n          repository_profile: apt\n          profile_version: '1'\n          uri: https://packages.wazuh.com/4.x/apt/\n          suite: stable\n          components:\n          - main\n          signing_key:\n            uri: https://packages.wazuh.com/key/GPG-KEY-WAZUH\n            format: openpgp-ascii-armored\n            digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:7ab3f086aaad716a2e8e6c8cc681f4089cf3fbb871ea9714fb94ae6f484f8053"
+        },
+        "field_count": 2,
+        "phase": "normalized-authoring",
+        "root_type": "object",
+        "scenario_name": "wazuh-third-party-repository",
+        "semantic_validated": true
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

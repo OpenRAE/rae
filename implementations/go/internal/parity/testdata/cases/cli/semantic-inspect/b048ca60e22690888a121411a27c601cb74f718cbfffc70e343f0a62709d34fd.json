@@ -1,0 +1,92 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:461805fcedb435695d20a79e53bfa3b09b7309aca6612ba9648e559484f43adc"
+  },
+  "name": "contracts/fixtures/artifact-transformations-v1/sources/references.sdl",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 5,
+        "declarations": [
+          {
+            "address": "content.payload",
+            "kind": "content",
+            "model_path": "content.payload",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.peer",
+            "kind": "node",
+            "model_path": "nodes.peer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.web",
+            "kind": "node",
+            "model_path": "nodes.web",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "relationships.loop",
+            "kind": "relationships",
+            "model_path": "relationships.loop",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.transformation-reference-case",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "transformation-reference-case",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "content",
+              "nodes",
+              "relationships"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {}
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:aa15b095559038d4e77b54eeaaa88c611c0d1bc4955d3bc3d8919e82aa58c2ee"
+  },
+  "name": "regression/330b5e51f3f73d44cfa2903f0446e34faa57d5fe2ea8e9f5cc2814e753389882",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "qq86q",
+                "qq86q"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/qq86q",
+              "range": {
+                "end": {
+                  "column": 8,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'qq86q'.",
+                  "range": {
+                    "end": {
+                      "column": 8,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "qq86q",
+              "qq86q"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/qq86q",
+            "range": {
+              "end": {
+                "column": 8,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'qq86q'.",
+                "range": {
+                  "end": {
+                    "column": 8,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,21 @@
+{
+  "args": [
+    "runtime",
+    "store",
+    "backup",
+    "store.sqlite3",
+    "backup.sqlite3",
+    "--target",
+    "stub",
+    "--run-scope",
+    "run:parity"
+  ],
+  "command": "runtime store backup",
+  "files": {},
+  "name": "missing-store",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

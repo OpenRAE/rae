@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 import sqlite3
+from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -95,7 +96,7 @@ def _replace_audit_payload(database: Path, payload: object, digest: object | Non
     if digest is None:
         assert isinstance(payload, str)
         digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.execute("UPDATE audit_events SET payload=?, digest=?", (payload, digest))
 
 
@@ -134,7 +135,7 @@ def test_store_command_refuses_a_backup_file_that_is_not_a_database(tmp_path: Pa
 def test_store_command_refuses_a_store_with_a_damaged_page(tmp_path: Path) -> None:
     store_path = tmp_path / "damaged"
     database = _create_store(store_path)
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         page_size = connection.execute("PRAGMA page_size").fetchone()[0]
         root = connection.execute("SELECT rootpage FROM sqlite_master WHERE name='audit_events'").fetchone()[0]
     content = bytearray(database.read_bytes())
@@ -253,7 +254,7 @@ def test_damaged_generation_metadata_is_an_integrity_failure(tmp_path: Path) -> 
     finally:
         store.close()
         lease.close()
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         # An integer beyond the interpreter digit limit must not reach int() as an unexpected failure.
         connection.execute("UPDATE metadata SET value=? WHERE key='snapshot-history-generation'", ("9" * 5000,))
 
@@ -264,7 +265,7 @@ def test_damaged_generation_metadata_is_an_integrity_failure(tmp_path: Path) -> 
 
 def test_an_unsupported_store_schema_is_a_conflict(tmp_path: Path) -> None:
     store_path = tmp_path / "store"
-    with sqlite3.connect(_create_store(store_path)) as connection:
+    with closing(sqlite3.connect(_create_store(store_path))) as connection, connection:
         connection.execute("UPDATE metadata SET value='999' WHERE key='schema-version'")
 
     with pytest.raises(ConflictError, match="unsupported local control-plane database schema"):
@@ -292,7 +293,7 @@ def test_http_submission_keeps_its_conflict_response_for_a_damaged_stored_record
         accepted = client.post(
             "/operations/provisioning", json=_PROVISIONING, headers={**_HEADERS, "idempotency-key": "a"}
         )
-        with sqlite3.connect(store_path / _DATABASE) as connection:
+        with closing(sqlite3.connect(store_path / _DATABASE)) as connection, connection:
             connection.execute("UPDATE operations SET digest=?", ("0" * 64,))
         refused = client.post(
             "/operations/provisioning", json=_PROVISIONING, headers={**_HEADERS, "idempotency-key": "b"}
@@ -1025,7 +1026,7 @@ def _bound_store(path: Path) -> Path:
 
 
 def _has_table(database: Path, table: str) -> bool:
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         found = connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,))
         return found.fetchone() is not None
 
@@ -1054,7 +1055,7 @@ def _assert_store_refused(store_path: Path, message: str) -> None:
 def test_admission_refuses_a_store_that_lost_a_table(tmp_path: Path, table: str) -> None:
     store_path = tmp_path / "store"
     database = _bound_store(store_path)
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.execute(f"DROP TABLE {table}")
 
     _assert_store_refused(store_path, _LOST_TABLE)
@@ -1073,7 +1074,7 @@ def test_admission_refuses_a_store_that_lost_a_table(tmp_path: Path, table: str)
 )
 def test_admission_refuses_a_store_that_lost_a_column(tmp_path: Path, statement: str) -> None:
     store_path = tmp_path / "store"
-    with sqlite3.connect(_bound_store(store_path)) as connection:
+    with closing(sqlite3.connect(_bound_store(store_path))) as connection, connection:
         connection.execute(statement)
 
     _assert_store_refused(store_path, _LOST_TABLE)
@@ -1086,7 +1087,7 @@ def test_admission_completes_a_store_whose_first_initialization_stopped(
     store_path = tmp_path / "store"
     store_path.mkdir(mode=0o700)
     database = store_path / _DATABASE
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         for table in tables:
             connection.execute(f"CREATE TABLE {table} (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
     database.chmod(0o600)
@@ -1106,7 +1107,7 @@ def test_restore_refuses_a_backup_that_lost_a_table(tmp_path: Path) -> None:
     _bound_store(source)
     backup = tmp_path / "backups" / "store.sqlite3"
     assert _store_command("backup", str(source), str(backup), *_OPTIONS).exit_code == 0
-    with sqlite3.connect(backup) as connection:
+    with closing(sqlite3.connect(backup)) as connection, connection:
         connection.execute("DROP TABLE audit_events")
 
     _assert_refused(_store_command("restore", str(backup), str(tmp_path / "restored"), *_OPTIONS), "restore")
@@ -1170,7 +1171,7 @@ def test_postgresql_admission_refuses_a_ledger_that_lost_a_table(
 
 
 def _rewrite_snapshot_header(database: Path, change: object) -> None:
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         (content,) = connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone()
         header = json.loads(content)
         change(header)
@@ -1217,7 +1218,7 @@ def _set(*path: str, value: object) -> object:
 def test_a_stored_snapshot_with_a_malformed_shape_is_an_integrity_failure(tmp_path: Path, change: object) -> None:
     store_path = tmp_path / "store"
     database = _bound_store(store_path)
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         # Without the history format marker, the header carries the histories itself.
         connection.execute("DELETE FROM metadata WHERE key='snapshot-history-format'")
         connection.execute("DELETE FROM snapshot_history")
@@ -1275,7 +1276,7 @@ def test_http_submission_keeps_its_conflict_response_for_a_malformed_stored_snap
 
 def test_stored_text_that_is_not_utf8_is_an_integrity_failure(tmp_path: Path) -> None:
     store_path = tmp_path / "store"
-    with sqlite3.connect(_create_store(store_path)) as connection:
+    with closing(sqlite3.connect(_create_store(store_path))) as connection, connection:
         # The bytes of {"\xff":1}: SQLite keeps them as text that has no UTF-8 decoding.
         connection.execute("UPDATE audit_events SET payload=CAST(X'7b22ff223a317d' AS TEXT)")
 
@@ -1333,7 +1334,7 @@ def test_the_store_does_not_write_a_value_that_it_refuses_to_read() -> None:
 def test_a_stored_history_record_nested_beyond_the_durable_limit_is_an_integrity_failure(tmp_path: Path) -> None:
     store_path = tmp_path / "store"
     record = '{"n":' + _nested(400) + "}"
-    with sqlite3.connect(_bound_store(store_path)) as connection:
+    with closing(sqlite3.connect(_bound_store(store_path))) as connection, connection:
         digest = hashlib.sha256(record.encode("utf-8")).hexdigest()
         connection.execute("UPDATE snapshot_history SET payload=?, digest=?", (record, digest))
 

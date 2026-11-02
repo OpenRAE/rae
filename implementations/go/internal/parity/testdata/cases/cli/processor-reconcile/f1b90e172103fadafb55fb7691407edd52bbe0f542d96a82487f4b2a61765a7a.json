@@ -1,0 +1,206 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/scenarios/satcom-release-poisoning.sdl.yaml",
+    "repo/examples/scenarios/satcom-release-poisoning.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/scenarios/satcom-release-poisoning.sdl.yaml": "sha256:cc29a410842ae0c4483f7809c74d639308046d0e8be8641898e4855639570572"
+  },
+  "name": "examples/scenarios/satcom-release-poisoning.sdl.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "provision.node.git-forge",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.ci-runner",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.artifact-registry",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.signing-hsm",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.control-api",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.edge-gateway-east",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.edge-gateway-west",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.telemetry-broker",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.analytics-lake",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.support-bastion",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.siem01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.vendor-idp",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-idp",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.git-forge",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.ci-runner",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.artifact-registry",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.signing-hsm",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.control-api",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.edge-gateway-east",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.edge-gateway-west",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.telemetry-broker",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.analytics-lake",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-portal",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.support-bastion",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.siem01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.vendor-idp",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          },
+          {
+            "address": "provision.node.customer-idp",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "satcom-release-poisoning",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

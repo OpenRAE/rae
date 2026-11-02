@@ -1,0 +1,1694 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "input/diagnostic-limit.sdl.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "input/diagnostic-limit.sdl.yaml": "sha256:1f13c4419909b1faeb4ba65db4e992809c56fd714eb68fdf496fac8837975578"
+  },
+  "name": "regression/b57bdf6643cd633989dedd5689d94e48ffe7b88b0cd92d0110b860c94e442b09",
+  "result": {
+    "exit_code": 2,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:546105c6457461e11bc8f0bdc67abfc13bccd471ba1ac490fb30c579bccd696a"
+      },
+      "diagnostics": [
+        {
+          "address": "",
+          "code": "scenario-satisfiability.resource-limit",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_000/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_001/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_002/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_003/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_004/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_005/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_006/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_007/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_008/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_009/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_010/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_011/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_012/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_013/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_014/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_015/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_016/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_017/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_018/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_019/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_020/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_021/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_022/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_023/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_024/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_025/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_026/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_027/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_028/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_029/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_030/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_031/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_032/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_033/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_034/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_035/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_036/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_037/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_038/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_039/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_040/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_041/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_042/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_043/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_044/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_045/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_046/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_047/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_048/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_049/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_050/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_051/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_052/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_053/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_054/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_055/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_056/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_057/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_058/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_059/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_060/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_061/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        },
+        {
+          "address": "/nodes/target_062/resources/cpu",
+          "code": "scenario-satisfiability.unsupported-target",
+          "domain": "scenario-satisfiability",
+          "severity": "error"
+        }
+      ],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:546105c6457461e11bc8f0bdc67abfc13bccd471ba1ac490fb30c579bccd696a"
+        },
+        "clauses": [
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:06595b2a480822cc5b6272578748dcdb7ed6ab9ddd6b247bc568dbc049a89caa",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_026",
+            "symbol_id": "symbol:06595b2a480822cc5b6272578748dcdb7ed6ab9ddd6b247bc568dbc049a89caa"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:06941104590af1074d531a244f5442ef41d77ff3cc6988735c2b94c435a93d2f",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_064",
+            "symbol_id": "symbol:06941104590af1074d531a244f5442ef41d77ff3cc6988735c2b94c435a93d2f"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:0e36a5007b2a7d9f3dcd741f81c770a882a0d3e01e5bf7fab58b969f33811441",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_033",
+            "symbol_id": "symbol:0e36a5007b2a7d9f3dcd741f81c770a882a0d3e01e5bf7fab58b969f33811441"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:136eace89984a1b41149be2fc3d770078193914d65320a088dcd6e39cfcccbf2",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_049",
+            "symbol_id": "symbol:136eace89984a1b41149be2fc3d770078193914d65320a088dcd6e39cfcccbf2"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:1417a71fc1bfcc77fec0d16bc9fd05eb936f679cfa7d453768583592f82b11c5",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_052",
+            "symbol_id": "symbol:1417a71fc1bfcc77fec0d16bc9fd05eb936f679cfa7d453768583592f82b11c5"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:148e1ed92025566d63a0d67407ef19c744428081f2a76d83987ae6712b94475c",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_027",
+            "symbol_id": "symbol:148e1ed92025566d63a0d67407ef19c744428081f2a76d83987ae6712b94475c"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:1782522407050127cfa0ca41ccb04fbcf2ef134ed913e717ee8525a98bb0b3e0",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_038",
+            "symbol_id": "symbol:1782522407050127cfa0ca41ccb04fbcf2ef134ed913e717ee8525a98bb0b3e0"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:1a39501c75a9f7e593ecd24fb55001b624f2f23772ca2e412158debfe13a7cb1",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_056",
+            "symbol_id": "symbol:1a39501c75a9f7e593ecd24fb55001b624f2f23772ca2e412158debfe13a7cb1"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:20bcc81ebbdabf09f758371788064983362ac7ad392068fd14a6eaa8a2432790",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_050",
+            "symbol_id": "symbol:20bcc81ebbdabf09f758371788064983362ac7ad392068fd14a6eaa8a2432790"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:24bf5119685bc0aed52de20d64a51888ca741f272cd53e159aa59ae78452a609",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_054",
+            "symbol_id": "symbol:24bf5119685bc0aed52de20d64a51888ca741f272cd53e159aa59ae78452a609"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:27d66b7b699cc22e4dc8a2430f5fc3063c3fab39cb0924af2cde5800258d6ab1",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_039",
+            "symbol_id": "symbol:27d66b7b699cc22e4dc8a2430f5fc3063c3fab39cb0924af2cde5800258d6ab1"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:357759f138b43933786180f9e4679a7636eb6ceef8e8a522650943704a2e9cff",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_030",
+            "symbol_id": "symbol:357759f138b43933786180f9e4679a7636eb6ceef8e8a522650943704a2e9cff"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:3976fb21319fb38bf332ecdd2914c3497ac078b452bc8962b8fe69fb13d6881b",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_063",
+            "symbol_id": "symbol:3976fb21319fb38bf332ecdd2914c3497ac078b452bc8962b8fe69fb13d6881b"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:39c31f52feb803312512ede83b083595f33db5f8f59ba3342176bf956cad75d5",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_004",
+            "symbol_id": "symbol:39c31f52feb803312512ede83b083595f33db5f8f59ba3342176bf956cad75d5"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:3f66d2a417a0586f13684f2f328229f4cfe96d99e3f694b8a612b40b122df676",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_017",
+            "symbol_id": "symbol:3f66d2a417a0586f13684f2f328229f4cfe96d99e3f694b8a612b40b122df676"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:4e1edeaf70c41e4f483ef51eb732c15827ac08bd4974f3fccc296a0dfc722a4d",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_024",
+            "symbol_id": "symbol:4e1edeaf70c41e4f483ef51eb732c15827ac08bd4974f3fccc296a0dfc722a4d"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:4f4a7355fbc228f83a86a211d1c9f88322629b8eb1d628b3aca0ddf8986989a8",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_046",
+            "symbol_id": "symbol:4f4a7355fbc228f83a86a211d1c9f88322629b8eb1d628b3aca0ddf8986989a8"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:50fa6d083bd3957b444bb73eaaac4ac7e794705cf7bc392c7841eb372a5bf84a",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_032",
+            "symbol_id": "symbol:50fa6d083bd3957b444bb73eaaac4ac7e794705cf7bc392c7841eb372a5bf84a"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:540e4dfe8df8dd659c2810981bc65bbe7d53ee9f84e76529e49e1e31637496e1",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_045",
+            "symbol_id": "symbol:540e4dfe8df8dd659c2810981bc65bbe7d53ee9f84e76529e49e1e31637496e1"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:55b1c708b7db5fb6a005b2ab260ae5d99d5992da7227d64f46b583ac817d1604",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_013",
+            "symbol_id": "symbol:55b1c708b7db5fb6a005b2ab260ae5d99d5992da7227d64f46b583ac817d1604"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:55fdd34f579c43539266800110ae25f8f2c7d87f95fa779a6b67ab5154938a54",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_018",
+            "symbol_id": "symbol:55fdd34f579c43539266800110ae25f8f2c7d87f95fa779a6b67ab5154938a54"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:571856b53e49636e06f2a567403eb449382fff7800a86daf5054508f1dcab338",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_062",
+            "symbol_id": "symbol:571856b53e49636e06f2a567403eb449382fff7800a86daf5054508f1dcab338"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:5b3c2f25f8d900f403713512a0ac0dbd4033fce0df3a7efad55c029d81e97de2",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_002",
+            "symbol_id": "symbol:5b3c2f25f8d900f403713512a0ac0dbd4033fce0df3a7efad55c029d81e97de2"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:5b86a7f7cf1db173cbbb938a6740cbb08f0cc95dbc9291a87a807648919beec9",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_015",
+            "symbol_id": "symbol:5b86a7f7cf1db173cbbb938a6740cbb08f0cc95dbc9291a87a807648919beec9"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:5cd429b89b90a2a2d267888b4a8497c9925e1da990bfcedcd6203f5aeff5c516",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_060",
+            "symbol_id": "symbol:5cd429b89b90a2a2d267888b4a8497c9925e1da990bfcedcd6203f5aeff5c516"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:67470d40d19543496e113d6bf89b4f3f9677af35d1f8ee14a0913c16a9cc050d",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_005",
+            "symbol_id": "symbol:67470d40d19543496e113d6bf89b4f3f9677af35d1f8ee14a0913c16a9cc050d"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:76bd75ae59502a33cfade96244fd10b8f24fad2a5b078d04f29e3a963353c610",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_003",
+            "symbol_id": "symbol:76bd75ae59502a33cfade96244fd10b8f24fad2a5b078d04f29e3a963353c610"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:78bf0a31c6bcd61df4d0b72216ad665e98647ae9db36e076448530958def7419",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_023",
+            "symbol_id": "symbol:78bf0a31c6bcd61df4d0b72216ad665e98647ae9db36e076448530958def7419"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:7c00362e7d0496208ce0d6e0f0af2130d3a2e7c9da8fcf9709ca46c21621a700",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_055",
+            "symbol_id": "symbol:7c00362e7d0496208ce0d6e0f0af2130d3a2e7c9da8fcf9709ca46c21621a700"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:7c1a50f7996d9210d899e1eb04a9e4866811334f8a364d25ad07f9c6e0d9a149",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_021",
+            "symbol_id": "symbol:7c1a50f7996d9210d899e1eb04a9e4866811334f8a364d25ad07f9c6e0d9a149"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:7c845c93256861552a298320a55ed1d3fcc6e6a71ff3d2b340b2abe44e11c0ae",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_016",
+            "symbol_id": "symbol:7c845c93256861552a298320a55ed1d3fcc6e6a71ff3d2b340b2abe44e11c0ae"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:7e50da4848ed003fcec77fc3aedef9bfa9f0ad2e157b26d565ea9ed966c9b976",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_057",
+            "symbol_id": "symbol:7e50da4848ed003fcec77fc3aedef9bfa9f0ad2e157b26d565ea9ed966c9b976"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:86ee2f3dbe6265013f07c9a4266cfe0cacc56be0f2b219967136129723e9c078",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_037",
+            "symbol_id": "symbol:86ee2f3dbe6265013f07c9a4266cfe0cacc56be0f2b219967136129723e9c078"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:88419fd917e09a3d7e73e5817148eb33b20820bb49953894bc46e8e0e8f27bdb",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_061",
+            "symbol_id": "symbol:88419fd917e09a3d7e73e5817148eb33b20820bb49953894bc46e8e0e8f27bdb"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:8ac842773e4940a8a472937d51b0517751fc0e83bc1ab91d91ac45c14a8ee18a",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_007",
+            "symbol_id": "symbol:8ac842773e4940a8a472937d51b0517751fc0e83bc1ab91d91ac45c14a8ee18a"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:926fdb1efae232a52628c54cc17ab8cf3d7890df5a5affcfde420c9d7650a3b9",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_020",
+            "symbol_id": "symbol:926fdb1efae232a52628c54cc17ab8cf3d7890df5a5affcfde420c9d7650a3b9"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:943bca475cf386f5cc764aa6164875e9a5750626690d97e90653262e322e1fd9",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_012",
+            "symbol_id": "symbol:943bca475cf386f5cc764aa6164875e9a5750626690d97e90653262e322e1fd9"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:97d07fa3543322c4b93e696710d698d5a0d79ffb9d6b54dcae9201036529df05",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_019",
+            "symbol_id": "symbol:97d07fa3543322c4b93e696710d698d5a0d79ffb9d6b54dcae9201036529df05"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:a0b09aac661ef85d6e7d557bf6651a2fe22b0031b7f69a787255dbbcd3e1f12c",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_044",
+            "symbol_id": "symbol:a0b09aac661ef85d6e7d557bf6651a2fe22b0031b7f69a787255dbbcd3e1f12c"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:a1e0b5dab7cc2d7837dfb182954bd6c587312e3d607cb3feab5528aaee7b47e5",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_048",
+            "symbol_id": "symbol:a1e0b5dab7cc2d7837dfb182954bd6c587312e3d607cb3feab5528aaee7b47e5"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:a3b99c95833bf445898b5971b5759c615705ff873de63a21436a6c35b50b8ed5",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_025",
+            "symbol_id": "symbol:a3b99c95833bf445898b5971b5759c615705ff873de63a21436a6c35b50b8ed5"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:a5e21cb1b0256ebaa15e692d1ff5e57d4a9deb9fb055f37745391a0da71f120e",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_051",
+            "symbol_id": "symbol:a5e21cb1b0256ebaa15e692d1ff5e57d4a9deb9fb055f37745391a0da71f120e"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:a86124df7cb1b3e9945d7d5c1025e7ec9cdc56b718035deeb463fd6d7824e3a3",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_058",
+            "symbol_id": "symbol:a86124df7cb1b3e9945d7d5c1025e7ec9cdc56b718035deeb463fd6d7824e3a3"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:a965818b3158e7cc4b608426ffdbe09dcf0ebf5debc20d98572202e89da3a017",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_028",
+            "symbol_id": "symbol:a965818b3158e7cc4b608426ffdbe09dcf0ebf5debc20d98572202e89da3a017"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:b5d8f62bf8510bdd51188bfed565a74b5e550771747fba53406f27069d3c9832",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_014",
+            "symbol_id": "symbol:b5d8f62bf8510bdd51188bfed565a74b5e550771747fba53406f27069d3c9832"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:b692ddd7cc5606bb09b83448c7a13ed24593deded12af12a9ed6a9364bbf3ba8",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_040",
+            "symbol_id": "symbol:b692ddd7cc5606bb09b83448c7a13ed24593deded12af12a9ed6a9364bbf3ba8"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:bc52fe5daf3a264f8e2a23c1c4e5547873b94eaae9f4e7a40762dea18550cd1e",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_000",
+            "symbol_id": "symbol:bc52fe5daf3a264f8e2a23c1c4e5547873b94eaae9f4e7a40762dea18550cd1e"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:befe281b48602c2222ff47dec75a8f13712516ed5b28976c5f861c3fac16cacc",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_036",
+            "symbol_id": "symbol:befe281b48602c2222ff47dec75a8f13712516ed5b28976c5f861c3fac16cacc"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:c14567bc3a083936e80cca369c30d70a810cdf66eaf430e5421bddcedf7719d6",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_043",
+            "symbol_id": "symbol:c14567bc3a083936e80cca369c30d70a810cdf66eaf430e5421bddcedf7719d6"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:c39fc8bddf30dc173d543861f967d8499008d49fd43bb7c2cae9378cfc5a8f4f",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_053",
+            "symbol_id": "symbol:c39fc8bddf30dc173d543861f967d8499008d49fd43bb7c2cae9378cfc5a8f4f"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:c80464b8ba8b6415fda6ea97e24c7ea7dc1d085783ab876beba49655243ffe82",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_009",
+            "symbol_id": "symbol:c80464b8ba8b6415fda6ea97e24c7ea7dc1d085783ab876beba49655243ffe82"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:c96208d61360f12a647382f2d14b725ff65e76f201040645552f11bc18157827",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_034",
+            "symbol_id": "symbol:c96208d61360f12a647382f2d14b725ff65e76f201040645552f11bc18157827"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:ca61edfa02c056a53df697f2a156a47b171d2e7504a29c55d7921d3160be249b",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_047",
+            "symbol_id": "symbol:ca61edfa02c056a53df697f2a156a47b171d2e7504a29c55d7921d3160be249b"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:cd77c34651eb634995e101fe310a83df3bac33ccc54bd4013ca6c9461d5a680c",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_008",
+            "symbol_id": "symbol:cd77c34651eb634995e101fe310a83df3bac33ccc54bd4013ca6c9461d5a680c"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:ce4239e418c160d0b50000e24e55db168e61bc14a29574f1f7c0255625c59299",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_042",
+            "symbol_id": "symbol:ce4239e418c160d0b50000e24e55db168e61bc14a29574f1f7c0255625c59299"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:cf5bd237bc5815ff84a07f67ebdaa7ec56bc954a23005314a4b1fe255677bff3",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_029",
+            "symbol_id": "symbol:cf5bd237bc5815ff84a07f67ebdaa7ec56bc954a23005314a4b1fe255677bff3"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:cf8189a1355b18becdbf8b268153af6aa27a7bbf5956388b0245c730c351fdcc",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_035",
+            "symbol_id": "symbol:cf8189a1355b18becdbf8b268153af6aa27a7bbf5956388b0245c730c351fdcc"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:d798fe21af47a540ee309e84ce8a49d9dd4a1d992b5d148df16fa34848e7ff17",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_011",
+            "symbol_id": "symbol:d798fe21af47a540ee309e84ce8a49d9dd4a1d992b5d148df16fa34848e7ff17"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:de8595e0b8674d37498e276792cd145b05ba27489ae98a3a854ac7f97cb8cc83",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_022",
+            "symbol_id": "symbol:de8595e0b8674d37498e276792cd145b05ba27489ae98a3a854ac7f97cb8cc83"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:e07d85195a6bc41fc2e483dafb6106975eff81eeff4a960e792390f6d7ff6ffd",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_031",
+            "symbol_id": "symbol:e07d85195a6bc41fc2e483dafb6106975eff81eeff4a960e792390f6d7ff6ffd"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:e1e7e066f7c24c65bf525ab6821714abe9c287a75e2801aac13135cddd43c604",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_006",
+            "symbol_id": "symbol:e1e7e066f7c24c65bf525ab6821714abe9c287a75e2801aac13135cddd43c604"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:e7cbc12da724bcbb7cab38d3f2b0d0caf73092e73a465c6ce3bd71e51c6e44f9",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_001",
+            "symbol_id": "symbol:e7cbc12da724bcbb7cab38d3f2b0d0caf73092e73a465c6ce3bd71e51c6e44f9"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:f71dd3b911dbe2e5fd0a869aa47fbfc4d1976e7db606d219327c27b2ef299f39",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_059",
+            "symbol_id": "symbol:f71dd3b911dbe2e5fd0a869aa47fbfc4d1976e7db606d219327c27b2ef299f39"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:fefa890aeab9c32c48cc4f992aa1e10705553ca22ca158e17a1e1e80cc29b331",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_041",
+            "symbol_id": "symbol:fefa890aeab9c32c48cc4f992aa1e10705553ca22ca158e17a1e1e80cc29b331"
+          },
+          {
+            "allowed_values": [
+              1,
+              2
+            ],
+            "clause_id": "domain:ff637b8d9ed0c858cfe7a0f5ab839ba407d0b9637e217cd6993f576cebbab479",
+            "kind": "declared-domain",
+            "source_address": "/variables/count_010",
+            "symbol_id": "symbol:ff637b8d9ed0c858cfe7a0f5ab839ba407d0b9637e217cd6993f576cebbab479"
+          }
+        ],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:1f13c4419909b1faeb4ba65db4e992809c56fd714eb68fdf496fac8837975578",
+        "symbols": [
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:06595b2a480822cc5b6272578748dcdb7ed6ab9ddd6b247bc568dbc049a89caa",
+            "variable": "count_026"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:06941104590af1074d531a244f5442ef41d77ff3cc6988735c2b94c435a93d2f",
+            "variable": "count_064"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:0e36a5007b2a7d9f3dcd741f81c770a882a0d3e01e5bf7fab58b969f33811441",
+            "variable": "count_033"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:136eace89984a1b41149be2fc3d770078193914d65320a088dcd6e39cfcccbf2",
+            "variable": "count_049"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:1417a71fc1bfcc77fec0d16bc9fd05eb936f679cfa7d453768583592f82b11c5",
+            "variable": "count_052"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:148e1ed92025566d63a0d67407ef19c744428081f2a76d83987ae6712b94475c",
+            "variable": "count_027"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:1782522407050127cfa0ca41ccb04fbcf2ef134ed913e717ee8525a98bb0b3e0",
+            "variable": "count_038"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:1a39501c75a9f7e593ecd24fb55001b624f2f23772ca2e412158debfe13a7cb1",
+            "variable": "count_056"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:20bcc81ebbdabf09f758371788064983362ac7ad392068fd14a6eaa8a2432790",
+            "variable": "count_050"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:24bf5119685bc0aed52de20d64a51888ca741f272cd53e159aa59ae78452a609",
+            "variable": "count_054"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:27d66b7b699cc22e4dc8a2430f5fc3063c3fab39cb0924af2cde5800258d6ab1",
+            "variable": "count_039"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:357759f138b43933786180f9e4679a7636eb6ceef8e8a522650943704a2e9cff",
+            "variable": "count_030"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:3976fb21319fb38bf332ecdd2914c3497ac078b452bc8962b8fe69fb13d6881b",
+            "variable": "count_063"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:39c31f52feb803312512ede83b083595f33db5f8f59ba3342176bf956cad75d5",
+            "variable": "count_004"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:3f66d2a417a0586f13684f2f328229f4cfe96d99e3f694b8a612b40b122df676",
+            "variable": "count_017"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:4e1edeaf70c41e4f483ef51eb732c15827ac08bd4974f3fccc296a0dfc722a4d",
+            "variable": "count_024"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:4f4a7355fbc228f83a86a211d1c9f88322629b8eb1d628b3aca0ddf8986989a8",
+            "variable": "count_046"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:50fa6d083bd3957b444bb73eaaac4ac7e794705cf7bc392c7841eb372a5bf84a",
+            "variable": "count_032"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:540e4dfe8df8dd659c2810981bc65bbe7d53ee9f84e76529e49e1e31637496e1",
+            "variable": "count_045"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:55b1c708b7db5fb6a005b2ab260ae5d99d5992da7227d64f46b583ac817d1604",
+            "variable": "count_013"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:55fdd34f579c43539266800110ae25f8f2c7d87f95fa779a6b67ab5154938a54",
+            "variable": "count_018"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:571856b53e49636e06f2a567403eb449382fff7800a86daf5054508f1dcab338",
+            "variable": "count_062"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:5b3c2f25f8d900f403713512a0ac0dbd4033fce0df3a7efad55c029d81e97de2",
+            "variable": "count_002"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:5b86a7f7cf1db173cbbb938a6740cbb08f0cc95dbc9291a87a807648919beec9",
+            "variable": "count_015"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:5cd429b89b90a2a2d267888b4a8497c9925e1da990bfcedcd6203f5aeff5c516",
+            "variable": "count_060"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:67470d40d19543496e113d6bf89b4f3f9677af35d1f8ee14a0913c16a9cc050d",
+            "variable": "count_005"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:76bd75ae59502a33cfade96244fd10b8f24fad2a5b078d04f29e3a963353c610",
+            "variable": "count_003"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:78bf0a31c6bcd61df4d0b72216ad665e98647ae9db36e076448530958def7419",
+            "variable": "count_023"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:7c00362e7d0496208ce0d6e0f0af2130d3a2e7c9da8fcf9709ca46c21621a700",
+            "variable": "count_055"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:7c1a50f7996d9210d899e1eb04a9e4866811334f8a364d25ad07f9c6e0d9a149",
+            "variable": "count_021"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:7c845c93256861552a298320a55ed1d3fcc6e6a71ff3d2b340b2abe44e11c0ae",
+            "variable": "count_016"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:7e50da4848ed003fcec77fc3aedef9bfa9f0ad2e157b26d565ea9ed966c9b976",
+            "variable": "count_057"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:86ee2f3dbe6265013f07c9a4266cfe0cacc56be0f2b219967136129723e9c078",
+            "variable": "count_037"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:88419fd917e09a3d7e73e5817148eb33b20820bb49953894bc46e8e0e8f27bdb",
+            "variable": "count_061"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:8ac842773e4940a8a472937d51b0517751fc0e83bc1ab91d91ac45c14a8ee18a",
+            "variable": "count_007"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:926fdb1efae232a52628c54cc17ab8cf3d7890df5a5affcfde420c9d7650a3b9",
+            "variable": "count_020"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:943bca475cf386f5cc764aa6164875e9a5750626690d97e90653262e322e1fd9",
+            "variable": "count_012"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:97d07fa3543322c4b93e696710d698d5a0d79ffb9d6b54dcae9201036529df05",
+            "variable": "count_019"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:a0b09aac661ef85d6e7d557bf6651a2fe22b0031b7f69a787255dbbcd3e1f12c",
+            "variable": "count_044"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:a1e0b5dab7cc2d7837dfb182954bd6c587312e3d607cb3feab5528aaee7b47e5",
+            "variable": "count_048"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:a3b99c95833bf445898b5971b5759c615705ff873de63a21436a6c35b50b8ed5",
+            "variable": "count_025"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:a5e21cb1b0256ebaa15e692d1ff5e57d4a9deb9fb055f37745391a0da71f120e",
+            "variable": "count_051"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:a86124df7cb1b3e9945d7d5c1025e7ec9cdc56b718035deeb463fd6d7824e3a3",
+            "variable": "count_058"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:a965818b3158e7cc4b608426ffdbe09dcf0ebf5debc20d98572202e89da3a017",
+            "variable": "count_028"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:b5d8f62bf8510bdd51188bfed565a74b5e550771747fba53406f27069d3c9832",
+            "variable": "count_014"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:b692ddd7cc5606bb09b83448c7a13ed24593deded12af12a9ed6a9364bbf3ba8",
+            "variable": "count_040"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:bc52fe5daf3a264f8e2a23c1c4e5547873b94eaae9f4e7a40762dea18550cd1e",
+            "variable": "count_000"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:befe281b48602c2222ff47dec75a8f13712516ed5b28976c5f861c3fac16cacc",
+            "variable": "count_036"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:c14567bc3a083936e80cca369c30d70a810cdf66eaf430e5421bddcedf7719d6",
+            "variable": "count_043"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:c39fc8bddf30dc173d543861f967d8499008d49fd43bb7c2cae9378cfc5a8f4f",
+            "variable": "count_053"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:c80464b8ba8b6415fda6ea97e24c7ea7dc1d085783ab876beba49655243ffe82",
+            "variable": "count_009"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:c96208d61360f12a647382f2d14b725ff65e76f201040645552f11bc18157827",
+            "variable": "count_034"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:ca61edfa02c056a53df697f2a156a47b171d2e7504a29c55d7921d3160be249b",
+            "variable": "count_047"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:cd77c34651eb634995e101fe310a83df3bac33ccc54bd4013ca6c9461d5a680c",
+            "variable": "count_008"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:ce4239e418c160d0b50000e24e55db168e61bc14a29574f1f7c0255625c59299",
+            "variable": "count_042"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:cf5bd237bc5815ff84a07f67ebdaa7ec56bc954a23005314a4b1fe255677bff3",
+            "variable": "count_029"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:cf8189a1355b18becdbf8b268153af6aa27a7bbf5956388b0245c730c351fdcc",
+            "variable": "count_035"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:d798fe21af47a540ee309e84ce8a49d9dd4a1d992b5d148df16fa34848e7ff17",
+            "variable": "count_011"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:de8595e0b8674d37498e276792cd145b05ba27489ae98a3a854ac7f97cb8cc83",
+            "variable": "count_022"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:e07d85195a6bc41fc2e483dafb6106975eff81eeff4a960e792390f6d7ff6ffd",
+            "variable": "count_031"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:e1e7e066f7c24c65bf525ab6821714abe9c287a75e2801aac13135cddd43c604",
+            "variable": "count_006"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:e7cbc12da724bcbb7cab38d3f2b0d0caf73092e73a465c6ce3bd71e51c6e44f9",
+            "variable": "count_001"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:f71dd3b911dbe2e5fd0a869aa47fbfc4d1976e7db606d219327c27b2ef299f39",
+            "variable": "count_059"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:fefa890aeab9c32c48cc4f992aa1e10705553ca22ca158e17a1e1e80cc29b331",
+            "variable": "count_041"
+          },
+          {
+            "domain": [
+              1,
+              2
+            ],
+            "sort": "integer",
+            "symbol_id": "symbol:ff637b8d9ed0c858cfe7a0f5ab839ba407d0b9637e217cd6993f576cebbab479",
+            "variable": "count_010"
+          }
+        ],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:3b66814835e86c108c98b53c05c355ed80086a08e6c51824373e71aa7cad12ae",
+      "outcome": "unsupported",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:1f13c4419909b1faeb4ba65db4e992809c56fd714eb68fdf496fac8837975578",
+        "source_id": "diagnostic-limit.sdl.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": {
+        "profile": "raes-satisfiability-unsupported/v1",
+        "reason_codes": [
+          "scenario-satisfiability.resource-limit",
+          "scenario-satisfiability.unsupported-target"
+        ]
+      },
+      "witness": null
+    }
+  },
+  "surface": "cli"
+}

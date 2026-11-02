@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/explicit-tag.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/explicit-tag.yaml": "sha256:11cde9b1294ca76ed8af9fd9f641b869abe420824646da96272c7c3434685a56",
+    "setup.json": "sha256:fa336ee5fe47f66c8be92bede303b0a10d663a210f647b53c2a9dfe893f8246b"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/explicit-tag.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:6e1b3c73a7ba0462fd027e2e65af46cf3107833b017c7584e0320491b4560f70"
+  },
+  "name": "regression/a74948e246863c1310e5051853ac82a7995f194c7036905230b046da287bf6f3",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/host/runtime/repository_state/trust_bindings/0/refinements/0/purpose",
+              "range": {
+                "end": {
+                  "column": 33,
+                  "line": 41
+                },
+                "start": {
+                  "column": 22,
+                  "line": 41
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/host/runtime/repository_state/trust_bindings/0/refinements/0/purpose",
+            "range": {
+              "end": {
+                "column": 33,
+                "line": 41
+              },
+              "start": {
+                "column": 22,
+                "line": 41
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

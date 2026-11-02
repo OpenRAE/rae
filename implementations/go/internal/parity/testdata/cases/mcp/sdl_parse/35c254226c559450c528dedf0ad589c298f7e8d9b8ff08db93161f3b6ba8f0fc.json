@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:981d6c61fb6713319a31f0a81d47ca92ba2d0e7d457d9ffd2a5fd46bb000725b"
+  },
+  "name": "examples/scenarios/techvault-operational.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "techvault",
+            "populated_sections": {
+              "conditions": 1,
+              "features": 2,
+              "infrastructure": 34,
+              "nodes": 34
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "techvault",
+          "populated_sections": {
+            "conditions": 1,
+            "features": 2,
+            "infrastructure": 34,
+            "nodes": 34
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

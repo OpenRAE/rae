@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-augmentation-scope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:bac170332c974ea0f2aa2ce897ab756c0d38fc31e0307224a0f022ae9beac412"
+  },
+  "name": "regression/2bb845fa04b66575bc67d2b93b2ee6d700e3267903c87a8d377abe0e17146468",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

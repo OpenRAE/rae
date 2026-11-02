@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:1a7186a9ee5747a543ba93e9fa9d9025090025a7f3409d4de470c7d491de6822"
+  },
+  "name": "examples/completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: rev1-minimal-valid-fragment\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: rev1-minimal-valid-fragment\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_diagnostics",
+  "files": {
+    "arguments.json": "sha256:4a35cbfa22a6e3e7d4b1fd04f1a53317f030b73c5bed1f3164622e155ad55727"
+  },
+  "name": "examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "stage": "semantic_validation",
+          "status": "valid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "stage": "semantic_validation",
+        "status": "valid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

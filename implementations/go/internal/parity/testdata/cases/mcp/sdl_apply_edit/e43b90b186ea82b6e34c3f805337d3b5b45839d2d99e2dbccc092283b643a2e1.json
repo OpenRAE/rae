@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:6c254fa63f7a3476d5a0b30e6dab7ffa4ffcc823735ced62fbb64249356b642c"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nentities:\n  automation-team:\n    role: blue\nagents:\n  autonomous-service:\n    affiliations:\n    - automation-team\nbehavior_specifications:\n  service-publication:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - autonomous-service\n    behavior_mode: autonomous\n    extension_policy: closed\n  agent-request:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - autonomous-service\n    behavior_mode: autonomous\n    extension_policy: closed\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nentities:\n  automation-team:\n    role: blue\nagents:\n  autonomous-service:\n    affiliations:\n    - automation-team\nbehavior_specifications:\n  service-publication:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - autonomous-service\n    behavior_mode: autonomous\n    extension_policy: closed\n  agent-request:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs:\n    - autonomous-service\n    behavior_mode: autonomous\n    extension_policy: closed\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

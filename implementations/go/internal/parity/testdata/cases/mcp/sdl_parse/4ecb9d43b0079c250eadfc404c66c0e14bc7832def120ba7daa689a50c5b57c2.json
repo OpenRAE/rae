@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7e40e1275a9c037e4073c6b8e933d946575be8f6af7a42ae3f741c402e088797"
+  },
+  "name": "regression/380209db0e5adf3e523fa8ce44b98f67c2dec3f1df5881db75f999cae7a5ad52",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/ad/runtime/identity_authorities/0",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 25
+                },
+                "start": {
+                  "column": 11,
+                  "line": 9
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/ad/runtime/identity_authorities/0",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 25
+              },
+              "start": {
+                "column": 11,
+                "line": 9
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

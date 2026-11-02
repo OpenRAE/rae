@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:209319b8a07e81017829b8812ff2f57e1a73515828377ca3e03479a578dd2273"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/dependent-declarations.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

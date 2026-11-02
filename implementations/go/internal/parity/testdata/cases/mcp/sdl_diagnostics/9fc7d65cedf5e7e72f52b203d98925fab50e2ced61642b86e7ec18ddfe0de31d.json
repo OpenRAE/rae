@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_diagnostics",
+  "files": {
+    "arguments.json": "sha256:f056b4066d084645eebbea6a6952a61c8c552e25a71becb49fa582559e219674"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "stage": "semantic_validation",
+          "status": "valid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "stage": "semantic_validation",
+        "status": "valid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

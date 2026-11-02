@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:ab77d6dd9e4e0d7ef176292535c010703a1b641ab72a4947f36fdd50dcb2cb4b"
+  },
+  "name": "contracts/fixtures/sdl/mixed-control-v1/invalid/mixed-control-operator-impersonation.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.red-agent -> red-team agents.supervisor-agent -> blue-team"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.red-agent -> red-team agents.supervisor-agent -> blue-team"
+      }
+    }
+  },
+  "surface": "mcp"
+}

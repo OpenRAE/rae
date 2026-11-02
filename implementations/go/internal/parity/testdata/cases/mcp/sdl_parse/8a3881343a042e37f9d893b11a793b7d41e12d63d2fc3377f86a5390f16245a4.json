@@ -1,0 +1,61 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:8e17ac3529f2ae3adc0457a790d9b5223c71ff7d1deb3ea52d1c296f7d30f4e9"
+  },
+  "name": "regression/31d23fafb41fba4ebfe636a22bcb59bebffedd169d013e5ccf86d6f2bca54e14",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "agreement",
+            "populated_sections": {
+              "conditions": 1,
+              "entities": 1,
+              "events": 2,
+              "nodes": 1,
+              "objectives": 1,
+              "scripts": 2,
+              "stories": 1,
+              "workflows": 2
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "agreement",
+          "populated_sections": {
+            "conditions": 1,
+            "entities": 1,
+            "events": 2,
+            "nodes": 1,
+            "objectives": 1,
+            "scripts": 2,
+            "stories": 1,
+            "workflows": 2
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

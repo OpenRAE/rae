@@ -1,0 +1,129 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:70c1968f8d12438ea499b7cafc9be57d964a59d2520f416bf4f0f4d1e62174b5"
+  },
+  "name": "regression/f6fb693dc1315edee4dbd61d9bd7df15be4c39f3fc6720dba45e9d660ad37d64",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "migrated",
+            "populated_sections": {
+              "workflows": 1
+            },
+            "source_diagnostics": [
+              {
+                "authored_keys": [
+                  "Name",
+                  "name"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/name",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 2
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 2
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              },
+              {
+                "authored_keys": [
+                  "on-success",
+                  "on_success"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/workflows/response-flow/steps/finish/on_success",
+                "range": {
+                  "end": {
+                    "column": 19,
+                    "line": 10
+                  },
+                  "start": {
+                    "column": 9,
+                    "line": 10
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              }
+            ],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "migrated",
+          "populated_sections": {
+            "workflows": 1
+          },
+          "source_diagnostics": [
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 2
+                },
+                "start": {
+                  "column": 1,
+                  "line": 2
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "on-success",
+                "on_success"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/workflows/response-flow/steps/finish/on_success",
+              "range": {
+                "end": {
+                  "column": 19,
+                  "line": 10
+                },
+                "start": {
+                  "column": 9,
+                  "line": 10
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

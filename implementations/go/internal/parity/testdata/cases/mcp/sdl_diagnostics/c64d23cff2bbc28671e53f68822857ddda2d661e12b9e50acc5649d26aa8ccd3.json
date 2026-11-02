@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_diagnostics",
+  "files": {
+    "arguments.json": "sha256:e46581285fe8054eb8bfa855deb6fa7baddeeabf78b3d3605b51fdfc574812f5"
+  },
+  "name": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "stage": "semantic_validation",
+          "status": "valid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "stage": "semantic_validation",
+        "status": "valid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

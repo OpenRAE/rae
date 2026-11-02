@@ -1,0 +1,285 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:06909942f854ebe02bf690c957b81cd31089035d0b3bda4506546a0c5c38bd05"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+              "severity": "warning",
+              "topic": "participant_visibility"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "evidence_requirements.web-health-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 1,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 6
+              },
+              "orchestration": {},
+              "provisioning": {
+                "create": 3
+              }
+            },
+            "resources": {
+              "evaluation": 6,
+              "orchestration": 0,
+              "provisioning": 3
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.condition.web.web-alive",
+                "evaluation.proposition.web-alive",
+                "evaluation.assertion.web-down-at-end",
+                "evaluation.assertion.web-up-at-end",
+                "evaluation.objective.take-web-offline",
+                "evaluation.objective.keep-web-online"
+              ],
+              "orchestration": []
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 1,
+                "objectives": 2
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 1,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 1
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 1,
+                "nodes": 2
+              }
+            },
+            "metadata": {
+              "agents": 1,
+              "capability_constraints": 0,
+              "entities": 2,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 1,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "guided-web-probe",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 1,
+              "conditions": 1,
+              "entities": 2,
+              "infrastructure": 3,
+              "nodes": 3,
+              "objectives": 2
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+            "severity": "warning",
+            "topic": "participant_visibility"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "evidence_requirements.web-health-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 1,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 6
+            },
+            "orchestration": {},
+            "provisioning": {
+              "create": 3
+            }
+          },
+          "resources": {
+            "evaluation": 6,
+            "orchestration": 0,
+            "provisioning": 3
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.condition.web.web-alive",
+              "evaluation.proposition.web-alive",
+              "evaluation.assertion.web-down-at-end",
+              "evaluation.assertion.web-up-at-end",
+              "evaluation.objective.take-web-offline",
+              "evaluation.objective.keep-web-online"
+            ],
+            "orchestration": []
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 1,
+              "objectives": 2
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 1,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 1
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 1,
+              "nodes": 2
+            }
+          },
+          "metadata": {
+            "agents": 1,
+            "capability_constraints": 0,
+            "entities": 2,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 1,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "guided-web-probe",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 1,
+            "conditions": 1,
+            "entities": 2,
+            "infrastructure": 3,
+            "nodes": 3,
+            "objectives": 2
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

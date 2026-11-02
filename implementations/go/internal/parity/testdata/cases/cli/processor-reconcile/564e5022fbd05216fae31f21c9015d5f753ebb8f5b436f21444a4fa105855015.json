@@ -1,0 +1,272 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "input/reconciliation-demo-v1.sdl.yaml",
+    "input/reconciliation-demo-v2.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "input/reconciliation-demo-v1.sdl.yaml": "sha256:20d82be186fe2d1a2498690a2132579d3323ae5393c13d1f7f4550ce6eb51c93",
+    "input/reconciliation-demo-v2.sdl.yaml": "sha256:a2f61a76ef03da8d9abf163197a8ca8a7c2b522725eb89ac62ec8443263295dc"
+  },
+  "name": "regression/45f8e5a769699329f4c71f2f4a71014afdbab8a21d428f3199d61eca45e30750",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "actions": {
+        "create": 1,
+        "delete": 1,
+        "unchanged": 10,
+        "update": 2
+      },
+      "baseline": {
+        "diagnostics": [],
+        "scenario_name": "reconciliation-demo",
+        "snapshot": {
+          "entries": [
+            {
+              "address": "evaluation.assertion.health",
+              "domain": "evaluation",
+              "ordering_dependencies": [
+                "evaluation.proposition.health"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "evaluation.proposition.health"
+              ],
+              "resource_type": "assertion"
+            },
+            {
+              "address": "evaluation.assertion.pre-health",
+              "domain": "evaluation",
+              "ordering_dependencies": [
+                "evaluation.proposition.health"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "evaluation.proposition.health"
+              ],
+              "resource_type": "assertion"
+            },
+            {
+              "address": "evaluation.condition.database.health",
+              "domain": "evaluation",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "provision.node.database"
+              ],
+              "resource_type": "condition-binding"
+            },
+            {
+              "address": "evaluation.condition.web.health",
+              "domain": "evaluation",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "provision.node.web"
+              ],
+              "resource_type": "condition-binding"
+            },
+            {
+              "address": "evaluation.objective.initial",
+              "domain": "evaluation",
+              "ordering_dependencies": [
+                "evaluation.assertion.health"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "evaluation.assertion.health",
+                "orchestration.script.timeline",
+                "orchestration.event.kickoff",
+                "orchestration.workflow.flow"
+              ],
+              "resource_type": "objective"
+            },
+            {
+              "address": "evaluation.proposition.health",
+              "domain": "evaluation",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [],
+              "resource_type": "proposition"
+            },
+            {
+              "address": "orchestration.event.kickoff",
+              "domain": "orchestration",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "evaluation.assertion.pre-health"
+              ],
+              "resource_type": "event"
+            },
+            {
+              "address": "orchestration.script.timeline",
+              "domain": "orchestration",
+              "ordering_dependencies": [
+                "orchestration.event.kickoff"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "orchestration.event.kickoff"
+              ],
+              "resource_type": "script"
+            },
+            {
+              "address": "orchestration.workflow.flow",
+              "domain": "orchestration",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "evaluation.assertion.pre-health"
+              ],
+              "resource_type": "workflow"
+            },
+            {
+              "address": "provision.network.lab",
+              "domain": "provisioning",
+              "ordering_dependencies": [],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [],
+              "resource_type": "network"
+            },
+            {
+              "address": "provision.node.database",
+              "domain": "provisioning",
+              "ordering_dependencies": [
+                "provision.network.lab"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "provision.network.lab"
+              ],
+              "resource_type": "node"
+            },
+            {
+              "address": "provision.node.retired",
+              "domain": "provisioning",
+              "ordering_dependencies": [
+                "provision.network.lab"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "provision.network.lab"
+              ],
+              "resource_type": "node"
+            },
+            {
+              "address": "provision.node.web",
+              "domain": "provisioning",
+              "ordering_dependencies": [
+                "provision.network.lab"
+              ],
+              "profile_binding_ids": [],
+              "refresh_dependencies": [
+                "provision.network.lab"
+              ],
+              "resource_type": "node"
+            }
+          ],
+          "entry_count": 13
+        }
+      },
+      "candidate": {
+        "diagnostics": [],
+        "scenario_name": "reconciliation-demo"
+      },
+      "operations": [
+        {
+          "action": "unchanged",
+          "address": "provision.network.lab",
+          "domain": "provisioning",
+          "resource_type": "network"
+        },
+        {
+          "action": "create",
+          "address": "provision.node.cache",
+          "domain": "provisioning",
+          "resource_type": "node"
+        },
+        {
+          "action": "update",
+          "address": "provision.node.database",
+          "domain": "provisioning",
+          "resource_type": "node"
+        },
+        {
+          "action": "unchanged",
+          "address": "provision.node.web",
+          "domain": "provisioning",
+          "resource_type": "node"
+        },
+        {
+          "action": "delete",
+          "address": "provision.node.retired",
+          "domain": "provisioning",
+          "resource_type": "node"
+        },
+        {
+          "action": "unchanged",
+          "address": "orchestration.event.kickoff",
+          "domain": "orchestration",
+          "resource_type": "event"
+        },
+        {
+          "action": "unchanged",
+          "address": "orchestration.workflow.flow",
+          "domain": "orchestration",
+          "resource_type": "workflow"
+        },
+        {
+          "action": "unchanged",
+          "address": "orchestration.script.timeline",
+          "domain": "orchestration",
+          "resource_type": "script"
+        },
+        {
+          "action": "update",
+          "address": "evaluation.condition.database.health",
+          "domain": "evaluation",
+          "resource_type": "condition-binding"
+        },
+        {
+          "action": "unchanged",
+          "address": "evaluation.condition.web.health",
+          "domain": "evaluation",
+          "resource_type": "condition-binding"
+        },
+        {
+          "action": "unchanged",
+          "address": "evaluation.proposition.health",
+          "domain": "evaluation",
+          "resource_type": "proposition"
+        },
+        {
+          "action": "unchanged",
+          "address": "evaluation.assertion.health",
+          "domain": "evaluation",
+          "resource_type": "assertion"
+        },
+        {
+          "action": "unchanged",
+          "address": "evaluation.assertion.pre-health",
+          "domain": "evaluation",
+          "resource_type": "assertion"
+        },
+        {
+          "action": "unchanged",
+          "address": "evaluation.objective.initial",
+          "domain": "evaluation",
+          "resource_type": "objective"
+        }
+      ],
+      "snapshot_kind": "planned-state-projection",
+      "status": "reconciled"
+    }
+  },
+  "surface": "cli"
+}

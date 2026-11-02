@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:504b2d7c13449c5af54c39a0c148611038e0e233358feb0ee8067960ec36246d"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/composition/module.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nversion: 1.0.0\nmodule:\n  id: raes/fixture-family\n  version: 1.0.0\n  exports:\n    nodes:\n    - primary\n    - secondary\n    content:\n    - payload\n    variation_points:\n    - payload-host\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: /opt/payload\nvariation_points:\n  private-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n        requires:\n        - point: private-host\n          members:\n          - primary-host\n      secondary-host:\n        reference: secondary\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nversion: 1.0.0\nmodule:\n  id: raes/fixture-family\n  version: 1.0.0\n  exports:\n    nodes:\n    - primary\n    - secondary\n    content:\n    - payload\n    variation_points:\n    - payload-host\nnodes:\n  primary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  secondary:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\ncontent:\n  payload:\n    type: file\n    target: primary\n    path: /opt/payload\nvariation_points:\n  private-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n      secondary-host:\n        reference: secondary\n  payload-host:\n    kind: alternative\n    target:\n      kind: reference\n      owner: payload\n      slot: content.target\n    alternatives:\n      primary-host:\n        reference: primary\n        requires:\n        - point: private-host\n          members:\n          - primary-host\n      secondary-host:\n        reference: secondary\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

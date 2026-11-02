@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:963ff7d804de21287510f7b1ca08f4055ad05e4baae8206a7e4222033ef190cb"
+  },
+  "name": "regression/c50248352350744cc7603fbfc4f820816d17b19f1e99f5a7acab5ae7e862e206",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/controlled-red/mixed_control/fixed-coordinate-v1",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 96
+                },
+                "start": {
+                  "column": 7,
+                  "line": 32
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/controlled-red/mixed_control/fixed-coordinate-v1",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 96
+              },
+              "start": {
+                "column": 7,
+                "line": 32
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

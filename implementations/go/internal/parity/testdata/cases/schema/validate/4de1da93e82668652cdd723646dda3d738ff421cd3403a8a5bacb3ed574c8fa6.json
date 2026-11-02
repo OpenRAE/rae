@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:0a53c0fe2e6da07da3c8dfdca259783b59e5233e6ce96dbefcd13a035a8686ef"
+  },
+  "name": "random-stream-vector-v1/routed/contracts/fixtures/random-stream-vectors/blake3-xof-participant-v1/participant-positive-int64-singleton.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

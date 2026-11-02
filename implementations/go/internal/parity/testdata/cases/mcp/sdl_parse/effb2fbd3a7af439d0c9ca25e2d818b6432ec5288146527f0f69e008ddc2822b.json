@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:1cd19fc1eb64a5994db12ac403621042de7229fd94ada74bd7174e07b6b2bf02"
+  },
+  "name": "regression/036d77082bba2486d0bdd51853dab01ac8889c07e5c00df52c2ff3f282d5cf57",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "o3w",
+                "o3w"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/o3w",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'o3w'.",
+                  "range": {
+                    "end": {
+                      "column": 6,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "o3w",
+              "o3w"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/o3w",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'o3w'.",
+                "range": {
+                  "end": {
+                    "column": 6,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

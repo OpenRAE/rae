@@ -1,0 +1,14 @@
+{
+  "args": [
+    "exploit-path-analysis-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:103ff4bd92e06230182e6a74f9ff41a22f60f06fa3a7f0741dd246e1cdb01260"
+  },
+  "name": "regression/de21780dfffb5f58e082ff6ba1e1787e37582302a62f7f1aab7108e2c52f98f5",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

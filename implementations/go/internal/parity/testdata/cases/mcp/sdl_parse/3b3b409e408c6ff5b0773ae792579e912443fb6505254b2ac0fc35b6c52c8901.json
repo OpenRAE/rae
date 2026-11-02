@@ -1,0 +1,59 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:06909942f854ebe02bf690c957b81cd31089035d0b3bda4506546a0c5c38bd05"
+  },
+  "name": "examples/scenarios/guided-web-probe.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "guided-web-probe",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 1,
+              "conditions": 1,
+              "entities": 2,
+              "infrastructure": 3,
+              "nodes": 3,
+              "objectives": 2
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "guided-web-probe",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 1,
+            "conditions": 1,
+            "entities": 2,
+            "infrastructure": 3,
+            "nodes": 3,
+            "objectives": 2
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

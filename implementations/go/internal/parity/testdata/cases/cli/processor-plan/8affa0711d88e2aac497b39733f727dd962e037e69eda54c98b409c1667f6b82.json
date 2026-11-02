@@ -1,0 +1,22 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "input/techvault-defensive-min.sdl.yaml",
+    "--manifest",
+    "input/envelope-manifest.json",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "input/envelope-manifest.json": "sha256:e5e32238c2c1a429c6867717cf2316692ec879330ec10d156a171cc555903d1e",
+    "input/techvault-defensive-min.sdl.yaml": "sha256:66f0ec5bbe399cb94575eea850740f35b2adcf2fffcf445a67cdada2b76fcc6d"
+  },
+  "name": "regression/6f7a5be00c1ee02dee75722eca424b53fc670f660f86a480e44ebb6abac04f64",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

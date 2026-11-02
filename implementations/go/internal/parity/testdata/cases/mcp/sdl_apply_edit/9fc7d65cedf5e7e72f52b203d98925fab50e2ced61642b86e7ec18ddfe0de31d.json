@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:c8e8cc4d96debdcdbdc6e580d5267833bcf6cea6ebdce9e20a8a34f54f3853ce"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/valid/node-inventory.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  worker:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n    runtime:\n      scheduled_jobs:\n      - scheduled_job_id: baseline\n        name: Baseline job\n      - scheduled_job_id: extra\n        name: Extra job\ninfrastructure:\n  worker:\n    count: 1\nvariation_points:\n  worker-state:\n    kind: alternative\n    target:\n      kind: structural\n      owner: worker\n      slot: nodes.presence\n    alternatives:\n      absent:\n        kind: node-presence\n        present: false\n      baseline:\n        kind: node-presence\n        present: true\n        inventory:\n          nodes.runtime.scheduled_jobs:\n          - nodes.worker.runtime.scheduled_jobs.baseline\n      complete:\n        kind: node-presence\n        present: true\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  worker:\n    type: compute\n    os: linux\n    resources:\n      ram: 1 gib\n      cpu: 1\n    runtime:\n      scheduled_jobs:\n      - scheduled_job_id: baseline\n        name: Baseline job\n      - scheduled_job_id: extra\n        name: Extra job\ninfrastructure:\n  worker:\n    count: 1\nvariation_points:\n  worker-state:\n    kind: alternative\n    target:\n      kind: structural\n      owner: worker\n      slot: nodes.presence\n    alternatives:\n      absent:\n        kind: node-presence\n        present: false\n      baseline:\n        kind: node-presence\n        present: true\n        inventory:\n          nodes.runtime.scheduled_jobs:\n          - nodes.worker.runtime.scheduled_jobs.baseline\n      complete:\n        kind: node-presence\n        present: true\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

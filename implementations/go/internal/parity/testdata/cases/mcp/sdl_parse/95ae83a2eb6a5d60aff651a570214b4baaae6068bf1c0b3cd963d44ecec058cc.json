@@ -1,0 +1,87 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7cf89e750ab34bb7c72263344a8bf7ef6901f3cc53699fb128ad811f9088faa0"
+  },
+  "name": "regression/1f33c722ab457ff52c70f637f636bfc54e92d3c0d81c86e3ff5047039a65494a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [
+              "Node 'target' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+            ],
+            "description_present": false,
+            "name": "unsatisfiable-control",
+            "populated_sections": {
+              "infrastructure": 1,
+              "nodes": 1
+            },
+            "source_diagnostics": [
+              {
+                "code": "sdl.legacy_node_type_vm",
+                "path": "/nodes/target/type",
+                "range": {
+                  "end": {
+                    "column": 13,
+                    "line": 9
+                  },
+                  "start": {
+                    "column": 11,
+                    "line": 9
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              }
+            ],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [
+            "Node 'target' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+          ],
+          "description_present": false,
+          "name": "unsatisfiable-control",
+          "populated_sections": {
+            "infrastructure": 1,
+            "nodes": 1
+          },
+          "source_diagnostics": [
+            {
+              "code": "sdl.legacy_node_type_vm",
+              "path": "/nodes/target/type",
+              "range": {
+                "end": {
+                  "column": 13,
+                  "line": 9
+                },
+                "start": {
+                  "column": 11,
+                  "line": 9
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-outcome-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7d898e3fbf0be166fd95f4778bb3ba6a8008fa2e7a47ec8026322a3788560f91"
+  },
+  "name": "regression/cd2ce807e729e502a0314e94ecea93e9cac8a6f310c2cc0ed943781721c8ab20",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

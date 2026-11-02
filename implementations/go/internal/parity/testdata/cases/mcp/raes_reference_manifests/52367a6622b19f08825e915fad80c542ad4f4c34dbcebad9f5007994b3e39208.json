@@ -1,0 +1,403 @@
+{
+  "args": [],
+  "command": "raes_reference_manifests",
+  "files": {
+    "arguments.json": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+  },
+  "name": "reference",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "backend": {
+            "capability_sections": [
+              "cleanup",
+              "evaluator",
+              "observation",
+              "orchestrator",
+              "participant_runtime",
+              "provisioner"
+            ],
+            "compatibility": {
+              "processors": [
+                "raes-reference-processor"
+              ]
+            },
+            "concept_bindings": [
+              {
+                "family": "assets",
+                "scope": "capabilities.provisioner.supported_node_types"
+              },
+              {
+                "family": "assets",
+                "scope": "capabilities.provisioner.supported_os_families"
+              },
+              {
+                "family": "assets",
+                "scope": "capabilities.provisioner.supported_node_architectures"
+              },
+              {
+                "family": "tools-and-artifacts",
+                "scope": "capabilities.provisioner.supported_content_types"
+              },
+              {
+                "family": "identities",
+                "scope": "capabilities.provisioner.supported_account_features"
+              },
+              {
+                "family": "identities",
+                "scope": "capabilities.provisioner.supported_domain_profiles"
+              },
+              {
+                "family": "tools-and-artifacts",
+                "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+              },
+              {
+                "family": "actions-and-events",
+                "scope": "capabilities.orchestrator.supported_sections"
+              },
+              {
+                "family": "observables",
+                "scope": "capabilities.evaluator.supported_sections"
+              },
+              {
+                "family": "identities",
+                "scope": "capabilities.participant_runtime.supported_participant_roles"
+              },
+              {
+                "family": "actions-and-events",
+                "scope": "capabilities.participant_runtime.supported_behavior_features"
+              },
+              {
+                "family": "relationships",
+                "scope": "capabilities.participant_runtime.supported_interaction_features"
+              },
+              {
+                "family": "provenance-and-evidence",
+                "scope": "capabilities.observation.supported_capture_kinds"
+              },
+              {
+                "family": "apparatus-declarations",
+                "scope": "capabilities.observation.supported_channel_kinds"
+              },
+              {
+                "family": "provenance-and-evidence",
+                "scope": "capabilities.observation.supported_sealing_modes"
+              }
+            ],
+            "identity": {
+              "name": "stub",
+              "version": "10.2.0"
+            },
+            "realization_support": [
+              {
+                "artifact_mechanisms": [],
+                "constraints": {},
+                "disclosure_kinds": [
+                  "backend-manifest-v2",
+                  "operation-status-v1",
+                  "runtime-snapshot-v1"
+                ],
+                "domain": "runtime-realization",
+                "observation_capabilities": {},
+                "process_resource_limits": [],
+                "support_mode": "constrained",
+                "supported_constraint_kinds": [
+                  "account-feature",
+                  "content-type",
+                  "node-architecture",
+                  "node-type",
+                  "os-family",
+                  "workflow-feature",
+                  "workflow-state-predicate"
+                ],
+                "supported_exact_requirement_kinds": [
+                  "declared-capability-match"
+                ]
+              }
+            ],
+            "supported_contract_versions": [
+              "backend-manifest-v2",
+              "artifact-requirement-v1",
+              "provisioning-plan-v1",
+              "orchestration-plan-v1",
+              "evaluation-plan-v1",
+              "operation-receipt-v1",
+              "operation-status-v1",
+              "runtime-snapshot-v1",
+              "workflow-result-envelope-v1",
+              "workflow-history-event-stream-v1",
+              "evaluation-result-envelope-v1",
+              "proposition-truth-result-v1",
+              "evaluation-history-event-stream-v1",
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-execution-binding-v1",
+              "participant-execution-control-v1",
+              "participant-execution-service-state-v1",
+              "participant-resource-budget-policy-v1",
+              "participant-resource-pool-capacity-v1",
+              "participant-resource-budget-state-v1",
+              "participant-resource-budget-event-v1",
+              "participant-control-occurrence-v1",
+              "participant-control-selection-v1",
+              "participant-control-evaluation-v1",
+              "participant-control-selection-v2",
+              "participant-control-evaluation-v2",
+              "participant-crossing-occurrence-v1",
+              "participant-flow-control-relation-v1",
+              "participant-lifecycle-event-v1",
+              "participant-observation-envelope-v1",
+              "participant-shared-state-record-v1",
+              "participant-joint-action-record-v1",
+              "participant-time-management-context-v1",
+              "participant-outcome-report-v1",
+              "experiment-capture-spec-v1",
+              "experiment-evidence-record-v1",
+              "experiment-derived-measure-v1",
+              "experiment-run-v1",
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ]
+          },
+          "processor": {
+            "capability_sections": [
+              "participant_tools",
+              "supported_features",
+              "supported_sdl_versions"
+            ],
+            "compatibility": {
+              "backends": [
+                "stub"
+              ]
+            },
+            "concept_bindings": [
+              {
+                "family": "scenarios",
+                "scope": "capabilities.supported_sdl_versions"
+              },
+              {
+                "family": "apparatus-declarations",
+                "scope": "capabilities.supported_features"
+              }
+            ],
+            "identity": {
+              "name": "raes-reference-processor",
+              "version": "10.2.0"
+            },
+            "realization_support": [],
+            "supported_contract_versions": [
+              "processor-manifest-v2",
+              "provisioning-plan-v1",
+              "orchestration-plan-v1",
+              "evaluation-plan-v1",
+              "workflow-cancellation-request-v1",
+              "operation-receipt-v1",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ]
+          },
+          "status": "ok"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "backend": {
+          "capability_sections": [
+            "cleanup",
+            "evaluator",
+            "observation",
+            "orchestrator",
+            "participant_runtime",
+            "provisioner"
+          ],
+          "compatibility": {
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_node_types"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_os_families"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_node_architectures"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_content_types"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_account_features"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_domain_profiles"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.orchestrator.supported_sections"
+            },
+            {
+              "family": "observables",
+              "scope": "capabilities.evaluator.supported_sections"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.participant_runtime.supported_participant_roles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.participant_runtime.supported_behavior_features"
+            },
+            {
+              "family": "relationships",
+              "scope": "capabilities.participant_runtime.supported_interaction_features"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_capture_kinds"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.observation.supported_channel_kinds"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_sealing_modes"
+            }
+          ],
+          "identity": {
+            "name": "stub",
+            "version": "10.2.0"
+          },
+          "realization_support": [
+            {
+              "artifact_mechanisms": [],
+              "constraints": {},
+              "disclosure_kinds": [
+                "backend-manifest-v2",
+                "operation-status-v1",
+                "runtime-snapshot-v1"
+              ],
+              "domain": "runtime-realization",
+              "observation_capabilities": {},
+              "process_resource_limits": [],
+              "support_mode": "constrained",
+              "supported_constraint_kinds": [
+                "account-feature",
+                "content-type",
+                "node-architecture",
+                "node-type",
+                "os-family",
+                "workflow-feature",
+                "workflow-state-predicate"
+              ],
+              "supported_exact_requirement_kinds": [
+                "declared-capability-match"
+              ]
+            }
+          ],
+          "supported_contract_versions": [
+            "backend-manifest-v2",
+            "artifact-requirement-v1",
+            "provisioning-plan-v1",
+            "orchestration-plan-v1",
+            "evaluation-plan-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "runtime-snapshot-v1",
+            "workflow-result-envelope-v1",
+            "workflow-history-event-stream-v1",
+            "evaluation-result-envelope-v1",
+            "proposition-truth-result-v1",
+            "evaluation-history-event-stream-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-execution-binding-v1",
+            "participant-execution-control-v1",
+            "participant-execution-service-state-v1",
+            "participant-resource-budget-policy-v1",
+            "participant-resource-pool-capacity-v1",
+            "participant-resource-budget-state-v1",
+            "participant-resource-budget-event-v1",
+            "participant-control-occurrence-v1",
+            "participant-control-selection-v1",
+            "participant-control-evaluation-v1",
+            "participant-control-selection-v2",
+            "participant-control-evaluation-v2",
+            "participant-crossing-occurrence-v1",
+            "participant-flow-control-relation-v1",
+            "participant-lifecycle-event-v1",
+            "participant-observation-envelope-v1",
+            "participant-shared-state-record-v1",
+            "participant-joint-action-record-v1",
+            "participant-time-management-context-v1",
+            "participant-outcome-report-v1",
+            "experiment-capture-spec-v1",
+            "experiment-evidence-record-v1",
+            "experiment-derived-measure-v1",
+            "experiment-run-v1",
+            "trial-cleanup-plan-v1",
+            "trial-cleanup-receipt-v1"
+          ]
+        },
+        "processor": {
+          "capability_sections": [
+            "participant_tools",
+            "supported_features",
+            "supported_sdl_versions"
+          ],
+          "compatibility": {
+            "backends": [
+              "stub"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "scenarios",
+              "scope": "capabilities.supported_sdl_versions"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_features"
+            }
+          ],
+          "identity": {
+            "name": "raes-reference-processor",
+            "version": "10.2.0"
+          },
+          "realization_support": [],
+          "supported_contract_versions": [
+            "processor-manifest-v2",
+            "provisioning-plan-v1",
+            "orchestration-plan-v1",
+            "evaluation-plan-v1",
+            "workflow-cancellation-request-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "runtime-snapshot-v1"
+          ]
+        },
+        "status": "ok"
+      }
+    }
+  },
+  "surface": "mcp"
+}

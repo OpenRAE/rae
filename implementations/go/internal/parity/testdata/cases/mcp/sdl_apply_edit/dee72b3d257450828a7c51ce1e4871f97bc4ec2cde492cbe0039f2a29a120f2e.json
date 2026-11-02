@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:786731ad432c32dc98ecce58095fb9d21e2c444467f4399842dd4246d9c67eea"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/canonical/absent.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\n",
+          "diagnostics": [],
+          "status": "edited"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\n",
+        "diagnostics": [],
+        "status": "edited"
+      }
+    }
+  },
+  "surface": "mcp"
+}

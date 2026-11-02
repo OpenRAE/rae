@@ -1,0 +1,85 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:52288031e743bc41f8290e7cbdbc184a661eadd79f8f432db4c59fcdaa3578fe"
+  },
+  "name": "regression/21387855d2fbb43f1567d7c8ee5870b8421f62726e1182cf6ce00178485c43b9",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "migrated",
+            "populated_sections": {},
+            "source_diagnostics": [
+              {
+                "authored_keys": [
+                  "Name",
+                  "name"
+                ],
+                "code": "sdl.noncanonical_field",
+                "path": "/name",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 1
+                  },
+                  "start": {
+                    "column": 1,
+                    "line": 1
+                  }
+                },
+                "severity": "warning",
+                "stage": "parse"
+              }
+            ],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "migrated",
+          "populated_sections": {},
+          "source_diagnostics": [
+            {
+              "authored_keys": [
+                "Name",
+                "name"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/name",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 1
+                },
+                "start": {
+                  "column": 1,
+                  "line": 1
+                }
+              },
+              "severity": "warning",
+              "stage": "parse"
+            }
+          ],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

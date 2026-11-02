@@ -1,0 +1,20 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/examples/library/templates/run/timed-run-control.yaml",
+    "repo/examples/library/templates/run/timed-run-control.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/examples/library/templates/run/timed-run-control.yaml": "sha256:3d61f09a725caa2032c323d45734d58ca38e58e7849b3ca8b0933bb3eae024a6"
+  },
+  "name": "examples/library/templates/run/timed-run-control.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

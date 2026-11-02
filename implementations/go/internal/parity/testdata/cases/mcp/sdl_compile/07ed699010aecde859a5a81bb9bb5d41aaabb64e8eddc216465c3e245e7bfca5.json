@@ -1,0 +1,231 @@
+{
+  "args": [],
+  "command": "sdl_compile",
+  "files": {
+    "arguments.json": "sha256:f63498a23d454eb6f216400938efd74cdc4a38ff3411e8471d884505c5d3a063"
+  },
+  "name": "examples/experiments/techvault-red-tactic-sweep.exp.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "cond-aggressive",
+                "cond_aggressive"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/run_plan/allocation/condition_assignments/cond_aggressive",
+              "range": {
+                "end": {
+                  "column": 22,
+                  "line": 56
+                },
+                "start": {
+                  "column": 7,
+                  "line": 56
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "red-tactic",
+                "red_tactic"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/run_plan/allocation/condition_assignments/cond_aggressive/factor_levels/red_tactic",
+              "range": {
+                "end": {
+                  "column": 21,
+                  "line": 59
+                },
+                "start": {
+                  "column": 11,
+                  "line": 59
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "cond-stealthy",
+                "cond_stealthy"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/run_plan/allocation/condition_assignments/cond_stealthy",
+              "range": {
+                "end": {
+                  "column": 20,
+                  "line": 64
+                },
+                "start": {
+                  "column": 7,
+                  "line": 64
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "red-tactic",
+                "red_tactic"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/run_plan/allocation/condition_assignments/cond_stealthy/factor_levels/red_tactic",
+              "range": {
+                "end": {
+                  "column": 21,
+                  "line": 67
+                },
+                "start": {
+                  "column": 11,
+                  "line": 67
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "red-tactic",
+                "red_tactic"
+              ],
+              "code": "sdl.noncanonical_field",
+              "path": "/factors/red_tactic",
+              "range": {
+                "end": {
+                  "column": 13,
+                  "line": 90
+                },
+                "start": {
+                  "column": 3,
+                  "line": 90
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "cond-aggressive",
+              "cond_aggressive"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/run_plan/allocation/condition_assignments/cond_aggressive",
+            "range": {
+              "end": {
+                "column": 22,
+                "line": 56
+              },
+              "start": {
+                "column": 7,
+                "line": 56
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "red-tactic",
+              "red_tactic"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/run_plan/allocation/condition_assignments/cond_aggressive/factor_levels/red_tactic",
+            "range": {
+              "end": {
+                "column": 21,
+                "line": 59
+              },
+              "start": {
+                "column": 11,
+                "line": 59
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "cond-stealthy",
+              "cond_stealthy"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/run_plan/allocation/condition_assignments/cond_stealthy",
+            "range": {
+              "end": {
+                "column": 20,
+                "line": 64
+              },
+              "start": {
+                "column": 7,
+                "line": 64
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "red-tactic",
+              "red_tactic"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/run_plan/allocation/condition_assignments/cond_stealthy/factor_levels/red_tactic",
+            "range": {
+              "end": {
+                "column": 21,
+                "line": 67
+              },
+              "start": {
+                "column": 11,
+                "line": 67
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "red-tactic",
+              "red_tactic"
+            ],
+            "code": "sdl.noncanonical_field",
+            "path": "/factors/red_tactic",
+            "range": {
+              "end": {
+                "column": 13,
+                "line": 90
+              },
+              "start": {
+                "column": 3,
+                "line": 90
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

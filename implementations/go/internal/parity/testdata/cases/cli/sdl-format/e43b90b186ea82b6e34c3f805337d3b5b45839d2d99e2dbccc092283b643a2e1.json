@@ -1,0 +1,51 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml": "sha256:dab33c31c9202875d218833f39bd9e468a7f4604557a254ef584d442d91c3ab3"
+  },
+  "name": "contracts/fixtures/concept-authority/external-concept-bindings-v1/context/autonomous-behavior-subject.sdl.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "agents": {
+        "autonomous-service": {
+          "affiliations": [
+            "automation-team"
+          ]
+        }
+      },
+      "behavior_specifications": {
+        "agent-request": {
+          "behavior_mode": "autonomous",
+          "extension_policy": "closed",
+          "lifecycle_state": "active",
+          "participant_refs": [
+            "autonomous-service"
+          ],
+          "semantic_version": "1.0.0"
+        },
+        "service-publication": {
+          "behavior_mode": "autonomous",
+          "extension_policy": "closed",
+          "lifecycle_state": "active",
+          "participant_refs": [
+            "autonomous-service"
+          ],
+          "semantic_version": "1.0.0"
+        }
+      },
+      "entities": {
+        "automation-team": {
+          "role": "blue"
+        }
+      },
+      "name": "autonomous-behavior-binding-subject"
+    }
+  },
+  "surface": "cli"
+}

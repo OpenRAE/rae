@@ -1,0 +1,71 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:b0d0ac6ca4341a430e397a0314c0ca3044b727a479e6f6aebc00925af0ede63f"
+  },
+  "name": "regression/dd5f1158aac872d2faf622333ee1153e4c9180c5299c39c0e9e66b57e6139436",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "cyborg-cage2-agents",
+            "populated_sections": {
+              "accounts": 3,
+              "action_contracts": 16,
+              "agents": 3,
+              "conditions": 2,
+              "entities": 3,
+              "events": 2,
+              "features": 1,
+              "infrastructure": 9,
+              "nodes": 9,
+              "objectives": 2,
+              "relationships": 1,
+              "scripts": 1,
+              "stories": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "cyborg-cage2-agents",
+          "populated_sections": {
+            "accounts": 3,
+            "action_contracts": 16,
+            "agents": 3,
+            "conditions": 2,
+            "entities": 3,
+            "events": 2,
+            "features": 1,
+            "infrastructure": 9,
+            "nodes": 9,
+            "objectives": 2,
+            "relationships": 1,
+            "scripts": 1,
+            "stories": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

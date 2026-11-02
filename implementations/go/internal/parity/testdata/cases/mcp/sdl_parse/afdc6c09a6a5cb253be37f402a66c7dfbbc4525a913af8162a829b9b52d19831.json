@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:43912bf530317ff6ba68dc6c9f2da691196b6109c5399c59f0427c1c65073592"
+  },
+  "name": "regression/ad1e279d8e301f52c250ef1b5945b8f08e5e6405b1ce5ae4b26dde30b75345aa",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "oa",
+                "oa"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/oa",
+              "range": {
+                "end": {
+                  "column": 5,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'oa'.",
+                  "range": {
+                    "end": {
+                      "column": 5,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "oa",
+              "oa"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/oa",
+            "range": {
+              "end": {
+                "column": 5,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'oa'.",
+                "range": {
+                  "end": {
+                    "column": 5,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

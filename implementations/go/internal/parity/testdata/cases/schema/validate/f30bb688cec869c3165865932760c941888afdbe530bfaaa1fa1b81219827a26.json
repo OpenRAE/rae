@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-cancellation-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:10e25c37a56b2092c7ff78734b53a6100bfa9d2f7cc001013c892276c32555f6"
+  },
+  "name": "workflow-cancellation-request-v1/routed/contracts/fixtures/control-plane/workflow-cancellation-request-v1/valid/operator-cancel.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

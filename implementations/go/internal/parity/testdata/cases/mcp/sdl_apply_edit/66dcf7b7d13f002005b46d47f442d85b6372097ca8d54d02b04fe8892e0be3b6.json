@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:cbb261720bb2b011a1ebaaeaa9cbdad3b288ab8e05b6662c5d100b084c99e66d"
+  },
+  "name": "examples/scenarios/participant-control-context/twice-imported.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nimports:\n- source: local:context-kit.sdl.yaml\n  namespace: alpha\n- source: local:context-kit.sdl.yaml\n  namespace: bravo\n",
+          "diagnostics": [
+            {
+              "code": "sdl.parse",
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nimports:\n- source: local:context-kit.sdl.yaml\n  namespace: alpha\n- source: local:context-kit.sdl.yaml\n  namespace: bravo\n",
+        "diagnostics": [
+          {
+            "code": "sdl.parse",
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

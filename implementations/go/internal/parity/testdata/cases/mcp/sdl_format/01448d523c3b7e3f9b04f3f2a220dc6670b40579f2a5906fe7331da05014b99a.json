@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:d79d416ca52dc962bb1bacafafb5a22bb9fc9b8d3e84d4613ee4aa8333d3080a"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/anchors.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: canonical-anchors\nnodes:\n  shared:\n    type: switch\n  reuse:\n    type: switch\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: canonical-anchors\nnodes:\n  shared:\n    type: switch\n  reuse:\n    type: switch\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

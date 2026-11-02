@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:d905d5458f9e85d5a257f2984841b0f1e8ad5d78acbf389a9bc23a95b99591d4"
+  },
+  "name": "contracts/fixtures/sdl/participant-relationships-v1/invalid/entity-endpoint.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nentities:\n  team-a:\n    role: red\n  team-b:\n    role: blue\nagents:\n  alice:\n    affiliations:\n    - team-a\n  bob:\n    affiliations:\n    - team-b\nrelationships:\n  work:\n    type: participant\n    source: agents.alice\n    target: entities.team-b\n    participant:\n      kind: coordination\n",
+          "diagnostics": [
+            {
+              "code": "sdl.semantic",
+              "severity": "error",
+              "stage": "semantic_validation"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nentities:\n  team-a:\n    role: red\n  team-b:\n    role: blue\nagents:\n  alice:\n    affiliations:\n    - team-a\n  bob:\n    affiliations:\n    - team-b\nrelationships:\n  work:\n    type: participant\n    source: agents.alice\n    target: entities.team-b\n    participant:\n      kind: coordination\n",
+        "diagnostics": [
+          {
+            "code": "sdl.semantic",
+            "severity": "error",
+            "stage": "semantic_validation"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

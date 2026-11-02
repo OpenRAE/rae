@@ -1,0 +1,39 @@
+{
+  "args": [],
+  "command": "sdl_plan",
+  "files": {
+    "arguments.json": "sha256:3e971736e0478be5767982fa23a1fc55f2566ad5a7d27f01678988cbbe13a30b"
+  },
+  "name": "examples/scenarios/participant-control-context/twice-imported.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

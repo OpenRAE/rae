@@ -1,0 +1,14 @@
+{
+  "args": [
+    "raes-semantic-invariants-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+  },
+  "name": "regression/386961dea715af3d368ca07709ebc91dcde48d0047a0f2af52c6fd0990dc2f46",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

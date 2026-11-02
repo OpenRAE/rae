@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml": "sha256:5ef7502ac5933703d6f52ab317fff93ba1aeaa68d79d4e3c49ee86813b622d03",
+    "setup.json": "sha256:1dce906a4c28949a3409b82d4584ede21fe8d34f141ed04a451a45d6a5eeddcc"
+  },
+  "name": "contracts/fixtures/sdl/variation-points-v1/invalid/dangling-candidate.yaml/resolved",
+  "result": {
+    "exit_code": 1,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/variation-points-v1/invalid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

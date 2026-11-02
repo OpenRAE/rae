@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:6c7fff0acd5bba0a63de115c943c7845035b6692b53af6edac2f790518cdfa90"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

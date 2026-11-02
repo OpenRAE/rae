@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml": "sha256:a4f1922eee529656b804f3f0d389906847eb5fe5275feefa06c67101f4a2f226",
+    "setup.json": "sha256:7e192c5d7f30217a8399180a2ecdb2ceccaecacbc2bea48c38619e180500dcdc"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/duplicate-field.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

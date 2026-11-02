@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:44bcdcc0473effaa23be978b15f8512f2c3f7931bf11565338f32c5a52027bb5"
+  },
+  "name": "regression/7b60d20680802020495375f1e26b29a063587b017ee183ca1fff657f5253de8b",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/ad/runtime/identity_authorities/0",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 25
+                },
+                "start": {
+                  "column": 11,
+                  "line": 9
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/ad/runtime/identity_authorities/0",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 25
+              },
+              "start": {
+                "column": 11,
+                "line": 9
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

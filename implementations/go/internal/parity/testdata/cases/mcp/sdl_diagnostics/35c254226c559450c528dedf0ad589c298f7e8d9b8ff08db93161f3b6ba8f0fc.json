@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_diagnostics",
+  "files": {
+    "arguments.json": "sha256:981d6c61fb6713319a31f0a81d47ca92ba2d0e7d457d9ffd2a5fd46bb000725b"
+  },
+  "name": "examples/scenarios/techvault-operational.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [],
+          "stage": "semantic_validation",
+          "status": "valid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [],
+        "stage": "semantic_validation",
+        "status": "valid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

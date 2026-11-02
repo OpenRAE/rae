@@ -1,0 +1,809 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:7a3bf97a17932d905c499116ad02c5dc0a1a25acc1f16088de0c407495b15124"
+  },
+  "name": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+              "severity": "warning",
+              "topic": "participant_visibility"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "provision.node.shipping-portal",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.manifest-db",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.terminal-ops",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.port-idp",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.customs-gateway",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.yard-hmi",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.crane-plc",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.gate-kiosk",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.camera-analytics",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.historian01",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.vendor-jump",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.soc01",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.backup-vault",
+              "code": "provisioner.unsupported-operating-system",
+              "domain": "provisioning",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "evidence_requirements.objective-truth-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.shipping-portal",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.manifest-db",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.terminal-ops",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.port-idp",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.customs-gateway",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.yard-hmi",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.crane-plc",
+              "code": "realization.unsupported-open-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.gate-kiosk",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.camera-analytics",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.historian01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.vendor-jump",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.soc01",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.backup-vault",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.yard-hmi",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.gate-kiosk",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.yard-hmi",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "provision.node.gate-kiosk",
+              "code": "realization.under-observed-exact-requirement",
+              "domain": "runtime-realization",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 31,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 35
+              },
+              "orchestration": {
+                "create": 11
+              },
+              "provisioning": {
+                "create": 45
+              }
+            },
+            "resources": {
+              "evaluation": 35,
+              "orchestration": 11,
+              "provisioning": 45
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.condition.backup-vault.blackstart-runbook-ready",
+                "evaluation.condition.camera-analytics.camera-analytics-healthy",
+                "evaluation.condition.crane-plc.crane-plc-online",
+                "evaluation.condition.gate-kiosk.gate-processing-healthy",
+                "evaluation.condition.port-idp.port-sso-healthy",
+                "evaluation.condition.shipping-portal.portal-healthy",
+                "evaluation.condition.soc01.soc-feed-healthy",
+                "evaluation.condition.soc01.surge-incident-ticketed",
+                "evaluation.condition.terminal-ops.terminal-throughput-healthy",
+                "evaluation.condition.vendor-jump.vendor-jump-healthy",
+                "evaluation.condition.yard-hmi.operator-visibility-healthy",
+                "evaluation.proposition.crane-safe-mode",
+                "evaluation.proposition.customs-link-healthy",
+                "evaluation.proposition.historian-replication-ok",
+                "evaluation.proposition.manifest-integrity-ok",
+                "evaluation.proposition.tampered-manifest-observed",
+                "evaluation.proposition.yard-telemetry-flowing",
+                "evaluation.assertion.crane-safe-mode",
+                "evaluation.condition.yard-hmi.crane-safe-mode",
+                "evaluation.assertion.customs-link-healthy",
+                "evaluation.condition.customs-gateway.customs-link-healthy",
+                "evaluation.assertion.historian-replication-ok",
+                "evaluation.condition.historian01.historian-replication-ok",
+                "evaluation.assertion.manifest-integrity-ok",
+                "evaluation.condition.manifest-db.manifest-integrity-ok",
+                "evaluation.assertion.pre-tampered-manifest-observed",
+                "evaluation.assertion.tampered-manifest-observed",
+                "evaluation.condition.manifest-db.tampered-manifest-observed",
+                "evaluation.assertion.yard-telemetry-flowing",
+                "evaluation.condition.historian01.yard-telemetry-flowing",
+                "evaluation.objective.blue-maintain-customs-integrity",
+                "evaluation.objective.red-corrupt-manifests",
+                "evaluation.objective.red-degrade-yard-ops",
+                "evaluation.objective.blue-blackstart-yard",
+                "evaluation.objective.blue-validate-yard-telemetry"
+              ],
+              "orchestration": [
+                "orchestration.inject.customs-priority-ticket",
+                "orchestration.inject.safety-standdown",
+                "orchestration.inject.surge-brief",
+                "orchestration.workflow.yard-recovery",
+                "orchestration.event.customs-surge-event",
+                "orchestration.event.yard-standdown",
+                "orchestration.event.vessel-arrival",
+                "orchestration.script.customs-surge-phase",
+                "orchestration.script.yard-disruption-phase",
+                "orchestration.script.arrival-phase",
+                "orchestration.story.surge-day"
+              ]
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 17,
+                "objectives": 5
+              },
+              "orchestration": {
+                "events": 3,
+                "inject_bindings": 0,
+                "injects": 3,
+                "scripts": 3,
+                "stories": 1,
+                "workflows": 1
+              },
+              "participant": {
+                "action_contracts": 12,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 3
+              },
+              "provisioning": {
+                "account_placements": 7,
+                "content_placements": 5,
+                "feature_bindings": 12,
+                "networks": 8,
+                "nodes": 13
+              }
+            },
+            "metadata": {
+              "agents": 3,
+              "capability_constraints": 0,
+              "entities": 8,
+              "relationships": 7
+            },
+            "templates": {
+              "conditions": 17,
+              "features": 12,
+              "injects": 3
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "port-authority-surge-response",
+            "populated_sections": {
+              "accounts": 7,
+              "action_contracts": 12,
+              "agents": 3,
+              "conditions": 17,
+              "content": 5,
+              "entities": 5,
+              "events": 3,
+              "features": 12,
+              "infrastructure": 21,
+              "injects": 3,
+              "nodes": 21,
+              "objectives": 5,
+              "relationships": 7,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+            "severity": "warning",
+            "topic": "participant_visibility"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "provision.node.shipping-portal",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.manifest-db",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.terminal-ops",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.port-idp",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.customs-gateway",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.crane-plc",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.camera-analytics",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.historian01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.soc01",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.backup-vault",
+            "code": "provisioner.unsupported-operating-system",
+            "domain": "provisioning",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "evidence_requirements.objective-truth-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.shipping-portal",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.manifest-db",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.terminal-ops",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.port-idp",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.customs-gateway",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.crane-plc",
+            "code": "realization.unsupported-open-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.camera-analytics",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.historian01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.vendor-jump",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.soc01",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.backup-vault",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.yard-hmi",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "provision.node.gate-kiosk",
+            "code": "realization.under-observed-exact-requirement",
+            "domain": "runtime-realization",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 31,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 35
+            },
+            "orchestration": {
+              "create": 11
+            },
+            "provisioning": {
+              "create": 45
+            }
+          },
+          "resources": {
+            "evaluation": 35,
+            "orchestration": 11,
+            "provisioning": 45
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.condition.backup-vault.blackstart-runbook-ready",
+              "evaluation.condition.camera-analytics.camera-analytics-healthy",
+              "evaluation.condition.crane-plc.crane-plc-online",
+              "evaluation.condition.gate-kiosk.gate-processing-healthy",
+              "evaluation.condition.port-idp.port-sso-healthy",
+              "evaluation.condition.shipping-portal.portal-healthy",
+              "evaluation.condition.soc01.soc-feed-healthy",
+              "evaluation.condition.soc01.surge-incident-ticketed",
+              "evaluation.condition.terminal-ops.terminal-throughput-healthy",
+              "evaluation.condition.vendor-jump.vendor-jump-healthy",
+              "evaluation.condition.yard-hmi.operator-visibility-healthy",
+              "evaluation.proposition.crane-safe-mode",
+              "evaluation.proposition.customs-link-healthy",
+              "evaluation.proposition.historian-replication-ok",
+              "evaluation.proposition.manifest-integrity-ok",
+              "evaluation.proposition.tampered-manifest-observed",
+              "evaluation.proposition.yard-telemetry-flowing",
+              "evaluation.assertion.crane-safe-mode",
+              "evaluation.condition.yard-hmi.crane-safe-mode",
+              "evaluation.assertion.customs-link-healthy",
+              "evaluation.condition.customs-gateway.customs-link-healthy",
+              "evaluation.assertion.historian-replication-ok",
+              "evaluation.condition.historian01.historian-replication-ok",
+              "evaluation.assertion.manifest-integrity-ok",
+              "evaluation.condition.manifest-db.manifest-integrity-ok",
+              "evaluation.assertion.pre-tampered-manifest-observed",
+              "evaluation.assertion.tampered-manifest-observed",
+              "evaluation.condition.manifest-db.tampered-manifest-observed",
+              "evaluation.assertion.yard-telemetry-flowing",
+              "evaluation.condition.historian01.yard-telemetry-flowing",
+              "evaluation.objective.blue-maintain-customs-integrity",
+              "evaluation.objective.red-corrupt-manifests",
+              "evaluation.objective.red-degrade-yard-ops",
+              "evaluation.objective.blue-blackstart-yard",
+              "evaluation.objective.blue-validate-yard-telemetry"
+            ],
+            "orchestration": [
+              "orchestration.inject.customs-priority-ticket",
+              "orchestration.inject.safety-standdown",
+              "orchestration.inject.surge-brief",
+              "orchestration.workflow.yard-recovery",
+              "orchestration.event.customs-surge-event",
+              "orchestration.event.yard-standdown",
+              "orchestration.event.vessel-arrival",
+              "orchestration.script.customs-surge-phase",
+              "orchestration.script.yard-disruption-phase",
+              "orchestration.script.arrival-phase",
+              "orchestration.story.surge-day"
+            ]
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 17,
+              "objectives": 5
+            },
+            "orchestration": {
+              "events": 3,
+              "inject_bindings": 0,
+              "injects": 3,
+              "scripts": 3,
+              "stories": 1,
+              "workflows": 1
+            },
+            "participant": {
+              "action_contracts": 12,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 3
+            },
+            "provisioning": {
+              "account_placements": 7,
+              "content_placements": 5,
+              "feature_bindings": 12,
+              "networks": 8,
+              "nodes": 13
+            }
+          },
+          "metadata": {
+            "agents": 3,
+            "capability_constraints": 0,
+            "entities": 8,
+            "relationships": 7
+          },
+          "templates": {
+            "conditions": 17,
+            "features": 12,
+            "injects": 3
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "port-authority-surge-response",
+          "populated_sections": {
+            "accounts": 7,
+            "action_contracts": 12,
+            "agents": 3,
+            "conditions": 17,
+            "content": 5,
+            "entities": 5,
+            "events": 3,
+            "features": 12,
+            "infrastructure": 21,
+            "injects": 3,
+            "nodes": 21,
+            "objectives": 5,
+            "relationships": 7,
+            "scripts": 3,
+            "stories": 1,
+            "workflows": 1
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

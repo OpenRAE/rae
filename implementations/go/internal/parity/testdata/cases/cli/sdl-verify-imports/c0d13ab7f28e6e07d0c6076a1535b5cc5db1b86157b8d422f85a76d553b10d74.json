@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/explicit-tag.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/sdl-yaml-v1/invalid/explicit-tag.yaml": "sha256:11cde9b1294ca76ed8af9fd9f641b869abe420824646da96272c7c3434685a56"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/invalid/explicit-tag.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-crossing-occurrence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:94dddd55cf8785d5442bc8acb493fe3516a2a359f9ae521f8348951a26d28bab"
+  },
+  "name": "regression/9d03f13e982b95c2ef8bcaa7ab7f8ffa321483ca5b8806836027a544fa13a643",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

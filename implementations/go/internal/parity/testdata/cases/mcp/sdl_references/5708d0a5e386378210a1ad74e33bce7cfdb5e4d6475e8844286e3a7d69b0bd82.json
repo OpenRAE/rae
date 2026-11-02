@@ -1,0 +1,217 @@
+{
+  "args": [],
+  "command": "sdl_references",
+  "files": {
+    "arguments.json": "sha256:f7299908ba1305992f2c1bc8b56163fcaefee2ecc27695a83e573c1de1ccd540"
+  },
+  "name": "examples/scenarios/participant-tools/tool-kit.sdl.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "definitions": [
+            {
+              "name": "web",
+              "path": "/nodes/web",
+              "qualified_name": "nodes.web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 22
+                },
+                "start": {
+                  "column": 3,
+                  "line": 22
+                }
+              },
+              "section": "nodes"
+            }
+          ],
+          "occurrences": [
+            {
+              "kind": "scalar",
+              "path": "/module/exports/nodes/1",
+              "range": {
+                "end": {
+                  "column": 21,
+                  "line": 11
+                },
+                "start": {
+                  "column": 18,
+                  "line": 11
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "mapping_key",
+              "path": "/nodes/web",
+              "range": {
+                "end": {
+                  "column": 6,
+                  "line": 22
+                },
+                "start": {
+                  "column": 3,
+                  "line": 22
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/content/scanner-package/target",
+              "range": {
+                "end": {
+                  "column": 16,
+                  "line": 29
+                },
+                "start": {
+                  "column": 13,
+                  "line": 29
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/accounts/operator/node",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 34
+                },
+                "start": {
+                  "column": 11,
+                  "line": 34
+                }
+              },
+              "value": "web"
+            },
+            {
+              "kind": "scalar",
+              "path": "/agents/red-agent/interactive_access/shell/target_ref",
+              "range": {
+                "end": {
+                  "column": 30,
+                  "line": 45
+                },
+                "start": {
+                  "column": 27,
+                  "line": 45
+                }
+              },
+              "value": "web"
+            }
+          ],
+          "status": "ok",
+          "symbol": "web"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "definitions": [
+          {
+            "name": "web",
+            "path": "/nodes/web",
+            "qualified_name": "nodes.web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 22
+              },
+              "start": {
+                "column": 3,
+                "line": 22
+              }
+            },
+            "section": "nodes"
+          }
+        ],
+        "occurrences": [
+          {
+            "kind": "scalar",
+            "path": "/module/exports/nodes/1",
+            "range": {
+              "end": {
+                "column": 21,
+                "line": 11
+              },
+              "start": {
+                "column": 18,
+                "line": 11
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "mapping_key",
+            "path": "/nodes/web",
+            "range": {
+              "end": {
+                "column": 6,
+                "line": 22
+              },
+              "start": {
+                "column": 3,
+                "line": 22
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/content/scanner-package/target",
+            "range": {
+              "end": {
+                "column": 16,
+                "line": 29
+              },
+              "start": {
+                "column": 13,
+                "line": 29
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/accounts/operator/node",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 34
+              },
+              "start": {
+                "column": 11,
+                "line": 34
+              }
+            },
+            "value": "web"
+          },
+          {
+            "kind": "scalar",
+            "path": "/agents/red-agent/interactive_access/shell/target_ref",
+            "range": {
+              "end": {
+                "column": 30,
+                "line": 45
+              },
+              "start": {
+                "column": 27,
+                "line": 45
+              }
+            },
+            "value": "web"
+          }
+        ],
+        "status": "ok",
+        "symbol": "web"
+      }
+    }
+  },
+  "surface": "mcp"
+}

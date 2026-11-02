@@ -1,0 +1,141 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:12c41290c5b06e706acab0891b1570de3f5fd19d8c96c66b9f398c5c52e1673c"
+  },
+  "name": "regression/ac5690ea2d397d4417780487c9bdf97ea3805edb4334692f6f7823c134486f6f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "<<",
+                "<<"
+              ],
+              "code": "sdl.noncanonical_merge",
+              "path": "/nodes/second/resources",
+              "range": {
+                "end": {
+                  "column": 9,
+                  "line": 11
+                },
+                "start": {
+                  "column": 7,
+                  "line": 11
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "authored_keys": [
+                "cpu",
+                "cpu"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/second/resources/cpu",
+              "range": {
+                "end": {
+                  "column": 10,
+                  "line": 12
+                },
+                "start": {
+                  "column": 7,
+                  "line": 12
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'cpu'.",
+                  "range": {
+                    "end": {
+                      "column": 10,
+                      "line": 7
+                    },
+                    "start": {
+                      "column": 7,
+                      "line": 7
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "<<",
+              "<<"
+            ],
+            "code": "sdl.noncanonical_merge",
+            "path": "/nodes/second/resources",
+            "range": {
+              "end": {
+                "column": 9,
+                "line": 11
+              },
+              "start": {
+                "column": 7,
+                "line": 11
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "authored_keys": [
+              "cpu",
+              "cpu"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/second/resources/cpu",
+            "range": {
+              "end": {
+                "column": 10,
+                "line": 12
+              },
+              "start": {
+                "column": 7,
+                "line": 12
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'cpu'.",
+                "range": {
+                  "end": {
+                    "column": 10,
+                    "line": 7
+                  },
+                  "start": {
+                    "column": 7,
+                    "line": 7
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

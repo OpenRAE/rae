@@ -1,0 +1,29 @@
+{
+  "args": [],
+  "command": "sdl_format",
+  "files": {
+    "arguments.json": "sha256:f8fef466e5e5a7b0fd03ba818edd23b01acbfff32fac1179424bc02359df8b15"
+  },
+  "name": "contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-selected-demand.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: observability-plane-conformance\nnodes:\n  monitor:\n    type: compute\n    source:\n      name: exact-monitor-image\n      version: '*'\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    os_distribution: ubuntu\n    os_version: '24.04'\n    services:\n    - port: 80\n      protocol: tcp\n      name: http\n    runtime:\n      service_listeners:\n      - service_listener_id: telemetry\n        service: http\n        address: 0.0.0.0\n        port: 80\n        protocol: tcp\n        address_family: ipv4\n        scope: wildcard\nevidence_requirements:\n  listener-events:\n    source_refs:\n    - nodes.monitor.runtime.service_listeners.telemetry\n    scope_refs:\n    - nodes.monitor\n    window: run\n    channel: api_response\n    sensitivity: plain\n    redaction: redact_sensitive\n    integrity: checksum\n    retention: not_retained\n    loss_disclosure: required\n    observation_demand:\n      rule_id: listener-events\n      scope: /nodes/monitor\n      purpose: experimental\n      mode: selected\n      selector:\n        semantic_scope: /nodes/monitor\n        data_kind: stream\n        names:\n        - listener-events\n      collection: require\n      retention: disable\n      export: disable\n      redaction: redact-sensitive\n      integrity: checksum\n",
+          "diagnostics": [],
+          "status": "formatted"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: observability-plane-conformance\nnodes:\n  monitor:\n    type: compute\n    source:\n      name: exact-monitor-image\n      version: '*'\n    resources:\n      ram: 1073741824\n      cpu: 1\n    os: linux\n    os_distribution: ubuntu\n    os_version: '24.04'\n    services:\n    - port: 80\n      protocol: tcp\n      name: http\n    runtime:\n      service_listeners:\n      - service_listener_id: telemetry\n        service: http\n        address: 0.0.0.0\n        port: 80\n        protocol: tcp\n        address_family: ipv4\n        scope: wildcard\nevidence_requirements:\n  listener-events:\n    source_refs:\n    - nodes.monitor.runtime.service_listeners.telemetry\n    scope_refs:\n    - nodes.monitor\n    window: run\n    channel: api_response\n    sensitivity: plain\n    redaction: redact_sensitive\n    integrity: checksum\n    retention: not_retained\n    loss_disclosure: required\n    observation_demand:\n      rule_id: listener-events\n      scope: /nodes/monitor\n      purpose: experimental\n      mode: selected\n      selector:\n        semantic_scope: /nodes/monitor\n        data_kind: stream\n        names:\n        - listener-events\n      collection: require\n      retention: disable\n      export: disable\n      redaction: redact-sensitive\n      integrity: checksum\n",
+        "diagnostics": [],
+        "status": "formatted"
+      }
+    }
+  },
+  "surface": "mcp"
+}

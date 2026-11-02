@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:63d4a5d652253732544f02b49a9121a03a600a7c320b612e11ad150527c84639"
+  },
+  "name": "regression/967d9e42852d365aee0a29c208a05c080c20b1f1a0575b14bfa684545c645471",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/persistent_volumes/data/consumers/0/mount_destination",
+              "range": {
+                "end": {
+                  "column": 60,
+                  "line": 12
+                },
+                "start": {
+                  "column": 50,
+                  "line": 12
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/persistent_volumes/data/consumers/0/mount_destination",
+            "range": {
+              "end": {
+                "column": 60,
+                "line": 12
+              },
+              "start": {
+                "column": 50,
+                "line": 12
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:9d3407be136dca3805bfafbb6828c1f0ca1d0809353f5bd1b353c5a8c640181c"
+  },
+  "name": "experiment-authoring-input-v1/routed/contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/product-selection.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

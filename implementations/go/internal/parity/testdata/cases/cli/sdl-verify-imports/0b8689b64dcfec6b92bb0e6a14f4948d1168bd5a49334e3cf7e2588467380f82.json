@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/examples/library/templates/scenario/minimal-validated-scenario.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/examples/library/templates/scenario/minimal-validated-scenario.yaml": "sha256:cbe8d4f18ad81a389300591de82ff5f91c02a36184b1cf52ea1e6226368f723f"
+  },
+  "name": "examples/library/templates/scenario/minimal-validated-scenario.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

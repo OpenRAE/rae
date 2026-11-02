@@ -1,0 +1,101 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:26098fb65fd0e293a0c7cfa700e9b8ca6d21ae86c40b5d726c6221778edcfcd4"
+  },
+  "name": "regression/f265057ea515d8d2c5fa3ddf409fbf3c881c3854501ddb7c19cf89d3f4131847",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "authored_keys": [
+                "o51mxxx",
+                "o51mxxx"
+              ],
+              "code": "sdl.mapping_key_conflict",
+              "path": "/nodes/o51mxxx",
+              "range": {
+                "end": {
+                  "column": 10,
+                  "line": 4
+                },
+                "start": {
+                  "column": 3,
+                  "line": 4
+                }
+              },
+              "related": [
+                {
+                  "message": "First authored key 'o51mxxx'.",
+                  "range": {
+                    "end": {
+                      "column": 10,
+                      "line": 3
+                    },
+                    "start": {
+                      "column": 3,
+                      "line": 3
+                    }
+                  }
+                }
+              ],
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "authored_keys": [
+              "o51mxxx",
+              "o51mxxx"
+            ],
+            "code": "sdl.mapping_key_conflict",
+            "path": "/nodes/o51mxxx",
+            "range": {
+              "end": {
+                "column": 10,
+                "line": 4
+              },
+              "start": {
+                "column": 3,
+                "line": 4
+              }
+            },
+            "related": [
+              {
+                "message": "First authored key 'o51mxxx'.",
+                "range": {
+                  "end": {
+                    "column": 10,
+                    "line": 3
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 3
+                  }
+                }
+              }
+            ],
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

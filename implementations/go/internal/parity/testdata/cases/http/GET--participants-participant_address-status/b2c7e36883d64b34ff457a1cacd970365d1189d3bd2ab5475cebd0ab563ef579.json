@@ -1,0 +1,16 @@
+{
+  "args": [],
+  "command": "GET /participants/{participant_address}/status",
+  "files": {
+    "request.json": "sha256:d09b1af0c6625187b7c9aa37a0146c6e71fe10785d8c1109423984a5b333ae55"
+  },
+  "name": "anonymous/empty-reference-state",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 401
+  },
+  "surface": "http"
+}

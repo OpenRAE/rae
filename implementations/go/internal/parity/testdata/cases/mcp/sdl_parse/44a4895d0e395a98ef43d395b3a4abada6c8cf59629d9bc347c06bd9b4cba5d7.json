@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:3b9a7e2d2bc3517c06ed87d8443e95c6266ddb8b15a50170588e0825e6a643e0"
+  },
+  "name": "regression/94bc7104ecfd4be62ae8a77951a09a731e5ae7f018a294f4cf1b6d13549f738e",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.classification-migration-required",
+              "path": "/nodes/web",
+              "range": {
+                "end": {
+                  "column": 50,
+                  "line": 2
+                },
+                "start": {
+                  "column": 14,
+                  "line": 2
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.classification-migration-required",
+            "path": "/nodes/web",
+            "range": {
+              "end": {
+                "column": 50,
+                "line": 2
+              },
+              "start": {
+                "column": 14,
+                "line": 2
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

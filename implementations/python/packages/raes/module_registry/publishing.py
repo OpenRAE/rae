@@ -16,12 +16,13 @@ from typing import Any
 from cryptography.exceptions import UnsupportedAlgorithm
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from pydantic import ValidationError
 from raes_contracts.digests import SHA256_PREFIX, sha256_digest
 from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.json_serialization import sorted_json_text
 
 from .._errors import SDLParseError
-from ..scenario import ImportDecl, ModuleDescriptor
+from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import (
     OCI_BUNDLE_MEDIA_TYPE,
     OCI_CONFIG_MEDIA_TYPE,
@@ -49,14 +50,19 @@ from .models import _scenario_module_descriptor
 # exactly as the pre-split single-file module did.
 
 
+def _read_module_authoring_source(path: Path) -> tuple[bytes, dict[str, Any]]:
+    from ..parser import _load_normalized_data, read_sdl_source
+
+    source = read_sdl_source(path)
+    return source.raw_bytes, _load_normalized_data(source.text, path=path)
+
+
 def _collect_local_bundle_files(
     root_path: Path,
     *,
     bundle_root: Path | None = None,
     seen: set[Path] | None = None,
 ) -> dict[Path, bytes]:
-    from ..parser import _load_normalized_data, read_sdl_source
-
     seen = set() if seen is None else set(seen)
     try:
         resolved = root_path.resolve(strict=True)
@@ -70,9 +76,8 @@ def _collect_local_bundle_files(
     if resolved in seen:
         raise SDLParseError(f"Import cycle detected at {resolved}")
     seen.add(resolved)
-    root_source = read_sdl_source(resolved)
-    payload = _load_normalized_data(root_source.text, path=resolved)
-    files = {resolved: root_source.raw_bytes}
+    raw_bytes, payload = _read_module_authoring_source(resolved)
+    files = {resolved: raw_bytes}
     for raw_import in payload.get("imports", []):
         import_decl = ImportDecl.model_validate(raw_import)
         source = import_decl.normalized_source
@@ -416,9 +421,16 @@ def publish_module_to_oci_layout(
         canonical_root = root_path.resolve(strict=True)
     except OSError as exc:
         raise SDLParseError("Unable to resolve the module publishing entrypoint") from exc
-    scenario = parse_sdl_file(canonical_root, skip_semantic_validation=True)
+    # ExpandedScenario intentionally drops the authoring module descriptor.
+    # Keep validating imports, and obtain the descriptor from the authored root.
+    parse_sdl_file(canonical_root, skip_semantic_validation=True)
+    _, root_payload = _read_module_authoring_source(canonical_root)
+    try:
+        authored = Scenario.model_validate(root_payload)
+    except ValidationError as exc:
+        raise SDLParseError("Invalid module publishing authoring root", path=canonical_root) from exc
     descriptor = _scenario_module_descriptor(
-        scenario,
+        authored,
         source_id=canonical_root.name,
     )
     bundle_bytes = _build_module_bundle(canonical_root)

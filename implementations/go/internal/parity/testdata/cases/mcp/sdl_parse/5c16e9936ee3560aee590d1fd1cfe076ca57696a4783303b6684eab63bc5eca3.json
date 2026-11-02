@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:41a39d6da8c8682eb4d0464b5f23c18614bebfb80222763790c0df5d1a4d7b2d"
+  },
+  "name": "regression/0ea5484650298af77190237ec56a4a932341be5935cfd79f13d9ceb4774b8395",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.identifier.invalid",
+              "path": "/nodes/thehive/runtime/environment_files/0/name",
+              "range": {
+                "end": {
+                  "column": 26,
+                  "line": 8
+                },
+                "start": {
+                  "column": 17,
+                  "line": 8
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.identifier.invalid",
+            "path": "/nodes/thehive/runtime/environment_files/0/name",
+            "range": {
+              "end": {
+                "column": 26,
+                "line": 8
+              },
+              "start": {
+                "column": 17,
+                "line": 8
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "provisioning-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:cd1445341f2213d5ac29f4fa621c596f55fb4304f09d996778a200511c5bef38"
+  },
+  "name": "regression/3bd9bd95e98d7f4bc152fb0e480cb231acea68f97597db6fe2e09d5de2f792bc",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
