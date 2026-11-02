@@ -14,7 +14,7 @@ func inventoryFixture() (corpusInventory, []Case) {
 	inventory.Complete = true
 	inventory.Surfaces = map[string][]string{}
 	var cases []Case
-	for _, surface := range []string{"cli", "mcp", "http", "schema", "canonical", "randstream"} {
+	for _, surface := range []string{"cli", "mcp", "http", "schema", "canonical", "randstream", "primitive"} {
 		inventory.Surfaces[surface] = []string{"command"}
 		cases = append(cases, Case{Surface: surface, Command: "command", Args: []string{"command"}})
 	}

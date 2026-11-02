@@ -490,7 +490,9 @@ def build_corpus(
     files = {MANIFEST: encode({"schema": SCHEMA, "provenance": provenance(repo)})}
     if inventory is not None:
         files[Path("inventory.json")] = encode(inventory)
-    for case in cases:
+    for index, case in enumerate(cases, start=1):
+        if index % 250 == 0:
+            print(f"parity corpus: recording case {index}", file=sys.stderr, flush=True)
         if case.path in files:
             raise ValueError(f"duplicate corpus case: {case.path}")
         files[case.path] = encode(case_document(case, run(repo, case)))
