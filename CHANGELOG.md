@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.5.0](https://github.com/OpenRAE/rae/compare/v10.4.0...v10.5.0) (2026-11-02)
+
+
+### Features
+
+* **sdl:** add a forwarding source kind for a listening socket ([#1837](https://github.com/OpenRAE/rae/issues/1837)) ([5d95087](https://github.com/OpenRAE/rae/commit/5d9508782b8f652679c2c511143e92eb5df9a03d))
+
+
+### Bug Fixes
+
+* **runtime:** allow empty open concerns without proof of absence ([#1845](https://github.com/OpenRAE/rae/issues/1845)) ([8ef22b9](https://github.com/OpenRAE/rae/commit/8ef22b9dda7c4cf71180f80255ba912615ff01df))
+
 ## [10.4.0](https://github.com/OpenRAE/rae/compare/v10.3.0...v10.4.0) (2026-11-01)
 
 
