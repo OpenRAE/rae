@@ -1,10 +1,12 @@
 package arch
 
 import (
+	"errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"go/types"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
@@ -177,8 +179,10 @@ func TestAPISourceContainmentAndIgnoredDirectories(t *testing.T) {
 		if err := os.Symlink(outside, filepath.Join(root, name)); err != nil {
 			t.Fatal(err)
 		}
-		if err := validateAPITree(root, model); err == nil {
-			t.Errorf("validateAPITree() accepted escaping source %s", name)
+		err := validateAPITree(root, model)
+		var pathError *fs.PathError
+		if !errors.As(err, &pathError) || pathError.Path != name {
+			t.Errorf("validateAPITree(%s) error = %v, want the original rooted file error", name, err)
 		}
 		if err := os.Remove(filepath.Join(root, name)); err != nil {
 			t.Fatal(err)

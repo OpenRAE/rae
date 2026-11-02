@@ -1701,7 +1701,9 @@ def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
     assert "strategy" not in job
     prepare = _named_step(job, "Prepare pinned dependencies for offline API inspection")
     assert "go -C implementations/go mod download" in prepare["run"]
-    assert job["steps"].index(prepare) < job["steps"].index(_named_step(job, "Check the Go code against the architecture model"))
+    assert job["steps"].index(prepare) < job["steps"].index(
+        _named_step(job, "Check the Go code against the architecture model")
+    )
     check = _named_step(job, "Check the Go code against the architecture model")
     assert "working-directory" not in check
     assert '"${RUNNER_TEMP}/go-tools/archcheck"' in check["run"]
