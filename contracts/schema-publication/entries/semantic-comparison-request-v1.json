@@ -2,9 +2,9 @@
   "contract_id": "semantic-comparison-request-v1",
   "schema_path": "contracts/schemas/semantic-comparison/semantic-comparison-request-v1.json",
   "stability": "draft",
-  "content_hash": "d85078971466db615d37e683fc38bec41515d5d54b078cd8e9e29897419be2db",
+  "content_hash": "68939d76bfdbbc814799b978a5f14452c83b2b2c579355c988ae6551b6491249",
   "last_change": {
-    "summary": "Initial publication of the source-neutral semantic comparison request contract for issue #110.",
-    "content_hash": "d85078971466db615d37e683fc38bec41515d5d54b078cd8e9e29897419be2db"
+    "content_hash": "68939d76bfdbbc814799b978a5f14452c83b2b2c579355c988ae6551b6491249",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

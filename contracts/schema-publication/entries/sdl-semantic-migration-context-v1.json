@@ -1,9 +1,9 @@
 {
-  "content_hash": "b1fa0c00a7818064c9b7b319e1d3e8d6f21e215f7b9cf6420faf3fe694330d65",
+  "content_hash": "6614269f27f37de55c63ebffb986e368b42303de4af0dcc9efde1f8e20407e93",
   "contract_id": "sdl-semantic-migration-context-v1",
   "last_change": {
-    "content_hash": "b1fa0c00a7818064c9b7b319e1d3e8d6f21e215f7b9cf6420faf3fe694330d65",
-    "summary": "Require explicit progressive semantic adoption and concrete sentinel identities; reject normalized sentinel aliases and variable references (#1210)."
+    "content_hash": "6614269f27f37de55c63ebffb986e368b42303de4af0dcc9efde1f8e20407e93",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-semantic-migration-context-v1.json",
   "stability": "draft"

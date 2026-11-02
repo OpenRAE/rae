@@ -72,7 +72,6 @@ class ExperimentTaskModel(ContractModel):
             json_schema,
             "task-evidence-requirement-relation-owner-valid",
             "Task-scoped evidence requirement relations must identify this exact task and scenario snapshot.",
-            validator="raes_contracts.contracts.ExperimentTaskModel._validate_task_validation_basis_disclosures",
             inputs=[{"contract_id": "experiment-task-v1", "instance_path": "#"}],
         )
         return json_schema

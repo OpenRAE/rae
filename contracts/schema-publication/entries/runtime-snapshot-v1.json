@@ -1,9 +1,9 @@
 {
-  "content_hash": "bf6e02fd00fd52090f62145a735e72a9474da9e7843d84ecd2397ea0a2734e0e",
+  "content_hash": "cf3d76682683e3b09628616aa0e0fb8a2ad932be406860be53bcaf6d244ea61a",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "bf6e02fd00fd52090f62145a735e72a9474da9e7843d84ecd2397ea0a2734e0e",
-    "summary": "Carry the optional invocation_tool_context on participant behavior history events for hosted tool actions; issue #1740."
+    "content_hash": "cf3d76682683e3b09628616aa0e0fb8a2ad932be406860be53bcaf6d244ea61a",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

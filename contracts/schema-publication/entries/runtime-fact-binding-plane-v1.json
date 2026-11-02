@@ -2,9 +2,9 @@
   "contract_id": "runtime-fact-binding-plane-v1",
   "schema_path": "contracts/schemas/participant-runtime/runtime-fact-binding-plane-v1.json",
   "stability": "draft",
-  "content_hash": "b9caac5ba2595f7874e99354fab676f23dd19a1735ccac4b31b4ee5650dc103a",
+  "content_hash": "23321922465896cf4f3d8b26072005f99cfe43f04fef8acb6d0e72b577f07dac",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "b9caac5ba2595f7874e99354fab676f23dd19a1735ccac4b31b4ee5650dc103a"
+    "content_hash": "23321922465896cf4f3d8b26072005f99cfe43f04fef8acb6d0e72b577f07dac",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

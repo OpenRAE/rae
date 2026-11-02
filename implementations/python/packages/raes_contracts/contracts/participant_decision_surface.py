@@ -379,7 +379,6 @@ class ParticipantDecisionSurfaceModel(ContractModel):
             "decision-surface-entry-reference-agreement",
             "Candidate, constrained-form, and open-ended action references must resolve to action entries and "
             "their governed selection shapes.",
-            validator="raes_contracts.contracts.ParticipantDecisionSurfaceModel._validate_surface_relations",
             inputs=[{"contract_id": "participant-decision-surface-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -387,7 +386,6 @@ class ParticipantDecisionSurfaceModel(ContractModel):
             "decision-surface-presentation-not-lifecycle-evidence",
             "Surface membership or presentation carries no selection, admission, execution, result, or outcome fact; "
             "those facts remain in their existing lifecycle contracts.",
-            validator="raes_contracts.contracts.ParticipantDecisionSurfaceModel",
             inputs=[{"contract_id": "participant-decision-surface-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -396,7 +394,6 @@ class ParticipantDecisionSurfaceModel(ContractModel):
             "Every serialized context, action, and affordance reference must have one participant-, audience-, "
             "order-, immutable-policy-, authorization-, marking-, evidence-, and provenance-bound exposure decision; "
             "realized delivery is an optional item- and delivery-authorization-bound occurrence.",
-            validator="raes_contracts.contracts.ParticipantDecisionSurfaceModel._validate_surface_relations",
             inputs=[{"contract_id": "participant-decision-surface-v1", "instance_path": "#/exposure_bindings"}],
         )
         return json_schema

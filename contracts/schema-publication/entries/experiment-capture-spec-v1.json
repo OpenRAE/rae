@@ -1,9 +1,9 @@
 {
-  "content_hash": "107ae56109f33854c4e35d0d7a095af544fd86b95efb9206f932420c08a889fe",
+  "content_hash": "5f0327ecc74f9f1e947499aff29a20e5fc95c9a7f9bb643fb9a72adfd92fd42f",
   "contract_id": "experiment-capture-spec-v1",
   "last_change": {
-    "content_hash": "107ae56109f33854c4e35d0d7a095af544fd86b95efb9206f932420c08a889fe",
-    "summary": "Constrain required evidence media types to registered, content-provable output contracts (#1401)."
+    "content_hash": "5f0327ecc74f9f1e947499aff29a20e5fc95c9a7f9bb643fb9a72adfd92fd42f",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-capture-spec-v1.json",
   "stability": "draft"

@@ -2,9 +2,9 @@
   "contract_id": "validation-profile-catalog-v1",
   "schema_path": "contracts/schemas/profiles/validation-profile-catalog-v1.json",
   "stability": "draft",
-  "content_hash": "c50f1016add26f899a29b7ba822c7f21b2be7514c949d8736bfc7e33a6464bd5",
+  "content_hash": "b6f7cc6c07f9faa08970d64a14f408607a3aa8cb7e0d4e9e47507fab1c7be75a",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "c50f1016add26f899a29b7ba822c7f21b2be7514c949d8736bfc7e33a6464bd5"
+    "content_hash": "b6f7cc6c07f9faa08970d64a14f408607a3aa8cb7e0d4e9e47507fab1c7be75a",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }

@@ -28,10 +28,6 @@ from .experiment_study import (
 from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, _add_raes_invariant
 from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
 
-_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR = (
-    "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
-)
-
 
 def _add_claim_bearing_study_schema(json_schema: JsonSchemaValue) -> None:
     json_schema.setdefault("allOf", []).append(
@@ -182,14 +178,12 @@ class ExperimentStudyModel(ContractModel):
             "claim-bearing-study-analysis-plan-required",
             "Study and benchmark records must include research questions, revisioned behavioral claim bindings, run "
             "allocation, a substantive analysis plan, and validity notes.",
-            validator="raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study",
             inputs=[{"contract_id": "experiment-study-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
             json_schema,
             "study-analysis-metrics-grounded-in-task-protocols",
             "Study analysis_plan metrics must be declared by included experiment task protocols.",
-            validator=_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR,
             inputs=[
                 {"contract_id": "experiment-study-v1", "instance_path": "#"},
                 {"contract_id": "experiment-task-v1", "instance_path": "#"},
@@ -201,7 +195,6 @@ class ExperimentStudyModel(ContractModel):
             "study-analysis-metrics-covered-by-evaluation-run-results",
             "Study analysis_plan metrics must have result_summaries, including explicit missing/withheld "
             "statuses, in included evaluation runs.",
-            validator=_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR,
             inputs=[
                 {"contract_id": "experiment-study-v1", "instance_path": "#"},
                 {"contract_id": "experiment-task-v1", "instance_path": "#"},
@@ -213,7 +206,6 @@ class ExperimentStudyModel(ContractModel):
             "study-analysis-runs-eligible",
             "Study analysis_plan evaluation-run members must resolve unambiguously and exclude invalidated, "
             "superseded, and not-evaluated runs.",
-            validator=_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR,
             inputs=[
                 {"contract_id": "experiment-study-v1", "instance_path": "#"},
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
@@ -225,7 +217,6 @@ class ExperimentStudyModel(ContractModel):
             "Study run_allocation compared_conditions must be represented by eligible included evaluation-run "
             "membership groupings that meet target_runs_per_condition, use operational blocking factors, and satisfy "
             "exactly one distinct factor-level combination and auditable condition assignment.",
-            validator=_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR,
             inputs=[
                 {"contract_id": "experiment-study-v1", "instance_path": "#"},
                 {"contract_id": "experiment-task-v1", "instance_path": "#"},
@@ -240,7 +231,6 @@ class ExperimentStudyModel(ContractModel):
             json_schema,
             "study-evidence-requirement-relation-owner-valid",
             "Study-scoped evidence requirement relations must identify this exact study authority.",
-            validator="raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study",
             inputs=[{"contract_id": "experiment-study-v1", "instance_path": "#"}],
         )
         _add_raes_invariant(
@@ -250,7 +240,6 @@ class ExperimentStudyModel(ContractModel):
             "those runs must use a consistent executable_binding profile_ref and namespace, and either all or "
             "none of the runs that share the control_id may carry an executable_binding (EXP-718 common "
             "random numbers / controlled-variation comparability).",
-            validator=_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR,
             inputs=[
                 {"contract_id": "experiment-study-v1", "instance_path": "#/run_allocation"},
                 {"contract_id": "experiment-run-v1", "instance_path": "#/stochastic_controls"},

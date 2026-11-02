@@ -306,7 +306,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 11,
-      "content_sha256": "f0b2cc703f80ea4221b8122d9ef83b447ce64cacdb55a4cbeb496d52c5b276e7"
+      "content_sha256": "e27fc5826eb78186fb7ca0920f6ecd618d0a2834c2f0471003f42b33a9ba2d08"
     },
     {
       "path": "docs/decisions/adrs/adr-057-runtime-secret-name-classifier-boundaries.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-976 ADR-100 amendment, and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-1776 ADR-055 and ADR-098 amendments, the issue-976 ADR-100 amendment, and their pins.",
       "occurrences": 4,
-      "content_sha256": "8a73c5e8a92a6447f708367ae4526f5f7ffb931d2b6307f050c62d019792bada"
+      "content_sha256": "41fd6fb5ceaed8462cde1017f47e5cc3178abc8b4ecb734a467b5d0643d7b727"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

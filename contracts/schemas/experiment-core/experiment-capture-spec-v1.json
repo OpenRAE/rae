@@ -445,8 +445,7 @@
               "instance_path": "#/capture_windows"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ExperimentCaptureWindowModel._validate_capture_window"
+          "level": "error"
         }
       ]
     },
@@ -1405,8 +1404,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentCaptureSpecModel._validate_capture_spec"
+      "level": "error"
     },
     {
       "description": "Every required media type must have a registered content-proof path and be supported by its declared output_contract.",
@@ -1417,8 +1415,7 @@
           "instance_path": "#/capture_requirements"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.ExperimentCaptureRequirementModel._validate_capture_requirement"
+      "level": "error"
     }
   ],
   "x-raes-plane": "authored_evidence_requirement",

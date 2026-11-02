@@ -4565,8 +4565,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_participant_control_occurrence_context"
+          "level": "error"
         },
         {
           "description": "Proposal, approval, denial, direction, intervention, handoff, override, and cancellation remain distinct from action admission, execution, delivery, observation, and audit evidence.",
@@ -4577,8 +4576,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceModel"
+          "level": "error"
         }
       ]
     },
@@ -4975,8 +4973,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_participant_control_occurrence_context"
+          "level": "error"
         },
         {
           "description": "actor_ref equals the acting controller_ref: the accepted record's, or the rejected attempt's.",
@@ -4987,8 +4984,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+          "level": "error"
         },
         {
           "description": "An accepted occurrence's resulting_state_revision equals expected_state_revision + 1 for every kind.",
@@ -4999,8 +4995,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+          "level": "error"
         },
         {
           "description": "An accepted occurrence's expected_history_head equals occurrence_revision - 1.",
@@ -5011,8 +5006,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+          "level": "error"
         },
         {
           "description": "An accepted occurrence satisfies valid_from_order <= effective_order <= valid_until_order (inclusive).",
@@ -5023,8 +5017,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+          "level": "error"
         }
       ]
     },
@@ -6479,8 +6472,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_participant_crossing_occurrence_context"
+          "level": "error"
         },
         {
           "description": "Requested, decided, transformed, disclosed, attempted, delivered, observed, and audited facts remain independently addressable and do not imply one another.",
@@ -6491,8 +6483,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.ParticipantCrossingOccurrenceModel"
+          "level": "error"
         }
       ]
     },
@@ -9166,8 +9157,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.validate_participant_information_state_context"
+          "level": "error"
         }
       ]
     },
@@ -13667,8 +13657,7 @@
               "instance_path": "#"
             }
           ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.random_stream.ParticipantStreamAddressModel._validate_address"
+          "level": "error"
         }
       ]
     },
@@ -16727,8 +16716,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel"
+      "level": "error"
     },
     {
       "description": "Temporal contexts must remain identical across an attempt; terminal assessments must match their evidence and authoritative clock history. Every proof must match an exact bound context and observation boundary, without duplicates or extra proofs.",
@@ -16739,8 +16727,7 @@
           "instance_path": "#"
         }
       ],
-      "level": "error",
-      "validator": "raes_contracts.participant_temporal.require_participant_temporal_history"
+      "level": "error"
     }
   ],
   "x-raes-semantic-profile": {

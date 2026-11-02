@@ -2,9 +2,9 @@
   "contract_id": "participant-decision-surface-v2",
   "schema_path": "contracts/schemas/control-plane/participant-decision-surface-v2.json",
   "stability": "draft",
-  "content_hash": "108160544035735645be7fe705212c557407ff992ddc5edb3102847877edf63b",
+  "content_hash": "70aa15bc73a8c20709aafd181920f2b4a185ec123b077904b772868e3afc0a53",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "108160544035735645be7fe705212c557407ff992ddc5edb3102847877edf63b"
+    "content_hash": "70aa15bc73a8c20709aafd181920f2b4a185ec123b077904b772868e3afc0a53",
+    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
   }
 }
