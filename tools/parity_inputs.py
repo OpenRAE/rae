@@ -168,7 +168,7 @@ class InputCollector:
         from raes_cli.main import app
         from typer.testing import CliRunner
 
-        from tools.parity_surfaces import http_registry, http_schema, mcp_registry, route_key
+        from tools.parity_surfaces import cli_registry, http_registry, http_schema, mcp_registry, route_key
 
         settings.register_profile("parity-capture", derandomize=True, database=None)
         settings.load_profile("parity-capture")
@@ -189,6 +189,8 @@ class InputCollector:
             self.key_seeds[key.public_key().public_bytes_raw()] = seed_id
             return key
 
+        # Snapshot the published CLI before individual tests can mock its registry.
+        cli_registry()
         declared_tools = set(mcp_registry())
         routes = http_registry(http_schema())
         original_cli = CliRunner.invoke
