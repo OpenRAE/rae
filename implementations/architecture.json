@@ -238,9 +238,13 @@
       "public": false,
       "doc": "The golden corpus loader, the runner registry, and the corpus test.",
       "imports": [
+        "implementations/go/internal/base/address",
         "implementations/go/internal/base/canonjson",
         "implementations/go/internal/base/digest",
-        "implementations/go/internal/base/randstream"
+        "implementations/go/internal/base/ingress",
+        "implementations/go/internal/base/jsonpointer",
+        "implementations/go/internal/base/randstream",
+        "implementations/go/internal/base/urisafety"
       ]
     },
     {

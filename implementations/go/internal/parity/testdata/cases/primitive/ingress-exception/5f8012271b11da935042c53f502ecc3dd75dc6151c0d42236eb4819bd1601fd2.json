@@ -1,0 +1,18 @@
+{
+  "args": [],
+  "command": "ingress-exception",
+  "files": {
+    "request.json": "0c3f20c40a6588810b0e80385565e491b3ee23a636fa79162b5aa230974f974c"
+  },
+  "name": "compatibility/decoder-depth",
+  "result": {
+    "decision": "maintainer-1822-2026-11-02",
+    "go": {
+      "code": "input-too-deep"
+    },
+    "reference": {
+      "code": ""
+    }
+  },
+  "surface": "primitive"
+}

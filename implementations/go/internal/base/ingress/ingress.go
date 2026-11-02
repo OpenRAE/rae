@@ -61,11 +61,15 @@ const (
 	Array
 )
 
+func (r Root) valid() bool {
+	return r == Object || r == Array
+}
+
 // Limits bound an input.
 type Limits struct {
 	// MaxBytes is the largest input length in bytes.
 	MaxBytes int
-	// MaxDepth is the deepest container nesting. Zero selects the decoder
+	// MaxDepth is the deepest container nesting, capped at 65,000. Zero selects the decoder
 	// limit of 65,000 levels. The Python decoder stops at its C stack limit,
 	// which is 65,206 levels on the reference host.
 	MaxDepth int
@@ -93,6 +97,9 @@ func Parse(data []byte, limits Limits, root Root) (any, error) {
 	if limits.MaxBytes < 1 || limits.MaxDepth < 0 {
 		return nil, ErrLimits
 	}
+	if !root.valid() {
+		return nil, &Error{InvalidRoot}
+	}
 	if len(data) > limits.MaxBytes {
 		return nil, &Error{TooLarge}
 	}
@@ -101,7 +108,7 @@ func Parse(data []byte, limits Limits, root Root) (any, error) {
 	}
 	depth := decoderDepth
 	if limits.MaxDepth > 0 {
-		depth = limits.MaxDepth
+		depth = min(limits.MaxDepth, decoderDepth)
 		if tooDeep(data, depth) {
 			return nil, &Error{TooDeep}
 		}

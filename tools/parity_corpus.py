@@ -31,12 +31,10 @@ committed corpus differs, and it can write the fresh corpus for review.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import shutil
 import sys
 from collections.abc import Iterable, Iterator, Mapping
-from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -63,6 +61,9 @@ from raes_contracts.json_serialization import (  # noqa: E402
 )
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from typer.testing import CliRunner  # noqa: E402
+
+from tools import parity_primitives  # noqa: E402
+from tools.parity_records import Case, case_document, digest, encode, reference_identity  # noqa: E402
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
 SCHEMA = "raes-parity-corpus/v1"
@@ -125,23 +126,6 @@ CANONICAL_EDGE_TEXTS = (
     "-" + "9" * 4300,
     "9" * 4301,
 )
-
-
-@dataclass(frozen=True)
-class Case:
-    """One invocation of a surface command with its input files."""
-
-    surface: str
-    command: str
-    name: str
-    args: tuple[str, ...]
-    files: Mapping[str, bytes]
-
-    @property
-    def path(self) -> Path:
-        """Return the case file path relative to the corpus directory."""
-
-        return Path("cases", self.surface, self.command.replace(" ", "-"), digest(self.name.encode()) + ".json")
 
 
 def semantic_case(command: str, contract: str, source: Path, repo: Path, *options: str, name: str = "") -> Case:
@@ -267,8 +251,28 @@ def randstream_cases(repo: Path) -> Iterator[Case]:
     for vector in sorted((repo / "contracts" / "fixtures" / "random-stream-vectors").rglob(JSON_FILES)):
         name = vector.relative_to(repo).with_suffix("").as_posix()
         yield Case(
-            surface="randstream", command="vector", name=name, args=(), files={RANDSTREAM_VECTOR: vector.read_bytes()}
+            surface="randstream",
+            command="vector",
+            name=name,
+            args=(),
+            files={RANDSTREAM_VECTOR: vector.read_bytes()},
         )
+
+
+def primitive_cases() -> Iterator[Case]:
+    """Yield reproducible requests for the four input primitives."""
+
+    for command, name, request in (
+        *parity_primitives.primitive_requests(),
+        *parity_primitives.compatibility_requests(),
+    ):
+        yield Case("primitive", command, name, (), {"request.json": encode(request)})
+
+
+def run_primitive(case: Case) -> dict[str, object]:
+    """Record one reference primitive outcome."""
+
+    return parity_primitives.run_primitive(case.command, json.loads(case.files["request.json"]))
 
 
 def all_cases(repo: Path) -> list[Case]:
@@ -280,6 +284,7 @@ def all_cases(repo: Path) -> list[Case]:
         *schema_cases(repo),
         *canonical_cases(repo),
         *randstream_cases(repo),
+        *primitive_cases(),
     ]
     return sorted(cases, key=lambda case: case.path)
 
@@ -382,37 +387,22 @@ def run_randstream(case: Case) -> dict[str, object]:
 def run(repo: Path, case: Case) -> dict[str, object]:
     """Return the result of one case."""
 
-    runners = {"cli": run_cli, "canonical": run_canonical, "randstream": run_randstream}
+    runners = {
+        "cli": run_cli,
+        "canonical": run_canonical,
+        "randstream": run_randstream,
+        "primitive": run_primitive,
+    }
     if case.surface in runners:
         return runners[case.surface](case)
     return run_schema(repo, case)
 
 
-def digest(content: bytes) -> str:
-    return hashlib.sha256(content).hexdigest()
-
-
-def encode(document: object) -> bytes:
-    return (json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode()
-
-
-def case_document(case: Case, result: Mapping[str, object]) -> dict[str, object]:
-    """Return the JSON document that records one case and its result."""
-
-    return {
-        "name": case.name,
-        "surface": case.surface,
-        "command": case.command,
-        "args": list(case.args),
-        "files": {name: digest(content) for name, content in sorted(case.files.items())},
-        "result": dict(result),
-    }
-
-
 def build_corpus(repo: Path, cases: Iterable[Case]) -> dict[Path, bytes]:
     """Record each case and return the corpus files by path."""
 
-    files = {MANIFEST: encode({"schema": SCHEMA})}
+    reference = reference_identity(REPO_ROOT)
+    files = {MANIFEST: encode({"schema": SCHEMA, "reference": reference})}
     for case in cases:
         files[case.path] = encode(case_document(case, run(repo, case)))
         for content in case.files.values():

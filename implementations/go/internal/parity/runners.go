@@ -15,8 +15,16 @@ import (
 // its runner. Each Go port adds the commands that it implements.
 func runners() map[string]Runner {
 	return map[string]Runner{
-		"canonical encode":  canonicalEncode,
-		"randstream vector": randstreamVector,
+		"canonical encode":            canonicalEncode,
+		"randstream vector":           randstreamVector,
+		"primitive ingress-exception": primitive,
+		"primitive ingress":           primitive,
+		"primitive uri":               primitive,
+		"primitive pointer":           primitive,
+		"primitive tokens":            primitive,
+		"primitive address":           primitive,
+		"primitive render":            primitive,
+		"primitive plan-root":         primitive,
 	}
 }
 
@@ -98,7 +106,7 @@ func randstreamVector(_ context.Context, c Case) (json.RawMessage, error) {
 			text := strconv.FormatInt(draw.Value, 10)
 			value = &text
 		}
-		result["draw"] = map[string]any{"value": value, "rejection_attempts": draw.Attempts, "rejection_exhausted": draw.Exhausted}
+		result["draw"] = map[string]any{valueField: value, "rejection_attempts": draw.Attempts, "rejection_exhausted": draw.Exhausted}
 	}
 	return json.Marshal(result)
 }

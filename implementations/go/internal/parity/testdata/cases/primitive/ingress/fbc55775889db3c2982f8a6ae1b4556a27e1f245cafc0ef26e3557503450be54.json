@@ -1,0 +1,12 @@
+{
+  "args": [],
+  "command": "ingress",
+  "files": {
+    "request.json": "8443831b8c7e6822b93860311c7e33ff0d4391abb2fc232f052d66d4018e165d"
+  },
+  "name": "byte-limit/1",
+  "result": {
+    "code": "input-too-large"
+  },
+  "surface": "primitive"
+}

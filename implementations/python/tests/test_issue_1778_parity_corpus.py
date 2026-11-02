@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from tools import parity_corpus as pc
 
 SCHEMA = {
@@ -154,7 +155,7 @@ def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.Monk
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err
-    assert pc.read_corpus(repo / "fresh")[pc.MANIFEST] == pc.encode({"schema": pc.SCHEMA})
+    assert json.loads(pc.read_corpus(repo / "fresh")[pc.MANIFEST])["schema"] == pc.SCHEMA
 
     assert pc.main(["record", "--repo-root", str(repo)]) == 0
     assert pc.main(["check", "--repo-root", str(repo)]) == 0
@@ -208,3 +209,36 @@ def test_randstream_cases_reproduce_each_published_vector() -> None:
         if transform is not None:
             assert result["draw"]["rejection_attempts"] == transform["expected_rejection_attempts"]
             assert result["draw"]["rejection_exhausted"] == transform["expected_rejection_exhausted"]
+
+
+def test_primitive_corpus_records_reference_results_and_all_commands() -> None:
+    cases = list(pc.primitive_cases())
+    assert {case.command for case in cases} == {
+        "ingress",
+        "ingress-exception",
+        "uri",
+        "pointer",
+        "tokens",
+        "address",
+        "render",
+        "plan-root",
+    }
+    assert len({case.path for case in cases}) == len(cases)
+    for case in cases:
+        result = pc.run_primitive(case)
+        assert result == pc.run_primitive(case)
+        assert json.loads(pc.encode(result)) == result
+    ingress_codes = {pc.run_primitive(case).get("code") for case in cases if case.command == "ingress"}
+    assert ingress_codes == {
+        None,
+        "input-too-large",
+        "empty-input",
+        "input-too-deep",
+        "invalid-json",
+        "duplicate-member",
+        "non-finite-number",
+        "integer-too-long",
+        "invalid-root",
+    }
+    uri_codes = {pc.run_primitive(case)["code"] for case in cases if case.command == "uri"}
+    assert uri_codes == {"", "absolute", "invalid", "scheme", "credentials", "fragment", "secret"}
