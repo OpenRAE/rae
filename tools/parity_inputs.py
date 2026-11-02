@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 import uuid
+from contextvars import ContextVar
 from pathlib import Path
 from threading import RLock
 from typing import get_args
@@ -239,7 +240,8 @@ class InputCollector:
     def _install(self) -> None:
         import raes_cli.entrypoint as cli_entrypoint
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-        from httpx import AsyncByteStream, AsyncClient, Client, RequestNotRead, SyncByteStream
+        from fastapi import FastAPI
+        from httpx import AsyncByteStream, AsyncClient, Client, Headers, RequestNotRead, SyncByteStream
         from hypothesis import settings
         from mcp.server.fastmcp import FastMCP
         from raes import parser
@@ -278,6 +280,8 @@ class InputCollector:
         original_mcp = FastMCP.call_tool
         original_sync = Client.send
         original_async = AsyncClient.send
+        original_asgi = FastAPI.__call__
+        http_observed = ContextVar("parity_http_observed", default=False)
         original_parse = parser.parse_sdl
         from pydantic import BaseModel
         from raes_processor.exploit_path import analyze_exploit_path_file
@@ -399,14 +403,9 @@ class InputCollector:
                     self.add(Case("mcp", name, "", (), {"arguments.json": content}))
             return await original_mcp(server, name, arguments)
 
-        def observe_http(client, request):
-            served = getattr(client, "app", None) or getattr(getattr(client, "_transport", None), "app", None)
-            if served is None or not hasattr(getattr(served, "state", None), "control_plane_api_auth"):
-                return
-            query = request.url.query.decode("ascii")
-            path = request.url.path + ("?" + query if query else "")
-            specification = {"method": request.method, "path": path, "principal": "anonymous"}
-            authorization = request.headers.get("authorization", "")
+        def request_specification(served, method, path, headers):
+            specification = {"method": method, "path": path, "principal": "anonymous"}
+            authorization = headers.get("authorization", "")
             # Persist authority as a principal, never persist authentication material.
             policy = served.state.control_plane_api_auth._security
             specification["limits"] = {name: getattr(policy, name) for name in HTTP_LIMITS}
@@ -415,7 +414,7 @@ class InputCollector:
                 identity = policy.bearer_tokens.get(authorization.split(" ", 1)[1].strip())
                 specification["principal"] = "invalid" if identity is None else "operator"
             elif policy.trust_proxy_identity_headers:
-                identity = policy.trusted_identities.get(request.headers.get(policy.identity_header, ""))
+                identity = policy.trusted_identities.get(headers.get(policy.identity_header, ""))
                 if identity is not None:
                     specification["principal"] = "operator"
             if identity is not None:
@@ -429,9 +428,32 @@ class InputCollector:
                         == served.state.control_plane_api_auth._control_plane._target_scope,
                         "verified": authorization.lower().startswith("bearer ")
                         or not policy.require_verified_identity
-                        or request.headers.get(policy.verified_header, "").lower() == "true",
+                        or headers.get(policy.verified_header, "").lower() == "true",
                     }
                 )
+            for header in ("idempotency-key", "if-match", "content-type", "content-length", "transfer-encoding"):
+                if header in headers:
+                    specification.setdefault("headers", {})[header] = headers[header]
+            return specification
+
+        def capture_http(specification, parts, complete):
+            files = {}
+            if parts or specification.get("streamed"):
+                files["body.bin"] = b"".join(parts)
+                specification["body_file"] = "body.bin"
+                specification["stream_complete"] = complete
+                specification["chunk_sizes"] = [len(part) for part in parts]
+            files["request.json"] = encode(specification)
+            key = route_key(specification["method"], specification["path"].split("?", 1)[0], routes)
+            self.add(Case("http", key, "", (), files))
+
+        def observe_http(client, request):
+            served = getattr(client, "app", None) or getattr(getattr(client, "_transport", None), "app", None)
+            if served is None or not hasattr(getattr(served, "state", None), "control_plane_api_auth"):
+                return
+            query = request.url.query.decode("ascii")
+            path = request.url.path + ("?" + query if query else "")
+            specification = request_specification(served, request.method, path, request.headers)
             parts = []
             completed = {"value": False}
             try:
@@ -468,39 +490,61 @@ class InputCollector:
             else:
                 parts.append(content)
                 completed["value"] = True
-            for header in ("idempotency-key", "if-match", "content-type", "content-length", "transfer-encoding"):
-                if header in request.headers:
-                    specification.setdefault("headers", {})[header] = request.headers[header]
 
             def finish():
-                files = {}
-                if parts or specification.get("streamed"):
-                    files["body.bin"] = b"".join(parts)
-                    specification["body_file"] = "body.bin"
-                    specification["stream_complete"] = completed["value"]
-                    specification["chunk_sizes"] = [len(part) for part in parts]
-                files["request.json"] = encode(specification)
-                self.add(Case("http", route_key(request.method, request.url.path, routes), "", (), files))
+                capture_http(specification, parts, completed["value"])
 
             return finish
 
         @functools.wraps(original_sync)
         def send(client, request, **kwargs):
             finish = observe_http(client, request)
+            token = http_observed.set(finish is not None or http_observed.get())
             try:
                 return original_sync(client, request, **kwargs)
             finally:
+                http_observed.reset(token)
                 if finish is not None:
                     finish()
 
         @functools.wraps(original_async)
         async def async_send(client, request, **kwargs):
             finish = observe_http(client, request)
+            token = http_observed.set(finish is not None or http_observed.get())
             try:
                 return await original_async(client, request, **kwargs)
             finally:
+                http_observed.reset(token)
                 if finish is not None:
                     finish()
+
+        @functools.wraps(original_asgi)
+        async def asgi(application, scope, receive, send):
+            if (
+                scope["type"] != "http"
+                or http_observed.get()
+                or not hasattr(application.state, "control_plane_api_auth")
+            ):
+                return await original_asgi(application, scope, receive, send)
+            query = scope.get("query_string", b"").decode("ascii")
+            path = scope["path"] + ("?" + query if query else "")
+            specification = request_specification(application, scope["method"], path, Headers(raw=scope["headers"]))
+            specification["streamed"] = True
+            parts = []
+            complete = False
+
+            async def observed_receive():
+                nonlocal complete
+                message = await receive()
+                if message["type"] == "http.request":
+                    parts.append(message.get("body", b""))
+                    complete = not message.get("more_body", False)
+                return message
+
+            try:
+                return await original_asgi(application, scope, observed_receive, send)
+            finally:
+                capture_http(specification, parts, complete)
 
         @functools.wraps(original_parse)
         def parse(content, *args, **kwargs):
@@ -538,6 +582,7 @@ class InputCollector:
         self.patches.setattr(FastMCP, "call_tool", call_tool)
         self.patches.setattr(Client, "send", send)
         self.patches.setattr(AsyncClient, "send", async_send)
+        self.patches.setattr(FastAPI, "__call__", asgi)
 
     def write(self, worker: str) -> None:
         from tools.parity_regressions import source_identity

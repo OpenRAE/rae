@@ -275,3 +275,7 @@ the recorded chunk boundaries reach the application without TestClient joining
 them. Invalid bearer credentials are represented by an explicitly public invalid
 fixture token, never the original authentication material. Tests exercise a
 malformed content-length and a body that exceeds its limit across chunks.
+The CI collector also observes direct control-plane ASGI calls, preserving each
+receive message while retaining consumed body chunks. A context variable avoids
+duplicating requests already observed at HTTPX. This covers raw ingress tests
+which deliberately bypass HTTP clients.

@@ -120,6 +120,54 @@ def test_http_replay_preserves_size_limits_and_invalid_content_length() -> None:
         )
 
 
+def test_direct_asgi_capture_replays_the_consumed_oversized_stream(tmp_path: Path) -> None:
+    import asyncio
+
+    collector = InputCollector(tmp_path, Path(__file__).resolve().parents[3])
+    collector.nodeid = "tests/test_ingress.py::test_raw_asgi"
+    collector.install()
+    sent = []
+    delivered = 0
+
+    async def receive():
+        nonlocal delivered
+        delivered += 1
+        return {"type": "http.request", "body": b"x" * 32, "more_body": True}
+
+    async def send(message):
+        sent.append(message)
+
+    try:
+        with surfaces.http_client({"limits": {"max_request_bytes": 64}}) as client:
+            scope = {
+                "type": "http",
+                "asgi": {"version": "3.0"},
+                "http_version": "1.1",
+                "method": "POST",
+                "scheme": "http",
+                "path": "/operations/provisioning",
+                "raw_path": b"/operations/provisioning",
+                "query_string": b"",
+                "root_path": "",
+                "headers": [(b"content-type", b"application/json")],
+                "client": ("127.0.0.1", 1),
+                "server": ("testserver", 80),
+            }
+            asyncio.run(client.app(scope, receive, send))
+    finally:
+        collector.close()
+    assert delivered == 3
+    assert any(message.get("status") == 413 for message in sent)
+    records = [record for record in collector.records.values() if record["surface"] == "http"]
+    assert len(records) == 1
+    files = {name: collector.blobs[value.removeprefix("sha256:")] for name, value in records[0]["files"].items()}
+    request = json.loads(files["request.json"])
+    assert request["chunk_sizes"] == [32, 32, 32]
+    assert request["stream_complete"] is False
+    with surfaces.http_client(request) as client:
+        assert surfaces.send_http(client, request, files)["status_code"] == 413
+
+
 def test_cli_registry_includes_nested_commands_and_real_flag_names() -> None:
     registry = surfaces.cli_registry()
     assert "runtime store restore" in registry
