@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestRegressionRejectsUnknownRoot(t *testing.T) {
+func TestParseRejectsUnknownRoot(t *testing.T) {
 	for _, root := range []Root{0, -1, 99} {
 		for _, data := range []string{"42", "{}", "[]", ""} {
 			value, err := Parse([]byte(data), Limits{MaxBytes: 10}, root)
@@ -18,7 +18,7 @@ func TestRegressionRejectsUnknownRoot(t *testing.T) {
 	}
 }
 
-func TestRegressionExplicitDepthCannotRaiseDecoderCeiling(t *testing.T) {
+func TestExplicitDepthCannotRaiseDecoderCeiling(t *testing.T) {
 	data := strings.Repeat("[", decoderDepth+1) + strings.Repeat("]", decoderDepth+1)
 	_, err := Parse([]byte(data), Limits{MaxBytes: len(data), MaxDepth: decoderDepth + 10}, Array)
 	failure, ok := errors.AsType[*Error](err)
