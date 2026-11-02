@@ -39,15 +39,10 @@ linters:
     depguard:
       rules:
         dependencies:
-          # Standard library first. Each other import needs a reason here (ADR-121).
-          list-mode: strict
-          allow:
-            - $gostd
-            - github.com/OpenRAE/rae
-            # The go/analysis framework of the repository's own analyzers.
-            - golang.org/x/tools/go/analysis
-            - golang.org/x/tools/go/ast/inspector
-            - golang.org/x/tools/go/types/typeutil
+          # The architecture model lists the external packages that each layer
+          # may import (ADR-122). depguard denies the standard library packages
+          # that the standards replace (ADR-121).
+          list-mode: lax
           deny:
             - pkg: math/rand
               desc: use crypto/rand, or the governed random streams for reproducible values

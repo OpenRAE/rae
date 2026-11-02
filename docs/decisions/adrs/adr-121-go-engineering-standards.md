@@ -140,10 +140,10 @@ The Go code uses these idiomatic forms of contract-based development:
 
 ### 8. Dependencies
 
-Code uses the standard library first. The golangci-lint `depguard` rule allows
-only the standard library, this repository, and the modules that it lists. Each
-listed module has a reason in the configuration. ADR-106 governs how the module
-digests are admitted.
+Code uses the standard library first. The ADR-122 architecture model lists the
+external import paths that each layer may import, each with a reason. The
+golangci-lint `depguard` rule denies the standard library packages that section
+6 replaces. ADR-106 governs how the module digests are admitted.
 
 ### 9. Standards that change and standards that stay
 
@@ -251,7 +251,7 @@ judgment about meaning or context.
 | Logging | `sloglint`, `depguard` denies `log`; otherwise review |
 | Contexts | revive `context-as-argument`, `containedctx`, `contextcheck`, `noctx` |
 | crypto/rand | gosec G404, `depguard` denies `math/rand` |
-| Assertion libraries | `depguard` |
+| Assertion libraries | `archcheck` ARCH-008 (ADR-122) |
 | Identify the function | Review |
 | Identify the input | Review |
 | Got before want | `gotwant` |
@@ -304,3 +304,9 @@ judgment about meaning or context.
 | Constant strings | Review |
 | Global state | `gochecknoglobals`; otherwise review |
 | Interfaces: avoid unnecessary interfaces, ownership, design | `iface`, `interfacebloat`, `ireturn`; otherwise review |
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-10-31 | #1775 | Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials. |
