@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.7.0](https://github.com/OpenRAE/rae/compare/v10.6.1...v10.7.0) (2026-11-03)
+
+
+### Features
+
+* expose assigned single-trial execution ([#1877](https://github.com/OpenRAE/rae/issues/1877)) ([d03fd62](https://github.com/OpenRAE/rae/commit/d03fd6276231c6c5f3d8dfc00a91c1c165cb4fbe))
+
 ## [10.6.1](https://github.com/OpenRAE/rae/compare/v10.6.0...v10.6.1) (2026-11-03)
 
 
