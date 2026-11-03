@@ -142,7 +142,7 @@ Reference: [pytest temporary directories](https://docs.pytest.org/en/stable/how-
 current pytest 9 documentation, temporary directory location and retention.
 It describes changing run directories and concurrent test isolation.
 
-### Corpus promotion evidence
+### First corpus promotion evidence
 
 CI run `41584912067` recorded the replacement corpus from source head
 `6b80a6125e7815c595e16dcf462fa43aec2a3f6e`. Its decoded-input credential scan passed.
@@ -150,7 +150,17 @@ CI run `41584912067` recorded the replacement corpus from source head
 contains 45,304 generated files. Its archive SHA-256 is
 `86127b46234a6fcd758f5df1d4b0d93d36e82b90939a2299fdb1ab0edc3a544a`.
 The downloaded archive matches that digest. Source, test, environment, and recorder
-identities match the current tree. All blob digests passed validation.
+identities matched the producer tree at promotion. All blob digests passed validation.
 All 7,044 static reference cases remain unchanged. The complete inventory remains true.
 The existing corpus writer promoted the artifact bytes without editing expected results.
 CI must reproduce the promoted corpus before readiness.
+
+### Collector quality repair
+
+Use early returns to keep the path classifier within the complexity limit.
+Use `\d` with `re.ASCII` for generated numeric counters. This preserves the
+previous ASCII-only match and leaves authored Unicode directory names intact.
+The mapping, path depth, input bytes, and collision checks remain unchanged.
+The source-bound capture must be regenerated after this collector refactor.
+Reference: [Python 3.14 regular expressions](https://docs.python.org/3.14/library/re.html),
+`re.ASCII` and digit character classes.

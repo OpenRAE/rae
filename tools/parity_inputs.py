@@ -30,20 +30,25 @@ INPUT_PREFIX = "input/"
 
 def capture_path(path: Path, base: Path) -> str:
     """Keep graph paths while removing pytest's generated run location."""
+    relative = path.relative_to(base).as_posix()
     temporary = Path(tempfile.gettempdir())
-    if path.is_relative_to(temporary):
-        parts = path.relative_to(temporary).parts
-        if len(parts) >= 2 and re.fullmatch(r"pytest-of-[^/]+", parts[0]) and re.fullmatch(r"pytest-[0-9]+", parts[1]):
-            count = 3 if len(parts) >= 3 and re.fullmatch(r"popen-gw[0-9]+", parts[2]) else 2
-            generated = temporary.joinpath(*parts[:count])
-            if generated.is_relative_to(base):
-                canonical = temporary / "pytest-user" / "pytest-session"
-                if count == 3:
-                    canonical /= "pytest-worker"
-                visible = generated.relative_to(base).parts
-                prefix = canonical.parts[-len(visible) :] if visible else ()
-                return Path(*prefix, *path.relative_to(generated).parts).as_posix()
-    return path.relative_to(base).as_posix()
+    parts = path.relative_to(temporary).parts if path.is_relative_to(temporary) else ()
+    if (
+        len(parts) < 2
+        or not re.fullmatch(r"pytest-of-[^/]+", parts[0])
+        or not re.fullmatch(r"pytest-\d+", parts[1], flags=re.ASCII)
+    ):
+        return relative
+    count = 3 if len(parts) >= 3 and re.fullmatch(r"popen-gw\d+", parts[2], flags=re.ASCII) else 2
+    generated = temporary.joinpath(*parts[:count])
+    if not generated.is_relative_to(base):
+        return relative
+    canonical = temporary / "pytest-user" / "pytest-session"
+    if count == 3:
+        canonical /= "pytest-worker"
+    visible = generated.relative_to(base).parts
+    prefix = canonical.parts[-len(visible) :] if visible else ()
+    return Path(*prefix, *path.relative_to(generated).parts).as_posix()
 
 
 def absolute_input(directory: Path, value: str) -> Path:

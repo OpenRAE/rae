@@ -499,3 +499,19 @@ def test_pytest_path_normalization_rejects_colliding_inputs(tmp_path: Path, monk
     session = tmp_path / "pytest-of-alice/pytest-42"
     with pytest.raises(ValueError, match="merge distinct inputs"):
         source_names({session / "popen-gw0/input.json": b"first", session / "popen-gw3/input.json": b"second"}, [])
+
+
+@pytest.mark.parametrize(
+    ("relative", "expected"),
+    [
+        ("pytest-of-alice/pytest-١/popen-gw0/source.yaml", "pytest-of-alice/pytest-١/popen-gw0/source.yaml"),
+        ("pytest-of-alice/pytest-1/popen-gw١/source.yaml", "pytest-user/pytest-session/popen-gw١/source.yaml"),
+    ],
+)
+def test_capture_keeps_authored_unicode_counter_names(
+    tmp_path: Path, monkeypatch, relative: str, expected: str
+) -> None:
+    from tools.parity_inputs import capture_path
+
+    monkeypatch.setattr("tools.parity_inputs.tempfile.gettempdir", lambda: str(tmp_path))
+    assert capture_path(tmp_path / relative, tmp_path) == expected
