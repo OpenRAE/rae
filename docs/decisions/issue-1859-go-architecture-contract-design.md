@@ -55,6 +55,12 @@ Findings carry a stable rule, location, problem and fix.
 Read failures return errors and fail the command.
 Architecture checks grant no runtime authorization or semantic admission.
 
+CI runs mutation tests for each Go module with changed source files.
+It compares production `.go` paths with the resolved merge base.
+Data, documentation, and test-only changes have no source lines to mutate.
+An empty source diff skips that module's mutation command.
+Git errors fail the step. Changed source retains the existing mutation thresholds.
+
 ```mermaid
 flowchart LR
     subgraph Untrusted_change

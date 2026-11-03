@@ -630,6 +630,11 @@ jobs:
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
         run: |
+          changed="$(git diff --name-only "${MERGE_BASE}" -- '*.go' ':!*_test.go')"
+          if [ -z "${changed}" ]; then
+            echo "No production Go source changed in this module."
+            exit 0
+          fi
           # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
           # Use the runner's available descriptor capacity with bounded workers.
           ulimit -Sn "$(ulimit -Hn)"

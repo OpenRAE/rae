@@ -256,18 +256,18 @@ flowchart BT
 | `docs/decisions/issue-1779-ingress-design.md` | `21fe1ede3a371941bd13605037cf6e378a6f442d9622dbc9fa716e952cbad281` |
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
 | `docs/decisions/issue-1779-shared-primitives-completion.md` | `6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e` |
-| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `00cdde13550d8307d40cd4030467bede14d4c03203d5059b190d3b044a0ae770` |
-<!-- go-component base 2161cd41a64842b0c99e2634e2ac8328586af29ac47c3cac32516c206979df41 -->
-<!-- go-component contract d5d05447917c4c61f6ee552420da07b07aad538ce6cfcf8279da158178a8ddea -->
-<!-- go-component sdl 8f8b78d5e42e1e88caff2e6728fcfbae44d1a7e6246dc25e8651c7279103ed90 -->
-<!-- go-component processor 888b656979cd5a2239665a6e9744dc9c763d87170e909f2619711e38aa20400c -->
-<!-- go-component backend 1a4d6d7eb46f1c7af56374ab471c304f2da7d7ec661ab7b4126d8d964287d717 -->
-<!-- go-component runtime 9696733f111abfc1a8a070fca7c1bd19fb68871376ac154e6d1bd599ba32a04b -->
-<!-- go-component conformance f2b36a302f310930ed6f3beb222876caef32e7baf311f5cb48a91687e37166b1 -->
-<!-- go-component app 578fd8da02a278d7be43d739dc2075afec9261e9980b755bf19f214a7b19cebd -->
-<!-- go-component adapter b13b672f3fdea431b14d1d91e24debaebdb42d10c1fbbc14d2f5f1977785a2ab -->
-<!-- go-component command 2b1197dd22836632f64f75a3ffa099c580ef3b07e58eb7516ac4810baff2df4b -->
-<!-- go-component parity 23adec0c2e4841b717aeddb29310284d5210da540ae88691cfc0d0330000bb23 -->
-<!-- go-component tooling 9f42c7944b3f560987360ce491e3020782f415a527846dbb833715e1e2c32040 -->
+| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `6a5b5bafd2a4cd4d43fbb2e6fcf307eb19204bd76d95a54605187639e1243dc5` |
+<!-- go-component base 9b5fbb445671f0b83f3a7f16fac19cb1740ff153a9224ad4255495978faeb262 -->
+<!-- go-component contract 333c793ebad40eaf5f1c6c60a049e0b6fae883f0e454f2fffec4d32221565bf5 -->
+<!-- go-component sdl 296136d6bcc7494dcaa94e43bbfa8e526cb70cd80b5815605b7bc23427082bd9 -->
+<!-- go-component processor 92bd0e88b00dedfff9cc11431d64563d242259e835a73ec6b7a057c3930a2c98 -->
+<!-- go-component backend 3af39c26463e3eae27f3d4487656471d7b8e6d9206ac29446b075ca17607fc08 -->
+<!-- go-component runtime 54fc765c7186f55564a2114c64658e84c04d9a84dbd3f8470f6997b66528be49 -->
+<!-- go-component conformance 7739375c79b341c9a0ea1acda54be60c0b2b149cacf456740c685ff5e643e02d -->
+<!-- go-component app 2d8ee87834bdb45121fde45b5a917fc89ae7ebd6b087ba25ba239b6051f4aef4 -->
+<!-- go-component adapter d8e4369f4f2bed42af2512c196362fc528201004111e655696bf6e3179053cd2 -->
+<!-- go-component command b70f4c6bc0ed76e7571179b08b14743422977d5979d1b6716a19b5152bb3e245 -->
+<!-- go-component parity 5640589d8d39262dbbe89c14a59e3ea8adcaac1cc1df79462b9d9e2fef8ad7ad -->
+<!-- go-component tooling b272e26ba1987ccb01fc722c15c73a661ed1a06e7b557929fb11060774ee2017 -->
 
 <!-- /go-view -->
