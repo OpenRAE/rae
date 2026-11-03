@@ -91,6 +91,10 @@ entrypoints. It checks:
 - sentence-case headings without terminal punctuation;
 - repeated words, sentence length, and a document-level Flesch-Kincaid target.
 
+The docs lane checks both `.md` and `.rst` sources under `docs/public`.
+It runs Vale in the frozen project environment, which supplies `rst2html`
+through Sphinx's Docutils dependency.
+
 Vale does not decide whether a technical claim is true. The repository's
 positioning, contract, schema, example, and link checks keep those
 responsibilities. Run the complete documentation gate with:
