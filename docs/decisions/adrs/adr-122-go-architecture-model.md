@@ -1,4 +1,4 @@
-# ADR-122: Go Architecture Model
+# ADR-122: Go architecture model
 
 ## Status
 
@@ -40,18 +40,24 @@ know layers, permitted dependencies, or the packages that a design declares.
 ### 1. One model for the repository
 
 `implementations/architecture.json` is the only architecture model, with the
-schema `raes-go-architecture/v1`. All its directories are relative to the
+schema `raes-go-architecture/v2`. All its directories are relative to the
 repository root. The model declares these items:
 
 | Item | Content |
 | --- | --- |
 | Module | The directory of a `go.mod` file and the module path that it states |
 | Layer | A name, a directory, a description, the layers whose packages it may import (`uses`), and the permitted external import paths, each with a reason (`external`) |
-| Package | A directory in its layer, a description, a `public` flag, and its first-party imports |
+| Package | A directory in its layer, a description, a `public` flag, first-party imports, owning design and exact typed API |
 
 A package can import a package of its own layer. It can also import a public
 package of a layer that its layer uses. The `uses` relation has no cycle. An
 external path permits the import paths below it.
+
+Large typed snapshots may use ordered `api_files` under `implementations/architecture-api/`.
+Each file contains declarations for its build configuration.
+Loading expands these bounded files before the same exact API comparison and design commitment.
+The model retains its 4 MiB limit; files have a 500 KiB limit and share a 16 MiB read budget.
+A package can reference at most 64 files and cannot also declare an inline API.
 
 ### 2. Layers
 
@@ -73,7 +79,7 @@ They do not copy the Python package structure.
 | `parity` | `implementations/go/internal/parity` | none | The checker of the Go implementation against the golden corpus of the Python implementation (issue #1778) |
 | `tooling` | `implementations/tooling/go` | none | Development tools: the repository analyzers, the architecture check, and CI checks |
 
-The product layers are below `implementations/go/internal`. Thus the compiler
+The current product layers are below `implementations/go/internal`. Thus the compiler
 permits imports of them only from `implementations/go`. No layer uses
 `parity` or `tooling`.
 
@@ -94,9 +100,11 @@ which each build and test runs.
 | ARCH-007 | The test files of each package import only first-party packages that ARCH-004 permits for it. | `archcheck` |
 | ARCH-008 | Each external entry has a reason and is in use. A package imports an external path only when its layer lists it. | `archcheck` |
 | ARCH-009 | This table states each rule that a check enforces, with that check. | `archcheck` |
-| ARCH-010 | No packages import each other in a cycle. | `go build` |
+| ARCH-010 | The declared package dependency graph has no cycle, including same-layer cycles. | `archcheck` |
 | ARCH-011 | Only code in the tree of the parent of an `internal` directory imports the packages below it. | `go build` |
 | ARCH-012 | Code outside a package uses only its exported identifiers. These identifiers are the public interface of the package. | `go build` |
+| ARCH-013 | Every package has intended typed interfaces per build configuration and a matching owning-design commitment. Actual APIs match those interfaces. | `archcheck` |
+| ARCH-014 | The current system view matches model components, dependencies and content-bound design evidence. | `archcheck` |
 
 An external path is an import path outside the standard library and the
 declared modules. A standard library path has no dot in its first element.
@@ -105,7 +113,7 @@ declared modules. A standard library path has no dot in its first element.
 
 `archcheck` runs from the repository root. It reads the model and checks the
 rules that need only the model: ARCH-001 to ARCH-004 and the entries of
-ARCH-008. With `-design`, it stops after these rules. Without `-design`, it also
+ARCH-008. With `-design`, it also checks declared package cycles, API metadata, design commitments and current-view evidence. It does not read proposed product code. Without `-design`, it also
 checks the rule table of this ADR and the code. It reads the imports of each Go
 file of each declared module with `go/build`, test files included. It ignores
 build constraints, so the code of each platform and build tag meets the model.
@@ -126,14 +134,34 @@ Before a change writes Go code, it does these steps:
 
 1. Declare each new or changed module, layer, package, import, and external
    entry in the model.
-2. Name in the plan the exported identifiers that each new or changed package
-   adds or changes.
+2. Record each package's intended typed API per declared build configuration.
+   Link its owning design and record the API digest in that design.
 3. Run `archcheck -design` on the changed model.
 
 The change writes the code after the design check passes. In CI, `archcheck`
 fails when the code and the model do not agree. Thus the model changes before
 the code that needs the change. The plan rules in `.gc/plan-rules.md` require the
 design check before implementation starts.
+
+### 5.1 Typed interfaces and current system views
+
+The [current overview](../../develop/go-architecture.md) distinguishes implemented and planned components.
+Issue #1825 owns downstream consumer API design. Internal visibility does not grant downstream importability.
+
+The model records explicit GOOS, GOARCH and tag configurations. Each package records `design` and `api`.
+The API contains sorted standard Go type/object strings, exact constants, reachable private types and method sets.
+The owning design commits to SHA-256 of encoding/json.Marshal bytes for the API map.
+This encoding sorts keys and applies its default HTML escaping.
+Private implementation changes do not update the interface.
+`archcheck -api` prints actual interfaces for review; it never updates intent.
+Uncovered production source files fail visibly.
+API loading uses the admitted Go loader offline, with read-only module resolution and no proposed-code execution.
+
+The model names the current `overview` and SHA-256 commitments for its evidence `sources`.
+`archcheck -view` prints a deterministic component, ownership and dependency section.
+The normal check and pre-code check reject stale generated content or changed evidence.
+Rooted filesystem reads contain design and evidence references within the repository.
+These checks prove artifact consistency, not semantic equivalence or human approval.
 
 ### 6. Dependencies
 
@@ -146,7 +174,7 @@ packages (ADR-121). ADR-106 governs the admission of module digests.
 
 The Go code starts with no findings. No check has a baseline or an allowlist.
 
-## Alternatives Considered
+## Alternatives considered
 
 - **go-arch-lint.** Version 1.19.1 checks the dependencies between components,
   the vendor packages of each component, and the files that no component
@@ -176,3 +204,5 @@ The Go code starts with no findings. No check has a baseline or an allowlist.
 | Date | Commit/PR | Summary |
 | --- | --- | --- |
 | 2026-10-31 | #1778 | Section 2: the `parity` layer holds the checker of the Go implementation against the golden corpus. |
+| 2026-11-02 | #1859 | Version 2 binds typed package interfaces to designs, checks package cycles before code, and verifies current system views. |
+| 2026-11-03 | #1780 | Bounded API snapshot files retain exact generated binding declarations without enlarging the model bound. |

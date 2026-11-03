@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "POST /operations/{operation_id}/invocation/grant",
+  "files": {
+    "body.bin": "sha256:cb95a1566a49411661c0be1548239594bca2b88cadbfec499b769a177fe207c7",
+    "request.json": "sha256:e6211fc6002ee48acb3d9bf22c7a95cecd7636bb49f0f61c3ab52f40d1275584"
+  },
+  "name": "regression/fbffdf59a2ebdab0dffdd2840fb4079e878d5a575e37c85ab1fc30adbbae18fb",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

@@ -327,3 +327,33 @@ No schema, reference result or test gate is weakened to make the port pass.
 The design applies existing decisions and needs no new ADR.
 The architecture model changes.
 Published schemas and the authority manifest do not change.
+
+## Architecture snapshot storage
+
+The integration branch now requires exact typed API snapshots.
+The generated binding surface is larger than the 4 MiB model bound.
+The model may declare `api_files` instead of an inline `api` for a package.
+`arch.Package.APIFiles` maps each build configuration to ordered snapshot paths.
+The existing `arch.Load` interface expands those files before design and API checks.
+The files live under `implementations/architecture-api/` and contain string arrays.
+Each file is bounded to 500 KiB; at most 64 files are allowed per package.
+All expanded files share a 16 MiB read budget.
+The model keeps its current 4 MiB bound.
+Inline and file-backed snapshots cannot be combined for one package.
+Unsafe paths, missing or malformed files and exhausted bounds fail loading.
+The complete typed declarations still drive API equality and design commitments.
+The owning design commits to the expanded content, not the list of filenames.
+This changes storage, with no omitted types or weaker architecture comparison.
+Targeted tests cover changed declarations, path refusals and read budgets.
+
+<!-- go-api implementations/go/internal/contract/corpus a354155ee7280ffe18807e1e647515621c7625ac683a5090e01864afc94ac274 -->
+
+<!-- go-api implementations/go/internal/contract/binding 4f983e6244c2be2dda9b6da71dced64aade0376de49670b31bd8544bd0b6c76b -->
+
+<!-- go-api implementations/go/internal/contract/validation 17b03c928024e83b8225c830c1a3ff3af68cd3718fc6c4ab3c732624f7ad774a -->
+
+<!-- go-api implementations/tooling/go/contractgen 87666ceb97f022789f40a56348e27f85ee3d5d861f37920162f2ad7e027ebabe -->
+
+<!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
+
+<!-- go-api implementations/go/internal/contract/admission 899d3a46fb241c21e441ec13e34cf4f7593c302f0c1fa14895dea237f8186ff7 -->

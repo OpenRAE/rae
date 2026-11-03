@@ -1,4 +1,4 @@
-# Releasing RAES via raes
+# Releasing RAES via `raes`
 
 `raes` is published to **PyPI**, and releases are automated with
 [release-please](https://github.com/googleapis/release-please) (#684). You never
@@ -11,7 +11,7 @@ wheel. Every release binds the code and the corpus in one versioned artifact
 (#537). PyPI publication additionally requires the repository's canonical
 verification graph to pass for the exact commit named by the release (GOV-928).
 
-## How a release happens
+## How releases work
 
 1. Feature PRs **squash-merge** (into `dev`, then promoted to `main`) with a
    Conventional Commit **PR title** — the squashed commit is what release-please
@@ -75,14 +75,13 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    already-public Release only after downloading and byte-comparing both
    attached distributions and rechecking the id, tag, and commit SHA.
 
-GitHub exposes draft Releases only to push-capable identities. Consequently,
-the release-resolution job and the pre-PyPI revalidation job each need
-job-scoped `contents: write` even though their release operations are reads.
+GitHub exposes draft Releases only to identities that can push.
+Thus the release-resolution job and the pre-PyPI revalidation job each need job-scoped `contents: write`.
+Both jobs use that access to read release state.
 The workflow default, canonical verifier, real-container gate, and build job
 remain `contents: read`; the GitHub finalization job already needs write access
 for attachment and publication. Checkouts in either write-scoped job must not
-persist the elevated credential, and the permission correction must not
-introduce a PAT or long-lived publication secret.
+persist the elevated credential. This permission fix must not add a PAT or long-lived upload secret.
 
 The maintainer authorizes a release by merging its Release Please PR; artifact
 building and publication are automated afterward. Feature PRs never touch
@@ -94,8 +93,8 @@ building and publication are automated afterward. Feature PRs never touch
 |---|---|---|
 | `feat` | yes | minor |
 | `fix`, `perf` | yes | patch |
-| `feat!` / `fix!` / `BREAKING CHANGE:` footer | yes | major (pre-1.0 demoted to minor) |
-| `docs`, `style`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
+| Any type with `!` / `BREAKING CHANGE:` footer | yes | major (pre-1.0 demoted to minor) |
+| Nonbreaking `docs`, `style`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
 
 The Python Release Please strategy normally includes `docs` in visible release
 notes. `release-please-config.json` explicitly hides that section alongside
@@ -103,6 +102,23 @@ maintenance types, so a documentation-only change does not produce release
 notes and therefore does not propose a release. A later `feat:`, `fix:`, or
 `perf:` can still produce a release and include those changes in its history.
 Use `feat:`/`fix:` for consumer-visible changes so release-please cuts a release.
+
+Breaking changes in hidden maintenance sections still produce a major release
+and a breaking-change entry. For example, `refactor!:` is release-bearing even
+though an ordinary `refactor:` is hidden.
+
+Release PR maintenance uses the exact Git ancestry difference from the manifest
+version's tag to the main head. This includes older-dated feature commits merged
+after that release, which the upstream chronological API walk can omit (#1841).
+The adapter retains upstream PR metadata and refuses incomplete API history;
+it never builds notes from a partial range. The workflow tests this behavior
+against the pinned engine before maintaining release PRs. If main advances
+during a queued run, rerun the workflow for the current main head.
+
+This corrects future release calculation. It does not rewrite already published
+10.4.0/10.5.0 artifacts or historical notes. A corrective release must use a new
+version through the normal reviewed release PR; published tags and distribution
+bytes must not be replaced.
 
 ## Configuration
 
@@ -219,18 +235,18 @@ cancelled, or failed job is never sufficient.
 
 Configure a GitHub tag ruleset for `v*` that prevents tag deletion and updates
 outside the explicitly approved release authority. The repository workflow
-revalidates mutable GitHub state at both publication boundaries, but it cannot
-make a tag immutable after PyPI accepts an artifact, and repository-owned code
-must not grant itself permission to rewrite live organization rulesets. This
+revalidates mutable GitHub state at both publication boundaries.
+It cannot make a tag immutable after PyPI accepts an artifact.
+Repository-owned code must not grant itself permission to rewrite live organization rulesets. This
 ruleset remains a maintainer-owned external control and a release-readiness
 requirement.
 
 ## Recovering a partial publication
 
-Publication is two independently reconciled destinations, so a run that
-published to PyPI and then failed on GitHub is a normal, recoverable state. The
-governing rule is that recovery republishes **the original tested bytes** and
-never rebuilds a new artifact under an existing version.
+Check and repair PyPI and GitHub state on their own.
+A run can publish to PyPI and then fail on GitHub. That state is recoverable.
+Recovery must reuse **the original tested bytes**.
+Never rebuild a new artifact under an existing version.
 
 **Start here: re-run the failed jobs on the original run.** In the Actions UI,
 open the release run and use **re-run failed jobs**. This reuses that run's own
@@ -277,15 +293,14 @@ where the divergent bytes came from, then publish a new version.
 
 `workflow_dispatch` accepts an existing stable-SemVer tag (`vX.Y.Z`) that
 resolves to a commit reachable from `main` and has a policy base. The workflow
-resolves it once to a full SHA and runs the whole graph — canonical
-verification, the required real-container lane, build, corpus checks, the exact
-wheel and sdist installation/conformance smokes, evidence admission, and the
-OIDC publication chain.
+resolves it once to a full SHA and runs the whole graph.
+This includes canonical checks, the required real-container lane, build, and corpus checks.
+It also checks the exact wheel and sdist, admits their evidence, and runs the OIDC publication chain.
 
 Use this for a draft created by an older run that failed **before** PyPI
-publication: it preserves the bound tag, commit, and numeric Release identity
-while applying the current publication gates, rather than re-running a stale
-workflow definition. Never use manual dispatch for a version already on PyPI:
+publication. It preserves the bound tag, commit, and numeric Release identity.
+It applies the current publication gates instead of a stale workflow definition.
+Never use manual dispatch for a version already on PyPI:
 it rebuilds instead of reusing the original admitted artifacts, even if the
 resulting bytes happen to match. Re-run failed jobs on the original run while
 its artifacts remain available and its workflow can complete publication;
