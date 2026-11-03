@@ -1,0 +1,18 @@
+{
+  "args": [],
+  "command": "graph",
+  "files": {
+    "request.json": "sha256:32e83d105eda31d9f50bf36331a6c27c3a214f2d2468b89c93e19c287e0ac81c"
+  },
+  "name": "graph/06/False",
+  "result": {
+    "components": [],
+    "cycle": false,
+    "order": [
+      "a",
+      "c",
+      "b"
+    ]
+  },
+  "surface": "shared"
+}

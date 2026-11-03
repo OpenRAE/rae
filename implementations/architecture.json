@@ -32,6 +32,10 @@
         {
           "path": "golang.org/x/text/unicode/norm",
           "reason": "NFKC normalization for the netloc check that mirrors Python's urlsplit."
+        },
+        {
+          "path": "github.com/knqyf263/go-rpm-version",
+          "reason": "MIT-licensed RPM version ordering with tilde/caret semantics; exact epochs are compared separately."
         }
       ]
     },
@@ -188,14 +192,18 @@
       "layer": "base",
       "public": true,
       "doc": "Compiled runtime addresses.",
-      "imports": []
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
     },
     {
       "dir": "implementations/go/internal/base/canonjson",
       "layer": "base",
       "public": true,
       "doc": "The RFC 8785 form and the sorted json.dumps form of JSON values.",
-      "imports": []
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
     },
     {
       "dir": "implementations/go/internal/base/digest",
@@ -209,7 +217,9 @@
       "layer": "base",
       "public": true,
       "doc": "Strict, bounded JSON ingress before contract validation.",
-      "imports": []
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
     },
     {
       "dir": "implementations/go/internal/base/jsonpointer",
@@ -223,14 +233,18 @@
       "layer": "base",
       "public": true,
       "doc": "The blake3-xof-v1 and blake3-xof-participant-v1 random-stream profiles.",
-      "imports": []
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
     },
     {
       "dir": "implementations/go/internal/base/urisafety",
       "layer": "base",
       "public": true,
       "doc": "Checks that absolute URIs are inert and carry no secret.",
-      "imports": []
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
     },
     {
       "dir": "implementations/go/internal/parity",
@@ -244,7 +258,16 @@
         "implementations/go/internal/base/ingress",
         "implementations/go/internal/base/jsonpointer",
         "implementations/go/internal/base/randstream",
-        "implementations/go/internal/base/urisafety"
+        "implementations/go/internal/base/urisafety",
+        "implementations/go/internal/base/clock",
+        "implementations/go/internal/base/domain",
+        "implementations/go/internal/base/fault",
+        "implementations/go/internal/base/graph",
+        "implementations/go/internal/base/logrecord",
+        "implementations/go/internal/base/secretref",
+        "implementations/go/internal/base/softwareversion",
+        "implementations/go/internal/base/timestamp",
+        "implementations/go/internal/base/value"
       ]
     },
     {
@@ -301,6 +324,87 @@
       "public": false,
       "doc": "The analyzer for %w in the middle of an error format.",
       "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/base/clock",
+      "layer": "base",
+      "public": true,
+      "doc": "Injected UTC wall clock and the sole system-clock owner.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/base/fault",
+      "layer": "base",
+      "public": true,
+      "doc": "The six value-free operational error categories of ADR-116.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/base/timestamp",
+      "layer": "base",
+      "public": true,
+      "doc": "The four named timestamp grammars, governed leap seconds and UTC text.",
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/base/softwareversion",
+      "layer": "base",
+      "public": true,
+      "doc": "Installed Debian, RPM and numeric-triplet version relations and bounded predicates.",
+      "imports": [
+        "implementations/go/internal/base/canonjson",
+        "implementations/go/internal/base/digest",
+        "implementations/go/internal/base/fault"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/base/domain",
+      "layer": "base",
+      "public": true,
+      "doc": "Closed scalar-domain validation and membership.",
+      "imports": [
+        "implementations/go/internal/base/softwareversion",
+        "implementations/go/internal/base/fault"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/base/value",
+      "layer": "base",
+      "public": true,
+      "doc": "Bounded JSON values and rejection of unsupported snapshot carriers.",
+      "imports": [
+        "implementations/go/internal/base/fault",
+        "implementations/go/internal/base/canonjson"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/base/logrecord",
+      "layer": "base",
+      "public": true,
+      "doc": "Bounded, value-free operational records through log/slog.",
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/base/graph",
+      "layer": "base",
+      "public": true,
+      "doc": "Iterative graph cycle detection, dependency ordering and cyclic components.",
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/base/secretref",
+      "layer": "base",
+      "public": true,
+      "doc": "Bounded operator-managed secret reference identities.",
+      "imports": [
+        "implementations/go/internal/base/fault"
+      ]
     }
   ]
 }

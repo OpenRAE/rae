@@ -32,8 +32,9 @@ Its output reader returns other bytes after a seek to 64 bytes or more.
 After the last permitted rejection, it reports an exhausted draw without a value.
 The batch draw needs the typed stream address, so the contract bindings of #1780 add it.
 
-This PR references #1779; it does not close that issue. The other shared
-primitives and their acceptance evidence remain under #1779. Issue #1780 owns
+This implementation is consolidated into PR #1820, which delivers #1779.
+The [completion design](issue-1779-shared-primitives-completion.md) records
+the complete primitive inventory. Issue #1780 owns
 the typed-address batch operation, including semantic and canonical-byte
 collision detection, a deterministic diagnostic, and no partial result.
 

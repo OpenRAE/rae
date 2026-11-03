@@ -3,17 +3,18 @@
 package address
 
 import (
-	"errors"
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
 )
 
 // MaxLength is the largest length of a compiled address.
 const MaxLength = 2048
 
 // ErrAddress reports a value that is not a canonical compiled address.
-var ErrAddress = errors.New("address: not a canonical compiled address")
+var ErrAddress = fault.New(fault.InvalidInput, "compiled-address", nil)
 
 // compiled matches two or more segments separated by dots. A segment is a
 // lowercase ASCII letter or digit followed by up to 63 lowercase letters,
