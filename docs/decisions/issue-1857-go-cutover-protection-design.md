@@ -64,3 +64,23 @@ Fork and Dependabot secret restrictions remain in force.
 
 The official STE website returned HTTP 403 during research. The prose uses short,
 direct sentences; this is not a claim of certified STE compliance.
+
+## Live enforcement evidence
+
+On 2026-11-03, the API returned active ruleset `26422222` for exactly
+`refs/heads/go-cutover`. Its bypass list was empty. The authenticated administrator
+received `current_user_can_bypass: never`. Legacy administrator enforcement remained active.
+The repository returned `allow_auto_merge: false`.
+
+[PR #1879](https://github.com/OpenRAE/rae/pull/1879) targets `go-cutover`.
+At head `9856498860d5e38fac785e924c691f91f0a039f9`, GraphQL returned
+`isDraft: false`, `mergeable: MERGEABLE`, and `mergeStateStatus: BLOCKED`.
+Its check rollup was `PENDING`. Required contexts included in-progress
+`title-guard`, `body-guard`, `supply-chain`, `fuzz`, and language analysis jobs.
+These check runs identified GitHub Actions App `15368`. GitGuardian App `46505`
+had passed. The PR had no automatic merge request. The rule required zero approvals.
+Thus neither conflicts, draft state, nor missing approvals explained the blocked state.
+No merge or direct push was attempted as a test.
+
+The user authorized publication before review to obtain this live evidence.
+The remaining review and hosted checks still apply before readiness.
