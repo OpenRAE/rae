@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-07-15T03:17:25.961655Z
-updated_at: 2026-10-25T04:04:53.198209Z
+updated_at: 2026-11-03T03:45:48.397489Z
 ---
 
 # SCE-006 — Isolated Batch Trial Scheduling
@@ -37,4 +37,11 @@ Batch execution is the apparatus mechanism that turns an RAES run allocation int
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_coordinate_order.py` (SCE-006 single-owner canonical trial-coordinate dispatch order helper (SVR-014/SVR-031))
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/admitted_trial_plan.py` (SCE-006 single-owner canonical trial-coordinate dispatch order helper (SVR-014/SVR-031))
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/batch-execution-receipt-v1.json` (SCE-006 published batch-execution-receipt-v1 contract (immutable per-attempt scheduling + cleanup evidence))
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/assigned-trial-v1.json` (Original admitted entry and authorized attempt assigned to an independent execution owner, issue #1870)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/assigned-trial-control-v1.json` (Retained cancellation and coordinator-authorized retry preparation for an assigned attempt, issue #1870)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/trial-outcome-v1.json` (Original lifecycle observations and operation facts returned to the admitted experiment, issue #1870)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_assigned_trial.py` (Selected execution through the existing scenario lifecycle)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_remote_trial.py` (Validate retained remote outcomes for existing record and policy owners)
+- TESTS → TEST `implementations/python/tests/test_issue_1870_assigned_trials.py` (Exact assigned entry, ownership, cancellation, and original replacement lineage)
+- TESTS → TEST `implementations/python/tests/test_issue_1870_handoff_recovery.py` (Durable redelivery, unresolved operations, and concurrent duplicate delivery)
 - TESTS → TEST `implementations/python/tests/test_sce_006_batch_scheduler.py` (SCE-006 batch scheduler tests: deterministic order, sealed-plan isolation authority, receipt validation, conformance corpus)

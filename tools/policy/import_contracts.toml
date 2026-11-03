@@ -152,7 +152,6 @@ ignore_imports = [
     "raes_runtime.participant_view_serialization -> raes_runtime.participant_crossing_mediation",
     "raes_runtime.runtime_engine -> raes_runtime.control_plane_recovery",
     "raes_runtime.runtime_engine -> raes_runtime.runtime_run_context",
-    "raes_runtime.runtime_experiment_progress -> raes_runtime.runtime_experiment",
     "raes_runtime.runtime_module_step -> raes_runtime.control_plane_recovery",
     "raes_runtime.runtime_run_driver -> raes_runtime.interaction",
     "raes_runtime.runtime_sequence_authority -> raes_runtime.runtime_run_driver",

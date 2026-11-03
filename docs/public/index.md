@@ -193,6 +193,7 @@ guides/python
 guides/cli
 guides/control-plane
 guides/experiment-records
+guides/assigned-trials
 guides/supervised-execution
 guides/external-injects
 guides/invocation-tool-actions

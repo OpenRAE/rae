@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from raes_contracts.assigned_trial import TrialAssignmentControlModel, TrialAssignmentModel, TrialOutcomeModel
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.authoring_adapters import (
     AuthoringAdapterComparisonModel,
@@ -127,6 +128,9 @@ def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
     """Experiment, trial, time, and runtime-plan contract schemas."""
 
     return {
+        "assigned-trial-v1": TrialAssignmentModel.model_json_schema(),
+        "assigned-trial-control-v1": TrialAssignmentControlModel.model_json_schema(),
+        "trial-outcome-v1": TrialOutcomeModel.model_json_schema(),
         "experiment-apparatus-context-v1": ExperimentApparatusContextModel.model_json_schema(),
         "experiment-authoring-input-v1": ExperimentSpecModel.model_json_schema(),
         "experiment-binding-descriptors-v1": ExperimentBindingDescriptorSetModel.model_json_schema(),

@@ -177,7 +177,6 @@
         "raes_runtime.runtime_engine",
         "raes_runtime.runtime_experiment",
         "raes_runtime.runtime_experiment_admission",
-        "raes_runtime.runtime_experiment_progress",
         "raes_runtime.runtime_module_step",
         "raes_runtime.runtime_run_cleanup",
         "raes_runtime.runtime_run_context",
@@ -2708,9 +2707,8 @@
     },
     "raes_runtime.runtime_experiment": {
       "_engine": 1,
-      "_required_operation_guarantees": 1,
       "_run_scope": 1,
-      "_store": 7,
+      "_store": 3,
       "_supervision": 1
     },
     "raes_runtime.runtime_experiment_admission": {
@@ -2721,13 +2719,9 @@
     },
     "raes_runtime.runtime_experiment_progress": {
       "_attempt": 2,
-      "_engine": 3,
       "_progress": 4,
-      "_resource_claim": 2,
-      "_run_scope": 1,
-      "_runtime_call": 2,
       "_slots": 1,
-      "_store": 2,
+      "_store": 1,
       "_unit": 2
     },
     "raes_runtime.runtime_experiment_records": {
@@ -2812,15 +2806,14 @@
     },
     "raes_runtime.runtime_trial_unit": {
       "_assert_runtime_owner": 1,
-      "_engine": 3,
+      "_engine": 1,
       "_execution_adapter": 2,
-      "_experiments": 1,
       "_interaction_backend_call": 2,
       "_mutation_authority": 1,
       "_resource_claim": 1,
       "_run_scope": 1,
       "_runtime_call": 1,
-      "_store": 8,
+      "_store": 5,
       "_supervision": 2,
       "_target_scope": 1
     }
@@ -3391,11 +3384,9 @@
       "raes_runtime.runtime_trial_decisions": 2
     },
     "raes_runtime.runtime_experiment": {
-      "raes_runtime.runtime_experiment_progress": 1,
       "raes_runtime.runtime_experiment_replacement": 1
     },
     "raes_runtime.runtime_experiment_progress": {
-      "raes_runtime.runtime_experiment": 2,
       "raes_runtime.runtime_experiment_replacement": 1
     },
     "raes_runtime.runtime_experiment_records": {
