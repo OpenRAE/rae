@@ -21,7 +21,7 @@ run-name: Ground Control Phase E for PR ${{ github.event.pull_request.number || 
 on:
   pull_request:
     types: [closed]
-    branches: [main, dev]
+    branches: [main, dev, go-cutover]
   workflow_dispatch:
     inputs:
       pr:

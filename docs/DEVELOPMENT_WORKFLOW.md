@@ -75,6 +75,70 @@ uv run --project ../../tooling/python --frozen --no-default-groups lint-imports 
 
 ## Continuous integration graph
 
+### Go integration branch protection
+
+The active [merge-policy-go-cutover ruleset](https://github.com/OpenRAE/rae/rules/26422222)
+matches only `refs/heads/go-cutover`. It requires pull requests and these checks:
+
+| Required context | Coverage | GitHub App ID |
+| --- | --- | --- |
+| `verify` | Canonical aggregate and runtime supervision | 15368 |
+| `sonar` | Independent SonarCloud quality gate | 15368 |
+| `fuzz` | Separate Python fuzz lane | 15368 |
+| `supply-chain` | OSV dependency vulnerability scans | 15368 |
+| `CPython 3.14 compatibility` | Interpreter and distribution checks | 15368 |
+| `CodeQL` | CodeQL service result | 57789 |
+| `Analyze (actions)` | Actions security analysis | 15368 |
+| `Analyze (python)` | Python security analysis | 15368 |
+| `Analyze (javascript-typescript)` | JavaScript and TypeScript security analysis | 15368 |
+| `GitGuardian Security Checks` | Secret scanning | 46505 |
+| `title-guard` | PR title policy | 15368 |
+| `body-guard` | PR body policy | 15368 |
+
+These names and App identities were checked against live Go-branch runs on
+2026-11-03. Workflow job keys alone do not establish emitted check names.
+
+The Go branch's `ci.yml` calls `canonical-verification.yml`. Its `go` matrix
+checks product and tooling modules, including changed-line mutation testing.
+The `go-architecture` and `parity-corpus` jobs also feed its canonical `gate`.
+That gate rejects unsuccessful dependencies and supplies the caller's `verify`
+context. No separate check named `mutation`, `architecture`, or `parity` is required.
+Parity coverage does not establish that the full Go port is complete.
+
+Regression capture replaces pytest's generated user, session, and worker path
+components with stable names. It keeps input bytes and relative dependency paths.
+Changes to the collector or its source inputs require a fresh CI capture and
+reviewed corpus promotion. Keep the generated provenance and credential scans;
+do not hand-edit expected results to make the comparison pass.
+
+The maintainer merges manually after checks pass. Zero required review approvals
+preserve the single-maintainer model. There are no configured bypass actors;
+administrators must satisfy the rule. Administrators retain authority to edit
+repository settings. Automatic merging remains disabled.
+
+The existing Ground Control Phase E workflow includes closed PRs into
+`go-cutover`. After a manual merge, it verifies the trusted delivery handoff,
+posts the final report, and closes the issue. It does not merge PRs.
+
+Legacy branch protection also remains active. Force pushes and deletion are
+prohibited. The existing non-strict base-update policy remains: a PR need not
+include the latest base commit. New PR heads still require their own checks.
+GitHub can accept neutral or skipped individual checks. The canonical aggregate
+requires explicit success from its required dependencies.
+
+Same-repository Go PRs run Sonar analysis. The current Sonar push guard includes
+`main` and `dev`, so a Go branch push is not independent quality-gate evidence.
+Fork and Dependabot secret restrictions remain applicable. Release bookkeeping
+path filters can leave required workflows pending; do not bypass missing checks.
+
+Read the effective rules through `GET /repos/OpenRAE/rae/rules/branches/go-cutover`
+and legacy protection through `GET /repos/OpenRAE/rae/branches/go-cutover/protection`.
+To verify check blocking, inspect a mergeable, non-draft Go PR with failed or
+pending required checks. Confirm its API merge state is blocked. A conflicting
+PR cannot supply this evidence. Never attempt a merge as a test.
+
+### Canonical verification
+
 The pull-request gate runs through `.github/workflows/ci.yml`, which calls the
 reusable `.github/workflows/canonical-verification.yml`. That reusable graph is
 the single exact-SHA full gate for pull requests, protected branches, and
