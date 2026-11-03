@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import shlex
 import stat
 import tempfile
@@ -25,6 +26,24 @@ import pytest
 from tools.parity_support import ARGUMENTS_FILE, Case, digest, encode, runtime_aliases
 
 INPUT_PREFIX = "input/"
+
+
+def capture_path(path: Path, base: Path) -> str:
+    """Keep graph paths while removing pytest's generated run location."""
+    temporary = Path(tempfile.gettempdir())
+    if path.is_relative_to(temporary):
+        parts = path.relative_to(temporary).parts
+        if len(parts) >= 2 and re.fullmatch(r"pytest-of-[^/]+", parts[0]) and re.fullmatch(r"pytest-[0-9]+", parts[1]):
+            count = 3 if len(parts) >= 3 and re.fullmatch(r"popen-gw[0-9]+", parts[2]) else 2
+            generated = temporary.joinpath(*parts[:count])
+            if generated.is_relative_to(base):
+                canonical = temporary / "pytest-user" / "pytest-session"
+                if count == 3:
+                    canonical /= "pytest-worker"
+                visible = generated.relative_to(base).parts
+                prefix = canonical.parts[-len(visible) :] if visible else ()
+                return Path(*prefix, *path.relative_to(generated).parts).as_posix()
+    return path.relative_to(base).as_posix()
 
 
 def absolute_input(directory: Path, value: str) -> Path:
@@ -45,16 +64,17 @@ def command_tokens(arguments: str | Sequence[object] | None) -> list[str]:
 
 
 def relocated_token(
-    token: str, directory: Path, names: dict[Path, str], input_directories: list[Path], base: Path
+    token: str,
+    directory: Path,
+    names: dict[Path, str],
+    base: Path,
 ) -> str:
     resolved = absolute_input(directory, token)
     value = token
     if resolved in names:
         value = names[resolved]
-    elif resolved in input_directories:
-        value = INPUT_PREFIX + resolved.relative_to(base).as_posix()
     elif Path(token).is_absolute():
-        relative = resolved.relative_to(base).as_posix() if resolved.is_relative_to(base) else "output/" + resolved.name
+        relative = capture_path(resolved, base) if resolved.is_relative_to(base) else "output/" + resolved.name
         value = INPUT_PREFIX + relative
     return value
 
@@ -62,23 +82,23 @@ def relocated_token(
 def source_names(originals: dict[Path, bytes], roots: list[Path]) -> tuple[Path, dict[Path, str]]:
     parents = [str(path.parent) for path in originals] + [str(root) for root in roots]
     base = Path(os.path.commonpath(parents)) if parents else Path.cwd()
-    return base, {path: INPUT_PREFIX + path.relative_to(base).as_posix() for path in originals}
+    names = {path: INPUT_PREFIX + capture_path(path, base) for path in (*originals, *roots)}
+    if len(set(names.values())) != len(names):
+        raise ValueError("parity path normalization would merge distinct inputs")
+    return base, names
 
 
 def portable_files(
     originals: dict[Path, bytes],
     recipes: dict[Path, dict[str, str]],
     roots: list[Path],
-    base: Path,
     names: dict[Path, str],
 ) -> dict[str, bytes]:
     files = {names[path]: content for path, content in originals.items() if path not in recipes}
     if recipes:
         files["input-recipes.json"] = encode({names[path]: recipe for path, recipe in recipes.items()})
     if roots:
-        files["setup.json"] = encode(
-            {"directories": [INPUT_PREFIX + root.relative_to(base).as_posix() for root in roots]}
-        )
+        files["setup.json"] = encode({"directories": [names[root] for root in roots]})
     return files
 
 
@@ -106,7 +126,12 @@ class InputCollector:
         if self.nodeid == "collection":
             return
         files = {name: "sha256:" + digest(content) for name, content in sorted(case.files.items())}
-        record = {"surface": case.surface, "command": case.command, "args": list(case.args), "files": files}
+        record = {
+            "surface": case.surface,
+            "command": case.command,
+            "args": list(case.args),
+            "files": files,
+        }
         identity = digest(encode(record))
         with self.lock:
             stored = self.records.setdefault(identity, {**record, "tests": set()})
@@ -115,7 +140,10 @@ class InputCollector:
                 self.blobs[digest(content)] = content
 
     def source(self, content: str, **options: object) -> None:
-        arguments = {"sdl_content": content, "semantic_validation": not options.get("skip_semantic_validation", False)}
+        arguments = {
+            "sdl_content": content,
+            "semantic_validation": not options.get("skip_semantic_validation", False),
+        }
         arguments["accept_migration_syntax"] = str(options.get("migration_policy", "reject")) in {
             "accept",
             "SDLMigrationPolicy.ACCEPT",
@@ -233,8 +261,8 @@ class InputCollector:
         pending = [absolute_input(directory, token) for token in tokens if not token.startswith("-")] + directory_files
         originals, recipes = self.input_graph(pending)
         base, names = source_names(originals, roots)
-        files = portable_files(originals, recipes, roots, base, names)
-        rewritten = [relocated_token(token, directory, names, roots, base) for token in tokens]
+        files = portable_files(originals, recipes, roots, names)
+        rewritten = [relocated_token(token, directory, names, base) for token in tokens]
         supplied = kwargs.get("input")
         if supplied is not None:
             files["stdin.bin"] = supplied.encode() if isinstance(supplied, str) else bytes(supplied)
@@ -303,7 +331,12 @@ class InputCollector:
         from hypothesis import settings
 
         from tools import parity_observers as observers
-        from tools.parity_surfaces import cli_registry, http_registry, http_schema, mcp_registry
+        from tools.parity_surfaces import (
+            cli_registry,
+            http_registry,
+            http_schema,
+            mcp_registry,
+        )
 
         self.previous_profile = settings.get_current_profile_name()
         settings.register_profile("parity-capture", derandomize=True, database=None)

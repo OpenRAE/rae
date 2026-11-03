@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from starlette.requests import Request
+
 from tools import parity_corpus as pc
 from tools import parity_regressions as regressions
 from tools import parity_surfaces as surfaces
@@ -438,3 +439,64 @@ def test_cli_observers_cover_console_entrypoint_and_subprocess_inputs(tmp_path: 
     assert set(invocation["files"]) == {"input/source.yaml", "stdin.bin"}
     assert collector.blobs[invocation["files"]["stdin.bin"].removeprefix("sha256:")] == b"standard input"
     assert calls[-1][1] == {"cwd": tmp_path, "input": "standard input"}
+
+
+@pytest.mark.parametrize("parallel", [False, True])
+def test_cli_capture_is_independent_of_pytest_worker_paths(tmp_path: Path, monkeypatch, parallel: bool) -> None:
+    scratch = tmp_path / "system-temp"
+    monkeypatch.setattr("tools.parity_inputs.tempfile.gettempdir", lambda: str(scratch))
+    repo = tmp_path / "repo"
+    fixtures = repo / "contracts/fixtures"
+    profiles = repo / "contracts/profiles/backend"
+    fixtures.mkdir(parents=True)
+    profiles.mkdir(parents=True)
+    (fixtures / "fixture.json").write_text('{"value": "authored popen-gw3"}')
+    captured = []
+    for user, session, worker in (("alice", 0, 0), ("bob", 27, 3)):
+        root = scratch / f"pytest-of-{user}" / f"pytest-{session}"
+        if parallel:
+            root /= f"popen-gw{worker}"
+        root /= "test_backend0"
+        root.mkdir(parents=True)
+        (root / "profile.json").write_text('{"profile_id": "sample"}')
+        collector = InputCollector(tmp_path / "capture", repo)
+        collector.nodeid = "tests/test_example.py::test_backend"
+        collector.cli(["conformance", "backend", "--profiles-root", str(root)], {})
+        captured.append((collector.records, collector.blobs))
+    assert captured[0] == captured[1]
+    assert b'{"value": "authored popen-gw3"}' in captured[0][1].values()
+
+
+def test_pytest_path_normalization_preserves_cross_root_dependencies(tmp_path: Path, monkeypatch) -> None:
+    import os
+
+    scratch = tmp_path / "scratch"
+    monkeypatch.setattr("tools.parity_inputs.tempfile.gettempdir", lambda: str(scratch))
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    dependency = repo / "module.yaml"
+    dependency.write_text("name: module\n")
+    root = scratch / "pytest-of-alice/pytest-42/popen-gw3/test_imports0"
+    root.mkdir(parents=True)
+    source = root / "root.yaml"
+    reference = os.path.relpath(dependency, root)
+    content = f"name: root\nimports:\n  - source: local:{reference}\n    namespace: kit\n"
+    source.write_text(content)
+    collector = InputCollector(tmp_path / "capture", repo)
+    collector.nodeid = "tests/test_example.py::test_imports"
+    collector.cli(["sdl", "format", str(source)], {})
+    record = next(iter(collector.records.values()))
+    mapped_source = Path(record["args"][-1])
+    mapped_dependency = Path(os.path.normpath(mapped_source.parent / reference)).as_posix()
+    assert mapped_dependency in record["files"]
+    assert collector.blobs[record["files"][mapped_source.as_posix()].removeprefix("sha256:")] == content.encode()
+    assert collector.blobs[record["files"][mapped_dependency].removeprefix("sha256:")] == b"name: module\n"
+
+
+def test_pytest_path_normalization_rejects_colliding_inputs(tmp_path: Path, monkeypatch) -> None:
+    from tools.parity_inputs import source_names
+
+    monkeypatch.setattr("tools.parity_inputs.tempfile.gettempdir", lambda: str(tmp_path))
+    session = tmp_path / "pytest-of-alice/pytest-42"
+    with pytest.raises(ValueError, match="merge distinct inputs"):
+        source_names({session / "popen-gw0/input.json": b"first", session / "popen-gw3/input.json": b"second"}, [])

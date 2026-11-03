@@ -101,3 +101,43 @@ A targeted workflow test must reject omission of the Go branch and preserve the 
 
 The reference is [GitHub workflow events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows),
 current documentation, `pull_request` closed events and branch filters.
+
+## Reproducible regression capture
+
+The user authorized the parity repair in this PR. The existing input collector
+owns captured path names. Its `source_names`, `relocated_token`, and
+`portable_files` functions form the interface used by `InputCollector.cli`.
+The corpus recorder and bounded storage remain the only publication path.
+
+Pytest changes its user, session, and worker directory names across runs.
+When a CLI invocation combines temporary files with repository fixtures, the
+common input base can expose those generated directories in case identities.
+Map only that generated prefix, under the system temporary directory, to a
+stable path components at the same depth. Apply the same mapping to file keys, directory
+setup, and path arguments. Keep paths below that prefix and all input bytes.
+Reject duplicate mapped file names instead of replacing an input silently.
+Do not normalize UUIDs, timestamps, payload values, or authored file names.
+Existing input-root restrictions and symlink rejection remain in force.
+
+```mermaid
+flowchart LR
+    Tests[Existing Python tests] -->|Observed calls and public inputs| Collector[InputCollector]
+    Collector -->|Stable names and exact input bytes| Capture[(CI capture artifacts)]
+    Capture -->|Validated origins and digests| Recorder[Existing parity recorder]
+    Recorder -->|Fresh corpus and provenance| Candidate[(CI candidate corpus)]
+    Candidate -->|Reviewed promotion| Golden[(Committed golden corpus)]
+    Golden -->|Exact comparison| Check[Existing CI parity gate]
+```
+
+The capture boundary accepts only repository and temporary input files.
+Path normalization must not admit another file or change a file's content.
+Tests cover relocation invariance, dependency replay, and rejected paths.
+The former path mapping is a mutation that must fail the invariance test.
+Regenerate the corpus in CI and retain its source and environment identity.
+Promote the generated artifact only after its credential scan passes.
+Keep exact reproduction and digest checks enabled after promotion.
+No product interface, published schema, or Go dependency rule changes.
+
+Reference: [pytest temporary directories](https://docs.pytest.org/en/stable/how-to/tmp_path.html),
+current pytest 9 documentation, temporary directory location and retention.
+It describes changing run directories and concurrent test isolation.

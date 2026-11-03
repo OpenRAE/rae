@@ -105,6 +105,12 @@ That gate rejects unsuccessful dependencies and supplies the caller's `verify`
 context. No separate check named `mutation`, `architecture`, or `parity` is required.
 Parity coverage does not establish that the full Go port is complete.
 
+Regression capture replaces pytest's generated user, session, and worker path
+components with stable names. It keeps input bytes and relative dependency paths.
+Changes to the collector or its source inputs require a fresh CI capture and
+reviewed corpus promotion. Keep the generated provenance and credential scans;
+do not hand-edit expected results to make the comparison pass.
+
 The maintainer merges manually after checks pass. Zero required review approvals
 preserve the single-maintainer model. There are no configured bypass actors;
 administrators must satisfy the rule. Administrators retain authority to edit
