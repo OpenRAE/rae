@@ -14,6 +14,7 @@ The [source crosswalk](contract-predicate-sources.json) names their Go predicate
 | Full admission with recorded owners | `admission.TestFullValidationGoldenCorpus` | 702 inputs from the complete fixture inventory and the original selector regression; separately captured Python model and contextual results |
 | Full admission without an owner | `parity.TestFullAdmissionCorpusBoundary` | Same fixture inventory; local claims cannot supply independent context |
 | Full admission with an owner | Tests in the next table | Separate source records and reference-admitted owner fixtures |
+| Reduced timing-limit fractions | `admission.TestTimingLimitReducedRatiosMatchPython` | 18 Python verdicts through realized time and experiment-run validation, including 2/4 refusal and 1/2 admission |
 | Clock coordinate defaults | `admission.TestRuntimeClockPythonDefaults` | 98 Python model verdicts through standalone time state and runtime snapshot admission; exact evidence preservation |
 
 The portable command checks local rules and selected context gates.
@@ -81,7 +82,7 @@ Tests name the specific failure or boundary in their subcases.
 | `test_issue_1241_schema_omissions.py`: redacted commands, values and absent filesystem facts | `TestPublishedSecurityRegressions`, across every affected published phase definition |
 | `test_issue_301_selector_schema_parity.py`: empty, blank and duplicate selectors | `TestPublishedSecurityRegressions`, across all five affected schemas |
 | `test_issue_1778_parity_corpus.py`: fixture identity, provenance and input integrity | Existing parity manifest, runner and case inventory tests; contract fixture tests retain the exact inventory |
-| `test_issue_1779_corpus_secret_scan.py`: retain corpus policy checks | Existing corpus policy stays in force; `test_generated_concept_transport_keeps_authority_data_paths_guarded` checks the exact derived Go DTO allowance |
+| `test_issue_1779_corpus_secret_scan.py`: retain corpus policy checks | Existing corpus policy stays in force; `test_generated_concept_transport_keeps_authority_data_paths_guarded` checks the exact derived Go DTO allowance; `test_generated_transport_does_not_allow_sibling_authority_paths` exercises the real Rego refusals |
 | `test_controlled_vocabularies.py`: scope membership, unique ownership and extension policy | `TestControlledVocabularyPublishedVerdicts`, `TestControlledVocabularyModelVerdicts` |
 | Backend and processor manifest model validators | `TestManifestCapabilityModelReferenceVerdicts`: 70 recorded model verdicts for capabilities, autonomy, tools and declared contracts |
 | Resource policy, quantity, pool, state and event model validators | `TestResourceBudgetModelReferenceVerdicts`: 28 recorded model verdicts for identities, limits, ownership and parent graphs |

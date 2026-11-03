@@ -189,6 +189,8 @@ func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
 		return archiveRecordLocal(instance.Value)
 	case "TimeModelDeclarationModel":
 		return timeDeclaration(instance.Value)
+	case "ExactRatioModel":
+		return require(reducedRatio(instance.Value))
 	case "RuntimeClockStateModel":
 		return runtimeClock(instance.Value)
 	case "TimeRuntimeStateModel":

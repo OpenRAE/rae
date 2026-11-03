@@ -40,7 +40,10 @@ It is a review aid, not a new source of contract authority.
 The generator reads the publication inventory and normative corpus.
 It emits one transport root for each of the 148 published contracts.
 There is no second hand-kept list of contract IDs.
-The embedded ZIP has fixed byte output and bounded pieces.
+The embedded ZIP has fixed byte output and bounded hexadecimal pieces.
+The loader decodes each piece before reading the same archive bytes.
+Each decoded piece is at most 128 KiB; at most 64 pieces are allowed.
+Hexadecimal storage avoids treating compressed bytes as live identity text.
 It includes all needed corpus families and notices.
 The drift check compares full output, including extra and missing files.
 
@@ -301,6 +304,7 @@ The trace controls work; it cannot replace that engine's final verdict.
 The private compilation identity avoids a reserved schema URI collision.
 The admitted document and its digest keep the original ID.
 
+Reduced ratio checks apply to every schema-owned `ExactRatioModel`, including timing limits.
 Clock comparisons use private coordinate views.
 They fill absent segment and microstep fields with zero, as the Python model does.
 The required tick and supplied values remain intact.

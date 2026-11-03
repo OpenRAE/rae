@@ -2,3 +2,6 @@
 # union driver is only a fallback for release-collation commits and straggler
 # hand-edits that still touch CHANGELOG.md.
 CHANGELOG.md merge=union
+
+# Generated corpus pieces are compared byte-for-byte by contractgen.
+implementations/go/internal/contract/corpus/data/* binary

@@ -3,8 +3,11 @@ package corpus
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io/fs"
+	"strings"
 	"testing"
+	"testing/fstest"
 )
 
 func TestPackagedCorpus(t *testing.T) {
@@ -45,5 +48,21 @@ func TestRejectsCorruptArchives(t *testing.T) {
 		if _, err := openArchive(data.Bytes()); err == nil {
 			t.Errorf("openArchive(%v) = nil, want refusal", names)
 		}
+	}
+}
+
+func TestRejectsCorruptEncodedPieces(t *testing.T) {
+	for _, content := range []string{"zz\n", "1\n", strings.Repeat("0", 262146)} {
+		source := fstest.MapFS{"data/0000": {Data: []byte(content)}}
+		if _, err := openPieces(source); err == nil {
+			t.Fatal("accepted invalid encoded piece")
+		}
+	}
+	source := fstest.MapFS{}
+	for index := range 65 {
+		source[fmt.Sprintf("data/%04d", index)] = &fstest.MapFile{Data: []byte("00\n")}
+	}
+	if _, err := openPieces(source); err == nil {
+		t.Fatal("accepted too many pieces")
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"embed"
+	"encoding/hex"
 	"errors"
 	"io/fs"
 )
@@ -16,18 +17,29 @@ import (
 var pieces embed.FS
 
 // Open returns the packaged corpus. Corrupt or missing resources are errors.
-func Open() (fs.FS, error) {
-	entries, err := pieces.ReadDir("data")
-	if err != nil {
-		return nil, errors.New("corpus: missing embedded resources")
+func Open() (fs.FS, error) { return openPieces(pieces) }
+
+func openPieces(source fs.FS) (fs.FS, error) {
+	entries, err := fs.ReadDir(source, "data")
+	if err != nil || len(entries) > 64 {
+		return nil, errors.New("corpus: missing or excessive embedded resources")
 	}
 	var data bytes.Buffer
 	for _, entry := range entries {
-		piece, readErr := pieces.ReadFile("data/" + entry.Name())
+		piece, readErr := fs.ReadFile(source, "data/"+entry.Name())
 		if readErr != nil {
 			return nil, errors.New("corpus: missing embedded piece")
 		}
-		_, _ = data.Write(piece)
+		piece = bytes.TrimSuffix(piece, []byte("\n"))
+		if len(piece) > 262144 {
+			return nil, errors.New("corpus: oversized embedded piece")
+		}
+		decoded := make([]byte, hex.DecodedLen(len(piece)))
+		count, decodeErr := hex.Decode(decoded, piece)
+		if decodeErr != nil {
+			return nil, errors.New("corpus: invalid embedded encoding")
+		}
+		_, _ = data.Write(decoded[:count])
 	}
 	return openArchive(data.Bytes())
 }
