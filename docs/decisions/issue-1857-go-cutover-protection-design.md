@@ -141,3 +141,16 @@ No product interface, published schema, or Go dependency rule changes.
 Reference: [pytest temporary directories](https://docs.pytest.org/en/stable/how-to/tmp_path.html),
 current pytest 9 documentation, temporary directory location and retention.
 It describes changing run directories and concurrent test isolation.
+
+### Corpus promotion evidence
+
+CI run `41584912067` recorded the replacement corpus from source head
+`6b80a6125e7815c595e16dcf462fa43aec2a3f6e`. Its decoded-input credential scan passed.
+[Artifact 13209080095](https://github.com/OpenRAE/rae/actions/runs/41584912067/artifacts/13209080095)
+contains 45,304 generated files. Its archive SHA-256 is
+`86127b46234a6fcd758f5df1d4b0d93d36e82b90939a2299fdb1ab0edc3a544a`.
+The downloaded archive matches that digest. Source, test, environment, and recorder
+identities match the current tree. All blob digests passed validation.
+All 7,044 static reference cases remain unchanged. The complete inventory remains true.
+The existing corpus writer promoted the artifact bytes without editing expected results.
+CI must reproduce the promoted corpus before readiness.
