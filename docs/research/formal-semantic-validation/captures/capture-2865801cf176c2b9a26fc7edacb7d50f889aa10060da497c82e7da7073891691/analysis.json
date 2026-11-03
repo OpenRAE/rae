@@ -1,5 +1,5 @@
 {
-  "analysis_id": "pr-1764-hatchling-1-33-0-formal-analysis",
+  "analysis_id": "pr-1764-hatchling-1-33-0-dev-sync-formal-analysis",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "pr-1764-hatchling-1-33-0-formal-execution",
-  "generated_at": "2026-11-03T03:46:36.907335+00:00",
+  "execution_id": "pr-1764-hatchling-1-33-0-dev-sync-formal-execution",
+  "generated_at": "2026-11-03T04:56:40.157721+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "EXP-719 factorial generation, randomized allocation and participant configuration behavior are covered by their dedicated regressions; this retained corpus adds no treatment or live execution claim.",
@@ -137,6 +137,6 @@
     "Issue 1543 combines MCP argument sanitization with the issue 1678 exception boundary. Dedicated MCP regressions cover both protections; this offline corpus adds no live backend assurance.",
     "The earlier issue-1805 branch capture inherited a 10.1.0 package-version label. That execution used 10.2.0; this fresh capture records the actual package version."
   ],
-  "plain_language_outcome": "Fresh offline parser, compiler, finite solver, typed exploit-path and participant controls replay after the hatchling 1.33.0 build pin change. Existing unsupported claims and limits remain explicit.",
+  "plain_language_outcome": "Fresh offline parser, compiler, finite solver, typed exploit-path and participant controls replay after the hatchling 1.33.0 build pin change and the dev merge. Existing unsupported claims and limits remain explicit.",
   "protocol_revision": "2.0.0"
 }

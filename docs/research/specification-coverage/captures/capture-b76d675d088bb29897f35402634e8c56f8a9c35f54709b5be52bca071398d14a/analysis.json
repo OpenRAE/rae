@@ -1,5 +1,5 @@
 {
-  "analysis_id": "pr-1764-hatchling-1-33-0-specification-analysis",
+  "analysis_id": "pr-1764-hatchling-1-33-0-dev-sync-specification-analysis",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-11-03T03:46:36.907335+00:00",
+  "generated_at": "2026-11-03T04:56:40.157721+00:00",
   "limitations": [
     "This is bounded specification coverage, not universal range coverage, usability, adoption, backend substitution or behavioral equivalence.",
     "The retained protocol does not test recursive realization, plan allocation or live participant configuration.",
@@ -57,7 +57,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "Fresh execution of the retained specification artifacts after the hatchling 1.33.0 build pin change reproduces the bounded partial coverage result.",
+  "plain_language_outcome": "Fresh execution of the retained specification artifacts after the hatchling 1.33.0 build pin change and the dev merge reproduces the bounded partial coverage result.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -89,6 +89,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "pr-1764-hatchling-1-33-0-specification-execution",
-  "snapshot_sha256": "6e941c6f530b3abdfc953676f324e58006133b6958633cc482745b6fc7f55f58"
+  "snapshot_id": "pr-1764-hatchling-1-33-0-dev-sync-specification-execution",
+  "snapshot_sha256": "f349604277bbba85448c0ae5b299fbd19074d1b10312cf87eb9decb2c30e45f2"
 }
