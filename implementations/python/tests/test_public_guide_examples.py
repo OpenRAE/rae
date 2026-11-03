@@ -57,8 +57,9 @@ def test_python_guide_checks_detect_broken_examples(mutation: str, tmp_path: Pat
         "unauthorized-loss": ("ArtifactTransformationLossKind.DECLARATION_REMOVED,", ""),
     }[mutation]
     assert original in page
+    result = _python_result(page.replace(original, replacement, 1), tmp_path)
     with pytest.raises(AssertionError):
-        _assert_python_result(_python_result(page.replace(original, replacement, 1), tmp_path))
+        _assert_python_result(result)
 
 
 def test_cli_guide_samples(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
