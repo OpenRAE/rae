@@ -18,6 +18,8 @@ The aggregate gate requires both the architecture job and every matrix job.
 The Python `tools.check_go_module_inventory` module owns the check.
 Its public interface is `check_inventory(root, scan_targets)` and its module command.
 It reuses the closed workflow parser and the existing OSV configuration.
+Small private functions check module paths, matrix settings, required commands, coverage, and scan targets.
+They return the same policy failures through the public inventory check.
 The command adds checkout package paths before it imports repository code.
 `--scan-reports` requires each expected OSV report after successful scans.
 No Go package, schema, architecture dependency, or runtime interface changes.

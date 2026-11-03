@@ -28,20 +28,18 @@ WORKFLOW = ".github/workflows/canonical-verification.yml"
 RULE = "go-module-inventory"
 
 
-def check_inventory(root: Path, scan_targets: Sequence[tuple[str, Path, Path]]) -> list[PolicyFailure]:
-    """Require all consumers to cover each module once, with common gates."""
-    failures: list[PolicyFailure] = []
+def _require(condition: bool, message: str) -> list[PolicyFailure]:
+    return [] if condition else [PolicyFailure(RULE, message, WORKFLOW)]
 
-    def require(condition: bool, message: str, location: str = WORKFLOW) -> None:
-        if not condition:
-            failures.append(PolicyFailure(RULE, message, location))
 
-    def equal(actual: list[str], expected: list[str], consumer: str) -> None:
-        require(
-            sorted(actual) == sorted(expected) and len(set(actual)) == len(actual),
-            f"{consumer} must cover each architecture module exactly once",
-        )
+def _equal(actual: list[str], expected: list[str], consumer: str) -> list[PolicyFailure]:
+    return _require(
+        sorted(actual) == sorted(expected) and len(set(actual)) == len(actual),
+        f"{consumer} must cover each architecture module exactly once",
+    )
 
+
+def _module_directories(root: Path) -> list[str]:
     model = load_bounded_json_object(root, "implementations/architecture.json", max_bytes=2_000_000)
     # archcheck validates the model before this adapter in the required job.
     modules = model.get("modules")
@@ -53,32 +51,32 @@ def check_inventory(root: Path, scan_targets: Sequence[tuple[str, Path, Path]]) 
         if not isinstance(directory, str) or not directory or safe_repo_path(root, directory) is None:
             raise InvalidInputError("Go module inventory contains an unsafe directory")
         dirs.append(directory)
-    equal(dirs, list(set(dirs)), "declared modules")
+    return dirs
 
-    workflow, errors = parse_yaml_mapping(root, WORKFLOW)
-    failures.extend(errors)
-    ci, errors = parse_yaml_mapping(root, ".github/workflows/ci.yml")
-    failures.extend(errors)
-    if workflow is None or ci is None:
-        return failures
-    go = workflow["jobs"]["go"]
+
+def _check_matrix(go: dict, dirs: list[str]) -> list[PolicyFailure]:
     rows = go["strategy"]["matrix"]["include"]
-    equal([row["path"] for row in rows], dirs, "Go matrix")
+    failures = _equal([row["path"] for row in rows], dirs, "Go matrix")
     names = [row["name"] for row in rows]
-    require(
+    failures += _require(
         len(set(names)) == len(names) and all(re.fullmatch(r"[a-z0-9-]+", name) for name in names),
         "Go matrix names must be unique safe artifact identifiers",
     )
-    require(
+    failures += _require(
         not go.get("if") and not go.get("continue-on-error"),
         "Go matrix must be required",
     )
-    require(
+    failures += _require(
         go["env"].get("GOTOOLCHAIN") == "local"
         and go["env"].get("GOFLAGS") == "-mod=readonly"
         and go["env"].get("GOWORK") == "off",
         "Go matrix must use the admitted readonly toolchain without a workspace",
     )
+    return failures
+
+
+def _check_go_lanes(go: dict) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
     scripts = "\n".join(
         step.get("run", "") for step in go["steps"] if not step.get("if") and not step.get("continue-on-error")
     )
@@ -95,9 +93,13 @@ def check_inventory(root: Path, scan_targets: Sequence[tuple[str, Path, Path]]) 
         "gremlins unleash",
         "regressiontest -base",
     ):
-        require(command in scripts, f"Go matrix lacks required lane: {command}")
+        failures += _require(command in scripts, f"Go matrix lacks required lane: {command}")
+    return failures
+
+
+def _check_coverage_upload(go: dict) -> list[PolicyFailure]:
     upload = [step for step in go["steps"] if step.get("with", {}).get("path") == "${{ matrix.path }}/cover.out"]
-    require(
+    return _require(
         len(upload) == 1
         and upload[0]["with"].get("if-no-files-found") == "error"
         and upload[0]["with"].get("name") == "go-coverage-${{ matrix.name }}-${{ inputs.ref }}"
@@ -105,43 +107,76 @@ def check_inventory(root: Path, scan_targets: Sequence[tuple[str, Path, Path]]) 
         and not upload[0].get("continue-on-error"),
         "Go coverage artifact upload must be required for every module",
     )
+
+
+def _sonar_properties(root: Path) -> dict[str, str]:
+    path = safe_repo_path(root, "sonar-project.properties")
+    if path is None:
+        raise InvalidInputError("unsafe Sonar configuration")
+    return {
+        key: value
+        for line in path.read_text().splitlines()
+        if line and not line.startswith("#") and "=" in line
+        for key, value in [line.split("=", 1)]
+    }
+
+
+def _check_sonar(root: Path, workflow: dict, dirs: list[str], rows: list[dict]) -> list[PolicyFailure]:
     downloads = [
         step["with"]
         for step in workflow["jobs"]["sonar"]["steps"]
         if step.get("with", {}).get("name", "").startswith("go-coverage-")
     ]
-    equal([d["path"].rstrip("/") for d in downloads], dirs, "Go coverage downloads")
-    require(
+    failures = _equal([d["path"].rstrip("/") for d in downloads], dirs, "Go coverage downloads")
+    failures += _require(
         {(d["name"], d["path"].rstrip("/")) for d in downloads}
         == {(f"go-coverage-{row['name']}-${{{{ inputs.ref }}}}", row["path"]) for row in rows},
         "Go coverage downloads must match producer identities",
     )
-    properties_path = safe_repo_path(root, "sonar-project.properties")
-    if properties_path is None:
-        raise InvalidInputError("unsafe Sonar configuration")
-    properties = dict(
-        line.split("=", 1)
-        for line in properties_path.read_text().splitlines()
-        if line and not line.startswith("#") and "=" in line
-    )
-    equal(
+    properties = _sonar_properties(root)
+    failures += _equal(
         properties.get("sonar.go.coverage.reportPaths", "").split(","),
         [f"{d}/cover.out" for d in dirs],
         "Go coverage reports",
     )
     for key in ("sonar.sources", "sonar.tests"):
         roots = properties.get(key, "").split(",")
-        require(all(d in roots for d in dirs), f"{key} must analyze each Go module")
+        failures += _require(all(d in roots for d in dirs), f"{key} must analyze each Go module")
+    return failures
+
+
+def _check_scans(
+    root: Path, ci: dict, dirs: list[str], scan_targets: Sequence[tuple[str, Path, Path]]
+) -> list[PolicyFailure]:
     scan_modules = [path.parent.relative_to(root).as_posix() for _, path, _ in scan_targets if path.name == "go.mod"]
-    equal(scan_modules, dirs, "OSV Go targets")
+    failures = _equal(scan_modules, dirs, "OSV Go targets")
     scan_upload = next(
         step["with"] for step in ci["jobs"]["supply-chain"]["steps"] if step.get("name") == "Upload OSV-scanner report"
     )
-    equal(
+    failures += _equal(
         scan_upload["path"].split(),
         [report.relative_to(root).as_posix() for _, _, report in scan_targets],
         "OSV reports",
     )
+    return failures
+
+
+def check_inventory(root: Path, scan_targets: Sequence[tuple[str, Path, Path]]) -> list[PolicyFailure]:
+    """Require all consumers to cover each module once, with common gates."""
+    dirs = _module_directories(root)
+    failures = _equal(dirs, list(set(dirs)), "declared modules")
+    workflow, errors = parse_yaml_mapping(root, WORKFLOW)
+    failures.extend(errors)
+    ci, errors = parse_yaml_mapping(root, ".github/workflows/ci.yml")
+    failures.extend(errors)
+    if workflow is None or ci is None:
+        return failures
+    go = workflow["jobs"]["go"]
+    failures.extend(_check_matrix(go, dirs))
+    failures.extend(_check_go_lanes(go))
+    failures.extend(_check_coverage_upload(go))
+    failures.extend(_check_sonar(root, workflow, dirs, go["strategy"]["matrix"]["include"]))
+    failures.extend(_check_scans(root, ci, dirs, scan_targets))
     return failures
 
 
