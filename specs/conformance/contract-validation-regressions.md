@@ -16,6 +16,8 @@ The [source crosswalk](contract-predicate-sources.json) names their Go predicate
 | Full admission with an owner | Tests in the next table | Separate source records and reference-admitted owner fixtures |
 | Reduced timing-limit fractions | `admission.TestTimingLimitReducedRatiosMatchPython` | 18 Python verdicts through realized time and experiment-run validation, including 2/4 refusal and 1/2 admission |
 | Clock coordinate defaults | `admission.TestRuntimeClockPythonDefaults` | 98 Python model verdicts through standalone time state and runtime snapshot admission; exact evidence preservation |
+| Profile and satisfiability model constraints | `admission.TestSupplementalProfileAndEvidenceModelsMatchPython` | 50 independent Python verdicts for governed scopes, known contracts, graph ordering, scalar domains and outcome joins |
+| Satisfiable witness admission | `admission.TestSatisfiabilityWitnessUsesTheNativeOwner` | Independent Python witness verdicts and native compiler phase; missing, changed and failing owners refuse admission |
 
 The portable command checks local rules and selected context gates.
 Its positive result cannot grant a stronger contextual claim.

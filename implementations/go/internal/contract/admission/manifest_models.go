@@ -87,3 +87,10 @@ func selectionDescriptorSet(selections []any) error {
 	}
 	return nil
 }
+
+func processorConceptScope(scope string) bool {
+	return scope == "capabilities.supported_sdl_versions" || scope == "capabilities.supported_features"
+}
+func participantConceptScope(scope string) bool {
+	return slices.Contains([]string{"implementation_kind", "capabilities.supported_participant_contracts", "capabilities.supported_decision_surface_modes", "capabilities.tool_affordance_expectations", "capabilities.exposure_policy_kinds"}, scope)
+}

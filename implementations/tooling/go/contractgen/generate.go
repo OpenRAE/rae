@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"go/format"
+	"go/token"
 	"io/fs"
 	"maps"
 	"path"
@@ -57,10 +58,7 @@ func Generate(source fs.FS) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	const pieceSize = 131072
-	for pos, n := 0, 0; pos < len(archive); pos, n = pos+pieceSize, n+1 {
-		output[fmt.Sprintf("%scorpus/data/%04d", outputRoot, n)] = []byte(hex.EncodeToString(archive[pos:min(pos+pieceSize, len(archive))]) + "\n")
-	}
+	addArchivePieces(output, archive)
 	return output, nil
 }
 
@@ -260,7 +258,7 @@ func identifier(s string) string {
 	if result == "" {
 		return "Value"
 	}
-	if result[0] >= '0' && result[0] <= '9' {
+	if !token.IsExported(result) {
 		result = "N" + result
 	}
 	return result

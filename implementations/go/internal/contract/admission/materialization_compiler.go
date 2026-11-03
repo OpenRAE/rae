@@ -11,7 +11,7 @@ import (
 )
 
 func (e *Validator) materializationCompile(owner MaterializationCompiler, request MaterializationCompileRequest) (*materializationCompiled, error) {
-	if len(request.Source) == 0 || len(request.Source) > value.MaterializationBytes || request.ContractID != termMaterializedScenarioV1 && request.ContractID != "instantiated-scenario-v1" {
+	if len(request.Source) == 0 || len(request.Source) > value.MaterializationBytes || request.ContractID != termMaterializedScenarioV1 && request.ContractID != termInstantiatedScenarioV1 {
 		return nil, invalid()
 	}
 	commitment := digest.SHA256(request.Source)

@@ -21,6 +21,10 @@ func (e *Validator) localModels(id string, root any) error {
 		return err
 	}
 	switch id {
+	case "semantic-profile-v1":
+		return e.semanticProfile(root)
+	case "scenario-satisfiability-evidence-v1":
+		return e.satisfiabilityModel(root)
 	case termProcessorManifestV2:
 		return e.processorManifest(root)
 	case "controlled-vocabularies-v1":
@@ -153,6 +157,27 @@ func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
 		return err
 	}
 	switch strings.TrimPrefix(instance.SchemaPointer, "#/$defs/") {
+	case "SemanticProfileModel":
+		return e.semanticProfile(instance.Value)
+	case "SemanticProfilePhaseModel":
+		return e.semanticProfilePhase(instance.Value)
+	case "ScenarioSatisfiabilityEvidenceModel":
+		return e.satisfiabilityModel(instance.Value)
+	case "SourceArtifactIdentityModel":
+		return constraintSource(instance.Value)
+	case "NormalizedConstraintModel":
+		return constraintGraph(instance.Value)
+	case "ConstraintSymbolModel":
+		_, err := constraintValues(at(instance.Value, "domain"), stringAt(instance.Value, "sort"))
+		return err
+	case "ConstraintClauseModel":
+		_, err := constraintValues(at(instance.Value, "allowed_values"), "")
+		return err
+	case "UnsatisfiableCoreModel":
+		return require(sortedUnique(stringsOf(at(instance.Value, "clause_ids"))))
+	case "UnsupportedAnalysisModel":
+		return require(sortedUnique(stringsOf(at(instance.Value, "reason_codes"))))
+
 	case "ParticipantImplementationProvenanceModel":
 		return participantProvenanceModel(instance.Value)
 	case "ParticipantImplementationManifestModel":

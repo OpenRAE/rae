@@ -31,6 +31,7 @@ A shared validator needs contexts that are safe to share.
 | Information flow | `FlowControlContext` supplies resolved source, policy, action, control and sink owners |
 | Mixed composition | `MixedCompositionContext`, `MixedBackendBindingsContext`, `MixedBackendStagesContext` |
 | Materialization | `MaterializationArchiveContext`, `MaterializationExecutionContext`, `MaterializationInventoryContext` |
+| Satisfiable witness | `MaterializationCompiler` admits the exact instantiated SDL source and supplies its full model for the witness digest |
 
 Contexts carry separate owner records and exact scope fields.
 Go checks the report against those records.

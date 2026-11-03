@@ -118,11 +118,11 @@ func (r *materializationExecution) compile(source []byte) error {
 	if err != nil {
 		return err
 	}
-	originalBytes, err := json.Marshal(at(originalSource, "scenario"))
+	originalBytes, err := json.Marshal(at(originalSource, kindScenario))
 	if err != nil {
 		return invalid()
 	}
-	request := MaterializationCompileRequest{ContractID: "instantiated-scenario-v1", Source: originalBytes, Plan: r.snapshot.Plan, Predecessor: r.snapshot.Predecessor}
+	request := MaterializationCompileRequest{ContractID: termInstantiatedScenarioV1, Source: originalBytes, Plan: r.snapshot.Plan, Predecessor: r.snapshot.Predecessor}
 	r.original, err = r.owner.materializationCompile(r.context, request)
 	if err != nil {
 		return err
@@ -145,14 +145,14 @@ func materializationSource(source any) (any, error) {
 	if err = value.Validate(v, value.Runtime()); err != nil {
 		return nil, invalid()
 	}
-	if len(object(v)) != 2 || stringAt(v, "profile") != "raes-sdl-instantiated-snapshot/v2" || object(at(v, "scenario")) == nil {
+	if len(object(v)) != 2 || stringAt(v, "profile") != "raes-sdl-instantiated-snapshot/v2" || object(at(v, kindScenario)) == nil {
 		return nil, invalid()
 	}
 	commitment, err := jsonDigest(v)
 	if err != nil {
 		return nil, err
 	}
-	if commitment != stringAt(source, "instantiated_digest") || !equal(at(v, "scenario", "instantiation_provenance", "authored_digest", "value"), at(source, "authored_digest")) {
+	if commitment != stringAt(source, "instantiated_digest") || !equal(at(v, kindScenario, "instantiation_provenance", "authored_digest", "value"), at(source, "authored_digest")) {
 		return nil, invalid()
 	}
 	return v, nil

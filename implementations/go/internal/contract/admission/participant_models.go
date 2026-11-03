@@ -1,7 +1,5 @@
 package admission
 
-import "slices"
-
 func participantContractVersions(values any) bool {
 	return declaredManifestContracts(values, "participant")
 }
@@ -35,7 +33,7 @@ func (e *Validator) participantManifest(v any) error {
 	}
 	for _, binding := range bindings {
 		scope := stringAt(binding, "scope")
-		if !slices.Contains([]string{"implementation_kind", "capabilities.supported_participant_contracts", "capabilities.supported_decision_surface_modes", "capabilities.tool_affordance_expectations", "capabilities.exposure_policy_kinds"}, scope) || e.conceptFamilies[stringAt(binding, "family")] == nil || !manifestScopePresent(v, scope) {
+		if !participantConceptScope(scope) || e.conceptFamilies[stringAt(binding, "family")] == nil || !manifestScopePresent(v, scope) {
 			return invalid()
 		}
 	}

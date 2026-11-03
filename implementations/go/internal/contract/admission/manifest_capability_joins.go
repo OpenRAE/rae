@@ -23,9 +23,7 @@ func (e *Validator) processorManifest(v any) error {
 	if !declaredManifestContracts(versions, "processor") || at(v, "configuration_registry") != nil && !set(versions)[termExperimentBindingDescriptorsV1] {
 		return invalid()
 	}
-	return e.manifestBindings(v, func(scope string) bool {
-		return scope == "capabilities.supported_sdl_versions" || scope == "capabilities.supported_features"
-	})
+	return e.manifestBindings(v, processorConceptScope)
 }
 
 func backendFamilyContracts(kind string) []string {

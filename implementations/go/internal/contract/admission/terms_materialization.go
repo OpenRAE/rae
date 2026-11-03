@@ -125,3 +125,7 @@ const (
 const (
 	termMicrostep = "microstep"
 )
+
+const (
+	termInstantiatedScenarioV1 = "instantiated-scenario-v1"
+)

@@ -242,7 +242,7 @@ func factorialPoints(condition any, fixed []any) (map[string]bool, error) {
 		points = append(points, stringAt(policy, "point_ref"))
 	}
 	for _, binding := range array(at(condition, termRequiredBindings)) {
-		if stringAt(binding, "target", "plane") == "scenario" {
+		if stringAt(binding, "target", "plane") == kindScenario {
 			points = append(points, stringAt(binding, "target", "variation_point_id"))
 		}
 	}

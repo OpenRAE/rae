@@ -78,3 +78,7 @@ Hosted CI owns the complete fixture corpus, full tests, race checks,
 coverage, mutation tests, fuzzing and repository-wide verification.
 These checks remain required even when targeted local checks pass.
 No passing CI result is claimed before the candidate is published and checked.
+
+CI retains a short-lived diagnostic coverage profile and test log even when the Go tests fail.
+The diagnostic artifact cannot supply the authoritative Sonar coverage input.
+The normal coverage artifact still requires the preceding checks to pass.

@@ -354,10 +354,24 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/go/internal/contract/binding 4f983e6244c2be2dda9b6da71dced64aade0376de49670b31bd8544bd0b6c76b -->
 
-<!-- go-api implementations/go/internal/contract/validation 17b03c928024e83b8225c830c1a3ff3af68cd3718fc6c4ab3c732624f7ad774a -->
+<!-- go-api implementations/go/internal/contract/validation 7c459c734474cacccd2baea0ea1225e31f32465c65a61c81e4aaca5c02ba9539 -->
 
 <!-- go-api implementations/tooling/go/contractgen 87666ceb97f022789f40a56348e27f85ee3d5d861f37920162f2ad7e027ebabe -->
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
 <!-- go-api implementations/go/internal/contract/admission 899d3a46fb241c21e441ec13e34cf4f7593c302f0c1fa14895dea237f8186ff7 -->
+
+## Model parity repairs
+
+`validation.Validator.HasContract(id string) bool` exposes read-only membership in the compiled publication inventory.
+It grants no schema verdict or admission.
+Semantic-profile phases reuse that inventory and the existing manifest scope rules.
+They check unique contracts, families, binding scopes and assumption IDs.
+Satisfiability records check canonical scalar order, graph references, outcome selection and digest joins.
+A satisfiable witness uses the existing `MaterializationCompiler` as its native SDL admission owner.
+The owner supplies typed phase data for the exact source bytes.
+Go retains the source binding, supplied-field comparison and canonical witness digest check.
+Missing, nil, changed or failing owners cannot grant witness admission.
+This adds no retrieval, solver execution or persistence.
+The generator and snapshot tests cover exact limits and stable transport type identity.

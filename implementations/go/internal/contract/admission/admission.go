@@ -144,6 +144,9 @@ func (e *Validator) Validate(id string, data []byte, limits ingress.Limits, cont
 	if err := e.checkModels(id, data, limits); err != nil {
 		return validation.Value{}, err
 	}
+	if err := e.checkSatisfiabilityWitness(id, data, limits, context); err != nil {
+		return validation.Value{}, err
+	}
 	return admitted, nil
 }
 
