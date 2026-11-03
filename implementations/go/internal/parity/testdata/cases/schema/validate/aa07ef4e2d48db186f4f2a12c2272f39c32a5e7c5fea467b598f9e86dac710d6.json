@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-stage-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:bf16a7673bcc2c86dba09b2c3b3a3a3098001f0b4c84a7a7262c731b9a8bba94"
+  },
+  "name": "regression/94a15ff634a002e7f65c1af52b1d73b4ee97efec0bc75fca55366934e5264a30",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

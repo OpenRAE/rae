@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-flow-control-relation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:3aed62bbf4f562ab6d81d28ee35e888a4d8999d66a7e9541c48a6ae25c6b4776"
+  },
+  "name": "regression/9ceb85e18f23c308a87a98661c1b9c0dc8b5f28098a947788b6329a29a95b395",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

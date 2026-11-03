@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:05fb9a70b591e8f34e4ae40f0ccbb9812ed97cc13129b19d1eef29a0473089dc"
+  },
+  "name": "regression/77d87bfd6bf62c20f52cdb637cfd0a7c9fd23636dd0e4e02206320e015d7c6eb",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
