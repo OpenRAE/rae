@@ -62,16 +62,13 @@ def test_checksum_and_asserted_provenance_do_not_prove_custody_or_signature(mode
         def read(self, size=-1):
             pytest.fail("unsupported integrity reached artifact I/O")
 
+    evidence = ExperimentRunEvidenceInputs(
+        {spec.capture_spec_id: spec},
+        {record.evidence_record_id: record},
+        {run.evidence_artifacts[0].artifact_id: Unreadable()},
+    )
     with pytest.raises(ValueError, match="cannot prove integrity requirement"):
-        validate_experiment_run_against_task(
-            task,
-            run,
-            evidence=ExperimentRunEvidenceInputs(
-                {spec.capture_spec_id: spec},
-                {record.evidence_record_id: record},
-                {run.evidence_artifacts[0].artifact_id: Unreadable()},
-            ),
-        )
+        validate_experiment_run_against_task(task, run, evidence=evidence)
 
 
 @pytest.mark.parametrize("mode", ["checksum", "sha256-digest"])
@@ -108,16 +105,13 @@ def test_sha256_demand_rejects_another_checksum_algorithm_before_io():
         def read(self, size=-1):
             pytest.fail("incompatible integrity algorithm reached artifact I/O")
 
+    evidence = ExperimentRunEvidenceInputs(
+        {spec.capture_spec_id: spec},
+        {record.evidence_record_id: record},
+        {run.evidence_artifacts[0].artifact_id: Unreadable()},
+    )
     with pytest.raises(ValueError, match="required sha256 integrity mode"):
-        validate_experiment_run_against_task(
-            task,
-            run,
-            evidence=ExperimentRunEvidenceInputs(
-                {spec.capture_spec_id: spec},
-                {record.evidence_record_id: record},
-                {run.evidence_artifacts[0].artifact_id: Unreadable()},
-            ),
-        )
+        validate_experiment_run_against_task(task, run, evidence=evidence)
 
 
 def test_authored_none_capture_accepts_checksum_backend_without_extra_integrity_demand():
@@ -234,7 +228,8 @@ def test_none_does_not_falsely_strengthen_a_scoped_integrity_requirement():
         _relation(scenario, authority, dimensions=["integrity-requirements"])
     )
     spec = _capture_spec(authority, integrity=["none"])
+    scenario_view = AuthoredScenarioEvidenceView(scenario)
     with pytest.raises(ValueError, match="must strengthen"):
         validate_evidence_requirement_relations(
-            (relation,), scenario=AuthoredScenarioEvidenceView(scenario), capture_specs={spec.capture_spec_id: spec}
+            (relation,), scenario=scenario_view, capture_specs={spec.capture_spec_id: spec}
         )
