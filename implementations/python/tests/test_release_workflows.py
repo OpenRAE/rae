@@ -1017,9 +1017,68 @@ def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
 
 
+def _codeql_value(expression: str, base: str, ref: str, enabled: str = "true") -> Any:
+    """Evaluate this workflow's string/boolean/JSON expression subset."""
+    node = shutil.which("node")
+    assert node is not None, "The workflow tests require the existing Node runtime"
+    expression = expression.removeprefix("${{").removesuffix("}}").strip()
+    script = """
+const [expression, base, ref, enabled] = process.argv.slice(1);
+const evaluate = new Function('github', 'vars', 'fromJSON', 'return (' + expression + ')');
+console.log(JSON.stringify(evaluate(
+  {base_ref: base, ref_name: ref}, {CODEQL_ADVANCED_ENABLED: enabled}, JSON.parse)));
+"""
+    return json.loads(
+        subprocess.check_output([node, "-e", script, expression, base, ref, enabled], text=True, timeout=10)
+    )
+
+
+@pytest.mark.parametrize("branch", ["main", "dev", "go-cutover"])
+@pytest.mark.parametrize("event", ["push", "pull_request"])
+def test_codeql_selects_languages_for_the_target_branch(branch: str, event: str) -> None:
+    job = _load(WORKFLOWS / "codeql.yml")["jobs"]["analyze"]
+    base, ref = (branch, "1874-feature") if event == "pull_request" else ("", branch)
+    languages = _codeql_value(job["strategy"]["matrix"]["language"], base, ref)
+    expected = {"actions", "python"}
+    if branch != "go-cutover":
+        expected.add("javascript-typescript")
+    assert set(languages) == expected
+    assert len(languages) == len(expected)
+
+
+@pytest.mark.parametrize("enabled", ["", "false", "true"])
+def test_codeql_stays_inactive_until_rollout_is_enabled(enabled: str) -> None:
+    job = _load(WORKFLOWS / "codeql.yml")["jobs"]["analyze"]
+    assert _codeql_value(job["if"], "dev", "1874-feature", enabled) is (enabled == "true")
+    prefix, label = job["name"].split("}}", 1)
+    assert label == "Analyze (${{ matrix.language }})"
+    assert _codeql_value(prefix + "}}", "dev", "1874-feature", enabled) == ("" if enabled == "true" else "Staged ")
+
+
+def test_codeql_events_and_credentials_preserve_scan_boundaries() -> None:
+    workflow = _load(WORKFLOWS / "codeql.yml")
+    assert set(workflow["on"]) == {"push", "pull_request", "schedule", "workflow_dispatch"}
+    for event in ("push", "pull_request"):
+        assert set(workflow["on"][event]["branches"]) == {"main", "dev", "go-cutover"}
+        assert not set(workflow["on"][event]) & {"paths", "paths-ignore"}
+    assert workflow["on"]["schedule"]
+    assert workflow["permissions"] == {"contents": "read"}
+    job = workflow["jobs"]["analyze"]
+    assert job["permissions"] == {"contents": "read", "security-events": "write"}
+    assert job["strategy"]["fail-fast"] is False
+    checkout, initialize, analyze = job["steps"]
+    assert checkout["with"]["persist-credentials"] is False
+    assert initialize["uses"].startswith("github/codeql-action/init@")
+    assert initialize["with"] == {"languages": "${{ matrix.language }}", "build-mode": "none"}
+    assert analyze["uses"].startswith("github/codeql-action/analyze@")
+    assert analyze["with"] == {"category": "/language:${{ matrix.language }}"}
+    assert all(not step.get("if") and not step.get("continue-on-error") for step in job["steps"])
+
+
 # Every write-capable token grant is a reviewed publication, Pages, code-scanning,
 # or release-bookkeeping boundary. Any other job or workflow stays read-only.
 _REVIEWED_JOB_WRITE_SCOPES = {
+    ("codeql.yml", "analyze"): {"security-events"},
     ("docs.yml", "deploy"): {"pages", "id-token"},
     ("ground-control-phase-e.yml", "finalize"): {"issues"},
     ("release-please.yml", "release-please"): {"contents", "pull-requests"},
@@ -1064,9 +1123,14 @@ def _release_managed_paths() -> list[str]:
     return sorted([package["changelog-path"], manifest, *(item["path"] for item in package["extra-files"])])
 
 
-# Events that must still run when only release-managed files change: Release
-# Please itself publishes, and the main Docs push redeploys the release version.
-_RELEASE_BOOKKEEPING_RUNS = {("release-please.yml", "push"), ("docs.yml", "push")}
+# Keep CodeQL's existing scan frequency; Release Please publishes and the Docs
+# push redeploys the release version when only release-managed files change.
+_RELEASE_BOOKKEEPING_RUNS = {
+    ("release-please.yml", "push"),
+    ("docs.yml", "push"),
+    ("codeql.yml", "push"),
+    ("codeql.yml", "pull_request"),
+}
 
 
 def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
