@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:4a75f51d8fde6609492575e5461a08d8c2ead417b589ff05d7a1494ed59b26ae"
+  },
+  "name": "regression/883f74583e9509b23dc8e4dddd26bd6067744ea6fce0ecb420e569ed08fd54db",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "aeg",
+            "populated_sections": {
+              "accounts": 4,
+              "features": 3,
+              "infrastructure": 6,
+              "nodes": 6,
+              "relationships": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "aeg",
+          "populated_sections": {
+            "accounts": 4,
+            "features": 3,
+            "infrastructure": 6,
+            "nodes": 6,
+            "relationships": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -86,3 +86,12 @@ Local runs use focused tests only. CI runs full module and mutation verification
 
 The document uses short sentences and consistent technical names.
 The official STE website refused automated access with HTTP 403; no claim of certified STE compliance is made.
+
+## Migration reference refresh
+
+New verification tests change the source identity of the frozen Python input set.
+Use the existing CI capture and frozen-input replay path to refresh that reference.
+Import only a complete capture from the current source identity after its credential scans pass.
+Keep the exact reproduction check and the Go comparison gates enabled.
+The next CI run must accept the frozen inputs and reproduce the imported cases.
+Issue #1872 removes the corpus and its migration harness after the hard cutover.
