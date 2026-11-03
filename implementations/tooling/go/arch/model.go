@@ -23,15 +23,18 @@ import (
 )
 
 // Schema is the schema identifier of a valid model.
-const Schema = "raes-go-architecture/v1"
+const Schema = "raes-go-architecture/v2"
 
 // Model is the machine-readable architecture of the repository's Go code.
 // Each directory in it is relative to the repository root.
 type Model struct {
-	Schema   string    `json:"schema"`
-	Modules  []Module  `json:"modules"`
-	Layers   []Layer   `json:"layers"`
-	Packages []Package `json:"packages"`
+	Configurations []Configuration   `json:"configurations"`
+	Overview       string            `json:"overview"`
+	Sources        map[string]string `json:"sources"`
+	Schema         string            `json:"schema"`
+	Modules        []Module          `json:"modules"`
+	Layers         []Layer           `json:"layers"`
+	Packages       []Package         `json:"packages"`
 }
 
 // Module is a Go module: the directory that holds its go.mod, and its module path.
@@ -60,11 +63,13 @@ type External struct {
 // Package is a Go package. A public package is visible to the layers that use
 // its layer; a package is always visible inside its own layer.
 type Package struct {
-	Dir     string   `json:"dir"`
-	Layer   string   `json:"layer"`
-	Public  bool     `json:"public"`
-	Doc     string   `json:"doc"`
-	Imports []string `json:"imports"`
+	Design  string              `json:"design"`
+	API     map[string][]string `json:"api"`
+	Dir     string              `json:"dir"`
+	Layer   string              `json:"layer"`
+	Public  bool                `json:"public"`
+	Doc     string              `json:"doc"`
+	Imports []string            `json:"imports"`
 }
 
 // Finding is one way in which the model, the code, or the rule table breaks a rule.
@@ -82,9 +87,20 @@ func (f Finding) String() string {
 // Load reads a model. It rejects unknown fields, data after the model, and an
 // unknown schema.
 func Load(fsys fs.FS, name string) (*Model, error) {
-	content, err := fs.ReadFile(fsys, name)
+	file, err := fsys.Open(name)
 	if err != nil {
 		return nil, err
+	}
+	defer func() { _ = file.Close() }()
+	content, err := io.ReadAll(io.LimitReader(file, 4*1024*1024+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(content) > 4*1024*1024 {
+		return nil, fmt.Errorf("%s: model exceeds 4 MiB", name)
+	}
+	if err := uniqueJSON(json.NewDecoder(bytes.NewReader(content)), 0); err != nil {
+		return nil, fmt.Errorf("decode %s: %w", name, err)
 	}
 	decoder := json.NewDecoder(bytes.NewReader(content))
 	decoder.DisallowUnknownFields()
@@ -104,7 +120,7 @@ func Load(fsys fs.FS, name string) (*Model, error) {
 // CheckDesign checks the rules that the model must meet on its own, before any
 // code exists.
 func (m *Model) CheckDesign() []Finding {
-	return slices.Concat(m.checkModules(), m.checkLayers(), m.checkExternal(), m.checkPackages(), m.checkImports())
+	return slices.Concat(m.checkModules(), m.checkLayers(), m.checkExternal(), m.checkPackages(), m.checkImports(), m.checkPackageCycles(), m.checkAPIShape())
 }
 
 func (m *Model) checkModules() []Finding {
@@ -314,4 +330,101 @@ func isStandard(importPath string) bool {
 // within reports whether the slash-separated path name is root or is below it.
 func within(name, root string) bool {
 	return name == root || strings.HasPrefix(name, root+"/")
+}
+
+func (m *Model) checkPackageCycles() []Finding {
+	state := map[string]int{}
+	var stack []string
+	var visit func(string) []string
+	visit = func(dir string) []string {
+		if state[dir] == 1 {
+			return append(slices.Clone(stack[slices.Index(stack, dir):]), dir)
+		}
+		if state[dir] == 2 {
+			return nil
+		}
+		state[dir] = 1
+		stack = append(stack, dir)
+		pkg, _ := m.pkg(dir)
+		for _, dep := range pkg.Imports {
+			if cycle := visit(dep); cycle != nil {
+				return cycle
+			}
+		}
+		stack = stack[:len(stack)-1]
+		state[dir] = 2
+		return nil
+	}
+	for _, pkg := range m.Packages {
+		if cycle := visit(pkg.Dir); cycle != nil {
+			return []Finding{{Rule: ruleNoCycles, Location: pkg.Dir, Problem: "the packages " + strings.Join(cycle, " -> ") + " form a cycle.", Fix: "remove a declared dependency to break the cycle."}}
+		}
+	}
+	return nil
+}
+
+func (m *Model) checkAPIShape() []Finding {
+	var findings []Finding
+	ids := map[string]bool{}
+	for _, config := range m.Configurations {
+		if config.ID == "" || ids[config.ID] || config.GOOS == "" || config.GOARCH == "" {
+			findings = append(findings, Finding{Rule: ruleAPI, Location: config.ID, Problem: "a build configuration needs a unique ID, GOOS and GOARCH.", Fix: "declare an explicit supported build context."})
+		}
+		ids[config.ID] = true
+	}
+	if len(ids) == 0 {
+		findings = append(findings, Finding{Rule: ruleAPI, Location: "configurations", Problem: "no API build configuration is declared.", Fix: "declare supported GOOS, GOARCH and tags."})
+	}
+	for _, pkg := range m.Packages {
+		if !documentPath(pkg.Design) || len(pkg.API) != len(ids) {
+			findings = append(findings, Finding{Rule: ruleAPI, Location: pkg.Dir, Problem: "the package needs an owning design and an API snapshot for each build configuration.", Fix: "declare the design and intended API before writing code."})
+		}
+		for id, api := range pkg.API {
+			if !ids[id] || api == nil || !slices.IsSorted(api) {
+				findings = append(findings, Finding{Rule: ruleAPI, Location: pkg.Dir, Problem: "the API snapshot has an unknown configuration, null surface or unsorted declarations.", Fix: "use sorted typed declarations for each supported configuration."})
+			}
+		}
+	}
+	return findings
+}
+
+// uniqueJSON rejects ambiguous keys and excessive nesting before strict decoding.
+func uniqueJSON(decoder *json.Decoder, depth int) error {
+	if depth > 128 {
+		return errors.New("model nesting exceeds 128")
+	}
+	token, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	delimiter, ok := token.(json.Delim)
+	if !ok {
+		return nil
+	}
+	keys := map[string]bool{}
+	for decoder.More() {
+		if delimiter == '{' {
+			if err = uniqueObjectKey(decoder, keys); err != nil {
+				return err
+			}
+		}
+		if err = uniqueJSON(decoder, depth+1); err != nil {
+			return err
+		}
+	}
+	_, err = decoder.Token()
+	return err
+}
+
+func uniqueObjectKey(decoder *json.Decoder, keys map[string]bool) error {
+	key, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	name, ok := key.(string)
+	if !ok || keys[name] {
+		return fmt.Errorf("duplicate or invalid object key %q", name)
+	}
+	keys[name] = true
+	return nil
 }

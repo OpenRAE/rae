@@ -1,0 +1,26 @@
+name: Release Classification
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [dev, go-cutover]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
+
+permissions:
+  contents: read
+
+jobs:
+  release-classification:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - run: npm ci --prefix implementations/tooling/release-please --ignore-scripts --no-audit --no-fund
+      - run: npm test --prefix implementations/tooling/release-please

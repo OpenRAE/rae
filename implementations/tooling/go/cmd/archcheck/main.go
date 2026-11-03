@@ -11,6 +11,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -40,6 +41,8 @@ func main() {
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("archcheck", flag.ContinueOnError)
 	flags.SetOutput(stderr)
+	api := flags.Bool("api", false, "print actual typed API as JSON for review")
+	view := flags.Bool("view", false, "print the generated current component view")
 	design := flags.Bool("design", false, "check only the model, before the code exists")
 	if err := flags.Parse(args); err != nil {
 		return 2
@@ -48,6 +51,18 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintln(stderr, "usage: archcheck [-design]")
 		return 2
 	}
+	if (*api && *view) || (*design && (*api || *view)) {
+		_, _ = fmt.Fprintln(stderr, "usage: archcheck [-design | -api | -view]")
+		return 2
+	}
+	if *api || *view {
+		if err := render(ctx, *api, stdout); err != nil {
+			_, _ = fmt.Fprintln(stderr, err)
+			return 1
+		}
+		return 0
+	}
+
 	findings, err := check(ctx, *design)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "archcheck: %v\n", err)
@@ -66,14 +81,32 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 // check returns the findings of the model, and also those of the code and the
 // rule table unless design is set.
 func check(ctx context.Context, design bool) ([]arch.Finding, error) {
-	repo := os.DirFS(".")
+	root, err := os.OpenRoot(".")
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = root.Close() }()
+	repo := root.FS()
 	model, err := arch.Load(repo, modelPath)
 	if err != nil {
 		return nil, err
 	}
-	if findings := model.CheckDesign(); design || len(findings) > 0 {
+	if findings := model.CheckDesign(); len(findings) > 0 {
 		return findings, nil
 	}
+	documents, err := model.CheckDocuments(repo)
+	if err != nil || len(documents) > 0 || design {
+		return documents, err
+	}
+	repoRoot, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	actual, err := arch.LoadAPI(ctx, repoRoot, model)
+	if err != nil {
+		return nil, err
+	}
+	apiFindings := model.CheckAPI(actual)
 	ruleFindings, err := arch.CheckRules(repo, rulesPath)
 	if err != nil {
 		return nil, err
@@ -82,5 +115,33 @@ func check(ctx context.Context, design bool) ([]arch.Finding, error) {
 	if err != nil {
 		return nil, err
 	}
-	return slices.Concat(ruleFindings, model.CheckCode(code)), nil
+	return slices.Concat(apiFindings, ruleFindings, model.CheckCode(code)), nil
+}
+
+func render(ctx context.Context, api bool, stdout io.Writer) error {
+	root, err := os.OpenRoot(".")
+	if err != nil {
+		return err
+	}
+	defer func() { _ = root.Close() }()
+	model, err := arch.Load(root.FS(), modelPath)
+	if err != nil {
+		return err
+	}
+	if findings := model.CheckDesign(); len(findings) > 0 {
+		return fmt.Errorf("invalid design: %s", findings[0])
+	}
+	if !api {
+		_, err = fmt.Fprint(stdout, model.View())
+		return err
+	}
+	repoRoot, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	actual, err := arch.LoadAPI(ctx, repoRoot, model)
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(stdout).Encode(actual)
 }

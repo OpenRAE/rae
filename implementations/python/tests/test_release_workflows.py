@@ -602,7 +602,7 @@ def test_python_release_notes_do_not_make_docs_or_maintenance_releasable() -> No
     """
 
     release_job = _load(RELEASE_PATH)["jobs"]["release-please"]
-    assert release_job["steps"][0]["uses"] == (
+    assert next(step for step in release_job["steps"] if step.get("id") == "rp")["uses"] == (
         "googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7"
     )
     package = _load(RELEASE_CONFIG_PATH)["packages"]["."]
@@ -624,6 +624,35 @@ def test_python_release_notes_do_not_make_docs_or_maintenance_releasable() -> No
         "build": True,
         "ci": True,
     }
+
+
+def test_release_pr_uses_tested_ancestry_adapter_and_matching_engine() -> None:
+    workflow = _load(RELEASE_PATH)
+    jobs = workflow["jobs"]
+    release_job = jobs["release-please"]
+    assert release_job["needs"] == "release-classification"
+    assert release_job["if"] == "github.event_name == 'push'"
+    action = next(step for step in release_job["steps"] if step.get("id") == "rp")
+    assert action["with"]["skip-github-pull-request"] is True
+    adapter = _named_step(release_job, "Maintain release PR from the complete ancestry range")
+    assert adapter["if"] == "steps.rp.outputs.release_created != 'true'"
+    assert adapter["run"] == "node implementations/tooling/release-please/run.cjs"
+    assert jobs["release-classification"]["uses"] == "./.github/workflows/release-classification.yml"
+    classification = _load(WORKFLOWS / "release-classification.yml")
+    assert classification["permissions"] == {"contents": "read"}
+    assert "pull_request" in classification["on"]
+    assert "pull_request" not in workflow["on"]
+    checks = classification["jobs"]["release-classification"]
+    assert workflow["permissions"] == {"contents": "read"}
+    assert "permissions" not in checks
+    assert checks["steps"][-1]["run"] == "npm test --prefix implementations/tooling/release-please"
+    for job in (checks, release_job):
+        assert any("npm ci" in step.get("run", "") and "--ignore-scripts" in step["run"] for step in job["steps"])
+    tooling = REPO_ROOT / "implementations/tooling/release-please"
+    package = json.loads((tooling / "package.json").read_text())
+    lock = json.loads((tooling / "package-lock.json").read_text())
+    assert package["dependencies"] == {"release-please": "17.6.0"}
+    assert lock["packages"]["node_modules/release-please"]["version"] == "17.6.0"
 
 
 def test_every_shell_draft_release_inspection_has_push_capable_token() -> None:
@@ -1177,6 +1206,7 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
         ("post-merge-closing-issue-audit.yml", "pull_request"),
         ("pr-body-policy.yml", "pull_request"),
         ("pr-title-lint.yml", "pull_request"),
+        ("release-classification.yml", "pull_request"),
         ("scorecard.yml", "push"),
     }
 
@@ -1764,6 +1794,11 @@ def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
     job = workflow["jobs"]["go-architecture"]
     assert job["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
     assert "strategy" not in job
+    prepare = _named_step(job, "Prepare pinned dependencies for offline API inspection")
+    assert "go -C implementations/go mod download" in prepare["run"]
+    assert job["steps"].index(prepare) < job["steps"].index(
+        _named_step(job, "Check the Go code against the architecture model")
+    )
     check = _named_step(job, "Check the Go code against the architecture model")
     assert "working-directory" not in check
     assert '"${RUNNER_TEMP}/go-tools/archcheck"' in check["run"]
