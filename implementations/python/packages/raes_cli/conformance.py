@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from enum import Enum
 from pathlib import Path
 
 import typer
@@ -10,18 +11,38 @@ from raes_conformance.conformance import (
     BackendCapabilityProfile,
     BackendConformanceReport,
     backend_conformance_report_payload,
+    backend_conformance_report_text,
     run_fixture_suite,
+    run_processor_conformance,
 )
 from raes_contracts.errors import OperationalError
+from raes_processor.reference import ReferenceProcessor
+
+from raes_cli.processor import load_backend_manifest
 
 _DEFAULT_PROFILE_ID = BackendCapabilityProfile.ORCHESTRATION_EVALUATION.value
 _KNOWN_PROFILE_HINT = ", ".join(sorted(profile.value for profile in BackendCapabilityProfile))
 
-app = typer.Typer(help="Backend conformance suite and fixture corpus.")
+app = typer.Typer(help="Processor and backend conformance checks.")
+
+
+class ConformanceOutputFormat(str, Enum):
+    JSON = "json"
+    TEXT = "text"
 
 
 def _report_payload(report: BackendConformanceReport) -> dict[str, object]:
     return backend_conformance_report_payload(report)
+
+
+def _emit_report(report: BackendConformanceReport, output_format: ConformanceOutputFormat) -> None:
+    typer.echo(
+        backend_conformance_report_text(report)
+        if output_format == ConformanceOutputFormat.TEXT
+        else json.dumps(_report_payload(report), indent=2)
+    )
+    if not report.passed:
+        raise typer.Exit(code=1)
 
 
 @app.command("backend")
@@ -47,6 +68,9 @@ def backend(
         "--profiles-root",
         help="Override the backend profile tree (defaults to contracts/profiles/backend).",
     ),
+    output_format: ConformanceOutputFormat = typer.Option(
+        ConformanceOutputFormat.JSON, "--format", help="Report format: json or text."
+    ),
 ) -> None:
     """Run the published backend conformance fixture suite for ``profile``.
 
@@ -65,6 +89,36 @@ def backend(
         # The line names the failure kind only; host paths and OS error text stay out of the output.
         typer.echo("error: the conformance fixture corpus could not be read", err=True)
         raise typer.Exit(code=1) from exc
-    typer.echo(json.dumps(_report_payload(report), indent=2))
-    if not report.passed:
-        raise typer.Exit(code=1)
+    _emit_report(report, output_format)
+
+
+@app.command("processor")
+def processor(
+    features: list[str] | None = typer.Option(
+        None,
+        "--feature",
+        help="Requested processor feature; repeat to select more. Defaults to compilation and planning.",
+    ),
+    manifest_path: Path | None = typer.Option(
+        None,
+        "--manifest",
+        exists=True,
+        readable=True,
+        help="Local backend-manifest-v2 for planning; defaults to the reference dry-run manifest.",
+    ),
+    output_format: ConformanceOutputFormat = typer.Option(
+        ConformanceOutputFormat.JSON, "--format", help="Report format: json or text."
+    ),
+) -> None:
+    """Check the reference processor with finite positive and negative SDL inputs.
+
+    The backend manifest is a planning input. No backend execution occurs.
+    Unverified features remain unsupported by this suite.
+    """
+
+    report = run_processor_conformance(
+        ReferenceProcessor(),
+        backend_manifest=load_backend_manifest(manifest_path),
+        requested_features=tuple(features) if features is not None else ("compilation", "planning"),
+    )
+    _emit_report(report, output_format)

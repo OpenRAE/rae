@@ -18,9 +18,13 @@ The two machine-readable authorities are:
 - [REV1 taxonomy](../../contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json),
   which owns atomic concern definitions, the five profile meanings, profile
   dispositions, and explicit non-claims; and
-- [2026-07-12 delivery assessment](../../contracts/profiles/scientific-completeness/delivery-assessment-2026-07-12.json),
+- [2026-10-31 delivery assessment](../../contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json),
   which owns current delivery status, evidence, limitations, external-contract
   bindings, and issue references.
+
+The [2026-07-12 delivery assessment](../../contracts/profiles/scientific-completeness/delivery-assessment-2026-07-12.json)
+remains retained and unchanged.
+The package loader selects the current assessment revision.
 
 The taxonomy revision and assessment revision are independent. Implementing a
 missing concern updates or supersedes the assessment. Changing what a concern

@@ -12,17 +12,15 @@ from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import (
     ExampleTransitionModel,
     ExampleTransitionSystemModel,
     load_behavioral_relation_catalog,
 )
-from raes_contracts.contracts import (
-    BehavioralClaimBindingModel,
-    ExperimentStudyModel,
-    schema_bundle,
-)
+from raes_contracts.contracts import ExperimentStudyModel
 from raes_contracts.scientific_completeness import load_scientific_completeness_taxonomy
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 REQUIRED_RELATION_IDS = {
@@ -150,7 +148,7 @@ def test_authoritative_catalog_covers_required_relation_classes_and_dimensions()
 
     assert catalog.schema_version == "behavioral-relations/v1"
     assert catalog.taxonomy_id == "raes-behavioral-relations"
-    assert catalog.taxonomy_revision == "rev13"
+    assert catalog.taxonomy_revision == "rev14"
     assert set(catalog.relations) >= REQUIRED_RELATION_IDS
     for relation_id, relation in catalog.relations.items():
         assert relation.left_carrier

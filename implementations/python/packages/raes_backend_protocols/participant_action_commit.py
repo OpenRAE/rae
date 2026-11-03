@@ -1,11 +1,9 @@
 """Portable participant action commit helpers for backend runtimes."""
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.digests import sha256_digest
-from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantActionApplyResult,
-)
+from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 

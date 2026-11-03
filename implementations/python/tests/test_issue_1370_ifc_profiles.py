@@ -7,7 +7,7 @@ import pytest
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import ParticipantFlowControlRelationModel
 from raes_contracts.contracts.participant_flow_control_validation import validate_participant_flow_control_context
-from raes_contracts.participant_flow_policy_profiles import (
+from raes_contracts.contracts.participant_flow_policy_profiles import (
     load_participant_boundary_flow_policy_profile,
     load_participant_boundary_flow_policy_profile_revision,
 )
@@ -20,7 +20,7 @@ EA = "integrity:owner-a:endorsed"
 
 
 def owner_relation(*, reader="reader:carol", observation=True, base_relation=None, base_context=None):
-    from raes_contracts.contracts.participant_owner_flow import (
+    from raes_contracts.contracts.participant_flow_control_context import (
         ParticipantFlowObligationAuthorityCoordinate,
         ParticipantOwnerFlowSinkResolution,
     )
@@ -254,7 +254,7 @@ def test_owner_schema_publication_and_conformance_use_the_exact_profile_reader()
     from jsonschema import Draft202012Validator
     from paths import REPO_ROOT
     from raes_conformance.conformance.validators import validate_contract_payload
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     schema = schema_bundle()[OWNER_PROFILE]
     assert (

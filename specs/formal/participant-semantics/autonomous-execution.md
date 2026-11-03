@@ -574,3 +574,7 @@ projection, and cross-range isolation rejection. Invocation tool actions cover
 the compiled relation, the capability claim and registration, port admission
 and refusal, one-use dispatch, closure, serial and concurrent settlement, and
 history-view projection. No conformance probe family exercises them yet.
+
+Delivery-owned tool invocations use the separate
+[delivery-tool contract](delivery-tool-actions.md). They require no autonomous
+policy or synthetic outer action.

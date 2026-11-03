@@ -60,7 +60,7 @@ def _next_crossing_snapshot(
     records: list[ParticipantCrossingOccurrenceModel],
 ) -> RuntimeSnapshot:
     from raes_contracts.contracts.participant_crossing_prefix import CrossingPrefix
-    from raes_contracts.immutable_history import seal_history
+    from raes_contracts.snapshot_histories import seal_history
 
     history = seal_history("participant_crossing_history", control_plane._snapshot.participant_crossing_history)
     prefixes = getattr(control_plane, "_crossing_prefixes", None)

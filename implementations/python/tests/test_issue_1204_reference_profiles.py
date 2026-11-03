@@ -55,7 +55,7 @@ def test_target_registration_checks_pinned_profile_context():
 def test_profile_authentication_and_rejected_delivery_preserve_durable_predecessor(tmp_path):
     from copy import deepcopy
 
-    from raes_contracts.plan_projection import provisioning_plan_model
+    from raes_contracts.contracts.plan_projection import provisioning_plan_model
     from raes_contracts.runtime_state import OperationState
     from raes_runtime.control_plane import RuntimeControlPlane
     from raes_runtime.control_plane_api import create_control_plane_app

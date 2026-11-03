@@ -9,19 +9,19 @@ from enum import Enum
 from pydantic import Field, field_validator, model_validator
 from pydantic.json_schema import GetJsonSchemaHandler, JsonSchemaValue
 from pydantic_core import CoreSchema
-
-from raes.runtime_values import parse_runtime_enum_or_var
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import (
-    SDLModel,
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.identifiers import OptionalPortableIdentifier, PortableIdentifier
+from raes_contracts.runtime_values import parse_ram as _parse_ram
+from raes_contracts.runtime_values import parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import (
     is_variable_ref,
     normalize_enum_value,
     parse_enum_or_var,
     parse_int_or_var,
 )
+
 from ._classification_guard import LegacyClassificationGuard
-from ._identifiers import OptionalPortableIdentifier, PortableIdentifier
 from ._runtime_service_families import install_runtime_service_family_exports
 from ._source import Source
 from .architectures import (
@@ -97,14 +97,12 @@ from .runtime_configuration import (
     RuntimePublishedPort,
     RuntimeResourceLimits,
     RuntimeRestartPolicy,
-    RuntimeSensitivityClassification,
     RuntimeSoftwareComponent,
     RuntimeSoftwareComponentHash,
     RuntimeSoftwareComponentProvenance,
     RuntimeSoftwareComponentType,
     RuntimeSudoPrincipalKind,
     RuntimeSudoRule,
-    parse_ram,
 )
 
 _RUNTIME_SERVICE_FAMILY_EXPORTS = install_runtime_service_family_exports(globals())
@@ -178,7 +176,6 @@ __all__ = [
     "RuntimePublishedPort",
     "RuntimeResourceLimits",
     "RuntimeRestartPolicy",
-    "RuntimeSensitivityClassification",
     "RuntimeSoftwareComponent",
     "RuntimeSoftwareComponentHash",
     "RuntimeSoftwareComponentProvenance",
@@ -186,7 +183,6 @@ __all__ = [
     "RuntimeSudoPrincipalKind",
     "RuntimeSudoRule",
     "ServicePort",
-    "parse_ram",
 ]
 
 MAX_NODE_NAME_LENGTH = 35
@@ -208,7 +204,7 @@ class Resources(SDLModel):
     @field_validator("ram", mode="before")
     @classmethod
     def parse_ram_value(cls, v: str | int) -> int | str:
-        return parse_ram(v)
+        return _parse_ram(v)
 
     @field_validator("cpu", mode="before")
     @classmethod

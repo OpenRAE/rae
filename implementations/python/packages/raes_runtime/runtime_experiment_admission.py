@@ -13,6 +13,7 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 from .control_plane_submission import _provisioning_submission_diagnostics
 from .manager_plan_admission import runtime_plan_precondition_diagnostics
 from .operation_policy_admission import execution_budget_ms
+from .participant_delivery_driver import delivery_tool_driver_actions
 from .runtime_trial_services import call_installed_owner
 
 if TYPE_CHECKING:
@@ -45,7 +46,11 @@ def _require_plan(engine: RuntimeControlPlane, realized: TrialRealization) -> No
     if not plan.is_valid or plan.manifest != engine._target.manifest:
         raise ConflictError("trial realization does not match the installed target")
     diagnostics = runtime_plan_precondition_diagnostics(
-        plan, engine._target, RuntimeSnapshot(), durable_lifecycle_available=engine._store_commits.crash_atomic
+        plan,
+        engine._target,
+        RuntimeSnapshot(),
+        durable_lifecycle_available=engine._store_commits.crash_atomic,
+        delivery_actions=delivery_tool_driver_actions(engine, plan.model),
     )
     diagnostics.extend(_provisioning_submission_diagnostics(plan.provisioning, RuntimeSnapshot(), plan.manifest))
     if diagnostics:

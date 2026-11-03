@@ -3,12 +3,17 @@
 import ipaddress
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    coerce_string_list,
+    parse_runtime_enum_or_var,
+    require_non_empty,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_int_or_var
 
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from .runtime_dns_vocab import DnsRecordClass, DnsRecordProvenance, DnsRecordType
-from .runtime_values import coerce_string_list, parse_runtime_enum_or_var, require_non_empty, require_symbol
 
 __all__ = [
     "DnsMxRdata",

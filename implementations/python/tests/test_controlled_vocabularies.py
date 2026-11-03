@@ -12,7 +12,6 @@ from raes_contracts.contracts import (
     AttackEnterpriseTacticsSourceModel,
     ControlledVocabularyCatalogModel,
     NistCsfDefensiveCategorySourceModel,
-    schema_bundle,
 )
 from raes_contracts.controlled_vocabularies import (
     controlled_vocabulary_catalog_path,
@@ -28,6 +27,7 @@ from raes_contracts.vocabulary import (
     WorkflowFeature,
     WorkflowStatePredicateFeature,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CATALOG_PATH = REPO_ROOT / "contracts" / "concept-authority" / "controlled-vocabularies-v1.json"

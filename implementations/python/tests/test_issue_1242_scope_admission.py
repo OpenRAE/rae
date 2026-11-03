@@ -23,7 +23,11 @@ def scoped_plan(policy=None, *, negotiated=True, content=None):
             else execution.manifest.supported_contract_versions
         ),
     )
-    source = {"name": "scoped", "realization": {"default": "open"}, "nodes": {"host": {"type": "compute"}}}
+    source = {
+        "name": "scoped",
+        "realization": {"default": "open", "scopes": [{"field_pointer": "/nodes/host/runtime", "posture": "closed"}]},
+        "nodes": {"host": {"type": "compute"}},
+    }
     source.update(content or {})
     if policy is not None:
         source["augmentation_scope"] = policy

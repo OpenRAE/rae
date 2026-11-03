@@ -20,7 +20,6 @@ import yaml
 from raes import SDLInstantiationError, SDLValidationError, instantiate_scenario, parse_sdl, parse_sdl_file
 from raes import _reference_targetability as policy
 from raes import _relationship_endpoint_policy as endpoint_policy
-from raes._base import is_variable_ref
 from raes._declarations import Declaration, DeclarationIndex, build_declaration_index, preferred_spelling
 from raes._language_context import PurposeResolver
 from raes._runtime_service_family_registry import (
@@ -34,6 +33,7 @@ from raes.relationships import Relationship, RelationshipType
 from raes.semantics import deployment_tenancy, domain_topology, enterprise_identity
 from raes.validator import SemanticValidator
 from raes.validator._core import eligible_element
+from raes_contracts.variable_references import is_variable_ref
 from raes_processor.compiler import compile_scenario_runtime_model
 
 P = policy.ReferencePurpose

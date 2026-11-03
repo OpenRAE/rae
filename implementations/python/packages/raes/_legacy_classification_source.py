@@ -10,8 +10,8 @@ import rfc8785
 from pydantic import TypeAdapter, ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.json_pointer import escape_token
+from raes_contracts.variable_references import contains_variable_token
 
-from ._base import contains_variable_token
 from ._errors import SDLParseError
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDL_CANONICAL_PROFILE, SDLParserLimits, SDLSourceParseOptions
 from .canonical import SDLCanonicalDigest

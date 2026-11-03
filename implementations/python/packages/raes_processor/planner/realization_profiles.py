@@ -8,8 +8,8 @@ from dataclasses import replace
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
+from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT
 from raes_contracts.profile_selections import authored_resource_profiles, selected_profile_authority
-from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
 from raes_contracts.realization_profiles import (
     PLAN_PROFILE_CONTRACT,
     profile_authority_violation,

@@ -11,11 +11,11 @@ the acceptance-criteria collision test).
 from __future__ import annotations
 
 from raes_contracts.contracts.random_stream import StreamAddressModel
-from raes_contracts.diagnostics import Severity
-from raes_contracts.random_stream_engine import (
+from raes_contracts.contracts.random_stream_engine import (
     BoundedIntegerDrawRequest,
     draw_bounded_integer_batch,
 )
+from raes_contracts.diagnostics import Severity
 
 PROFILE_ID = "blake3-xof-v1"
 STREAM_KEY = bytes(range(32))

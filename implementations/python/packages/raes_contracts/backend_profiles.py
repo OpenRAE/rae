@@ -17,7 +17,8 @@ from typing import Annotated, Literal
 
 from pydantic import Field, WithJsonSchema, model_validator
 
-from .contracts import ContractModel
+from raes_contracts._base import ContractModel
+
 from .corpus import PROFILES, corpus_family_root
 from .errors import InvalidInputError
 from .manifest_authority import (

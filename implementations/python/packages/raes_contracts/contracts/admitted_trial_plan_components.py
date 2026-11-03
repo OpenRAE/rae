@@ -13,7 +13,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, model_validator
-from raes.identifiers import PortableIdentifier
+
+from raes_contracts.identifiers import PortableIdentifier
 
 from .._canonical import canonical_json_digest
 from ..diagnostics import DiagnosticModel

@@ -13,8 +13,9 @@ from typing import TYPE_CHECKING, Any, BinaryIO
 from pydantic import ValidationError
 from raes_contracts.digests import sha256_hasher
 
-from .._errors import SDLParseError
+from .._errors import SDLImportError, SDLImportErrorCode, SDLParseError
 from .._source_profile import SDLSourceParseOptions
+from .._supplied_sources import normalize_bundle_path
 from ..scenario import ImportDecl
 from ._cache_integrity import _CACHE_INTEGRITY_ERROR, _CacheIntegrityError
 from ._filesystem import _O_BINARY, _O_NOFOLLOW, _same_file_identity
@@ -32,10 +33,10 @@ class _VerifiedSourceBundle:
 
     def resolve_local(self, *, base_dir: Path, relative: str) -> tuple[Path, SDLSourceDocument]:
         base_relative = _cache_relative_path(self.cache_root, base_dir)
-        target = _normalize_bundle_path(base_relative, relative)
+        target = normalize_bundle_path(base_relative, relative)
         document = self.documents.get(target)
         if document is None:
-            raise SDLParseError(f"Imported SDL file not found: {relative}")
+            raise SDLImportError(SDLImportErrorCode.SOURCE_MISSING, f"Imported SDL file not found: {relative}")
         return self.cache_root.joinpath(*PurePosixPath(target).parts), document
 
     def identity_path(self, path: Path) -> Path:
@@ -51,7 +52,9 @@ def _cache_relative_path(cache_root: Path, path: Path) -> str:
     try:
         relative = candidate.relative_to(root)
     except ValueError as exc:
-        raise SDLParseError("Local import path escapes the verified OCI module cache") from exc
+        raise SDLImportError(
+            SDLImportErrorCode.PATH_INVALID, "Local import path escapes the verified OCI module cache"
+        ) from exc
     return relative.as_posix() or "."
 
 
@@ -65,36 +68,6 @@ def _local_resolved_source(import_path: Path, base_dir: Path, *, lexical: bool =
 
     anchor = base_dir.absolute() if lexical else base_dir.resolve()
     return Path(os.path.relpath(import_path, anchor)).as_posix()
-
-
-def _normalize_bundle_path(base_relative: str, relative: str) -> str:
-    normalized = relative.replace("\\", "/")
-    candidate = PurePosixPath(normalized)
-    invalid_reference = (
-        not normalized
-        or "\x00" in normalized
-        or candidate.is_absolute()
-        or (candidate.parts and len(candidate.parts[0]) == 2 and candidate.parts[0][1] == ":")
-    )
-    if invalid_reference:
-        raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
-    parts = [] if base_relative == "." else list(PurePosixPath(base_relative).parts)
-    _apply_bundle_path_parts(parts, candidate.parts, relative=relative)
-    if not parts:
-        raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
-    return PurePosixPath(*parts).as_posix()
-
-
-def _apply_bundle_path_parts(parts: list[str], candidate_parts: tuple[str, ...], *, relative: str) -> None:
-    """Apply normalized path components without permitting an escape."""
-
-    for part in candidate_parts:
-        if part == "..":
-            if not parts:
-                raise SDLParseError(f"Local import path escapes base directory: {relative!r}")
-            parts.pop()
-        else:
-            parts.append(part)
 
 
 def _cache_file_fingerprint(metadata: os.stat_result) -> tuple[bool, int, int]:
@@ -174,9 +147,9 @@ def _read_verified_cache_source(
     if byte_count != expected_size or f"sha256:{digest}" != expected_entry["digest"]:
         raise _CacheIntegrityError(_CACHE_INTEGRITY_ERROR)
 
-    from ..parser import _source_document_from_bytes
+    from ..parser import decode_sdl_source
 
-    return _source_document_from_bytes(captured, path=path, limits=source_options.limits)
+    return decode_sdl_source(captured, path=path, limits=source_options.limits)
 
 
 def _local_import_targets(
@@ -207,7 +180,7 @@ def _local_import_targets(
             raise SDLParseError("Imported SDL unit is structurally invalid", path=path) from exc
         source = import_decl.normalized_source
         if source.startswith("local:"):
-            targets.append(_normalize_bundle_path(parent, source.removeprefix("local:")))
+            targets.append(normalize_bundle_path(parent, source.removeprefix("local:")))
     return targets
 
 
@@ -233,7 +206,7 @@ def _read_verified_source_bundle(
             continue
         entry = entries.get(relative)
         if entry is None:
-            raise SDLParseError(f"Imported SDL file not found: {relative}")
+            raise SDLImportError(SDLImportErrorCode.SOURCE_MISSING, f"Imported SDL file not found: {relative}")
         path = cache_root.joinpath(*PurePosixPath(relative).parts)
         document = _read_verified_cache_source(
             path,

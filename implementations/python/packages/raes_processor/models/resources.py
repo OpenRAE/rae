@@ -4,11 +4,11 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from raes.participant_behavior import ParticipantFailureClass
 from raes_backend_protocols.domain_topology import DomainTopologyBinding
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
+from raes_contracts.participant_action_semantics import ParticipantFailureClass
 from raes_contracts.participant_episode import PARTICIPANT_EPISODE_CONTROL_EVENTS, PARTICIPANT_EPISODE_TERMINAL_EVENTS
 
 if TYPE_CHECKING:
@@ -60,9 +60,9 @@ class NodeRuntime(ResolvedResource):
     node_name: str = ""
     node_kind: str = ""
     os_family: str = ""
-    os_distribution: str = ""
+    os_distribution: str | None = None
     os_version: str = ""
-    architecture: str = ""
+    architecture: str | None = None
     count: int | str | None = None
     network_namespace_target: str = ""
     domain_topology: DomainTopologyBinding | None = None

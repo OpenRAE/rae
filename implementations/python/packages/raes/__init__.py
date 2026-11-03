@@ -45,6 +45,7 @@ __all__ = [
     "load_sdl_fragment",
     "parse_sdl",
     "parse_sdl_file",
+    "parse_sdl_sources",
     "ArtifactTransformationPolicy",
     "CanonicalArtifactComparison",
     "PortableContractTransformationResult",
@@ -60,6 +61,8 @@ __all__ = [
     "select_scenario_family",
     "Scenario",
     "SDLError",
+    "SDLImportError",
+    "SDLImportErrorCode",
     "SDLInstantiationError",
     "SDLMigrationPolicy",
     "SDLParserLimits",
@@ -79,6 +82,8 @@ __all__ = [
 _LAZY_EXPORTS = {
     "raes._errors": (
         "SDLError",
+        "SDLImportError",
+        "SDLImportErrorCode",
         "SDLInstantiationError",
         "SDLParseDiagnostic",
         "SDLParseError",
@@ -116,7 +121,7 @@ _LAZY_EXPORTS = {
         "SDL_CANONICAL_PROFILE",
         "SDL_SOURCE_FORMAT",
     ),
-    "raes._base": ("VARIABLE_TOKEN_PATTERN",),
+    "raes_contracts.variable_references": ("VARIABLE_TOKEN_PATTERN",),
     "raes._declarations": ("build_declaration_index",),
     "raes._reference_targetability": ("ReferencePurpose",),
     "raes._operating_scope_index": ("operating_scope_aliases",),
@@ -138,6 +143,7 @@ _LAZY_EXPORTS = {
         "load_sdl_fragment",
         "parse_sdl",
         "parse_sdl_file",
+        "parse_sdl_sources",
     ),
     "raes.transformations": (
         "ArtifactTransformationPolicy",
@@ -156,14 +162,13 @@ _LAZY_EXPORTS = {
         "Scenario",
     ),
 }
-_EXPORT_MODULES = {name: module for module, names in _LAZY_EXPORTS.items() for name in names}
 
 
 def __getattr__(name: str):
-    module_name = _EXPORT_MODULES.get(name)
-    if module_name is None:
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    return getattr(import_module(module_name), name)
+    for module_name, names in _LAZY_EXPORTS.items():
+        if name in names:
+            return getattr(import_module(module_name), name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def __dir__() -> list[str]:

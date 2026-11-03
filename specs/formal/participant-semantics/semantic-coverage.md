@@ -17,7 +17,7 @@ matrix, not that table, records the current open owner of each gap.
 
 ## Parts
 
-This file holds the rules. The 90 rows are in five files, each small enough to
+This file holds the rules. The 91 rows are in five files, each small enough to
 review on its own:
 
 | Part | Rows | Clauses |
@@ -26,7 +26,7 @@ review on its own:
 | [design-commitments-sem-212-to-215.md](semantic-coverage/design-commitments-sem-212-to-215.md) | 23 | SEM-212.C1 to SEM-215.C8 |
 | [invariants-i1-to-i18.md](semantic-coverage/invariants-i1-to-i18.md) | 18 | I1 to I18 |
 | [behavior-model-and-runtime.md](semantic-coverage/behavior-model-and-runtime.md) | 16 | PBM-01 to PBM-13, PRT-07, PRT-09, PRT-10 |
-| [family-rows.md](semantic-coverage/family-rows.md) | 13 | SEM-214.F to DSL-437.F |
+| [family-rows.md](semantic-coverage/family-rows.md) | 14 | SEM-214.F to DSL-437.F |
 
 `implementations/python/tests/test_issue_219_participant_semantic_coverage.py`
 reads every part. It checks the matrix against the tree in both directions:
@@ -45,14 +45,14 @@ judgment.
   and follow bullet order. The normative bullets are not renumbered.
 - **Family rows** (`.F`). One row for each `## SEM-…` README section without
   clause rows, and one for each focused-specification requirement family with
-  no README section (SEM-234, SEM-235, ACT-617, ACT-618, and DSL-437), for 13
+  no README section (SEM-234, SEM-235, ACT-617, ACT-618, DSL-142, and DSL-437), for 14
   rows. SEM-219, SEM-220, and SEM-226 share one joint row, which points to
   the README's ADR-083 §7 "Source-to-contract-to-test matrix" instead of
   restating it, so no clause has two clause matrices. Rows follow requirement
   families, not files. Every focused specification (every top-level `*.md` in
   this directory other than `README.md` and this index) is named in the
   normative location of at least one family row, and one row can name several:
-  `SEM-232.F` names five, `SEM-235.F` names three, and
+  `SEM-232.F` names seven, `SEM-235.F` names three, and
   `ifc-profile-variability.md` appears in both `SEM-233-ASR-536.F` and
   `SEM-235.F`. Every UID in the README's declared scope list appears in at
   least one row's requirement cell.
@@ -170,8 +170,8 @@ Author-facing identity and migration guidance remains #1342's responsibility; th
 
 ## Open rows
 
-Of the 90 rows, 66 are `covered` and 24 are `partial`; none is `uncovered`.
-This table lists the owners of the 25 open rows. Each part records evidence and a concrete acceptance test.
+Of the 90 rows, 67 are `covered` and 23 are `partial`; none is `uncovered`.
+This table lists the owners of the 23 open rows. Each part records evidence and a concrete acceptance test.
 
 | Clause | Part | Owner(s) |
 | --- | --- | --- |
@@ -187,7 +187,6 @@ This table lists the owners of the 25 open rows. Each part records evidence and 
 | `SEM-214.F` | family-rows.md | #1512 |
 | `SEM-219-220-226.F` | family-rows.md | #1570, #1571, #1572 |
 | `SEM-231.F` | family-rows.md | #222 |
-| `SEM-232.F` | family-rows.md | #974, #973, #975, #976 |
 | `SEM-234.F` | family-rows.md | #608, #222 |
 | `ACT-617.F` | family-rows.md | #1583 |
 | `I1` | invariants-i1-to-i18.md | #257 |

@@ -14,17 +14,17 @@ from raes_contracts.contracts import RealizationEnvelopeIdentityModel
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.errors import EvidenceIntegrityError
-from raes_contracts.immutable_history import HISTORY_FIELDS, HistoryMap
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.immutable_history import HistoryMap
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
-    ExplicitnessClass,
-    ExplicitnessProvenance,
     RealizationProvenanceEntry,
     RuntimeSnapshot,
     RuntimeSnapshotEnvelope,
     SnapshotEntry,
 )
+from raes_contracts.snapshot_histories import HISTORY_FIELDS, is_sealed_history, seal_history
 
 from .control_plane_store_observations import realization_observation_from_payload
 from .control_plane_store_revision import SnapshotState
@@ -346,18 +346,14 @@ __all__ = ("_snapshot_from_payload", "_snapshot_payload", "durable_snapshot_stat
 
 
 def _snapshot_history(payload: dict[str, Any], field: str) -> HistoryMap | dict[str, list[dict[str, object]]]:
-    from raes_contracts.immutable_history import HistoryMap
-
     history = payload.get(field, {})
-    if isinstance(history, HistoryMap) and history._field == field:
+    if is_sealed_history(field, history):
         return history
     return {address: list(events) for address, events in history.items()}
 
 
 def _canonical_snapshot(snapshot: RuntimeSnapshot) -> RuntimeSnapshot:
     """Normalize header fields while retaining separately validated JSON histories."""
-    from raes_contracts.immutable_history import HISTORY_FIELDS, seal_history
-
     payload = _snapshot_payload(snapshot, include_histories=False)
     payload.update({field: seal_history(field, getattr(snapshot, field)) for field in HISTORY_FIELDS})
     return _snapshot_from_payload(payload)

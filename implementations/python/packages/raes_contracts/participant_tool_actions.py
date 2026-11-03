@@ -12,13 +12,14 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from . import participant_binding_validation as _binding_validation
-from .contracts import (
+from raes_contracts.contracts.participant_runtime import (
     ParticipantActionResultModel,
     ParticipantBehaviorHistoryEventModel,
     ParticipantInvocationToolContextModel,
     ParticipantObservationDetailsModel,
 )
+
+from .contracts import participant_binding_validation as _binding_validation
 from .contracts.participant_invocation_tools import INVOCATION_TOOL_ACTIONS_SEMANTICS
 from .digests import sha256_digest, sha256_hex
 from .participant_behavior import (
@@ -31,7 +32,7 @@ from .participant_behavior import (
 from .participant_binding_events import participant_implementation_actor_provenance
 
 if TYPE_CHECKING:
-    from .participant_binding import ParticipantActionAdmissionRequest
+    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 
 _TOOL_CALL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 TOOL_ACTION_ID_PREFIX = "participant-tool-action-"
@@ -63,6 +64,8 @@ class ParticipantToolActionRefusal(StrEnum):
     STATE_CONFLICT = "state_conflict"
     OUTCOME_INVALID = "outcome_invalid"
     OUTCOME_CONFLICT = "outcome_conflict"
+    AUTHORITY_DENIED = "authority_denied"
+    TEMPORAL_GUARANTEE_UNSATISFIED = "temporal_guarantee_unsatisfied"
 
 
 class ParticipantToolActionSettlement(StrEnum):
@@ -136,6 +139,7 @@ class ParticipantToolActionDecision:
     admitted: bool
     action_instance_id: str | None = None
     refusal: ParticipantToolActionRefusal | None = None
+    binding: ParticipantActionAdmissionRequest | None = None
 
 
 @dataclass(frozen=True)
@@ -146,6 +150,7 @@ class ParticipantToolActionReceipt:
     accepted: bool
     refusal: ParticipantToolActionRefusal | None = None
     settlement: ParticipantToolActionSettlement | None = None
+    binding: ParticipantActionAdmissionRequest | None = None
 
 
 def tool_action_instance_id(
@@ -199,6 +204,20 @@ def participant_tool_action_events(
     temporal_contexts = [
         context_model for context_model in outer.temporal_contexts if context_model.shared_time is None
     ]
+    return participant_tool_history_events(
+        record,
+        context,
+        temporal_contexts,
+        actor_provenance=participant_implementation_actor_provenance(outer.implementation_selection),
+    )
+
+
+def participant_tool_history_events(
+    record: object, context: object, temporal_contexts: object, *, actor_provenance: object
+) -> object:
+    """Construct the shared three-event action history for an explicit invocation origin."""
+
+    request = record.request
     post_state_digest = sha256_digest(
         f"{record.action_instance_id}\0{record.settlement.value}\0{record.action_result.status}".encode()
     )
@@ -220,7 +239,7 @@ def participant_tool_action_events(
         ParticipantBehaviorHistoryEventModel(
             event_type=ParticipantBehaviorHistoryEventType.ACTION_ATTEMPTED,
             timestamp=record.admitted_at,
-            actor_provenance=participant_implementation_actor_provenance(outer.implementation_selection),
+            actor_provenance=actor_provenance,
             lifecycle_phase=ParticipantRuntimeLifecyclePhase.SELECTION_OR_ADMISSION,
             admission_disposition=ParticipantAdmissionDisposition.ADMITTED,
             **common,

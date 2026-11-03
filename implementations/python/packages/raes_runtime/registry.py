@@ -9,10 +9,14 @@ from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.operation_supervision import BackendOperationProvider
 from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, Provisioner, TimeRuntime
 from raes_backend_protocols.recovery_observation import RecoveryObserver
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_invocation_tools import (
+    INVOCATION_TOOL_ACTIONS_SEMANTICS,
+    delivery_tool_actions_enabled,
+)
 from raes_contracts.errors import NotFoundError
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
-from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
+from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT
 
 from . import registry_scenario as _registry_scenario
 from . import time_coordinator as _time_coordinator
@@ -44,6 +48,7 @@ class _ParticipantRuntimeMethodRequirements:
     execution_control: bool
     bounded_concurrency: bool
     invocation_tool_actions: bool = False
+    delivery_tool_actions: bool = False
 
 
 @dataclass(frozen=True)
@@ -67,7 +72,12 @@ def _participant_runtime_method_requirements(manifest: BackendManifest) -> _Part
         coordinated_reset=bool(manifest.time and manifest.time.supports_coordinated_participant_reset),
         execution_control=bool(capability and capability.supports_execution_control),
         bounded_concurrency=bool(capability and capability.supports_bounded_concurrency),
-        invocation_tool_actions=bool(capability and capability.invocation_tool_actions is not None),
+        invocation_tool_actions=bool(
+            capability
+            and capability.invocation_tool_actions
+            and INVOCATION_TOOL_ACTIONS_SEMANTICS in capability.invocation_tool_actions.semantic_versions
+        ),
+        delivery_tool_actions=bool(capability and delivery_tool_actions_enabled(capability.invocation_tool_actions)),
     )
 
 
@@ -377,6 +387,13 @@ def _validate_participant_execution_capability_methods(
             label="participant_runtime",
             method_name="attach_invocation_tool_actions",
             invocation_args=(object(),),
+        )
+    if requirements.delivery_tool_actions:
+        _require_invokable_method(
+            participant_runtime,
+            label="participant_runtime",
+            method_name="invoke_delivery",
+            invocation_args=(object(), object()),
         )
 
 

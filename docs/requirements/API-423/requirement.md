@@ -83,3 +83,5 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
 - TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)
+
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-crossing-evidence-v1.json` (Runtime-owned participant delivery tool composition, issue #1829)

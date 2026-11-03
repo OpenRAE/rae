@@ -226,8 +226,11 @@ projections. Their owning profiles supply semantic identities, not backend
 payload heuristics. Capability and mount-option sets use comparison-only keyed
 scalar records; bounded scalar choices use collision-free aliases while their
 actual value remains separately constrained. Compound process-limit identities
-retain the canonical selector and scope. Native persistence shapes remain
-unchanged. Ordered sequences remain ordered. Unsafe domains or ambiguous
+retain the canonical selector and scope. Every registered runtime service
+family and its registered child collections compare members by semantic
+identity, so member order has no effect. Application routes compare by
+`route_id`. Native persistence shapes remain unchanged. Ordered sequences
+remain ordered. Unsafe domains or ambiguous
 identities MUST produce an actionable `realization.authority-bound-unavailable`
 diagnostic before execution.
 This supported fragment includes an inherited open package scope with an exact
@@ -437,6 +440,22 @@ under-scoped, or unsupported
 corroboration is a `runtime.backend-contract-invalid` failure before snapshot
 persistence.
 
+An open concern that the author leaves empty has no authored structure or
+constraint document. Planning MUST NOT require observation capability for
+that concern.
+
+- For any backend, omission or an explicit empty report without a matching
+  observation establishes that the backend added no member and produces no
+  provenance. A reported member or a matching observation MUST undergo full
+  corroboration. Proof of absence is required only when the author demands it.
+- The runtime gate MUST reject a malformed report, a reported member without
+  sufficient corroboration, and a readback disclosure that the manifest cannot
+  support.
+
+Failed apply inventory remains subject to authority and sanitization checks
+without claiming successful readback. The typed process-resource-limit
+admission rule below still applies to open process limits.
+
 Evidence-source provenance, in-world versus out-of-world visibility, and the
 effect of collection on the realized world are independent coordinates. A
 closed effective realization scope MUST NOT add an in-world probe, sidecar,
@@ -522,7 +541,9 @@ the supported exact-requirement-kinds, (iii) the supported
 constraint-kinds, and (iv) the disclosure kinds the apparatus will emit.
 When a registered concern requires corroboration, the same declaration MUST
 also carry a concern-keyed observation capability containing its closed
-verification scope and non-`none` observation strength.
+verification scope and non-`none` observation strength. For an open concern
+that the author leaves empty, planning admission does not require this
+capability. I2 states the runtime contract with and without the capability.
 Processor manifests MUST NOT carry `realization_support`: in RAES the
 processor layer does not realize underspecified author concerns — its
 manifest discloses processing features (compilation, planning,
@@ -638,7 +659,10 @@ realization status, are:
   `raes_processor.planner.plan`. Exact registered inventory concerns with a
   required verification scope also fail with
   `realization.under-observed-exact-requirement` when the manifest capability
-  is absent or weaker. Process-resource-limit requirements also fail with
+  is absent or weaker. An open registered concern with an authored structure
+  or constraint document keeps the same capability demand. An open concern
+  that the author leaves empty does not need the capability before deployment
+  (I2). Process-resource-limit requirements also fail with
   `realization.unsupported-process-resource-limits` when no declaration admits
   their typed resource, scope, value domain, and guest observation demand.
 - **Error-envelope gate** — unsupported exact requirements and

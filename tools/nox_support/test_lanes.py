@@ -206,7 +206,17 @@ def _run_coverage_reduce(
 
     def _combine_and_report() -> None:
         with session.chdir(PROJECT_ROOT):
-            _run(session, "uv", "run", "--frozen", "coverage", "combine", "--keep", str(reduce_dir), env=coverage_env)
+            _run(
+                session,
+                "uv",
+                "run",
+                "--frozen",
+                "coverage",
+                "combine",
+                "--keep",
+                str(reduce_dir),
+                env=coverage_env,
+            )
             _write_and_check_coverage(session, coverage_env)
 
     reporter.run(
@@ -298,9 +308,14 @@ def _run_docs(
         "docs / Vale reader style",
         lambda: _run(
             session,
+            "uv",
+            "run",
+            "--project",
+            str(PROJECT_ROOT),
+            "--frozen",
             str(ensure_vale(REPO_ROOT)),
             "--config=.vale.ini",
-            "--glob=*.md",
+            "--glob=*.{md,rst}",
             *PUBLIC_DOCS_ENTRYPOINTS,
             str(PUBLIC_DOCS_ROOT),
         ),
@@ -392,7 +407,13 @@ def _run_installation_qualification(
         try:
             reporter.run(
                 f"qualification / {name}",
-                lambda: _run(session, sys.executable, str(REPO_ROOT / harness), str(root), *posargs),
+                lambda: _run(
+                    session,
+                    sys.executable,
+                    str(REPO_ROOT / harness),
+                    str(root),
+                    *posargs,
+                ),
                 detail=detail,
             )
         finally:

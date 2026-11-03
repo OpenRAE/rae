@@ -11,15 +11,20 @@ from raes.architectures import normalize_architecture
 from raes.canonical import canonical_sdl_digest
 from raes.infrastructure import ACLAction
 from raes.nodes import OSFamily
-from raes.runtime_values import parse_runtime_enum_identity
 from raes.scenario import ExpandedScenario, Scenario
-from raes.value_parsing import extract_variable_name, normalize_enum_value, variable_names_in_value
 from raes.variables import Variable, VariableType
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.diagnostics import DiagnosticModel
 from raes_contracts.digests import sha256_hex
 from raes_contracts.json_pointer import escape_token
-from raes_contracts.satisfiability import (
+from raes_contracts.runtime_values import parse_runtime_enum_identity
+from raes_contracts.variable_references import (
+    extract_variable_name,
+    normalize_enum_value,
+    variable_names_in_value,
+)
+
+from raes_processor.satisfiability.evidence import (
     ConstraintClauseKind,
     ConstraintClauseModel,
     ConstraintSort,

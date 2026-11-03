@@ -15,11 +15,11 @@ from dataclasses import replace
 from typing import TYPE_CHECKING, Protocol
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import OperationalError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.participant_binding_events import participant_behavior_event_payload
 from raes_contracts.participant_tool_actions import (
     ParticipantToolActionRecord,

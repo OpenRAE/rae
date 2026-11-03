@@ -23,7 +23,7 @@ from .backend_realization_authority import _RealizationApplyContext
 
 if TYPE_CHECKING:
     from raes_backend_protocols.capabilities import BackendManifest
-    from raes_contracts.materialization import MaterializationArchive
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchive
     from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
     from raes_contracts.runtime_state import RuntimeSnapshot
 

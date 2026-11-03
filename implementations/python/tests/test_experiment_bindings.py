@@ -10,6 +10,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import _validate_payload
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts import (
     BackendManifestV2Model,
     ConfigurationTargetDeclarationModel,
@@ -23,19 +24,18 @@ from raes_contracts.contracts import (
     ParticipantImplementationSelectionModel,
     ProcessorManifestV2Model,
     RealizedBindingProvenanceModel,
-    schema_bundle,
+)
+from raes_contracts.contracts.participant_configuration import (
+    ConfigurationOverrideModel,
+    realize_participant_configuration,
+    validate_participant_configuration_selection,
 )
 from raes_contracts.experiment_bindings import (
     ExperimentBindingTargetError,
     ScenarioBindingResolution,
     validate_experiment_binding_targets,
 )
-from raes_contracts.participant_configuration import (
-    ConfigurationOverrideModel,
-    realize_participant_configuration,
-    validate_participant_configuration_selection,
-)
-from raes_contracts.satisfiability import canonical_contract_digest
+from raes_schemas import schema_bundle
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _PARTICIPANT_MANIFEST_FIXTURE = (

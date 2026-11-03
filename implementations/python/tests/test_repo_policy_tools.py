@@ -1161,11 +1161,14 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     assert len(sphinx_commands) == 2
     assert all(str(public_root) in command for command in sphinx_commands)
     assert all("-W" in command and "--keep-going" in command for command in sphinx_commands)
-    vale_command = next(command for command in commands if command and command[0] == str(fake_vale))
+    vale_command = next(command for command in commands if str(fake_vale) in command)
+    assert vale_command[:6] == ("uv", "run", "--project", str(nox_test_lanes.PROJECT_ROOT), "--frozen", str(fake_vale))
     assert "--config=.vale.ini" in vale_command
+    assert "--glob=*.{md,rst}" in vale_command
     assert "README.md" in vale_command
     assert str(public_root) in vale_command
     pytest_command = next(command for command in commands if "pytest" in command)
+    assert "implementations/python/tests/test_public_guide_examples.py" in pytest_command
     assert (
         "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses"
         in pytest_command
@@ -1266,6 +1269,7 @@ def setup_policy_repo(tmp_path: Path) -> Path:
         "raes_cli",
         "raes_mcp",
         "raes_contracts",
+        "raes_schemas",
     ):
         write_text(
             tmp_path / "implementations" / "python" / "packages" / package / "__init__.py",

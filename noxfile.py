@@ -59,6 +59,7 @@ from tools.nox_support.runner import (
     SessionReporter,
     _paths_trigger,
     _requirement_aware_policy_args,
+    _run_changed_test_modules,
     _run_pytest,
     _sync_project,
 )
@@ -275,7 +276,7 @@ def hook_pre_commit(session: nox.Session) -> None:
         if changed_tests:
             reporter.run(
                 "tests / directly changed pytest modules",
-                lambda: _run_pytest(session, *changed_tests, "-q"),
+                lambda: _run_changed_test_modules(session, changed_tests),
                 detail=" ".join(changed_tests),
             )
         elif _paths_trigger(changed, FULL_TEST_TRIGGER_PREFIXES):

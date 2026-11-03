@@ -1,19 +1,18 @@
-Processor Semantics
+Processor semantics
 ===================
 
-The ``raes_processor.semantics`` subpackage holds processor-runtime
-reconciliation helpers — dependency-graph construction over compiled
-resources, topological ordering, and resource-action reconciliation between
-compiled resources and runtime snapshots.
+The ``raes_processor.semantics`` package helps compare compiled resources with
+runtime snapshots. It builds dependency graphs, orders resources, and finds
+the resource actions needed to bring runtime state in line with the plan.
 
-Per ADR-015, the SDL-language semantic helpers (objective windows, the
-workflow step-type contract, branch closure, the workflow step-result
-validator) live under ``raes.semantics`` and are documented in
-:doc:`sdl-semantics`.
+SDL rules, such as objective windows, live in ``raes.semantics`` (ADR-015).
+Shared workflow step types, branch closure, and step-result checks live in
+``raes_contracts.workflow.semantics`` (ADR-121). See :doc:`sdl-semantics` for
+both sets of rules.
 
 .. currentmodule:: raes_processor.semantics
 
-Planner Semantics
+Planner semantics
 -----------------
 
 .. automodule:: raes_processor.semantics.planner

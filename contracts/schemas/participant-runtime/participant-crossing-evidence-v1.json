@@ -1,0 +1,97 @@
+{
+  "$id": "https://openrae.github.io/rae/schemas/participant-crossing-evidence-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Caller-owned evidence metadata with no incumbent-operation coordinates.",
+  "properties": {
+    "audience_scope_ref": {
+      "minLength": 1,
+      "title": "Audience Scope Ref",
+      "type": "string"
+    },
+    "authorization_scope": {
+      "minLength": 1,
+      "title": "Authorization Scope",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "loss_and_limitations": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Loss And Limitations",
+      "type": "array"
+    },
+    "object_marking_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Object Marking Refs",
+      "type": "array"
+    },
+    "provenance_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Provenance Refs",
+      "type": "array"
+    },
+    "required_evidence_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Required Evidence Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "audience_scope_ref",
+    "required_evidence_refs",
+    "provenance_refs",
+    "evidence_refs",
+    "object_marking_refs",
+    "authorization_scope",
+    "loss_and_limitations"
+  ],
+  "title": "ParticipantCrossingEvidence",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate exact local delivery invocation coordinates and implementation selection; structural validity grants no execution authority.",
+      "id": "participant-crossing-evidence-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-crossing-evidence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ParticipantCrossingEvidence.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "participant-crossing-evidence-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

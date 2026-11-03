@@ -7,20 +7,20 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import Discriminator, Field, StrictInt, Tag, field_validator, model_validator
-
-from ._base import SDLModel
-from ._classification_guard import LegacyClassificationGuard
-from ._identifiers import PortableIdentifier, portable_identifier_map_schema
-from .participant_control_context import ParticipantControlContextReference
-from .participant_execution import ParticipantAutonomousExecutionPolicy
-from .participant_inject_delivery import ParticipantInjectDelivery
-from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
-from .participant_mixed_control_vocabulary import (
+from raes_contracts.identifiers import PortableIdentifier, portable_identifier_map_schema
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
+from raes_contracts.participant_mixed_control_vocabulary import (
     MixedControlControllerState,
     MixedControlDispositionRules,
     MixedControlOrderStrategy,
     MixedControlTransitionKind,
 )
+from raes_contracts.sdl_model import SDLModel
+
+from ._classification_guard import LegacyClassificationGuard
+from .participant_control_context import ParticipantControlContextReference
+from .participant_execution import ParticipantAutonomousExecutionPolicy
+from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
 
 
 class ParticipantBehaviorSpecificationLifecycle(str, Enum):

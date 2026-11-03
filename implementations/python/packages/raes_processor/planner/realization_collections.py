@@ -3,10 +3,10 @@
 from dataclasses import replace
 from typing import cast
 
-from raes.identifiers import QualifiedName
 from raes.realization_designation import resolve_realization_designation
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.identifiers import QualifiedName
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.realization_collections import (
     PORTABLE_NODE_COLLECTION_PROFILE,

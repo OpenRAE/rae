@@ -15,7 +15,6 @@ from raes.scenario import Scenario
 from raes.validator import SemanticValidator
 from raes_backend_stubs.stubs import create_stub_manifest, create_stub_target
 from raes_cli.processor import _execution_plan_payload
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, RuntimeSnapshotEnvelope, SnapshotEntry
@@ -32,6 +31,7 @@ from raes_runtime.control_plane_security import (
 )
 from raes_runtime.control_plane_store import _snapshot_payload
 from raes_runtime.control_plane_submission import _submitted_plan_diagnostics
+from raes_schemas import schema_bundle
 from starlette.testclient import TestClient
 
 REPO_ROOT = Path(__file__).resolve().parents[3]

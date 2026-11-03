@@ -430,7 +430,7 @@ def test_built_parallel_receipt_records_allocator_decision_and_validates() -> No
 
 
 def test_schema_bundle_publishes_batch_execution_receipt() -> None:
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     bundle = schema_bundle()
     assert "batch-execution-receipt-v1" in bundle
@@ -439,7 +439,7 @@ def test_schema_bundle_publishes_batch_execution_receipt() -> None:
 
 def test_batch_execution_receipt_fixture_corpora_validate() -> None:
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     validator = Draft202012Validator(schema_bundle()["batch-execution-receipt-v1"])
     fixture_dir = (

@@ -1,9 +1,9 @@
 {
-  "content_hash": "59d4a59943010e9b8600fe0fc956f5788ba09e039f583672e1a986e5a775d6fb",
+  "content_hash": "f2e01ccffbd360f2d79c077b44339b91ce787e1fe3172128701c17843f72dd85",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "59d4a59943010e9b8600fe0fc956f5788ba09e039f583672e1a986e5a775d6fb",
-    "summary": "Declare the participant-invocation-tool-actions/v1 composition claim with finite per-invocation limits; preserve absent-block defaults; issue #1740."
+    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
+    "content_hash": "f2e01ccffbd360f2d79c077b44339b91ce787e1fe3172128701c17843f72dd85"
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

@@ -11,8 +11,8 @@ import pytest
 from jsonschema import Draft202012Validator
 from raes_conformance.conformance import _fixture_case_diagnostics
 from raes_conformance.conformance.validators import validate_contract_payload
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.participant_control_context import load_control_context_json
+from raes_schemas import schema_bundle
 from test_act_620_control_context_assets import _asset, _change, _context, _exposed, _record
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -50,6 +50,7 @@ def test_run_manifest_retains_selections_and_delivery_as_distinct_artifacts():
     from io import BytesIO
 
     from raes_contracts.associated_artifacts import (
+        ExperimentArtifactParent,
         associated_artifact_set_digest,
         validate_associated_artifact_manifest,
     )
@@ -89,7 +90,9 @@ def test_run_manifest_retains_selections_and_delivery_as_distinct_artifacts():
     recovered = type(manifest).model_validate_json(manifest.model_dump_json())
     assert (
         validate_associated_artifact_manifest(
-            recovered, parent=run, artifact_readers={key: BytesIO(data) for key, data in encoded.items()}
+            recovered,
+            parent=ExperimentArtifactParent(run),
+            artifact_readers={key: BytesIO(data) for key, data in encoded.items()},
         )
         == ()
     )

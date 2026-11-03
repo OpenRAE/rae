@@ -165,3 +165,60 @@ Review applies approved word meanings and consistent project technical nouns.
 Descriptive sentences contain at most 25 words.
 The document describes contracts and boundaries.
 Implementation tasks remain in the issue plan.
+
+## Authored decision exposure (DSL-125)
+
+The existing observation boundary declares asset visibility.
+Use the canonical declaration address, such as `control_context_assets.shared`, in its view rules.
+The existing participant or reusable `control_context` slot declares the exact asset pin and selection intent.
+These declarations have different purposes.
+A visible source without an authorized result remains unavailable.
+A selected source can remain absent from a decision surface.
+A withheld source cannot enter a surface through another result reference.
+
+`raes_processor.models.AuthoredParticipantExposureV2` joins compiled slots to ACT-620 records.
+Its `records` map uses selection slot keys.
+Its trusted `context` supplies lifecycle, role, selection, context-view, and authorization authority.
+Its optional `configuration` carries an admitted ADR-094 participant configuration result.
+The processor checks configuration identity, digest, scope, exact references, and slot conflicts.
+The SDL owner validator checks those references against the concrete instantiated scenario.
+The host must supply the admitted configuration selected for this participant implementation.
+A portable configuration digest alone does not establish admission authority.
+
+Pass this input as `authored_exposure` to `project_participant_decision_surface_v2()`.
+The projector resolves the owning compiled participant.
+It maps that participant to the authored `agents.<name>` selection scope.
+It requires a matching selected slot and an independently visible source declaration.
+The ACT-620 record must bind that slot's exact pin to the projected result.
+Existing SEM-226 resolvers still authorize every serialized item at the exact derivation cut.
+Initial and later decisions use their existing distinct anchor rules.
+Unknown declarations, missing records, changed pins, and scope mismatches fail closed.
+
+Each exposed slot uses an existing ACT-620 context result.
+The source reference is `urn:` followed by the descriptor digest.
+The existing context view identifies the source layer and transformation.
+The result reference enters `visible_context_refs`.
+The v2 assurance projection retains the exact source binding and provenance.
+The canonical participant-view digest binds the result reference and participant-visible metadata.
+That digest does not establish the integrity of separately supplied bytes.
+The host must use ACT-620 artifact checksum and size validation before content release.
+The current ACT-620 context-view contract requires one payload reference per view.
+This interface does not silently combine multiple asset payloads into one view.
+
+Use `deliver_authored_participant_decision_surface_v2()` for the authored asset path.
+Supply delivered ACT-620 records and current trusted context at the delivery cut.
+The function binds the existing trusted delivery occurrence and checks ACT-620 agreement before returning it.
+A policy change can refuse delivery after successful projection.
+A delivery record must match the exact participant-view digest.
+Changed content requires a new projection.
+The lower-level portable delivery helper only binds trusted delivery evidence.
+Its callers retain responsibility for establishing delivery-time authorization.
+
+SDL owns observation classes and authored disclosure intent.
+The apparatus owns live audience, role, policy, transformation, and declassification decisions.
+Hidden, evaluator, benchmark, and assurance-only content retain their existing sensitive boundary classes.
+Their presence in a catalog or selection creates no disclosure authority.
+Serialize the authorized participant view through the existing governed participant sink.
+Do not serialize the assurance carrier to the participant.
+Delivery, participant observation, and admission remain separate facts.
+No new transport or content acquisition is installed by these helpers.

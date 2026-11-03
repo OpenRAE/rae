@@ -32,7 +32,6 @@ def test_each_source_bound_release_checks_its_explicit_baseline(revision, tamper
         failures,
         release.manifest["snapshot_path"],
         release_revision=revision,
-        replay_current=False,
     )
     assert [failure.rule_id for failure in failures] == (["formal-validation-baseline-selection"] if tampered else [])
 

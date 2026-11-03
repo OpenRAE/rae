@@ -6,7 +6,13 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import BinaryIO, Literal
 
-from .associated_artifacts import AssociatedArtifactValidationLimits, validate_associated_artifact_manifest
+from raes_contracts.canonical import canonical_contract_digest
+
+from .associated_artifacts import (
+    ArtifactParent,
+    AssociatedArtifactValidationLimits,
+    validate_associated_artifact_manifest,
+)
 from .contracts.associated_artifacts import AssociatedArtifactManifestModel
 from .contracts.participant_context import ParticipantContextViewModel
 from .contracts.participant_control_context import (
@@ -30,7 +36,7 @@ LifecycleState = Literal["unpublished", "active", "replaced", "withdrawn"]
 @dataclass(frozen=True)
 class ParticipantControlContextContentBinding:
     manifest: AssociatedArtifactManifestModel
-    parent: object
+    parent: ArtifactParent
     artifact_readers: Mapping[str, BinaryIO]
     limits: AssociatedArtifactValidationLimits | None = None
 
@@ -79,7 +85,6 @@ class ParticipantControlContextValidationContext:
 def control_context_asset_reference(
     asset: ParticipantControlContextAssetModel,
 ) -> ParticipantControlContextAssetReferenceModel:
-    from .satisfiability import canonical_contract_digest
 
     return ParticipantControlContextAssetReferenceModel(
         asset_id=asset.asset_id, asset_version=asset.asset_version, asset_digest=canonical_contract_digest(asset)
@@ -171,7 +176,7 @@ def validate_control_context_asset(
     *,
     context: ParticipantControlContextValidationContext,
     manifest: AssociatedArtifactManifestModel,
-    parent: object,
+    parent: ArtifactParent,
     artifact_readers: Mapping[str, BinaryIO],
     limits: AssociatedArtifactValidationLimits | None = None,
 ) -> tuple[Diagnostic, ...]:
