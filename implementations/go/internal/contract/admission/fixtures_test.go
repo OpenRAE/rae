@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/fs"
+	"sync"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
@@ -29,10 +30,14 @@ func fixtureObject(t *testing.T, path string) map[string]any {
 	return value
 }
 
+// Compile the immutable production registry once per test process. Requests and
+// contexts remain independent. Tests that corrupt catalogs must construct New.
+var sharedTestOwner = sync.OnceValues(New) //nolint:gochecknoglobals // Immutable test fixture; once-only construction is safe across independent requests.
+
 // Family tests use the production constructor and complete published registry.
 func boundTestOwner(t *testing.T) *Validator {
 	t.Helper()
-	e, err := New()
+	e, err := sharedTestOwner()
 	if err != nil {
 		t.Fatal(err)
 	}

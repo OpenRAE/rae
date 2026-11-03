@@ -101,3 +101,13 @@ CI replays the combined frozen input set against the unchanged Python implementa
 
 The source artifact is `parity-corpus-3894d99d73c9d53acfc67b1c37be07bd181cc99b`.
 Its archive SHA-256 is `e0d653486a029931f956746a1aac8c830f1550e69af91dacd6efe295a98bb2cd`.
+
+## Race-test fixture lifetime
+
+The first product CI run reached Go's ten-minute timeout during schema compilation.
+Its 60.6% admission coverage was a partial result from the interrupted run.
+Family tests now reuse one complete immutable validator through `sync.OnceValues`.
+Each request and trusted context still belongs to its own test.
+Catalog-corruption tests construct a private validator before changing its catalog.
+Constructor and complete-registry tests still exercise fresh production construction.
+The production constructor and the CI timeout remain unchanged.
