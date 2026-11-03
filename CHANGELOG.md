@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.6.1](https://github.com/OpenRAE/rae/compare/v10.6.0...v10.6.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* preserve absent node identity in plan authority ([#1871](https://github.com/OpenRAE/rae/issues/1871)) ([8571b36](https://github.com/OpenRAE/rae/commit/8571b36b4f5be7ae56d5c26e1b2c14d689ac810b))
+* **runtime:** preserve domain topology through preparation ([#1867](https://github.com/OpenRAE/rae/issues/1867)) ([2753ca1](https://github.com/OpenRAE/rae/commit/2753ca101993d659e78f51fc6c940acf1f806c95))
+
 ## [10.6.0](https://github.com/OpenRAE/rae/compare/v10.5.0...v10.6.0) (2026-11-02)
 
 
