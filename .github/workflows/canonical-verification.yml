@@ -621,6 +621,8 @@ jobs:
             base="$(git rev-parse HEAD^)"
           fi
           echo "merge_base=$(git merge-base "${base}" HEAD)" >> "${GITHUB_OUTPUT}"
+      - name: Check changed-line mutation applicability
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q -o addopts= implementations/tooling/python/tests/test_go_mutation_gate.py
       - name: Test the mutations of the changed lines
         working-directory: ${{ matrix.path }}
         env:
@@ -632,6 +634,11 @@ jobs:
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
         run: |
+          changed_go="$(git diff --name-only "${MERGE_BASE}" -- '*.go' ':!*_test.go')"
+          if [ -z "${changed_go}" ]; then
+            echo "No production Go changes; no changed-line mutants to score."
+            exit 0
+          fi
           # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
           # Use the runner's available descriptor capacity with bounded workers.
           ulimit -Sn "$(ulimit -Hn)"

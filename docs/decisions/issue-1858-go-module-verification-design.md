@@ -95,3 +95,13 @@ Import only a complete capture from the current source identity after its creden
 Keep the exact reproduction check and the Go comparison gates enabled.
 The next CI run must accept the frozen inputs and reproduce the imported cases.
 Issue #1872 removes the corpus and its migration harness after the hard cutover.
+
+## Mutation applicability
+
+Changed-line mutation testing runs when production Go files change within the module.
+Corpus-only and test-only changes have no production mutants to score.
+The workflow checks production Go paths before gremlins runs.
+Git comparison errors and gremlins failures still fail the job.
+The 99.99% mutation thresholds do not change.
+Focused workflow tests live in `implementations/tooling/python/tests/test_go_mutation_gate.py`.
+The common Go job runs those tests before its mutation step.
