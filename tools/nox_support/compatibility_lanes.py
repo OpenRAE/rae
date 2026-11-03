@@ -260,6 +260,16 @@ def _verify_compatibility_install(
         f"python compatibility / {label} CLI help",
         lambda: _run(session, str(raes), "--help"),
     )
+    reporter.run(
+        f"python compatibility / {label} assigned trial processes",
+        lambda: _run(
+            session,
+            str(python),
+            "-I",
+            str(PROJECT_ROOT / "tests" / "installed_assigned_trial_consumer.py"),
+            str(PROJECT_ROOT / "tests" / "fixtures" / "assigned-trial-inputs.json"),
+        ),
+    )
 
 
 def _compatibility_distribution_stages(

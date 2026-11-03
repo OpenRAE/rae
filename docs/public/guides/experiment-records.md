@@ -91,3 +91,10 @@ Old stores without observed end times remain partial.
 Reading a record never invents a missing historical time.
 The legacy replacement archive also freezes its candidate before writing.
 A lost acknowledgement resumes the same bytes and keeps the version reserved during recovery.
+## Assigned execution
+
+The [assigned-trial API](assigned-trials.md) retains the original experiment admission across execution hosts.
+`ingest_trial_outcome()` verifies remote facts through an explicitly installed original-evidence owner.
+Accepted observations feed the same run and study producer described here.
+Started assignments without terminal results remain partial or indeterminate records.
+Duplicate delivery preserves the original attempt, evidence, and run identity.

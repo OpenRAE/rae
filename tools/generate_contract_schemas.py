@@ -183,7 +183,7 @@ def write_schema_bundle(schemas_dir: Path) -> None:
 
 def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     """Keep large self-contained schemas readable one definition per line."""
-    if name != "materialized-scenario-v1":
+    if name not in {"materialized-scenario-v1", "trial-outcome-v1"}:
         return json.dumps(schema, indent=2, sort_keys=True) + "\n"
 
     def compact(value: object) -> str:

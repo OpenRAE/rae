@@ -7,6 +7,7 @@ from copy import deepcopy
 from threading import RLock
 from typing import TYPE_CHECKING
 
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationKind,
@@ -245,6 +246,13 @@ class RuntimeRunContext(
 
         self._assert_runtime_owner()
         return self._profile_declaration
+
+    @runtime_owned
+    def require_operation_guarantees(self, expected: tuple[str, ...]) -> None:
+        """Refuse composition that would weaken this run's fixed admission."""
+        self._assert_runtime_owner()
+        if self._required_operation_guarantees != expected:
+            raise ConflictError("trial operation guarantees differ from the fixed run binding")
 
     @_snapshot.setter
     def _snapshot(self, snapshot: RuntimeSnapshot) -> None:

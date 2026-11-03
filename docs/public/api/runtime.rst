@@ -49,6 +49,21 @@ Control plane store
 .. automodule:: raes_runtime.control_plane_store
    :members:
 
+Assigned trials
+---------------
+
+The :doc:`../guides/assigned-trials` guide describes coordinator admission,
+selected host execution, cancellation, and checked outcome ingestion.
+
+.. automodule:: raes_runtime.runtime_assigned_trial
+   :members: AssignedTrial
+
+.. automodule:: raes_contracts.assigned_trial
+   :members: TrialAssignmentModel, TrialAssignmentControlModel, TrialOutcomeModel
+
+.. autoclass:: raes_runtime.runtime_trial_services.TrialOutcomeVerifier
+   :members:
+
 Control plane security
 ----------------------
 

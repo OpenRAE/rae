@@ -883,10 +883,12 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
         "python compatibility / direct wheel metadata and imports",
         "python compatibility / direct wheel CLI version",
         "python compatibility / direct wheel CLI help",
+        "python compatibility / direct wheel assigned trial processes",
         "python compatibility / install sdist-built wheel",
         "python compatibility / sdist-built wheel metadata and imports",
         "python compatibility / sdist-built wheel CLI version",
         "python compatibility / sdist-built wheel CLI help",
+        "python compatibility / sdist-built wheel assigned trial processes",
     ]
     assert len(sync_calls) == 1
     assert pytest_calls == [("-q",)]
@@ -907,6 +909,11 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
     install_command = next(command for command in commands if "tools.python_closure" in command and "smoke" in command)
     assert "--offline" in install_command
     assert "--wheelhouse" in install_command
+    assigned = [
+        command for command in commands if any(arg.endswith("installed_assigned_trial_consumer.py") for arg in command)
+    ]
+    assert len(assigned) == 2
+    assert all("-I" in command and command[-1].endswith("assigned-trial-inputs.json") for command in assigned)
 
 
 def test_python_compatibility_smoke_omits_redundant_hermetic_suite(
