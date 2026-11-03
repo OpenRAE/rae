@@ -61,6 +61,18 @@ Data, documentation, and test-only changes have no source lines to mutate.
 An empty source diff skips that module's mutation command.
 Git errors fail the step. Changed source retains the existing mutation thresholds.
 
+CI also checks release tooling and runtime budget tests.
+Reuse the release ancestry fix from `dev` commit `8b7238c0a`.
+Its pinned release adapter prevents missing older-dated merged commits.
+The release workflow calls this adapter and tests its complete ancestry range.
+This supplies real JavaScript for the existing CodeQL scan on this branch.
+The repository-wide scan policy stays in place for all branches.
+
+The local control delivery test must own its budget clock before admission.
+Freeze that clock during setup, then advance it during the claim commit.
+The provider must receive no call after this advance exhausts the allowance.
+Production budget limits and clock checks stay in place.
+
 ```mermaid
 flowchart LR
     subgraph Untrusted_change

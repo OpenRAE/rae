@@ -2,21 +2,20 @@
 
 ## Decision
 
-Issue #684 checks the incumbent public release path, not authority to replace
-it. The maintainer clarified on 2026-09-19 that a new public release is not an
-acceptance prerequisite. The issue-body criteria requiring an actual published
-distribution, public byte comparison, or a release-run record are superseded;
-no release is created for this issue. Release Please remains the sole version and
-changelog owner; `.github/workflows/release-please.yml` remains the sole release
-orchestrator; PyPI Trusted Publishing and the separate GitHub Release publisher
-remain the publication boundaries. Change those surfaces only for a concrete
-defect covered by focused tests.
+Issue #684 checks the current public release path. It grants no right to replace it.
+On 2026-09-19, the maintainer confirmed that this issue needs no new public release.
+This replaces the issue-body checks for a published build, public byte comparison, or release-run record.
+No release is created for this issue.
+Release Please remains the sole version and changelog owner.
+`.github/workflows/release-please.yml` remains the sole release workflow.
+PyPI Trusted Publishing and the separate GitHub Release job remain the upload boundaries.
+Change these only to fix a concrete defect with focused tests.
 
-The current public tag `v5.0.0` predates `c7450806`, which introduced the
-narrowed #1227 same-byte publication and recovery work. Its public provenance
-can establish the historical publisher identity, but not execution of the
-current workflow. The current workflow is assessed through its dependency
-graph and focused tests, without asserting that a later public release ran it.
+The public tag `v5.0.0` predates `c7450806`, which added the #1227 same-byte upload and repair work.
+Its public provenance can prove who published those bytes.
+It cannot prove that the current workflow ran.
+Assess the current workflow through its job graph and focused tests.
+Do not claim that a later public release ran it.
 
 ## Canonical boundaries to reuse
 
@@ -56,15 +55,13 @@ graph and focused tests, without asserting that a later public release ran it.
 
 ## Acceptance evidence boundary
 
-Keep the issue's observed-control record separate from the reusable operator
-runbook in `docs/explain/releasing.md`. It records the public PyPI provenance
-publisher identity, GitHub environment and branch controls, configured
-Conventional Commit classification, workflow dependencies, and focused test
-results. Do not turn historical `v5.0.0` evidence or source tests into a claim
-that the current #1227 workflow completed a public release. Private PyPI
-publisher settings and account tokens cannot be inferred from public metadata;
-record that visibility limit rather than claiming they were inspected. Do not
-commit credentials, raw OIDC claims, cookies, signed URLs, or settings exports.
+Keep this issue's control record separate from the runbook in `docs/explain/releasing.md`.
+The record names the publisher shown by public PyPI provenance.
+It also records GitHub controls, version rules, the job graph, and focused test results.
+Historical `v5.0.0` evidence and source tests do not prove that the current #1227 workflow published a release.
+Public metadata cannot reveal private PyPI publisher settings or account tokens.
+Record that limit. Do not claim to have inspected them.
+Do not commit credentials, raw OIDC claims, cookies, signed URLs, or settings exports.
 
 `docs/explain/releasing.md` should describe the current operator procedure, not
 retain first-release setup prose now that releases exist. Replace the pending
@@ -129,29 +126,25 @@ so updating either requires the behavior check to be revisited.
 
 The acceptance path crosses the following existing gates:
 
-1. Untrusted PR titles and commit messages pass `tools/check_pr_title.py`; Release
-   Please applies the configured Python release rules. Acceptance observes this
-   behavior and does not implement a second Conventional Commit parser.
-2. A tag must pass the stable-SemVer shape check, resolve through the bounded
-   annotated-tag walk to a full lowercase commit SHA, belong to `main`, and match
-   the numeric draft Release object. Revalidate this identity at each existing
-   publication boundary.
-3. Candidate source passes the reusable exact-SHA verifier and required
-   real-container gate without publication authority. Build, signing, admission,
-   PyPI publication and GitHub finalization retain their current separate jobs
-   and least-privilege permissions.
-4. Release evidence remains size-bounded, duplicate-key rejecting, shape-checked,
-   digest-bound and attestation-checked before the four shell-safe publisher
-   scalars are emitted. Publisher jobs check out and execute no candidate source.
-5. PyPI/GitHub responses and downloaded files are untrusted inputs: require the
-   expected response shape, bounded and time-limited reads, exact filename set,
-   regular files, version correspondence and SHA-256 equality. An
-   unavailable/ambiguous response fails closed and is not interpreted as
-   absence.
-6. Secrets stay in the GitHub/OIDC credential channel. `GH_TOKEN` is passed by
-   environment, PyPI uses short-lived OIDC through the pinned publisher action,
-   checkouts do not persist write credentials, and no credential appears in
-   process arguments or diagnostics.
+1. Untrusted PR titles and commit messages pass `tools/check_pr_title.py`.
+   Release Please applies the Python release rules. Observe this behavior.
+   Do not add a second Conventional Commit parser.
+2. A tag must pass the stable-SemVer shape check.
+   The bounded annotated-tag walk must resolve it to a full lowercase commit SHA on `main`.
+   It must match the numeric draft Release object. Recheck this at each upload boundary.
+3. Candidate source passes the shared exact-SHA checks and required real-container gate.
+   Neither gate grants upload rights. Build, signing, admission, PyPI upload, and GitHub release each keep their own job.
+   Each job keeps only the rights it needs.
+4. Check evidence size, shape, digests, and attestations. Reject duplicate keys.
+   Only then emit the four shell-safe values for the upload jobs.
+   Those jobs check out and run no candidate source.
+5. Treat PyPI/GitHub responses and downloaded files as untrusted inputs.
+   Require the expected shape and exact file names. Bound read size and time.
+   Require regular files, matching versions, and equal SHA-256 digests.
+   An absent or unclear response fails closed. It does not mean that the file is absent.
+6. Secrets stay in the GitHub/OIDC credential channel.
+   Pass `GH_TOKEN` through the environment. PyPI uses short-lived OIDC through the pinned upload action.
+   Checkouts do not retain write credentials. No credential appears in process arguments or logs.
 
 The release evidence index and public destination state are not error envelopes
 or logging schemas. Preserve `AdmissionError` codes for local admission and
@@ -184,3 +177,36 @@ not add another release classifier, manifest, or multi-registry framework.
 - No new release manifest/schema, duplicated digest/validation code, copied
   workflow graph, custom HTTP client, persistence layer, release service, or
   exception/logging framework.
+
+## Release ancestry and version notes
+
+The 10.4.0 run omitted #1811: GitHub returned the 10.3.0 release commit
+before the older-dated breaking commit that a subsequent promotion merged.
+Release Please 17.6.0 stopped at that release boundary. This is the upstream
+[chronological-history limitation](https://github.com/googleapis/release-please/issues/1533),
+not a failure to parse `refactor!:` or a changelog-section visibility problem.
+
+The release tooling module `implementations/tooling/release-please/run.cjs`
+owns the adapter. Its `useReleaseRange` interface supplies the existing
+Release Please SCM iterator with the exact Git ancestry difference.
+The range runs from the manifest version's tag to the checked-out main head.
+The release boundary follows that range. GitHub still supplies the commit objects and PR metadata,
+including commit overrides. An incomplete API scan, a missing tag, a tag
+outside main's ancestry, or a moved remote head fails before a release PR write.
+The adapter buffers the selected commits before yielding any of them.
+
+The pinned upstream action still creates tags and draft releases. It delegates
+release PR maintenance to the same pinned Release Please library, installed
+from a committed npm lock with lifecycle scripts disabled. The adapter changes
+no commit parsing, version strategy, notes generation, publication authority,
+or exact-SHA artifact gates. A read-only workflow job exercises the adapter and
+the actual library on PRs before the write-capable job can run on main.
+No new ADR or runtime package interface is required.
+
+The #1841 local behavior check also replayed the actual `v10.3.0..v10.4.0`
+Git range through the adapter and Release Please 17.6.0: the candidate was
+`11.0.0` and its breaking-change notes included #1811. The synthetic regression
+first reproduces the empty candidate from the chronological scan, then checks
+the corrected major candidate. Replacing the adapter with the chronological
+iterator makes that regression fail. No GitHub release or registry publication
+was made by these checks.
