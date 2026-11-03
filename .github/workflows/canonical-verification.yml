@@ -550,6 +550,7 @@ jobs:
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
+      GOWORK: "off"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -583,9 +584,10 @@ jobs:
       - name: Check dependencies, lint, and analyzers
         working-directory: ${{ matrix.path }}
         run: |
+          go build ./...
           go mod tidy -diff
           go mod verify
-          golangci-lint run ./...
+          golangci-lint run --config "${GITHUB_WORKSPACE}/implementations/.golangci.yml" ./...
           go vet -vettool="$(command -v raesvet)" ./...
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
@@ -619,6 +621,8 @@ jobs:
             base="$(git rev-parse HEAD^)"
           fi
           echo "merge_base=$(git merge-base "${base}" HEAD)" >> "${GITHUB_OUTPUT}"
+      - name: Check changed-line mutation applicability
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q -o addopts= implementations/tooling/python/tests/test_go_mutation_gate.py
       - name: Test the mutations of the changed lines
         working-directory: ${{ matrix.path }}
         env:
@@ -630,9 +634,9 @@ jobs:
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
         run: |
-          changed="$(git diff --name-only "${MERGE_BASE}" -- '*.go' ':!*_test.go')"
-          if [ -z "${changed}" ]; then
-            echo "No production Go source changed in this module."
+          changed_go="$(git diff --name-only "${MERGE_BASE}" -- '*.go' ':!*_test.go')"
+          if [ -z "${changed_go}" ]; then
+            echo "No production Go changes; no changed-line mutants to score."
             exit 0
           fi
           # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
@@ -843,6 +847,7 @@ jobs:
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
+      GOWORK: "off"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -871,6 +876,10 @@ jobs:
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck
           "${RUNNER_TEMP}/go-tools/archcheck"
+      - name: Prove the compiler rejects a declared import cycle
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q -o addopts= implementations/python/tests/test_issue_1858_go_inventory.py::test_declared_cycle_fails_the_compiler_gate
+      - name: Check Go module verification inventories
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.check_go_module_inventory
 
   # SonarCloud quality gate. It runs inside this graph, depending only on the
   # exact source and the combined coverage, so it starts as soon as coverage is

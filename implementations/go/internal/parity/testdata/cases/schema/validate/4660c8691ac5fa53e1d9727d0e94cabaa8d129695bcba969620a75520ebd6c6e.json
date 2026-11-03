@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:dd4b37c6c4646319515ea4c7271f944e331c2f57d695844610215566b80a6cd6"
+  },
+  "name": "regression/a40aa4da5428c90788b1e8d924dfe96836ddea35c156e9d8638c2882f72cacc0",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

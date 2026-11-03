@@ -1,0 +1,139 @@
+{
+  "args": [
+    "conformance",
+    "backend",
+    "--profile",
+    "provisioning-only",
+    "--fixtures-root",
+    "input/tmp/pytest-of-runner/pytest-0/popen-gw2/test_backend_conformance_cli_e0",
+    "--profiles-root",
+    "input/home/runner/work/rae/rae/contracts/profiles/backend"
+  ],
+  "command": "conformance backend",
+  "files": {
+    "input/home/runner/work/rae/rae/contracts/profiles/backend/full-remote-control-plane.json": "sha256:6ec2635602906479603519c937e4cbd06edf775d43e8e74e61c9c0231d6b8cd5",
+    "input/home/runner/work/rae/rae/contracts/profiles/backend/observability-evidence.json": "sha256:4c69d7692460f2d53ff370a0ab6c62d493882f7d44f733b4abba7020c5c6f4bc",
+    "input/home/runner/work/rae/rae/contracts/profiles/backend/operation-supervision.json": "sha256:31bed4813d90a0637d63a8f8422077130854f2506793b47fa9ffe40f094ebdf6",
+    "input/home/runner/work/rae/rae/contracts/profiles/backend/orchestration-capable.json": "sha256:f70b8505a5c0055416db86c533e2e5bf08b11e5a514f076223b6d6c36215a092",
+    "input/home/runner/work/rae/rae/contracts/profiles/backend/orchestration-evaluation.json": "sha256:9e7a64ace38b22af52bd46216c3f99562cf706c3cc2de3f77b0bd1fc11a7548b",
+    "input/home/runner/work/rae/rae/contracts/profiles/backend/provisioning-only.json": "sha256:7a5f8aaaead793da8ead1ebc74b616cc278d502670bea3f6ef6cbb35e1a6cf03",
+    "setup.json": "sha256:6012d5e27193d80812f644ae35f3feb74e11546c102f9cb2ec85536ae59d0f25"
+  },
+  "name": "regression/de699706300c75cc222b6a646986e9832d1611b775b63d27bf7e65e747569c76",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "cases": [],
+      "claim": {
+        "assurance_axis": null,
+        "assurance_status": "tested",
+        "evidence_boundary": "The 0 named fixture and target-probe cases recorded in this report; no unexecuted input, trace, scheduler, strategy, or environment is quantified.",
+        "evidence_refs": [],
+        "evidence_scope": "finite",
+        "explicit_non_claims": [
+          "Does not establish trace equivalence or bisimulation.",
+          "Does not establish strategic, epistemic, probabilistic, timed, or partial-order equivalence.",
+          "Finite generated probes do not establish universal realizability outside the recorded envelope dimensions.",
+          "Fixture-only and hermetic-live execution do not establish native-daemon conformance."
+        ],
+        "left_carrier_ref": "conformance-fixture-suite:provisioning-only",
+        "limitations": [
+          "Case results are bounded by the selected profile, corpus revision, target, and execution environment."
+        ],
+        "observation_projection_ref": "backend-conformance-case-report",
+        "observation_projection_revision": "rev1",
+        "quantifier_scope": "finite-cases",
+        "relation_id": "bounded-probe-success",
+        "relation_parameter_profile_ref": null,
+        "relation_parameter_profile_revision": null,
+        "right_carrier_ref": "backend-profile:provisioning-only",
+        "subject": "Backend conformance for profile provisioning-only",
+        "taxonomy_id": "raes-behavioral-relations",
+        "taxonomy_revision": "rev8"
+      },
+      "contract_digests": {
+        "backend-manifest-v2": "sha256:bda9de2ef1c7476cbf90d083ee6548288d90e638d3845deac97480ab66d928d6",
+        "operation-receipt-v1": "sha256:6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed",
+        "operation-status-v1": "sha256:980c11cc8980258a94864107f78ebab3f9e654fc5b1ee17a9912c67fbcf75354",
+        "runtime-snapshot-v1": "sha256:cf3d76682683e3b09628616aa0e0fb8a2ad932be406860be53bcaf6d244ea61a"
+      },
+      "contract_versions": {
+        "backend-manifest-v2": "BackendManifestV2Model",
+        "operation-receipt-v1": "OperationReceiptModel",
+        "operation-status-v1": "OperationStatusModel",
+        "runtime-snapshot-v1": "RuntimeSnapshotEnvelopeModel"
+      },
+      "diagnostics": [
+        {
+          "address": "backend-manifest-v2",
+          "code": "conformance.fixture-missing",
+          "domain": "conformance",
+          "severity": "error"
+        },
+        {
+          "address": "operation-receipt-v1",
+          "code": "conformance.fixture-missing",
+          "domain": "conformance",
+          "severity": "error"
+        },
+        {
+          "address": "operation-status-v1",
+          "code": "conformance.fixture-missing",
+          "domain": "conformance",
+          "severity": "error"
+        },
+        {
+          "address": "runtime-snapshot-v1",
+          "code": "conformance.fixture-missing",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "native_conformance": false,
+      "passed": false,
+      "probe_set_digest": null,
+      "profile": "provisioning-only",
+      "profile_digest": "sha256:1cfdeaff934dfde57cd88097c54c94b3f4ae6492cf38c4ab1b1543f183620218",
+      "profile_version": "backend-profile/v1",
+      "provenance": {
+        "fixture_origin": "unknown",
+        "fixture_set_digest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reporter_version": "10.2.0",
+      "required_case_refs": [],
+      "subject_kind": "backend",
+      "subject_name": null,
+      "subject_version": null,
+      "summary": {
+        "achieved_profile": null,
+        "checks": {
+          "failed": 0,
+          "passed": 0,
+          "unsupported": 0
+        },
+        "explicit_non_claims": [
+          "Does not establish trace equivalence or bisimulation.",
+          "Does not establish strategic, epistemic, probabilistic, timed, or partial-order equivalence.",
+          "Finite generated probes do not establish universal realizability outside the recorded envelope dimensions.",
+          "Fixture-only and hermetic-live execution do not establish native-daemon conformance."
+        ],
+        "limitations": [
+          "Case results are bounded by the selected profile, corpus revision, target, and execution environment."
+        ],
+        "missing_checks": [],
+        "requested_profile": "provisioning-only",
+        "support": [],
+        "validation_basis": {
+          "evidence_boundary": "The 0 named fixture and target-probe cases recorded in this report; no unexecuted input, trace, scheduler, strategy, or environment is quantified.",
+          "evidence_scope": "finite",
+          "execution_bases": [],
+          "quantifier_scope": "finite-cases"
+        }
+      },
+      "tool_version": "10.2.0",
+      "unsupported_capability_gaps": [],
+      "unsupported_contract_gaps": []
+    }
+  },
+  "surface": "cli"
+}
