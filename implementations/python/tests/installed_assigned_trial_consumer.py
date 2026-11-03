@@ -276,6 +276,7 @@ def main(fixture: Path) -> None:
             records = coordinator.experiment_records(
                 experiment,
                 study=ExperimentStudyModel(
+                    schema_version="experiment-study/v1",
                     study_id="installed-assigned-study",
                     study_version="1",
                     study_kind="collection",
