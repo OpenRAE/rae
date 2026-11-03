@@ -183,6 +183,9 @@ def _unsupported_operating_system(operation: object, manifest: BackendManifest) 
     """Report whether one node's joint operating-system identity is unsupported."""
 
     choice = tuple(operation.payload.get(key, "") for key in _OPERATING_SYSTEM_KEYS)
+    if choice[1] is None:
+        # The offer checker uses an empty comparison string for an absent distribution.
+        choice = (choice[0], "", choice[2])
     if not any(choice):
         return False
     return not all(isinstance(value, str) for value in choice) or not operating_system_choice_supported(

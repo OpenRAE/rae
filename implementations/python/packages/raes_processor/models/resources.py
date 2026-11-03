@@ -60,9 +60,9 @@ class NodeRuntime(ResolvedResource):
     node_name: str = ""
     node_kind: str = ""
     os_family: str = ""
-    os_distribution: str = ""
+    os_distribution: str | None = None
     os_version: str = ""
-    architecture: str = ""
+    architecture: str | None = None
     count: int | str | None = None
     network_namespace_target: str = ""
     domain_topology: DomainTopologyBinding | None = None
