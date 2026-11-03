@@ -11,6 +11,7 @@ import re
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
@@ -54,7 +55,7 @@ def _module_directories(root: Path) -> list[str]:
     return dirs
 
 
-def _check_matrix(go: dict, dirs: list[str]) -> list[PolicyFailure]:
+def _check_matrix(go: dict[str, Any], dirs: list[str]) -> list[PolicyFailure]:
     rows = go["strategy"]["matrix"]["include"]
     failures = _equal([row["path"] for row in rows], dirs, "Go matrix")
     names = [row["name"] for row in rows]
@@ -75,7 +76,7 @@ def _check_matrix(go: dict, dirs: list[str]) -> list[PolicyFailure]:
     return failures
 
 
-def _check_go_lanes(go: dict) -> list[PolicyFailure]:
+def _check_go_lanes(go: dict[str, Any]) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
     scripts = "\n".join(
         step.get("run", "") for step in go["steps"] if not step.get("if") and not step.get("continue-on-error")
@@ -97,7 +98,7 @@ def _check_go_lanes(go: dict) -> list[PolicyFailure]:
     return failures
 
 
-def _check_coverage_upload(go: dict) -> list[PolicyFailure]:
+def _check_coverage_upload(go: dict[str, Any]) -> list[PolicyFailure]:
     upload = [step for step in go["steps"] if step.get("with", {}).get("path") == "${{ matrix.path }}/cover.out"]
     return _require(
         len(upload) == 1
@@ -121,7 +122,9 @@ def _sonar_properties(root: Path) -> dict[str, str]:
     }
 
 
-def _check_sonar(root: Path, workflow: dict, dirs: list[str], rows: list[dict]) -> list[PolicyFailure]:
+def _check_sonar(
+    root: Path, workflow: dict[str, Any], dirs: list[str], rows: list[dict[str, Any]]
+) -> list[PolicyFailure]:
     downloads = [
         step["with"]
         for step in workflow["jobs"]["sonar"]["steps"]
@@ -146,7 +149,7 @@ def _check_sonar(root: Path, workflow: dict, dirs: list[str], rows: list[dict]) 
 
 
 def _check_scans(
-    root: Path, ci: dict, dirs: list[str], scan_targets: Sequence[tuple[str, Path, Path]]
+    root: Path, ci: dict[str, Any], dirs: list[str], scan_targets: Sequence[tuple[str, Path, Path]]
 ) -> list[PolicyFailure]:
     scan_modules = [path.parent.relative_to(root).as_posix() for _, path, _ in scan_targets if path.name == "go.mod"]
     failures = _equal(scan_modules, dirs, "OSV Go targets")
