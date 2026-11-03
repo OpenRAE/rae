@@ -79,7 +79,10 @@ def _require_node_runtime_identity(resource: NodeRuntime, node: Node) -> None:
         raise InvalidInputError("prepared node requires a known positive count")
     for field, source in _NODE_IDENTITY_FIELDS:
         selected = getattr(node, source)
-        if (getattr(selected, "value", selected) or "") != getattr(resource, field):
+        expected = getattr(selected, "value", selected)
+        if source == "os" and expected is None:
+            expected = ""
+        if expected != getattr(resource, field):
             raise InvalidInputError("prepared node identity differs from its typed specification")
 
 

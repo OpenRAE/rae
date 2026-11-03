@@ -148,7 +148,7 @@ Runtime observations, scheduler state, and backend refusal have no path back int
 | 5. SDL instantiation | Public `raes` selection/instantiation/admission APIs, orchestrated by `raes_processor` | One plan entry and the exact expanded family it pins | Admitted `InstantiatedScenario` and canonical snapshot | Apply only recorded selections and bindings. Make no new draw, import, query, or fallback. Use no private binder. Rerun semantic validation of the whole scenario. | Carry existing expansion and instantiation evidence. Add point selections and trial-plan/run linkage. |
 | 6. Runtime fact binding | `raes_runtime` over compiled slots and neutral fact DTOs | Admitted compiled plans, authorized observations and secret references | Run-local bound operation/action input and binding event evidence | Fill only a declared sink. Match its type, source, scope, freshness, and sensitivity. Never mutate the plan, snapshot, factors, topology, choices, run ID, or streams. | Carry the slot ID and safe fact/source ref. Include scope, freshness, and sensitivity. Retain authorization/evidence refs and the binding outcome. Include no raw secret. |
 | 7. Backend realization | Existing planner, manifest, realization-envelope, and backend protocols | Admitted plans plus selected apparatus/envelope/manifests | Existing backend plans, operation receipts/status, runtime snapshots, and realized-form disclosures | Realize only within the selected envelope and capabilities. Backend refusal is a failure or deviation. It never permits resampling. | Carry manifest, envelope, and configuration refs and digests. Include realized forms, transformations, and omissions. Retain operation IDs and receipts. |
-| 8. Trial orchestration, execution, and scheduling | `raes_processor` and `raes_runtime` own orchestration and execution. External schedulers, including APTL for SCE-006, own placement, isolation, timeouts, and cleanup only. | Admitted plan entries and execution/isolation policy | Existing execution receipts/state; external queue/placement state and dispatch decisions, outside scenario identity | RAE uses the existing single-scenario lifecycle. External scheduling may order, delay, pause, and retry transport. It may use bounded parallelism after isolation proof. It cannot select, instantiate, randomize, compare, or score. | Carry dispatch order. Include instance, lock, and storage allocation. Retain timeouts, clean-state/cleanup evidence, and the retry reason. |
+| 8. Trial orchestration, execution, and scheduling | `raes_processor` and `raes_runtime` own orchestration and execution. External schedulers own placement, isolation, timeouts, and cleanup only. | Admitted plan entries and execution/isolation policy | Existing execution receipts/state; external queue/placement state and dispatch decisions, outside scenario identity | RAE uses the existing single-scenario lifecycle. External scheduling may order, delay, pause, and retry transport. It may use bounded parallelism after isolation proof. It cannot select, instantiate, randomize, compare, or score. | Carry dispatch order. Include instance, lock, and storage allocation. Retain timeouts, clean-state/cleanup evidence, and the retry reason. |
 | 9. Archival provenance | `ExperimentRunModel`, `ExperimentStudyModel`, evidence and cross-artifact validators | Sealed execution/evidence plus plan/snapshot refs | One run per started trial and study/allocation records | The preallocated plan-entry `run_id` becomes the archival `run_id`. A genuine re-execution receives a new admitted ID. Live state is not the run record. | Carry actual parameters and stochastic and apparatus facts. Include the scenario snapshot and realized forms. Retain evidence and deviations. Include lineage to the plan, spec, task, and source run where applicable. |
 
 ### Why the admitted plan is a separate artifact
@@ -693,7 +693,7 @@ A scheduler may not compose SDL or resolve imports.
 It may not select variation points or call the randomizer.
 It may not instantiate a different scenario, create run IDs, or decide factors.
 It may not evaluate scientific results or implement a private comparison/scoring engine.
-APTL and any other scheduler use this same handoff.
+All schedulers use this same handoff.
 
 The portable handoff for clean-state requirements, cleanup obligations,
 execution-attempt receipts, backend capability, and serial-by-default isolation
@@ -811,6 +811,14 @@ It joins the entry to its exact task, processor/backend manifests, and realizati
 It then calls the ordinary SDL selector and runtime compiler/planner.
 Its public processor-plan projections are provisioning, orchestration, and evaluation references bound by digest.
 The internal execution plan is not a portable authority.
+
+Optional node `os_distribution` and `architecture` retain JSON `null` when their typed source values are absent.
+Compilation, desired resources, operation payloads, and recursive commitments preserve the same values.
+Explicit supported values keep their canonical form.
+An empty string cannot replace an absent identity in an admitted plan.
+Runtime admission rejects such a substitution before backend effects.
+Previously refused plans must be compiled again with the corrected processor.
+The `os_version` field retains its separate empty string default.
 
 That bridge rejects composition-bound entries before backend selection.
 Mixed runtime coordination and phase transition commits belong to the separately versioned runtime coordination boundary.
@@ -952,7 +960,7 @@ Backend posture is never scenario or experiment selection.
 | SCE-003 adaptive difficulty | Policy, observations, trigger, intervention, and validity disclosure | Run event/intervention provenance; a new admitted coordinate for a derived follow-up trial | Retroactive factor/topology/identity/stream mutation |
 | SCE-004 goal/tool flexibility | Goal, success criteria, tool/affordance set, decision-surface policy, typed fact sinks | Ordinary SDL/participant semantics and runtime fact bindings | Hidden scenario selection through tool choice or observations |
 | SCE-005 ATT&CK/CTI generation | Revision-pinned inputs, mappings, candidate rationale, confidence and gaps | Candidate SDL that passes ordinary trust, validation, and admission | Direct execution of CTI, bypass of semantic validation, or backend-directed repair |
-| SCE-006/APTL scheduling | Isolation/capacity policy, placement, bounded parallelism, timeouts, cleanup | Sealed admitted entries over the existing single scenario execution path | A second lifecycle, randomizer, run-id allocator, comparison, or scoring engine |
+| SCE-006 scheduling | Isolation/capacity policy, placement, bounded parallelism, timeouts, cleanup | Sealed admitted entries over the existing single scenario execution path | A second lifecycle, randomizer, run-id allocator, comparison, or scoring engine |
 
 ## Requirement and follow-on trace map
 

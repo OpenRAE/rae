@@ -1,4 +1,4 @@
-CLI Reference
+CLI reference
 =============
 
 The ``raes`` command-line interface is built with `Typer <https://pypi.org/project/typer/>`_
@@ -12,7 +12,7 @@ Main CLI
 .. automodule:: raes_cli.main
    :members:
 
-Semantic Commands
+Semantic commands
 -----------------
 
 ``raes semantic`` is the offline, read-only human and automation surface.
@@ -23,7 +23,7 @@ derives human and deterministic JSON presentation from one typed result.
 .. automodule:: raes_cli.semantic
    :members:
 
-SDL Commands
+SDL commands
 ------------
 
 The ``raes sdl`` group contains source-format and legacy module-registry
@@ -33,14 +33,24 @@ are not part of the stable semantic command contract.
 .. automodule:: raes_cli.sdl
    :members:
 
-Processor Commands
+Processor commands
 ------------------
 
 .. automodule:: raes_cli.processor
    :members:
 
-Conformance Commands
+Conformance commands
 --------------------
 
 .. automodule:: raes_cli.conformance
    :members:
+
+Runtime commands
+----------------
+
+``raes runtime store`` checks, backs up, and restores an offline local
+control-plane store.
+
+.. automodule:: raes_cli.runtime
+   :members:
+   :ignore-module-all:

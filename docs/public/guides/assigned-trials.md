@@ -19,6 +19,7 @@ Other return values are refusals.
 
 The coordinator admits the complete original `TrialRealizationInputs` once:
 
+<!-- example-skip: Requires a host-owned coordinator, original inputs, installed services, evidence reader, and trusted identity. -->
 ```python
 experiment_id = coordinator.admit_experiment(
     inputs,
@@ -44,6 +45,7 @@ The selected entry must belong to that proof.
 The effective bound cannot exceed its admitted ceiling.
 Lease reference strings record an allocator decision; they do not prove live ownership.
 
+<!-- example-skip: Requires the retained coordinator admission, selected entry, authenticated owner, and live allocator grant. -->
 ```python
 assignment = coordinator.assign_trial(
     experiment_id,
@@ -71,6 +73,7 @@ For example, public SDL family admission uses `parse_sdl()` and `admit_scenario_
 The handoff contains no Python objects or credentials.
 Targets, stores, and capabilities stay in the host process.
 
+<!-- example-skip: Requires a host runtime, original pinned inputs, delivered assignment, installed services, and authenticated worker identity. -->
 ```python
 from raes_contracts.assigned_trial import TrialAssignmentModel
 
@@ -119,6 +122,7 @@ It includes operations that are still running or indeterminate.
 The caller can read those facts while an advance waits for native work.
 A completed outcome requires both execution and cleanup facts.
 
+<!-- example-skip: Requires the live worker binding and original coordinator admission with its installed evidence verifier. -->
 ```python
 from raes_contracts.assigned_trial import TrialOutcomeModel
 

@@ -22,6 +22,7 @@ PUBLIC_DOCS_ENTRYPOINTS = (
     "SUPPORT.md",
 )
 PUBLIC_DOCS_EXAMPLE_TESTS = (
+    "implementations/python/tests/test_public_guide_examples.py",
     "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses",
     "implementations/python/tests/test_sdl_reference_quick_example.py::test_quick_example_passes_semantic_validation",
     "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario",
