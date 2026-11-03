@@ -317,7 +317,7 @@ def test_invalid_treatment_designs_fail_atomically(change) -> None:
 
 
 def test_expanded_byte_budget_is_checked_before_building_conditions(monkeypatch) -> None:
-    import raes_contracts.contracts.experiment_factorial_treatments as materialization
+    import raes_contracts.contracts.experiment_factorial as materialization
 
     payload = _typed_payload()
     for effects in payload["factorial_design"]["level_effects"]["agent"].values():

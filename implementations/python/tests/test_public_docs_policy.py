@@ -21,8 +21,8 @@ if str(REPO_ROOT) not in sys.path:
 
 from raes import parse_sdl_file  # noqa: E402
 from raes_cli.main import app  # noqa: E402
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding  # noqa: E402
-from raes_contracts.contracts import BehavioralClaimBindingModel  # noqa: E402
 from tools.check_public_docs import (  # noqa: E402
     REQUIRED_PUBLIC_PAGES,
     REQUIRED_PUBLIC_REDIRECTS,

@@ -21,6 +21,7 @@ import raes.module_registry._verified_sources as verified_sources
 import raes.module_registry.resolution as module_registry_resolution
 from raes._errors import SDLParseError
 from raes._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLParserLimits, SDLSourceParseOptions
+from raes._supplied_sources import normalize_bundle_path
 from raes.composition import expand_sdl_modules
 from raes_contracts.digests import sha256_hex
 from raes_contracts.errors import OperationalError
@@ -156,7 +157,7 @@ def test_verified_bundle_path_normalization_rejects_escape(
     relative: str,
 ) -> None:
     with pytest.raises(SDLParseError, match="escapes base directory"):
-        verified_sources._normalize_bundle_path(base_relative, relative)
+        normalize_bundle_path(base_relative, relative)
 
 
 @pytest.mark.parametrize("mismatch", ["type", "size", "mode"])

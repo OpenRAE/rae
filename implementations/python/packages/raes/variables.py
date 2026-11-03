@@ -12,8 +12,8 @@ at instantiation time when a backend deploys the scenario.
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import SDLModel, normalize_enum_value
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value
 
 
 class VariableType(str, Enum):

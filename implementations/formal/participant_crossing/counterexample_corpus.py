@@ -60,6 +60,18 @@ SOURCE_PATHS = (
     "implementations/tooling/admission-policy.json",
     "implementations/tooling/python/uv.lock",
 )
+# Runs stability-check SOURCE_PATHS; the manifest binds only subject sources.
+SUBJECT_SOURCE_PATHS = (
+    *export.SUBJECT_SOURCE_PATHS,
+    *(
+        "implementations/formal/participant_crossing/" + name
+        for name in (
+            "counterexample_mutations.py",
+            "counterexample_witnesses.py",
+            "counterexample_corpus.py",
+        )
+    ),
+)
 
 
 _EXECUTING_PINS = {path: digest(read_bytes(ROOT, path)) for path in SOURCE_PATHS}
@@ -148,7 +160,7 @@ def _baseline(root: Path):
         if digest(payload) != retained["artifact_digests"][name] or payload != current[name]:
             raise EvidenceIntegrityError("retained baseline drift")
         result[name] = payload
-    return result, decoded(current["manifest.json"]), retained
+    return result, decoded(current["manifest.json"])
 
 
 def divergence_witness(payload: bytes) -> dict:
@@ -176,7 +188,7 @@ def _measure(root, left, right, expected):
 
 def build_bundle(root: Path) -> dict[str, bytes]:
     _source_pins(root)
-    bundle, current, retained = _baseline(root)
+    bundle, current = _baseline(root)
     controls = _measure(root, bundle["concrete.aut"], bundle["concrete.aut"], [True] * 4)
     cases, results, calibration_records = {}, {}, {}
     for mutation in build_mutations():
@@ -232,29 +244,27 @@ def build_bundle(root: Path) -> dict[str, bytes]:
     bundle["results.json"] = encoded(
         {"cases": results, "unchanged_concrete_control": controls, "calibrations": calibration_records}
     )
-    manifest = _manifest(root, bundle, cases, current, retained)
+    manifest = _manifest(root, bundle, cases, current)
     bundle["manifest.json"] = encoded(manifest)
     validate_inventory(bundle)
     return bundle
 
 
-def _manifest(root, bundle, cases, current, retained):
+def _manifest(root, bundle, cases, current):
     selected = selection()
-    sources = _source_pins(root)
+    executing = _source_pins(root)
+    sources = {path: executing[path] for path in SUBJECT_SOURCE_PATHS}
     mapping = {name: read_bytes(root, MAPPING_ROOT + "/" + name) for name in ("manifest.json", "cases.json")}
     if decoded(mapping["manifest.json"])["artifact_digests"]["cases.json"] != digest(mapping["cases.json"]):
         raise EvidenceIntegrityError("historical mapping drift")
     return {
-        "schema": "participant-crossing-counterexamples/v1",
+        "schema": "participant-crossing-counterexamples/v2",
         "profile": "participant-crossing-dpbb-finite-v1@rev2",
         "profile_digest": current["profile_digest"],
         "projection": current["projection"],
         "catalog_revision": current["catalog_revision"],
         "catalog_digest": current["catalog_digest"],
         "baseline_manifest_digest": digest(read_bytes(root, export.OUTPUT_PATH + "/manifest.json")),
-        "historical_baseline_source_drift": sorted(
-            path for path, pin in retained["source_digests"].items() if digest(read_bytes(root, path)) != pin
-        ),
         "mapping": {
             "path": MAPPING_ROOT,
             "scope": "historical-observations",
@@ -363,7 +373,7 @@ def admit_bundle(
         raise EvidenceIntegrityError("corpus differs from retained manifest pin")
     if require_authenticity:
         raise EvidenceIntegrityError("unsigned corpus cannot satisfy authenticity policy")
-    baseline, current, retained = _baseline(root)
+    baseline, current = _baseline(root)
     if any(bundle[name] != value for name, value in baseline.items()):
         raise EvidenceIntegrityError("corpus baseline drift")
     cases, results = _admit_mutations(bundle, baseline)
@@ -378,7 +388,7 @@ def admit_bundle(
         raise EvidenceIntegrityError("invalid corpus decisions")
     # Reconstruct all metadata from independently selected authorities. This also
     # closes unknown fields, claim promotion, source/tool drift and digest joins.
-    if bundle["manifest.json"] != encoded(_manifest(root, bundle, cases, current, retained)):
+    if bundle["manifest.json"] != encoded(_manifest(root, bundle, cases, current)):
         raise EvidenceIntegrityError("invalid corpus metadata")
 
 

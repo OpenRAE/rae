@@ -14,8 +14,9 @@ if TYPE_CHECKING:
     from .participant_control_effects import _DrainState
 
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
-from raes_contracts.immutable_history import EventHistory, HistoryMap, seal_history
+from raes_contracts.immutable_history import EventHistory, HistoryMap
 from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+from raes_contracts.snapshot_histories import seal_history
 
 from .participant_control_causal_state import CausalAccumulator, ParticipantControlCausalState
 from .participant_control_provider_state import _require_serial_state_chain, _scope_key
@@ -29,7 +30,7 @@ class ControlStateProjection:
     def __init__(self, *, lock: RLock | None = None) -> None:
         self._lock = RLock() if lock is None else lock
         self.version = PROJECTION_VERSION
-        self.history = HistoryMap("participant_control_evaluation_history", {})
+        self.history = seal_history("participant_control_evaluation_history", {})
         self.roots = {}
         self.local_roots = {}
         self.shared_roots = set()

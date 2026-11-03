@@ -4,8 +4,13 @@ from collections.abc import Mapping
 from typing import Any, Literal
 
 from pydantic import Field, StrictInt, model_validator
-from raes.participant_local_outcome import OutcomeAttainment, OutcomeCategory, OutcomeKnowledge
-from raes.participant_outcome_semantics import OutcomeInterpretationRule
+
+from raes_contracts.participant_outcome_semantics import (
+    OutcomeAttainment,
+    OutcomeCategory,
+    OutcomeInterpretationRule,
+    OutcomeKnowledge,
+)
 
 from ..addressing import CompiledAddress
 from .base import ContractModel, NonEmptyString, PrefixedDigestString

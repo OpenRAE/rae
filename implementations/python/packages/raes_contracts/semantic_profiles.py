@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .contracts import SemanticProfileModel
+from raes_contracts.contracts.semantic_profiles import SemanticProfileModel
+
 from .corpus import PROFILES, corpus_family_root
 
 

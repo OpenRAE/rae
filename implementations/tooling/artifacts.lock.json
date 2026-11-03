@@ -198,14 +198,13 @@
         "repository": "https://isabelle.in.tum.de",
         "release": "Isabelle2025-2",
         "asset": "Isabelle2025-2_linux.tar.gz",
-        "locator_refs": ["official-isabelle-release", "official-isabelle-cambridge-mirror"]
+        "locator_refs": ["official-isabelle-release"]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
           "source_urls": [
-            "https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2_linux.tar.gz",
-            "https://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle2025-2_linux.tar.gz"
+            "https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2_linux.tar.gz"
           ],
           "raw_manifest": [{"path": "Isabelle2025-2_linux.tar.gz", "sha256": "a20a507bc7c1270d8be96a9f3fbec06345387789d2dc2c4d3df6260d47bfb33c", "size": 1228480874}],
           "installed_manifest": [

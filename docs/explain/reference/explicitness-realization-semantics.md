@@ -61,6 +61,12 @@ engineering risk is concept conflation: treating "not specified yet",
   requirements should surface through existing `SDLValidationError`,
   `SDLInstantiationError`, or `raes_processor.models.Diagnostic` paths,
   depending on the phase where support is known.
+- An authored-empty open concern can plan without observation capability.
+  For any backend, omission or an empty report without a matching observation
+  means that the backend added no member and produces no provenance.
+  Reported members and matching observations still require full corroboration.
+  Author observation demands remain binding.
+  Failed apply inventory remains available for cleanup under existing authority and sanitization checks.
 - Carry one complete, resolved, value-free authority collection on every
   backend-facing provisioning plan. It includes closed omissions and preserves
   governing scope plus resolution source; it does not expose authoring
@@ -122,6 +128,8 @@ Build on these existing surfaces before adding anything new:
 - runtime diagnostics and envelopes: `raes_processor.models.Diagnostic`,
   `raes_contracts.planning.ResolvedRealizationAuthority`, runtime
   plan/result/snapshot models, and published control-plane contracts
+- failed apply validation: `raes_processor.planner.realization_cleanup_diagnostics`,
+  which validates original authority and omits success provenance
 - workflow gates: `.ground-control.yaml`, `.gc/plan-rules.md`,
   `tools/check_repo_policy.py`, `tools/check_requirement_governance.py`,
   `tools/check_json_artifacts.py`, `tools/check_generated_schemas.py`, and
@@ -388,3 +396,13 @@ is `active`: the classifier, typed scoped designation cascade, compiler carrier,
 planner gate, runtime non-approximation/disclosure gate, and snapshot
 provenance delivery are implemented together. Treat the prose above as
 architecture guidance for those surfaces and the spec as the binding contract.
+
+## Constraint evaluation work
+
+`evaluate_realization_constraint` applies finite limits to constraint admission
+and value evaluation. The evaluator builds a temporary tree of decoded scope
+tokens for each call. Inherited closure and closed-scope child checks share that
+tree. Tree construction and lookup consume the evaluation operation budget.
+This avoids scanning all scopes for each application route or nested container.
+The default limits remain unchanged. Exhausted work returns `limit-exceeded`;
+matching input values do not bypass exact constraints or scope checks.

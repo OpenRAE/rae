@@ -82,7 +82,6 @@ mechanisms, distributed atomicity or external exactly-once execution.
 - TESTS → TEST `implementations/python/tests/test_issue_1069_control_evaluation_carrier.py` (Append-only evaluation carrier and expected-head binding)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1069-run-320-runtime-orchestration-preflight.md` (Issue #1069 runtime orchestration architecture preflight)
 - DOCUMENTS → DOCUMENTATION `docs/explain/reference/modular-participant-control-contracts.md` (Runtime orchestration reference and verification map)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_snapshot_updates.py` (Participant-control evaluation history in the snapshot update surface)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Participant-control evaluation history in the published snapshot envelope)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (First-class append-only participant-control evaluation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_snapshot_contracts.py` (Runtime ownership of the participant-control evaluation carrier)

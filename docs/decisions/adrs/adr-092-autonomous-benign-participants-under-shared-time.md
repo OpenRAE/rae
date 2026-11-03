@@ -284,6 +284,31 @@ The backend claims the composition with an explicit capability block and the
 `attach_invocation_tool_actions` protocol method. Without that claim, the
 scheduler behaves as before.
 
+
+`participant-invocation-tool-actions/v2` also hosts tool actions in a
+runtime-owned delivery invocation. It requires a retained successful delivery,
+its exact compiler context, a live participant episode, an implementation
+selection, and the current runtime generation. It requires no autonomous
+policy and creates no enclosing action contract. The public runtime entry is
+`invoke_participant_delivery`; the executable protocol is `invoke_delivery`.
+
+Every child passes exact tool-binding admission, current authority and
+originating-control checks, participant crossing, composed control, and final
+sink admission. Dispatch repeats these checks and consumes one durable grant.
+A transformation that replaces the child identity is refused.
+The exact admitted binding is returned to the executor.
+Shared-time contexts belong to the child; the existing authoritative clocks,
+evidence assessment, and temporal-history validators govern them.
+
+V2 publishes each child outcome, history, and audit atomically when the child
+settles. Outer failure or cancellation cannot remove that history. Closure
+withholds undispatched children and records uncertain dispatched children as
+indeterminate. Durable bindings support restart classification without effect
+replay. The runtime retains one state writer, its effect reservation, private
+invocation-scoped child access, conflict reservations, and bounded supervision.
+The [delivery-tool contract](../../../specs/formal/participant-semantics/delivery-tool-actions.md)
+defines the detailed obligations. V1 retains its existing semantics.
+
 ## Consequences
 
 - Human, AI, scripted, and benign simulated participants share one semantic and
@@ -324,3 +349,4 @@ scheduler behaves as before.
 | 2026-08-01 | #213 | Identified the existing autonomous-participant policy and execution path as the implementation of ACT-605 baseline behavior profiles. |
 | 2026-09-21 | #216 | Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules. |
 | 2026-10-30 | #1740 | Added versioned participant tool actions hosted inside an active autonomous invocation. |
+| 2026-11-01 | #1829 | Added runtime-owned delivery invocations with independently governed tool actions, shared-time evidence, and durable child settlement. |

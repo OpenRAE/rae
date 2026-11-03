@@ -11,7 +11,6 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from raes import SDLValidationError, instantiate_scenario, parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.nodes import (
     RuntimeProcessLimitResource,
     RuntimeProcessResourceLimit,
@@ -27,6 +26,7 @@ from raes_contracts.apparatus import (
     ProcessResourceLimitCapability,
     RealizationObservationCapability,
 )
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import (
     ChangeAction,
     ProvisioningPlan,

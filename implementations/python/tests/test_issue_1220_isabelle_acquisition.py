@@ -1035,7 +1035,7 @@ def test_checked_in_isabelle_authority_binds_the_reviewed_complete_tree() -> Non
         symlink_count=457,
         expanded_bytes=2301957383,
     )
-    assert len(isabelle["source"]["locator_refs"]) == len(platform["source_urls"]) == 2
+    assert len(isabelle["source"]["locator_refs"]) == len(platform["source_urls"]) == 1
     from tools.tooling_artifact_policy_discovery import python_scan
 
     # Check the actual acquisition implementation, without inventory-site counts.

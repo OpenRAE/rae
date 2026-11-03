@@ -16,11 +16,10 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceSelectionModel,
     ParticipantImplementationManifestModel,
     ParticipantImplementationSelectionModel,
-    schema_bundle,
     validate_participant_decision_surface_context,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
     ParticipantDecisionSurfaceBindingResolvers,
     ParticipantValidatedActionSelection,
     bind_participant_decision_surface_selection,
@@ -44,6 +43,7 @@ from raes_processor.models import (
     project_participant_decision_surface,
 )
 from raes_runtime.participant_control import ParticipantControlMixin
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "control-plane" / "participant-decision-surface-v1"

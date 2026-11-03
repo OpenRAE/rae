@@ -12,8 +12,8 @@ from jsonschema import Draft202012Validator
 from raes import SDLParseError, SDLValidationError, parse_sdl, parse_sdl_file
 from raes.scenario import Scenario
 from raes.semantics.deployment_tenancy import analyze_deployment_tenancy
-from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
+from raes_schemas import schema_bundle
 
 _INSTANTIATION_PROVENANCE = {
     "authored_digest": {

@@ -6,17 +6,17 @@ from copy import deepcopy
 from typing import Any, cast
 
 from ..json_serialization import sorted_json_text
-from .schema_invariants import _SCHEMA_MAP_KEYS, _SCHEMA_SUBSCHEMA_KEYS
+from .schema_invariants import SCHEMA_MAP_KEYS, SCHEMA_SUBSCHEMA_KEYS
 
 _DEFINITIONS = "$defs"
 
 
 def _map_children(node: dict[str, Any], transform: Callable[[object, bool], object]) -> dict[str, Any]:
     result = deepcopy(node)
-    for key in _SCHEMA_MAP_KEYS:
+    for key in SCHEMA_MAP_KEYS:
         if isinstance(result.get(key), dict):
             result[key] = {name: transform(value, key == _DEFINITIONS) for name, value in result[key].items()}
-    for key in (*_SCHEMA_SUBSCHEMA_KEYS, "propertyNames", "if", "then", "else", "not"):
+    for key in (*SCHEMA_SUBSCHEMA_KEYS, "propertyNames", "if", "then", "else", "not"):
         value = result.get(key)
         if isinstance(value, list):
             result[key] = [transform(child, False) for child in value]

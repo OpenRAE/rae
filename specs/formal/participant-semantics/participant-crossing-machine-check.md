@@ -25,8 +25,7 @@ The result has no time or probability claim.
 It excludes concurrency, fairness, handoff, and other profiles.
 The historical mapping keeps its known gaps.
 It keeps each recorded mismatch.
-SEM-232 stays DRAFT.
-The separate reproduction and publication work must finish first.
+A public or scientific claim cites this result only with an admitted separate reproduction review.
 
 ## Components and interfaces
 
@@ -56,13 +55,26 @@ The results must match the retained corpus.
 Only then can the baseline decision support a claim.
 
 The result binds complete domain counts, state counts, transition counts, and semantic sidecars.
-It binds current sources separately from retained construction-time sources.
+The retained model construction record keeps its own historical source digests.
 It binds the historical mapping manifest and case bytes without claiming current runtime coverage.
 It records the archive checksum.
 It records the executable and installed-tree identities.
 It records the fixed command and resource limits.
 Canonical JSON identity and exact file-byte identity retain their existing meanings.
 The manifest does not include its own digest.
+
+## Subject identity and execution provenance
+
+The manifest binds subject sources only.
+Subject sources define both models, the mutations, the witness checks, and the evidence composition.
+They also include the profile, the corpus pin, and this specification.
+Shared libraries, tool-admission code, locks, and command modules are apparatus.
+Each run checks every subject and apparatus source before and after native execution.
+A change during a run publishes nothing.
+The hosted execution record names the source revision, host, native packages, and lock digests.
+Native replay must reproduce every subject byte.
+So an apparatus change that alters a result fails replay.
+An apparatus change that keeps every subject byte keeps the retained record admissible.
 
 Positive evidence contains the existing `BehavioralClaimBindingModel`.
 `validate_behavioral_claim_binding` checks its exact catalog, profile, projection, and carrier joins.
@@ -80,7 +92,8 @@ Raw process diagnostics remain private.
 
 ```mermaid
 flowchart LR
-  S[(Independent model sources and governed profile)] -->|Complete graphs and current source identities| E[Existing model exporter]
+  S[(Independent model sources and governed profile)] -->|Complete graphs and subject source identities| E[Existing model exporter]
+  X[(Apparatus sources and locks)] -->|Before-and-after stability digests| C
   H[(Retained models and historical mapping)] -->|Pinned bytes and scope| A[Evidence admission]
   P[(Reviewed corpus pin)] -->|Expected mutation subject and artifact identity| A
   E -->|Canonical AUT inputs and semantic sidecars| A
@@ -90,7 +103,8 @@ flowchart LR
   W -->|Validated baseline and mutation outcomes| C[Claim and bundle admission]
   A -->|Exact input provenance and complete counts| C
   C -->|Closed canonical inventory| B[(Immutable result capture)]
-  B -->|Admitted artifacts and external source revision| CI[Canonical CI artifact publisher]
+  B -->|Admitted artifacts| CI[Canonical CI replay and artifact publisher]
+  CI -->|Source revision, host, and lock digests| R[(Execution record)]
 ```
 
 The native sandbox forms a trust boundary.
@@ -144,11 +158,11 @@ It records native package versions and Python closure identity.
 Existing bootstrap host probes qualify the hosted image.
 The producer checks source stability before and after native execution.
 The tooling gate owns the shared validation-source inventory.
-Both native evidence producers bind that inventory.
+Both native evidence producers check that inventory for stability during each run.
 It covers the selected-policy validators, their shared readers, and governing schemas.
+The tool archive, executable, and installed-tree digests bind the admitted tool in the subject.
 Only a trusted writer can change the checkout or tool tree.
 No other writer may change them during the run.
-Public and scientific claim surfaces wait for issues 975 and 976.
 
 The separate multi-operation profile requires its own result, limits, inventory, and witness capability.
 This check cannot silently extend the single-operation carrier.
@@ -159,6 +173,8 @@ This check cannot silently extend the single-operation carrier.
 - [Bubblewrap reference architecture](https://github.com/containers/bubblewrap/blob/main/README.md): explicit namespace and mount policy.
 - [ASD-STE100 Issue 9](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf): technical names, sentence structure, and descriptive writing.
 - [Architecture preflight](../../../docs/decisions/issue-974-finite-crossing-bisimulation-preflight.md): repository interfaces, claim joins, and evidence limits.
+- [Evidence identity design](../../../docs/decisions/issue-976-crossing-evidence-identity-design.md): subject identity, execution provenance, and publication.
+- [SLSA Provenance v1.0](https://slsa.dev/spec/v1.0/provenance): separation of subject and run details.
 
 The document review applies STE sections 1, 4, 5, and 6.
 It checks consistent technical names, one fact per sentence, sentence limits, and document purpose.

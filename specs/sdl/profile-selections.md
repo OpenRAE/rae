@@ -32,6 +32,38 @@ control remains with issues #1068–1072 and
 Typed channel identity survives participant compilation; selecting another
 protocol cannot expand `starting_accounts`.
 
+## Descriptor ownership and admission
+
+[ADR-120](../../docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md)
+governs the five descriptor hosts:
+
+| Host field | Concept family | Context |
+| --- | --- | --- |
+| `identity_facades.<facade>.protocol` | `identities` | `identity-facade-protocol` |
+| `relationships.<relationship>.forest_trust.trust_type` | `relationships` | `forest-trust-type` |
+| `relationships.<relationship>.identity_federation.protocol` | `relationships` | `identity-federation-protocol` |
+| `relationships.<relationship>.identity_federation.mapping_intent` | `relationships` | `identity-federation-mapping-intent` |
+| `agents.<participant>.interactive_access.<id>.channel` | `relationships` | `participant-interactive-access-channel` |
+
+A typed binding at one of these fields uses owning contract
+`sdl-authoring-input-v1`, phase `authoring` and use `constraint`. Its canonical
+address is the JSON Pointer of its host field, such as
+`#/identity_facades/idp/protocol`. Concept family and context come from the
+table. Provenance is `author-supplied`. Nested bindings keep the same owner.
+Semantic validation rejects any other owner. Module composition renames the
+declaration token of the pointer with the declaration.
+
+The compiler carries these bindings in `RuntimeModel.descriptor_profile_bindings`.
+Planning admits each one against the independently configured target context.
+The context digest must equal the manifest `domain_profile_context_digest`, and
+the exact definition and semantic contract must have structural and semantic
+validation support. Otherwise planning reports
+`realization.descriptor-profile-unsupported` before mutation. Runtime plan
+admission repeats the check against the configured target context. A typed
+descriptor value is public profile data. Admission adds no login, trust
+operation, credential, endpoint or connection grant. Built-in string values
+need no profile context.
+
 ## Provisioning admission
 
 Artifact, service, account and domain selections use the existing
@@ -145,5 +177,6 @@ Open choices remain with the backend. Merely using an internal generator,
 identity setup or resource mechanism creates no authoring or capture duty.
 Executable examples and rejection cases are in
 [`test_issue_1208_profile_selections.py`](../../implementations/python/tests/test_issue_1208_profile_selections.py),
-[`test_issue_1208_profile_boundaries.py`](../../implementations/python/tests/test_issue_1208_profile_boundaries.py)
-and [`test_issue_1208_resource_profiles.py`](../../implementations/python/tests/test_issue_1208_resource_profiles.py).
+[`test_issue_1208_profile_boundaries.py`](../../implementations/python/tests/test_issue_1208_profile_boundaries.py),
+[`test_issue_1208_resource_profiles.py`](../../implementations/python/tests/test_issue_1208_resource_profiles.py)
+and [`test_issue_298_descriptor_profiles.py`](../../implementations/python/tests/test_issue_298_descriptor_profiles.py).

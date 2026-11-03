@@ -8,11 +8,11 @@ from raes_contracts.controlled_vocabularies import (
     validate_controlled_vocabulary_value,
 )
 from raes_contracts.graphs import has_cycle
+from raes_contracts.workflow.semantics import branch_closure
 
 from ..orchestration import WorkflowStepType
 from ..participant_behavior import ParticipantActionGranularity, ParticipantInformationBoundaryClass
 from ..participant_behavior_specification import tool_affordance_reference
-from ..semantics.workflow import branch_closure
 from ._support import _AvailableStateContext, _CompensationState, _WorkflowBuildState
 
 

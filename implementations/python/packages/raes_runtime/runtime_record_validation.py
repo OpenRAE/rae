@@ -23,7 +23,7 @@ from .runtime_record_assembly import _observed_evidence
 _LOGGER = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from raes_contracts.evidence_proof import ValidatedRunEvidence
+    from raes_contracts.contracts.evidence_satisfaction import ValidatedRunEvidence
 
     from .experiment_records import ExperimentEvidenceReader, ExperimentRecordSource, ExperimentRunMetadata
     from .runtime_experiment import RuntimeExperiment

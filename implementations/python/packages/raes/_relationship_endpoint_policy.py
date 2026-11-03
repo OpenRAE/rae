@@ -12,7 +12,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from enum import Enum
 
-from ._base import normalize_enum_value
+from raes_contracts.variable_references import normalize_enum_value
+
 from ._reference_targetability import ReferencePurpose
 
 _P = ReferencePurpose

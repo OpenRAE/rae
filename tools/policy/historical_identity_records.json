@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "c7c49c04b11e0edb034057c843dc73d3f8e3399079213373b904c81d3b2b17f7"
+      "content_sha256": "a5d0e34cc994dc6cf4f5ed47434ddbd802dc330f6430edd95ce190d2e2ad946c"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -215,7 +215,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 18,
-      "content_sha256": "80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9"
+      "content_sha256": "d56045dcedd9e7bb4a94d023326e725edc94651ac6ed7869f0b09dfa9962f895"
     },
     {
       "path": "docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md",
@@ -479,9 +479,9 @@
     {
       "path": "docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1740 invocation tool-action amendment.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1740 invocation tool-action and issue-1829 delivery invocation amendments.",
       "occurrences": 1,
-      "content_sha256": "c0b2643a15581d527918a4f83a96e4e8b08a8bf34ccbfcc350c445aac5ebda4f"
+      "content_sha256": "0e714109e317e7953325939d6f1b4d576e33d50a6de273285fe16c6ee76cbc13"
     },
     {
       "path": "docs/decisions/adrs/adr-093-raes-rename-and-compatibility-boundaries.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008 and issue-1740 amendments, the PR-1752 ADR-117 amendment and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008 and issue-1740 amendments, the PR-1752 ADR-117 amendment, the issue-976 ADR-100 amendment, the issue-1711 ADR-036 and ADR-117 amendments and their pins, and the issue-1829 ADR-092 amendment pin.",
       "occurrences": 4,
-      "content_sha256": "26a9e4dd1220d44d5e71b188ce31a1ff68249ac38b9d2f6df224bdbb48739fee"
+      "content_sha256": "89231ba618a986dac1a843de45c9b42329f68b4edd308b97a42c0cf206ff5fd6"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

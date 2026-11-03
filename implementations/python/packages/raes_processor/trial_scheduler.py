@@ -27,18 +27,15 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts import (
     AdmittedTrialPlanModel,
     BatchExecutionReceiptModel,
     validate_scheduler_isolation_proof,
 )
+from raes_contracts.contracts.admitted_trial_plan import canonical_entry_order, scheduling_policy_id
+from raes_contracts.contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts.trial_cleanup import TrialOutcome
-from raes_contracts.contracts.trial_coordinate_order import (
-    CANONICAL_ORDER_POLICY_ID,
-    canonical_entry_order,
-    scheduling_policy_id,
-)
+from raes_contracts.contracts.trial_coordinate_order import CANONICAL_ORDER_POLICY_ID
 from raes_contracts.errors import InvalidInputError, NotFoundError
 
 

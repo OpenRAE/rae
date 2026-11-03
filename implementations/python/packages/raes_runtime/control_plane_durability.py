@@ -31,6 +31,8 @@ class RuntimeDurabilityMixin:
 
     def _require_state_writer(self) -> None:
         authority = getattr(self, "_mutation_authority", None)
+        if authority is not None:
+            authority.require_live_child_scope()
         if authority is not None and not authority.owns_current_thread():
             self._poison_runtime_durability()
             raise RuntimeError("terminal publication requires the live state writer")

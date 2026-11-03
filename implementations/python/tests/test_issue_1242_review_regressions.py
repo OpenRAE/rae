@@ -115,8 +115,9 @@ def test_source_policy_cannot_be_removed_without_invalidating_its_bound_identity
 def test_advisory_preparation_does_not_fail_whole_run_or_emit_duplicates(tmp_path, severity):
     from raes_backend_protocols.manifest import backend_manifest_v2_model
     from raes_contracts.canonical import canonical_json_digest
+    from raes_contracts.contracts.realization_preparation import RealizationPreparation
     from raes_contracts.diagnostics import Diagnostic, Severity
-    from raes_contracts.realization_preparation import RealizationPreparation, RealizationPreparationAuthority
+    from raes_contracts.planning import RealizationPreparationAuthority
     from raes_runtime import RuntimeManager
     from raes_runtime.registry import RuntimeTarget
 
@@ -206,7 +207,7 @@ def test_later_phase_preserves_prior_additions_without_claiming_their_effects(tm
 
 @pytest.mark.parametrize("phase", ["provisioning", "evaluation", "orchestration"])
 def test_required_scope_fact_survives_wire_roundtrip_and_binds_authorization(phase):
-    from raes_contracts import plan_projection
+    from raes_contracts.contracts import plan_projection
     from raes_contracts.plan_effects import plan_can_mutate
     from raes_runtime import control_plane_api_models
 
@@ -256,7 +257,10 @@ def test_manager_composes_all_phases_before_mutation_and_preserves_cumulative_wo
     from test_runtime_manager import RecordingEvaluator, RecordingOrchestrator, _full_scenario
 
     source = _full_scenario().model_dump(mode="json", exclude_unset=True)
-    source["realization"] = {"default": "open"}
+    source["realization"] = {
+        "default": "open",
+        "scopes": [{"field_pointer": "/nodes/host/runtime", "posture": "closed"}],
+    }
     source["nodes"]["host"] = source["nodes"].pop("vm")
     source["propositions"]["health"]["subjects"] = ["nodes.host"]
     execution = scoped_plan({"default": "open"}, content=source)

@@ -44,7 +44,7 @@ from raes_conformance.conformance.report import (
     ParticipantPolicyAssumptions,
     ParticipantPolicyBinding,
 )
-from raes_contracts.contracts import BehavioralClaimBindingModel
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingGateDisposition
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent

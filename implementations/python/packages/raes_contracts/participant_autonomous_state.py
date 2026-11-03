@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.contracts.participant_runtime import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_temporal_history import require_participant_temporal_history
 
 _SNAPSHOT_FIELD = "runtime.snapshot.participant-autonomous-execution-states"
 _SHA256_DIGEST = re.compile(r"sha256:[0-9a-f]{64}", re.ASCII)
@@ -218,7 +219,6 @@ def require_participant_autonomous_runtime_snapshot(snapshot: object) -> None:
     if violation is not None:
         address, message = violation
         raise ValueError(f"{address}: {message}")
-    from .participant_temporal import require_participant_temporal_history
 
     require_participant_temporal_history(snapshot)
 

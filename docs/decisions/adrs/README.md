@@ -282,3 +282,6 @@ adr-116-shared-exceptions-and-operational-logging
 | [116](adr-116-shared-exceptions-and-operational-logging.md) | Shared Exceptions and Operational Logging | accepted | 2026-10-28 |
 | [117](adr-117-ratcheted-structural-checks.md) | Ratcheted Structural Checks for Package Modules | accepted | 2026-10-30 |
 | [118](adr-118-shared-primitives-and-injected-wall-clock.md) | Shared Primitives and an Injected Wall Clock | accepted | 2026-10-31 |
+| [119](adr-119-consumer-parse-of-supplied-sdl-sources.md) | Consumer Parse of Supplied SDL Sources | accepted | 2026-10-31 |
+| [120](adr-120-owned-and-admitted-typed-descriptor-profiles.md) | Owned and Admitted Typed Descriptor Profiles | accepted | 2026-10-31 |
+| [121](adr-121-strict-package-layers.md) | Strict Package Layers and a Schema Composition Root | accepted | 2026-10-31 |

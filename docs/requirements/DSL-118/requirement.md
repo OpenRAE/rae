@@ -57,7 +57,7 @@ Primary-source refresh shows that participant execution often depends on authore
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_occurrence_v2_validation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_manifests.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_configuration.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_configuration.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_behaviors.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/behavior_resources.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/runtime_model.py`
@@ -67,7 +67,7 @@ Primary-source refresh shows that participant execution often depends on authore
 - TESTS → TEST `implementations/python/tests/test_dsl_118_trial_control_context.py`
 - IMPLEMENTS → DOCUMENTATION `docs/explain/sdl/control-context-migration.md`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_control_context.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_bundle_access.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_schemas/bundle.py`
 - IMPLEMENTS → SPEC `contracts/provenance/sdl-lineage-ledger-v2.json`
 - TESTS → TEST `implementations/python/tests/test_sdl_lineage.py`
 - TESTS → TEST `implementations/python/tests/test_sdl_catalog_parity.py`

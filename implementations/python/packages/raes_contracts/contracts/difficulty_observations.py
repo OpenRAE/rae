@@ -8,7 +8,8 @@ from typing import Literal
 from pydantic import GetJsonSchemaHandler, StrictBool, StrictFloat, StrictInt, StrictStr, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.identifiers import PortableIdentifier
+
+from raes_contracts.identifiers import PortableIdentifier
 
 from .base import ContractModel, NonEmptyString, NonNegativeInteger
 from .experiment_references import ExperimentReferenceModel

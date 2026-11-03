@@ -142,6 +142,7 @@ Resolution reports MUST NOT replace the requested selection or become configurat
 ## Optional constraints and lifecycle responsibility
 
 Secret metadata can declare `location`, `replica_locations` and `encryption_key_ref`.
+These legacy fields do not declare a replication policy.
 Declared encryption references MUST resolve to existing resources.
 Optional `reset_owner_ref` and `deletion_owner_ref` also name existing resources.
 These references describe responsibility; they grant no mutation or deletion authority.
@@ -153,6 +154,69 @@ An optional `resource_scope_ref` identifies its scope.
 No unit conversion, quota enforcement or billing behavior is implied.
 Other native refinements require an appropriate admitted profile and independent support.
 Authors MUST NOT have to supply these details for every cloud application.
+
+### Secret replication
+
+`secrets[].replication` declares an optional typed policy. Omission or null means
+unspecified; neither an absent nor an empty replica list implies automatic
+replication. The policy identity combines the exact `provider` and `mode`.
+The supported provider is `gcp-secret-manager`, with two modes:
+
+- `automatic` requires unrestricted replication and MUST NOT declare replicas.
+- `user-managed` requires replication only in the nonempty `replicas` list.
+  Each replica requires a distinct, nonblank `location`.
+
+Other providers and mode spellings MUST be rejected. Core does not equate these
+policies with another provider's policies. A supplied `resource_scope_ref` MUST
+resolve to a scope with provider `gcp`. The provider identity selects semantics;
+it does not select or authorize a backend.
+
+An automatic policy may declare a native `kms_key_name`. A user-managed policy
+may declare that field on each replica, and MUST NOT declare a policy-level key.
+Key names have shape `projects/P/locations/L/keyRings/R/cryptoKeys/K`.
+The key location MUST be `global` for automatic replication and MUST match its
+replica's location for user-managed replication. Omitted keys retain GCP's
+provider-managed encryption meaning. Names are inert resource identifiers,
+not key material or SDL references, and imports MUST preserve their spelling.
+
+When `replication` is supplied, `location`, `replica_locations`, and
+`encryption_key_ref` MUST be empty. No competing legacy declaration is allowed.
+Mode, location and key names may use whole-field variables; instantiation MUST
+repeat mode, uniqueness, key-location, and provider-scope checks after binding.
+Published schemas enforce shape and mode alternatives. Their callable semantic
+invariant also enforces location uniqueness and key-location agreement.
+
+```yaml
+secret_id: automatic-example
+replication:
+  provider: gcp-secret-manager
+  mode: automatic
+```
+
+```yaml
+secret_id: regional-example
+replication:
+  provider: gcp-secret-manager
+  mode: user-managed
+  replicas:
+    - location: us-east1
+      kms_key_name: projects/example/locations/us-east1/keyRings/example/cryptoKeys/example
+    - location: europe-west1
+```
+
+Imports, compilation, plan transport, snapshots and materialized SDL MUST retain
+the complete authored policy. Exact runtime configuration verification MUST
+reject omitted policies, changed modes, missing replicas and missing or changed
+keys. Unsupported execution MUST be refused before effects. A backend that
+advertises the runtime concern MUST still reject any unsupported policy through
+its validation interface. RAES adds no provider implementation or qualification.
+
+GCP replication policy is immutable. A backend MUST qualify existing-resource
+handling and MUST NOT silently replace a secret to satisfy changed intent.
+Live location availability, key permissions, service restrictions and execution
+remain backend responsibilities. See the
+[REST v1 replication contract](https://docs.cloud.google.com/secret-manager/docs/reference/rest/v1/projects.secrets#Replication)
+and [design](../../docs/decisions/issue-1848-secret-replication.md).
 
 ## Composition, admission and descriptions
 
@@ -177,3 +241,62 @@ Fixture conformance does not establish live GCP, AWS or Azure interoperability.
 
 The design rationale, alternatives, data flow and security controls are in
 [the issue design](../../docs/decisions/issue-1653-cloud-identity-secrets-design.md).
+
+## Audit log configuration
+
+`resource_scopes[].audit_logs` states required recording on the owning scope.
+Each record requires a scope-local `audit_log_id`, native `service`, and native `log_type`.
+The ID and the service/log-type pair MUST each be unique within the scope.
+The collection contains at most 1024 records.
+Native service and log-type strings contain 1 to 2048 characters and MUST NOT be blank.
+Their case and provider meaning remain unchanged.
+A service name is not a node service or endpoint reference.
+Core MUST NOT expand native wildcards or calculate effective inherited coverage.
+
+Optional `exempted_principal_refs` names exact declared identity subjects.
+It contains at most 1024 distinct references.
+Each reference contains 1 to 2048 characters and MUST NOT be blank.
+Subject ownership need not equal the logging scope.
+RAES MUST retain each exemption in the binding runtime requirement.
+Runtime admission MUST honor protocol rejection before effectful invocation.
+The reference does not create a principal or an access grant.
+
+Omission or an empty collection contributes no recording requirement.
+It MUST NOT become a command to disable existing logging.
+Existing explicitness and closure rules still govern supplied constraints.
+Positive declarations do not forbid other log types or claim complete organization coverage.
+Audit record IDs are addressable below their scope; they create no authority-wide alias.
+
+For example, a GCP project scope can declare:
+
+```yaml
+audit_logs:
+  - audit_log_id: secret-reads
+    service: secretmanager.googleapis.com
+    log_type: DATA_READ
+  - audit_log_id: secret-admin-reads
+    service: secretmanager.googleapis.com
+    log_type: ADMIN_READ
+```
+
+These records remain configuration in the `runtime-identity-authorities` concern.
+RAES defines the support, refusal, and result obligations at the backend protocol boundary.
+Runtime admission MUST reject unsupported exact requirements before effectful invocation.
+A protocol validation rejection MUST also prevent that invocation.
+A general identity support declaration MUST NOT remove or weaken an audit requirement.
+RAES result validation MUST detect missing rules and changed exemptions.
+Conforming results MUST preserve the binding configuration and its declared closure semantics.
+No destination, selector, or additional infrastructure is implied by these fields.
+Scope ownership alone grants no right to change a shared cloud policy.
+
+Provider identity identifies the described cloud domain, not a concrete backend implementation.
+Service names and log types MUST NOT select a backend, SDK, provider API, or credential source in core.
+Concrete implementations depend on this contract and own their native mappings and qualification.
+RAES acceptance does not depend on any concrete backend implementing this term.
+[ADR-115](../../docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md) governs that dependency direction.
+
+Recording configuration is separate from access policy, access observations, and experiment evidence.
+It grants no authority to retrieve, retain, export, or disclose logs.
+It does not prove that any event was recorded.
+No live cloud backend support is claimed by the reference implementation.
+The [audit design](../../docs/decisions/issue-1831-cloud-audit-log-configuration-design.md) records the rationale and security boundaries.

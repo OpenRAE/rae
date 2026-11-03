@@ -40,9 +40,8 @@ from raes_contracts.contracts import (
     TrialCoordinateModel,
     TrialExecutionAuthorityModel,
 )
-from raes_contracts.random_stream_engine import BoundedIntegerBatchResult, BoundedIntegerDraw
-from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
-from raes_contracts.realization_envelope_carrier import realization_envelope_digest
+from raes_contracts.contracts.random_stream_engine import BoundedIntegerBatchResult, BoundedIntegerDraw
+from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, realization_envelope_digest
 from raes_processor.capture_admission import compile_capture_spec_demands
 from raes_processor.trial_compiler import TrialCompilationRequest, compile_admitted_trial_plan
 from raes_processor.trial_compiler.domains import canonical_domain_outcomes

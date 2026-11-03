@@ -11,13 +11,13 @@ from raes.canonical import canonical_materialized_sdl_digest
 from raes_backend_stubs.stubs import StubProvisioner
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.materialization import (
     MATERIALIZATION_LIMIT_ERROR,
     MATERIALIZATION_MAX_BYTES,
     MaterializationSubmission,
 )
-from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
 from raes_contracts.planning import PlanScope
 from raes_contracts.realization_structure import RealizationConstraintLimits, validate_realization_value
 from raes_contracts.runtime_state import OperationState
@@ -47,7 +47,10 @@ def _full_size_source(entities=400):
     return json.dumps(
         {
             "name": "full-size",
-            "realization": {"default": "open"},
+            "realization": {
+                "default": "open",
+                "scopes": [{"field_pointer": "/nodes/host/runtime", "posture": "closed"}],
+            },
             "nodes": {"host": {"type": "compute"}},
             "entities": members,
         }

@@ -19,7 +19,7 @@ from .experiment_bindings import (
     ScenarioBindingTargetModel,
 )
 from .experiment_selection import ExperimentSelectionOutcomeModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 if TYPE_CHECKING:
     from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
@@ -89,7 +89,7 @@ class ExperimentScenarioSelectionDescriptorModel(ExperimentFactorLevelSelectionM
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "experiment-selection-treatment-identity-valid",
             "Typed selection identity binds the exact source condition, factor and canonical scenario target. "

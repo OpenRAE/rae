@@ -3,16 +3,17 @@
 from collections.abc import Mapping
 
 from raes import build_declaration_index
+from raes.descriptor_profiles import authored_descriptor_profiles
 from raes.instantiate import admit_instantiated_scenario, instantiate_scenario
 from raes.materialization import MaterializedScenario, admit_materialized_scenario
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 from raes.semantics.domain_topology import (
     analyze_domain_topology,
 )
-from raes.value_parsing import is_variable_ref
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.variable_references import is_variable_ref
 
 from ..capture_admission import compile_scenario_capture_demands
 from ..models import (
@@ -210,6 +211,7 @@ def compile_runtime_model(
         scenario_name=scenario.name,
         execution_policies=compile_execution_policies(scenario, {**structure, **behavior}),
         profile_authority=authority,
+        descriptor_profile_bindings=authored_descriptor_profiles(scenario),
         realization_instance=scenario if isinstance(scenario, InstantiatedScenario) else None,
         materialization_description=scenario if isinstance(scenario, MaterializedScenario) else None,
         diagnostics=diagnostics,

@@ -2,118 +2,25 @@
 
 from __future__ import annotations
 
-import re
 from typing import Annotated, Literal
 
-from pydantic import Field, GetJsonSchemaHandler, model_validator
-from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import CoreSchema
+from pydantic import Field, model_validator
 
+from ..controlled_vocabularies import ControlledVocabularyTermId
 from ..versions import (
     ACTIVITYSTREAMS_ACTIVITY_TYPES_SOURCE_SCHEMA_VERSION,
     ATLAS_TACTICS_SOURCE_SCHEMA_VERSION,
     ATTACK_ENTERPRISE_TACTICS_SOURCE_SCHEMA_VERSION,
-    CONTROLLED_VOCABULARIES_SCHEMA_VERSION,
     FIPA_COMMUNICATIVE_ACTS_SOURCE_SCHEMA_VERSION,
     NIST_CSF_DEFENSIVE_CATEGORIES_SOURCE_SCHEMA_VERSION,
 )
 from .base import (
-    _CONTROLLED_VOCABULARY_GOVERNED_SCOPES,
     CalendarDateString,
     ContractModel,
-    ControlledVocabularyTermId,
     NonEmptyString,
     PositiveInteger,
     PrefixedDigestString,
 )
-
-
-class ControlledVocabularySourceModel(ContractModel):
-    provenance: Literal["adopted", "adapted"]
-    authority: NonEmptyString
-    authority_version: NonEmptyString
-    source_artifact_ref: NonEmptyString
-    source_url: NonEmptyString
-    source_digest: PrefixedDigestString
-    citation_urls: list[NonEmptyString] = Field(min_length=1)
-    license_url: NonEmptyString
-    license_notice: NonEmptyString
-
-
-class ControlledVocabularyTermModel(ContractModel):
-    title: NonEmptyString
-    description: NonEmptyString
-    source_id: NonEmptyString | None = None
-    source_url: NonEmptyString | None = None
-
-
-class ControlledVocabularyDefinitionModel(ContractModel):
-    title: NonEmptyString
-    description: NonEmptyString
-    source: ControlledVocabularySourceModel | None = None
-    kind: Literal["enumeration", "vocabulary"]
-    governed_scopes: list[NonEmptyString] = Field(default_factory=list)
-    extension_policy: Literal["closed", "governed-extension"]
-    extension_pattern: NonEmptyString | None = None
-    terms: dict[ControlledVocabularyTermId, ControlledVocabularyTermModel] = Field(min_length=1)
-
-    @model_validator(mode="after")
-    def _validate_vocabulary_definition(self) -> ControlledVocabularyDefinitionModel:
-        unknown_scopes = set(self.governed_scopes) - _CONTROLLED_VOCABULARY_GOVERNED_SCOPES
-        if unknown_scopes:
-            unknown = ", ".join(sorted(unknown_scopes))
-            raise ValueError(f"controlled vocabulary includes unknown governed scopes: {unknown}")
-
-        if len(self.governed_scopes) != len(set(self.governed_scopes)):
-            raise ValueError("controlled vocabulary governed_scopes must not contain duplicates")
-
-        if self.kind == "enumeration" and self.extension_policy != "closed":
-            raise ValueError("enumeration controlled vocabularies must use extension_policy='closed'")
-
-        if self.extension_policy == "closed":
-            if self.extension_pattern is not None:
-                raise ValueError("closed controlled vocabularies must not declare extension_pattern")
-            return self
-
-        if not self.governed_scopes:
-            raise ValueError("governed-extension controlled vocabularies must declare governed_scopes")
-        if self.extension_pattern is None:
-            raise ValueError("governed-extension controlled vocabularies must declare extension_pattern")
-        try:
-            re.compile(self.extension_pattern)
-        except re.error as exc:
-            raise ValueError("controlled vocabulary extension_pattern must be a valid regex") from exc
-        return self
-
-
-class ControlledVocabularyCatalogModel(ContractModel):
-    schema_version: Literal[CONTROLLED_VOCABULARIES_SCHEMA_VERSION] = CONTROLLED_VOCABULARIES_SCHEMA_VERSION
-    vocabularies: dict[NonEmptyString, ControlledVocabularyDefinitionModel] = Field(min_length=1)
-
-    @model_validator(mode="after")
-    def _validate_vocabulary_catalog(self) -> ControlledVocabularyCatalogModel:
-        scope_to_vocabulary: dict[str, str] = {}
-        for vocabulary_id, definition in self.vocabularies.items():
-            for scope in definition.governed_scopes:
-                previous = scope_to_vocabulary.setdefault(scope, vocabulary_id)
-                if previous != vocabulary_id:
-                    raise ValueError(
-                        f"governed scope '{scope}' is declared by multiple vocabularies: {previous}, {vocabulary_id}"
-                    )
-        return self
-
-    @classmethod
-    def __get_pydantic_json_schema__(
-        cls,
-        core_schema: CoreSchema,
-        handler: GetJsonSchemaHandler,
-    ) -> JsonSchemaValue:
-        json_schema = handler(core_schema)
-        json_schema = handler.resolve_ref_schema(json_schema)
-        vocabularies_schema = json_schema.get("properties", {}).get("vocabularies")
-        if isinstance(vocabularies_schema, dict):
-            vocabularies_schema.setdefault("propertyNames", {"minLength": 1})
-        return json_schema
 
 
 class AttackEnterpriseTacticSourceTermModel(ContractModel):

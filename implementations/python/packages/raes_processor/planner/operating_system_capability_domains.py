@@ -7,9 +7,9 @@ from dataclasses import dataclass
 
 from raes.nodes import OSFamily
 from raes.operating_systems import normalize_os_distribution, normalize_os_version
-from raes.runtime_values import parse_runtime_enum_identity
-from raes.value_parsing import extract_variable_name
 from raes_backend_protocols.capabilities import ProvisionerCapabilities
+from raes_contracts.runtime_values import parse_runtime_enum_identity
+from raes_contracts.variable_references import extract_variable_name
 
 from ..models import CompiledCapabilityConstraint, Diagnostic, NodeRuntime, RuntimeModel
 
@@ -107,7 +107,7 @@ def _scalar_domain_or_open(
     node: NodeRuntime,
     *,
     concern: str,
-    value: str,
+    value: str | None,
     field_name: str,
     invalid_code: str,
     normalizer: Callable[[object], object],
@@ -130,7 +130,7 @@ def _validated_scalar_domain(
     node: NodeRuntime,
     *,
     concern: str,
-    value: str,
+    value: str | None,
     field_name: str,
     invalid_code: str,
     normalizer: Callable[[object], object],

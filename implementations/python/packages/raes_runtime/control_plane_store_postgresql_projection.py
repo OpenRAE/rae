@@ -50,8 +50,8 @@ def generation(connection: Connection[tuple[object, ...]]) -> int:
 
 
 def load_snapshot(store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]]) -> SnapshotState:
-    from raes_contracts.immutable_history import snapshot_history_roots, snapshot_history_roots_match
     from raes_contracts.runtime_state import RuntimeSnapshot
+    from raes_contracts.snapshot_histories import snapshot_history_roots, snapshot_history_roots_match
 
     row = connection.execute(
         "SELECT payload, digest, revision FROM raes_ledger_state WHERE key='runtime-snapshot'"
@@ -81,7 +81,7 @@ def save_history(
     snapshot: RuntimeSnapshot,
     revision: int,
 ) -> SnapshotState:
-    from raes_contracts.immutable_history import snapshot_history_roots
+    from raes_contracts.snapshot_histories import snapshot_history_roots
 
     snapshot = _canonical_snapshot(snapshot)
     adapted = HistoryConnection(connection)

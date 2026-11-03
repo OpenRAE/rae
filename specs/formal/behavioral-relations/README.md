@@ -32,9 +32,11 @@ participant semantics. The JSON contract remains `behavioral-relations/v1`
 because the revisioned catalog identity governs the additive vocabulary.
 Revision `rev7` added the closed participant-opacity profile and bounded
 checker. Revision `rev8` adds exact finite-state participant-opacity
-model-check evidence. Revisions `rev1` through `rev7` are historical taxonomy
-identities. Consumers bind the exact taxonomy revision selected by their
-profile and load its retained catalog; the crossing profiles below bind `rev8`.
+model-check evidence. Revision `rev14` records the reproduced finite
+model-check result for `divergence-preserving-branching-bisimulation`.
+Revisions `rev1` through `rev13` are historical taxonomy identities. Consumers
+bind the exact taxonomy revision selected by their profile and load its
+retained catalog; the crossing profiles below bind `rev8`.
 
 The taxonomy defines claim vocabulary and proof obligations. It does not add a
 model checker, theorem prover, stochastic simulator, game solver, scheduler,
@@ -315,10 +317,21 @@ two fresh identities, history-sensitive retry, cached-result observations and
 bounded response loss. Neither construction establishes equivalence.
 
 Revision `rev6` defines the relation, profile, and proof program. It does not
-run the model check. A future positive finite result uses the `model-check`
+run the model check. A positive finite result uses the `model-check`
 assurance axis only when the carrier is the complete quantified finite domain,
 both model constructions are independent, all mutations fail as expected, and
 the exact pinned result is independently reproduced.
+
+Revision `rev14` records one such result. The pinned
+[machine check](../participant-semantics/participant-crossing-machine-check.md)
+relates the declared initial states of the complete
+`participant-crossing-dpbb-finite-v1@rev2` carrier. A separate reviewer
+accepted a fresh qualified
+[reproduction](../participant-semantics/participant-crossing-reproduction.md)
+of that pinned capture. The relation keeps its `deliberately-unproved` proof
+axis. The result does not cover the multi-operation profile or any other
+carrier, order, time, probability, concurrency, controller, policy cut, or
+backend.
 
 Formal equivalence does not establish live-runtime realization, backend
 conformance, whole-runtime equivalence, policy noninterference, or predicate

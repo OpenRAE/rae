@@ -7,11 +7,12 @@ from typing import Annotated, Literal
 from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.identifiers import PortableIdentifier
+
+from raes_contracts.identifiers import PortableIdentifier
 
 from .canonical import canonical_json_digest
 from .contracts.base import ContractModel, PrefixedDigestString
-from .contracts.schema_invariants import _add_raes_invariant
+from .contracts.schema_invariants import add_raes_invariant
 from .digests import sha256_digest
 from .json_ingress import parse_bounded_json_object
 from .semantic_comparison import ScenarioCoordinateModel
@@ -113,7 +114,7 @@ class AuthoringAdapterVectorModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "authoring-vector-bound-inputs",
             "Exact UTF-8 source and closed operation digests must match; outcomes must bind artifacts.",
@@ -187,7 +188,7 @@ class AuthoringAdapterComparisonModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "authoring-comparison-evidence-shape",
             "Axes must remain applicable to their evidence; success requires semantic companion evidence.",

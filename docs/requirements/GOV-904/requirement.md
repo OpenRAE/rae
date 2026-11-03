@@ -27,7 +27,6 @@ Narrowed to the RAES semantic contract and analysis kernel consumed by Hub, env-
 - IMPLEMENTS → SPEC `contracts/schemas/semantic-comparison/semantic-comparison-request-v1.json` (GOV-904 semantic comparison request contract)
 - IMPLEMENTS → SPEC `contracts/schemas/semantic-comparison/semantic-comparison-result-v1.json` (GOV-904 semantic comparison result contract)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/semantic_comparison.py` (GOV-904 portable semantic comparison contracts)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/semantic_comparison_results.py` (GOV-904 portable semantic comparison result contracts)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantic_comparison.py` (GOV-904 semantic comparison reference analyzer)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantic_comparison_adapters.py` (GOV-904 admitted artifact adapters)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantic_comparison_impact.py` (GOV-904 bounded impact traversal)

@@ -18,7 +18,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationSelectionModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.planning import (
     ChangeAction,
     PlanScope,

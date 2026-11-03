@@ -184,3 +184,36 @@ not add another release classifier, manifest, or multi-registry framework.
 - No new release manifest/schema, duplicated digest/validation code, copied
   workflow graph, custom HTTP client, persistence layer, release service, or
   exception/logging framework.
+
+## Ancestry-based release input (#1841)
+
+The 10.4.0 run omitted #1811: GitHub returned the 10.3.0 release commit
+before the older-dated breaking commit that a subsequent promotion merged.
+Release Please 17.6.0 stopped at that release boundary. This is the upstream
+[chronological-history limitation](https://github.com/googleapis/release-please/issues/1533),
+not a failure to parse `refactor!:` or a changelog-section visibility problem.
+
+The release tooling module `implementations/tooling/release-please/run.cjs`
+owns the adapter; its exported `useReleaseRange` interface supplies the
+existing Release Please SCM iterator with the exact Git ancestry difference
+between the manifest version's tag and the checked-out main head, followed by
+the release boundary. GitHub still supplies the commit objects and PR metadata,
+including commit overrides. An incomplete API scan, a missing tag, a tag
+outside main's ancestry, or a moved remote head fails before a release PR write.
+The adapter buffers the selected commits before yielding any of them.
+
+The pinned upstream action still creates tags and draft releases. It delegates
+release PR maintenance to the same pinned Release Please library, installed
+from a committed npm lock with lifecycle scripts disabled. The adapter changes
+no commit parsing, version strategy, notes generation, publication authority,
+or exact-SHA artifact gates. A read-only workflow job exercises the adapter and
+the actual library on PRs before the write-capable job can run on main.
+No new ADR or runtime package interface is required.
+
+The #1841 local behavior check also replayed the actual `v10.3.0..v10.4.0`
+Git range through the adapter and Release Please 17.6.0: the candidate was
+`11.0.0` and its breaking-change notes included #1811. The synthetic regression
+first reproduces the empty candidate from the chronological scan, then checks
+the corrected major candidate. Replacing the adapter with the chronological
+iterator makes that regression fail. No GitHub release or registry publication
+was made by these checks.

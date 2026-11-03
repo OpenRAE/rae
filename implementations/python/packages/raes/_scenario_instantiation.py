@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from raes_contracts.json_pointer import is_array_index_token, pointer_tokens
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE
 
-from ._base import VARIABLE_TOKEN_RE
 from ._capability_binding_normalization import normalize_capability_binding
 from ._phase_base import JSONScalar, json_value_equal
 from .parameter_derivations import ParameterDerivation

@@ -32,11 +32,8 @@ from raes_contracts.realization_envelope import (
     realization_envelope_digest,
     realizer_configuration_digest,
 )
-from raes_contracts.realization_observation import (
-    ObservedOperatingSystemIdentity,
-    RealizationObservation,
-    bind_operating_system_observations,
-)
+from raes_contracts.realization_observation import ObservedOperatingSystemIdentity, RealizationObservation
+from raes_contracts.realization_operational_observation import bind_operating_system_observations
 from raes_contracts.runtime_state import (
     ApplyResult,
     OperationAdmissionContext,

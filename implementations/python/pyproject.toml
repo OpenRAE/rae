@@ -99,6 +99,7 @@ packages = [
     "packages/raes_mcp",
     "packages/raes_processor",
     "packages/raes_runtime",
+    "packages/raes_schemas",
     "packages/raes",
 ]
 
@@ -254,4 +255,3 @@ ignore = [
 "packages/raes/composition/__init__.py" = ["F401"]  # intentional facade re-exports
 "packages/raes/orchestration/__init__.py" = ["F401"]  # intentional facade re-exports
 "packages/raes/participant_behavior/__init__.py" = ["F401"]  # intentional facade re-exports
-"packages/raes_contracts/realization_envelope.py" = ["E402"]  # late import breaks a carrier dependency cycle

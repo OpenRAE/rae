@@ -39,6 +39,8 @@ from .control_plane_store import (
     TerminalCommitMode,
 )
 from .mixed_runtime_recovery import require_resolvable_mixed_action_cut, requires_mixed_stage_reconciliation
+from .participant_delivery_invocation_records import delivery_invocation_binding
+from .participant_delivery_tool_recovery import reconcile_delivery_tool
 from .runtime_operation_routing import run_operation
 
 _LOGGER = get_logger(__name__)
@@ -109,6 +111,8 @@ def reconcile_startup_operations(control_plane: object) -> None:
 
 
 def _reconcile_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
+    if reconcile_delivery_tool(control_plane, record, port_type=control_plane.delivery_tool_port_type):
+        return
     if record.status.state is OperationState.ACCEPTED:
         _reconcile_accepted_record(control_plane, record)
     else:
@@ -131,7 +135,7 @@ def _reconcile_accepted_record(control_plane: object, record: ControlPlaneOperat
 
 
 def _reconcile_running_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
-    if record.invocation is not None:
+    if record.invocation is not None or delivery_invocation_binding(record) is not None:
         _commit_recovery_terminal(
             control_plane,
             record,

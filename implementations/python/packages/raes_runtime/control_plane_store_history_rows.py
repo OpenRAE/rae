@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError
-from raes_contracts.immutable_history import HISTORY_FIELDS, HistoryMap, seal_history
+from raes_contracts.snapshot_histories import HISTORY_FIELDS, seal_history
 
 from .control_plane_store_local_codec import decode_payload, encode_payload
 
@@ -111,7 +111,7 @@ def restore_history_rows(connection: HistorySQLConnection, payload: dict[str, ob
         histories[field][participant] = records
     if any(payload.get(field) for field in HISTORY_FIELDS):
         raise EvidenceIntegrityError("normalized snapshot header contains duplicate history")
-    return {**payload, **{field: HistoryMap(field, records) for field, records in histories.items()}}
+    return {**payload, **{field: seal_history(field, records) for field, records in histories.items()}}
 
 
 def require_empty_history_without_snapshot(connection: HistorySQLConnection) -> None:
@@ -137,7 +137,7 @@ def _restore_stream(
     records = [decode_payload(content, digest, kind="snapshot history record") for _, content, digest in rows]
     try:
         # The history value object refuses a malformed record with ValueError (E3).
-        history = HistoryMap(field, {participant: records})
+        history = seal_history(field, {participant: records})
         prefix = history[participant].prefix_digest(length)
     except ValueError as exc:
         raise EvidenceIntegrityError("snapshot history stream failed its prefix integrity check") from exc
