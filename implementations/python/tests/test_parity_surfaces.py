@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 from starlette.requests import Request
-
 from tools import parity_corpus as pc
 from tools import parity_regressions as regressions
 from tools import parity_surfaces as surfaces
