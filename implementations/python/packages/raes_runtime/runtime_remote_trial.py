@@ -22,12 +22,17 @@ from .runtime_trial_decisions import TrialObservationDecision
 from .snapshot_contract import runtime_snapshot_from_contract
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from raes_contracts.assigned_trial import TrialFactModel
+
     from .control_plane_store import ControlPlaneStore
+    from .runtime_decisions import RuntimeDecision
     from .runtime_experiment import TrialSlot
     from .runtime_trial_decisions import TrialAttemptDecision
 
 
-def latest_trial_outcome(records, assignment_digest: str) -> TrialOutcomeDecision | None:
+def latest_trial_outcome(records: Iterable[RuntimeDecision], assignment_digest: str) -> TrialOutcomeDecision | None:
     return max(
         (
             item
@@ -45,7 +50,23 @@ def validate_remote_outcome(
     """Check retained joins before the installed native evidence reader is called."""
     if outcome.assignment_digest != assignment.content_digest:
         raise EvidenceIntegrityError("trial outcome differs from its assigned attempt")
+    _validate_fact_bindings(request, assignment, outcome)
     facts = {fact.observation.kind: fact for fact in outcome.facts}
+    configuration = facts.get("configuration")
+    if configuration and configuration.observation.configurations != request.participant_configurations:
+        raise EvidenceIntegrityError("trial configuration differs from admitted settings")
+    execution, cleanup = facts.get("execution"), facts.get("cleanup")
+    if execution and execution.observation.ceased and not execution.observation.evidence:
+        raise EvidenceIntegrityError("execution cessation requires observed evidence")
+    _validate_cleanup(request, execution, cleanup)
+    _validate_operation_bindings(request, assignment, outcome)
+    if cleanup is not None:
+        trial_outcome_result(request, assignment, outcome)
+
+
+def _validate_fact_bindings(
+    request: TrialUnitRequest, assignment: TrialAssignmentModel, outcome: TrialOutcomeModel
+) -> None:
     for fact in outcome.facts:
         if datetime.fromisoformat(fact.observed_at) < datetime.fromisoformat(assignment.started_at):
             raise EvidenceIntegrityError("trial observation precedes its assigned attempt")
@@ -54,25 +75,30 @@ def validate_remote_outcome(
             for item in fact.observation.evidence
         ):
             raise EvidenceIntegrityError("trial evidence belongs to another run")
-    configuration = facts.get("configuration")
-    if configuration and configuration.observation.configurations != request.participant_configurations:
-        raise EvidenceIntegrityError("trial configuration differs from admitted settings")
-    execution, cleanup = facts.get("execution"), facts.get("cleanup")
-    if execution and execution.observation.ceased and not execution.observation.evidence:
-        raise EvidenceIntegrityError("execution cessation requires observed evidence")
-    if cleanup:
-        if not execution or not execution.observation.ceased or execution.observation.state == "running":
-            raise EvidenceIntegrityError("cleanup does not establish execution cessation")
-        receipt = cleanup.observation.receipt
-        try:
-            validate_trial_cleanup_receipt(request.cleanup_plan, receipt)
-        except ValueError:
-            raise EvidenceIntegrityError("trial cleanup differs from the assigned obligations") from None
-        if (
-            receipt.execution_attempt_id != request.execution_attempt_id
-            or receipt.trial_outcome != execution.observation.state
-        ):
-            raise EvidenceIntegrityError("trial cleanup differs from the assigned outcome")
+
+
+def _validate_cleanup(
+    request: TrialUnitRequest, execution: TrialFactModel | None, cleanup: TrialFactModel | None
+) -> None:
+    if cleanup is None:
+        return
+    if not execution or not execution.observation.ceased or execution.observation.state == "running":
+        raise EvidenceIntegrityError("cleanup does not establish execution cessation")
+    receipt = cleanup.observation.receipt
+    try:
+        validate_trial_cleanup_receipt(request.cleanup_plan, receipt)
+    except ValueError:
+        raise EvidenceIntegrityError("trial cleanup differs from the assigned obligations") from None
+    if (
+        receipt.execution_attempt_id != request.execution_attempt_id
+        or receipt.trial_outcome != execution.observation.state
+    ):
+        raise EvidenceIntegrityError("trial cleanup differs from the assigned outcome")
+
+
+def _validate_operation_bindings(
+    request: TrialUnitRequest, assignment: TrialAssignmentModel, outcome: TrialOutcomeModel
+) -> None:
     for item in outcome.operations:
         context = item.receipt.context
         if (context.target_scope, context.run_scope, context.actor_id) != (
@@ -81,8 +107,6 @@ def validate_remote_outcome(
             assignment.owner_id,
         ):
             raise EvidenceIntegrityError("trial operation belongs to another execution owner or run")
-    if cleanup is not None:
-        trial_outcome_result(request, assignment, outcome)
 
 
 def require_outcome_extension(previous: TrialOutcomeModel, candidate: TrialOutcomeModel) -> None:
@@ -134,7 +158,7 @@ def remote_receipts(outcome: TrialOutcomeModel) -> tuple[OperationReceipt, ...]:
 
 
 def trial_outcome_result(
-    request: TrialUnitRequest, assignment: TrialAssignmentModel, outcome: TrialOutcomeModel
+    request: TrialUnitRequest, assignment: TrialAssignmentModel, outcome: TrialOutcomeModel | None
 ) -> TrialUnitResult:
     facts = {} if outcome is None else {fact.observation.kind: fact for fact in outcome.facts}
     if not {"execution", "cleanup"} <= facts.keys():
@@ -163,7 +187,7 @@ class RemoteTrialUnit:
 
     def __init__(
         self, slot: TrialSlot, attempt: TrialAttemptDecision, assignment: TrialAssignmentModel, store: ControlPlaneStore
-    ):
+    ) -> None:
         self.slot, self.attempt, self.assignment, self.store = slot, attempt, assignment, store
         self.realization = slot.realization
         self.request = TrialUnitRequest(
@@ -207,7 +231,12 @@ class RemoteTrialUnit:
         """Verified terminal facts release coordinator capacity, never host leases."""
 
 
-def remote_trial_source(slot: TrialSlot, attempts, assignments, records) -> ExperimentRecordSource:
+def remote_trial_source(
+    slot: TrialSlot,
+    attempts: tuple[TrialAttemptDecision, ...],
+    assignments: Mapping[str, TrialAssignmentModel],
+    records: tuple[RuntimeDecision, ...],
+) -> ExperimentRecordSource:
     observations, snapshots, refs, phases, states, receipts = [], {}, {}, {}, {}, []
     for attempt in attempts:
         assignment = assignments.get(attempt.execution_attempt_id)

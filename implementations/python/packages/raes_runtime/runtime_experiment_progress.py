@@ -6,18 +6,20 @@ from typing import TYPE_CHECKING
 
 from .runtime_assignment_decisions import TrialAssignmentDecision
 from .runtime_decisions import RunContextDecision
-from .runtime_trial_binding import trial_terminal_decision
+from .runtime_trial_binding import ExperimentProgress, trial_terminal_decision
 from .runtime_trial_decisions import ExperimentCancellationDecision, TrialAttemptDecision, TrialTerminalDecision
+from .runtime_trial_ledger import attempt_assignment, entry_attempts
 
 if TYPE_CHECKING:
+    from raes_processor.trial_scheduler import AllocatorGrant
+
     from .runtime_decisions import RuntimeDecision
-    from .runtime_experiment import ExperimentProgress, RuntimeExperiment, TrialSlot
+    from .runtime_experiment import RuntimeExperiment, TrialSlot
+    from .runtime_remote_trial import RemoteTrialUnit
     from .runtime_trial_unit import RuntimeTrialUnit
 
 
 def advance_experiment(experiment: RuntimeExperiment, identity: object | None) -> ExperimentProgress:
-    from .runtime_experiment import ExperimentProgress
-
     records = experiment.engine._store.load_runtime_decisions()
     cancelled = any(
         isinstance(record, ExperimentCancellationDecision) and record.experiment_id == experiment.experiment_id
@@ -46,30 +48,28 @@ def advance_trial_slot(
     cancelled: bool,
     identity: object | None,
 ) -> ExperimentProgress | None:
-    from .runtime_experiment import ExperimentProgress
-
-    existing = sorted(
-        (
-            record
-            for record in records
-            if isinstance(record, TrialAttemptDecision)
-            and record.experiment_id == experiment.experiment_id
-            and record.plan_entry_id == slot.entry.plan_entry_id
-        ),
-        key=lambda record: record.attempt,
-    )
+    existing = entry_attempts(records, experiment.experiment_id, slot.entry.plan_entry_id)
     if cancelled and not existing:
         return ExperimentProgress(experiment.experiment_id, "cancelled")
     assigned_entries = {item.assignment.plan_entry_id for item in records if isinstance(item, TrialAssignmentDecision)}
     if not existing and slot.root_entry_id in assigned_entries:
         return ExperimentProgress(experiment.experiment_id, "ready", slot.entry.plan_entry_id)
+    return _advance_existing_slot(experiment, slot, existing, terminals, records, cancelled, identity)
+
+
+def _advance_existing_slot(
+    experiment: RuntimeExperiment,
+    slot: TrialSlot,
+    existing: tuple[TrialAttemptDecision, ...],
+    terminals: dict[str, TrialTerminalDecision],
+    records: tuple[RuntimeDecision, ...],
+    cancelled: bool,
+    identity: object | None,
+) -> ExperimentProgress | None:
+    assigned_entries = {item.assignment.plan_entry_id for item in records if isinstance(item, TrialAssignmentDecision)}
     attempt = existing[-1] if existing else experiment._attempt(slot, 1, records)
     records = experiment.store.load_runtime_decisions()
-    assigned = any(
-        isinstance(item, TrialAssignmentDecision)
-        and item.assignment.execution_attempt_id == attempt.execution_attempt_id
-        for item in records
-    )
+    assigned = attempt_assignment(records, attempt.execution_attempt_id) is not None
     if assigned and attempt.execution_attempt_id not in terminals:
         return ExperimentProgress(
             experiment.experiment_id, "pending", slot.entry.plan_entry_id, attempt.execution_attempt_id
@@ -82,15 +82,17 @@ def advance_trial_slot(
         experiment._unit(slot, prior_attempt, identity)
     unit = experiment._unit(slot, attempt, identity)
     terminal = terminals.get(attempt.execution_attempt_id)
-    if terminal is not None:
-        return _finish_attempt(experiment, slot, unit, terminal, records, cancelled)
-    return _advance_unit(experiment, slot, unit, cancelled)
+    return (
+        _finish_attempt(experiment, slot, unit, terminal, records, cancelled)
+        if terminal is not None
+        else _advance_unit(experiment, slot, unit, cancelled)
+    )
 
 
 def _finish_attempt(
     experiment: RuntimeExperiment,
     slot: TrialSlot,
-    unit: RuntimeTrialUnit,
+    unit: RuntimeTrialUnit | RemoteTrialUnit,
     terminal: TrialTerminalDecision,
     records: tuple[RuntimeDecision, ...],
     cancelled: bool,
@@ -122,7 +124,11 @@ def _advance_unit(
 
 
 def record_trial_terminal(
-    experiment: RuntimeExperiment, slot: TrialSlot, unit: RuntimeTrialUnit, *, grant=None
+    experiment: RuntimeExperiment,
+    slot: TrialSlot,
+    unit: RuntimeTrialUnit | RemoteTrialUnit,
+    *,
+    grant: AllocatorGrant | None = None,
 ) -> None:
     experiment.store.claim_runtime_decision(
         trial_terminal_decision(
@@ -137,12 +143,12 @@ def record_trial_terminal(
     )
 
 
-def retry_attempt(unit: RuntimeTrialUnit, terminal: TrialTerminalDecision) -> str:
+def retry_attempt(unit: RuntimeTrialUnit | RemoteTrialUnit, terminal: TrialTerminalDecision) -> str:
     permission = retry_permission(unit, terminal)
     return _prepare_retry(unit) if permission == "prepare" else permission
 
 
-def retry_permission(unit: RuntimeTrialUnit, terminal: TrialTerminalDecision) -> str:
+def retry_permission(unit: RuntimeTrialUnit | RemoteTrialUnit, terminal: TrialTerminalDecision) -> str:
     """Read policy and retained observations without preparing or dispatching effects."""
     policy = unit.request.cleanup_plan.retry_policy
     if terminal.receipt.trial_outcome != "failed" or unit.attempt.attempt >= policy.max_attempts:
@@ -154,7 +160,7 @@ def retry_permission(unit: RuntimeTrialUnit, terminal: TrialTerminalDecision) ->
     return "ready" if execution.effects_absent else _retry_after_effects(unit)
 
 
-def _retry_after_effects(unit: RuntimeTrialUnit) -> str:
+def _retry_after_effects(unit: RuntimeTrialUnit | RemoteTrialUnit) -> str:
     policy = unit.request.cleanup_plan.retry_policy
     state = "not-permitted"
     if policy.after_effect_policy == "idempotent":
@@ -165,7 +171,7 @@ def _retry_after_effects(unit: RuntimeTrialUnit) -> str:
     return state
 
 
-def _prepare_retry(unit: RuntimeTrialUnit) -> str:
+def _prepare_retry(unit: RuntimeTrialUnit | RemoteTrialUnit) -> str:
     state = unit.prepare_retry_runtime()
     if state != "succeeded":
         return state if state in {"pending", "indeterminate"} else "cleanup-failed"

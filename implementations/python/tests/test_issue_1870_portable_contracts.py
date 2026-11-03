@@ -69,8 +69,9 @@ def test_installed_replacement_fixture_reconstructs_original_compiler_authority(
 def test_assignment_rejects_unsupported_or_untyped_fields_before_binding(assignment, field, value):
     payload = assignment.model_dump(mode="json")
     payload[field] = value
+    encoded = json.dumps(payload)
     with pytest.raises(InvalidInputError) as refusal:
-        TrialAssignmentModel.from_json(json.dumps(payload))
+        TrialAssignmentModel.from_json(encoded)
     assert "unapproved-value" not in str(refusal.value)
 
 
@@ -84,8 +85,9 @@ def test_assignment_json_refuses_duplicate_members(assignment):
 def test_incomplete_outcome_requires_no_fabricated_receipt(assignment):
     outcome = TrialOutcomeModel(assignment_digest=assignment.content_digest, progress="indeterminate")
     assert not TrialOutcomeModel.from_json(outcome.model_dump_json()).facts
+    completed = {**outcome.model_dump(mode="json"), "progress": "completed"}
     with pytest.raises(ValueError):
-        TrialOutcomeModel.model_validate({**outcome.model_dump(mode="json"), "progress": "completed"})
+        TrialOutcomeModel.model_validate(completed)
 
 
 @pytest.mark.parametrize("omit_facts", [False, True])
@@ -121,8 +123,9 @@ def test_execution_facts_cannot_coerce_cessation_or_invent_a_terminal_cut(assign
             }
         ],
     }
+    encoded = json.dumps(payload)
     with pytest.raises(InvalidInputError):
-        TrialOutcomeModel.from_json(json.dumps(payload))
+        TrialOutcomeModel.from_json(encoded)
 
 
 def test_new_carriers_are_in_the_published_schema_bundle():

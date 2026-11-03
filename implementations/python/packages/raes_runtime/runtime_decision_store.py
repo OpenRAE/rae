@@ -13,7 +13,7 @@ from .runtime_decisions import require_identical_decision, validate_runtime_deci
 _DECISION_KIND = "runtime decision"
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
     from sqlite3 import Connection as SQLiteConnection
 
     from psycopg import Connection as PostgreSQLConnection
@@ -147,7 +147,7 @@ def require_decision_cut(
     return True
 
 
-def decisions_from_rows(rows: object) -> tuple[RuntimeDecision, ...]:
+def decisions_from_rows(rows: Iterable[tuple[str, str, str]]) -> tuple[RuntimeDecision, ...]:
     decisions = []
     for identity, content, digest in rows:
         decision = decode_contract(content, digest, kind=_DECISION_KIND, rebuild=validate_runtime_decision)

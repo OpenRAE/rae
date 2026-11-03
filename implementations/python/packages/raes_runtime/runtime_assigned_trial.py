@@ -20,7 +20,7 @@ from .runtime_trial_decisions import TrialAttemptDecision, TrialTerminalDecision
 from .trial_handoff_conversion import trial_outcome
 
 if TYPE_CHECKING:
-    from raes_processor.trial_realization import TrialRealizationInputs
+    from raes_processor.trial_realization import TrialRealization, TrialRealizationInputs
 
     import raes_runtime.control_plane
 
@@ -106,7 +106,7 @@ class AssignedTrial:
         )
 
     @property
-    def realization(self):
+    def realization(self) -> TrialRealization:
         """Detached in-process processor output for installed composition."""
         return deepcopy(self._realization)
 
@@ -135,7 +135,12 @@ class AssignedTrial:
 
     @property
     def request(self) -> TrialUnitRequest:
-        return replace(self._request)
+        return trial_request(
+            self._assignment.plan,
+            self._assignment.plan_entry_id,
+            self._realization,
+            self._assignment.execution_attempt_id,
+        )
 
     def require_owner(self, identity: object | None) -> None:
         if operation_actor_scope(identity) != self._actor_scope or self._actor_scope[0] != self._assignment.owner_id:

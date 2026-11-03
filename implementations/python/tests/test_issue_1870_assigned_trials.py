@@ -88,8 +88,9 @@ def test_verifier_false_is_a_refusal_before_retaining_the_result():
             else fact
             for fact in outcome.facts
         )
+        changed = outcome.model_copy(update={"facts": duplicated})
         with pytest.raises(EvidenceIntegrityError):
-            coordinator.ingest_trial_outcome(experiment, outcome.model_copy(update={"facts": duplicated}))
+            coordinator.ingest_trial_outcome(experiment, changed)
         assert not coordinator.experiment_results(experiment)
 
 
@@ -166,8 +167,9 @@ def test_binding_refuses_wrong_owner_entry_and_changed_inputs_before_effects():
             worker.bind_assigned_trial(altered, inputs, services=worker_services, identity="worker-a")
         payload = json.loads(assignment.model_dump_json())
         payload["plan"]["entries"][other_id]["run_id"] = "worker-created-run"
+        assignment_type = type(assignment)
         with pytest.raises(ValueError):
-            type(assignment).model_validate(payload)
+            assignment_type.model_validate(payload)
         assert not worker_services.events
 
 

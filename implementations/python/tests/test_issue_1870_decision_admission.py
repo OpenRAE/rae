@@ -40,8 +40,7 @@ def test_batch_refusal_writes_nothing_and_exact_replay_is_idempotent(tmp_path, d
         assert store.claim_runtime_decisions((first, second), expected_ids=())
         assert not store.claim_runtime_decisions((first, second), expected_ids=())
         changed = second.model_copy(update={"store_digest": "sha256:" + "b" * 64})
+        third = decision("three")
         with pytest.raises(ConflictError):
-            store.claim_runtime_decisions(
-                (decision("three"), changed), expected_ids=(first.decision_id, second.decision_id)
-            )
+            store.claim_runtime_decisions((third, changed), expected_ids=(first.decision_id, second.decision_id))
         assert {item.run_scope for item in store.load_runtime_decisions()} == {"run:one", "run:two"}

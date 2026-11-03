@@ -177,7 +177,6 @@
         "raes_runtime.runtime_engine",
         "raes_runtime.runtime_experiment",
         "raes_runtime.runtime_experiment_admission",
-        "raes_runtime.runtime_experiment_progress",
         "raes_runtime.runtime_module_step",
         "raes_runtime.runtime_run_cleanup",
         "raes_runtime.runtime_run_context",
@@ -3388,7 +3387,6 @@
       "raes_runtime.runtime_experiment_replacement": 1
     },
     "raes_runtime.runtime_experiment_progress": {
-      "raes_runtime.runtime_experiment": 2,
       "raes_runtime.runtime_experiment_replacement": 1
     },
     "raes_runtime.runtime_experiment_records": {

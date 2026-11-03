@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from raes_contracts.trial_unit import TrialUnitRequest
     from raes_processor.trial_realization import TrialRealization
 
+    from .control_plane_store import ControlPlaneOperationRecord
     from .runtime_run_context import RuntimeRunContext
     from .runtime_trial_decisions import TrialAttemptDecision
     from .runtime_trial_services import (
@@ -41,6 +42,10 @@ if TYPE_CHECKING:
         TrialRetryObservation,
         TrialRuntimeServices,
     )
+
+
+_APPLY_SUFFIX = ":apply"
+_DESTROY_SUFFIX = ":destroy"
 
 
 class RuntimeTrialUnit:
@@ -260,7 +265,7 @@ class RuntimeTrialUnit:
         if capture in {"pending", "indeterminate"}:
             return capture
         # Capture is retained before teardown, including an explicit failed cut.
-        teardown = advance_destroy(self.run, self.request.execution_attempt_id + ":destroy", self.identity)
+        teardown = advance_destroy(self.run, self.request.execution_attempt_id + _DESTROY_SUFFIX, self.identity)
         if teardown != "succeeded":
             return "cleanup-failed" if teardown in {"failed", "cancelled"} else teardown
         cleanup = self._module(2, self.services.cleanup, outcome=execution.state)
@@ -357,7 +362,7 @@ class RuntimeTrialUnit:
                         json.loads(self.observations()["configuration"].snapshot_json)
                     ),
                 ),
-                execution_id=self.request.execution_attempt_id + ":apply",
+                execution_id=self.request.execution_attempt_id + _APPLY_SUFFIX,
                 identity=self.identity,
             ).state
 
@@ -386,7 +391,7 @@ class RuntimeTrialUnit:
         return result
 
     def _operation_ids(self) -> set[str]:
-        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", ":apply", ":destroy")}
+        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", _APPLY_SUFFIX, _DESTROY_SUFFIX)}
         return {
             operation_id
             for decision in self.store.load_runtime_decisions()
@@ -394,23 +399,26 @@ class RuntimeTrialUnit:
             for operation_id in decision.operation_ids
         }
 
-    def operation_records(self) -> tuple:
-        ids = self._operation_ids()
-        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", ":apply", ":destroy")}
-        scope, actor = "run:" + self.request.run_id, operation_actor_scope(self.identity)[0]
+    def _operation_keys(self) -> set[str]:
+        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", _APPLY_SUFFIX, _DESTROY_SUFFIX)}
+        scope = "run:" + self.request.run_id
         decisions = self.store.load_runtime_decisions()
         programs = {
             item.execution_id: item
             for item in decisions
             if isinstance(item, RunProgramDecision) and item.run_scope == scope and item.execution_id in execution_ids
         }
-        keys = {
+        return {
             run_phase_key(programs[item.execution_id], item.phase)
             if item.execution_id in programs
             else step_key(item.execution_id, item.phase)
             for item in decisions
             if isinstance(item, RunPhaseDecision) and item.run_scope == scope and item.execution_id in execution_ids
         }
+
+    def operation_records(self) -> tuple[ControlPlaneOperationRecord, ...]:
+        ids, keys = self._operation_ids(), self._operation_keys()
+        scope, actor = "run:" + self.request.run_id, operation_actor_scope(self.identity)[0]
         return tuple(
             record
             for operation_id, record in self.store.load_records().items()

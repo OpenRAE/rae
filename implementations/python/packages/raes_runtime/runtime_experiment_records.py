@@ -190,6 +190,12 @@ def _source(
     }
     if any(attempt.execution_attempt_id in assignments for attempt in attempts):
         return remote_trial_source(slot, attempts, assignments, records)
+    return _local_source(experiment, slot, attempts)
+
+
+def _local_source(
+    experiment: RuntimeExperiment, slot: TrialSlot, attempts: tuple[TrialAttemptDecision, ...]
+) -> ExperimentRecordSource:
     run = experiment._run(slot.entry, slot.plan)
     decisions = run._store.load_runtime_decisions()
     ids = {item.execution_attempt_id for item in attempts}

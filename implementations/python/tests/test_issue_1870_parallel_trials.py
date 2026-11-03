@@ -14,8 +14,9 @@ def test_parallel_assignment_requires_proof_membership_for_the_selected_entry():
     grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease:hosts",))
     with RuntimeControlPlane(target) as runtime:
         experiment = runtime.admit_experiment(inputs, services=TrialServices(target))
+        entry_id = next(iter(inputs.plan.entries))
         with pytest.raises(ConflictError, match="proof"):
-            runtime.assign_trial(experiment, next(iter(inputs.plan.entries)), owner_id="worker-a", grant=grant)
+            runtime.assign_trial(experiment, entry_id, owner_id="worker-a", grant=grant)
         assert runtime.experiment_records(experiment).accounting.started_runs == 0
 
 

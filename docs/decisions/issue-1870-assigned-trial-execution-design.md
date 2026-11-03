@@ -1,29 +1,29 @@
 # Assigned trial execution
 
 Issue: #1870. This design extends the existing experiment runtime.
-The [preflight](issue-1870-assigned-trial-execution-preflight.md) defines its constraints.
+The [preflight](issue-1870-assigned-trial-execution-preflight.md) sets the limits.
 
 ## Components and interfaces
 
-The coordinator admits the complete experiment once.
+The coordinator admits the whole experiment once.
 `RuntimeControlPlane.assign_trial()` assigns an existing entry to an explicit execution owner.
-The assignment retains the original plan, attempt, deadline, target, and processor commitments.
-The assignment does not confer authentication or contain a credential.
+The assignment keeps the original plan, attempt, deadline, target, and processor commitments.
+The assignment grants no access and holds no secret.
 
 `RuntimeControlPlane.bind_assigned_trial()` binds one assignment on the execution host.
-The host receives the original realization inputs through existing portable source carriers.
-It reconstructs only the selected entry through `realize_admitted_trial_entry()`.
-It compares the complete plan and all processor commitments before effects.
-It installs a scoped trial binding, rather than another experiment.
+The host receives the original inputs through the existing source carriers.
+It builds only the selected entry through `realize_admitted_trial_entry()`.
+It checks the whole plan and all processor commitments before effects.
+It installs one scoped trial binding. It creates no new experiment.
 `AssignedTrial.advance()` advances that binding through the existing trial lifecycle.
 `AssignedTrial.outcome()` exports retained facts, including incomplete work.
 `RuntimeControlPlane.advance_trial()` advances only the selected coordinator policy.
 
 `RuntimeControlPlane.ingest_trial_outcome()` checks facts against the retained assignment.
-An explicitly installed outcome verifier reads original execution records and evidence.
-It must establish native validation provenance, cessation, and cleanup through their existing owners.
-Matching JSON or a worker assertion cannot satisfy that verification contract.
-Trial evidence checks and structural result validation remain required.
+An installed outcome verifier reads the original run records and evidence.
+The existing owners must confirm the native checks, stopped work, and cleanup.
+Matching JSON or a worker claim cannot prove these facts.
+Trial evidence and result checks remain required.
 Accepted facts feed the existing run and study producer.
 Terminal, retry, archive, and replacement decisions remain in the coordinator.
 
@@ -37,35 +37,38 @@ No transport-specific interface enters these modules.
 ## Decisions, concurrency, and recovery
 
 The existing decision store gains an atomic append with an expected decision set.
-The memory, SQLite, and PostgreSQL providers retain their existing transaction boundaries.
-Assignment admission commits its attempt and ownership together.
-The same transaction checks cancellation, current ownership, and occupied capacity.
+The memory, SQLite, and PostgreSQL stores keep their existing transactions.
+Assignment admission saves the attempt and owner together.
+The same transaction checks cancellation, the current owner, and used capacity.
 The admitted schedule and allocator grant bound capacity.
 Unknown work and unverified cleanup retain their capacity.
 Canonical entry order controls assignment admission.
 Completion can arrive in any order.
 
-An assignment has one execution owner and one immutable generation.
+An assignment has one execution owner. Its generation cannot change.
 This interface does not reassign an uncertain attempt.
 Duplicate delivery reads the original attempt and deadline.
 Host recovery restores completion from the retained terminal decision.
 Later retry preparation cannot rewrite that decision.
-Installation uses a lock for each assignment and publishes only attached bindings.
-Read-only outcome export includes operations whose native phases have not settled.
-Conflicting content under an existing identity is refused.
-Outcome revisions extend retained facts without changing previous observations.
-Cancellation closes new admission and remains observable through a public control query.
-The execution host applies delivered cancellation through the existing stop and cleanup path.
+Each assignment has its own lock. Readers see only fully attached bindings.
+Outcome export includes native operations that have not settled. Export changes no state.
+Changed content under the same identity is refused.
+New outcomes extend the saved facts. They cannot change earlier observations.
+Cancellation closes new admission. Hosts can read it through a public control query.
+The host uses the existing stop and cleanup path when it receives cancellation.
 Stop acknowledgement does not release capacity.
 Retry preparation uses an explicit control under the existing retry policy.
-Potential retry work retains its entry's slot until the coordinator resolves that policy.
+Retry work keeps its entry's slot until the coordinator resolves that policy.
 
 The coordinator holds no experiment lock during evidence or archive calls.
 Short ledger transactions serialize decisions.
-Each execution host retains its target reservation and run store.
-Separate assignments do not relax exclusion for shared native resources.
+Shared queries find attempts, assignments, and cancellation. They change no records.
+Separate steps check admission and capacity, then save outcomes. They use the existing atomic store operation.
+Separate checks verify fact bindings, cleanup, and each operation owner.
+Each host keeps its target reservation and run store.
+Separate assignments cannot share reserved native resources.
 The host retires a verified clean run through `retire_run()` before it reuses that target.
-Durable recovery requires the original scope-bound stores and installed owners.
+Recovery needs the original stores and installed owners. Their scopes stay fixed.
 
 ## Data flow and protection
 
@@ -98,18 +101,18 @@ flowchart LR
 | Sensitive data disclosure | Bounded closed carriers, value-free failures, and authorized readers | Reject credentials and Python objects at ingress |
 | Concurrent capacity oversubscription | Atomic existing-store admission | Race assignments and cancellation, then recover retained claims |
 
-Transport authentication and live host leases remain downstream protection needs.
+The downstream transport must check access and live host leases.
 The runtime does not infer isolation from an owner name or reference string.
 Missing evidence remains unresolved.
-Private trial history is retained only in the explicitly scoped handoff projection.
+Only the scoped handoff keeps private trial history.
 The generic snapshot API keeps its existing omissions.
 No external effect has an exactly-once guarantee.
 
 ## Architecture and policy
 
-Typed bindings, closed carriers, and atomic store operations express the architecture in code.
-Existing package boundaries and structural checks remain authoritative.
-Published schemas need publication entries and generator parity.
+Typed bindings, closed carriers, and atomic store operations enforce these rules in code.
+Existing package boundaries and structure checks still apply.
+Published schemas need catalog entries. Generated content must match.
 No SDL syntax, native operation kind, deployment service, or ADR changes are needed.
 ADR-104/113 already assign execution and result authority to the shared runtime.
 ADR-065/068 already assign run identity, archival validation, and replacement lineage.
@@ -124,5 +127,5 @@ Release-please owns package versions and release notes.
 - [NIST SP 800-160 Volume 1 Revision 1](https://csrc.nist.gov/pubs/sp/800/160/v1/r1/final), system security engineering: connect assets, threats, controls, and verification.
 - [ASD-STE100 Issue 9](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf), sections 1, 5, 6, and 8: terminology, sentence length, and document purpose.
 
-The writing review uses consistent technical nouns and short descriptive sentences.
-Implementation tasks and verification commands belong in the issue plan.
+The writing review checks terms and sentence length.
+The issue plan lists the tasks and check commands.
