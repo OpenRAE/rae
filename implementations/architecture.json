@@ -46,7 +46,16 @@
       "uses": [
         "base"
       ],
-      "external": []
+      "external": [
+        {
+          "path": "github.com/santhosh-tekuri/jsonschema/v6",
+          "reason": "Apache-2.0 Draft 2020-12 validation of the authoritative published schemas; the standard library has no JSON Schema validator."
+        },
+        {
+          "path": "golang.org/x/text/unicode/runenames",
+          "reason": "Unicode character names for syntax-only validation of Python-compatible vocabulary metadata expressions; no expression matching or execution."
+        }
+      ]
     },
     {
       "name": "sdl",
@@ -148,7 +157,8 @@
       "dir": "implementations/go/internal/parity",
       "doc": "The checker of the Go implementation against the golden corpus that the Python implementation recorded (issue #1778).",
       "uses": [
-        "base"
+        "base",
+        "contract"
       ],
       "external": [
         {
@@ -267,7 +277,9 @@
         "implementations/go/internal/base/secretref",
         "implementations/go/internal/base/softwareversion",
         "implementations/go/internal/base/timestamp",
-        "implementations/go/internal/base/value"
+        "implementations/go/internal/base/value",
+        "implementations/go/internal/contract/validation",
+        "implementations/go/internal/contract/admission"
       ]
     },
     {
@@ -404,6 +416,72 @@
       "doc": "Bounded operator-managed secret reference identities.",
       "imports": [
         "implementations/go/internal/base/fault"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/contract/corpus",
+      "layer": "contract",
+      "public": true,
+      "doc": "Read-only packaged normative contract corpus.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/contract/binding",
+      "layer": "contract",
+      "public": true,
+      "doc": "Generated schema-derived transport types, exact numbers and optional fields.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/go/internal/contract/validation",
+      "layer": "contract",
+      "public": true,
+      "doc": "Offline published-schema validation and bounded inert profile checks with reference keyword budgets.",
+      "imports": [
+        "implementations/go/internal/contract/corpus",
+        "implementations/go/internal/contract/binding",
+        "implementations/go/internal/base/ingress",
+        "implementations/go/internal/base/fault",
+        "implementations/go/internal/base/canonjson",
+        "implementations/go/internal/base/jsonpointer"
+      ]
+    },
+    {
+      "dir": "implementations/tooling/go/contractgen",
+      "layer": "tooling",
+      "public": false,
+      "doc": "Deterministic schema binding and corpus generation with a complete drift check.",
+      "imports": []
+    },
+    {
+      "dir": "implementations/tooling/go/cmd/contractgen",
+      "layer": "tooling",
+      "public": false,
+      "doc": "Generate or check contract bindings and the packaged corpus.",
+      "imports": [
+        "implementations/tooling/go/contractgen"
+      ]
+    },
+    {
+      "dir": "implementations/go/internal/contract/admission",
+      "layer": "contract",
+      "public": true,
+      "doc": "Complete contract-family semantic admission, explicit trusted context and portable validation parity.",
+      "imports": [
+        "implementations/go/internal/contract/validation",
+        "implementations/go/internal/contract/corpus",
+        "implementations/go/internal/base/canonjson",
+        "implementations/go/internal/base/digest",
+        "implementations/go/internal/base/timestamp",
+        "implementations/go/internal/base/graph",
+        "implementations/go/internal/base/urisafety",
+        "implementations/go/internal/base/address",
+        "implementations/go/internal/base/jsonpointer",
+        "implementations/go/internal/base/value",
+        "implementations/go/internal/base/domain",
+        "implementations/go/internal/base/randstream",
+        "implementations/go/internal/base/fault",
+        "implementations/go/internal/base/ingress"
       ]
     }
   ]

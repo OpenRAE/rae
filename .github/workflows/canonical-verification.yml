@@ -587,6 +587,20 @@ jobs:
           go mod verify
           golangci-lint run ./...
           go vet -vettool="$(command -v raesvet)" ./...
+      - name: Check schema bindings, rule specifications, and embedded corpus
+        if: matrix.name == 'product'
+        run: |
+          go -C implementations/tooling/go build -o "${RUNNER_TEMP}/contractgen" ./cmd/contractgen
+          "${RUNNER_TEMP}/contractgen" -check
+      - name: Check a built contract boundary without a checkout
+        if: matrix.name == 'product'
+        run: |
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-boundary.test" ./internal/contract/validation
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-admission.test" ./internal/contract/admission
+          mkdir "${RUNNER_TEMP}/contract-boundary-empty"
+          cd "${RUNNER_TEMP}/contract-boundary-empty"
+          "${RUNNER_TEMP}/contract-boundary.test" -test.run '^Test(PublishedSchemaBoundary|ImmutableAdmission)$'
+          "${RUNNER_TEMP}/contract-admission.test" -test.run '^TestCompleteRegistry$'
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |

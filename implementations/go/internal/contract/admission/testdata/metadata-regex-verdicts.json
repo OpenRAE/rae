@@ -1,0 +1,525 @@
+{
+  "reference": "Python 3.14.7 re.compile",
+  "cases": [
+    {
+      "pattern": "",
+      "valid": true
+    },
+    {
+      "pattern": "a",
+      "valid": true
+    },
+    {
+      "pattern": "a|",
+      "valid": true
+    },
+    {
+      "pattern": "|a",
+      "valid": true
+    },
+    {
+      "pattern": "()",
+      "valid": true
+    },
+    {
+      "pattern": "(a)",
+      "valid": true
+    },
+    {
+      "pattern": "(a|bb)c",
+      "valid": true
+    },
+    {
+      "pattern": "^x-[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "valid": true
+    },
+    {
+      "pattern": "[",
+      "valid": false
+    },
+    {
+      "pattern": "[]",
+      "valid": false
+    },
+    {
+      "pattern": "[^]",
+      "valid": false
+    },
+    {
+      "pattern": "[a-z]",
+      "valid": true
+    },
+    {
+      "pattern": "[z-a]",
+      "valid": false
+    },
+    {
+      "pattern": "[a-]",
+      "valid": true
+    },
+    {
+      "pattern": "[-a]",
+      "valid": true
+    },
+    {
+      "pattern": "[]a]",
+      "valid": true
+    },
+    {
+      "pattern": "[\\d-a]",
+      "valid": false
+    },
+    {
+      "pattern": "[a-\\d]",
+      "valid": false
+    },
+    {
+      "pattern": "[\\b-\\f]",
+      "valid": true
+    },
+    {
+      "pattern": "\\x41",
+      "valid": true
+    },
+    {
+      "pattern": "\\x4",
+      "valid": false
+    },
+    {
+      "pattern": "\\u0041",
+      "valid": true
+    },
+    {
+      "pattern": "\\U0001F600",
+      "valid": true
+    },
+    {
+      "pattern": "\\U00110000",
+      "valid": false
+    },
+    {
+      "pattern": "\\N{LATIN CAPITAL LETTER A}",
+      "valid": true
+    },
+    {
+      "pattern": "\\N{line feed}",
+      "valid": true
+    },
+    {
+      "pattern": "\\N{KAKTOVIK NUMERAL ZERO}",
+      "valid": true
+    },
+    {
+      "pattern": "\\N{TOLONG SIKI LETTER I}",
+      "valid": false
+    },
+    {
+      "pattern": "\\N{NOT A CHARACTER}",
+      "valid": false
+    },
+    {
+      "pattern": "\\N{}",
+      "valid": false
+    },
+    {
+      "pattern": "\\N{LATIN CAPITAL LETTER A",
+      "valid": false
+    },
+    {
+      "pattern": "\\N",
+      "valid": false
+    },
+    {
+      "pattern": "\\\u00e9",
+      "valid": true
+    },
+    {
+      "pattern": "\\q",
+      "valid": false
+    },
+    {
+      "pattern": "\\_",
+      "valid": true
+    },
+    {
+      "pattern": "\\8",
+      "valid": false
+    },
+    {
+      "pattern": "\\11",
+      "valid": false
+    },
+    {
+      "pattern": "\\111",
+      "valid": true
+    },
+    {
+      "pattern": "\\777",
+      "valid": false
+    },
+    {
+      "pattern": "\\08",
+      "valid": true
+    },
+    {
+      "pattern": "[\\1]",
+      "valid": true
+    },
+    {
+      "pattern": "[\\8]",
+      "valid": false
+    },
+    {
+      "pattern": "[\\A]",
+      "valid": false
+    },
+    {
+      "pattern": "\\A*",
+      "valid": false
+    },
+    {
+      "pattern": "\\b+",
+      "valid": false
+    },
+    {
+      "pattern": "\\z",
+      "valid": true
+    },
+    {
+      "pattern": "\\Z",
+      "valid": true
+    },
+    {
+      "pattern": "\\B",
+      "valid": true
+    },
+    {
+      "pattern": "a*",
+      "valid": true
+    },
+    {
+      "pattern": "a++",
+      "valid": true
+    },
+    {
+      "pattern": "a*+",
+      "valid": true
+    },
+    {
+      "pattern": "a{2,3}+",
+      "valid": true
+    },
+    {
+      "pattern": "a?+",
+      "valid": true
+    },
+    {
+      "pattern": "a+?",
+      "valid": true
+    },
+    {
+      "pattern": "a{2,1}",
+      "valid": false
+    },
+    {
+      "pattern": "a{a}",
+      "valid": true
+    },
+    {
+      "pattern": "a{,2}",
+      "valid": true
+    },
+    {
+      "pattern": "a{}",
+      "valid": true
+    },
+    {
+      "pattern": "a{3,}",
+      "valid": true
+    },
+    {
+      "pattern": "a{4294967294}",
+      "valid": true
+    },
+    {
+      "pattern": "a{4294967295}",
+      "valid": false
+    },
+    {
+      "pattern": "a{99999999999999999999999999}",
+      "valid": false
+    },
+    {
+      "pattern": "*a",
+      "valid": false
+    },
+    {
+      "pattern": "a**",
+      "valid": false
+    },
+    {
+      "pattern": "a++?",
+      "valid": false
+    },
+    {
+      "pattern": "(?P<id>a)(?P=id)",
+      "valid": true
+    },
+    {
+      "pattern": "(?P<id>a)(?P<id>b)",
+      "valid": false
+    },
+    {
+      "pattern": "(?P<1>a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?P<\u00e9>a)(?P=\u00e9)",
+      "valid": true
+    },
+    {
+      "pattern": "(?P<\u2118>a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?P<\u0889>a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?P<id>a)\\1",
+      "valid": true
+    },
+    {
+      "pattern": "(a)\\1",
+      "valid": true
+    },
+    {
+      "pattern": "(a\\1)",
+      "valid": false
+    },
+    {
+      "pattern": "\\1(a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?P=missing)",
+      "valid": false
+    },
+    {
+      "pattern": "(?=a)+",
+      "valid": true
+    },
+    {
+      "pattern": "(?!a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?<=ab)c",
+      "valid": true
+    },
+    {
+      "pattern": "(?<!ab)c",
+      "valid": true
+    },
+    {
+      "pattern": "(?<=a|b)c",
+      "valid": true
+    },
+    {
+      "pattern": "(?<=a|bb)c",
+      "valid": false
+    },
+    {
+      "pattern": "(?<=a*)b",
+      "valid": false
+    },
+    {
+      "pattern": "(?<=(a))b",
+      "valid": true
+    },
+    {
+      "pattern": "(ab)(?<=\\1)c",
+      "valid": true
+    },
+    {
+      "pattern": "(?<=(a)\\1)b",
+      "valid": false
+    },
+    {
+      "pattern": "(?<=(a))\\1",
+      "valid": true
+    },
+    {
+      "pattern": "(a+)(?<=\\1)b",
+      "valid": false
+    },
+    {
+      "pattern": "(?(1)a|b)(c)",
+      "valid": true
+    },
+    {
+      "pattern": "(?(1)a|b)",
+      "valid": false
+    },
+    {
+      "pattern": "(?(0)a|b)",
+      "valid": false
+    },
+    {
+      "pattern": "(?(01)a|b)(c)",
+      "valid": true
+    },
+    {
+      "pattern": "(a)?(?(1)b|c)",
+      "valid": true
+    },
+    {
+      "pattern": "(a)?(?(1)b|c|d)",
+      "valid": false
+    },
+    {
+      "pattern": "(?P<a>a)(?(a)b|c)",
+      "valid": true
+    },
+    {
+      "pattern": "(?(a)b|c)(?P<a>a)",
+      "valid": false
+    },
+    {
+      "pattern": "(a(?(1)b|c))",
+      "valid": true
+    },
+    {
+      "pattern": "(?i)a",
+      "valid": true
+    },
+    {
+      "pattern": "(?im)a",
+      "valid": true
+    },
+    {
+      "pattern": "(?x)  a # hi\n b",
+      "valid": true
+    },
+    {
+      "pattern": "(?x)#hi\n(?i)a",
+      "valid": true
+    },
+    {
+      "pattern": "(?x)(?i)a",
+      "valid": true
+    },
+    {
+      "pattern": "(?i)(?m)a",
+      "valid": true
+    },
+    {
+      "pattern": "a(?i)",
+      "valid": false
+    },
+    {
+      "pattern": "(?i:a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?-i:a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?a:a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?u:a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?au:a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?L:a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?a-u:a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?i-i:a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?ii:a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?-:a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?i-:a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?x-i:a)",
+      "valid": true
+    },
+    {
+      "pattern": "(?i:a)(?i)b",
+      "valid": false
+    },
+    {
+      "pattern": "(?i:(?a:a))",
+      "valid": true
+    },
+    {
+      "pattern": "(?#hello)a",
+      "valid": true
+    },
+    {
+      "pattern": "(?#hello\\)there)a",
+      "valid": true
+    },
+    {
+      "pattern": "(?#hello",
+      "valid": false
+    },
+    {
+      "pattern": "(?>a*)b",
+      "valid": true
+    },
+    {
+      "pattern": "(?P<a>)",
+      "valid": true
+    },
+    {
+      "pattern": "(?P<a>)(?P=a)*",
+      "valid": true
+    },
+    {
+      "pattern": "(?P<>a)",
+      "valid": false
+    },
+    {
+      "pattern": "(?P<a-b>c)",
+      "valid": false
+    },
+    {
+      "pattern": "(?<id>a)",
+      "valid": false
+    },
+    {
+      "pattern": "\\g<id>",
+      "valid": false
+    },
+    {
+      "pattern": "(?R)",
+      "valid": false
+    },
+    {
+      "pattern": "(?(<a>)b)",
+      "valid": false
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "contract_id": "reference-models-v1",
+  "cases": [
+    {
+      "fixture": "fixtures/concept-authority/reference-models-v1/invalid/instance-path-mismatch.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/reference-models-v1/invalid/missing-key-field.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/reference-models-v1/invalid/schema-pointer-not-found.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/reference-models-v1/invalid/unknown-concept-family.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/reference-models-v1/invalid/unknown-contract-id.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/reference-models-v1/valid/reference.json",
+      "valid": true
+    }
+  ]
+}

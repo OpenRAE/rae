@@ -1,0 +1,1188 @@
+{
+  "mixed-edge": {
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "PostTimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "CompositionState": null,
+    "TimeModelRef": "time-model:composition",
+    "TimeModelDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "mixed-edge-partial": {
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "PostTimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "CompositionState": null,
+    "TimeModelRef": "time-model:composition",
+    "TimeModelDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "mixed-edge-refused": {
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "PostTimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "CompositionState": null,
+    "TimeModelRef": "time-model:composition",
+    "TimeModelDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "mixed-edge-time-refused": {
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 1,
+            "tick": 2,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 1,
+                "tick": 2,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "PostTimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 1,
+            "tick": 2,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 1,
+                "tick": 2,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "CompositionState": null,
+    "TimeModelRef": "time-model:composition",
+    "TimeModelDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "mixed-handoff": {
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "PostTimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "CompositionState": {
+      "run_id": "mixed",
+      "plan_id": "plan:mixed",
+      "plan_entry_id": "entry:mixed",
+      "profile_id": "profile:mixed",
+      "profile_digest": "sha256:83d1c9715656e4f1cbaf93083934fc941cccdae51718c36c75f6a77813f3371b",
+      "phase_id": "phase.sim",
+      "phase_revision": 0,
+      "active_component_ids": [
+        "sim"
+      ],
+      "active_allocation_ids": [
+        "allocation.participant",
+        "allocation.action"
+      ],
+      "active_edge_ids": [],
+      "history_head": "composition:activation:initial"
+    },
+    "TimeModelRef": "time-model:composition",
+    "TimeModelDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "mixed-handoff-stale": {
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "PostTimeState": {
+      "schema_version": "time-runtime-state/v1",
+      "declaration_digest": "sha256:fb9be999ded5aa81637b6491a5d42b70d4d98105466ac06350c8d27b55e42002",
+      "clocks": {
+        "time.clocks.sim": {
+          "clock_address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 0
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 0
+              },
+              "resulting_state": "running"
+            }
+          ]
+        },
+        "time.clocks.emu": {
+          "clock_address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "progression_policy_address": null,
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "state": "running",
+          "coordinate": {
+            "segment": 0,
+            "tick": 4,
+            "microstep": 1
+          },
+          "sequence": 0,
+          "history": [
+            {
+              "sequence": 0,
+              "kind": "initialize",
+              "previous": null,
+              "resulting": {
+                "segment": 0,
+                "tick": 4,
+                "microstep": 1
+              },
+              "resulting_state": "running"
+            }
+          ]
+        }
+      }
+    },
+    "CompositionState": {
+      "run_id": "mixed",
+      "plan_id": "plan:mixed",
+      "plan_entry_id": "entry:mixed",
+      "profile_id": "profile:mixed",
+      "profile_digest": "sha256:83d1c9715656e4f1cbaf93083934fc941cccdae51718c36c75f6a77813f3371b",
+      "phase_id": "phase.sim",
+      "phase_revision": 0,
+      "active_component_ids": [
+        "sim"
+      ],
+      "active_allocation_ids": [
+        "allocation.participant",
+        "allocation.action"
+      ],
+      "active_edge_ids": [],
+      "history_head": "composition:activation:initial"
+    },
+    "TimeModelRef": "time-model:composition",
+    "TimeModelDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  }
+}

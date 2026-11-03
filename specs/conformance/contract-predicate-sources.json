@@ -1,0 +1,1321 @@
+{
+  "specification": "raes-contract-predicate-sources/v1",
+  "rules": {
+    "adaptive-difficulty-authoring-admission-valid": {
+      "registration": "implementations/go/internal/contract/admission/run_provenance.go:15",
+      "predicate": [
+        "difficultyAuthoring at implementations/go/internal/contract/admission/run_provenance.go:113"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_difficulty_against_spec"
+    },
+    "adaptive-difficulty-run-provenance-valid": {
+      "registration": "implementations/go/internal/contract/admission/run_provenance.go:14",
+      "predicate": [
+        "runDifficulty at implementations/go/internal/contract/admission/run_difficulty.go:10"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "adaptive-difficulty-study-validity-treatment-required": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:26",
+      "predicate": [
+        "adaptiveStudy at implementations/go/internal/contract/admission/planning.go:91"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study"
+    },
+    "admitted-trial-entry-resolved-and-integrity-bound": {
+      "registration": "implementations/go/internal/contract/admission/trial_plan.go:12",
+      "predicate": [
+        "trialEntry at implementations/go/internal/contract/admission/trial_plan.go:17"
+      ],
+      "python_owner": "raes_contracts.contracts.admitted_trial_plan.AdmittedTrialEntryModel._validate_entry"
+    },
+    "admitted-trial-plan-identity-joins-and-integrity": {
+      "registration": "implementations/go/internal/contract/admission/trial_plan.go:13",
+      "predicate": [
+        "trialPlan at implementations/go/internal/contract/admission/trial_plan.go:67"
+      ],
+      "python_owner": "raes_contracts.contracts.admitted_trial_plan.AdmittedTrialPlanModel._validate_plan"
+    },
+    "analysis-plan-substantive-methods-required": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:35",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "require at implementations/go/internal/contract/admission/admission.go:38",
+        "set at implementations/go/internal/contract/admission/values.go:100",
+        "stringAt at implementations/go/internal/contract/admission/values.go:21"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentAnalysisPlanModel._validate_primary_metric"
+    },
+    "apparatus-archival-times-rfc3339-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:31",
+      "predicate": [
+        "apparatusTimes at implementations/go/internal/contract/admission/experiment_local.go:85"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_apparatus_context_archival_datetimes"
+    },
+    "apparatus-constraint-identity-manifest-resolves": {
+      "registration": "implementations/go/internal/contract/admission/apparatus.go:8",
+      "predicate": [
+        "apparatusConstraint at implementations/go/internal/contract/admission/apparatus.go:64"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentApparatusConstraintModel._validate_allowed_identity_manifest_refs"
+    },
+    "apparatus-manifest-payload-identity-valid": {
+      "registration": "implementations/go/internal/contract/admission/apparatus.go:9",
+      "predicate": [
+        "apparatusManifests at implementations/go/internal/contract/admission/manifest_join.go:9"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_apparatus_context_against_manifests"
+    },
+    "artifact-transformation-all-or-none": {
+      "registration": "implementations/go/internal/contract/admission/artifact.go:14",
+      "predicate": [
+        "transformationStatus at implementations/go/internal/contract/admission/artifact.go:53"
+      ],
+      "python_owner": "raes_contracts.contracts.ArtifactTransformationReportModel.model_validate"
+    },
+    "artifact-transformation-deterministic-order": {
+      "registration": "implementations/go/internal/contract/admission/artifact.go:15",
+      "predicate": [
+        "transformationOrder at implementations/go/internal/contract/admission/artifact.go:87"
+      ],
+      "python_owner": "raes_contracts.contracts.ArtifactTransformationReportModel.model_validate"
+    },
+    "associated-artifact-parent-set-and-byte-binding": {
+      "registration": "implementations/go/internal/contract/admission/associated.go:25",
+      "predicate": [
+        "associatedArtifacts at implementations/go/internal/contract/admission/associated.go:28"
+      ],
+      "python_owner": "raes_contracts.associated_artifacts.validate_associated_artifact_manifest"
+    },
+    "augmentation-disclosure-evidence-refs-traced": {
+      "registration": "implementations/go/internal/contract/admission/run_joins.go:9",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "disclosureTraces at implementations/go/internal/contract/admission/run_joins.go:28",
+        "invalid at implementations/go/internal/contract/admission/admission.go:37",
+        "rowIDs at implementations/go/internal/contract/admission/profiles.go:30",
+        "unique at implementations/go/internal/contract/admission/values.go:107"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "augmentation-disclosure-semantics-valid": {
+      "registration": "implementations/go/internal/contract/admission/run_joins.go:16",
+      "predicate": [
+        "augmentation at implementations/go/internal/contract/admission/materialization_augmentation.go:15",
+        "augmentation at implementations/go/internal/contract/admission/run_joins.go:68"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentAugmentationDisclosureModel._validate_augmentation_disclosure"
+    },
+    "authoring-comparison-evidence-shape": {
+      "registration": "implementations/go/internal/contract/admission/authoring.go:15",
+      "predicate": [
+        "authoringComparison at implementations/go/internal/contract/admission/authoring.go:55"
+      ],
+      "python_owner": "raes_contracts.authoring_adapters.AuthoringAdapterComparisonModel.model_validate"
+    },
+    "authoring-vector-bound-inputs": {
+      "registration": "implementations/go/internal/contract/admission/authoring.go:14",
+      "predicate": [
+        "authoringVector at implementations/go/internal/contract/admission/authoring.go:33"
+      ],
+      "python_owner": "raes_contracts.authoring_adapters.AuthoringAdapterVectorModel.model_validate"
+    },
+    "backend-materialization-submission-admission": {
+      "registration": "implementations/go/internal/contract/admission/materialization_execution.go:23",
+      "predicate": [
+        "materializationExecutionCheck at implementations/go/internal/contract/admission/materialization_execution.go:28"
+      ],
+      "python_owner": "raes_processor.planner.admit_materialization_submission"
+    },
+    "backend-operation-contextual-admission": {
+      "registration": "implementations/go/internal/contract/admission/backend.go:12",
+      "predicate": [
+        "backendAdmission at implementations/go/internal/contract/admission/backend_context.go:72"
+      ],
+      "python_owner": "raes_contracts.contracts.require_backend_operation_admission"
+    },
+    "backend-operation-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/backend.go:10",
+      "predicate": [
+        "backendLocal at implementations/go/internal/contract/admission/backend.go:16"
+      ],
+      "python_owner": "raes_contracts.contracts.BackendOperationResponseModel.model_validate"
+    },
+    "backend-operation-response-binding": {
+      "registration": "implementations/go/internal/contract/admission/backend.go:11",
+      "predicate": [
+        "backendResponse at implementations/go/internal/contract/admission/backend_context.go:27"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_backend_operation_response"
+    },
+    "batch-execution-receipt-binds-plan-schedule-and-attempt": {
+      "registration": "implementations/go/internal/contract/admission/accounting.go:15",
+      "predicate": [
+        "batchReceipt at implementations/go/internal/contract/admission/accounting.go:127"
+      ],
+      "python_owner": "raes_contracts.contracts.batch_execution.BatchExecutionReceiptModel._validate_receipt"
+    },
+    "behavioral-relation-profile-claim-resolution": {
+      "registration": "implementations/go/internal/contract/admission/behavioral.go:62",
+      "predicate": [
+        "profileClaim at implementations/go/internal/contract/admission/behavioral.go:91"
+      ],
+      "python_owner": "raes_contracts.behavioral_relations.validate_behavioral_claim_binding"
+    },
+    "behavioral-relation-profile-local-join": {
+      "registration": "implementations/go/internal/contract/admission/behavioral.go:61",
+      "predicate": [
+        "behavioralProfile at implementations/go/internal/contract/admission/behavioral_profile.go:12"
+      ],
+      "python_owner": "raes_contracts.behavioral_relation_profiles.BehavioralRelationProfileModel"
+    },
+    "behavioral-relations-reference-resolution": {
+      "registration": "implementations/go/internal/contract/admission/behavioral.go:60",
+      "predicate": [
+        "behavioralCatalog at implementations/go/internal/contract/admission/behavioral_catalog.go:5"
+      ],
+      "python_owner": "raes_contracts.behavioral_relations.BehavioralRelationCatalogModel"
+    },
+    "binding-descriptors-canonical-targets-injective": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:23",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "bindingTargets at implementations/go/internal/contract/admission/planning.go:59"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentBindingDescriptorSetModel._validate_unique_bindings_and_targets"
+    },
+    "candidate-synthesis-all-or-none": {
+      "registration": "implementations/go/internal/contract/admission/synthesis.go:17",
+      "predicate": [
+        "synthesisShape at implementations/go/internal/contract/admission/synthesis.go:135"
+      ],
+      "python_owner": "raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate"
+    },
+    "candidate-synthesis-complete-profile-digest": {
+      "registration": "implementations/go/internal/contract/admission/synthesis.go:16",
+      "predicate": [
+        "synthesisProfile at implementations/go/internal/contract/admission/synthesis.go:117"
+      ],
+      "python_owner": "raes_contracts.contracts.CandidateSynthesisProfileDefinitionModel.model_validate"
+    },
+    "candidate-synthesis-pinned-source-join": {
+      "registration": "implementations/go/internal/contract/admission/synthesis.go:14",
+      "predicate": [
+        "synthesisSource at implementations/go/internal/contract/admission/synthesis.go:50"
+      ],
+      "python_owner": "raes_contracts.contracts.CandidateSynthesisInputModel.model_validate"
+    },
+    "candidate-synthesis-provenance-separation": {
+      "registration": "implementations/go/internal/contract/admission/synthesis.go:18",
+      "predicate": [
+        "synthesisProvenance at implementations/go/internal/contract/admission/synthesis_trace.go:24"
+      ],
+      "python_owner": "raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate"
+    },
+    "candidate-synthesis-stable-input-order": {
+      "registration": "implementations/go/internal/contract/admission/synthesis.go:15",
+      "predicate": [
+        "synthesisInputOrder at implementations/go/internal/contract/admission/synthesis.go:90"
+      ],
+      "python_owner": "raes_contracts.contracts.CandidateSynthesisInputModel.model_validate"
+    },
+    "canonical-apparatus-manifest-selected": {
+      "registration": "implementations/go/internal/contract/admission/apparatus.go:7",
+      "predicate": [
+        "apparatusSelected at implementations/go/internal/contract/admission/apparatus.go:12"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentApparatusContextModel._validate_instrument_context"
+    },
+    "capture-media-type-provable": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:18",
+      "predicate": [
+        "captureMedia at implementations/go/internal/contract/admission/experiment_local.go:125"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentCaptureRequirementModel._validate_capture_requirement"
+    },
+    "capture-requirement-key-matches-requirement-id": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:17",
+      "predicate": [
+        "captureKeys at implementations/go/internal/contract/admission/experiment_local.go:106"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentCaptureSpecModel._validate_capture_spec"
+    },
+    "capture-window-interval-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:16",
+      "predicate": [
+        "captureInterval at implementations/go/internal/contract/admission/experiment_local.go:76"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentCaptureWindowModel._validate_capture_window"
+    },
+    "claim-bearing-study-analysis-plan-required": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:25",
+      "predicate": [
+        "studyRequired at implementations/go/internal/contract/admission/planning.go:83"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study"
+    },
+    "context-view-sem216-archival-source-mediated": {
+      "registration": "implementations/go/internal/contract/admission/participant_local.go:20",
+      "predicate": [
+        "contextMediated at implementations/go/internal/contract/admission/participant_local.go:95"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantContextViewModel._validate_sem216_audience_boundary"
+    },
+    "context-view-sem216-payload-not-raw-archival": {
+      "registration": "implementations/go/internal/contract/admission/participant_local.go:21",
+      "predicate": [
+        "contextPayload at implementations/go/internal/contract/admission/participant_local.go:105"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantContextViewModel._validate_sem216_audience_boundary"
+    },
+    "control-context-trusted-agreement": {
+      "registration": "implementations/go/internal/contract/admission/control_context.go:54",
+      "predicate": [
+        "controlContextAgreement at implementations/go/internal/contract/admission/control_context.go:57"
+      ],
+      "python_owner": "raes_contracts.participant_control_context.validate_control_context_asset"
+    },
+    "decision-surface-entry-reference-agreement": {
+      "registration": "implementations/go/internal/contract/admission/decision.go:18",
+      "predicate": [
+        "decisionV1 at implementations/go/internal/contract/admission/decision.go:90"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantDecisionSurfaceModel._validate_surface_relations"
+    },
+    "decision-surface-presentation-not-lifecycle-evidence": {
+      "registration": "implementations/go/internal/contract/admission/decision.go:19",
+      "predicate": [
+        "decisionV1 at implementations/go/internal/contract/admission/decision.go:90"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantDecisionSurfaceModel"
+    },
+    "decision-surface-sem226-item-exposure-agreement": {
+      "registration": "implementations/go/internal/contract/admission/decision.go:20",
+      "predicate": [
+        "decisionV1 at implementations/go/internal/contract/admission/decision.go:90"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantDecisionSurfaceModel._validate_surface_relations"
+    },
+    "decision-surface-v2-delivery-before-selection": {
+      "registration": "implementations/go/internal/contract/admission/decision.go:24",
+      "predicate": [
+        "decisionV2 at implementations/go/internal/contract/admission/decision_v2.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
+    },
+    "decision-surface-v2-exact-cut-policy": {
+      "registration": "implementations/go/internal/contract/admission/decision.go:22",
+      "predicate": [
+        "decisionV2 at implementations/go/internal/contract/admission/decision_v2.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
+    },
+    "decision-surface-v2-explicit-memory-scope": {
+      "registration": "implementations/go/internal/contract/admission/decision.go:23",
+      "predicate": [
+        "decisionV2 at implementations/go/internal/contract/admission/decision_v2.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantDecisionSurfaceAssuranceV2Model._validate_assurance"
+    },
+    "decision-surface-v2-plane-separation": {
+      "registration": "implementations/go/internal/contract/admission/decision.go:21",
+      "predicate": [
+        "decisionV2 at implementations/go/internal/contract/admission/decision_v2.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantDecisionSurfaceV2Model._validate_surface"
+    },
+    "derived-measure-generated-at-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:19",
+      "predicate": [
+        "timestamps at implementations/go/internal/contract/admission/experiment_local.go:43"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentDerivedMeasureModel._validate_derived_measure"
+    },
+    "derived-measure-reported-value-present": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:20",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "require at implementations/go/internal/contract/admission/admission.go:38",
+        "stringAt at implementations/go/internal/contract/admission/values.go:21"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentDerivedMeasureModel._validate_derived_measure"
+    },
+    "difficulty-policy-registry-valid": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:27",
+      "predicate": [
+        "difficultyRegistry at implementations/go/internal/contract/admission/planning.go:101"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunPlanModel._validate_difficulty_policy_registry"
+    },
+    "ended-at-not-before-started-at": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:29",
+      "predicate": [
+        "runInterval at implementations/go/internal/contract/admission/experiment_local.go:79"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "evidence-description-nonauthoritative": {
+      "registration": "implementations/go/internal/contract/admission/description.go:14",
+      "predicate": [
+        "array at implementations/go/internal/contract/admission/values.go:12",
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "description at implementations/go/internal/contract/admission/description.go:29",
+        "invalid at implementations/go/internal/contract/admission/admission.go:37",
+        "stringAt at implementations/go/internal/contract/admission/values.go:21"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate"
+    },
+    "evidence-record-captured-at-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:23",
+      "predicate": [
+        "timestamps at implementations/go/internal/contract/admission/experiment_local.go:43"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+    },
+    "evidence-record-raw-content-present": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:24",
+      "predicate": [
+        "evidenceContent at implementations/go/internal/contract/admission/experiment_local.go:144"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
+    },
+    "evidence-requirement-relation-lineage-valid": {
+      "registration": "implementations/go/internal/contract/admission/evidence_relation.go:12",
+      "predicate": [
+        "evidenceRelation at implementations/go/internal/contract/admission/evidence_relation.go:31"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_evidence_requirement_relations"
+    },
+    "exact-source-artifact-id-match": {
+      "registration": "implementations/go/internal/contract/admission/artifact.go:11",
+      "predicate": [
+        "exactArtifact at implementations/go/internal/contract/admission/artifact.go:19"
+      ],
+      "python_owner": "raes_contracts.artifact_requirements.validate_artifact_requirement_invariants"
+    },
+    "exact-source-version-match": {
+      "registration": "implementations/go/internal/contract/admission/artifact.go:12",
+      "predicate": [
+        "exactArtifact at implementations/go/internal/contract/admission/artifact.go:19"
+      ],
+      "python_owner": "raes_contracts.artifact_requirements.validate_artifact_requirement_invariants"
+    },
+    "execution-policy-effectiveexecutionpolicy": {
+      "registration": "implementations/go/internal/contract/admission/execution_policy.go:22",
+      "predicate": [
+        "effectivePolicy at implementations/go/internal/contract/admission/execution_policy.go:159"
+      ],
+      "python_owner": "raes_contracts.execution_policy.EffectiveExecutionPolicy.model_validate"
+    },
+    "execution-policy-executionpolicy": {
+      "registration": "implementations/go/internal/contract/admission/execution_policy.go:17",
+      "predicate": [
+        "executionPolicy at implementations/go/internal/contract/admission/execution_policy.go:51"
+      ],
+      "python_owner": "raes_contracts.execution_policy.ExecutionPolicy.model_validate"
+    },
+    "execution-policy-executionpolicycapabilities": {
+      "registration": "implementations/go/internal/contract/admission/execution_policy.go:19",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "fieldsUnique at implementations/go/internal/contract/admission/values.go:126",
+        "require at implementations/go/internal/contract/admission/admission.go:38",
+        "set at implementations/go/internal/contract/admission/values.go:100"
+      ],
+      "python_owner": "raes_contracts.execution_policy.ExecutionPolicyCapabilities.model_validate"
+    },
+    "execution-policy-executionpolicydocument": {
+      "registration": "implementations/go/internal/contract/admission/execution_policy.go:18",
+      "predicate": [
+        "policyDocument at implementations/go/internal/contract/admission/execution_policy.go:126"
+      ],
+      "python_owner": "raes_contracts.execution_policy.ExecutionPolicyDocument.model_validate"
+    },
+    "execution-policy-planoperationmodel": {
+      "registration": "implementations/go/internal/contract/admission/execution_policy.go:23",
+      "predicate": [
+        "operationPolicies at implementations/go/internal/contract/admission/execution_policy.go:183"
+      ],
+      "python_owner": "raes_contracts.contracts.plan_operation.PlanOperationModel.model_validate"
+    },
+    "execution-policy-preparationoperationmodel": {
+      "registration": "implementations/go/internal/contract/admission/execution_policy.go:24",
+      "predicate": [
+        "preparationOperation at implementations/go/internal/contract/admission/execution_policy.go:198"
+      ],
+      "python_owner": "raes_contracts.contracts.backend_preparation.PreparationOperationModel.model_validate"
+    },
+    "experiment-binding-source-joins-valid": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:13",
+      "predicate": [
+        "bindingSources at implementations/go/internal/contract/admission/allocation.go:123"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentSpecModel._validate_binding_descriptors"
+    },
+    "experiment-factorial-generation-valid": {
+      "registration": "implementations/go/internal/contract/admission/factorial.go:14",
+      "predicate": [
+        "factorialExpand at implementations/go/internal/contract/admission/factorial.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentSpecModel._expand_factorial"
+    },
+    "experiment-run-admitted-trial-provenance": {
+      "registration": "implementations/go/internal/contract/admission/run_provenance.go:12",
+      "predicate": [
+        "runTrialProvenance at implementations/go/internal/contract/admission/run_provenance.go:19"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_admitted_trial_run"
+    },
+    "experiment-selection-factor-joins-valid": {
+      "registration": "implementations/go/internal/contract/admission/selection.go:13",
+      "predicate": [
+        "selectionFactors at implementations/go/internal/contract/admission/selection.go:131"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentSpecModel._validate_selection_factor_joins"
+    },
+    "experiment-selection-policies-valid": {
+      "registration": "implementations/go/internal/contract/admission/selection.go:12",
+      "predicate": [
+        "selectionRegistry at implementations/go/internal/contract/admission/selection.go:17"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunPlanModel._validate_selection_policies"
+    },
+    "experiment-selection-treatment-identity-valid": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:24",
+      "predicate": [
+        "selectionIdentity at implementations/go/internal/contract/admission/planning.go:71"
+      ],
+      "python_owner": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+    },
+    "experiment-spec-blocking-factors-declared": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:17",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "keySet at implementations/go/internal/contract/admission/planning.go:30",
+        "require at implementations/go/internal/contract/admission/admission.go:38",
+        "stringsOf at implementations/go/internal/contract/admission/values.go:93",
+        "subset at implementations/go/internal/contract/admission/values.go:118"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+    },
+    "experiment-spec-condition-factor-levels-declared": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:20",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "conditionLevels at implementations/go/internal/contract/admission/planning.go:37"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+    },
+    "exploit-path-evidence-digest-joins": {
+      "registration": "implementations/go/internal/contract/admission/comparison.go:16",
+      "predicate": [
+        "exploitEvidence at implementations/go/internal/contract/admission/exploit.go:9"
+      ],
+      "python_owner": "raes_contracts.exploit_path.ExploitPathAnalysisEvidenceModel._validate_evidence_joins"
+    },
+    "external-concept-approximation-loss-consistent": {
+      "registration": "implementations/go/internal/contract/admission/external.go:25",
+      "predicate": [
+        "array at implementations/go/internal/contract/admission/values.go:12",
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "require at implementations/go/internal/contract/admission/admission.go:38",
+        "stringAt at implementations/go/internal/contract/admission/values.go:21"
+      ],
+      "python_owner": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+    },
+    "external-concept-binding-identities": {
+      "registration": "implementations/go/internal/contract/admission/external.go:29",
+      "predicate": [
+        "externalIdentities at implementations/go/internal/contract/admission/external.go:57"
+      ],
+      "python_owner": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+    },
+    "external-concept-confidence-calibrated": {
+      "registration": "implementations/go/internal/contract/admission/external.go:22",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+    },
+    "external-concept-participants-unique": {
+      "registration": "implementations/go/internal/contract/admission/external.go:21",
+      "predicate": [
+        "fieldsUnique at implementations/go/internal/contract/admission/values.go:126",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+    },
+    "external-concept-review-evidence-consistent": {
+      "registration": "implementations/go/internal/contract/admission/external.go:28",
+      "predicate": [
+        "externalReview at implementations/go/internal/contract/admission/external.go:45"
+      ],
+      "python_owner": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+    },
+    "external-concept-source-locator-safe": {
+      "registration": "implementations/go/internal/contract/admission/external.go:12",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "require at implementations/go/internal/contract/admission/admission.go:38",
+        "stringAt at implementations/go/internal/contract/admission/values.go:21"
+      ],
+      "python_owner": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+    },
+    "external-concept-source-pinned": {
+      "registration": "implementations/go/internal/contract/admission/external.go:18",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.ExternalConceptBindingDocumentModel.model_validate"
+    },
+    "initial-service-state-semantics": {
+      "registration": "implementations/go/internal/contract/admission/stateful.go:19",
+      "predicate": [
+        "serviceMaterialization at implementations/go/internal/contract/admission/service_materialization.go:20"
+      ],
+      "python_owner": "raes.validator.SemanticValidator._verify_service_materialization"
+    },
+    "inject-occurrence-correlation-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:15",
+      "predicate": [
+        "injectCorrelationLocal at implementations/go/internal/contract/admission/inject.go:115"
+      ],
+      "python_owner": "raes_contracts.contracts.InjectOccurrenceCorrelationModel.model_validate"
+    },
+    "inject-occurrence-correlation-source": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:19",
+      "predicate": [
+        "injectCorrelation at implementations/go/internal/contract/admission/inject_joins.go:159"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_inject_occurrence_correlation"
+    },
+    "inject-occurrence-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:13",
+      "predicate": [
+        "injectOccurrence at implementations/go/internal/contract/admission/inject.go:53"
+      ],
+      "python_owner": "raes_contracts.contracts.InjectOccurrenceModel.model_validate"
+    },
+    "inject-occurrence-outcome-binding": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:18",
+      "predicate": [
+        "injectOutcome at implementations/go/internal/contract/admission/inject_joins.go:104"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_inject_occurrence_outcome"
+    },
+    "inject-occurrence-outcome-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:14",
+      "predicate": [
+        "injectOutcomeLocal at implementations/go/internal/contract/admission/inject.go:86"
+      ],
+      "python_owner": "raes_contracts.contracts.InjectOccurrenceOutcomeModel.model_validate"
+    },
+    "inject-occurrence-unique-claims": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:17",
+      "predicate": [
+        "injectClaims at implementations/go/internal/contract/admission/inject_joins.go:32"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_inject_occurrence_claims"
+    },
+    "inject-trigger-exact-retry": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:16",
+      "predicate": [
+        "injectRetry at implementations/go/internal/contract/admission/inject_joins.go:14"
+      ],
+      "python_owner": "raes_contracts.contracts.require_inject_trigger_retry"
+    },
+    "inject-trigger-request-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/inject.go:12",
+      "predicate": [
+        "injectRequest at implementations/go/internal/contract/admission/inject.go:23"
+      ],
+      "python_owner": "raes_contracts.contracts.InjectTriggerRequestModel.model_validate"
+    },
+    "manifest-reference-digest-scope-valid": {
+      "registration": "implementations/go/internal/contract/admission/participant_local.go:11",
+      "predicate": [
+        "manifestReference at implementations/go/internal/contract/admission/participant_local.go:25"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+    },
+    "materialization-archive-byte-and-lineage-binding": {
+      "registration": "implementations/go/internal/contract/admission/materialization_archive.go:15",
+      "predicate": [
+        "materializationArchive at implementations/go/internal/contract/admission/materialization_archive.go:18"
+      ],
+      "python_owner": "raes_processor.planner.validate_materialization_archive_record"
+    },
+    "materialization-locked-input-join": {
+      "registration": "implementations/go/internal/contract/admission/artifact.go:13",
+      "predicate": [
+        "materializationInputs at implementations/go/internal/contract/admission/artifact.go:35"
+      ],
+      "python_owner": "raes_contracts.artifact_requirements.validate_artifact_requirement_invariants"
+    },
+    "materialized-sdl-source-and-inventory-binding": {
+      "registration": "implementations/go/internal/contract/admission/materialization_execution.go:24",
+      "predicate": [
+        "materializationExecutionCheck at implementations/go/internal/contract/admission/materialization_execution.go:28"
+      ],
+      "python_owner": "raes_processor.planner.admit_materialization_submission"
+    },
+    "metric-definition-key-matches-metric-id": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:25",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "keyed at implementations/go/internal/contract/admission/materialization_differences.go:159",
+        "keyed at implementations/go/internal/contract/admission/values.go:134",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentEvaluationProtocolModel._validate_metric_definition_keys"
+    },
+    "mixed-backend-binding-profile-join": {
+      "registration": "implementations/go/internal/contract/admission/mixed_backend_context.go:15",
+      "predicate": [
+        "mixedBackendBindings at implementations/go/internal/contract/admission/mixed_backend_context.go:20"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_mixed_backend_bindings"
+    },
+    "mixed-backend-contextual-admission": {
+      "registration": "implementations/go/internal/contract/admission/mixed_backend_context.go:16",
+      "predicate": [
+        "mixedBackendAdmission at implementations/go/internal/contract/admission/mixed_backend_context.go:63"
+      ],
+      "python_owner": "raes_contracts.contracts.require_mixed_backend_admission"
+    },
+    "mixed-backend-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/mixed_local.go:13",
+      "predicate": [
+        "mixedBackendLocal at implementations/go/internal/contract/admission/mixed_local.go:107"
+      ],
+      "python_owner": "raes_contracts.contracts.MixedBackendStageReportModel.model_validate"
+    },
+    "mixed-backend-stage-transcript": {
+      "registration": "implementations/go/internal/contract/admission/mixed_stages.go:35",
+      "predicate": [
+        "mixedStageTranscript at implementations/go/internal/contract/admission/mixed_stages.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_mixed_backend_stage_reports"
+    },
+    "mixed-composition-root-local-graph-valid": {
+      "registration": "implementations/go/internal/contract/admission/mixed_local.go:12",
+      "predicate": [
+        "mixedCompositionLocal at implementations/go/internal/contract/admission/mixed_local.go:16"
+      ],
+      "python_owner": "raes_contracts.contracts.mixed_composition.MixedParticipantCompositionProfileModel._validate_profile"
+    },
+    "mixed-composition-trusted-context-required": {
+      "registration": "implementations/go/internal/contract/admission/mixed_context.go:50",
+      "predicate": [
+        "mixedResolvedContext at implementations/go/internal/contract/admission/mixed_context.go:53"
+      ],
+      "python_owner": "raes_contracts.contracts.mixed_composition_resolution.validate_mixed_composition_context"
+    },
+    "participant-configuration-digest-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:28",
+      "predicate": [
+        "configurationDigest at implementations/go/internal/contract/admission/experiment_local.go:207"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"
+    },
+    "participant-control-occurrence-context-agreement": {
+      "registration": "implementations/go/internal/contract/admission/control_occurrence.go:53",
+      "predicate": [
+        "controlOccurrence at implementations/go/internal/contract/admission/control_history.go:10"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_participant_control_occurrence_context"
+    },
+    "participant-control-occurrence-not-lifecycle-evidence": {
+      "registration": "implementations/go/internal/contract/admission/control_local.go:11",
+      "predicate": [
+        "controlOccurrenceLocal at implementations/go/internal/contract/admission/control_local.go:19"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantControlOccurrenceModel"
+    },
+    "participant-control-occurrence-v2-acting-controller": {
+      "registration": "implementations/go/internal/contract/admission/participant_local.go:12",
+      "predicate": [
+        "occurrenceActor at implementations/go/internal/contract/admission/participant_local.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+    },
+    "participant-control-occurrence-v2-context-agreement": {
+      "registration": "implementations/go/internal/contract/admission/control_occurrence.go:54",
+      "predicate": [
+        "controlOccurrence at implementations/go/internal/contract/admission/control_history.go:10"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_participant_control_occurrence_context"
+    },
+    "participant-control-occurrence-v2-history-head": {
+      "registration": "implementations/go/internal/contract/admission/participant_local.go:16",
+      "predicate": [
+        "occurrenceIncrement at implementations/go/internal/contract/admission/participant_local.go:49"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+    },
+    "participant-control-occurrence-v2-revision-advance": {
+      "registration": "implementations/go/internal/contract/admission/participant_local.go:13",
+      "predicate": [
+        "occurrenceIncrement at implementations/go/internal/contract/admission/participant_local.go:49"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+    },
+    "participant-control-occurrence-v2-validity-bounds": {
+      "registration": "implementations/go/internal/contract/admission/participant_local.go:19",
+      "predicate": [
+        "occurrenceBounds at implementations/go/internal/contract/admission/participant_local.go:64"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantControlOccurrenceV2Model"
+    },
+    "participant-control-resolved-context": {
+      "registration": "implementations/go/internal/contract/admission/control_resolution.go:64",
+      "predicate": [
+        "controlResolvedContext at implementations/go/internal/contract/admission/control_resolution.go:67"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_participant_control_resolved_context_v2"
+    },
+    "participant-control-selection-graph": {
+      "registration": "implementations/go/internal/contract/admission/control_local.go:13",
+      "predicate": [
+        "controlSelection at implementations/go/internal/contract/admission/control_selection.go:8"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantControlSelectionV2Model.model_validate"
+    },
+    "participant-crossing-context-agreement": {
+      "registration": "implementations/go/internal/contract/admission/crossing_context.go:25",
+      "predicate": [
+        "crossingContext at implementations/go/internal/contract/admission/crossing_context.go:28"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_participant_crossing_occurrence_context"
+    },
+    "participant-crossing-stage-separation": {
+      "registration": "implementations/go/internal/contract/admission/control_local.go:12",
+      "predicate": [
+        "crossingLocal at implementations/go/internal/contract/admission/control_local.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantCrossingOccurrenceModel"
+    },
+    "participant-flow-control-resolved-context": {
+      "registration": "implementations/go/internal/contract/admission/flow_resolution.go:9",
+      "predicate": [
+        "flowResolvedContext at implementations/go/internal/contract/admission/flow_resolution.go:12"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_participant_flow_control_resolved_context"
+    },
+    "participant-implementation-provenance-resolves": {
+      "registration": "implementations/go/internal/contract/admission/run_joins.go:15",
+      "predicate": [
+        "participantProvenance at implementations/go/internal/contract/admission/run_joins.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "participant-information-state-context-resolution": {
+      "registration": "implementations/go/internal/contract/admission/information_context.go:34",
+      "predicate": [
+        "informationState at implementations/go/internal/contract/admission/information_context.go:64"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_participant_information_state_context"
+    },
+    "participant-inject-application-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/participant_inject.go:16",
+      "predicate": [
+        "schemaInstance at implementations/go/internal/contract/admission/participant_inject.go:28"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantInjectApplicationModel.model_validate"
+    },
+    "participant-inject-delivery-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/participant_inject.go:19",
+      "predicate": [
+        "participantInjectContent at implementations/go/internal/contract/admission/participant_inject.go:35"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantInjectContentModel.model_validate"
+    },
+    "participant-inject-delivery-receipt-local-consistency": {
+      "registration": "implementations/go/internal/contract/admission/participant_inject.go:20",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "equal at implementations/go/internal/contract/admission/values.go:76",
+        "invalid at implementations/go/internal/contract/admission/admission.go:37",
+        "participantInjectContent at implementations/go/internal/contract/admission/participant_inject.go:35"
+      ],
+      "python_owner": "raes_contracts.contracts.ParticipantInjectDeliveryReceiptModel.model_validate"
+    },
+    "participant-opacity-evidence-joins": {
+      "registration": "implementations/go/internal/contract/admission/opacity.go:14",
+      "predicate": [
+        "opacityEvidence at implementations/go/internal/contract/admission/opacity_evidence.go:45"
+      ],
+      "python_owner": "raes_contracts.participant_opacity.ParticipantOpacityAnalysisEvidenceModel"
+    },
+    "participant-opacity-finite-carrier-counts": {
+      "registration": "implementations/go/internal/contract/admission/opacity.go:12",
+      "predicate": [
+        "opacityCarrier at implementations/go/internal/contract/admission/opacity.go:59"
+      ],
+      "python_owner": "raes_contracts.participant_opacity.ParticipantOpacityAnalysisInputModel"
+    },
+    "participant-opacity-model-check-evidence-joins": {
+      "registration": "implementations/go/internal/contract/admission/opacity.go:15",
+      "predicate": [
+        "opacityModelEvidence at implementations/go/internal/contract/admission/opacity_evidence.go:85"
+      ],
+      "python_owner": "raes_contracts.participant_opacity.ParticipantOpacityModelCheckEvidenceModel"
+    },
+    "participant-opacity-model-check-graph-joins": {
+      "registration": "implementations/go/internal/contract/admission/opacity.go:13",
+      "predicate": [
+        "opacityGraph at implementations/go/internal/contract/admission/opacity.go:98"
+      ],
+      "python_owner": "raes_contracts.participant_opacity.ParticipantOpacityModelCheckInputModel"
+    },
+    "participant-random-stream-address-governed": {
+      "registration": "implementations/go/internal/contract/admission/scalar.go:15",
+      "predicate": [
+        "participantDrawAddress at implementations/go/internal/contract/admission/scalar.go:31"
+      ],
+      "python_owner": "raes_contracts.contracts.random_stream.ParticipantStreamAddressModel._validate_address"
+    },
+    "participant-shared-time-binding-shape": {
+      "registration": "implementations/go/internal/contract/admission/temporal.go:13",
+      "predicate": [
+        "temporalBindings at implementations/go/internal/contract/admission/temporal.go:65"
+      ],
+      "python_owner": "raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel"
+    },
+    "participant-shared-time-history-consistency": {
+      "registration": "implementations/go/internal/contract/admission/temporal.go:15",
+      "predicate": [
+        "temporalHistory at implementations/go/internal/contract/admission/temporal_history.go:9"
+      ],
+      "python_owner": "raes_contracts.participant_temporal.require_participant_temporal_history"
+    },
+    "participant-shared-time-source-bindings": {
+      "registration": "implementations/go/internal/contract/admission/temporal.go:14",
+      "predicate": [
+        "temporalSource at implementations/go/internal/contract/admission/temporal_source.go:18"
+      ],
+      "python_owner": "raes.semantics.participant_temporal_bindings.participant_temporal_binding_errors"
+    },
+    "random-stream-address-draw-purpose-governed": {
+      "registration": "implementations/go/internal/contract/admission/scalar.go:14",
+      "predicate": [
+        "drawPurpose at implementations/go/internal/contract/admission/scalar.go:26"
+      ],
+      "python_owner": "raes_contracts.contracts.random_stream.StreamAddressModel._validate_draw_purpose"
+    },
+    "random-stream-draw-record-local-coordinate-matches-address": {
+      "registration": "implementations/go/internal/contract/admission/scalar.go:16",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "numericEqual at implementations/go/internal/contract/admission/values.go:58",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel._validate_local_coordinate_matches_address"
+    },
+    "random-stream-draw-record-outcome-matches-exhaustion": {
+      "registration": "implementations/go/internal/contract/admission/scalar.go:19",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "boolean at implementations/go/internal/contract/admission/values.go:14",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.random_stream.RandomStreamDrawRecordModel._validate_outcome_matches_exhaustion"
+    },
+    "random-stream-profile-transform-keys-match": {
+      "registration": "implementations/go/internal/contract/admission/scalar.go:11",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "keyed at implementations/go/internal/contract/admission/materialization_differences.go:159",
+        "keyed at implementations/go/internal/contract/admission/values.go:134",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.random_stream.RandomStreamProfileModel._validate_transform_keys"
+    },
+    "realization-envelope-canonical-semantics-valid": {
+      "registration": "implementations/go/internal/contract/admission/envelope.go:16",
+      "predicate": [
+        "envelope at implementations/go/internal/contract/admission/envelope.go:18"
+      ],
+      "python_owner": "raes_contracts.realization_envelope.validate_backend_realization_envelope"
+    },
+    "realized-description-nonauthoritative": {
+      "registration": "implementations/go/internal/contract/admission/description.go:24",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "description at implementations/go/internal/contract/admission/description.go:29"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel.model_validate"
+    },
+    "realized-form-disclosure-substantive": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:38",
+      "predicate": [
+        "realizedDisclosure at implementations/go/internal/contract/admission/experiment_local.go:166"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel._validate_realized_form_disclosure"
+    },
+    "realized-form-evidence-refs-traced": {
+      "registration": "implementations/go/internal/contract/admission/run_joins.go:8",
+      "predicate": [
+        "disclosureTraces at implementations/go/internal/contract/admission/run_joins.go:28"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "realized-time-model-bound-to-run": {
+      "registration": "implementations/go/internal/contract/admission/run_provenance.go:16",
+      "predicate": [
+        "runTimeModel at implementations/go/internal/contract/admission/run_time.go:10"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "required-evidence-media-type-provable": {
+      "registration": "implementations/go/internal/contract/admission/evidence_owner.go:7",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "mediaDeclaration at implementations/go/internal/contract/admission/experiment_local.go:128",
+        "stringAt at implementations/go/internal/contract/admission/values.go:21",
+        "stringsOf at implementations/go/internal/contract/admission/values.go:93"
+      ],
+      "python_owner": "raes.evidence_requirements.EvidenceRequirement._validate_capture_intent"
+    },
+    "result-evidence-ref-resolves": {
+      "registration": "implementations/go/internal/contract/admission/run_joins.go:7",
+      "predicate": [
+        "resultEvidence at implementations/go/internal/contract/admission/run_joins.go:19"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "run-allocation-condition-assignments-valid": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:12",
+      "predicate": [
+        "allocationAssignments at implementations/go/internal/contract/admission/allocation.go:12"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunAllocationPlanModel._validate_condition_assignments"
+    },
+    "run-archival-times-rfc3339-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:32",
+      "predicate": [
+        "runTimes at implementations/go/internal/contract/admission/experiment_local.go:91"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_run_archival_datetimes"
+    },
+    "run-evidence-requirement-relation-owner-valid": {
+      "registration": "implementations/go/internal/contract/admission/evidence_owner.go:20",
+      "predicate": [
+        "relationOwner at implementations/go/internal/contract/admission/evidence_owner.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "run-execution-accounting-consistent": {
+      "registration": "implementations/go/internal/contract/admission/accounting.go:14",
+      "predicate": [
+        "runAccounting at implementations/go/internal/contract/admission/accounting.go:18"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
+    },
+    "run-materialization-carriers-archived": {
+      "registration": "implementations/go/internal/contract/admission/run_provenance.go:13",
+      "predicate": [
+        "runMaterializations at implementations/go/internal/contract/admission/run_provenance.go:62"
+      ],
+      "python_owner": "raes_contracts.contracts.materialization_attestation.validate_run_materializations"
+    },
+    "run-plan-evidence-requirement-relation-owner-valid": {
+      "registration": "implementations/go/internal/contract/admission/evidence_owner.go:10",
+      "predicate": [
+        "array at implementations/go/internal/contract/admission/values.go:12",
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "invalid at implementations/go/internal/contract/admission/admission.go:37",
+        "relationOwner at implementations/go/internal/contract/admission/evidence_owner.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentSpecModel._validate_experiment_spec"
+    },
+    "run-plan-exactly-one-run-count-source": {
+      "registration": "implementations/go/internal/contract/admission/planning.go:14",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "keyed at implementations/go/internal/contract/admission/materialization_differences.go:159",
+        "keyed at implementations/go/internal/contract/admission/values.go:134",
+        "require at implementations/go/internal/contract/admission/admission.go:38"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunPlanModel._validate_run_plan"
+    },
+    "run-traceability-refs-unique": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:39",
+      "predicate": [
+        "traceabilityRefs at implementations/go/internal/contract/admission/experiment_local.go:199"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentRunTraceabilityModel._validate_run_traceability"
+    },
+    "run-validation-basis-disclosure-identity-matches": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:18",
+      "predicate": [
+        "inline predicate at implementations/go/internal/contract/admission/profiles.go:18"
+      ],
+      "python_owner": "raes_contracts.contracts.validation_disclosure.validate_carrier_validation_basis_disclosures"
+    },
+    "runtime-descendant-inventory-admission": {
+      "registration": "implementations/go/internal/contract/admission/materialization_descendants.go:19",
+      "predicate": [
+        "materializationDescendants at implementations/go/internal/contract/admission/materialization_descendants.go:21"
+      ],
+      "python_owner": "raes_processor.planner.materialization_inventory.admit_runtime_inventory"
+    },
+    "runtime-fact-binding-references-resolve": {
+      "registration": "implementations/go/internal/contract/admission/facts.go:6",
+      "predicate": [
+        "factPlane at implementations/go/internal/contract/admission/facts.go:18"
+      ],
+      "python_owner": "raes_contracts.contracts.runtime_facts.RuntimeFactBindingPlaneModel._validate_references"
+    },
+    "scheduler-isolation-serial-default-and-complete-parallel-proof": {
+      "registration": "implementations/go/internal/contract/admission/cleanup.go:13",
+      "predicate": [
+        "isolationProof at implementations/go/internal/contract/admission/cleanup.go:118"
+      ],
+      "python_owner": "raes_contracts.contracts.SchedulerIsolationProofModel._validate_isolation"
+    },
+    "scientific-completeness-assessment-status-evidence": {
+      "registration": "implementations/go/internal/contract/admission/completeness.go:13",
+      "predicate": [
+        "assessmentEvidence at implementations/go/internal/contract/admission/completeness.go:72"
+      ],
+      "python_owner": "raes_contracts.scientific_completeness.ScientificCompletenessAssessmentModel"
+    },
+    "scientific-completeness-behavioral-claim-resolution": {
+      "registration": "implementations/go/internal/contract/admission/behavioral.go:64",
+      "predicate": [
+        "completenessClaims at implementations/go/internal/contract/admission/behavioral.go:78"
+      ],
+      "python_owner": "raes_contracts.scientific_completeness.CompletenessProfileModel.validate_behavioral_claims"
+    },
+    "scientific-completeness-taxonomy-assessment-join": {
+      "registration": "implementations/go/internal/contract/admission/completeness.go:11",
+      "predicate": [
+        "completenessJoin at implementations/go/internal/contract/admission/completeness.go:17"
+      ],
+      "python_owner": "raes_contracts.scientific_completeness.evaluate_profile_completeness"
+    },
+    "scientific-completeness-taxonomy-rectangular": {
+      "registration": "implementations/go/internal/contract/admission/completeness.go:12",
+      "predicate": [
+        "taxonomyRectangular at implementations/go/internal/contract/admission/completeness.go:48"
+      ],
+      "python_owner": "raes_contracts.scientific_completeness.ScientificCompletenessTaxonomyModel"
+    },
+    "semantic-comparison-governed-scope": {
+      "registration": "implementations/go/internal/contract/admission/comparison.go:12",
+      "predicate": [
+        "comparisonRequest at implementations/go/internal/contract/admission/comparison.go:20"
+      ],
+      "python_owner": "raes_contracts.semantic_comparison.SemanticComparisonRequestModel.model_validate"
+    },
+    "semantic-comparison-independent-change-axes": {
+      "registration": "implementations/go/internal/contract/admission/comparison.go:13",
+      "predicate": [
+        "comparisonResult at implementations/go/internal/contract/admission/comparison.go:88"
+      ],
+      "python_owner": "raes_contracts.semantic_comparison.SemanticComparisonResultModel.model_validate"
+    },
+    "semantic-projection-evidence-bounded-witnesses": {
+      "registration": "implementations/go/internal/contract/admission/comparison.go:15",
+      "predicate": [
+        "projectionWitnesses at implementations/go/internal/contract/admission/projection.go:107"
+      ],
+      "python_owner": "raes_contracts.contracts.SemanticProjectionReportModel.model_validate"
+    },
+    "semantic-projection-exact-frame-partition": {
+      "registration": "implementations/go/internal/contract/admission/comparison.go:14",
+      "predicate": [
+        "projectionPartition at implementations/go/internal/contract/admission/projection.go:11"
+      ],
+      "python_owner": "raes_contracts.contracts.SemanticProjectionReportModel.model_validate"
+    },
+    "stateful-cross-resource-semantics": {
+      "registration": "implementations/go/internal/contract/admission/stateful.go:18",
+      "predicate": [
+        "statefulReferences at implementations/go/internal/contract/admission/stateful_references.go:14"
+      ],
+      "python_owner": "raes._stateful_resource_references.stateful_resource_reference_errors"
+    },
+    "stateful-generated-artifact-semantics": {
+      "registration": "implementations/go/internal/contract/admission/stateful.go:16",
+      "predicate": [
+        "generatedArtifacts at implementations/go/internal/contract/admission/stateful.go:43"
+      ],
+      "python_owner": "raes.stateful_resources.GeneratedArtifact._unique_outputs_and_consumers"
+    },
+    "stateful-persistent-volume-semantics": {
+      "registration": "implementations/go/internal/contract/admission/stateful.go:17",
+      "predicate": [
+        "persistentVolumes at implementations/go/internal/contract/admission/stateful.go:139"
+      ],
+      "python_owner": "raes.stateful_resources.PersistentVolume._unique_consumers"
+    },
+    "stochastic-draws-control-ref-resolves": {
+      "registration": "implementations/go/internal/contract/admission/selection.go:14",
+      "predicate": [
+        "stochasticDraws at implementations/go/internal/contract/admission/selection.go:170"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_run_structure_against_task"
+    },
+    "study-analysis-metrics-covered-by-evaluation-run-results": {
+      "registration": "implementations/go/internal/contract/admission/experiment_joins.go:13",
+      "predicate": [
+        "studyJoins at implementations/go/internal/contract/admission/study_joins.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
+    },
+    "study-analysis-metrics-grounded-in-task-protocols": {
+      "registration": "implementations/go/internal/contract/admission/experiment_joins.go:12",
+      "predicate": [
+        "studyJoins at implementations/go/internal/contract/admission/study_joins.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
+    },
+    "study-analysis-runs-eligible": {
+      "registration": "implementations/go/internal/contract/admission/experiment_joins.go:14",
+      "predicate": [
+        "studyJoins at implementations/go/internal/contract/admission/study_joins.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
+    },
+    "study-archival-times-rfc3339-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:33",
+      "predicate": [
+        "studyTimes at implementations/go/internal/contract/admission/experiment_local.go:100"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_study_archival_datetimes"
+    },
+    "study-behavioral-claim-catalog-resolution": {
+      "registration": "implementations/go/internal/contract/admission/behavioral.go:63",
+      "predicate": [
+        "at at implementations/go/internal/contract/admission/values.go:15",
+        "behavioralClaims at implementations/go/internal/contract/admission/behavioral.go:67"
+      ],
+      "python_owner": "raes_contracts.behavioral_relations.validate_behavioral_claim_binding"
+    },
+    "study-evidence-requirement-relation-owner-valid": {
+      "registration": "implementations/go/internal/contract/admission/evidence_owner.go:20",
+      "predicate": [
+        "relationOwner at implementations/go/internal/contract/admission/evidence_owner.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study"
+    },
+    "study-run-allocation-covered-by-evaluation-run-members": {
+      "registration": "implementations/go/internal/contract/admission/experiment_joins.go:15",
+      "predicate": [
+        "studyJoins at implementations/go/internal/contract/admission/study_joins.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
+    },
+    "study-run-allocation-stochastic-control-consistency": {
+      "registration": "implementations/go/internal/contract/admission/experiment_joins.go:16",
+      "predicate": [
+        "studyJoins at implementations/go/internal/contract/admission/study_joins.go:7"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
+    },
+    "study-validation-basis-disclosure-identity-matches": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:18",
+      "predicate": [
+        "inline predicate at implementations/go/internal/contract/admission/profiles.go:18"
+      ],
+      "python_owner": "raes_contracts.contracts.validation_disclosure.validate_carrier_validation_basis_disclosures"
+    },
+    "task-archival-times-rfc3339-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:30",
+      "predicate": [
+        "artifactTimes at implementations/go/internal/contract/admission/experiment_local.go:53",
+        "at at implementations/go/internal/contract/admission/values.go:15"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_task_archival_datetimes"
+    },
+    "task-evidence-requirement-relation-owner-valid": {
+      "registration": "implementations/go/internal/contract/admission/evidence_owner.go:20",
+      "predicate": [
+        "relationOwner at implementations/go/internal/contract/admission/evidence_owner.go:42"
+      ],
+      "python_owner": "raes_contracts.contracts.ExperimentTaskModel._validate_task_validation_basis_disclosures"
+    },
+    "task-run-protocol-binding-valid": {
+      "registration": "implementations/go/internal/contract/admission/experiment_joins.go:11",
+      "predicate": [
+        "taskRun at implementations/go/internal/contract/admission/experiment_joins.go:19"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_experiment_run_structure_against_task"
+    },
+    "task-validation-basis-disclosure-identity-matches": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:18",
+      "predicate": [
+        "inline predicate at implementations/go/internal/contract/admission/profiles.go:18"
+      ],
+      "python_owner": "raes_contracts.contracts.validation_disclosure.validate_carrier_validation_basis_disclosures"
+    },
+    "trial-cleanup-plan-references-and-retry-safe": {
+      "registration": "implementations/go/internal/contract/admission/cleanup.go:12",
+      "predicate": [
+        "cleanupPlan at implementations/go/internal/contract/admission/cleanup.go:17"
+      ],
+      "python_owner": "raes_contracts.contracts.TrialCleanupPlanModel._validate_plan"
+    },
+    "trial-cleanup-receipt-binds-plan-and-required-outcomes": {
+      "registration": "implementations/go/internal/contract/admission/cleanup.go:14",
+      "predicate": [
+        "cleanupReceipt at implementations/go/internal/contract/admission/cleanup.go:177"
+      ],
+      "python_owner": "raes_contracts.contracts.validate_trial_cleanup_receipt"
+    },
+    "trial-replacement-policy-explicit-and-bounded": {
+      "registration": "implementations/go/internal/contract/admission/experiment_local.go:34",
+      "predicate": [
+        "replacementPolicy at implementations/go/internal/contract/admission/experiment_local.go:158"
+      ],
+      "python_owner": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
+    },
+    "unique-sentinel-decision-pointers": {
+      "registration": "implementations/go/internal/contract/admission/scalar.go:22",
+      "predicate": [
+        "uniqueSentinels at implementations/go/internal/contract/admission/scalar.go:37"
+      ],
+      "python_owner": "raes_contracts.sdl_semantic_migration.SDLSemanticMigrationContext.model_validate"
+    },
+    "validation-basis-claim-capped-and-disclosed": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:15",
+      "predicate": [
+        "disclosureLimitations at implementations/go/internal/contract/admission/profiles.go:181"
+      ],
+      "python_owner": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+    },
+    "validation-basis-gate-rows-declared": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:13",
+      "predicate": [
+        "disclosureRows at implementations/go/internal/contract/admission/profiles.go:128"
+      ],
+      "python_owner": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+    },
+    "validation-basis-profile-join-resolves": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:12",
+      "predicate": [
+        "disclosureProfile at implementations/go/internal/contract/admission/profiles.go:114"
+      ],
+      "python_owner": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+    },
+    "validation-basis-strength-ordering-valid": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:14",
+      "predicate": [
+        "disclosureStrength at implementations/go/internal/contract/admission/profiles.go:161"
+      ],
+      "python_owner": "raes_contracts.contracts.validation_disclosure.ValidationBasisDisclosureModel._validate_validation_basis_disclosure"
+    },
+    "validation-profile-catalog-reference-integrity": {
+      "registration": "implementations/go/internal/contract/admission/profiles.go:11",
+      "predicate": [
+        "profileCatalog at implementations/go/internal/contract/admission/profiles.go:53"
+      ],
+      "python_owner": "raes_contracts.validation_profiles.ValidationProfileCatalogModel"
+    }
+  }
+}

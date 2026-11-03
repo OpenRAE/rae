@@ -1,0 +1,546 @@
+{
+  "reference": "Python _validate_structural_value; declared keyword budget including Draft 2020-12 meta-schema",
+  "cases": [
+    {
+      "name": "string",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "type": "string"
+      },
+      "value": "ok",
+      "valid": true,
+      "minimum_evaluations": 11
+    },
+    {
+      "name": "bad-string",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "type": "string"
+      },
+      "value": 4,
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "object",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "minimum": 2
+          }
+        },
+        "required": [
+          "a"
+        ],
+        "additionalProperties": false
+      },
+      "value": {
+        "a": "ok",
+        "b": 3
+      },
+      "valid": true,
+      "minimum_evaluations": 16
+    },
+    {
+      "name": "bad-member",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "properties": {
+          "a": {
+            "type": "string"
+          }
+        }
+      },
+      "value": {
+        "a": 3
+      },
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "array",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "prefixItems": [
+          {
+            "type": "string"
+          }
+        ],
+        "items": {
+          "type": "integer"
+        },
+        "minItems": 2
+      },
+      "value": [
+        "x",
+        2,
+        3
+      ],
+      "valid": true,
+      "minimum_evaluations": 16
+    },
+    {
+      "name": "contains",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "contains": {
+          "type": "integer"
+        },
+        "minContains": 1,
+        "maxContains": 2
+      },
+      "value": [
+        "x",
+        2
+      ],
+      "valid": true,
+      "minimum_evaluations": 13
+    },
+    {
+      "name": "contains-many",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "contains": {
+          "type": "integer"
+        },
+        "maxContains": 1
+      },
+      "value": [
+        2,
+        3
+      ],
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "any",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "enum": [
+              "x",
+              "y"
+            ]
+          }
+        ]
+      },
+      "value": "y",
+      "valid": true,
+      "minimum_evaluations": 16
+    },
+    {
+      "name": "one",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "oneOf": [
+          {
+            "type": "number"
+          },
+          {
+            "const": "x"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "value": "x",
+      "valid": true,
+      "minimum_evaluations": 15
+    },
+    {
+      "name": "one-ambiguous",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "oneOf": [
+          {
+            "type": "number"
+          },
+          {
+            "minimum": 0
+          }
+        ]
+      },
+      "value": 2,
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "all",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "allOf": [
+          {
+            "type": "number"
+          },
+          {
+            "minimum": 0
+          }
+        ]
+      },
+      "value": 2,
+      "valid": true,
+      "minimum_evaluations": 13
+    },
+    {
+      "name": "if",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "if": {
+          "type": "string"
+        },
+        "then": {
+          "minLength": 2
+        },
+        "else": {
+          "minimum": 3
+        }
+      },
+      "value": 4,
+      "valid": true,
+      "minimum_evaluations": 13
+    },
+    {
+      "name": "not",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "not": {
+          "type": "string"
+        }
+      },
+      "value": 2,
+      "valid": true,
+      "minimum_evaluations": 12
+    },
+    {
+      "name": "names",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "propertyNames": {
+          "minLength": 2
+        }
+      },
+      "value": {
+        "ab": 1,
+        "bc": 2
+      },
+      "valid": true,
+      "minimum_evaluations": 13
+    },
+    {
+      "name": "dependent",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "dependentRequired": {
+          "a": [
+            "b"
+          ]
+        },
+        "dependentSchemas": {
+          "a": {
+            "required": [
+              "b"
+            ]
+          }
+        }
+      },
+      "value": {
+        "a": 1,
+        "b": 2
+      },
+      "valid": true,
+      "minimum_evaluations": 13
+    },
+    {
+      "name": "local-ref",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "$defs": {
+          "n": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "$ref": "#/$defs/n"
+      },
+      "value": 2,
+      "valid": true,
+      "minimum_evaluations": 13
+    },
+    {
+      "name": "cycle",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "$defs": {
+          "n": {
+            "$ref": "#/$defs/n"
+          }
+        },
+        "$ref": "#/$defs/n"
+      },
+      "value": 2,
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "external",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "$ref": "https://example.invalid/private"
+      },
+      "value": 2,
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "unsafe-pattern",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "pattern": "a"
+      },
+      "value": "a",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "bad-required",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "required": [
+          "a",
+          "a"
+        ]
+      },
+      "value": {},
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "bad-bound",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "minLength": -1
+      },
+      "value": "a",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "bad-type",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "type": [
+          "string",
+          "string"
+        ]
+      },
+      "value": "a",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "enum-complex",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "enum": [
+          {}
+        ]
+      },
+      "value": {},
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "nonroot-id",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "properties": {
+          "a": {
+            "$id": "urn:other",
+            "type": "string"
+          }
+        }
+      },
+      "value": {
+        "a": "x"
+      },
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "boolean-child",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "properties": {
+          "a": true
+        }
+      },
+      "value": {
+        "a": 1
+      },
+      "valid": true,
+      "minimum_evaluations": 11
+    },
+    {
+      "name": "false-child",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "properties": {
+          "a": false
+        }
+      },
+      "value": {
+        "a": 1
+      },
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "number",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "multipleOf": 0.5,
+        "maximum": 3
+      },
+      "value": 2.5,
+      "valid": true,
+      "minimum_evaluations": 12
+    },
+    {
+      "name": "unicode",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "type": "string",
+        "minLength": 2
+      },
+      "value": "\u00e9\ud800\udc00",
+      "valid": true,
+      "minimum_evaluations": 12
+    },
+    {
+      "name": "defaults-inert",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "default": {
+          "arbitrary": "value"
+        },
+        "examples": [
+          [
+            "a"
+          ]
+        ]
+      },
+      "value": null,
+      "valid": true,
+      "minimum_evaluations": 10
+    },
+    {
+      "name": "escaped-reference",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "$defs": {
+          "a b": {
+            "type": "number"
+          }
+        },
+        "$ref": "#/$defs/a%20b"
+      },
+      "value": 2,
+      "valid": true,
+      "minimum_evaluations": 12
+    },
+    {
+      "name": "pointer-escape",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "$defs": {
+          "a/b~c": {
+            "type": "number"
+          }
+        },
+        "$ref": "#/$defs/a~1b~0c"
+      },
+      "value": 2,
+      "valid": true,
+      "minimum_evaluations": 12
+    },
+    {
+      "name": "one-extra",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "number",
+            "minimum": 0
+          }
+        ]
+      },
+      "value": 2,
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "contains-zero",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:example:bounded",
+        "contains": {
+          "type": "number"
+        },
+        "minContains": 0
+      },
+      "value": [
+        "a"
+      ],
+      "valid": true,
+      "minimum_evaluations": 12
+    }
+  ]
+}
