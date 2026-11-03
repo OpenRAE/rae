@@ -33,6 +33,7 @@ experiment_id = coordinator.admit_experiment(
 Actor names and assignment IDs carry no authority.
 The application checks each caller through its own trusted identity system.
 The application checks access to the whole handoff before it sends data.
+This includes private trial history in execution snapshots.
 It resolves secret references only through existing authorized backend sinks.
 
 ## Assign an original entry

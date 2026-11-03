@@ -103,6 +103,7 @@ class RuntimeControlPlane(RuntimeRunContext):
         """Verify and retain remote facts under the original admission."""
         return self._admitted_experiment(experiment_id).ingest(outcome, identity)
 
+    @runtime_owned
     def verify_assigned_trial_outcome(
         self, verifier: TrialOutcomeVerifier, request: TrialUnitRequest, outcome: TrialOutcomeModel
     ) -> None:
@@ -134,6 +135,7 @@ class RuntimeControlPlane(RuntimeRunContext):
         """Advance one assigned entry's coordinator policy without dispatching siblings."""
         return self._admitted_experiment(experiment_id).advance_selected(plan_entry_id, identity)
 
+    @runtime_owned
     def apply_assigned_trial_control(
         self, binding: AssignedTrial, control: TrialAssignmentControlModel | None
     ) -> tuple[bool, bool]:
@@ -224,6 +226,7 @@ class RuntimeControlPlane(RuntimeRunContext):
                 self._installing_assigned_trials.pop(key, None)
         return binding
 
+    @runtime_owned
     def require_trial_admission(self, attempt: TrialAttemptDecision, services: TrialRuntimeServices) -> None:
         """Internal composition check shared by local and selected trial adapters."""
         self._assert_runtime_owner()

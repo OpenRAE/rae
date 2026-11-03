@@ -101,6 +101,8 @@ flowchart LR
 Transport authentication and live host leases remain downstream protection needs.
 The runtime does not infer isolation from an owner name or reference string.
 Missing evidence remains unresolved.
+Private trial history is retained only in the explicitly scoped handoff projection.
+The generic snapshot API keeps its existing omissions.
 No external effect has an exactly-once guarantee.
 
 ## Architecture and policy

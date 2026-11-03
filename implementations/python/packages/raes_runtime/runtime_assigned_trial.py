@@ -22,7 +22,8 @@ from .trial_handoff_conversion import trial_outcome
 if TYPE_CHECKING:
     from raes_processor.trial_realization import TrialRealizationInputs
 
-    from .control_plane import RuntimeControlPlane
+    import raes_runtime.control_plane
+
     from .control_plane_store import ControlPlaneStore
     from .runtime_trial_services import TrialRuntimeServices
     from .runtime_trial_unit import RuntimeTrialUnit
@@ -48,7 +49,7 @@ class AssignedTrial:
 
     def __init__(
         self,
-        engine: RuntimeControlPlane,
+        engine: raes_runtime.control_plane.RuntimeControlPlane,
         assignment: TrialAssignmentModel,
         inputs: TrialRealizationInputs,
         *,

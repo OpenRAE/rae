@@ -247,6 +247,7 @@ class RuntimeRunContext(
         self._assert_runtime_owner()
         return self._profile_declaration
 
+    @runtime_owned
     def require_operation_guarantees(self, expected: tuple[str, ...]) -> None:
         """Refuse composition that would weaken this run's fixed admission."""
         self._assert_runtime_owner()

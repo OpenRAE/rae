@@ -20,11 +20,15 @@ from raes_runtime.control_plane_store_payloads import _realization_observations_
 from .control_plane_store_snapshots import durable_snapshot_state
 
 
-def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict[str, Any]:
+def runtime_snapshot_contract_payload(
+    envelope: RuntimeSnapshotEnvelope, *, include_trial_history: bool = False
+) -> dict[str, Any]:
     """Project the value-free published payload before contract validation.
 
     Conformance validates this payload to report malformed realization carriers
     through its diagnostic envelope instead of raising during serialization.
+    Trusted, authorized trial handoffs explicitly retain private trial history;
+    the generic snapshot API uses the default projection.
     """
 
     snapshot = envelope.snapshot
@@ -42,7 +46,11 @@ def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict
                 "ordering_dependencies": list(entry.ordering_dependencies),
                 "refresh_dependencies": list(entry.refresh_dependencies),
                 "status": entry.status,
-                "profile_bindings": [binding.model_dump(mode="json") for binding in entry.profile_bindings],
+                **(
+                    {"profile_bindings": [binding.model_dump(mode="json") for binding in entry.profile_bindings]}
+                    if include_trial_history
+                    else {}
+                ),
             }
             for address, entry in snapshot.entries.items()
         },
@@ -53,10 +61,16 @@ def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict
         "proposition_truth_results": dict(snapshot.proposition_truth_results),
         "participant_episode_results": dict(snapshot.participant_episode_results),
         "participant_episode_history": dict(snapshot.participant_episode_history),
-        "participant_episode_closure_records": dict(snapshot.participant_episode_closure_records),
-        "participant_outcome_history": dict(snapshot.participant_outcome_history),
-        "mixed_composition_states": dict(snapshot.mixed_composition_states),
-        "mixed_composition_history": dict(snapshot.mixed_composition_history),
+        **(
+            {
+                "participant_episode_closure_records": dict(snapshot.participant_episode_closure_records),
+                "participant_outcome_history": dict(snapshot.participant_outcome_history),
+                "mixed_composition_states": dict(snapshot.mixed_composition_states),
+                "mixed_composition_history": dict(snapshot.mixed_composition_history),
+            }
+            if include_trial_history
+            else {}
+        ),
         "participant_behavior_history": dict(snapshot.participant_behavior_history),
         "participant_control_history": dict(snapshot.participant_control_history),
         "participant_crossing_history": dict(snapshot.participant_crossing_history),
@@ -106,10 +120,14 @@ def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict
     return payload
 
 
-def runtime_snapshot_contract_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
+def runtime_snapshot_contract_model(
+    envelope: RuntimeSnapshotEnvelope, *, include_trial_history: bool = False
+) -> RuntimeSnapshotEnvelopeModel:
     """Project a runtime snapshot to its value-free ``runtime-snapshot-v1`` contract model."""
 
-    return RuntimeSnapshotEnvelopeModel.model_validate(runtime_snapshot_contract_payload(envelope))
+    return RuntimeSnapshotEnvelopeModel.model_validate(
+        runtime_snapshot_contract_payload(envelope, include_trial_history=include_trial_history)
+    )
 
 
 def runtime_snapshot_from_contract(model: RuntimeSnapshotEnvelopeModel) -> RuntimeSnapshot:

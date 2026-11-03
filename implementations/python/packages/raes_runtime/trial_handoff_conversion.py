@@ -51,7 +51,9 @@ def trial_outcome(unit: RuntimeTrialUnit, assignment_digest: str, progress: str)
         snapshot = None
         if kind == "execution":
             source = durable_snapshot_state(json.loads(record.snapshot_json), 0).snapshot
-            snapshot = runtime_snapshot_contract_model(RuntimeSnapshotEnvelope(snapshot=source))
+            snapshot = runtime_snapshot_contract_model(
+                RuntimeSnapshotEnvelope(snapshot=source), include_trial_history=True
+            )
         facts.append(
             TrialFactModel(
                 observation=record.observation,
