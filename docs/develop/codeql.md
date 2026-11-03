@@ -16,6 +16,9 @@ Pull request source flows through CodeQL to the existing GitHub scan store.
 The token is read-only except for scan result publication in the analysis job.
 Checkout stores no credentials. The job needs no application secrets.
 Use the pull request event, not the pull request target event.
+The workflow policy admits this token only in the CodeQL analysis job.
+That job may run only pinned checkout, CodeQL init and CodeQL analyze actions.
+It may not add command steps, build source code or acquire other write scopes.
 
 ## Rollout
 

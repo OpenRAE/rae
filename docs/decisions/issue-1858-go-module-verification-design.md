@@ -32,7 +32,9 @@ A module omitted from a list can bypass compiler and dependency checks.
 The equality check blocks this omission at the source configuration boundary.
 The common job uses the admitted toolchain, `GOTOOLCHAIN=local`, and readonly dependency resolution.
 The check reads repository files. It neither executes module contents nor sends data outside CI.
-Pull request code remains untrusted. Existing read-only CI tokens and secret boundaries remain in force.
+Pull request code remains untrusted. Go and inventory jobs use read-only tokens.
+The separate CodeQL job can write scan results, under a narrow workflow policy boundary.
+Its [rollout guide](../develop/codeql.md) defines staging, activation and rollback.
 A reviewed workflow change can change the enforcement itself. Review and the workflow tests cover this residual risk.
 
 ```mermaid
