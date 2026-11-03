@@ -23,10 +23,12 @@ from .experiment_records import (
     ExperimentRecordSource,
     ExperimentRunMetadata,
 )
+from .runtime_assignment_decisions import TrialAssignmentDecision
 from .runtime_decisions import RunPhaseDecision
 from .runtime_record_assembly import assemble_run, eligible_run_ids, summarize_records
 from .runtime_record_lineage import CanonicalRuns, accounting_validation_record, canonical_archival_runs
 from .runtime_record_versions import require_compatible_record_versions, retained_record_versions
+from .runtime_remote_trial import remote_trial_source
 from .runtime_trial_decisions import (
     TrialAttemptDecision,
     TrialObservationDecision,
@@ -125,7 +127,7 @@ def _started_sources(
             )
         )
         if attempts:
-            sources.append(_source(experiment, slot, attempts))
+            sources.append(_source(experiment, slot, attempts, records))
     return sources
 
 
@@ -174,8 +176,20 @@ def _checked_run(
 
 
 def _source(
-    experiment: RuntimeExperiment, slot: TrialSlot, attempts: tuple[TrialAttemptDecision, ...]
+    experiment: RuntimeExperiment,
+    slot: TrialSlot,
+    attempts: tuple[TrialAttemptDecision, ...],
+    records: tuple[RuntimeDecision, ...] | None = None,
 ) -> ExperimentRecordSource:
+    if records is None:
+        records = experiment.store.load_runtime_decisions()
+    assignments = {
+        item.assignment.execution_attempt_id: item.assignment
+        for item in records
+        if isinstance(item, TrialAssignmentDecision)
+    }
+    if any(attempt.execution_attempt_id in assignments for attempt in attempts):
+        return remote_trial_source(slot, attempts, assignments, records)
     run = experiment._run(slot.entry, slot.plan)
     decisions = run._store.load_runtime_decisions()
     ids = {item.execution_attempt_id for item in attempts}

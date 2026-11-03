@@ -28,6 +28,11 @@ APPLICATION_PHASES = (
 )
 
 
+def run_phase_key(admission: RunProgramDecision, phase: int) -> str:
+    """Canonical binding shared by dispatch and retained operation readers."""
+    return "run-phase:" + canonical_json_digest((admission.decision_id, phase)).removeprefix("sha256:")
+
+
 if TYPE_CHECKING:
     from raes_contracts.augmentation_preparation import AugmentationPreparation
     from raes_contracts.planning import RuntimeDomain
@@ -158,7 +163,7 @@ def _advance_phase(
         run_scope=run._run_scope, execution_id=admission.execution_id, phase=phase, state="started"
     )
     run._store.claim_runtime_decision(started)
-    key = "run-phase:" + canonical_json_digest((admission.decision_id, phase)).removeprefix("sha256:")
+    key = run_phase_key(admission, phase)
     records = _phase_records(run, admission, key)
     state = None
     if not records:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pydantic import ValidationError
 from raes.materialization import MaterializedScenario
+from raes_contracts.assigned_trial import TrialAssignmentControlModel, TrialAssignmentModel, TrialOutcomeModel
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.authoring_adapters import (
     AuthoringAdapterComparisonModel,
@@ -174,6 +175,9 @@ _MODEL_VALIDATORS = {
 
 
 _STRUCTURAL_ONLY_VALIDATORS = {
+    "assigned-trial-v1": TrialAssignmentModel.model_validate,
+    "assigned-trial-control-v1": TrialAssignmentControlModel.model_validate,
+    "trial-outcome-v1": TrialOutcomeModel.model_validate,
     "participant-control-teaching-profile-v1": ParticipantControlTeachingProfileModel.model_validate,
     "participant-control-selection-v1": ParticipantControlSelectionModel.model_validate,
     "participant-control-evaluation-v1": ParticipantControlEvaluationModel.model_validate,

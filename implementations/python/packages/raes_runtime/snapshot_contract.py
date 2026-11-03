@@ -13,9 +13,11 @@ from raes_contracts.account_credentials import (
     value_free_account_placement_payload,
 )
 from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
-from raes_contracts.runtime_state import RuntimeSnapshotEnvelope
+from raes_contracts.runtime_state import RuntimeSnapshot, RuntimeSnapshotEnvelope
 
 from raes_runtime.control_plane_store_payloads import _realization_observations_payload
+
+from .control_plane_store_snapshots import durable_snapshot_state
 
 
 def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict[str, Any]:
@@ -40,6 +42,7 @@ def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict
                 "ordering_dependencies": list(entry.ordering_dependencies),
                 "refresh_dependencies": list(entry.refresh_dependencies),
                 "status": entry.status,
+                "profile_bindings": [binding.model_dump(mode="json") for binding in entry.profile_bindings],
             }
             for address, entry in snapshot.entries.items()
         },
@@ -50,6 +53,10 @@ def runtime_snapshot_contract_payload(envelope: RuntimeSnapshotEnvelope) -> dict
         "proposition_truth_results": dict(snapshot.proposition_truth_results),
         "participant_episode_results": dict(snapshot.participant_episode_results),
         "participant_episode_history": dict(snapshot.participant_episode_history),
+        "participant_episode_closure_records": dict(snapshot.participant_episode_closure_records),
+        "participant_outcome_history": dict(snapshot.participant_outcome_history),
+        "mixed_composition_states": dict(snapshot.mixed_composition_states),
+        "mixed_composition_history": dict(snapshot.mixed_composition_history),
         "participant_behavior_history": dict(snapshot.participant_behavior_history),
         "participant_control_history": dict(snapshot.participant_control_history),
         "participant_crossing_history": dict(snapshot.participant_crossing_history),
@@ -105,4 +112,10 @@ def runtime_snapshot_contract_model(envelope: RuntimeSnapshotEnvelope) -> Runtim
     return RuntimeSnapshotEnvelopeModel.model_validate(runtime_snapshot_contract_payload(envelope))
 
 
-__all__ = ["runtime_snapshot_contract_model", "runtime_snapshot_contract_payload"]
+def runtime_snapshot_from_contract(model: RuntimeSnapshotEnvelopeModel) -> RuntimeSnapshot:
+    """Reconstruct the public carrier through the existing snapshot validator."""
+    checked = RuntimeSnapshotEnvelopeModel.model_validate(model.model_dump(mode="json"))
+    return durable_snapshot_state(checked.model_dump(mode="json"), 0).snapshot
+
+
+__all__ = ["runtime_snapshot_contract_model", "runtime_snapshot_contract_payload", "runtime_snapshot_from_contract"]

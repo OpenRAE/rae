@@ -1,21 +1,27 @@
 """Immutable archive owner used by the public runtime replacement tests."""
 
 import json
+from copy import deepcopy
+from pathlib import Path
 
-from paths import REPO_ROOT
 from raes_contracts.contracts import ExperimentRunModel
 
 
 class TrialArchive:
-    def __init__(self):
+    def __init__(self, *, run_template=None):
         self.runs = {}
         self.lose_ack = False
+        self.run_template = run_template
+        if self.run_template is None:
+            path = (
+                Path(__file__).resolve().parents[3]
+                / "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
+            )
+            self.run_template = json.loads(path.read_text())
 
     def build_run(self, request, realization, results):
         entry = request.plan.entries[request.plan_entry_id]
-        payload = json.loads(
-            (REPO_ROOT / "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json").read_text()
-        )
+        payload = deepcopy(self.run_template)
         outcome = results[-1].cleanup_receipt.trial_outcome
         payload.update(
             run_id=request.run_id,

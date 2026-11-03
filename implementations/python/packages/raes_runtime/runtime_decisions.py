@@ -11,6 +11,7 @@ from raes_contracts.contracts.backend_operation import OperationGuarantee
 from raes_contracts.errors import ConflictError
 from raes_contracts.planning import RuntimeDomain
 
+from .runtime_assignment_decisions import TrialAssignmentDecision, TrialOutcomeDecision
 from .runtime_record_decisions import ExperimentRecordPublicationDecision, ExperimentStudyDefinitionDecision
 from .runtime_sequence_reference import RuntimeSequenceDecision
 from .runtime_trial_decisions import (
@@ -124,6 +125,8 @@ RuntimeDecision = Annotated[
     | RuntimeSequenceDecision
     | TrialInterruptionDecision
     | ExperimentStudyDefinitionDecision
+    | TrialAssignmentDecision
+    | TrialOutcomeDecision
     | ExperimentRecordPublicationDecision,
     Field(discriminator="schema_version"),
 ]
