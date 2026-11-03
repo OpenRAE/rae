@@ -38,7 +38,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release-classification:
+    uses: ./.github/workflows/release-classification.yml
+
   release-please:
+    needs: release-classification
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     permissions:
@@ -49,12 +53,26 @@ jobs:
       tag_name: ${{ steps.rp.outputs.tag_name }}
       sha: ${{ steps.rp.outputs.sha }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - run: npm ci --prefix implementations/tooling/release-please --ignore-scripts --no-audit --no-fund
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: rp
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          skip-github-pull-request: true
+      - name: Maintain release PR from the complete ancestry range
+        if: steps.rp.outputs.release_created != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node implementations/tooling/release-please/run.cjs
 
   resolve-release:
     needs: release-please

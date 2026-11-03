@@ -45,3 +45,10 @@ pull requests.
 
 Files outside `docs/public/` are not copied, included, or indexed by the hosted
 Sphinx build.
+
+Read the [current Go architecture](develop/go-architecture.md) before a port slice.
+It shows the code that exists now.
+It also shows what is still planned.
+Use the shared owners in that view.
+Keep the model and the view in sync.
+CI checks both files.

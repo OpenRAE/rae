@@ -25,7 +25,9 @@ It then checks the code and the rule table of ADR-122.
 | --- | --- |
 | ARCH-001 to ARCH-004: modules, layers, packages, and declared imports | `archcheck -design` |
 | ARCH-005 to ARCH-009: declared packages, exact imports, test imports, external paths, and the rule table | `archcheck` |
-| ARCH-010 to ARCH-012: no import cycles, `internal` visibility, and exported identifiers | `go build` |
+| ARCH-010: declared package cycles | `archcheck -design` |
+| ARCH-011 and ARCH-012: `internal` visibility and exported identifiers | `go build` |
+| ARCH-013 and ARCH-014: typed interface commitments and current system views | `archcheck` |
 
 [ADR-122](adrs/adr-122-go-architecture-model.md) compares go-arch-lint, depguard, and Bazel.
 go-arch-lint matches packages by directory globs.
@@ -62,7 +64,7 @@ flowchart LR
 | An ambiguous model passes | The loader rejects unknown fields, data after the model, and an unknown schema | The `arch` tests |
 | Code for another platform or build tag escapes the check | The reader ignores build constraints and reads each Go file | `TestLoadCodeReadsEachBuildConfiguration` |
 | The check changes `go.mod` or uses an unpinned toolchain | The job sets `GOFLAGS=-mod=readonly` and `GOTOOLCHAIN=local` | `test_go_architecture_check_runs_once_from_the_repository_root` |
-| Packages import each other in a cycle | The Go compiler rejects import cycles | `go build` in the `go` job |
+| Packages import each other in a cycle | The design checker rejects declared cycles; the compiler also rejects actual cycles | `archcheck -design` and `go build` in the `go` job |
 
 ## Supporting artifacts
 
@@ -77,3 +79,6 @@ flowchart LR
 - [go-arch-lint](https://github.com/fe3dback/go-arch-lint)
 - [go/build](https://pkg.go.dev/go/build)
 - Issue #1775
+
+See the [current Go system overview](../develop/go-architecture.md) for application components and trust boundaries.
+This checker design is supporting evidence, not a parallel system overview.

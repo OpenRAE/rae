@@ -19,11 +19,10 @@ The Python implementation and published schemas remain unchanged.
 | base/secretref | Operator-managed secret-reference identity | ASCII grammar and 256-byte bound; no secret resolution |
 | base/digest | Published digest-string grammar in addition to SHA-256 rendering | Existing package; standard encoding libraries |
 
-`versions.py` contains schema identifiers rather than comparison behavior.
-Their authority remains the published schemas; generated contract bindings in
-#1780 own the corresponding Go identifiers. Python's Pydantic base class has
-no Go inheritance analogue: closed Go structs and strict ingress/model decoding
-replace it. This does not authorize unknown fields or unmodeled digest carriers.
+`versions.py` names schemas. It does not compare versions.
+The published schemas remain the authority. Issue #1780 owns their Go bindings.
+Go has no Pydantic base class. Closed Go structs and strict decoding replace that class.
+Unknown fields and unknown digest carriers remain forbidden.
 
 ## Security and data flow
 
@@ -56,12 +55,13 @@ fuzz campaigns. Collect fixes before one consolidated push.
 - https://github.com/knqyf263/go-rpm-version (MIT)
 - ADR-116, ADR-118, ADR-121 and ADR-122 in this repository.
 
-The evaluated go-deb-version library converts digit runs to machine integers,
-which cannot preserve the governed 256-character domain. Its overflow behavior
-is unsuitable here. Debian ordering therefore follows the published Debian
-Policy algorithm directly, comparing normalized digit strings by length and
-lexical order; no machine integer conversion occurs. The RPM adapter strips
-and compares epochs exactly before using the maintained library.
+go-deb-version narrows digit runs to machine integers.
+This loses values in the governed 256-character domain.
+Overflow can change the result.
+Debian ordering follows the Debian Policy algorithm instead.
+It compares normalized digit strings by length, then lexical order.
+It never narrows digit runs to machine integers.
+The RPM adapter compares epochs exactly before it calls the installed library.
 
 Reference: https://www.debian.org/doc/debian-policy/ch-controlfields.html#version
 
@@ -94,8 +94,22 @@ mechanics. It adds no workflow or planner semantics. The invariants are:
 - Time reads use the injected clock. Timestamp text retains microseconds and
   authored offsets, including Python 3.14.7's fractional zero-hour offsets.
 
-Python exception tracebacks, exception groups, message interpolation and logger
-application setup are language/runtime mechanisms. Go uses typed string
-messages and host-owned `slog` setup; the primitive bounds structured groups
-and owned error chains and drops source PCs. It never extracts foreign stacks.
-The reference's privacy and control-character safeguards remain enforced.
+Go does not mirror Python tracebacks or exception groups.
+The host owns logger setup.
+Go uses typed messages, bounded groups, and owned error chains.
+It drops source PCs. It never extracts foreign stacks.
+Privacy and control-character rules still apply.
+
+## Machine-checked interface commitments
+
+The architecture model records the intended typed interfaces for these packages.
+These commitments bind this design to those interfaces under ADR-122.
+<!-- go-api implementations/go/internal/base/clock f83a85c9f46be5e8193bf0cd550d8b6fe3b733ba63e5a9198e2bc880fac9b122 -->
+<!-- go-api implementations/go/internal/base/fault d6f3062c93ff2c6dbd99bc8a6dc5357fae4d03fa279a950a2261cd987ad8cffb -->
+<!-- go-api implementations/go/internal/base/timestamp c79504fc0ab6c66598fc2a8d8c9bf3ccbbc1f5f6e8954e9d902df236d4635500 -->
+<!-- go-api implementations/go/internal/base/softwareversion 0f7a3362a64e8fcac70abfdc26358e7790cdc0e1e9cef8719867f7bcfd1ff30d -->
+<!-- go-api implementations/go/internal/base/domain ea76356b83da53da1d7df16365e800e2fda50d9737a16fbff7e734d968b26046 -->
+<!-- go-api implementations/go/internal/base/value eb8140517a8d1f156f90e04f9e07ae16285b70ea18cd738476c29864b258bcd4 -->
+<!-- go-api implementations/go/internal/base/logrecord c727c748b50df444cbcd0770e49e3f5da51d8241b205e632211ff8a8ff02da45 -->
+<!-- go-api implementations/go/internal/base/graph a10bbf832cd1e4c63f9fcbc615d2bc5be73487b7a1611b841025430d2dff1c44 -->
+<!-- go-api implementations/go/internal/base/secretref 8e81040a60db6681196bcebfeaaedfdc5fbf34427ae303a7a0a88db92b00e758 -->

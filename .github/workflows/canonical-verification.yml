@@ -630,6 +630,11 @@ jobs:
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
         run: |
+          changed="$(git diff --name-only "${MERGE_BASE}" -- '*.go' ':!*_test.go')"
+          if [ -z "${changed}" ]; then
+            echo "No production Go source changed in this module."
+            exit 0
+          fi
           # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
           # Use the runner's available descriptor capacity with bounded workers.
           ulimit -Sn "$(ulimit -Hn)"
@@ -860,6 +865,8 @@ jobs:
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
           echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Prepare pinned dependencies for offline API inspection
+        run: go -C implementations/go mod download
       - name: Check the Go code against the architecture model
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck

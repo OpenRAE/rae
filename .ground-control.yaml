@@ -2,6 +2,7 @@ schema_version: 1
 project: aces-sdl
 github_repo: OpenRAE/rae
 workflow:
+  base_branch: go-cutover
   test_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-fast-feedback
   completion_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-fast-feedback
   lint_command: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s lint

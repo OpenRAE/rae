@@ -1,4 +1,4 @@
-# Architecture Decision Records
+# Architecture decision records
 
 This directory contains Architecture Decision Records (ADRs) for the ACES SDL
 ecosystem. ADRs capture significant architectural decisions along with their
@@ -285,4 +285,4 @@ adr-116-shared-exceptions-and-operational-logging
 | [119](adr-119-consumer-parse-of-supplied-sdl-sources.md) | Consumer Parse of Supplied SDL Sources | accepted | 2026-10-31 |
 | [120](adr-120-owned-and-admitted-typed-descriptor-profiles.md) | Owned and Admitted Typed Descriptor Profiles | accepted | 2026-10-31 |
 | [121](adr-121-go-engineering-standards.md) | Go Engineering Standards | accepted | 2026-10-31 |
-| [122](adr-122-go-architecture-model.md) | Go Architecture Model | accepted | 2026-10-31 |
+| [122](adr-122-go-architecture-model.md) | Go architecture model | accepted | 2026-10-31 |

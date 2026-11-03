@@ -100,16 +100,19 @@ def test_local_delivery_counts_the_time_spent_committing_its_claim(monkeypatch):
     import raes_runtime.operation_provider_control as delivery
 
     provider, dispatcher = Provider(), Dispatcher()
-    plane = RuntimeControlPlane(target(provider), distributed_execution=dispatcher, operation_evidence=Evidence())
+    wall_now = datetime.now(UTC)
+    plane = RuntimeControlPlane(
+        target(provider), distributed_execution=dispatcher, operation_evidence=Evidence(), wall_clock=lambda: wall_now
+    )
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
         request = dispatcher.commands[0]
         plane.claim_backend_invocation(
             request.binding, provider.operation_capabilities(), provider.check_operation(request), identity=worker()
         )
-        control = plane.cancel_operation(receipt.operation_id, control_id="local-delay", identity=supervisor())
         now = [monotonic()]
         monkeypatch.setattr("raes_runtime.operation_control_budget.monotonic", lambda: now[0])
+        control = plane.cancel_operation(receipt.operation_id, control_id="local-delay", identity=supervisor())
         original = delivery.persist_invocation_update
 
         def slow_commit(*args, **kwargs):

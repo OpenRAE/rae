@@ -1,0 +1,8 @@
+{
+  "name": "raes-release-tooling",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Ancestry-based commit input for the existing Release Please engine",
+  "scripts": { "test": "node --test run.test.cjs" },
+  "dependencies": { "release-please": "17.6.0" }
+}
