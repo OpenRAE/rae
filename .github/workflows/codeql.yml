@@ -8,10 +8,6 @@ on:
     branches: [main, dev, go-cutover]
   pull_request:
     branches: [main, dev, go-cutover]
-  # Code scanning default setup does not run on merge groups. The `dev` merge
-  # queue requires this advanced workflow to report the CodeQL contexts (#2026).
-  merge_group:
-    types: [checks_requested]
   schedule:
     - cron: '23 4 * * 1'
   workflow_dispatch:
@@ -23,7 +19,6 @@ jobs:
   analyze:
     name: ${{ vars.CODEQL_ADVANCED_ENABLED != 'true' && 'Staged ' || '' }}Analyze (${{ matrix.language }})
     runs-on: ubuntu-24.04
-    # Keep default setup active until this workflow exists on every branch.
     if: vars.CODEQL_ADVANCED_ENABLED == 'true'
     permissions:
       contents: read
@@ -37,11 +32,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         with:
           languages: ${{ matrix.language }}
           build-mode: none
       - name: Analyze
-        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         with:
           category: /language:${{ matrix.language }}

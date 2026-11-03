@@ -6,14 +6,14 @@ import sys
 import tomllib
 from fnmatch import fnmatch
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
 from tools.tooling_artifact_policy_actions import action_failures
 
 
-def _check(tmp_path: Path, workflow: dict) -> set[str]:
-    path = ".github/workflows/test.yml"
+def _check(tmp_path: Path, workflow: dict[str | bool, Any], path: str = ".github/workflows/test.yml") -> set[str]:
     target = tmp_path / path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(yaml.safe_dump(workflow), encoding="utf-8")
@@ -73,6 +73,73 @@ def test_admitted_go_commands_are_not_acquisition_bypasses(tmp_path: Path, workf
 def test_pull_request_cannot_acquire_publishing_permissions(tmp_path: Path, workflow: dict, permissions) -> None:
     workflow["jobs"]["test"]["permissions"] = permissions
     assert "tooling-action-permissions" in _check(tmp_path, workflow)
+
+
+def _codeql_workflow() -> dict[str | bool, Any]:
+    root = Path(__file__).resolve().parents[3]
+    return yaml.safe_load((root / ".github/workflows/codeql.yml").read_text())
+
+
+def test_codeql_has_a_narrow_scan_result_boundary(tmp_path: Path) -> None:
+    assert _check(tmp_path, _codeql_workflow(), ".github/workflows/codeql.yml") == set()
+
+
+def test_codeql_boundary_does_not_apply_to_another_workflow(tmp_path: Path) -> None:
+    assert "tooling-action-permissions" in _check(tmp_path, _codeql_workflow())
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "extra-write",
+        "command",
+        "foreign-action",
+        "build",
+        "call",
+        "target",
+        "secret",
+        "runner",
+        "mutable",
+        "extra-input",
+    ],
+)
+def test_codeql_scanning_cannot_expand_its_privilege(tmp_path: Path, change: str) -> None:
+    workflow = _codeql_workflow()
+    job = workflow["jobs"]["analyze"]
+    if change == "extra-write":
+        job["permissions"]["contents"] = "write"
+    elif change == "command":
+        job["steps"].append({"run": "echo custom command"})
+    elif change == "foreign-action":
+        job["steps"][1]["uses"] = "unrelated/action@" + "a" * 40
+    elif change == "build":
+        job["steps"][1]["with"]["build-mode"] = "autobuild"
+    elif change in {"call", "target"}:
+        workflow[True]["workflow_call" if change == "call" else "pull_request_target"] = {}
+    elif change == "secret":
+        job["env"] = {"TOKEN": "${{ secrets.TOKEN }}"}
+    elif change == "runner":
+        job["runs-on"] = "self-hosted"
+    elif change == "mutable":
+        job["steps"][1]["uses"] = "github/codeql-action/init@v4"
+    else:
+        job["steps"][1]["with"]["queries"] = "+unreviewed/query-pack"
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, ".github/workflows/codeql.yml")
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("env", {"TOKEN": "${{ github.token }}"}),
+        ("run", "echo custom command"),
+        ("if", "always()"),
+        ("continue-on-error", True),
+    ],
+)
+def test_codeql_steps_cannot_override_the_scan_boundary(tmp_path: Path, key: str, value: object) -> None:
+    workflow = _codeql_workflow()
+    workflow["jobs"]["analyze"]["steps"][1][key] = value
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, ".github/workflows/codeql.yml")
 
 
 def _finalization_workflow() -> dict:
