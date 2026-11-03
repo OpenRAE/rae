@@ -84,3 +84,20 @@ No merge or direct push was attempted as a test.
 
 The user authorized publication before review to obtain this live evidence.
 The remaining review and hosted checks still apply before readiness.
+
+## Delivery finalization
+
+The existing Ground Control Phase E workflow must include `go-cutover` in its
+closed-PR branch filter. Its current filter includes only `main` and `dev`.
+Without that event, a merged Go delivery cannot automatically close its issue.
+Extend only the branch filter. Retain the merged-PR guard, pinned executable,
+merged-revision checkout, permissions, trusted handoff, and manual dispatch path.
+The existing finalizer owns this behavior; no new interface or service is needed.
+
+The data flow adds a GitHub closed-PR event to the existing finalizer process.
+That process reads the trusted handoff and writes the final report and issue state.
+Its existing merge and provenance checks remain the security boundary.
+A targeted workflow test must reject omission of the Go branch and preserve the merge guard.
+
+The reference is [GitHub workflow events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows),
+current documentation, `pull_request` closed events and branch filters.

@@ -110,6 +110,10 @@ preserve the single-maintainer model. There are no configured bypass actors;
 administrators must satisfy the rule. Administrators retain authority to edit
 repository settings. Automatic merging remains disabled.
 
+The existing Ground Control Phase E workflow includes closed PRs into
+`go-cutover`. After a manual merge, it verifies the trusted delivery handoff,
+posts the final report, and closes the issue. It does not merge PRs.
+
 Legacy branch protection also remains active. Force pushes and deletion are
 prohibited. The existing non-strict base-update policy remains: a PR need not
 include the latest base commit. New PR heads still require their own checks.

@@ -1775,3 +1775,10 @@ def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> No
     assert enforce["if"] == "steps.corpus.outcome != 'success'"
     assert enforce["run"] == "exit 1"
     assert "parity-corpus" in workflow["jobs"]["gate"]["needs"]
+
+
+def test_phase_e_finalizes_go_integration_deliveries() -> None:
+    workflow = _load(WORKFLOWS / "ground-control-phase-e.yml")
+    assert "go-cutover" in workflow["on"]["pull_request"]["branches"]
+    assert workflow["on"]["pull_request"]["types"] == ["closed"]
+    assert "github.event.pull_request.merged == true" in workflow["jobs"]["finalize"]["if"]
