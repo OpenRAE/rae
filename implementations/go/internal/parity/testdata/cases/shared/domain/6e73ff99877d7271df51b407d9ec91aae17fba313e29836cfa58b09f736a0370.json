@@ -1,0 +1,13 @@
+{
+  "args": [],
+  "command": "domain",
+  "files": {
+    "request.json": "sha256:3c2777ce562f86e5154ac463e0998e57d419002d6ff96a0d8323c130dcd8d334"
+  },
+  "name": "domain/overflow",
+  "result": {
+    "refusal": "numeric-overflow",
+    "valid": true
+  },
+  "surface": "shared"
+}

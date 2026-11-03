@@ -1,0 +1,13 @@
+{
+  "args": [],
+  "command": "timestamp",
+  "files": {
+    "request.json": "sha256:982f78a817d8db080b4a7172755c24e82b826ac7c11d64ae708dc5ab617fae22"
+  },
+  "name": "timestamp/rfc3339/05",
+  "result": {
+    "ok": true,
+    "text": "1972-07-01T00:00:00.123456Z"
+  },
+  "surface": "shared"
+}

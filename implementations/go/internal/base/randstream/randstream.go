@@ -11,13 +11,14 @@ package randstream
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"math"
 	"math/big"
 
 	"github.com/zeebo/blake3"
+
+	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
 )
 
 const (
@@ -28,7 +29,7 @@ const (
 )
 
 // ErrInput reports an unsupported profile or an invalid argument.
-var ErrInput = errors.New("randstream: invalid input")
+var ErrInput = fault.New(fault.InvalidInput, "random-stream", nil)
 
 // Key is a stream key.
 type Key [KeyBytes]byte

@@ -106,8 +106,8 @@ Review each interface change before changing its digest.
 
 <!-- go-api implementations/go/internal/base/address 1ff9daf3a2cd7b3fe11f75514362e5d546cafaa872c0a4bf021399860a9fa736 -->
 <!-- go-api implementations/go/internal/base/canonjson 0e2c3043b65e8d2fc2039404227223f0acd6c80b1bee5198d42ecf3f57281d04 -->
-<!-- go-api implementations/go/internal/base/digest 68ac947895aebbed6205298763d72f790e396e8c14b6890b178fa6a5a3548ba2 -->
-<!-- go-api implementations/go/internal/base/ingress f2ab0235dc2ac0af2d18e3e1bbfbc0946dda6e871f8c4a18d515d3aeba12a002 -->
+<!-- go-api implementations/go/internal/base/digest a06bf700abb56187b94f16547175f1949a94b0cb948800086074c3da194aa491 -->
+<!-- go-api implementations/go/internal/base/ingress 9d82f448fa16114a6e1da8c27f68870bd207b8ff9479a67a5f7be5ae6997fc87 -->
 <!-- go-api implementations/go/internal/base/jsonpointer 44d069d984b7b4cd519a3481ad25ef1f76bc568818f62d27b65304c7e4a3d4e7 -->
 <!-- go-api implementations/go/internal/base/randstream 06452bf0a8d69c8ea109834dd58e24ddd3fc65a94598a720eb6a947cf421930a -->
 <!-- go-api implementations/go/internal/base/urisafety a31c041a65c2eac38a9e7568935516a08e94d536f628a673e2d5b725ba6ef836 -->

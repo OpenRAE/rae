@@ -334,3 +334,14 @@ Observer annotations use the SDK boundary types for models, clients, streams,
 ASGI messages and identities. Values deliberately accepted before validation
 use `object`; generic callback adapters preserve their result type. These type
 changes must preserve calls, return values and exceptions.
+
+
+## Shared-primitives integration
+
+PR #1820 retains its canonical surrogate/integer regression cases and the 279
+shared-primitives cases in corpus v2. The shared recorder uses the common Case
+format and compressed blob store. Its eleven commands are listed in both the
+derived surface inventory and the independent Go runner inventory. The carrier
+refusal remains bound to the maintainer decision of 2026-10-31. Exact numeric
+comparison, strict result decoding and corpus completeness use the upstream
+parity owners rather than parallel implementations.

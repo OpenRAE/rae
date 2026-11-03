@@ -1,0 +1,21 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "input/home/runner/work/rae/rae/examples/scenarios/reconciliation-demo-v1.sdl.yaml",
+    "input/tmp/pytest-of-runner/pytest-1/popen-gw2/test_reconcile_invalid_candida0/broken-candidate.sdl.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "input/home/runner/work/rae/rae/examples/scenarios/reconciliation-demo-v1.sdl.yaml": "sha256:20d82be186fe2d1a2498690a2132579d3323ae5393c13d1f7f4550ce6eb51c93",
+    "input/tmp/pytest-of-runner/pytest-1/popen-gw2/test_reconcile_invalid_candida0/broken-candidate.sdl.yaml": "sha256:4ab2a8546dbdaf24c7d3610b6ce6952e107b452a1ed7f7a9b25d0c979e64f7fa"
+  },
+  "name": "regression/238d07921c8339f0f9be597cfce17cf538be0886bc7862c325fbffeef662d035",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

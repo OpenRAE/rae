@@ -31,7 +31,7 @@ flowchart TB
         Processor[Compilation / planning / trial compilation - planned]
         Runtime[Shared runtime control plane - planned]
         Backend[Backend interfaces - planned]
-        Base[Shared base primitives - implemented subset]
+        Base[Shared base primitives - implemented]
     end
     Consumers --> API
     API --> App
@@ -117,7 +117,12 @@ Review checks these trust explanations whenever bound evidence changes.
 | Random streams | `base/randstream`; admitted BLAKE3 adapter preserves profiles and seek behavior |
 | Addresses and pointers | `base/address` and `base/jsonpointer`; published grammars remain authoritative |
 | URI safety | `base/urisafety`; standard URL parsing plus documented Unicode and error-precedence compatibility |
-| Graphs, clock, errors and logging | Planned shared base owners; use standard libraries before adding adapters |
+| Clock and timestamp policies | `base/clock` and `base/timestamp`; inject wall-clock reads and reuse the four named grammars |
+| Errors and logging | `base/fault` and `base/logrecord`; value-free codes and bounded log records through standard error wrapping and log/slog |
+| Graphs | `base/graph`; shared iterative cycle, ordering and component operations |
+| Versions and scalar domains | `base/softwareversion` and `base/domain`; closed typed descriptors and bounded comparisons |
+| Snapshot values | `base/value`; bounded closed JSON values without foreign callbacks |
+| Secret reference identities | `base/secretref`; bounded inert identities, with no secret resolution |
 | Contract admission and defaults | Planned contract layer; reuse published schemas and concept authority, not transport validators |
 | Operation and persistence semantics | Planned runtime layer; transports and embedders share the same core |
 | Architecture checks | Tooling `arch`; standard Go types and existing model/findings, no product-internal imports |
@@ -128,6 +133,7 @@ Compatibility reasons and parity evidence:
 [random streams](../decisions/issue-1779-random-streams-design.md), and
 [parity harness](../decisions/issue-1778-parity-corpus-design.md).
 The architecture check does not alter those semantics.
+The [shared-primitives completion design](../decisions/issue-1779-shared-primitives-completion.md) owns the newly merged base helpers and their compatibility reasons.
 
 ## Maintenance
 
@@ -210,14 +216,14 @@ flowchart BT
 
 | Package owner | Layer | Cross-layer visibility | Consumer importable | Actual dependencies |
 | --- | --- | --- | --- | --- |
-| `implementations/go/internal/base/address` | base | true | false |  |
-| `implementations/go/internal/base/canonjson` | base | true | false |  |
+| `implementations/go/internal/base/address` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/internal/base/canonjson` | base | true | false | implementations/go/internal/base/fault |
 | `implementations/go/internal/base/digest` | base | true | false |  |
-| `implementations/go/internal/base/ingress` | base | true | false |  |
+| `implementations/go/internal/base/ingress` | base | true | false | implementations/go/internal/base/fault |
 | `implementations/go/internal/base/jsonpointer` | base | true | false |  |
-| `implementations/go/internal/base/randstream` | base | true | false |  |
-| `implementations/go/internal/base/urisafety` | base | true | false |  |
-| `implementations/go/internal/parity` | parity | false | false | implementations/go/internal/base/address, implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/ingress, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/randstream, implementations/go/internal/base/urisafety |
+| `implementations/go/internal/base/randstream` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/internal/base/urisafety` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/internal/parity` | parity | false | false | implementations/go/internal/base/address, implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/ingress, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/randstream, implementations/go/internal/base/urisafety, implementations/go/internal/base/clock, implementations/go/internal/base/domain, implementations/go/internal/base/fault, implementations/go/internal/base/graph, implementations/go/internal/base/logrecord, implementations/go/internal/base/secretref, implementations/go/internal/base/softwareversion, implementations/go/internal/base/timestamp, implementations/go/internal/base/value |
 | `implementations/tooling/go/arch` | tooling | false | true |  |
 | `implementations/tooling/go/cmd/archcheck` | tooling | false | false | implementations/tooling/go/arch |
 | `implementations/tooling/go/cmd/raesvet` | tooling | false | false | implementations/tooling/go/lint/getprefix, implementations/tooling/go/lint/gotwant, implementations/tooling/go/lint/wrapverb |
@@ -225,6 +231,15 @@ flowchart BT
 | `implementations/tooling/go/lint/getprefix` | tooling | false | true |  |
 | `implementations/tooling/go/lint/gotwant` | tooling | false | true |  |
 | `implementations/tooling/go/lint/wrapverb` | tooling | false | true |  |
+| `implementations/go/internal/base/clock` | base | true | false |  |
+| `implementations/go/internal/base/fault` | base | true | false |  |
+| `implementations/go/internal/base/timestamp` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/internal/base/softwareversion` | base | true | false | implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/fault |
+| `implementations/go/internal/base/domain` | base | true | false | implementations/go/internal/base/softwareversion, implementations/go/internal/base/fault |
+| `implementations/go/internal/base/value` | base | true | false | implementations/go/internal/base/fault, implementations/go/internal/base/canonjson |
+| `implementations/go/internal/base/logrecord` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/internal/base/graph` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/internal/base/secretref` | base | true | false | implementations/go/internal/base/fault |
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
@@ -236,22 +251,23 @@ flowchart BT
 | `docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md` | `a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa` |
 | `docs/decisions/adrs/adr-122-go-architecture-model.md` | `478e8d6587a2c040bb50d4ba5a53e5f31fe989d78e53157079f5d003efcbe464` |
 | `docs/decisions/issue-1775-go-architecture-model-design.md` | `d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8` |
-| `docs/decisions/issue-1778-parity-corpus-design.md` | `fdc174151432ffe652719e78d1a2130122fe420f7563f133221f2621e4e1b809` |
-| `docs/decisions/issue-1779-canonical-json-design.md` | `8df6451302931bcc55628a23d36b3aebf31cf03137a7c3f2042e4c856db51961` |
-| `docs/decisions/issue-1779-ingress-design.md` | `52a547a89ef489bc9d12a250be847371a63ad18fd19b6ccd5e33ff6ea589317a` |
-| `docs/decisions/issue-1779-random-streams-design.md` | `850d73b2d32ea454d2af63e8e93be42bec208cc556ccf952863780efccb98a60` |
-| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `7f440261b189b26d20a58b76e274c0c88abd4fe143bfb082af4052e62233d1cb` |
-<!-- go-component base 4b4cbe76498b720dea364dcc45b5b6231ef2e999ecfae22ce9e56d6d23cda04a -->
-<!-- go-component contract 73456b0fd891eb0f12e88e5b908543485ce88dd5ecf9ffd3fad2f11d43442ba2 -->
-<!-- go-component sdl 5f24f094b1396c387dbebc76bbb8ccac321c8077d3dd4b86e65cff4c1becc5f5 -->
-<!-- go-component processor 67d657825919c49435a674786c5b568d5c6b6cd6301eed1ff71a140283fe3ad8 -->
-<!-- go-component backend 8353b06cebcdadc197150193ba0c035b7e7192d5b10cad52f75a74b8b08353bf -->
-<!-- go-component runtime 1c47ae5c89419e657068b1d88d8184d5932c3605f36c0f646c10e09e857c7e4d -->
-<!-- go-component conformance d17880b0d22976692b5c53ff4a90b6d23f4ff1cf5cccd0935d94488e7cc4b3b2 -->
-<!-- go-component app 3bd024b7ada7444f2456ca3ca7d6510cc8465fe8f98e6fde4073d65ee3225387 -->
-<!-- go-component adapter eb90a6db82025d7e128ade08ed1d81dad672b8682b2e368ea2d3738d3de67051 -->
-<!-- go-component command ab864875bb74f1c05d1cdcab2db92a0a82cd280b590a8b5435e31fbad1acd6cf -->
-<!-- go-component parity bc593d5b7f247f33227beef46ec9e041e49f4e7017ce5f2015155f827ca2c388 -->
-<!-- go-component tooling cd020e622c76370595e8b1fce01d274f20c71efc88697b38b37f5e8b3aad352d -->
+| `docs/decisions/issue-1778-parity-corpus-design.md` | `c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830` |
+| `docs/decisions/issue-1779-canonical-json-design.md` | `c68392c70e55eabd39a1d1b287c082fc98b40aea2a50a90a43384f34aea752a3` |
+| `docs/decisions/issue-1779-ingress-design.md` | `21fe1ede3a371941bd13605037cf6e378a6f442d9622dbc9fa716e952cbad281` |
+| `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
+| `docs/decisions/issue-1779-shared-primitives-completion.md` | `6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e` |
+| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `00cdde13550d8307d40cd4030467bede14d4c03203d5059b190d3b044a0ae770` |
+<!-- go-component base 2161cd41a64842b0c99e2634e2ac8328586af29ac47c3cac32516c206979df41 -->
+<!-- go-component contract d5d05447917c4c61f6ee552420da07b07aad538ce6cfcf8279da158178a8ddea -->
+<!-- go-component sdl 8f8b78d5e42e1e88caff2e6728fcfbae44d1a7e6246dc25e8651c7279103ed90 -->
+<!-- go-component processor 888b656979cd5a2239665a6e9744dc9c763d87170e909f2619711e38aa20400c -->
+<!-- go-component backend 1a4d6d7eb46f1c7af56374ab471c304f2da7d7ec661ab7b4126d8d964287d717 -->
+<!-- go-component runtime 9696733f111abfc1a8a070fca7c1bd19fb68871376ac154e6d1bd599ba32a04b -->
+<!-- go-component conformance f2b36a302f310930ed6f3beb222876caef32e7baf311f5cb48a91687e37166b1 -->
+<!-- go-component app 578fd8da02a278d7be43d739dc2075afec9261e9980b755bf19f214a7b19cebd -->
+<!-- go-component adapter b13b672f3fdea431b14d1d91e24debaebdb42d10c1fbbc14d2f5f1977785a2ab -->
+<!-- go-component command 2b1197dd22836632f64f75a3ffa099c580ef3b07e58eb7516ac4810baff2df4b -->
+<!-- go-component parity 23adec0c2e4841b717aeddb29310284d5210da540ae88691cfc0d0330000bb23 -->
+<!-- go-component tooling 9f42c7944b3f560987360ce491e3020782f415a527846dbb833715e1e2c32040 -->
 
 <!-- /go-view -->
