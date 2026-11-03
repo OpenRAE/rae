@@ -82,3 +82,22 @@ No passing CI result is claimed before the candidate is published and checked.
 CI retains a short-lived diagnostic coverage profile and test log even when the Go tests fail.
 The diagnostic artifact cannot supply the authoritative Sonar coverage input.
 The normal coverage artifact still requires the preceding checks to pass.
+
+## Additive corpus refresh
+
+CI run `41721932831` captured the current Python test inputs.
+The Python package tree, collector and locked environment match the prior capture.
+Only the contract README and one repository-policy test changed in the captured source trees.
+The capture contains run-dependent identifiers and generated fuzz inputs.
+All 18,288 case files present in both captures match byte for byte.
+
+The refreshed corpus retains all 25,178 original case files without edits.
+It adds 6,890 cases from the CI artifact and their exact input bytes.
+The combined set has 32,068 cases and 25,024 distinct regression inputs.
+The current capture supplies the test inventory and source identity.
+The retained input descriptors keep their original test origins.
+Only the derived inventory and frozen-input index change; their unreferenced storage blobs are removed.
+CI replays the combined frozen input set against the unchanged Python implementation.
+
+The source artifact is `parity-corpus-3894d99d73c9d53acfc67b1c37be07bd181cc99b`.
+Its archive SHA-256 is `e0d653486a029931f956746a1aac8c830f1550e69af91dacd6efe295a98bb2cd`.
