@@ -164,3 +164,17 @@ The mapping, path depth, input bytes, and collision checks remain unchanged.
 The source-bound capture must be regenerated after this collector refactor.
 Reference: [Python 3.14 regular expressions](https://docs.python.org/3.14/library/re.html),
 `re.ASCII` and digit character classes.
+
+### Quality-repair corpus promotion
+
+CI run `41592002988` recorded the corpus from source head
+`02d37bbc6a2b776d0f6d78a8601ab3aece772ac0` after the classifier refactor.
+The decoded-input credential scan passed.
+[Artifact 13210304784](https://github.com/OpenRAE/rae/actions/runs/41592002988/artifacts/13210304784)
+contains 45,304 generated files. Its archive SHA-256 is
+`4e8e37a1a81adcdecbf55fbb14a07e04149255e83a107ebe2ac7a1ca8388f553`.
+The downloaded digest, source identities, complete inventory, and blob digests passed validation.
+All 7,044 static reference cases remain unchanged.
+All 13 backend CLI invocation argument sets remain identical between the two captures.
+The existing writer promoted these artifact bytes without editing expected results.
+This receipt supersedes the first promotion for the final classifier source.
