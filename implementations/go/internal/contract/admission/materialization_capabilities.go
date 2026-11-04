@@ -17,7 +17,7 @@ func (r *materializationInventory) capabilities() error {
 		return invalid()
 	}
 	r.envelope = envelope
-	live := materializationScope(r.entries, "provisioning")
+	live := materializationScope(r.entries, termProvisioning)
 	available, edges, total, err := materializationCapabilityInventory(live)
 	if err != nil {
 		return err

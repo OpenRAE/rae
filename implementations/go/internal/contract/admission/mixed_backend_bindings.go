@@ -24,7 +24,7 @@ func (r *mixedResolution) backendBindings(profile any, edges, handoffs map[strin
 
 func mixedBackendEdge(profile, edge, installed any) error {
 	ordering := stringAt(edge, "time_binding", "ordering_basis")
-	if installed == nil || ordering == "wall_clock_only" || ordering == statusUnknown || ordering == statusUnsupported {
+	if installed == nil || ordering == termWallClockOnly || ordering == statusUnknown || ordering == statusUnsupported {
 		return invalid()
 	}
 	allocation := at(profile, termAllocations, stringAt(installed, "owner_allocation_id"))

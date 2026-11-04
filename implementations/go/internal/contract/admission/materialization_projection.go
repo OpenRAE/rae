@@ -36,7 +36,7 @@ func (r *materializationInventory) project() error {
 }
 func materializationDescendantResource(resource any, key string) error {
 	kind := stringAt(resource, "resource_type")
-	if resource == nil || stringAt(resource, "domain") != "provisioning" || kind != termNode && kind != termNetwork {
+	if resource == nil || stringAt(resource, "domain") != termProvisioning || kind != termNode && kind != termNetwork {
 		return invalid()
 	}
 	prefix := "provision.node."
@@ -59,12 +59,12 @@ func (r *materializationInventory) descriptionCoverage() error {
 			declared[stringAt(entry, "address")] = true
 		}
 	}
-	described := keySet(materializationScope(r.execution.current.resources, "provisioning"))
+	described := keySet(materializationScope(r.execution.current.resources, termProvisioning))
 	for original := range r.originals {
 		delete(described, original)
 	}
 	foreign := map[string]bool{}
-	for key := range materializationScope(object(at(r.execution.actual, "entries")), "provisioning") {
+	for key := range materializationScope(object(at(r.execution.actual, "entries")), termProvisioning) {
 		if r.originals[key] == nil && !old[key] {
 			foreign[key] = true
 		}

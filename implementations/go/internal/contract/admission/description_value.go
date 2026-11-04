@@ -25,7 +25,7 @@ func descriptiveValue(root any) error {
 }
 func descriptiveChildren(v any) ([]any, error) {
 	origin := stringAt(v, "origin")
-	if origin != kindBackend && origin != termObservation || text(defaultMember(v, "presence", "required")) != requirementRequired {
+	if origin != kindBackend && origin != termObservation || text(defaultMember(v, "presence", requirementRequired)) != requirementRequired {
 		return nil, invalid()
 	}
 	kind := stringAt(v, termKind)

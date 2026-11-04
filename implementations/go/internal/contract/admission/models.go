@@ -11,6 +11,9 @@ import (
 // and invariant checks run first. These checks cover Python model conditions
 // that have no independent x-raes-invariants annotation.
 func (e *Validator) localModels(id string, root any) error {
+	if known, err := e.additionalModel(id, root); known {
+		return err
+	}
 	if known, err := e.domainProfileModel(id, root); known {
 		return err
 	}
@@ -21,6 +24,10 @@ func (e *Validator) localModels(id string, root any) error {
 		return err
 	}
 	switch id {
+	case "inject-occurrence-correlation-v1":
+		return injectCorrelationModel(root)
+	case termParticipantTimeManagementContextV1:
+		return timeManagementModel(root)
 	case "participant-behavior-history-event-stream-v1":
 		return behaviorLifecycles(root)
 	case "sdl-lineage-ledger-v1":
@@ -148,6 +155,9 @@ func (e *Validator) checkModels(id string, data []byte, limits ingress.Limits) e
 }
 
 func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
+	if known, err := e.additionalModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
+		return err
+	}
 	if known, err := e.domainProfileModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
 		return err
 	}
@@ -167,6 +177,14 @@ func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
 		return err
 	}
 	switch strings.TrimPrefix(instance.SchemaPointer, "#/$defs/") {
+	case "AssociatedArtifactParentReferenceModel":
+		return associatedParentReference(instance.Value)
+	case "InjectOccurrenceCorrelationModel":
+		return injectCorrelationModel(instance.Value)
+	case "ExploitPathStepModel":
+		return exploitStepModel(instance.Value)
+	case "ParticipantTimeManagementContextModel":
+		return timeManagementModel(instance.Value)
 	case "ParticipantBehaviorHistoryEventModel":
 		return behaviorLifecycle(instance.Value)
 	case "PropositionProbeBindingModel":

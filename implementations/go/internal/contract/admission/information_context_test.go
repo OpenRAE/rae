@@ -11,12 +11,13 @@ type informationTestContext struct {
 	sources   []InformationSource
 	histories map[string][][]byte
 	proofs    map[string]string
+	surfaces  [][]byte
 }
 
 func (c informationTestContext) InformationSources() []InformationSource    { return c.sources }
 func (c informationTestContext) InformationHistories() map[string][][]byte  { return c.histories }
 func (c informationTestContext) InformationProofDigests() map[string]string { return c.proofs }
-func (c informationTestContext) InformationDecisionSurfaces() [][]byte      { return nil }
+func (c informationTestContext) InformationDecisionSurfaces() [][]byte      { return c.surfaces }
 
 func TestInformationStateStrongClaimResolvesExactCut(t *testing.T) {
 	e := boundTestOwner(t)

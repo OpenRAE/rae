@@ -52,7 +52,7 @@ func executionPolicy(v any) error {
 	if !fieldsUnique(v, "failure_classes", "effect_classes", fieldEvidenceRefs) {
 		return invalid()
 	}
-	retry := defaultMember(v, "retry", map[string]any{"max_attempts": json.Number("1"), "after_effect_policy": retryDisallow})
+	retry := defaultMember(v, termRetry, map[string]any{"max_attempts": json.Number("1"), "after_effect_policy": retryDisallow})
 	if err := retryPolicy(retry); err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func executionPolicy(v any) error {
 	}
 	attempts, _ := number(at(retry, "max_attempts"))
 	repeats := attempts.Cmp(big.NewRat(1, 1)) > 0
-	if (stringAt(v, "response") == "retry") != repeats {
+	if (stringAt(v, "response") == termRetry) != repeats {
 		return invalid()
 	}
 	if err := repetitionPolicy(v, retry, repeats); err != nil {

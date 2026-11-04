@@ -16,7 +16,7 @@ func (r *materializationInventory) membership() error {
 	for namespace := range object(at(root, "fields")) {
 		groups[namespace] = map[string]any{}
 	}
-	for key, entry := range materializationScope(r.entries, "provisioning") {
+	for key, entry := range materializationScope(r.entries, termProvisioning) {
 		if err := materializationMembershipEntry(key, entry, groups); err != nil {
 			return err
 		}
@@ -71,8 +71,8 @@ func materializationMembershipRecord(rule, actual, fallback any) error {
 
 func materializationMembershipField(child, actual any, field string) error {
 	observed, present := object(actual)[field]
-	presence := text(defaultMember(child, "presence", "required"))
-	if presence == termForbidden && present || presence == "required" && !present {
+	presence := text(defaultMember(child, "presence", requirementRequired))
+	if presence == termForbidden && present || presence == requirementRequired && !present {
 		return invalid()
 	}
 	if present && (stringAt(child, "kind") != termLiteral || !equal(at(child, "value"), observed)) {
@@ -89,8 +89,8 @@ func materializationMembershipMember(member any, actual map[string]any, fallback
 	key := text(identity[0])
 	observed, present := actual[key]
 	child := at(member, "constraint")
-	presence := text(defaultMember(child, "presence", "required"))
-	if presence == termForbidden && present || presence == "required" && !present {
+	presence := text(defaultMember(child, "presence", requirementRequired))
+	if presence == termForbidden && present || presence == requirementRequired && !present {
 		return invalid()
 	}
 	if present {

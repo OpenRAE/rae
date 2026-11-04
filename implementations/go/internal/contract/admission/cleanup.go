@@ -101,7 +101,7 @@ func resetCoverage(obligations any, refs []string) error {
 	reset := map[string]bool{}
 	for _, ref := range refs {
 		obligation := object(obligations)[ref]
-		if stringAt(obligation, "action_kind") != retryReset || !set(at(obligation, "triggers"))["retry"] || stringAt(obligation, "requirement") != requirementRequired {
+		if stringAt(obligation, "action_kind") != retryReset || !set(at(obligation, "triggers"))[termRetry] || stringAt(obligation, "requirement") != requirementRequired {
 			return invalid()
 		}
 		for _, boundary := range stringsOf(at(obligation, "boundary_refs")) {

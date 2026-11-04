@@ -76,7 +76,7 @@ func associatedParent(manifest any, parent validation.Value, digest string) erro
 		return err
 	}
 	if kind == kindMaterializationAttestation {
-		return require(equal(at(v, "materialization_provenance", "attestation_id"), at(ref, "ref_id")) && stringAt(ref, "ref_version") == "raes-sdl-materialized/v1" && stringAt(ref, "ref_digest") == digest && digest != "")
+		return require(equal(at(v, "materialization_provenance", "attestation_id"), at(ref, "ref_id")) && stringAt(ref, "ref_version") == termRaesSdlMaterializedV1 && stringAt(ref, "ref_digest") == digest && digest != "")
 	}
 	if !equal(at(v, fields[1]), at(ref, "ref_id")) {
 		return invalid()
@@ -161,6 +161,9 @@ func associatedReaderMissing(reader io.Reader) bool {
 }
 
 func associatedLocal(v any) error {
+	if err := associatedParentReference(at(v, "parent_ref")); err != nil {
+		return err
+	}
 	if !keyed(at(v, "artifacts"), termArtifactID) {
 		return invalid()
 	}
@@ -175,6 +178,19 @@ func associatedLocal(v any) error {
 		}
 	}
 	return nil
+}
+
+func associatedParentReference(v any) error {
+	switch stringAt(v, "ref_kind") {
+	case kindScenario:
+		return require(at(v, "ref_version") == nil && at(v, "ref_digest") == nil && at(v, "ref_path") == nil)
+	case kindMaterializationAttestation:
+		return require(stringAt(v, "ref_version") == termRaesSdlMaterializedV1 && at(v, "ref_digest") != nil && at(v, "ref_path") != nil)
+	case kindScenarioSnapshot:
+		return nil
+	default:
+		return require(at(v, "ref_digest") == nil && at(v, "ref_path") == nil)
+	}
 }
 
 func associatedDescriptor(artifact any, descriptors map[string]bool, locators map[string]string) error {

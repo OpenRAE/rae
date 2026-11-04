@@ -134,6 +134,22 @@ The contextual table exposed inherited empty collection factories in control and
 `TestEventFactoryDefaultsKeepSuppliedEvidence` checks that comparison defaults retain supplied evidence.
 Full reference positives also check that model comparison does not change admitted bytes.
 
+## Additional model and owner comparisons
+
+These reference records preserve Python results independently of Go execution.
+Component tests name their component boundary; full admission tests require the complete owner context.
+
+| Boundary | Recorded checks |
+| --- | --- |
+| Native SDL phases and instantiated snapshots | 332 exact-source compiler-owner records; `TestSDLPhaseAdmissionRequiresSourceBoundNativeOwner` |
+| Allowed enums and optional model fields | `TestContractEnumAndOptionalBoundariesMatchIndependentPython`: 3,430 schema-admitted changes |
+| Focused nested model joins | `TestFocusedContractModelBoundariesMatchIndependentPython`: 730 schema-admitted changes |
+| Time-management mode, basis and claim coupling | `TestTimeManagementModesMatchIndependentPython`: 5,632 combinations |
+| Control policy prefixes, lifecycle and typed targets | `TestControlHistoryPoliciesAndLifecyclesMatchIndependentPython`: 98 native context results |
+| Inject retry, claim, invocation, readback and correlation | `TestInjectOwnerRetriesClaimsAndReadbacksMatchIndependentPython`: 47 native results |
+| Information-state source and surface coordinates | `TestInformationSourceAndSurfaceCoordinatesMatchIndependentPython`: 37 native context results |
+| Trusted owner corruption and resource limits | `TestTrustedControlDocumentsRejectCorruption`, `TestTrustedCompositionDocumentsRejectCorruption`, `TestTrustedMaterializationDocumentsRejectCorruption`, `TestTrustedFlowDocumentsRejectCorruption`, `TestTrustedDocumentCollectionsEnforceCountAndByteBudgets` |
+
 ## Verification boundary
 
 Local runs select changed tests and fixture families.

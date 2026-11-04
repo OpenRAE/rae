@@ -40,6 +40,12 @@ func controlResolutionFixture(t *testing.T, e *Validator, version, name string) 
 	t.Helper()
 	id := "participant-control-evaluation-" + version
 	root := controlResolutionTestRecord(t, id, version, name)
+	return controlResolutionOwner(t, e, version, root)
+}
+
+func controlResolutionOwner(t *testing.T, e *Validator, version string, root any) (any, *controlResolutionTestContext) {
+	t.Helper()
+	id := "participant-control-evaluation-" + version
 	v, err := e.defaulted(id, root)
 	if err != nil {
 		t.Fatal(err)

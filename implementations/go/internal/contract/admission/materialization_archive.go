@@ -38,7 +38,7 @@ func (e *Validator) materializationArchive(i validation.Invocation) (err error) 
 		return err
 	}
 	provenance := at(compiled.full, "materialization_provenance")
-	identity, err := jsonDigest(map[string]any{"profile": "raes-sdl-materialized/v1", kindScenario: compiled.document})
+	identity, err := jsonDigest(map[string]any{"profile": termRaesSdlMaterializedV1, kindScenario: compiled.document})
 	if err != nil {
 		return err
 	}

@@ -139,3 +139,15 @@ const (
 const (
 	termTrue = "true"
 )
+
+const (
+	termParticipantTimeManagementContextV1 = "participant-time-management-context-v1"
+	termRaesSdlMaterializedV1              = "raes-sdl-materialized/v1"
+	termWallClockOnly                      = "wall_clock_only"
+)
+
+const (
+	termParticipantJointActionRecordV1 = "participant-joint-action-record-v1"
+	termRetry                          = "retry"
+	termWorkflow                       = "workflow"
+)

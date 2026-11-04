@@ -77,7 +77,7 @@ func injectUniqueClaims(claims []any) error {
 			return err
 		}
 		keys := map[string]string{
-			"retry":      join(stringAt(claim, termAdmission, "actor_id"), stringAt(claim, termAdmission, "operation_kind"), stringAt(claim, "request", "request_key")),
+			termRetry:    join(stringAt(claim, termAdmission, "actor_id"), stringAt(claim, termAdmission, "operation_kind"), stringAt(claim, "request", "request_key")),
 			"occurrence": stringAt(claim, "request", "occurrence_id"), "operation": stringAt(claim, "operation_id"), "position": position, "predecessor": stringAt(claim, termOrder, "predecessor"),
 		}
 		if stringAt(claim, "request", "placement", termKind) == placementSchedule {
@@ -186,6 +186,10 @@ func (e *Validator) injectCorrelation(i validation.Invocation) error {
 		return err
 	}
 	return require(equal(actual, expected))
+}
+
+func injectCorrelationModel(v any) error {
+	return require(stringAt(v, "occurrence", "contract_id") == contractInjectOccurrence && stringAt(v, "outcome", "contract_id") == termInjectOccurrenceOutcomeV1 && equal(at(v, "occurrence", "artifact_id"), at(v, "outcome", "artifact_id")))
 }
 
 func injectRequirements(occurrence, request any) error {

@@ -64,86 +64,17 @@ func TestAdditionalContractModelsMatchIndependentPython(t *testing.T) {
 
 func TestDiverseContractModelsMatchIndependentPython(t *testing.T) {
 	t.Parallel()
-	var reference struct {
-		Count int      `json:"case_count"`
-		Files []string `json:"case_files"`
-	}
-	readFullReferenceJSON(t, "testdata/diverse-model-inputs.json", &reference)
-	if reference.Count != 1760 || len(reference.Files) != 5 {
-		t.Fatal("diverse model inventory changed")
-	}
-	e := boundTestOwner(t)
-	count := 0
-	for index, file := range reference.Files {
-		if file != fmt.Sprintf("diverse-model-inputs-%02d.json", index+1) {
-			t.Fatal("unexpected diverse model shard")
-		}
-		var cases []localModelInputCase
-		readFullReferenceJSON(t, "testdata/"+file, &cases)
-		for _, c := range cases {
-			t.Run(c.Contract+"/"+c.InputSHA, func(t *testing.T) { checkRecordedLocalModelCase(t, e, c) })
-		}
-		count += len(cases)
-	}
-	if count != reference.Count {
-		t.Fatal("diverse model cases missing")
-	}
+	runModelReferenceShards(t, "diverse-model-inputs", 1760, 5)
 }
 
 func TestLocalModelBoundaryChangesMatchPython(t *testing.T) {
 	t.Parallel()
-	var reference struct {
-		Count int      `json:"case_count"`
-		Files []string `json:"case_files"`
-	}
-	readFullReferenceJSON(t, "testdata/local-model-boundaries.json", &reference)
-	if reference.Count != 1357 || len(reference.Files) != 4 {
-		t.Fatal("independent model boundary inventory changed")
-	}
-	e := boundTestOwner(t)
-	count := 0
-	for index, file := range reference.Files {
-		if file != fmt.Sprintf("local-model-boundaries-%02d.json", index+1) {
-			t.Fatal("unexpected model boundary shard")
-		}
-		var cases []localModelInputCase
-		readFullReferenceJSON(t, "testdata/"+file, &cases)
-		count += len(cases)
-		for _, c := range cases {
-			t.Run(c.Contract+"/"+c.InputSHA+"/"+c.Name, func(t *testing.T) { checkRecordedLocalModelCase(t, e, c) })
-		}
-	}
-	if count != reference.Count {
-		t.Fatal("model boundary cases are missing")
-	}
+	runModelReferenceShards(t, "local-model-boundaries", 1357, 4)
 }
 
 func TestAdditionalModelBoundariesMatchIndependentPython(t *testing.T) {
 	t.Parallel()
-	var reference struct {
-		Count int      `json:"case_count"`
-		Files []string `json:"case_files"`
-	}
-	readFullReferenceJSON(t, "testdata/expanded-model-boundaries.json", &reference)
-	if reference.Count != 1346 || len(reference.Files) != 4 {
-		t.Fatal("additional model boundary inventory changed")
-	}
-	e := boundTestOwner(t)
-	count := 0
-	for index, file := range reference.Files {
-		if file != fmt.Sprintf("expanded-model-boundaries-%02d.json", index+1) {
-			t.Fatal("unexpected additional model shard")
-		}
-		var cases []localModelInputCase
-		readFullReferenceJSON(t, "testdata/"+file, &cases)
-		for _, c := range cases {
-			t.Run(c.Contract+"/"+c.InputSHA+"/"+c.Name, func(t *testing.T) { checkRecordedLocalModelCase(t, e, c) })
-		}
-		count += len(cases)
-	}
-	if count != reference.Count {
-		t.Fatal("additional model boundary cases missing")
-	}
+	runModelReferenceShards(t, "expanded-model-boundaries", 1346, 4)
 }
 
 func checkRecordedLocalModelCase(t *testing.T, e *Validator, c localModelInputCase) {
@@ -193,8 +124,16 @@ func retainedModelInput(t *testing.T, c localModelInputCase) []byte {
 	if len(original.Args) != 1 || original.Args[0] != c.Contract || original.Files["payload.json"] != "sha256:"+c.InputSHA {
 		t.Fatal("model input differs from its original corpus case")
 	}
-	return retainedParityBlob(t, c.InputSHA)
+	read := sync.OnceValue(func() []byte { return retainedParityBlob(t, c.InputSHA) })
+	cached, _ := sharedRetainedModelBytes.LoadOrStore(c.InputSHA, read)
+	load, ok := cached.(func() []byte)
+	if !ok {
+		t.Fatal("invalid retained model input cache")
+	}
+	return bytes.Clone(load())
 }
+
+var sharedRetainedModelBytes sync.Map //nolint:gochecknoglobals // Immutable independently recorded baseline bytes; return copies while inflating each retained blob once across parallel reference groups.
 
 // The parity package imports admission, so an in-package model-stage test
 // cannot import its loader. This bounded fixture reader uses the same v2 format.
@@ -259,4 +198,36 @@ func referenceModelResult(e *Validator, id string, raw []byte) error {
 		err = e.checkSDLPhase(id, raw, limits, recordedSDLPhaseOwner{})
 	}
 	return err
+}
+
+func runModelReferenceShards(t *testing.T, prefix string, expectedCount, expectedFiles int) {
+	t.Helper()
+	var reference struct {
+		Count int      `json:"case_count"`
+		Files []string `json:"case_files"`
+	}
+	readFullReferenceJSON(t, "testdata/"+prefix+".json", &reference)
+	if reference.Count != expectedCount || len(reference.Files) != expectedFiles {
+		t.Fatal("model reference inventory changed")
+	}
+	e := boundTestOwner(t)
+	count := 0
+	for index, file := range reference.Files {
+		if file != fmt.Sprintf("%s-%02d.json", prefix, index+1) {
+			t.Fatal("unexpected model reference shard")
+		}
+		var cases []localModelInputCase
+		readFullReferenceJSON(t, "testdata/"+file, &cases)
+		for _, c := range cases {
+			name := c.Contract + "/" + c.InputSHA
+			if c.Name != "" {
+				name += "/" + c.Name
+			}
+			t.Run(name, func(t *testing.T) { checkRecordedLocalModelCase(t, e, c) })
+		}
+		count += len(cases)
+	}
+	if count != reference.Count {
+		t.Fatal("model reference cases missing")
+	}
 }

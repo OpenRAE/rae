@@ -32,7 +32,7 @@ func (e *Validator) materializationDescendants(i validation.Invocation) (err err
 	if err = r.execution.load(); err != nil {
 		return err
 	}
-	if r.execution.domain != "provisioning" || !set(at(r.execution.manifest, "supported_contract_versions"))[termBackendRuntimeDescendantsV1] {
+	if r.execution.domain != termProvisioning || !set(at(r.execution.manifest, "supported_contract_versions"))[termBackendRuntimeDescendantsV1] {
 		return invalid()
 	}
 	if err = r.execution.compile(r.execution.snapshot.Submission); err != nil {
@@ -58,7 +58,7 @@ func (r *materializationInventory) admit() error {
 	if err := materializationOrigins(r.execution.original, r.execution.current); err != nil {
 		return err
 	}
-	r.originals = materializationScope(r.execution.original.resources, "provisioning")
+	r.originals = materializationScope(r.execution.original.resources, termProvisioning)
 	if err := r.predecessor(); err != nil {
 		return err
 	}

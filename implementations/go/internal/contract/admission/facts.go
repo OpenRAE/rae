@@ -148,7 +148,7 @@ func boundFactEvent(event, sink, version, declaration any) error {
 	}
 	audience := stringAt(sink, "audience")
 	visible := set(at(declaration, "visibility", "participant_addresses"))[stringAt(event, fieldParticipantAddress)]
-	if audience == "workflow" {
+	if audience == termWorkflow {
 		visible = set(at(declaration, "visibility", "workflow_addresses"))[stringAt(event, fieldWorkflowAddress)]
 	}
 	return require(visible && (stringAt(version, "sensitivity") != sensitivitySecret || audience == "protected_sink"))

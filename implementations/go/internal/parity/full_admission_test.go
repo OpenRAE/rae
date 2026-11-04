@@ -34,7 +34,7 @@ func TestFullAdmissionCorpusBoundary(t *testing.T) {
 
 func fullAdmissionNeedsOwner(id string) bool {
 	switch id {
-	case "sdl-authoring-input-v1", "instantiated-scenario-v1":
+	case "sdl-authoring-input-v1", "instantiated-scenario-v1", "instantiated-scenario-snapshot-v1":
 		return true
 	case "experiment-run-v1", "experiment-apparatus-context-v1", "experiment-study-v1", "associated-artifact-manifest-v1", "behavioral-relation-profile-v1", "scientific-completeness-assessment-v1", "backend-materialization-attestation-v1", "backend-runtime-descendants-v1", "materialization-archive-record-v1", "materialized-scenario-v1", "participant-control-occurrence-v1", "participant-control-occurrence-v2", "participant-crossing-occurrence-v1":
 		return true

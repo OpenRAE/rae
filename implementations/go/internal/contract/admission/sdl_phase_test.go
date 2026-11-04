@@ -56,7 +56,7 @@ func readSDLPhaseRecords() (map[string]sdlPhaseReference, error) {
 			records[row.SourceSHA256] = row
 		}
 	}
-	if index.Count != 303 || len(records) != index.Count {
+	if index.Count != 332 || len(records) != index.Count {
 		return nil, errors.New("SDL phase reference inventory changed")
 	}
 	return records, nil
