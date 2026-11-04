@@ -2,11 +2,13 @@
 
 ## Report a vulnerability
 
-Do not report suspected vulnerabilities through public GitHub issues.
+Do not put vulnerability details in public issues, pull requests, or
+discussions.
 
-Use GitHub private vulnerability reporting when it is available. If it is not,
-email **security@autarchy.ai**. Put `RAES SDL security report` in the subject
-or first line.
+Report a suspected vulnerability through GitHub private vulnerability
+reporting: [open a private report](https://github.com/OpenRAE/rae/security/advisories/new).
+If you cannot use GitHub, email **security@autarchy.ai**. Put
+`RAES SDL security report` in the subject or first line.
 
 Include enough detail to reproduce and assess the issue:
 
