@@ -135,8 +135,9 @@ def test_serialized_authority_refuses_exceeded_budget(full_inventory):
         if item["requirement_kind"] == "runtime-platform-applications" and "constraint_document" in item
     )
     selected["constraint_document"]["root"] = oversized.model_dump(mode="json")
+    model_type = type(wire)
     with pytest.raises(ValueError, match="max_scalar_bytes"):
-        type(wire).model_validate(payload)
+        model_type.model_validate(payload)
 
 
 def test_larger_inventory_exceeds_fixed_authority_budget():

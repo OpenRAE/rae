@@ -187,6 +187,24 @@ def _resolved_authority(
     )
 
 
+def _requirement_diagnostic(
+    authority: CompiledRealizationAuthority,
+    requirement: CompiledRealizationRequirement | None,
+) -> Diagnostic | None:
+    """Distinguish exhausted work from unrepresentable source authority."""
+
+    if requirement is None:
+        return None
+    if isinstance(requirement.structure_error, Diagnostic):
+        return Diagnostic(
+            code="realization.limit-exceeded",
+            domain=authority.domain,
+            address=authority.address,
+            message=f"Recursive authority for '{authority.requirement_kind}': {requirement.structure_error.message}",
+        )
+    return _unsafe_bound_diagnostic(authority) if requirement.structure_error or requirement.recursive_pending else None
+
+
 def _materialized_authority(
     model: RuntimeModel,
     authority: CompiledRealizationAuthority,
@@ -198,15 +216,9 @@ def _materialized_authority(
     """Resolve one authority's mode and bounds, or report why it cannot resolve."""
 
     requirement = _matching_requirement(model.realization_requirements, authority)
-    if requirement is not None and isinstance(requirement.structure_error, Diagnostic):
-        return Diagnostic(
-            code="realization.limit-exceeded",
-            domain=authority.domain,
-            address=authority.address,
-            message=f"Recursive authority for '{authority.requirement_kind}': {requirement.structure_error.message}",
-        )
-    if requirement is not None and (requirement.structure_error or requirement.recursive_pending):
-        return _unsafe_bound_diagnostic(authority)
+    diagnostic = _requirement_diagnostic(authority, requirement)
+    if diagnostic is not None:
+        return diagnostic
     mode = _resolved_mode(authority, requirement, manifest, apparatus_default, apparatus_decisions)
     if mode is None:
         return _unresolved_authority_diagnostic(authority)

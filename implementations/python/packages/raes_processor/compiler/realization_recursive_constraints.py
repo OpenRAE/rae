@@ -356,6 +356,36 @@ class _SourceMetadata:
             self.leaf_constraints[pointer] = RealizationDelegatedValue(kind="delegated")
 
 
+def _normalized_recursive_constraint(
+    metadata: _SourceMetadata, projected: object, authored_value: object
+) -> tuple[RealizationConstraintDocument | None, bool | Diagnostic, bool]:
+    """Normalize an admitted value with its original source metadata."""
+
+    metadata.collect(projected, authored_value, "", metadata.registered.field_path)
+    # Scalar literals/domains have no member universe to close. An exact
+    # scalar does not create a separate apparatus-default decision.
+    closure = metadata.closure("") if isinstance(projected, (dict, list)) else RealizationClosure()
+    built = normalize_realization_literal(
+        projected,
+        semantic_profile=metadata.profile,
+        default_closure=closure,
+        limits=PLAN_AUTHORITY_LIMITS,
+        metadata=RealizationNormalizationMetadata(
+            scopes=tuple(metadata.scopes),
+            collection_profiles=tuple(metadata.collection_profiles),
+            origins=metadata.origins,
+            leaf_constraints=metadata.leaf_constraints,
+            optional_fields=frozenset(metadata.optional_fields),
+            member_presence=metadata.member_presence,
+        ),
+    )
+    if built.status is not RealizationRelationStatus.CONFORMANT:
+        error = built.diagnostics[0] if built.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
+        return None, error, False
+    document = bind_scalar_set_choices(built.document)
+    return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes)
+
+
 def compile_recursive_realization_constraint(
     scenario: InstantiatedScenario,
     registered: RegisteredRealizationConcern,
@@ -381,32 +411,12 @@ def compile_recursive_realization_constraint(
         admitted = validate_realization_value(projected, limits=PLAN_AUTHORITY_LIMITS)
         if admitted.status is not RealizationRelationStatus.CONFORMANT:
             error = admitted.diagnostics[0] if admitted.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
-            return None, error, False
-        metadata.collect(projected, authored_value, "", registered.field_path)
-        # Scalar literals/domains have no member universe to close. An exact
-        # scalar does not create a separate apparatus-default decision.
-        closure = metadata.closure("") if isinstance(projected, (dict, list)) else RealizationClosure()
-        built = normalize_realization_literal(
-            projected,
-            semantic_profile=metadata.profile,
-            default_closure=closure,
-            limits=PLAN_AUTHORITY_LIMITS,
-            metadata=RealizationNormalizationMetadata(
-                scopes=tuple(metadata.scopes),
-                collection_profiles=tuple(metadata.collection_profiles),
-                origins=metadata.origins,
-                leaf_constraints=metadata.leaf_constraints,
-                optional_fields=frozenset(metadata.optional_fields),
-                member_presence=metadata.member_presence,
-            ),
-        )
-        if built.status is not RealizationRelationStatus.CONFORMANT:
-            error = built.diagnostics[0] if built.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
-            return None, error, False
-        document = bind_scalar_set_choices(built.document)
+            result = None, error, False
+        else:
+            result = _normalized_recursive_constraint(metadata, projected, authored_value)
     except _UnrepresentableAuthority, ValidationError:
-        return None, True, False
-    return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes)
+        result = None, True, False
+    return result
 
 
 __all__ = ["compile_registered_constraint", "compile_recursive_realization_constraint"]

@@ -28,7 +28,9 @@ def test_binding_limit_choice_does_not_change_integrity_digest():
 
 def test_binding_refuses_document_and_source_outside_explicit_bounds():
     document = normalize_realization_literal({"exact": True}, semantic_profile="test/v1").document
+    document_limits = RealizationConstraintLimits(max_nodes=1)
+    source_limits = RealizationConstraintLimits(max_nodes=5)
     with pytest.raises(ValueError, match="bounds"):
-        realization_constraint_binding(document, {"exact": True}, limits=RealizationConstraintLimits(max_nodes=1))
+        realization_constraint_binding(document, {"exact": True}, limits=document_limits)
     with pytest.raises(ValueError, match="bounds"):
-        realization_constraint_binding(document, {"exact": [0] * 10}, limits=RealizationConstraintLimits(max_nodes=5))
+        realization_constraint_binding(document, {"exact": [0] * 10}, limits=source_limits)
