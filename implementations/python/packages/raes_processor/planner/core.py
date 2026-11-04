@@ -17,6 +17,7 @@ from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.materialization import MaterializationReportingScope
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.vocabulary import Closure, GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
@@ -362,6 +363,7 @@ class PlanningOptions(TypedDict, total=False):
     mixed_control_admission: MixedControlPlanningAdmission | None
     refresh_evaluation: bool
     processor_manifest: ProcessorManifestV2Model | None
+    materialization_reporting: MaterializationReportingScope
 
 
 def plan(
@@ -373,6 +375,7 @@ def plan(
     """Reconcile a compiled runtime model against the current snapshot."""
 
     scope = options.pop("scope", None)
+    materialization_reporting = options.pop("materialization_reporting", "all-phases")
     apparatus_realization_default = options.pop("apparatus_realization_default", None)
     artifact_availability = options.pop("artifact_availability", None)
     profile_context = options.pop("profile_context", None)
@@ -440,14 +443,8 @@ def plan(
     )
     diagnostics.extend(provisioning_diagnostics)
     orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
-    evaluation = cast(
-        "EvaluationPlan",
-        replace(
-            _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands),
-            run_id=run_id,
-            instantiation_id=instantiation_id,
-        ),
-    )
+    evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
+    evaluation = replace(evaluation, run_id=run_id, instantiation_id=instantiation_id)
 
     (provisioning, orchestration, evaluation), policy_diagnostics = _attach_phase_policies(
         effective_model, manifest, (provisioning, orchestration, evaluation)
@@ -455,7 +452,11 @@ def plan(
     diagnostics.extend(policy_diagnostics)
 
     (provisioning, orchestration, evaluation), source_diagnostics = attach_materialization_sources(
-        (provisioning, orchestration, evaluation), model, manifest, scope
+        (provisioning, orchestration, evaluation),
+        model,
+        manifest,
+        scope,
+        reporting_scope=materialization_reporting,
     )
     diagnostics.extend(source_diagnostics)
 

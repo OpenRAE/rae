@@ -1,9 +1,9 @@
 {
-  "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
+  "content_hash": "c69ec771a6848e5af1b75e368f2f3ea374566342ca1fd9d8be7dbd45a334ef74",
   "contract_id": "orchestration-plan-v1",
   "last_change": {
-    "content_hash": "7f977ae3c86af0029970deba5ccd97e2c25d1a4260122ffbf651bf35d37f0db4",
-    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
+    "content_hash": "c69ec771a6848e5af1b75e368f2f3ea374566342ca1fd9d8be7dbd45a334ef74",
+    "summary": "Bind an optional provisioning-only materialization reporting scope while preserving the all-phase default and full source context (#1884)."
   },
   "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
   "stability": "draft"
