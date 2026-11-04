@@ -96,25 +96,7 @@ func controlJSON(t *testing.T, v any) []byte {
 
 func TestControlContextDisclosureAndDeliveryResolveExactSources(t *testing.T) {
 	e := boundTestOwner(t)
-	v := fixtureObject(t, "fixtures/participant-runtime/participant-control-context-record-v1/valid/delivered.json")
-	selected := fixtureObject(t, "fixtures/participant-runtime/participant-control-context-record-v1/valid/selected-red.json")
-	asset := fixtureObject(t, "fixtures/participant-runtime/participant-control-context-asset-v1/valid/instruction.json")
-	surface := fixtureObject(t, "fixtures/control-plane/participant-decision-surface-v2/valid/delivered-initial.json")
-	binding := object(array(at(surface, "assurance", "exposure_bindings"))[0])
-	binding["source_ref"] = "urn:" + stringAt(v, "asset_ref", "asset_digest")
-	binding["transformation_rule_ref"], binding["source_layer_ref"] = "transformations.redacted-instruction", "source.instruction"
-	object(surface["delivery"])["delivery_cut_ref"] = "cuts.2"
-	view := fixtureObject(t, "fixtures/control-plane/participant-context-view-v1/valid/network-posture-context.json")
-	view["participant_address"], view["episode_id"], view["view_ref"], view["payload_ref"] = "participants.red", "episode-1", at(surface, "participant_view", "context_view_ref"), at(binding, "item_ref")
-	view["visibility_projection_ref"], view["redaction_policy_ref"], view["marking_definition_refs"] = at(surface, "assurance", "visibility_projection_ref"), at(surface, "participant_view", "redaction_policy_ref"), at(surface, "participant_view", "marking_definition_refs")
-	view["derived_from_refs"] = []any{binding["source_ref"]}
-	view["source_layers"] = []any{map[string]any{"source_id": "source.instruction", "source_layer": "participant_control_context_asset", "ref": binding["source_ref"], "temporal_relation": "same_observation_point", "evidence_refs": []any{"evidence.asset"}, "provenance_refs": []any{"provenance.asset"}}}
-	object(view["transformation"])["input_source_ids"] = []any{"source.instruction"}
-	object(view["transformation"])["transformation_rule_ref"] = binding["transformation_rule_ref"]
-	context := &controlAgreementTestContext{snapshot: ControlSnapshot{ScopeRef: stringAt(v, "scope_ref"), RunID: stringAt(v, "run_id"), ParticipantAddress: "participants.red", EpisodeID: "episode-1", AudienceScopeRef: stringAt(v, "audience_scope_ref"), EpisodeGeneration: jsonZero, RecordCut: controlJSON(t, v["record_cut"]), Lifecycle: map[[3]string]string{}, Roles: map[string][]string{"cuts.0": {"roles.analyst"}}}, assets: [][]byte{controlJSON(t, asset)}, selections: [][]byte{controlJSON(t, selected)}, surfaces: [][]byte{controlJSON(t, surface)}, views: [][]byte{controlJSON(t, view)}, allow: true}
-	for _, cut := range []string{"cuts.0", "cuts.2", stringAt(surface, "assurance", "derivation_anchor", "state_cut", "cut_ref")} {
-		context.snapshot.Lifecycle[[3]string{"privacy-instruction", "one", cut}] = "active"
-	}
+	v, context, surface, view, binding := controlDisclosureFixture(t)
 	i := validation.Invocation{Key: validation.Key{ContractID: "participant-control-context-record-v1"}, Instance: v, Context: context}
 	if err := e.controlContextAgreement(i); err != nil {
 		t.Fatal(err)
@@ -138,4 +120,28 @@ func TestControlContextDisclosureAndDeliveryResolveExactSources(t *testing.T) {
 	if err := e.controlContextAgreement(i); err == nil {
 		t.Error("accepted mismatched delivery cut")
 	}
+}
+
+func controlDisclosureFixture(t *testing.T) (map[string]any, *controlAgreementTestContext, map[string]any, map[string]any, map[string]any) {
+	t.Helper()
+	v := fixtureObject(t, "fixtures/participant-runtime/participant-control-context-record-v1/valid/delivered.json")
+	selected := fixtureObject(t, "fixtures/participant-runtime/participant-control-context-record-v1/valid/selected-red.json")
+	asset := fixtureObject(t, "fixtures/participant-runtime/participant-control-context-asset-v1/valid/instruction.json")
+	surface := fixtureObject(t, "fixtures/control-plane/participant-decision-surface-v2/valid/delivered-initial.json")
+	binding := object(array(at(surface, "assurance", "exposure_bindings"))[0])
+	binding["source_ref"] = "urn:" + stringAt(v, "asset_ref", "asset_digest")
+	binding["transformation_rule_ref"], binding["source_layer_ref"] = "transformations.redacted-instruction", "source.instruction"
+	object(surface["delivery"])["delivery_cut_ref"] = "cuts.2"
+	view := fixtureObject(t, "fixtures/control-plane/participant-context-view-v1/valid/network-posture-context.json")
+	view["participant_address"], view["episode_id"], view["view_ref"], view["payload_ref"] = "participants.red", "episode-1", at(surface, "participant_view", "context_view_ref"), at(binding, "item_ref")
+	view["visibility_projection_ref"], view["redaction_policy_ref"], view["marking_definition_refs"] = at(surface, "assurance", "visibility_projection_ref"), at(surface, "participant_view", "redaction_policy_ref"), at(surface, "participant_view", "marking_definition_refs")
+	view["derived_from_refs"] = []any{binding["source_ref"]}
+	view["source_layers"] = []any{map[string]any{"source_id": "source.instruction", "source_layer": "participant_control_context_asset", "ref": binding["source_ref"], "temporal_relation": "same_observation_point", "evidence_refs": []any{"evidence.asset"}, "provenance_refs": []any{"provenance.asset"}}}
+	object(view["transformation"])["input_source_ids"] = []any{"source.instruction"}
+	object(view["transformation"])["transformation_rule_ref"] = binding["transformation_rule_ref"]
+	context := &controlAgreementTestContext{snapshot: ControlSnapshot{ScopeRef: stringAt(v, "scope_ref"), RunID: stringAt(v, "run_id"), ParticipantAddress: "participants.red", EpisodeID: "episode-1", AudienceScopeRef: stringAt(v, "audience_scope_ref"), EpisodeGeneration: jsonZero, RecordCut: controlJSON(t, v["record_cut"]), Lifecycle: map[[3]string]string{}, Roles: map[string][]string{"cuts.0": {"roles.analyst"}}}, assets: [][]byte{controlJSON(t, asset)}, selections: [][]byte{controlJSON(t, selected)}, surfaces: [][]byte{controlJSON(t, surface)}, views: [][]byte{controlJSON(t, view)}, allow: true}
+	for _, cut := range []string{"cuts.0", "cuts.2", stringAt(surface, "assurance", "derivation_anchor", "state_cut", "cut_ref")} {
+		context.snapshot.Lifecycle[[3]string{"privacy-instruction", "one", cut}] = "active"
+	}
+	return v, context, surface, view, binding
 }

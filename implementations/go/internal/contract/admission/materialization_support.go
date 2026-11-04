@@ -1,7 +1,5 @@
 package admission
 
-import "strings"
-
 func (r *materializationInventory) preparedSupport(requirement any) error {
 	kind := stringAt(requirement, "requirement_kind")
 	if kind == "compute-substrate" && stringAt(requirement, "explicitness") == termOpen {
@@ -73,7 +71,7 @@ func materializationDeclarationSupport(requirement, declaration any, kind string
 		supported = set(at(declaration, "supported_constraint_kinds"))[kind]
 	case postureExact:
 		exact := set(at(declaration, "supported_exact_requirement_kinds"))
-		supported = exact["declared-capability-match"] && (!strings.HasPrefix(kind, "runtime-") && kind != "linux-capabilities" && kind != "published-ports" && kind != "forwarding-agents" && kind != "service-listeners" || exact[kind])
+		supported = exact["declared-capability-match"] && (!materializationConcernSpecific(kind) || exact[kind])
 	default:
 		return false
 	}
@@ -111,4 +109,34 @@ func materializationArtifactRoute(route any, declarations []any, kind string) bo
 		}
 	}
 	return false
+}
+
+// Match the native registered runtime concerns; a name prefix is not authority.
+func materializationConcernSpecific(kind string) bool {
+	switch kind {
+	case "runtime-environment", "runtime-mounts", "linux-capabilities",
+		"published-ports", "forwarding-agents", "service-listeners",
+		"runtime-filesystem-inventory", "runtime-local-control-interfaces", "runtime-processes",
+		"runtime-restart-policy", "runtime-node-memory-limit", "runtime-node-memory-swap-limit",
+		"runtime-node-cpu-limit", "runtime-node-pids-limit", "runtime-container-entrypoint",
+		"runtime-container-command", "runtime-container-log-driver", "runtime-container-log-options",
+		"runtime-container-namespaces", "runtime-container-privileged", "runtime-container-read-only-rootfs",
+		"runtime-container-publish-all-ports", "runtime-container-autoremove", "runtime-container-shm-size",
+		"runtime-container-masked-paths", "runtime-container-read-only-paths", "runtime-container-cgroup-parent",
+		"runtime-container-runtime-name", "runtime-container-init-process", "runtime-container-devices",
+		"runtime-container-device-cgroup-rules", "runtime-container-seccomp-profile", "runtime-container-security-opt",
+		"runtime-container-extra-hosts", "runtime-container-dns", "runtime-container-dns-options",
+		"runtime-container-dns-search", "runtime-container-group-add", "runtime-local-identity",
+		"runtime-identity-authorities", "runtime-file-services", "runtime-mail-services",
+		"runtime-network-hostname", "runtime-network-domainname", "runtime-network-endpoints",
+		"runtime-applications", "runtime-database-services", "runtime-dns-services",
+		"runtime-network-sensors", "runtime-network-detection-engines", "runtime-security-monitoring-managers",
+		"runtime-ssh-servers", "runtime-datastore-services", "runtime-platform-applications",
+		"runtime-orchestration-authorities", "runtime-app-authorizations", "runtime-scheduled-jobs",
+		"runtime-service-manager-units", "runtime-packages", "runtime-repository-state",
+		"runtime-software-components", "runtime-dependency-manifests":
+		return true
+	default:
+		return false
+	}
 }

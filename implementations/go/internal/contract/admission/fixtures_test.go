@@ -11,13 +11,23 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/internal/contract/corpus"
 )
 
+// Immutable archive and bytes are shared; each call still decodes a fresh tree.
+var sharedFixtureCorpus = sync.OnceValues(corpus.Open) //nolint:gochecknoglobals // Read-only test archive, independent of the corruption tests.
+var sharedFixtureBytes sync.Map                        //nolint:gochecknoglobals // Immutable source bytes; decoded mutable values are never cached.
+
 func fixtureObject(t *testing.T, path string) map[string]any {
 	t.Helper()
-	source, err := corpus.Open()
+	source, err := sharedFixtureCorpus()
 	if err != nil {
 		t.Fatal(err)
 	}
-	raw, err := fs.ReadFile(source, path)
+	read := sync.OnceValues(func() ([]byte, error) { return fs.ReadFile(source, path) })
+	cached, _ := sharedFixtureBytes.LoadOrStore(path, read)
+	load, ok := cached.(func() ([]byte, error))
+	if !ok {
+		t.Fatal("invalid shared fixture reader")
+	}
+	raw, err := load()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,4 +87,14 @@ func TestPublishedLocalFixtures(t *testing.T) {
 	assertObjectRule(t, "manifest-reference-digest-scope-valid", manifest, true)
 	manifest["ref_version"] = "2.0.0"
 	assertObjectRule(t, "manifest-reference-digest-scope-valid", manifest, false)
+}
+
+func TestFixtureObjectsRemainIndependent(t *testing.T) {
+	const path = "fixtures/participant-runtime/participant-control-evaluation-v1/valid/teaching-inject.json"
+	first := fixtureObject(t, path)
+	second := fixtureObject(t, path)
+	object(at(first, "request"))["request_id"] = "substituted"
+	if equal(first, second) || stringAt(fixtureObject(t, path), "request", "request_id") == "substituted" {
+		t.Fatal("mutable fixture data was shared")
+	}
 }
