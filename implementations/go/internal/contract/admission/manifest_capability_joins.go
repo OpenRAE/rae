@@ -5,6 +5,9 @@ func declaredManifestContracts(values any, kind string) bool {
 }
 
 func (e *Validator) manifestBindings(v any, allowed func(string) bool) error {
+	if err := manifestConfigurationTargets(v); err != nil {
+		return err
+	}
 	bindings := array(at(v, "concept_bindings"))
 	if len(rowSet(bindings, "scope")) != len(bindings) {
 		return invalid()
@@ -16,6 +19,48 @@ func (e *Validator) manifestBindings(v any, allowed func(string) bool) error {
 		}
 	}
 	return nil
+}
+
+func manifestConfigurationTargets(v any) error {
+	claimed := map[string]bool{}
+	for key, target := range object(at(v, "configuration_registry", "targets")) {
+		if key != stringAt(target, "target_id") {
+			return invalid()
+		}
+		if err := configurationTargetModel(target); err != nil {
+			return err
+		}
+		for _, name := range append([]string{key}, stringsOf(at(target, "aliases"))...) {
+			if claimed[name] {
+				return invalid()
+			}
+			claimed[name] = true
+		}
+	}
+	return nil
+}
+
+func configurationTargetModel(v any) error {
+	kinds := stringsOf(at(v, "allowed_value_kinds"))
+	if !fieldsUnique(v, "aliases", "allowed_value_kinds") || set(at(v, "aliases"))[stringAt(v, "target_id")] {
+		return invalid()
+	}
+	control := at(v, "control_context")
+	if control != nil && (stringAt(v, "value_type") != "string" || len(kinds) != 1 || kinds[0] != "literal") {
+		return invalid()
+	}
+	secret := stringAt(v, "sensitivity") == sensitivitySecret
+	if secret && (len(kinds) != 1 || kinds[0] != "secret-reference") {
+		return invalid()
+	}
+	def := at(v, "default")
+	if def == nil {
+		return nil
+	}
+	if secret || !set(at(v, "allowed_value_kinds"))["literal"] || !scalarMatches(at(def, "value"), stringAt(v, "value_type")) {
+		return invalid()
+	}
+	return require(control == nil || set(at(control, "references"))[text(at(def, "value"))])
 }
 
 func (e *Validator) processorManifest(v any) error {

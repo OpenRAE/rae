@@ -41,6 +41,8 @@ func loadFullReferenceOwners(t *testing.T) fullReferenceOwners {
 func fullReferenceContext(t *testing.T, e *Validator, o fullReferenceOwners, key string) any {
 	t.Helper()
 	switch key {
+	case "sdl-phase":
+		return recordedSDLPhaseOwner{}
 	case "none":
 		return nil
 	case "backend-operation":

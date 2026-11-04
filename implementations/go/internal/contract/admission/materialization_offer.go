@@ -1,6 +1,7 @@
 package admission
 
 import (
+	"encoding/json"
 	"slices"
 	"strings"
 
@@ -137,12 +138,7 @@ func materializationDomainSubset(sub, sup any) bool {
 func materializationIntervalSubset(sub, sup any) bool {
 	lower, upper := at(sub, "lower"), at(sub, "upper")
 	if numericEqual(lower, upper) {
-		descriptor, err := envelopeDomain(sup)
-		if err != nil {
-			return false
-		}
-		ok, err := domain.In(lower, descriptor)
-		return err == nil && ok
+		return materializationSingletonSubset(sub, sup, lower)
 	}
 	if stringAt(sup, "kind") != termNumericInterval || stringAt(sup, "numeric_type") == termInteger && stringAt(sub, "numeric_type") == "number" {
 		return false
@@ -150,6 +146,22 @@ func materializationIntervalSubset(sub, sup any) bool {
 	lowerOK := numericGreater(lower, at(sup, "lower")) || numericEqual(lower, at(sup, "lower")) && (boolean(defaultMember(sup, "lower_closed", true)) || !boolean(defaultMember(sub, "lower_closed", true)))
 	upperOK := numericGreater(at(sup, "upper"), upper) || numericEqual(upper, at(sup, "upper")) && (boolean(defaultMember(sup, "upper_closed", true)) || !boolean(defaultMember(sub, "upper_closed", true)))
 	return lowerOK && upperOK
+}
+
+func materializationSingletonSubset(sub, sup, lower any) bool {
+	if stringAt(sub, "numeric_type") == termInteger {
+		n, ok := number(lower)
+		if !ok || !n.IsInt() {
+			return false
+		}
+		lower = json.Number(n.Num().String())
+	}
+	descriptor, err := envelopeDomain(sup)
+	if err != nil {
+		return false
+	}
+	ok, err := domain.In(lower, descriptor)
+	return err == nil && ok
 }
 
 func materializationOfferClosed(node any, prefix string, presence map[string][]string, path string, allowed map[string]bool) error {

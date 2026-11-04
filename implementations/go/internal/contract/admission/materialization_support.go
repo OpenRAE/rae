@@ -4,6 +4,9 @@ import "strings"
 
 func (r *materializationInventory) preparedSupport(requirement any) error {
 	kind := stringAt(requirement, "requirement_kind")
+	if kind == "compute-substrate" && stringAt(requirement, "explicitness") == termOpen {
+		return nil
+	}
 	if kind == "process-resource-limits" {
 		return r.processLimits(requirement)
 	}

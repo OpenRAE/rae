@@ -76,7 +76,7 @@ func (e *Validator) evaluatorCapability(v any) error {
 	if !sections["propositions"] && !sections["assertions"] {
 		return nil
 	}
-	if !sections["propositions"] || !sections["assertions"] || !boolean(at(v, "preserves_binding_provenance")) || !equalSet(set(at(v, "supported_truth_outcomes")), set(jsonStrings([]string{"true", "false", statusUnknown, statusUnsupported}))) {
+	if !sections["propositions"] || !sections["assertions"] || !boolean(at(v, "preserves_binding_provenance")) || !equalSet(set(at(v, "supported_truth_outcomes")), set(jsonStrings([]string{termTrue, termFalse, statusUnknown, statusUnsupported}))) {
 		return invalid()
 	}
 	for _, field := range fields {
@@ -104,6 +104,9 @@ func (e *Validator) observationCapability(v any) error {
 		return invalid()
 	}
 	for _, offer := range offers {
+		if len(array(at(offer, "channel_kinds")))+len(array(at(offer, "channel_refs"))) == 0 {
+			return invalid()
+		}
 		if !set(at(v, "supported_capture_kinds"))[stringAt(offer, "capture_kind")] || !subset(stringsOf(at(offer, "channel_kinds")), set(at(v, "supported_channel_kinds"))) || !subset(stringsOf(at(offer, "media_types")), set(at(v, "supported_media_types"))) {
 			return invalid()
 		}

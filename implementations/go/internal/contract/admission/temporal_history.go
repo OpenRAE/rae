@@ -50,7 +50,7 @@ func temporalHistoryEvent(event, attempt, clocks any) error {
 		}
 	}
 	assessments := array(at(event, "temporal_assessments"))
-	if stringAt(event, "event_type") != "observation_emitted" {
+	if stringAt(event, "event_type") != termObservationEmitted {
 		return require(len(assessments) == 0)
 	}
 	if len(assessments) != len(contexts) {
@@ -166,7 +166,7 @@ func temporalParticipantEvent(participant string, event, clocks any, attempts ma
 	if err := temporalHistoryEvent(event, attempts[key], clocks); err != nil {
 		return err
 	}
-	if stringAt(event, "event_type") == "observation_emitted" {
+	if stringAt(event, "event_type") == termObservationEmitted {
 		if completed[key] {
 			return invalid()
 		}

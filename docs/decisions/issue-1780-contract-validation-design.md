@@ -360,7 +360,7 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/internal/contract/admission 899d3a46fb241c21e441ec13e34cf4f7593c302f0c1fa14895dea237f8186ff7 -->
+<!-- go-api implementations/go/internal/contract/admission 27a1d1ee90140c06c7f36da91eb3150f03123343d62d960c52c1b6df8be2a599 -->
 
 ## Model parity repairs
 
@@ -375,3 +375,29 @@ Go retains the source binding, supplied-field comparison and canonical witness d
 Missing, nil, changed or failing owners cannot grant witness admission.
 This adds no retrieval, solver execution or persistence.
 The generator and snapshot tests cover exact limits and stable transport type identity.
+
+Local model regressions also check study factor declarations and allocation membership.
+Blocking factors need declared levels and a governed blocking kind.
+Condition assignments must name declared factors and levels.
+Envelope digest views include the reference model's null defaults, including an omitted witness seed.
+The SDL content owner retains its documented `service-content` profile default when that profile selector is absent.
+That exception applies only to the content service-materialization schema; other missing discriminators still fail.
+These default views preserve the supplied evidence bytes.
+Integer singleton intervals use the reference model's integer witness when checking subset membership.
+Their float-serialized endpoints do not change the declared integer kind.
+Snapshot entries retain exact map-key and embedded-address agreement.
+Stored execution-service records use the same typed state checks as standalone service-state admission.
+Manifest configuration targets retain key, alias and value-kind constraints.
+Capture offers must supply a channel kind or a channel reference.
+
+Configuration target checks also preserve the reference model’s alias namespace, secret/default coupling and pinned control-context values. These are local declaration checks; they grant no external owner authority.
+
+Supplemental local models also enforce participant lifecycle phase coupling, proposition polarity and lineage claim/notice joins. The published schemas continue to own shape and enum checks; these additions reuse the local model visitor without introducing owner authority or new public APIs.
+
+The capture-media rule visits each declared requirement in its enclosing specification. Study references, snapshot archive identities, and participant manifest configuration aliases use their respective local model checks. Integral JSON numbers retain their published integer type even when the Python binding validator distinguishes a float carrier; the regression record keeps that reference verdict separately from the requested integer admission result.
+
+## SDL phase admission owner
+
+Full admission of `sdl-authoring-input-v1`, `instantiated-scenario-v1` and `materialized-scenario-v1` requires the configured SDL compiler owner. The contract package owns the `SDLPhaseOwner`, `SDLPhaseRequest` and `SDLPhaseAdmission` port types. `Validator.Validate` reaches that port after schema and local contract rules pass. The owner admits the complete native phase, including native resource bounds, identities and parameter derivations. It returns the phase contract ID, the SHA-256 commitment to the exact source bytes, and its admitted supplied-field JSON projection.
+
+The contract package copies the request source, rejects mutation, checks the returned phase and commitment, schema-checks the admitted projection and compares its values with the submitted document. Integral JSON numbers compare by exact value; other scalar kinds stay distinct. Owner failures and panics return a value-free refusal. An absent owner cannot produce a full admission value. Portable checks remain explicitly local and do not establish native SDL admission. The existing compiler port continues to own compiled resources for execution and archive checks; this phase port grants no materialization, archive, or runtime-inventory decision.

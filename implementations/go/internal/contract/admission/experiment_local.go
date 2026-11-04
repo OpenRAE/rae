@@ -123,6 +123,14 @@ func captureKeys(i validation.Invocation) error {
 	return nil
 }
 func captureMedia(i validation.Invocation) error {
+	if requirements := object(at(i.Instance, "capture_requirements")); requirements != nil {
+		for _, requirement := range requirements {
+			if err := mediaDeclaration(stringAt(requirement, "output_contract"), stringsOf(at(requirement, "expected_media_types"))); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 	return mediaDeclaration(stringAt(i.Instance, "output_contract"), stringsOf(at(i.Instance, "expected_media_types")))
 }
 func mediaDeclaration(id string, media []string) error {

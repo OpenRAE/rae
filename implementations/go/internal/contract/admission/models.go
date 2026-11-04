@@ -21,6 +21,16 @@ func (e *Validator) localModels(id string, root any) error {
 		return err
 	}
 	switch id {
+	case "participant-behavior-history-event-stream-v1":
+		return behaviorLifecycles(root)
+	case "sdl-lineage-ledger-v1":
+		return lineageLedger(root)
+	case termPropositionTruthResultV1:
+		return propositionTruth(root)
+	case termRuntimeSnapshotV1:
+		return e.snapshotLocalModels(root)
+	case "experiment-study-v1":
+		return studyFactorDeclarations(root)
 	case "semantic-profile-v1":
 		return e.semanticProfile(root)
 	case "scenario-satisfiability-evidence-v1":
@@ -118,7 +128,7 @@ func (e *Validator) checkModels(id string, data []byte, limits ingress.Limits) e
 	var normalized any
 	return e.low.CheckInstances(id, data, limits, func(instance validation.SchemaInstance) error {
 		if instance.Discriminator != "" {
-			if _, present := object(instance.Value)[instance.Discriminator]; !present {
+			if _, present := object(instance.Value)[instance.Discriminator]; !present && !legacyServiceProfileDefault(instance) {
 				return invalid()
 			}
 		}
@@ -157,6 +167,16 @@ func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
 		return err
 	}
 	switch strings.TrimPrefix(instance.SchemaPointer, "#/$defs/") {
+	case "ParticipantBehaviorHistoryEventModel":
+		return behaviorLifecycle(instance.Value)
+	case "PropositionProbeBindingModel":
+		return require(fieldsUnique(instance.Value, "capability_refs"))
+	case "PropositionTruthResultModel":
+		return propositionTruth(instance.Value)
+	case "LineageClaimModel":
+		return lineageClaimDimensions(instance.Value)
+	case "ConfigurationTargetDeclarationModel":
+		return configurationTargetModel(instance.Value)
 	case "SemanticProfileModel":
 		return e.semanticProfile(instance.Value)
 	case "SemanticProfilePhaseModel":

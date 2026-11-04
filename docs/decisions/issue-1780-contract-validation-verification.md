@@ -111,3 +111,16 @@ Each request and trusted context still belongs to its own test.
 Catalog-corruption tests construct a private validator before changing its catalog.
 Constructor and complete-registry tests still exercise fresh production construction.
 The production constructor and the CI timeout remain unchanged.
+
+## Local model regression inputs
+
+Coverage feedback selects additional regression inputs from the retained Python corpus.
+Each selected case keeps its original bytes and input digest.
+The independent Python model used to publish that contract supplies the model verdict.
+Go checks the local invariant and model stages against that verdict.
+These checks do not claim external-context admission.
+The existing full-admission tests still verify the separate owner boundary.
+
+The additional local comparisons retain 581 original inputs, 1,049 additional inputs, 1,760 inputs selected for structural diversity, and two sets of schema-admitted boundary changes (1,357 and 1,346 cases). Each input remains linked to its original corpus hash. A separate published-type result admits the integral JSON number `4.0` in an integer binding. The Python model refusal remains recorded. One run records an additional installed-profile stochastic check separately from its base model result.
+
+Independent function/model records cover 1,800 offer projections and subset relations and 1,584 realization support and process-limit domains. They also cover 108 resource-pool ledger cases, 77 temporal histories/assessments and 47 run accounting/difficulty cases. The native SDL owner records bind 303 exact source inputs to schema and native phase-model verdicts. Source commitments and shard hashes prevent fixture replacement from silently changing an owner response. Full phase admission separately tests absent and faulty owners, source mutation, changed commitments, wrong phase IDs, invalid projections and recovery after refusal.

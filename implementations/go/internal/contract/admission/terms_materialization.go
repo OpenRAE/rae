@@ -129,3 +129,13 @@ const (
 const (
 	termInstantiatedScenarioV1 = "instantiated-scenario-v1"
 )
+
+const (
+	termFalse              = "false"
+	termNotApplicable      = "not_applicable"
+	termObservationEmitted = "observation_emitted"
+)
+
+const (
+	termTrue = "true"
+)

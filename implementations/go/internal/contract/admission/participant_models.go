@@ -20,6 +20,9 @@ func (e *Validator) vocabularyScope(scope string, values any) bool {
 }
 
 func (e *Validator) participantManifest(v any) error {
+	if err := manifestConfigurationTargets(v); err != nil {
+		return err
+	}
 	versions := at(v, "supported_contract_versions")
 	if !participantContractVersions(versions) || !subset(stringsOf(at(v, "capabilities", "supported_participant_contracts")), set(versions)) {
 		return invalid()

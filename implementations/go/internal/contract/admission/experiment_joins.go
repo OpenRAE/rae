@@ -56,7 +56,7 @@ func referenceIn(rows, requirement any) bool {
 	return false
 }
 func (e *Validator) taskRunJoin(task, run any) error {
-	if stringAt(run, "record_state") == "partial" || !equal(at(run, "task_ref", fieldRefID), at(task, "task_id")) || !equal(at(run, "task_ref", fieldRefVersion), at(task, "task_version")) {
+	if stringAt(run, "record_state") == statusPartial || !equal(at(run, "task_ref", fieldRefID), at(task, "task_id")) || !equal(at(run, "task_ref", fieldRefVersion), at(task, "task_version")) {
 		return invalid()
 	}
 	if stringAt(task, "scenario_ref", fieldRefKind) == kindScenarioSnapshot {

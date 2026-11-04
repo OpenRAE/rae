@@ -15,6 +15,9 @@ type testExperimentContext struct {
 func (c testExperimentContext) ExperimentTask() []byte    { return c.task }
 func (c testExperimentContext) ExperimentTasks() [][]byte { return c.tasks }
 func (c testExperimentContext) ExperimentRuns() [][]byte  { return c.runs }
+func (c testExperimentContext) AdmitSDLPhase(request SDLPhaseRequest) (SDLPhaseAdmission, error) {
+	return (recordedSDLPhaseOwner{}).AdmitSDLPhase(request)
+}
 func TestTaskRunAndStudyJoins(t *testing.T) {
 	e := boundTestOwner(t)
 	task := fixtureObject(t, "fixtures/experiment-core/experiment-task-v1/valid/reference.json")

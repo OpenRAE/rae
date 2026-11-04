@@ -93,6 +93,9 @@ func materializationOrigin(v any) error {
 }
 
 func materializationProvenance(v any) error {
+	if err := timestamps(v, "recorded_at"); err != nil {
+		return err
+	}
 	origins := map[string]bool{}
 	for _, origin := range array(at(v, "origins")) {
 		kind := "present"
@@ -119,6 +122,18 @@ func materializationProvenance(v any) error {
 		addresses[a], nodes[n] = true, true
 	}
 	return nil
+}
+
+func materializationRecordsUnique(records any) bool {
+	seen := map[string]bool{}
+	for _, record := range array(records) {
+		identity := join(stringAt(record, "run_id"), stringAt(record, "reference", "ref_id"))
+		if seen[identity] {
+			return false
+		}
+		seen[identity] = true
+	}
+	return true
 }
 
 func materializationInstanceIndex(v any) (string, error) {

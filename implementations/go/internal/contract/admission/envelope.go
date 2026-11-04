@@ -30,6 +30,9 @@ func (e *Validator) envelope(i validation.Invocation) error {
 		return checkErr
 	}
 	configuration := maps.Clone(object(at(v, termConfiguration)))
+	if at(configuration, "operating_systems") == nil {
+		configuration["operating_systems"] = []any{}
+	}
 	if len(array(configuration["process_resource_limits"])) == 0 {
 		delete(configuration, "process_resource_limits")
 	}
@@ -43,6 +46,7 @@ func (e *Validator) envelope(i validation.Invocation) error {
 		return invalid()
 	}
 	payload := maps.Clone(object(v))
+	payload["expression"] = envelopeExpressionDigestView(at(v, "expression"))
 	payload[termConfiguration] = configuration
 	delete(payload, termDigest)
 	canonical, err := sortedJSON(payload)
@@ -50,6 +54,23 @@ func (e *Validator) envelope(i validation.Invocation) error {
 		return err
 	}
 	return require(digest.SHA256([]byte(canonical)) == stringAt(v, termDigest))
+}
+
+func envelopeExpressionDigestView(v any) any {
+	expression := maps.Clone(object(v))
+	for _, name := range []string{"witness_policy", "source_ref", "contract_id", "digest"} {
+		if _, supplied := expression[name]; !supplied {
+			expression[name] = nil
+		}
+	}
+	if policy := object(expression["witness_policy"]); policy != nil {
+		policy = maps.Clone(policy)
+		if _, supplied := policy["seed"]; !supplied {
+			policy["seed"] = nil
+		}
+		expression["witness_policy"] = policy
+	}
+	return expression
 }
 func (e *Validator) vocabularyTerm(id, term string) bool {
 	definition := object(e.vocabularies[id])

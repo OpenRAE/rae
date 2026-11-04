@@ -17,7 +17,7 @@ func (e *Validator) accountingRules() map[string]definition {
 }
 func runAccounting(i validation.Invocation) error {
 	v := i.Instance
-	partial := stringAt(v, "record_state") == "partial"
+	partial := stringAt(v, "record_state") == statusPartial
 	accounting := at(v, "execution_accounting")
 	if partial {
 		if accounting == nil || stringAt(v, "outcome_status") == outcomeSucceeded || stringAt(v, "run_status") == "sealed" {

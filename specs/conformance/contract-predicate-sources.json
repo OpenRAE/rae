@@ -376,7 +376,7 @@
     "evidence-record-raw-content-present": {
       "registration": "implementations/go/internal/contract/admission/experiment_local.go:24",
       "predicate": [
-        "evidenceContent at implementations/go/internal/contract/admission/experiment_local.go:144"
+        "evidenceContent at implementations/go/internal/contract/admission/experiment_local.go:152"
       ],
       "python_owner": "raes_contracts.contracts.ExperimentEvidenceRecordModel._validate_evidence_record"
     },
@@ -717,7 +717,7 @@
     "participant-configuration-digest-valid": {
       "registration": "implementations/go/internal/contract/admission/experiment_local.go:28",
       "predicate": [
-        "configurationDigest at implementations/go/internal/contract/admission/experiment_local.go:207"
+        "configurationDigest at implementations/go/internal/contract/admission/experiment_local.go:215"
       ],
       "python_owner": "raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"
     },
@@ -952,7 +952,7 @@
     "realized-form-disclosure-substantive": {
       "registration": "implementations/go/internal/contract/admission/experiment_local.go:38",
       "predicate": [
-        "realizedDisclosure at implementations/go/internal/contract/admission/experiment_local.go:166"
+        "realizedDisclosure at implementations/go/internal/contract/admission/experiment_local.go:174"
       ],
       "python_owner": "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel._validate_realized_form_disclosure"
     },
@@ -974,7 +974,7 @@
       "registration": "implementations/go/internal/contract/admission/evidence_owner.go:7",
       "predicate": [
         "at at implementations/go/internal/contract/admission/values.go:15",
-        "mediaDeclaration at implementations/go/internal/contract/admission/experiment_local.go:128",
+        "mediaDeclaration at implementations/go/internal/contract/admission/experiment_local.go:136",
         "stringAt at implementations/go/internal/contract/admission/values.go:21",
         "stringsOf at implementations/go/internal/contract/admission/values.go:93"
       ],
@@ -1045,7 +1045,7 @@
     "run-traceability-refs-unique": {
       "registration": "implementations/go/internal/contract/admission/experiment_local.go:39",
       "predicate": [
-        "traceabilityRefs at implementations/go/internal/contract/admission/experiment_local.go:199"
+        "traceabilityRefs at implementations/go/internal/contract/admission/experiment_local.go:207"
       ],
       "python_owner": "raes_contracts.contracts.ExperimentRunTraceabilityModel._validate_run_traceability"
     },
@@ -1271,7 +1271,7 @@
     "trial-replacement-policy-explicit-and-bounded": {
       "registration": "implementations/go/internal/contract/admission/experiment_local.go:34",
       "predicate": [
-        "replacementPolicy at implementations/go/internal/contract/admission/experiment_local.go:158"
+        "replacementPolicy at implementations/go/internal/contract/admission/experiment_local.go:166"
       ],
       "python_owner": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
     },

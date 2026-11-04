@@ -192,7 +192,7 @@ func (e *Validator) disclosureLimitations(i validation.Invocation) error {
 	passed := map[string]bool{}
 	for _, row := range array(at(v, "gate_results")) {
 		passed[stringAt(row, "gate_kind")] = stringAt(row, messageOutcome) == "passed"
-		needs = needs || stringAt(row, messageOutcome) == "not_applicable"
+		needs = needs || stringAt(row, messageOutcome) == termNotApplicable
 	}
 	needs = needs || !subset(stringsOf(at(profile, "required_gate_kinds")), passed)
 	if needs && len(limitations) == 0 {

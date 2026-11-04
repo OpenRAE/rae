@@ -128,7 +128,7 @@ func readFullReferenceJSON(t *testing.T, path string, value any) {
 
 func checkFullReferenceOwners(t *testing.T, sources map[string]string) {
 	t.Helper()
-	if len(sources) != 7 {
+	if len(sources) != 8 {
 		t.Fatal("full reference owners changed")
 	}
 	for path, expected := range sources {

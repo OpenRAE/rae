@@ -10,10 +10,7 @@ import (
 
 func assertRule(t *testing.T, id, raw string, valid bool) {
 	t.Helper()
-	e, err := newCatalogOwner()
-	if err != nil {
-		t.Fatal(err)
-	}
+	e := boundTestOwner(t)
 	instance := decodeRuleObject(t, raw)
 	rule, ok := e.checker(id)
 	if !ok {
