@@ -1704,7 +1704,7 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         "go mod verify",
         "golangci-lint run ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
-        "go test -v -race -covermode=atomic -coverprofile=cover.out ./...",
+        "go test -p 1 -v -race -covermode=atomic -coverprofile=cover.out ./...",
         "exit !(total >= 90)",
         "go test -list '^Fuzz' ./...",
         '-fuzztime 20s "${package}" || exit 1',
