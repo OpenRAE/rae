@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.7.3](https://github.com/OpenRAE/rae/compare/v10.7.2...v10.7.3) (2026-11-04)
+
+
+### Bug Fixes
+
+* admit materialized SDL against projected runtime snapshots ([#1904](https://github.com/OpenRAE/rae/issues/1904)) ([93e9703](https://github.com/OpenRAE/rae/commit/93e9703c13d213816bc595b73d96b7058f40ab2f))
+
 ## [10.7.2](https://github.com/OpenRAE/rae/compare/v10.7.1...v10.7.2) (2026-11-04)
 
 
