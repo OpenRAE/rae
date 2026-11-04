@@ -56,6 +56,12 @@ def _lowered_requirement(
         value_domain=requirement.value_domain,
         apparatus_closure=decision,
     )
+    scalar_only = (
+        root_open
+        and document is not None
+        and not any(scope.closure.posture.value == "open" for scope in document.scopes)
+    )
+    explicitness = ExplicitnessClass.CONSTRAINED if scalar_only else ExplicitnessClass.OPEN
     lowered = replace(
         requirement,
         structure=structure,
@@ -63,7 +69,7 @@ def _lowered_requirement(
         constraint_binding=binding,
         structure_error=error or pending,
         recursive_pending=False,
-        explicitness=ExplicitnessClass.OPEN if root_open else requirement.explicitness,
+        explicitness=explicitness if root_open else requirement.explicitness,
     )
     return lowered, root_open
 
@@ -93,7 +99,7 @@ def resolve_pending_recursive_constraints(
         return model
     scenario = model.realization_instance
     registered = _registered_concerns(scenario)
-    requirements, opened = [], set()
+    requirements, opened = [], {}
     for requirement in model.realization_requirements:
         if not requirement.recursive_pending:
             requirements.append(requirement)
@@ -102,10 +108,12 @@ def resolve_pending_recursive_constraints(
             requirement, registered=registered, decisions=decisions, scenario=scenario
         )
         if root_open:
-            opened.add((requirement.address, requirement.field_path, requirement.requirement_kind))
+            opened[(requirement.address, requirement.field_path, requirement.requirement_kind)] = (
+                RealizationAuthorityMode(resolved.explicitness.value)
+            )
         requirements.append(resolved)
     authorities = tuple(
-        replace(authority, mode=RealizationAuthorityMode.OPEN)
+        replace(authority, mode=opened[(authority.address, authority.field_path, authority.requirement_kind)])
         if (authority.address, authority.field_path, authority.requirement_kind) in opened
         else authority
         for authority in model.realization_authority
