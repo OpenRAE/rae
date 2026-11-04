@@ -1,7 +1,6 @@
 """Realization-requirement compilation (SEM-218)."""
 
 from collections.abc import Mapping
-from dataclasses import replace
 
 from raes.explicitness import ExplicitnessRecord
 from raes.nodes import NodeType
@@ -282,10 +281,13 @@ def _structured_registered_posture(
     scalar_only = compiled.constraint_document is not None and not any(
         scope.closure.posture.value == "open" for scope in compiled.constraint_document.scopes
     )
-    return replace(
-        posture,
+    return CompiledRegisteredPosture(
         explicitness=ExplicitnessClass.CONSTRAINED if scalar_only else ExplicitnessClass.OPEN,
+        provenance=posture.provenance,
+        governing_scope=posture.governing_scope,
+        delegated=posture.delegated,
         mode=RealizationAuthorityMode.CONSTRAINED if scalar_only else RealizationAuthorityMode.OPEN,
+        source=posture.source,
     )
 
 

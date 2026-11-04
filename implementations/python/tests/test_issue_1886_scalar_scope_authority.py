@@ -156,6 +156,9 @@ def test_serialized_authority_matches_recursive_document(scalar_scope_plan):
     )
     assert evaluate_realization_constraint(authority.constraint_document, projected).conformant
     assert authority.mode is RealizationAuthorityMode.CONSTRAINED
+    assert authority.provenance.value == "author-declared"
+    assert authority.source.value == "authored-leaf"
+    assert authority.governing_scope == "#/nodes/cloud/runtime/identity_authorities"
 
 
 def test_unrelated_omissions_remain_closed(scalar_scope_plan):
