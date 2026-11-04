@@ -615,9 +615,13 @@ jobs:
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |
+          set -o pipefail
           log="${RUNNER_TEMP}/go-test-${{ matrix.name }}.log"
           # Give each race-tested package the runner CPUs within its package timeout.
-          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... -p 1 > "${log}" 2>&1; then
+          # Stream top-level progress while retaining complete test diagnostics.
+          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... -p 1 2>&1 |
+            tee "${log}" |
+            awk '/^=== RUN   Test[^/ ]+$/ || /^--- (PASS|FAIL): Test/ || /^panic:/ || /^FAIL/ { print; fflush() }'; then
             cat "${log}"
             exit 1
           fi
@@ -638,8 +642,11 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
       - name: Fuzz each fuzz target for a bounded time
+        # Product fuzzing shares the independent Go architecture job below.
+        if: ${{ matrix.name != 'product' }}
         working-directory: ${{ matrix.path }}
         run: |
+          set -o pipefail
           go test -list '^Fuzz' ./... |
             awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
             while read -r package target; do
@@ -874,9 +881,11 @@ jobs:
 
   # The architecture check of the Go code (ADR-122). It runs once from the
   # repository root and checks the model, the ADR-122 rule table, and the code
-  # of every Go module.
+  # of every Go module. Product fuzz checks reuse its toolchain and run beside
+  # the race/coverage job; both checks remain in the required aggregate.
   go-architecture:
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
@@ -908,6 +917,16 @@ jobs:
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck
           "${RUNNER_TEMP}/go-tools/archcheck"
+      - name: Fuzz each product fuzz target for a bounded time
+        working-directory: implementations/go
+        timeout-minutes: 6
+        run: |
+          set -o pipefail
+          go test -list '^Fuzz' ./... |
+            awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
+            while read -r package target; do
+              go test -run '^$' -fuzz "^${target}\$" -fuzztime 20s "${package}" || exit 1
+            done
 
   # SonarCloud quality gate. It runs inside this graph, depending only on the
   # exact source and the combined coverage, so it starts as soon as coverage is

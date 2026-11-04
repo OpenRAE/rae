@@ -210,6 +210,8 @@ The Go fixture tests independently scan the packaged contract inventory.
 The canonical workflow retains strict lint, repository analyzers, architecture,
 race tests, a 90 percent coverage floor, regression checks and fuzz smoke tests.
 Normal Go jobs have a 25-minute limit.
+Product fuzz checks run with the Go architecture checks, in parallel with the
+race and coverage job. Both jobs must pass the canonical gate.
 ADR-121 records the separate mutation policy; mutation thresholds are unchanged.
 The evidence note links the dated design checks that preceded implementation.
 Passing hosted results can only be recorded after publication.
