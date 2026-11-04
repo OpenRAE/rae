@@ -27,6 +27,7 @@ from raes_contracts.runtime_state import (
     RealizationProvenanceEntry,
     RuntimeSnapshot,
 )
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_contracts.vocabulary import observation_requirement_satisfied
 
 from .realization_compute_substrate import evaluate_compute_substrate
@@ -234,7 +235,9 @@ def _projected_constraints_rejected(
 ) -> bool:
     if requirement.constraint_document is not None:
         return (
-            evaluate_realization_constraint(requirement.constraint_document, realized_projection).status
+            evaluate_realization_constraint(
+                requirement.constraint_document, realized_projection, limits=PLAN_AUTHORITY_LIMITS
+            ).status
             is not RealizationRelationStatus.CONFORMANT
         )
     if requirement.structure is not None and not structure_matches(

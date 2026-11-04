@@ -25,6 +25,7 @@ from raes_contracts.realization_structure import (
     structure_matches,
 )
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 
 from ..semantics.realization_comparison import portable_realization_value
 from ..semantics.realization_concern_observations import typed_runtime_observation_shape
@@ -109,7 +110,9 @@ def _authority_value_valid(authority: ResolvedRealizationAuthority, expected: ob
 
     actual = portable_realization_value(actual)
     if authority.constraint_document is not None:
-        return evaluate_realization_constraint(authority.constraint_document, actual).conformant
+        return evaluate_realization_constraint(
+            authority.constraint_document, actual, limits=PLAN_AUTHORITY_LIMITS
+        ).conformant
     if authority.mode in _OPEN_AUTHORITY_MODES and authority.structure is None:
         # The incumbent selection gate above has already checked all finite
         # bounds. The template is one member, not a fixed choice.

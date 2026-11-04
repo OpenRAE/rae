@@ -43,6 +43,7 @@ class CompiledRealizationRequirement:
     constraint_binding: str | None = None
     structure_error: bool = False
     recursive_pending: bool = False
+    constraint_limit_message: str | None = None
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)

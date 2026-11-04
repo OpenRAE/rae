@@ -23,6 +23,7 @@ from ._legacy import (
     realization_member_identity,
     structure_matches,
 )
+from ._limits import validate_realization_constraint_document
 from ._models import (
     DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     DEFAULT_UNDEFINED_REALIZATION_CLOSURE,
@@ -99,5 +100,6 @@ __all__ = [
     "structure_matches",
     "upgrade_legacy_realization_structure",
     "validate_realization_value",
+    "validate_realization_constraint_document",
     "realization_constraint_binding",
 ]

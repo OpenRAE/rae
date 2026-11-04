@@ -19,6 +19,7 @@ from raes_contracts.planning import (
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
 from raes_contracts.realization_structure import evaluate_realization_constraint, realization_constraint_binding
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_contracts.vocabulary import ProcessResourceLimitKind, ProcessResourceLimitScope
 
 from ..semantics.realization import (
@@ -196,10 +197,14 @@ def _recursive_binding_diagnostic(plan: ProvisioningPlan) -> Diagnostic | None:
         try:
             # The projection and binding owners refuse a malformed submitted value (E3).
             projected = project_realization_concern(authority.requirement_kind, selected, recursive=True)
-            binding = realization_constraint_binding(authority.constraint_document, projected)
+            binding = realization_constraint_binding(
+                authority.constraint_document, projected, limits=PLAN_AUTHORITY_LIMITS
+            )
             valid = binding == authority.constraint_binding
             if valid and authority.mode is not RealizationAuthorityMode.OPEN:
-                valid = evaluate_realization_constraint(authority.constraint_document, projected).conformant
+                valid = evaluate_realization_constraint(
+                    authority.constraint_document, projected, limits=PLAN_AUTHORITY_LIMITS
+                ).conformant
         except TypeError, ValueError:
             valid = False
         if not valid:

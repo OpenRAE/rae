@@ -22,6 +22,7 @@ from raes_contracts.realization_structure import (
     validate_realization_value,
 )
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS, RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 from ..semantics.realization_concerns import realization_concern_descriptors
 
@@ -34,7 +35,7 @@ def prepared_node_payload_projection(payload: Mapping[str, Any]) -> dict[str, An
     Raise ``InvalidInputError`` when the payload exceeds its bounds or a concern value is malformed.
     """
 
-    if not validate_realization_value(payload, python_carriers=True).conformant:
+    if not validate_realization_value(payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
         raise InvalidInputError("prepared node exceeds its recursive projection bounds")
     projected = deepcopy(payload)
     for descriptor in realization_concern_descriptors():
@@ -72,6 +73,7 @@ def prepared_node_document(payload: Mapping[str, Any]) -> object:
     built = normalize_realization_literal(
         selected,
         semantic_profile=_PROFILE,
+        limits=PLAN_AUTHORITY_LIMITS,
         default_closure=RealizationClosure(posture="closed", universe="portable-node-value", profile=_PROFILE),
         metadata=RealizationNormalizationMetadata(
             origins=_backend_origins(selected),
@@ -104,6 +106,7 @@ def prepared_node_delivery_violation(selected: ProvisioningPlan, snapshot: Runti
             or not evaluate_realization_constraint(
                 prepared_node_document(operation.payload),
                 prepared_node_payload_projection(entry.payload),
+                limits=PLAN_AUTHORITY_LIMITS,
             ).conformant
         ):
             return "Backend did not deliver its admitted portable node completion."

@@ -149,6 +149,29 @@ value-free `Diagnostic`. Invalid shape, nonconformance, unresolved knowledge,
 unsupported semantics, and exhaustion are distinct outcomes. Only `conformant`
 is a success claim.
 
+For registered realization concerns, the Python compiler and planner use
+the fixed `PLAN_AUTHORITY_LIMITS` profile from `raes_contracts.runtime_value_limits`.
+It applies to recursive source admission,
+normalization, integrity binding, serialized plan authority, prepared selections,
+and delivered-value evaluation. Each relation permits 65,536 nodes and 1,048,576 operations.
+The limits allow 65,536 metadata members and identity checks.
+They retain depth 32, 256 reference hops, and 16 diagnostics.
+Scalar bounds are 1 MiB per value and 8 MiB in total.
+Published structural cardinality bounds still apply, including 4,096 members
+per keyed collection or sequence. Aggregate plans and runtime carriers also
+retain their existing `PLAN_VALUE_LIMITS` and `RUNTIME_SNAPSHOT_VALUE_LIMITS`.
+The profile supports a concrete 500-secret inventory without changing author values
+or dividing its source node. An over-budget compilation reports
+`realization.limit-exceeded` and the exhausted limit, separately from an
+unrepresentable semantic bound. Backend-supplied data cannot raise these limits.
+
+Generic relation APIs retain `DEFAULT_REALIZATION_CONSTRAINT_LIMITS` unless a
+caller supplies explicit finite `limits`. This includes
+`realization_constraint_binding`; changing its admission limits does not change
+the binding digest for the same admitted constraint and source projection.
+`validate_realization_constraint_document` admits authority without evaluating
+a selected value or granting realization permission.
+
 The pure relation layer performs no network fetch, plugin/profile code
 execution, secret lookup, subprocess, filesystem mutation, backend call,
 observation, persistence, or export. Diagnostic messages do not include raw

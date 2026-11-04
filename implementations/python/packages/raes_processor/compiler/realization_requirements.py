@@ -356,6 +356,7 @@ def _compiled_registered_realization(
         constraint_document=compiled.constraint_document,
         constraint_binding=compiled.constraint_binding,
         structure_error=compiled.structure_error,
+        constraint_limit_message=compiled.constraint_limit_message,
         recursive_pending=compiled.recursive_pending,
     )
     return requirement, authority

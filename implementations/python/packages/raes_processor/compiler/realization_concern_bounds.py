@@ -42,6 +42,7 @@ class _ConcernStructure:
     structure_error: bool = False
     recursive_pending: bool = False
     root_open: bool = False
+    constraint_limit_message: str | None = None
 
 
 def _compiled_process_resource_limits(
@@ -121,7 +122,7 @@ def _concern_structure(
 ) -> _ConcernStructure:
     """Compile the recursive structure one explicitly recorded concern lowers to."""
 
-    structure, document, binding, error, root_open, pending = compile_registered_constraint(
+    structure, document, binding, error, root_open, pending, limit_message = compile_registered_constraint(
         scenario,
         registered,
         explicitness,
@@ -134,6 +135,7 @@ def _concern_structure(
         constraint_document=document,
         constraint_binding=binding,
         structure_error=error,
+        constraint_limit_message=limit_message,
         recursive_pending=pending,
         root_open=root_open,
     )
