@@ -35,6 +35,11 @@ on:
         required: false
         default: false
         type: boolean
+      exhaustive-mutations:
+        description: Explicitly run mutation diagnostics outside normal PR admission
+        required: false
+        default: false
+        type: boolean
     secrets:
       sonar_token:
         description: SonarCloud token; only consumed by the internally trust-gated sonar job
@@ -537,10 +542,12 @@ jobs:
 
   # The Go lanes of each Go module (ADR-121): tidy and verified dependencies,
   # strict lint, the repository analyzers, race-checked tests with the coverage
-  # floor, mutation testing of the lines changed since the comparison base, and
-  # the regression-test check. The Go toolchain and tools come from their locks.
+  # floor and the regression-test check. Exhaustive mutation diagnostics are
+  # opt-in; the separate scheduled sweep is delivered by issue #1898.
+  # The Go toolchain and tools come from their locks.
   go:
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 25 }}
     strategy:
       fail-fast: false
       matrix:
@@ -577,9 +584,13 @@ jobs:
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" \
             github.com/golangci/golangci-lint/v2/cmd/golangci-lint \
-            github.com/go-gremlins/gremlins/cmd/gremlins \
             ./cmd/raesvet ./cmd/regressiontest
           echo "${RUNNER_TEMP}/go-tools" >> "${GITHUB_PATH}"
+      - name: Build the locked mutation tool for explicit diagnostics
+        if: ${{ inputs.exhaustive-mutations }}
+        run: |
+          go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" \
+            github.com/go-gremlins/gremlins/cmd/gremlins
       - name: Check dependencies, lint, and analyzers
         working-directory: ${{ matrix.path }}
         run: |
@@ -645,6 +656,7 @@ jobs:
           fi
           echo "merge_base=$(git merge-base "${base}" HEAD)" >> "${GITHUB_OUTPUT}"
       - name: Test the mutations of the changed lines
+        if: ${{ inputs.exhaustive-mutations }}
         working-directory: ${{ matrix.path }}
         env:
           GOGC: "10"

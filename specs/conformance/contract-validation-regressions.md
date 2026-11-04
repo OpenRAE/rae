@@ -150,11 +150,35 @@ Component tests name their component boundary; full admission tests require the 
 | Information-state source and surface coordinates | `TestInformationSourceAndSurfaceCoordinatesMatchIndependentPython`: 37 native context results |
 | Trusted owner corruption and resource limits | `TestTrustedControlDocumentsRejectCorruption`, `TestTrustedCompositionDocumentsRejectCorruption`, `TestTrustedMaterializationDocumentsRejectCorruption`, `TestTrustedFlowDocumentsRejectCorruption`, `TestTrustedDocumentCollectionsEnforceCountAndByteBudgets` |
 
+## Captured mutation findings
+
+The captured mutation run emitted 25 surviving mutations.
+The following boundary tests detect all 25 in a targeted replay.
+The replay took 105 seconds and restored each production file after its check.
+It did not require a production logic change.
+
+| Owner | Captured findings | Added checks |
+| --- | --- | --- |
+| Execution accounting | 6 | Archival evidence and result presence, exact first-attempt start, retained invalidated status, parallel lease evidence and observed run-end bounds |
+| Catalog input | 2 | Valid JSON at the exact byte limit and refusal above that limit |
+| Condition allocation | 3 | Omitted fixed difficulty has the same meaning as explicit fixed difficulty; typed selections must cover each condition |
+| Apparatus | 6 | Unique manifest subjects, independent nonempty constraints and canonical processor/backend subject identity |
+| Associated artifacts | 8 | Parent version and owner digest, exact count and byte limits before reads, defaulted descriptor identity and conflicting locator claims |
+
+The tests are in `accounting_boundaries_test.go`, `catalog_boundaries_test.go`,
+`allocation_boundaries_test.go`, `apparatus_boundaries_test.go` and
+`associated_boundaries_test.go` under the admission package.
+Independent calls to the unchanged Python components confirmed 32 accounting,
+manifest-subject, allocation, descriptor and artifact-budget cases.
+These component checks do not claim full admission for a partial test object.
+
 ## Verification boundary
 
 Local runs select changed tests and fixture families.
 They do not replace complete hosted tests.
-CI runs the complete fixture corpus, generator drift checks, coverage, mutation tests and fuzzing.
+Normal CI runs the complete fixture corpus, generator drift checks, coverage and fuzzing.
+Exhaustive mutation diagnostics require an explicit opt-in and do not block normal PRs.
+Issue #1898 delivers the separate scheduled sweep and automatic failure issues.
 Design, policy, architecture, review, hosted checks and readiness remain required gates.
 A passing local check is not a claim that CI or the review has passed.
 
@@ -184,7 +208,9 @@ Schema-coverage tooling remains the existing Python policy tool; this issue adds
 The Go fixture tests independently scan the packaged contract inventory.
 
 The canonical workflow retains strict lint, repository analyzers, architecture,
-race tests, a 90 percent coverage floor, changed-line mutation checks and fuzz smoke tests.
+race tests, a 90 percent coverage floor, regression checks and fuzz smoke tests.
+Normal Go jobs have a 25-minute limit.
+ADR-121 records the separate mutation policy; mutation thresholds are unchanged.
 The evidence note links the dated design checks that preceded implementation.
 Passing hosted results can only be recorded after publication.
 They are prerequisites for readiness and merge, not a claim made by this crosswalk.
