@@ -19,6 +19,7 @@ MATERIALIZATION_LIMIT_ERROR = "materialization_limit_exceeded"
 MaterializationDigest = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
 # One admitted SDL document body. ``max_length`` counts characters; validators also check UTF-8 bytes.
 MaterializationDocument = Annotated[str, Field(min_length=1, max_length=MATERIALIZATION_MAX_BYTES), DOCUMENT_SCALAR]
+type MaterializationReportingScope = Literal["all-phases", "provisioning"]
 
 
 def require_materialization_document_bytes(value: str, subject: str) -> None:
@@ -41,6 +42,9 @@ class MaterializationSource(ContractModel):
     instantiated_digest: MaterializationDigest
     run_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
     target_scope: InventoryTargetScope | None = Field(default=None, exclude_if=lambda value: value is None)
+    reporting_scope: MaterializationReportingScope = Field(
+        default="all-phases", exclude_if=lambda value: value == "all-phases"
+    )
 
     @property
     def augmentation_scope_required(self) -> bool:
@@ -87,6 +91,7 @@ __all__ = [
     "MATERIALIZATION_LIMIT_ERROR",
     "MATERIALIZATION_MAX_BYTES",
     "MaterializationDocument",
+    "MaterializationReportingScope",
     "MaterializationSource",
     "MaterializationSubmission",
     "require_materialization_document_bytes",

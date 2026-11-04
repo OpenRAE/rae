@@ -59,6 +59,22 @@ including when there are no additions. It MUST describe the state after every ma
 This also includes each rewrite that sets up evidence. Each producer keeps its own scope and provenance.
 If their claims overlap and conflict, they MUST NOT be merged by precedence. A partial or stale report cannot prove that materialization is complete.
 
+The bound `MaterializationSource.reporting_scope` selects `all-phases` (the
+default) or `provisioning`. The latter requires the initial provisioning
+description without requiring further descriptions for orchestration or
+evaluation. The complete source MUST remain bound to all phase plans. A later
+phase with prospective in-world augmentation MUST still return its description;
+this scope MUST NOT waive augmentation admission. Any description supplied in
+a later phase MUST undergo the same admission checks. This selection MUST NOT
+disable scoped command results, requested evidence capture or resource cleanup.
+It MUST NOT imply a request for inventory refresh or end-state SDL.
+
+Native observation commitments and presence markers MUST be compared with
+typed SDL through the owning realization concern semantics. They MUST NOT be
+parsed as SDL fields or require raw protected values in portable observations.
+Comparison MUST retain exact identities, inventory membership, presence and
+execution/source bindings.
+
 The attestation is required for safe records of runtime origin. It does not implicitly
 request a new guest probe, independent observation, experimental evidence
 collection, or export. Their existing rules still decide when those actions are required, allowed or forbidden.
