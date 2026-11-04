@@ -25,6 +25,7 @@ from raes_contracts.contracts.experiment_task import ExperimentTaskModel
 
 from ..artifact_checksums import checksum_hasher
 from ..canonical import canonical_json_digest
+from ..evidence_integrity import validate_evidence_integrity_mode
 from ..json_ingress import JSONValue, StrictJsonIngressError, parse_bounded_json, parse_bounded_json_object
 from ..json_pointer import array_index, unescape_token
 from ..timestamps import parse_rfc3339_datetime
@@ -218,6 +219,7 @@ def _validate_artifact_content(
         raise ValueError("required emitted evidence has no concrete byte reader")
     _validate_artifact_metadata(requirement, record, artifact)
     _validate_evidence_locator(artifact.uri)
+    _validate_artifact_integrity(requirement, artifact)
     identity = canonical_json_digest(artifact.model_dump(mode="json"))
     if identity not in cache.payloads:
         cache.payloads[identity] = _read_payload(
@@ -228,7 +230,6 @@ def _validate_artifact_content(
     payload, checksum = cache.payloads[identity]
     if checksum.casefold() != artifact.checksum.value.casefold():
         raise ValueError("emitted evidence checksum does not match the captured bytes")
-    _validate_artifact_integrity(requirement, artifact)
     document_key = (identity, requirement.output_contract)
     if document_key not in cache.documents:
         cache.documents[document_key] = _parse_contract_document(
@@ -257,11 +258,7 @@ def _validate_artifact_integrity(
     artifact: ExperimentArtifactRefModel,
 ) -> None:
     for integrity in requirement.integrity_requirements:
-        if integrity in {"checksum", "sha256-digest"}:
-            if integrity == "sha256-digest" and artifact.checksum.algorithm != "sha256":
-                raise ValueError("emitted evidence does not satisfy the required sha256 integrity mode")
-        else:
-            raise ValueError(f"emitted evidence cannot prove integrity requirement {integrity!r}")
+        validate_evidence_integrity_mode(integrity, artifact.checksum.algorithm)
 
 
 def _validate_field_selectors(requirement: ExperimentCaptureRequirementModel, document: JSONValue) -> None:
