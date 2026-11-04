@@ -7,9 +7,17 @@ The generated view lists the code that exists now.
 An empty layer is planned, not implemented.
 Python remains the behavioral reference for components not yet ported.
 
+The [runtime repository split](../decisions/issue-1891-runtime-repository-boundary.md) takes effect at the common #1804 Go launch.
+`OpenRAE/rae` retains SDL, processor, canonical contracts, portable backend interfaces/stubs and pure conformance.
+The planned runtime repository owns execution, control-plane/HTTP/store/worker behavior and live conformance.
+Runtime imports released public `rae` APIs; `rae` product modules never import runtime.
+The [complete source inventory](../decisions/issue-1891-runtime-extraction-inventory.json) pins the current baseline and mixed responsibilities.
+No destination or source transfer is approved by this plan.
+
 ## Components and consumer boundary
 
-Environment packs, LilRAE and Coldlight use the Go module.
+Environment packs and LilRAE consume the relevant public language/processor/contract/backend APIs.
+Coldlight embeds the shared runtime from its planned new repository owner.
 [Issue #1825](https://github.com/OpenRAE/rae/issues/1825) owns their public package design and compatibility policy.
 No product package is downstream-importable today.
 The `public` flag is for layers.
@@ -23,24 +31,31 @@ flowchart TB
         Providers[Store / lease / clock providers]
         API[Consumer API - issue 1825 - planned]
     end
-    subgraph RAES[RAES Go module]
-        Transport[CLI / MCP / HTTP adapters - planned]
-        App[Shared application services - planned]
+    subgraph RAES[OpenRAE/rae - language and contract authority]
+        Transport[Authoring CLI / MCP adapters - planned]
+        App[Authoring services - planned]
         SDL[SDL admission - planned]
         Contracts[Published contract admission - planned]
         Processor[Compilation / planning / trial compilation - planned]
-        Runtime[Shared runtime control plane - planned]
         Backend[Backend interfaces - planned]
         Base[Shared base primitives - implemented]
+    end
+    subgraph RuntimeRepo[Runtime repository - planned]
+        Runtime[Shared runtime control plane - planned]
+        HTTP[HTTP adapter - planned]
+        CLI[Combined raes publisher - planned]
     end
     Consumers --> API
     API --> App
     Transport --> App
     App --> SDL
     App --> Processor
-    App --> Runtime
+    CLI --> Transport
+    HTTP --> Runtime
     SDL --> Contracts
     Processor --> SDL
+    Runtime --> Processor
+    Runtime --> Contracts
     Runtime --> Backend
     Runtime --> Providers
     Contracts --> Base
@@ -56,7 +71,7 @@ RAES owns semantic admission, defaults, schemas, vocabulary and address grammar.
 Consumer adapters must not call Python.
 They must not copy core checks.
 
-Coldlight embeds the shared runtime selected by ADR-104 and ADR-113.
+Coldlight embeds the shared runtime selected by ADR-104 and ADR-113, using the new runtime repository's released API after cutover.
 Its planned API includes actor-bound submissions, idempotent receipts, snapshots, participant transitions and audit.
 It also includes store, lease and clock interfaces and Temporal execution adapters.
 ADR-104's P0/P1/P2 profiles describe reference capabilities, not proof of Go delivery.
@@ -72,11 +87,13 @@ flowchart LR
         Auth[Authentication and route authority]
         Secrets[Native credentials and resources]
     end
-    subgraph Core[RAES admission and policy boundary]
+    subgraph Core[rae language and contract authority]
         Ingress[Bounded ingress - implemented primitive]
         Admission[Schema and semantic admission - planned]
-        Policy[Actor / scope / target policy - planned]
         Plan[Compilation and planning - planned]
+    end
+    subgraph RuntimeRepo[Runtime repository - existing protection boundary preserved]
+        Policy[Actor / scope / target policy - planned]
         Runtime[Shared operation runtime - planned]
     end
     Documents -->|bounded supplied bytes| Ingress
@@ -126,6 +143,12 @@ Review checks these trust explanations whenever bound evidence changes.
 | Contract admission and defaults | Planned contract layer; reuse published schemas and concept authority, not transport validators |
 | Operation and persistence semantics | Planned runtime layer; transports and embedders share the same core |
 | Architecture checks | Tooling `arch`; standard Go types and existing model/findings, no product-internal imports |
+
+These primitive owners stay in `rae`.
+Required consumer types become importable under #1825/#1892; the model's `public` flag does not override Go `internal` visibility.
+Pure conformance, authoring services and MCP remain in `rae`; live conformance, execution services, HTTP and combined `raes` publication belong with runtime.
+The current model graph below still describes this checkout before extraction.
+Its layer descriptions and bound split decision define future ownership; no moved package is claimed as delivered.
 
 Compatibility reasons and parity evidence:
 [canonical JSON](../decisions/issue-1779-canonical-json-design.md),
@@ -244,12 +267,13 @@ flowchart BT
 | Trust-view evidence | SHA-256 |
 | --- | --- |
 | `contracts/schemas/experiment-core/materialization-archive-record-v1.json` | `fb61b1d9bb70ffedf7fec94325c3751a29ef7db7f6e8bea8fc96c064d101ba90` |
+| `docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md` | `8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa` |
 | `docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md` | `938ce2443ce7bd9e5cfa151d9740610ac23fa4338efa48c3cb022c7543bab24a` |
-| `docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md` | `b8a790286f92fa21777e4220ec25a321273fe2c6741345732d9aa14bc448e2cf` |
+| `docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md` | `790d2c4119d2c37562aaad3d5cee3ffa4740ac150511f035f3376dd46d28e4b0` |
 | `docs/decisions/adrs/adr-113-reusable-execution-machinery.md` | `6d904befc0d37d44b07ed083d297c7a0e3ba0d520d79f9ddce1999477c78e91d` |
-| `docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md` | `d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558` |
+| `docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md` | `e7994a017f64937bfa48edfb8600b933e2acca330a2d5ebaef8a6ae95fcc91be` |
 | `docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md` | `a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa` |
-| `docs/decisions/adrs/adr-122-go-architecture-model.md` | `478e8d6587a2c040bb50d4ba5a53e5f31fe989d78e53157079f5d003efcbe464` |
+| `docs/decisions/adrs/adr-122-go-architecture-model.md` | `5c481df8a3f5bfc4f56af8701c94fe7ac66a9257c8895a3c98d01691b631c2c5` |
 | `docs/decisions/issue-1775-go-architecture-model-design.md` | `d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8` |
 | `docs/decisions/issue-1778-parity-corpus-design.md` | `c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830` |
 | `docs/decisions/issue-1779-canonical-json-design.md` | `c68392c70e55eabd39a1d1b287c082fc98b40aea2a50a90a43384f34aea752a3` |
@@ -257,17 +281,18 @@ flowchart BT
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
 | `docs/decisions/issue-1779-shared-primitives-completion.md` | `6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e` |
 | `docs/decisions/issue-1859-go-architecture-contract-design.md` | `7a90a0ef49ec5024dfde3cdac2f99266e8a0db0148327e81dde8517dee422cf6` |
-<!-- go-component base 7abf1dde0173278473975444402336d82a95e1bac6b63fae7769e99da588005f -->
-<!-- go-component contract b1c451237f4d7bb3156c715149f4a29115e76d6d429766b5beba1c6b8d532674 -->
-<!-- go-component sdl 252a7d5d0c6c8a5f94269ff20cae4a514b984ed1e9ad2b4cb344737ab11d3a18 -->
-<!-- go-component processor e3071c20a641fc52ce8447395e8c04bacecb33a40ddc7c4b208e8ada9db69f41 -->
-<!-- go-component backend b26b983fbab5e5f59241d61e70090b3aaecdc40b94245893b9c77b6ff84cd876 -->
-<!-- go-component runtime 3daca0b4e4c66f949d031e85975707de688e7e578ac42558580df5653a8ce2b4 -->
-<!-- go-component conformance 20c81f913b25e06bad36961c59083e78e6a6a249ecac30bd75a2927d4b2e206a -->
-<!-- go-component app 3d3ae175fc0a4c30b702e3ab4ef3f6b65325edb4ac166d3c84c5edd4b9aead5e -->
-<!-- go-component adapter 24ad6c98189746725bf10882403e90934e96ce6d8b509ea8a02d5b2c10f3909d -->
-<!-- go-component command 71d36e7c0a88e565961d26509a0ed3c99e2c3b0d84d73c277ec989cf8d3b69a1 -->
-<!-- go-component parity 396ba93a717dd451935c29a8f3b83763b3eb7d83d6d60ded37b03458a786afff -->
-<!-- go-component tooling 222f450cb1ef7d00a2c0c582eda4bfb3363e81e3c35847c926576a38ed79d542 -->
+| `docs/decisions/issue-1891-runtime-repository-boundary.md` | `09d95d1cb10d821fc452544be8f621f4612de1913dcee0456a656be1c9ef8bfa` |
+<!-- go-component base 35001c1ef27e772296d239cf26579696b944020402539b5dbe0614495c536bef -->
+<!-- go-component contract 9bb24b23b24dd9634323fef7b9dc6e35558b92e70451188c7ed8381e38f8a831 -->
+<!-- go-component sdl d1d67576ad56fe43867a4a4dfbe6657c2c4e5c6a6ef3bc2c760ad194de8a4be9 -->
+<!-- go-component processor 46a46c7512040e467fef3228f0c8cf7a0d283f029a934b4feca3f676b926b018 -->
+<!-- go-component backend bf131c11dcf1f5ef49c64771c5d6f22ca51a8d97996499a4b71b15d249fccfd1 -->
+<!-- go-component runtime a3b7ea8addca2ad447d8e1f6257f4408fcd053d6dde7809e71373016148aa772 -->
+<!-- go-component conformance c4ee4d4afa73d9562d49b2984194af3a61e6b93ebac9a0f05cff5f4f34911674 -->
+<!-- go-component app 0dbeae6e9ad67288f4ce8d956732456cdaa5ef1004bde4c284da8d206ca669ae -->
+<!-- go-component adapter 76df4c43a6b4e09960b390bd39ed77face3e89ea86346688977ccfe9805080cd -->
+<!-- go-component command 4b9f391835428e774344bfca1fe0a8a93dfc9dee516a3dc2d99668f8e29b7198 -->
+<!-- go-component parity 89bb449798cdf8366d3e5e36030d5b9e69d807a74800910d7e5eb8aaf35e938a -->
+<!-- go-component tooling bebffbdaf7fb0a87b4fa04b29307aeb83a825166da7aae6c4fce56fc7a82c976 -->
 
 <!-- /go-view -->

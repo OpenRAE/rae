@@ -193,9 +193,33 @@ The Go code starts with no findings. No check has a baseline or an allowlist.
 - `archcheck` is a small program on the standard Go package loader. The
   repository maintains it and its tests.
 
+## Repository ownership at the Go cutover
+
+The [ownership map](../issue-1891-runtime-repository-boundary.md) fixes the planned repository boundary for the common #1804 Go launch.
+The existing model still owns the current modules, packages, typed APIs and imports.
+Layer descriptions name their next owners.
+Source digests bind the split plan and its full source inventory to the current view.
+Do not claim that an absent module or package has moved.
+Keep schema version 2 and ARCH-001 through ARCH-014.
+
+Runtime imports only released public SDL, processor, contract and backend APIs from `OpenRAE/rae`.
+No `rae` product module or `raes-mcp` imports runtime.
+Pure conformance and authoring services stay in `rae`.
+Live conformance, execution services and HTTP belong to runtime.
+Only runtime publishes the combined `raes` executable.
+
+#1825 fixes the exact external packages and command-composition API.
+#1892 makes the required primitive moves.
+Go still checks `internal` visibility.
+The model's `public` flag cannot grant an internal import to the other repository.
+Keep current module paths unless a named split dependency requires a change.
+Update this same model, API pins and views before moving code.
+Do not add a second model or copy semantic code.
+
 ## Amendments
 
 | Date | Commit/PR | Summary |
 | --- | --- | --- |
 | 2026-10-31 | #1778 | Section 2: the `parity` layer holds the checker of the Go implementation against the golden corpus. |
 | 2026-11-02 | #1859 | Version 2 binds typed package interfaces to designs, checks package cycles before code, and verifies current system views. |
+| 2026-11-04 | #1891 | Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions. |

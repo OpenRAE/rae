@@ -131,3 +131,37 @@ producers. They are not active installation instructions.
 
 - A downstream package that imports a removed module fails when it moves to
   the release after RAES 7.0.0. The migration guide names each removed import.
+
+## Repository ownership at the Go cutover
+
+The [split plan](../issue-1891-runtime-repository-boundary.md) changes repository owners at the common #1804 Go launch.
+`OpenRAE/rae` keeps SDL and processor semantics.
+It keeps normative specs, schemas, IDs, profiles and fixtures.
+It keeps contract bindings, validation, portable backend interfaces and stubs.
+Pure conformance checks stay there too.
+
+Runtime takes reference enforcement and live conformance runners.
+Backend calls and operational archive publication move with it.
+The archive record schema and admission stay in `rae`.
+Protected file publication and readback belong to runtime.
+This changes only the repository owner named in section 1 for those execution roles.
+It does not change their behavior.
+
+Existing external backends keep concrete realization and native readiness.
+They keep credentials, resources, native execution, rollback and teardown.
+No backend code moves into either product repository.
+Runtime uses the existing injected seam.
+Add no discovery, backend name switch or plugin system.
+Fixture conformance is not live interoperability evidence.
+
+Historical evidence stays immutable in `rae`.
+Runtime consumes versioned canonical bundles with provenance.
+Only runtime publishes the combined `raes` executable.
+It keeps the existing backend conformance command.
+#1825 defines how it composes with the pure commands retained in `rae`.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-11-04 | #1891 | Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions. |

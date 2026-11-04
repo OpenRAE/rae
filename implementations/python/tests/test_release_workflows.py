@@ -378,6 +378,10 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
 
     # Deterministic concurrent shards of the default-marker suite.
     shard = workflow["jobs"]["test-shard"]
+    shard_checkout = next(step for step in shard["steps"] if str(step.get("uses", "")).startswith("actions/checkout@"))
+    # Source-pinned inventory checks need the historical baseline objects (#1891).
+    assert shard_checkout["with"].get("fetch-depth") == 0
+    assert shard_checkout["with"]["persist-credentials"] is False
     assert shard["strategy"]["matrix"]["shard"] == list(range(int(workflow["env"]["RAES_CI_SHARD_COUNT"])))
     assert workflow["env"]["RAES_CI_SHARD_COUNT"] == "8"
     assert shard["strategy"]["fail-fast"] is False

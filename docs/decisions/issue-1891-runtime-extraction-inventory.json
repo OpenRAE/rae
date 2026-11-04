@@ -1,0 +1,871 @@
+{
+  "schema": "rae-runtime-extraction-inventory/v1",
+  "source": {
+    "repository": "OpenRAE/rae",
+    "commit": "31cc63844f63027f4517307b0cd287eea55946dd",
+    "tree": "59f903fa221477aeb8fcf4dac0c63dc42ed3c4f4",
+    "path_count": 53364,
+    "manifest_sha256": "0ae38e3ff11efb21fb3612c6faedfc30fd05a57772a1246e13a77b6976aa3e51",
+    "encoding": "Exact git ls-tree -r -z --full-tree <commit> bytes, including mode/type/blob-OID TAB path NUL; per-rule digests retain Git order"
+  },
+  "owners": {
+    "rae": "OpenRAE/rae: SDL, processor, portable contracts and canonical evidence",
+    "runtime": "New runtime repository; planning name OpenRAE/rae-runtime; approval still required"
+  },
+  "destination": {
+    "planning_name": "OpenRAE/rae-runtime",
+    "transfer_authorized": false,
+    "visibility": null,
+    "freeze_commit": null
+  },
+  "product_imports": {
+    "rae": [],
+    "runtime": [
+      "rae"
+    ]
+  },
+  "executables": [
+    {
+      "name": "raes",
+      "publisher": "runtime",
+      "implementation_owners": [
+        "rae",
+        "runtime"
+      ],
+      "composition_issue": 1825
+    },
+    {
+      "name": "raes-mcp",
+      "publisher": "rae",
+      "implementation_owners": [
+        "rae"
+      ],
+      "composition_issue": 1825
+    }
+  ],
+  "release": {
+    "gate_issue": 1804,
+    "earlier_runtime_launch": false,
+    "independent_releases": "Only after the common breaking launch"
+  },
+  "provenance": {
+    "LICENSE": "74bfe3ebf4700f49abc32707a9bee15e60b2daab",
+    "THIRD_PARTY_NOTICES.md": "11e8afbdfb13d7c7569039b15a70c28cc0f792f8",
+    "implementations/go/go.mod": "91a2fe323531dbc7c636a972f5147ba3b76dfeaa",
+    "implementations/go/go.sum": "d7d923cb56a8e70e93607ee1de32afdd71176d0c"
+  },
+  "resolution": "Choose the unique longest old_prefix matching the whole path or a directory ancestor. new_prefix replaces old_prefix; migration-only has no transfer destination. owner is continuing responsibility, not permission to copy Python or historical evidence.",
+  "rules": [
+    {
+      "old_prefix": ".bestpractices.json",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".bestpractices.json",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "3aad4b336e66aee6f814b84cc060bed22783bf5525215b3d6551568efa0a6a68"
+    },
+    {
+      "old_prefix": ".claude",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".claude",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 13,
+      "manifest_sha256": "30de485b3581d668c2d3ae95b7d792e15090355019f154b270f149844ffa9bd7"
+    },
+    {
+      "old_prefix": ".codex-skills",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".codex-skills",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 6,
+      "manifest_sha256": "36359439b6cc8756c1083f35806a0e93c004dc50b4188a9fa07fed40d0b86ef8"
+    },
+    {
+      "old_prefix": ".devcontainer",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".devcontainer",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 2,
+      "manifest_sha256": "2530d970c24f2bf1cd91f647fb961fb54f90a268784a515476064a78a52efc7e"
+    },
+    {
+      "old_prefix": ".gc",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".gc",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "b0154245679eb19c735adfd743bab8407f00acd3444ed10d83b5f9bb3467c170"
+    },
+    {
+      "old_prefix": ".gitattributes",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".gitattributes",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "8a02f98f4760d5a396d92c6905c9b03fc97a8f8f910d586da737469612c9f757"
+    },
+    {
+      "old_prefix": ".github",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".github",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 17,
+      "manifest_sha256": "19e58cca3c4ad8ea1e93701b1d6cb5492cd1f1249d10a30ce3c103674beef4d2"
+    },
+    {
+      "old_prefix": ".gitignore",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".gitignore",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "646c138fabaa712ca47b07e1b4c2a4c4193312db176af2705f5b851679968605"
+    },
+    {
+      "old_prefix": ".gitleaks.toml",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".gitleaks.toml",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "7eb5b9d90873f7be0eeb2fa55d91bf3533bffc0d4525f31c3d761b7dd6bda56e"
+    },
+    {
+      "old_prefix": ".ground-control.yaml",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".ground-control.yaml",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "dc1970394e95faa10e1d6b19a17c4377c4e550ddebfef60ca2251d1187efe21c"
+    },
+    {
+      "old_prefix": ".local",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".local",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "0f5cfbc435780930bda4b73fce96015d91efafc53b68cefa46100088609a47b9"
+    },
+    {
+      "old_prefix": ".mcp.json",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".mcp.json",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "5bab92520274ee3576bb325a8787929a235c4158a691948b2659563320a837d2"
+    },
+    {
+      "old_prefix": ".pre-commit-config.yaml",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".pre-commit-config.yaml",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "ac59cabc807cb431163c6e05ee37715091b16de65f583a263d1aca5b82e381cd"
+    },
+    {
+      "old_prefix": ".readthedocs.yaml",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".readthedocs.yaml",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "bee79b2bfab3e413232011d9d1250fa41789847485ff9e7d5af7a9c309e996ac"
+    },
+    {
+      "old_prefix": ".release-please-manifest.json",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".release-please-manifest.json",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "043e64020ced704f1ca37b56886b79a035f12fb2ccfffe9f879e6f3274b12241"
+    },
+    {
+      "old_prefix": ".vale.ini",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": ".vale.ini",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "4e9b68cca92efe1dcdeafa4526dc0ef9ad5c9d0daa0fc35a46d3bdf5f0a56ca0"
+    },
+    {
+      "old_prefix": "AGENTS.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "AGENTS.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "3d06b775a457fb9eedb5cbf4daee8778477765c73f44b6896559f96f9fab2028"
+    },
+    {
+      "old_prefix": "CHANGELOG.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "CHANGELOG.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "dbd6bce93babe12a0c2f6775d074abf3fc699699e6a6f3a1ab6fc6c759bf9222"
+    },
+    {
+      "old_prefix": "CODE_OF_CONDUCT.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "CODE_OF_CONDUCT.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "24d6c7860c783fb18851ae49b5d143b70441617ee852f9c6c7e177ffcd8bca89"
+    },
+    {
+      "old_prefix": "CONTRIBUTING.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "CONTRIBUTING.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "5a00e5d715688d0ac318b22e7df7cf6b9b8166dac414643fb5a7555be8c7060d"
+    },
+    {
+      "old_prefix": "GOVERNANCE.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "GOVERNANCE.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "0b6b241f29ccc98131d8295bca98d2962a97dd186c43e22078549b40db855352"
+    },
+    {
+      "old_prefix": "LICENSE",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "LICENSE",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "71a6b84089efc306bb425df776c9b7f6a05994f2668c48127d1e056bf901ed15"
+    },
+    {
+      "old_prefix": "MAINTAINERS.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "MAINTAINERS.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "a8cae27f963274ba7bcd1b1e764aa17e8f5abc0ff043ade7db953c5e21404a28"
+    },
+    {
+      "old_prefix": "Makefile",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "Makefile",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "b67f7b7c31c0999cf9c65f100c044ccd107dd90de266554d9a5cd7d260e7214e"
+    },
+    {
+      "old_prefix": "README.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "README.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "58bea989ba470824e7e2ed25da68f7d73402e9ea2e199d88498bfa1ec3b07664"
+    },
+    {
+      "old_prefix": "SECURITY.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "SECURITY.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "8975d568caecbaaf060c79660e5b1d528673a0f8b450b6578120a3517396da2f"
+    },
+    {
+      "old_prefix": "SUPPORT.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "SUPPORT.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "7186a6359ba1d06bb6b3a0055bbb1f2aa82583ba8654793852f1216a6d2a0357"
+    },
+    {
+      "old_prefix": "THIRD_PARTY_NOTICES.md",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "THIRD_PARTY_NOTICES.md",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "41286b6fb3c1cac028d1ed38087845992a5633bb40c5c7f85190b9c2c189d3b3"
+    },
+    {
+      "old_prefix": "contracts",
+      "owner": "rae",
+      "disposition": "consumed-by-version",
+      "new_prefix": "contracts",
+      "reason": "Canonical schemas, IDs, fixtures, profiles and bindings stay in rae; runtime consumes immutable releases with provenance.",
+      "path_count": 1113,
+      "manifest_sha256": "d41e99ed32afd31d7bbde95cd4ac752688090786c73ef413b3d0afc6477da4b1"
+    },
+    {
+      "old_prefix": "docs",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "docs",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 3596,
+      "manifest_sha256": "c14c421f7959f2bd787dcde5901edc16faea39859e68be071c523dc8b32bc069"
+    },
+    {
+      "old_prefix": "docs/explain/sdl/control-plane-operations.md",
+      "owner": "runtime",
+      "disposition": "moved",
+      "new_prefix": "docs/explain/sdl/control-plane-operations.md",
+      "reason": "Current operational execution guide moves with runtime; preserve a versioned migration pointer at the old rae URL at #1804.",
+      "path_count": 1,
+      "manifest_sha256": "5ae8e96f5c34f51c1c5cf4b32fee48baff006fd8f0b5d9c9aaac3fc868eccc40"
+    },
+    {
+      "old_prefix": "docs/migration/runtime-lifetime.md",
+      "owner": "runtime",
+      "disposition": "moved",
+      "new_prefix": "docs/migration/runtime-lifetime.md",
+      "reason": "Current operational execution guide moves with runtime; preserve a versioned migration pointer at the old rae URL at #1804.",
+      "path_count": 1,
+      "manifest_sha256": "4aa6054c6282870aefc3ef1680a97e3aaa59957a19f94bdad6c2df3b3d4f8179"
+    },
+    {
+      "old_prefix": "docs/public/api/runtime.rst",
+      "owner": "runtime",
+      "disposition": "moved",
+      "new_prefix": "docs/public/api/runtime.rst",
+      "reason": "Current operational execution guide moves with runtime; preserve a versioned migration pointer at the old rae URL at #1804.",
+      "path_count": 1,
+      "manifest_sha256": "46f6d367c557765bf60b12ccb6251a9d92e78bd2b706ef57e3f515de9fcc06c5"
+    },
+    {
+      "old_prefix": "docs/public/guides/control-plane.md",
+      "owner": "runtime",
+      "disposition": "moved",
+      "new_prefix": "docs/public/guides/control-plane.md",
+      "reason": "Current operational execution guide moves with runtime; preserve a versioned migration pointer at the old rae URL at #1804.",
+      "path_count": 1,
+      "manifest_sha256": "7b7e88223bcd5993514614d02e00b56c207297a6d975cdb5c94f238091f79e19"
+    },
+    {
+      "old_prefix": "docs/public/guides/experiment-records.md",
+      "owner": "runtime",
+      "disposition": "moved",
+      "new_prefix": "docs/public/guides/experiment-records.md",
+      "reason": "Current operational execution guide moves with runtime; preserve a versioned migration pointer at the old rae URL at #1804.",
+      "path_count": 1,
+      "manifest_sha256": "dad66cc1bd40ad2c4233a35ad4cc757f6beb0e34da5b021208d56c7603435812"
+    },
+    {
+      "old_prefix": "docs/public/guides/external-injects.md",
+      "owner": "runtime",
+      "disposition": "moved",
+      "new_prefix": "docs/public/guides/external-injects.md",
+      "reason": "Current operational execution guide moves with runtime; preserve a versioned migration pointer at the old rae URL at #1804.",
+      "path_count": 1,
+      "manifest_sha256": "b6ea31536b506b7ed3ad43cf9e685f2f4cd1e7ccde2e1ce48da00bc0daca48d0"
+    },
+    {
+      "old_prefix": "docs/public/guides/supervised-execution.md",
+      "owner": "runtime",
+      "disposition": "moved",
+      "new_prefix": "docs/public/guides/supervised-execution.md",
+      "reason": "Current operational execution guide moves with runtime; preserve a versioned migration pointer at the old rae URL at #1804.",
+      "path_count": 1,
+      "manifest_sha256": "8ebb3a9513f7d00ffccea692cef4e685089904073a726d1394ba3be2c3c5b6cc"
+    },
+    {
+      "old_prefix": "examples",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "examples",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 52,
+      "manifest_sha256": "012d0b1aad2e130007f9832117926045b7086ddc3077db8ace9fdc0db9a57beb"
+    },
+    {
+      "old_prefix": "implementations",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "implementations",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 4,
+      "manifest_sha256": "fb9b773d3233c145ed7c1146755d5278d300d2f043d6fb03490374df62f8ff3e"
+    },
+    {
+      "old_prefix": "implementations/formal",
+      "owner": "rae",
+      "disposition": "consumed-by-version",
+      "new_prefix": "implementations/formal",
+      "reason": "Canonical models/proof sources stay rae; runtime consumes source-bound immutable proof bundles and supplies its own implementation witnesses.",
+      "path_count": 27,
+      "manifest_sha256": "02c0b98b330bfb8e8e2846c9a23e7bed8eab09a8a042bc46c74a0c30472f0a7b"
+    },
+    {
+      "old_prefix": "implementations/go",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "implementations/go",
+      "reason": "Existing Go module path retained; #1825/#1892 expose only required consumer packages. No module/package move in #1891.",
+      "path_count": 37,
+      "manifest_sha256": "8ed38e782f7f8dcc5cf285351783fa5f737f03df6916a6a774f853fecca66b92"
+    },
+    {
+      "old_prefix": "implementations/go/internal/parity",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Port harness and golden vectors stay as historical evidence in rae; runtime consumes pinned relevant vectors without creating a second authority.",
+      "path_count": 45321,
+      "manifest_sha256": "f4b2c6f033bbaa2c6addaea452fe91256ca926161bde1a08f40dd6db8bfde39d"
+    },
+    {
+      "old_prefix": "implementations/python",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Python remains the behavioral reference until #1804; no Python extraction or second port. Historical source stays in rae.",
+      "path_count": 832,
+      "manifest_sha256": "177deac89b5987dece2dc17016efd5f621e50cf85ad54a0efe3193d2db61723e"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Continuing language, processor, portable contract or authoring responsibility belongs to rae; retire the Python reference at #1804.",
+      "path_count": 295,
+      "manifest_sha256": "469c023cf71e4da15c8b8fc30b2b78900bf174bf2864bbace610fec619000bb1"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_backend_protocols",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Continuing language, processor, portable contract or authoring responsibility belongs to rae; retire the Python reference at #1804.",
+      "path_count": 37,
+      "manifest_sha256": "659102edd9e8ded2465cf03735b6d4931e1f4f71a25d1f7d1576f0441e62f791"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_backend_stubs",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Mixed reference file roles: portable stubs/manifest stay rae; runtime target/time/observation factories belong to runtime. Move pure scenario selection to processor; a rae app wrapper composes it with the portable manifest without a backend-to-processor or rae-to-runtime import. See the decision responsibility table.",
+      "path_count": 4,
+      "manifest_sha256": "0cc402e29b7dd761bcb99d8d73deae6b3b28f25a0eceaf2c37bb7e763646d65a"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_cli",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Authoring command implementations stay in rae; combined executable/runtime commands belong to runtime. Split by responsibility, as the decision explains.",
+      "path_count": 8,
+      "manifest_sha256": "524a83a1b00a0705d9853302d3851195bdf08b51537accc3a38b65e28ff2cedf"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_cli/entrypoint.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Combined raes executable composition or public runtime store-maintenance commands; one publisher after cutover.",
+      "path_count": 1,
+      "manifest_sha256": "40eb60b5a265a5a7ea886c28548a075c0be9cad60d9c25c926ef4e2003febf84"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_cli/main.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Combined raes executable composition or public runtime store-maintenance commands; one publisher after cutover.",
+      "path_count": 1,
+      "manifest_sha256": "13212cafeab522f281ef0befc13c9a2e3908dab20be96b7e47d2d937093a27c7"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_cli/runtime.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Combined raes executable composition or public runtime store-maintenance commands; one publisher after cutover.",
+      "path_count": 1,
+      "manifest_sha256": "8e8fe44d73d4271f02fd345c15acdc7eda0317273cfea30b3bacbcb2aec89656"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Pure validation, portable reports/evidence carriers and fixture/processor checks stay rae. Split runtime-bound harness and case/configuration types from mixed carrier files; live execution modules have explicit runtime exceptions. See the decision responsibility table.",
+      "path_count": 34,
+      "manifest_sha256": "47e01d11b6c6517c5c954ac36a68eaa411717179e6bcd40290504b36b1c7cee9"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/mixed_backend_cases.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "6ae976d8476ec8c27ec4e8803606523ddee67c4d866f62903f110d1fbb316df3"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/mixed_backend_execution.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "54dfe4b77c2cebc2870d9e215dd59a30d42c0e6d6f085d88442ffb59dbdd7548"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/mixed_backend_judging.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "9cc53561d0af0f3a16cd3e0608d434505a292b1b1b9fe3f5659e75ed1921e194"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/mixed_backend_probes.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "ab29ba0f71b3d75ef389d1fddb7ec8ead3220e1603c8c91f8af4703ebf47b7f1"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/mixed_control_probes.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "8f176183f46e27ddd80b71c92af5ef51a9510e4e2d77c82f49674f60dc34818b"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/modular_control.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "195cf6f62f50c9586e0f89add9b0aa9ceba5236937ea900deec7be507faf6ea4"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/modular_control_checks.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "bc56753016aad40a4e9b74b822ffd919e1aded6df5574c56c68bfca7affc6992"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/modular_control_execution.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "4c104dbcaa3e99e3e473dded229d0b952eb5ae710c38e4b70dd951cb334bf5af"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/modular_control_observation.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "2bbc9f6df8109c29c6d2b1b6c0c1ce09e678519295e8b64753b2c2d9fd0dc6af"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/modular_control_policy.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "304777efe3d4605c9e5eca62cca31dcc5927cfac7c03da8c82f85cde98713d56"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/modular_control_refusals.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "41e0b11833b201b2539b1ddbfa8886d95433e8e2e1c284fda30f19fa9d792bd2"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/modular_control_replay.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "9b95c14ab754746c3a21181229219bccafb959b9a548f1646a1db28166680868"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/participant_execution_probes.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "a73387ed036e2c79c566735767eb2f06fb9a711e42fe404151dd7b6aa6c1c0cb"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/participant_opacity_execution.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "af31faba85fd00e7ceb30e1c3a08c386937437071ed7003521e170a4b7630a76"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/participant_opacity_probes.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "55c8c5a07d60eb4a4f64fae4679ddd3818c39daad229acffd0443cb532ecc9b3"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/participant_opacity_projection.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "4607b631a045def95cfcfb42ba64dc111e5b5180ac96fe6eb531d68115efe18b"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/participant_policy_execution.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "0025a6825fa8b3c53eb226456dd016ba669ffa4497861f127bbd93fcdac92ebe"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/participant_policy_probes.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "05740e77e680957709fabbc93d8c526865e7c9b8c9a47d032f9a63b23db446c1"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/participant_temporal_probes.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "1d21945ad7007638bee2a80a49713e073737d341a7a675d029d5abc5889c6c11"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/probe_runtime.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "97c8cecc9a6281ef59c14f2d4847e951e97952410e20a19fe170e2b145d6863f"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/target.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "6c2a35d12bfa0402bfc885933976d1de7f5e8aac18d9ba5fb077bff7e8e7f18c"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/target_manifest_probe.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "e950c9b6c5a74f4724a9a29abe0d00540fea84020124612db049bf4918e7a59f"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/target_planning.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "90d045fb348553d2984e7921f1f0abea5ab543ed5e1c4244c980480e115da246"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_conformance/conformance/target_probes.py",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Live conformance orchestration imports runtime directly or transitively; retain pure report/contract helpers in rae.",
+      "path_count": 1,
+      "manifest_sha256": "75dcc39f2942f25292dfd9f2de913e74017a040dad55d5f9c5ad81da868dfdb1"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_contracts",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Continuing language, processor, portable contract or authoring responsibility belongs to rae; retire the Python reference at #1804.",
+      "path_count": 376,
+      "manifest_sha256": "649a2afbce15e2e295c0621f0cb50b0f180d6c8c02645e0b2bc85459f03a5242"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_mcp",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Continuing language, processor, portable contract or authoring responsibility belongs to rae; retire the Python reference at #1804.",
+      "path_count": 20,
+      "manifest_sha256": "dd0375a4293253e83fcd04bb42ec1a0848e0c07522f7614eb084a7f319d0239e"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_operations",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Port existing execution/operational archive behavior once to the runtime owner; do not extract Python.",
+      "path_count": 2,
+      "manifest_sha256": "114915f9acb87221c138aa92400877a592597edd2ff5d06fe3929ddde29f1fe8"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_processor",
+      "owner": "rae",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Continuing language, processor, portable contract or authoring responsibility belongs to rae; retire the Python reference at #1804.",
+      "path_count": 171,
+      "manifest_sha256": "adf9fa03b11858afe23197b4adc12e378c0f3d079d62e53d139816f16866eed1"
+    },
+    {
+      "old_prefix": "implementations/python/packages/raes_runtime",
+      "owner": "runtime",
+      "disposition": "migration-only",
+      "new_prefix": null,
+      "reason": "Port existing execution/operational archive behavior once to the runtime owner; do not extract Python.",
+      "path_count": 298,
+      "manifest_sha256": "e01500bc06cbe149ecd249736ee376ec3b1539ad63a603563e98cb626f88f5b7"
+    },
+    {
+      "old_prefix": "implementations/tooling",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "implementations/tooling",
+      "reason": "Current Go/Python development tools remain rae artifacts; runtime adapts applicable existing controls for its completed Go packages.",
+      "path_count": 51,
+      "manifest_sha256": "6e9ee38661eaba10ea464d768dee669f9afb4cc28edcddacc64bd147c72cc0ea"
+    },
+    {
+      "old_prefix": "noxfile.py",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "noxfile.py",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "155f23f9836b673b404b531b490ccb44b9c633a12626d92ddcc238323d7638a3"
+    },
+    {
+      "old_prefix": "release-please-config.json",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "release-please-config.json",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "c76b9418bda00b964b04328dc80db590902e1c1096c1093ecfd38c6555b39f24"
+    },
+    {
+      "old_prefix": "sonar-project.properties",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "sonar-project.properties",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 1,
+      "manifest_sha256": "d4401fb3e1ffc09eb9b74428fb9da2705b789a7f476452a8252d060a5f0f4a8c"
+    },
+    {
+      "old_prefix": "specs",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "specs",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 785,
+      "manifest_sha256": "72bf2bfce4af0a0506a8e40f42ab0db8ac3b959fec9b2da05011d10ba5df99f3"
+    },
+    {
+      "old_prefix": "styles",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "styles",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 8,
+      "manifest_sha256": "874ebf85c4d6c810790f434d15a95869a0f6c93b84d4671487adc43b549eb40c"
+    },
+    {
+      "old_prefix": "tools",
+      "owner": "rae",
+      "disposition": "retained",
+      "new_prefix": "tools",
+      "reason": "Current canonical repository artifact; see the responsibility map for mixed content.",
+      "path_count": 194,
+      "manifest_sha256": "e5a924219d61c1282ec5db42d94e6ab05254e213048b2f6a6aa8fdf87ebee877"
+    }
+  ],
+  "planned_go_areas": [
+    {
+      "old_prefix": "implementations/go/internal/runtime",
+      "owner": "runtime",
+      "new_prefix": "implementations/go/internal/runtime",
+      "adjustment": "Move completed Go execution code/tests into the approved runtime module; no runtime Go code exists at this baseline."
+    },
+    {
+      "old_prefix": "implementations/go/internal/conformance",
+      "owner": "split-by-responsibility",
+      "adjustment": "Pure checks remain rae; live runners move to runtime; #1825 commits exact public paths."
+    },
+    {
+      "old_prefix": "implementations/go/internal/app",
+      "owner": "split-by-responsibility",
+      "adjustment": "Authoring services remain rae; execution services move to runtime."
+    },
+    {
+      "old_prefix": "implementations/go/internal/adapter",
+      "owner": "split-by-responsibility",
+      "adjustment": "MCP/authoring command implementations remain rae; HTTP/runtime commands move to runtime."
+    },
+    {
+      "old_prefix": "implementations/go/cmd",
+      "owner": "split-by-executable",
+      "adjustment": "rae retains raes-mcp; runtime publishes combined raes, importing rae command implementations through #1825 public composition."
+    }
+  ]
+}
