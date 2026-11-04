@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from raes.explicitness import ExplicitnessRecord
 from raes.runtime_resource_limits import RuntimeProcessResourceLimit, process_resource_limit_identity_digest
 from raes.scenario import InstantiatedScenario
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.json_pointer import array_index
 
 from ..semantics.realization_concerns import RegisteredRealizationConcern
@@ -39,10 +40,9 @@ class _ConcernStructure:
     structure: object | None = None
     constraint_document: object | None = None
     constraint_binding: str | None = None
-    structure_error: bool = False
+    structure_error: bool | Diagnostic = False
     recursive_pending: bool = False
     root_open: bool = False
-    constraint_limit_message: str | None = None
 
 
 def _compiled_process_resource_limits(
@@ -122,7 +122,7 @@ def _concern_structure(
 ) -> _ConcernStructure:
     """Compile the recursive structure one explicitly recorded concern lowers to."""
 
-    structure, document, binding, error, root_open, pending, limit_message = compile_registered_constraint(
+    structure, document, binding, error, root_open, pending = compile_registered_constraint(
         scenario,
         registered,
         explicitness,
@@ -135,7 +135,6 @@ def _concern_structure(
         constraint_document=document,
         constraint_binding=binding,
         structure_error=error,
-        constraint_limit_message=limit_message,
         recursive_pending=pending,
         root_open=root_open,
     )

@@ -26,6 +26,7 @@ Prepared and delivered values face the same rule checks.
 Existing limits on total portable data still apply. They bound each carrier before copy or encoding.
 A plan keeps its rules and source binding when encoded. Its schema does not change.
 The compiled requirement retains the limit error. This also applies when rule building is deferred.
+It reuses the existing error member. Successful compiled models keep their existing shape and fingerprints.
 It does not add fields to the portable authority contract.
 The compiler's existing concern explicitness owner indexes ancestor paths once.
 It selects leaves by path membership instead of comparing every pair of paths.

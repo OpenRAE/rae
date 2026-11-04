@@ -47,7 +47,7 @@ def _lowered_requirement(
 
     descriptor = concern.descriptor
     source = getattr(scenario, descriptor.section)[concern.declaration_name]
-    structure, document, binding, error, root_open, pending, limit_message = compile_registered_constraint(
+    structure, document, binding, error, root_open, pending = compile_registered_constraint(
         scenario,
         concern,
         scenario.explicitness,
@@ -62,7 +62,6 @@ def _lowered_requirement(
         constraint_document=document,
         constraint_binding=binding,
         structure_error=error or pending,
-        constraint_limit_message=limit_message,
         recursive_pending=False,
         explicitness=ExplicitnessClass.OPEN if root_open else requirement.explicitness,
     )

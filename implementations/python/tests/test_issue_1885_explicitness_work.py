@@ -1,9 +1,14 @@
 """Concern classification retains leaves without quadratic path comparisons."""
 
+from pathlib import Path
+
+import pytest
 from raes.explicitness import ExplicitnessRecord
 from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_processor.compiler.realization_concern_explicitness import semantic_explicitness_leaves
 from raes_processor.semantics.realization_requirement import CompiledRealizationRequirement
+
+from tools.check_formal_semantic_validation import load_retest_bundle, replay_case
 
 
 def test_leaf_selection_scales_with_input_paths():
@@ -61,4 +66,15 @@ def test_compiled_requirement_keeps_original_positional_pending_argument():
         True,
     )
     assert requirement.recursive_pending is True
-    assert requirement.constraint_limit_message is None
+    assert requirement.structure_error is False
+
+
+@pytest.mark.parametrize("case_id", ["compile-repeatability-control", "compile-non-vacuity-control"])
+def test_unchanged_compilation_keeps_retained_semantic_fingerprint(case_id):
+    root = Path(__file__).resolve().parents[3]
+    _, _, corpus, snapshot, _ = load_retest_bundle(root)
+    case = next(item for item in corpus["cases"] if item["case_id"] == case_id)
+    expected = next(item for item in snapshot["observations"] if item["case_id"] == case_id)
+    actual = replay_case(root, case)
+    assert actual["actual_outcome"] == expected["actual_outcome"]
+    assert actual["result_digest"] == expected["result_digest"]

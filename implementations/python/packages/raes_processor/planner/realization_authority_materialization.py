@@ -198,12 +198,12 @@ def _materialized_authority(
     """Resolve one authority's mode and bounds, or report why it cannot resolve."""
 
     requirement = _matching_requirement(model.realization_requirements, authority)
-    if requirement is not None and requirement.constraint_limit_message is not None:
+    if requirement is not None and isinstance(requirement.structure_error, Diagnostic):
         return Diagnostic(
             code="realization.limit-exceeded",
             domain=authority.domain,
             address=authority.address,
-            message=f"Recursive authority for '{authority.requirement_kind}': {requirement.constraint_limit_message}",
+            message=f"Recursive authority for '{authority.requirement_kind}': {requirement.structure_error.message}",
         )
     if requirement is not None and (requirement.structure_error or requirement.recursive_pending):
         return _unsafe_bound_diagnostic(authority)

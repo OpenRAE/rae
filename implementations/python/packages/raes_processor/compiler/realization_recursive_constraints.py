@@ -16,6 +16,7 @@ from raes.runtime_software_repositories import RuntimeSoftwareRepository, Runtim
 from raes.scenario import InstantiatedScenario
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.canonical import jsonable_fallback
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import RaesError
 from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.json_pointer import escape_token
@@ -64,7 +65,9 @@ def compile_registered_constraint(
     field_pointer: str,
     value_domain: EnumDomain | None = None,
     apparatus_closure: Closure | None = None,
-) -> tuple[RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool, bool, bool, str | None]:
+) -> tuple[
+    RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool | Diagnostic, bool, bool
+]:
     descriptor = registered.descriptor
     record = records.get(registered.field_path)
     if (
@@ -76,14 +79,14 @@ def compile_registered_constraint(
         # Unbounded public OS variables retain the incumbent configured-row
         # narrowing in the planner. Its finite scalar authority is lossless;
         # there is no nested source constraint to discard here.
-        return None, None, None, False, False, False, None
+        return None, None, None, False, False, False
     if descriptor.concern_kind == "node-architecture" and value_domain is None:
         value_domain = compiled_architecture_value_domain(scenario, field_pointer=field_pointer)
     if descriptor.recursive_projector is None and descriptor.projector is not None:
         structure, error, opened = compile_realization_structure(
             scenario, registered, records, authored_value=authored_value, field_pointer=field_pointer
         )
-        return structure, None, None, error, opened, False, None
+        return structure, None, None, error, opened, False
     return _compiled_recursive_constraint(
         scenario,
         registered,
@@ -104,11 +107,13 @@ def _compiled_recursive_constraint(
     field_pointer: str,
     value_domain: EnumDomain | None,
     apparatus_closure: Closure | None,
-) -> tuple[RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool, bool, bool, str | None]:
+) -> tuple[
+    RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool | Diagnostic, bool, bool
+]:
     """Compile one recursive concern, deferring an unresolved apparatus closure."""
 
     try:
-        document, error, opened, limit_message = compile_recursive_realization_constraint(
+        document, error, opened = compile_recursive_realization_constraint(
             scenario,
             registered,
             records,
@@ -118,7 +123,7 @@ def _compiled_recursive_constraint(
             apparatus_closure=apparatus_closure,
         )
     except _PendingRecursiveClosure:
-        return None, None, None, False, False, True, None
+        return None, None, None, False, False, True
     binding = (
         realization_constraint_binding(
             document,
@@ -130,7 +135,7 @@ def _compiled_recursive_constraint(
         if document is not None
         else None
     )
-    return None, document, binding, error, opened, False, limit_message
+    return None, document, binding, error, opened, False
 
 
 def _source_child(source: object, key: str) -> object:
@@ -360,7 +365,7 @@ def compile_recursive_realization_constraint(
     field_pointer: str,
     value_domain: EnumDomain | None = None,
     apparatus_closure: Closure | None = None,
-) -> tuple[RealizationConstraintDocument | None, bool, bool, str | None]:
+) -> tuple[RealizationConstraintDocument | None, bool | Diagnostic, bool]:
     """Retain source presence/provenance, safe leaves and local collection closure."""
 
     metadata = _SourceMetadata(scenario, registered, records, field_pointer, value_domain, apparatus_closure)
@@ -370,15 +375,13 @@ def compile_recursive_realization_constraint(
         )
     except TypeError, ValueError:
         # The concern projection refuses a value outside its closed shape (E3).
-        return None, True, False, None
+        return None, True, False
     # The structure models refuse values beyond their bounds with ValidationError.
     try:
         admitted = validate_realization_value(projected, limits=PLAN_AUTHORITY_LIMITS)
         if admitted.status is not RealizationRelationStatus.CONFORMANT:
-            message = (
-                admitted.diagnostics[0].message if admitted.status is RealizationRelationStatus.LIMIT_EXCEEDED else None
-            )
-            return None, True, False, message
+            error = admitted.diagnostics[0] if admitted.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
+            return None, error, False
         metadata.collect(projected, authored_value, "", registered.field_path)
         # Scalar literals/domains have no member universe to close. An exact
         # scalar does not create a separate apparatus-default decision.
@@ -398,12 +401,12 @@ def compile_recursive_realization_constraint(
             ),
         )
         if built.status is not RealizationRelationStatus.CONFORMANT:
-            message = built.diagnostics[0].message if built.status is RealizationRelationStatus.LIMIT_EXCEEDED else None
-            return None, True, False, message
+            error = built.diagnostics[0] if built.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
+            return None, error, False
         document = bind_scalar_set_choices(built.document)
     except _UnrepresentableAuthority, ValidationError:
-        return None, True, False, None
-    return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes), None
+        return None, True, False
+    return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes)
 
 
 __all__ = ["compile_registered_constraint", "compile_recursive_realization_constraint"]
