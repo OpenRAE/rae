@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.7.1](https://github.com/OpenRAE/rae/compare/v10.7.0...v10.7.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* preserve evidence integrity semantics (EXP-717) ([#1887](https://github.com/OpenRAE/rae/issues/1887)) ([b7af42e](https://github.com/OpenRAE/rae/commit/b7af42e4b0d036c618da3630f47c0892d9d8efc9))
+
 ## [10.7.0](https://github.com/OpenRAE/rae/compare/v10.6.1...v10.7.0) (2026-11-03)
 
 
