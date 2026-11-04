@@ -1,7 +1,6 @@
 """Realization-requirement compilation (SEM-218)."""
 
 from collections.abc import Mapping
-from dataclasses import replace
 
 from raes.explicitness import ExplicitnessRecord
 from raes.nodes import NodeType
@@ -35,7 +34,11 @@ from .addresses import (
     _node_address,
     _persistent_volume_address,
 )
-from .realization_authority_posture import designated_registered_posture, explicit_registered_posture
+from .realization_authority_posture import (
+    CompiledRegisteredPosture,
+    designated_registered_posture,
+    explicit_registered_posture,
+)
 from .realization_compute_substrate import append_compute_substrate_requirements
 from .realization_concern_binding import realization_requirement_address
 from .realization_concern_bounds import _concern_structure, _concern_value_bounds, _ConcernStructure
@@ -270,6 +273,24 @@ def _registered_verification(
     return floor
 
 
+def _structured_registered_posture(
+    posture: CompiledRegisteredPosture, compiled: _ConcernStructure
+) -> CompiledRegisteredPosture:
+    if not compiled.root_open or (compiled.structure is None and compiled.constraint_document is None):
+        return posture
+    scalar_only = compiled.constraint_document is not None and not any(
+        scope.closure.posture.value == "open" for scope in compiled.constraint_document.scopes
+    )
+    return CompiledRegisteredPosture(
+        explicitness=ExplicitnessClass.CONSTRAINED if scalar_only else ExplicitnessClass.OPEN,
+        provenance=posture.provenance,
+        governing_scope=posture.governing_scope,
+        delegated=posture.delegated,
+        mode=RealizationAuthorityMode.CONSTRAINED if scalar_only else RealizationAuthorityMode.OPEN,
+        source=posture.source,
+    )
+
+
 def _compiled_registered_realization(
     scenario: InstantiatedScenario,
     registered: RegisteredRealizationConcern,
@@ -318,8 +339,7 @@ def _compiled_registered_realization(
             value_domain=bounds.value_domain,
         )
     )
-    if compiled.root_open and (compiled.structure is not None or compiled.constraint_document is not None):
-        posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
+    posture = _structured_registered_posture(posture, compiled)
     verification_scope, observation_strength = _registered_verification(scenario, registered, authored_value)
     authority = CompiledRealizationAuthority(
         field_path=registered.field_path,

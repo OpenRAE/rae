@@ -62,6 +62,14 @@ Controller order, membership, field presence, and scalar types remain exact.
 Booleans are distinct from integers, including inside nested collections.
 Invalid carriers fail before conversion; conversion grants no additional authority.
 The original plan and stored snapshots retain their native representations.
+The Python implementation uses the fixed recursive
+[`PLAN_AUTHORITY_LIMITS` profile](recursive-realization-constraints.md#5-bounded-outcomes)
+for both original authority and selected-value evaluation. Prepared operation
+payloads use `RUNTIME_SNAPSHOT_VALUE_LIMITS`, as does the complete response.
+An individual payload therefore retains the aggregate carrier's supported scale;
+it does not fall back to the smaller generic recursive-relation default.
+These bounds preserve exact roles, subjects, native IDs and content references.
+Exhausted work never admits a completion.
 For typed concerns, default-presence rules are recovered through the existing
 concern validator and shared envelope engine. Serialized defaults do not become
 extra realizable dimensions. Domain checks still use the safe supplied values;

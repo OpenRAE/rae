@@ -27,6 +27,7 @@ from raes_contracts.planning import (
 )
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
+from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 from raes_processor.planner import (
     prepared_node_capability_violation,
     prepared_node_collection_binding_violation,
@@ -70,7 +71,9 @@ def _is_admitted_operation(operation: object) -> bool:
         and isinstance(operation.payload, dict)
         and type(operation.ordering_dependencies) is tuple
         and type(operation.refresh_dependencies) is tuple
-        and validate_realization_value(operation.payload, python_carriers=True).conformant
+        and validate_realization_value(
+            operation.payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
+        ).conformant
     )
 
 

@@ -26,7 +26,12 @@ from ..planning import (
     require_plan_operation_identity,
 )
 from ..realization_profiles import PlanProfileAuthority
-from ..realization_structure import RealizationConstraintDocument, RealizationStructure
+from ..realization_structure import (
+    RealizationConstraintDocument,
+    RealizationStructure,
+    validate_realization_constraint_document,
+)
+from ..runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from ..versions import RUNTIME_SNAPSHOT_SCHEMA_VERSION
 from ..vocabulary import ObservationStrength, RealizationVerificationScope
 from .base import ContractModel, NonEmptyString
@@ -222,6 +227,10 @@ class ResolvedRealizationAuthorityModel(ContractModel):
             raise ValueError("realization authority cannot carry two independently editable structures")
         if (self.constraint_document is None) != (self.constraint_binding is None):
             raise ValueError("recursive authority requires its source binding")
+        if self.constraint_document is not None:
+            admitted = validate_realization_constraint_document(self.constraint_document, limits=PLAN_AUTHORITY_LIMITS)
+            if not admitted.conformant:
+                raise ValueError(admitted.diagnostics[0].message)
         self._require_mode_bounds()
         self._require_resolution_source()
         bound_keys = [(bound.identity_digest, bound.value_pointer) for bound in self.bounds]
