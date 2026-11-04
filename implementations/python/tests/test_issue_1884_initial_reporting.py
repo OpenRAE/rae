@@ -3,6 +3,7 @@
 import json
 from copy import deepcopy
 from dataclasses import replace
+from pathlib import Path
 from types import SimpleNamespace
 
 import jsonschema
@@ -173,15 +174,14 @@ def test_provisioning_only_still_requires_initial_report_and_archive(tmp_path, a
     ],
 )
 def test_reporting_scope_is_bound_and_published_for_every_phase(phase, model):
-    from pathlib import Path
-
     execution, _ = attesting_plan()
     original = getattr(execution, phase)
     source = original.materialization_source
     assert "reporting_scope" not in source.model_dump(mode="json")
     changed = replace(original, materialization_source=source.model_copy(update={"reporting_scope": "provisioning"}))
     assert runtime_plan_digest(changed) != runtime_plan_digest(original)
-    schema = json.loads(Path(f"contracts/schemas/plans/{phase}-plan-v1.json").read_text())
+    schema_path = Path(__file__).resolve().parents[3] / f"contracts/schemas/plans/{phase}-plan-v1.json"
+    schema = json.loads(schema_path.read_text())
     jsonschema.Draft202012Validator(schema).validate(model(changed).model_dump(mode="json"))
     with pytest.raises(ValueError):
         type(source).model_validate({**source.model_dump(), "reporting_scope": "none"})
