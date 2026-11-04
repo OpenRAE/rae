@@ -606,7 +606,7 @@ jobs:
         run: |
           log="${RUNNER_TEMP}/go-test-${{ matrix.name }}.log"
           # Give each race-tested package the runner CPUs within its package timeout.
-          if ! go test -p 1 -v -race -covermode=atomic -coverprofile=cover.out ./... > "${log}" 2>&1; then
+          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... -p 1 > "${log}" 2>&1; then
             cat "${log}"
             exit 1
           fi
