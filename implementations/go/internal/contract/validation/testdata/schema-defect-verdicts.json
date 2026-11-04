@@ -1,0 +1,13 @@
+{
+  "sources": {
+    "implementations/python/tests/test_issue_1363_schema_parity.py": "sha256:4fd4ec990e906b3262cf98f4a2e8684d28afab416b8d29472211584bf67a90fb",
+    "implementations/python/tests/test_issue_1206_vocabulary_schema.py": "sha256:8fb0000365e7c39efdfb1e4cfb48eef77aa68d3aa0927ab3432f4f5b3da78ab9"
+  },
+  "case_files": [
+    "schema-defect-cases-01.json",
+    "schema-defect-cases-02.json",
+    "schema-defect-cases-03.json",
+    "schema-defect-cases-04.json",
+    "schema-defect-cases-05.json"
+  ]
+}

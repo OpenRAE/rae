@@ -1,0 +1,21 @@
+{
+  "contract_id": "controlled-vocabularies-v1",
+  "cases": [
+    {
+      "fixture": "fixtures/concept-authority/controlled-vocabularies-v1/invalid/closed-vocabulary-with-extension-pattern.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/controlled-vocabularies-v1/invalid/governed-extension-missing-pattern.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/controlled-vocabularies-v1/invalid/unknown-governed-scope.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/controlled-vocabularies-v1/valid/reference.json",
+      "valid": true
+    }
+  ]
+}

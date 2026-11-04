@@ -35,6 +35,11 @@ on:
         required: false
         default: false
         type: boolean
+      exhaustive-mutations:
+        description: Explicitly run mutation diagnostics outside normal PR admission
+        required: false
+        default: false
+        type: boolean
     secrets:
       sonar_token:
         description: SonarCloud token; only consumed by the internally trust-gated sonar job
@@ -537,10 +542,12 @@ jobs:
 
   # The Go lanes of each Go module (ADR-121): tidy and verified dependencies,
   # strict lint, the repository analyzers, race-checked tests with the coverage
-  # floor, mutation testing of the lines changed since the comparison base, and
-  # the regression-test check. The Go toolchain and tools come from their locks.
+  # floor and the regression-test check. Exhaustive mutation diagnostics are
+  # opt-in; the separate scheduled sweep is delivered by issue #1898.
+  # The Go toolchain and tools come from their locks.
   go:
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 25 }}
     strategy:
       fail-fast: false
       matrix:
@@ -577,9 +584,13 @@ jobs:
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" \
             github.com/golangci/golangci-lint/v2/cmd/golangci-lint \
-            github.com/go-gremlins/gremlins/cmd/gremlins \
             ./cmd/raesvet ./cmd/regressiontest
           echo "${RUNNER_TEMP}/go-tools" >> "${GITHUB_PATH}"
+      - name: Build the locked mutation tool for explicit diagnostics
+        if: ${{ inputs.exhaustive-mutations }}
+        run: |
+          go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" \
+            github.com/go-gremlins/gremlins/cmd/gremlins
       - name: Check dependencies, lint, and analyzers
         working-directory: ${{ matrix.path }}
         run: |
@@ -587,11 +598,30 @@ jobs:
           go mod verify
           golangci-lint run ./...
           go vet -vettool="$(command -v raesvet)" ./...
+      - name: Check schema bindings, rule specifications, and embedded corpus
+        if: matrix.name == 'product'
+        run: |
+          go -C implementations/tooling/go build -o "${RUNNER_TEMP}/contractgen" ./cmd/contractgen
+          "${RUNNER_TEMP}/contractgen" -check
+      - name: Check a built contract boundary without a checkout
+        if: matrix.name == 'product'
+        run: |
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-boundary.test" ./internal/contract/validation
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-admission.test" ./internal/contract/admission
+          mkdir "${RUNNER_TEMP}/contract-boundary-empty"
+          cd "${RUNNER_TEMP}/contract-boundary-empty"
+          "${RUNNER_TEMP}/contract-boundary.test" -test.run '^Test(PublishedSchemaBoundary|ImmutableAdmission)$'
+          "${RUNNER_TEMP}/contract-admission.test" -test.run '^TestCompleteRegistry$'
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |
+          set -o pipefail
           log="${RUNNER_TEMP}/go-test-${{ matrix.name }}.log"
-          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... > "${log}" 2>&1; then
+          # Give each race-tested package the runner CPUs within its package timeout.
+          # Stream top-level progress while retaining complete test diagnostics.
+          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... -p 1 2>&1 |
+            tee "${log}" |
+            awk '/^=== RUN   Test[^/ ]+$/ || /^--- (PASS|FAIL): Test/ || /^panic:/ || /^FAIL/ { print; fflush() }'; then
             cat "${log}"
             exit 1
           fi
@@ -601,9 +631,22 @@ jobs:
             echo "Go statement coverage ${total}% is below the 90% floor (ADR-121)" >&2
             exit 1
           fi
+      - name: Retain Go test diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: go-test-diagnostics-${{ matrix.name }}-${{ inputs.ref }}
+          path: |
+            ${{ matrix.path }}/cover.out
+            ${{ runner.temp }}/go-test-${{ matrix.name }}.log
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Fuzz each fuzz target for a bounded time
+        # Product fuzzing shares the independent Go architecture job below.
+        if: ${{ matrix.name != 'product' }}
         working-directory: ${{ matrix.path }}
         run: |
+          set -o pipefail
           go test -list '^Fuzz' ./... |
             awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
             while read -r package target; do
@@ -620,6 +663,7 @@ jobs:
           fi
           echo "merge_base=$(git merge-base "${base}" HEAD)" >> "${GITHUB_OUTPUT}"
       - name: Test the mutations of the changed lines
+        if: ${{ inputs.exhaustive-mutations }}
         working-directory: ${{ matrix.path }}
         env:
           GOGC: "10"
@@ -837,9 +881,11 @@ jobs:
 
   # The architecture check of the Go code (ADR-122). It runs once from the
   # repository root and checks the model, the ADR-122 rule table, and the code
-  # of every Go module.
+  # of every Go module. Product fuzz checks reuse its toolchain and run beside
+  # the race/coverage job; both checks remain in the required aggregate.
   go-architecture:
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
@@ -871,6 +917,16 @@ jobs:
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck
           "${RUNNER_TEMP}/go-tools/archcheck"
+      - name: Fuzz each product fuzz target for a bounded time
+        working-directory: implementations/go
+        timeout-minutes: 6
+        run: |
+          set -o pipefail
+          go test -list '^Fuzz' ./... |
+            awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
+            while read -r package target; do
+              go test -run '^$' -fuzz "^${target}\$" -fuzztime 20s "${package}" || exit 1
+            done
 
   # SonarCloud quality gate. It runs inside this graph, depending only on the
   # exact source and the combined coverage, so it starts as soon as coverage is

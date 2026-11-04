@@ -740,14 +740,17 @@ adrs:
     pin: 31c03fcaa4a342db746f1e62c41777aa718b191a81fdc2e62b13e24320f8647d
   - id: ADR-121
     path: docs/decisions/adrs/adr-121-go-engineering-standards.md
-    pin: 7d435de5ab69f6bf778621b353d9d74098458168eaf1c66edde6859f63235737
+    pin: 0cd202286b098b110a99a4a87e04208a6cbeb7e7550c97ea0851284d57262cbd
     amendments:
       - date: 2026-10-31
         ref: "#1775"
         summary: "Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials."
+      - date: 2026-11-04
+        ref: "#1882"
+        summary: "Separate exhaustive mutation testing from normal PR admission; keep the other Go gates and bound normal Go jobs to 25 minutes."
   - id: ADR-122
     path: docs/decisions/adrs/adr-122-go-architecture-model.md
-    pin: cffbe366d90e29044873c8c2eb3d1e1deb42c22432a4984372ae565087c57228
+    pin: 37dca65986e9d5d43fa79a9f25e45d9944a53010df3b70324e2c2bd93c3e9465
     amendments:
       - date: 2026-10-31
         ref: "#1778"
@@ -755,3 +758,6 @@ adrs:
       - date: 2026-11-02
         ref: "#1859"
         summary: "Version 2 binds typed interfaces to designs, checks declared package cycles, and verifies current system views."
+      - date: 2026-11-03
+        ref: "#1780"
+        summary: "Bounded API snapshot files retain full generated binding declarations without enlarging the model bound."

@@ -124,16 +124,19 @@ Review each interface change before changing its digest.
 
 <!-- go-api implementations/go/internal/base/address 1ff9daf3a2cd7b3fe11f75514362e5d546cafaa872c0a4bf021399860a9fa736 -->
 <!-- go-api implementations/go/internal/base/canonjson 0e2c3043b65e8d2fc2039404227223f0acd6c80b1bee5198d42ecf3f57281d04 -->
-<!-- go-api implementations/go/internal/base/digest a06bf700abb56187b94f16547175f1949a94b0cb948800086074c3da194aa491 -->
+<!-- go-api implementations/go/internal/base/digest aaf372dbbacd35fa5c22f9c6841ef09ce0f1c1934464ed36951afc77eb03db6d -->
 <!-- go-api implementations/go/internal/base/ingress 9d82f448fa16114a6e1da8c27f68870bd207b8ff9479a67a5f7be5ae6997fc87 -->
 <!-- go-api implementations/go/internal/base/jsonpointer 44d069d984b7b4cd519a3481ad25ef1f76bc568818f62d27b65304c7e4a3d4e7 -->
 <!-- go-api implementations/go/internal/base/randstream 06452bf0a8d69c8ea109834dd58e24ddd3fc65a94598a720eb6a947cf421930a -->
 <!-- go-api implementations/go/internal/base/urisafety a31c041a65c2eac38a9e7568935516a08e94d536f628a673e2d5b725ba6ef836 -->
 <!-- go-api implementations/go/internal/parity e0db1d9b34d0312c792ed380c20d67bbf2052b81672ad290edeb3339c247cfdf -->
-<!-- go-api implementations/tooling/go/arch cf98604fbfa5d4ae6a970640a0682ccbffdc15c9af54aab5ace701741b361e34 -->
+<!-- go-api implementations/tooling/go/arch e9cbfd3477f836e3fae0b38882b78808fdf07c33f0496b2a9f793c65cf2dba05 -->
 <!-- go-api implementations/tooling/go/cmd/archcheck dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 <!-- go-api implementations/tooling/go/cmd/raesvet dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 <!-- go-api implementations/tooling/go/cmd/regressiontest dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 <!-- go-api implementations/tooling/go/lint/getprefix c6a56b0b09274767c93640cd8be81c11f582c27dd0ceb7d2bd1de251f011054c -->
 <!-- go-api implementations/tooling/go/lint/gotwant 309d62d129a57293322ebc6633d36ee8851422c28453c536ec0ebf9d824f8eeb -->
 <!-- go-api implementations/tooling/go/lint/wrapverb 50e75182197d17658e03c10030be33ddf46f601e7439ddf91911b4e147077370 -->
+
+Contract bindings use the bounded API snapshot storage described in the [contract design](issue-1780-contract-validation-design.md).
+The complete expanded declarations remain the comparison and commitment input.

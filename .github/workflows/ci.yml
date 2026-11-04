@@ -42,6 +42,7 @@ jobs:
       # itself trust-gated to same-repository PRs and protected pushes, so the
       # token below is never exposed to fork or Dependabot contexts.
       sonar-enabled: true
+      exhaustive-mutations: false
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
 

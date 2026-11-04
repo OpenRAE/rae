@@ -63,13 +63,14 @@ type External struct {
 // Package is a Go package. A public package is visible to the layers that use
 // its layer; a package is always visible inside its own layer.
 type Package struct {
-	Design  string              `json:"design"`
-	API     map[string][]string `json:"api"`
-	Dir     string              `json:"dir"`
-	Layer   string              `json:"layer"`
-	Public  bool                `json:"public"`
-	Doc     string              `json:"doc"`
-	Imports []string            `json:"imports"`
+	Design   string              `json:"design"`
+	API      map[string][]string `json:"api"`
+	APIFiles map[string][]string `json:"api_files,omitempty"`
+	Dir      string              `json:"dir"`
+	Layer    string              `json:"layer"`
+	Public   bool                `json:"public"`
+	Doc      string              `json:"doc"`
+	Imports  []string            `json:"imports"`
 }
 
 // Finding is one way in which the model, the code, or the rule table breaks a rule.
@@ -113,6 +114,9 @@ func Load(fsys fs.FS, name string) (*Model, error) {
 	}
 	if model.Schema != Schema {
 		return nil, fmt.Errorf("%s: schema is %q, want %q", name, model.Schema, Schema)
+	}
+	if err := model.loadAPIFiles(fsys); err != nil {
+		return nil, err
 	}
 	return &model, nil
 }
@@ -361,31 +365,6 @@ func (m *Model) checkPackageCycles() []Finding {
 		}
 	}
 	return nil
-}
-
-func (m *Model) checkAPIShape() []Finding {
-	var findings []Finding
-	ids := map[string]bool{}
-	for _, config := range m.Configurations {
-		if config.ID == "" || ids[config.ID] || config.GOOS == "" || config.GOARCH == "" {
-			findings = append(findings, Finding{Rule: ruleAPI, Location: config.ID, Problem: "a build configuration needs a unique ID, GOOS and GOARCH.", Fix: "declare an explicit supported build context."})
-		}
-		ids[config.ID] = true
-	}
-	if len(ids) == 0 {
-		findings = append(findings, Finding{Rule: ruleAPI, Location: "configurations", Problem: "no API build configuration is declared.", Fix: "declare supported GOOS, GOARCH and tags."})
-	}
-	for _, pkg := range m.Packages {
-		if !documentPath(pkg.Design) || len(pkg.API) != len(ids) {
-			findings = append(findings, Finding{Rule: ruleAPI, Location: pkg.Dir, Problem: "the package needs an owning design and an API snapshot for each build configuration.", Fix: "declare the design and intended API before writing code."})
-		}
-		for id, api := range pkg.API {
-			if !ids[id] || api == nil || !slices.IsSorted(api) {
-				findings = append(findings, Finding{Rule: ruleAPI, Location: pkg.Dir, Problem: "the API snapshot has an unknown configuration, null surface or unsorted declarations.", Fix: "use sorted typed declarations for each supported configuration."})
-			}
-		}
-	}
-	return findings
 }
 
 // uniqueJSON rejects ambiguous keys and excessive nesting before strict decoding.

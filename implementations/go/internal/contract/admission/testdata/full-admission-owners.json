@@ -1,0 +1,2831 @@
+{
+  "processor": {
+    "schema_version": "processor-manifest/v2",
+    "identity": {
+      "name": "raes-reference-processor",
+      "version": "0.1.0"
+    },
+    "supported_contract_versions": [
+      "processor-manifest-v2",
+      "provisioning-plan-v1",
+      "orchestration-plan-v1",
+      "evaluation-plan-v1",
+      "workflow-cancellation-request-v1",
+      "operation-receipt-v1",
+      "operation-status-v1",
+      "runtime-snapshot-v1"
+    ],
+    "compatibility": {
+      "backends": [
+        "stub-backend"
+      ]
+    },
+    "concept_bindings": [
+      {
+        "scope": "capabilities.supported_sdl_versions",
+        "family": "scenarios"
+      },
+      {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+      }
+    ],
+    "constraints": {},
+    "capabilities": {
+      "supported_sdl_versions": [
+        "sdl-authoring-input-v1"
+      ],
+      "supported_features": [
+        "compilation",
+        "planning",
+        "orchestration-coordination",
+        "evaluation-coordination",
+        "workflow-semantics",
+        "objective-window-consistency",
+        "dependency-ordering",
+        "runtime-control-plane"
+      ],
+      "participant_tools": {
+        "semantic_versions": [
+          "participant-tool-profile/v1"
+        ],
+        "max_bindings_per_profile": null,
+        "max_participants_per_binding": null,
+        "feature_support": [
+          {
+            "feature": "tool_affordances",
+            "support_level": "exact",
+            "constraint_refs": [],
+            "limitation_refs": [],
+            "disclosure_refs": [],
+            "evidence_refs": [
+              "tests:ACT-619",
+              "tests:API-414"
+            ]
+          },
+          {
+            "feature": "scoped_tool_affordances",
+            "support_level": "exact",
+            "constraint_refs": [],
+            "limitation_refs": [],
+            "disclosure_refs": [],
+            "evidence_refs": [
+              "tests:ACT-619",
+              "tests:API-414"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "backend": {
+    "schema_version": "backend-manifest/v2",
+    "identity": {
+      "name": "stub-backend",
+      "version": "0.1.0"
+    },
+    "supported_contract_versions": [
+      "backend-manifest-v2",
+      "artifact-requirement-v1",
+      "provisioning-plan-v1",
+      "orchestration-plan-v1",
+      "evaluation-plan-v1",
+      "operation-receipt-v1",
+      "operation-status-v1",
+      "runtime-snapshot-v1",
+      "workflow-result-envelope-v1",
+      "workflow-history-event-stream-v1",
+      "evaluation-result-envelope-v1",
+      "proposition-truth-result-v1",
+      "evaluation-history-event-stream-v1",
+      "participant-episode-state-envelope-v1",
+      "participant-episode-history-event-stream-v1",
+      "participant-behavior-history-event-stream-v1",
+      "participant-execution-binding-v1",
+      "participant-execution-control-v1",
+      "participant-execution-service-state-v1",
+      "participant-resource-budget-policy-v1",
+      "participant-resource-pool-capacity-v1",
+      "participant-resource-budget-state-v1",
+      "participant-resource-budget-event-v1",
+      "participant-control-occurrence-v1",
+      "participant-control-selection-v1",
+      "participant-control-evaluation-v1",
+      "participant-control-selection-v2",
+      "participant-control-evaluation-v2",
+      "participant-crossing-occurrence-v1",
+      "participant-flow-control-relation-v1",
+      "participant-lifecycle-event-v1",
+      "participant-observation-envelope-v1",
+      "participant-shared-state-record-v1",
+      "participant-joint-action-record-v1",
+      "participant-time-management-context-v1",
+      "participant-outcome-report-v1",
+      "experiment-capture-spec-v1",
+      "experiment-evidence-record-v1",
+      "experiment-derived-measure-v1",
+      "experiment-run-v1",
+      "trial-cleanup-plan-v1",
+      "trial-cleanup-receipt-v1"
+    ],
+    "compatibility": {
+      "processors": [
+        "raes-reference-processor"
+      ]
+    },
+    "realization_support": [
+      {
+        "domain": "runtime-realization",
+        "support_mode": "constrained",
+        "supported_constraint_kinds": [
+          "account-feature",
+          "content-type",
+          "node-architecture",
+          "node-type",
+          "os-family",
+          "workflow-feature",
+          "workflow-state-predicate"
+        ],
+        "supported_exact_requirement_kinds": [
+          "declared-capability-match"
+        ],
+        "disclosure_kinds": [
+          "backend-manifest-v2",
+          "operation-status-v1",
+          "runtime-snapshot-v1"
+        ],
+        "observation_capabilities": {},
+        "process_resource_limits": [],
+        "artifact_mechanisms": [],
+        "constraints": {}
+      }
+    ],
+    "realization_envelope": null,
+    "concept_bindings": [
+      {
+        "scope": "capabilities.provisioner.supported_node_types",
+        "family": "assets"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_os_families",
+        "family": "assets"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_node_architectures",
+        "family": "assets"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_content_types",
+        "family": "tools-and-artifacts"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_account_features",
+        "family": "identities"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_domain_profiles",
+        "family": "identities"
+      },
+      {
+        "scope": "capabilities.provisioner.supported_service_materialization_profiles",
+        "family": "tools-and-artifacts"
+      },
+      {
+        "scope": "capabilities.orchestrator.supported_sections",
+        "family": "actions-and-events"
+      },
+      {
+        "scope": "capabilities.evaluator.supported_sections",
+        "family": "observables"
+      },
+      {
+        "scope": "capabilities.participant_runtime.supported_participant_roles",
+        "family": "identities"
+      },
+      {
+        "scope": "capabilities.participant_runtime.supported_behavior_features",
+        "family": "actions-and-events"
+      },
+      {
+        "scope": "capabilities.participant_runtime.supported_interaction_features",
+        "family": "relationships"
+      },
+      {
+        "scope": "capabilities.observation.supported_capture_kinds",
+        "family": "provenance-and-evidence"
+      },
+      {
+        "scope": "capabilities.observation.supported_channel_kinds",
+        "family": "apparatus-declarations"
+      },
+      {
+        "scope": "capabilities.observation.supported_sealing_modes",
+        "family": "provenance-and-evidence"
+      }
+    ],
+    "constraints": {},
+    "capabilities": {
+      "provisioner": {
+        "name": "stub-provisioner",
+        "supported_node_types": [
+          "compute",
+          "switch"
+        ],
+        "supported_os_families": [
+          "freebsd",
+          "linux",
+          "macos",
+          "other",
+          "windows"
+        ],
+        "operating_systems": [],
+        "supported_node_architectures": [
+          "aarch64",
+          "x86_64"
+        ],
+        "supported_content_types": [
+          "dataset",
+          "directory",
+          "file"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell",
+          "spn"
+        ],
+        "supported_domain_profiles": [
+          "active_directory"
+        ],
+        "supported_service_materialization_profiles": [],
+        "max_total_nodes": null,
+        "supports_acls": true,
+        "supports_accounts": true,
+        "supports_generated_artifacts": true,
+        "supported_generated_artifact_kinds": [
+          "certificate_bundle",
+          "rendered_config",
+          "ssh_key_bundle"
+        ],
+        "supported_generated_artifact_delivery_modes": [
+          "env_file",
+          "environment",
+          "mount"
+        ],
+        "supported_regeneration_scopes": [],
+        "supports_persistent_volumes": true,
+        "constraints": {}
+      },
+      "orchestrator": {
+        "name": "stub-orchestrator",
+        "supported_sections": [
+          "events",
+          "injects",
+          "scripts",
+          "stories",
+          "workflows"
+        ],
+        "supports_workflows": true,
+        "supports_assertion_refs": true,
+        "supports_inject_bindings": true,
+        "supported_workflow_features": [
+          "call",
+          "cancellation",
+          "compensation",
+          "decision",
+          "failure-transitions",
+          "parallel-barrier",
+          "retry",
+          "switch",
+          "timeouts"
+        ],
+        "supported_workflow_state_predicates": [
+          "attempt-counts",
+          "outcome-matching"
+        ],
+        "constraints": {}
+      },
+      "evaluator": {
+        "name": "stub-evaluator",
+        "supported_sections": [
+          "assertions",
+          "conditions",
+          "objectives",
+          "propositions"
+        ],
+        "supports_scoring": true,
+        "supports_objectives": true,
+        "supported_predicate_families": [
+          "boolean",
+          "number",
+          "presence",
+          "string"
+        ],
+        "supported_quantifiers": [
+          "all",
+          "any",
+          "at_least"
+        ],
+        "supported_truth_outcomes": [
+          "false",
+          "true",
+          "unknown",
+          "unsupported"
+        ],
+        "supported_evidence_channels": [
+          "api_response",
+          "file_artifact",
+          "log"
+        ],
+        "supported_time_domains": [
+          "scenario_time"
+        ],
+        "preserves_binding_provenance": true,
+        "supports_deferred_expected_comparison": false,
+        "constraints": {}
+      },
+      "participant_runtime": {
+        "name": "stub-participant-runtime",
+        "supported_participant_roles": [
+          "blue",
+          "green",
+          "red",
+          "white"
+        ],
+        "supported_behavior_features": [
+          "action_contracts",
+          "attribution_support",
+          "behavior_history",
+          "effects",
+          "failure_classes",
+          "observation_boundaries",
+          "outcome_interpretation",
+          "preconditions",
+          "state_transitions",
+          "temporal_contracts"
+        ],
+        "supported_interaction_features": [
+          "contention",
+          "coordination",
+          "interference",
+          "shared_state_change"
+        ],
+        "feature_support": [
+          {
+            "feature": "participant_boundary_flow_resolution",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_boundary_flow_resolution:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_boundary_flow_resolution:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_declassification",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_declassification:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_declassification:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_directed_inject_delivery",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_directed_inject_delivery:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_directed_inject_delivery:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_egress_projection",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_egress_projection:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_egress_projection:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_final_sink_mediation",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_final_sink_mediation:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_final_sink_mediation:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_ingress_admission",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_ingress_admission:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_ingress_admission:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_intervention",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_intervention:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_intervention:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_modular_control",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_modular_control:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_modular_control:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_monitor_topology",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_monitor_topology:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_monitor_topology:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_predicate_opacity",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_predicate_opacity:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_predicate_opacity:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_processing_role_trust",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_processing_role_trust:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_processing_role_trust:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_quarantined_processing",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_quarantined_processing:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_quarantined_processing:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "participant_transformation",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:participant_transformation:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:participant_transformation:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "scoped_tool_affordances",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:scoped_tool_affordances:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:scoped_tool_affordances:unsupported"
+            ],
+            "evidence_refs": []
+          },
+          {
+            "feature": "tool_affordances",
+            "support_level": "unsupported",
+            "constraint_refs": [],
+            "limitation_refs": [
+              "limitation:tool_affordances:not-realized"
+            ],
+            "disclosure_refs": [
+              "disclosure:tool_affordances:unsupported"
+            ],
+            "evidence_refs": []
+          }
+        ],
+        "supports_autonomous_execution": false,
+        "supported_autonomous_selection_strategies": [],
+        "supported_autonomous_action_contracts": [],
+        "supported_autonomous_observation_boundaries": [],
+        "supported_autonomous_target_addresses": [],
+        "supported_autonomous_policy_profiles": [],
+        "supported_autonomous_activity_features": [],
+        "supported_autonomous_random_stream_profiles": [],
+        "max_autonomous_participants": null,
+        "max_autonomous_action_attempts": null,
+        "max_autonomous_in_flight": null,
+        "max_autonomous_occurrences": null,
+        "max_autonomous_retries_per_occurrence": null,
+        "max_autonomous_burst_size": null,
+        "execution_bindings": [],
+        "supports_execution_control": false,
+        "supported_execution_control_actions": [],
+        "supports_bounded_concurrency": false,
+        "max_execution_services": null,
+        "max_concurrent_actions": null,
+        "resource_budgets": null,
+        "constraints": {}
+      },
+      "observation": {
+        "name": "stub-observation",
+        "supported_capture_kinds": [
+          "artifact",
+          "log",
+          "observation",
+          "packet-capture",
+          "telemetry",
+          "trace"
+        ],
+        "supported_channel_kinds": [
+          "backend-log",
+          "evaluation-history",
+          "file-artifact",
+          "packet-capture",
+          "participant-observation",
+          "runtime-snapshot",
+          "workflow-history"
+        ],
+        "supported_evidence_contracts": [
+          "experiment-capture-spec-v1",
+          "experiment-derived-measure-v1",
+          "experiment-evidence-record-v1",
+          "experiment-run-v1"
+        ],
+        "supported_media_types": [
+          "application/json",
+          "text/plain"
+        ],
+        "supported_sealing_modes": [
+          "digest",
+          "immutable-store"
+        ],
+        "supports_redaction": true,
+        "supports_loss_disclosure": true,
+        "supports_chain_of_custody": false,
+        "capture_offers": [],
+        "constraints": {}
+      },
+      "cleanup": {
+        "name": "stub-cleanup",
+        "supported_contract_versions": [
+          "trial-cleanup-plan-v1",
+          "trial-cleanup-receipt-v1"
+        ],
+        "supported_action_kinds": [
+          "compensate",
+          "destroy",
+          "reset",
+          "restore",
+          "verify"
+        ],
+        "supported_verification_methods": [
+          "probe",
+          "receipt"
+        ],
+        "supports_reusable_state": true,
+        "supports_residual_state_disclosure": true
+      },
+      "time": null
+    }
+  },
+  "task": {
+    "schema_version": "experiment-task/v1",
+    "task_id": "task-techvault-red-team-v1",
+    "task_version": "1.0.0",
+    "title": "TechVault red-team evaluation",
+    "description": "Evaluate initial access and exfiltration outcomes for a fixed TechVault scenario snapshot.",
+    "scenario_ref": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "scenario-techvault",
+      "ref_version": "2026-05-26",
+      "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "ref_path": null
+    },
+    "evaluation_protocol": {
+      "protocol_id": "protocol-red-team-success",
+      "protocol_version": "1.0.0",
+      "intent": "Measure whether the participant obtains foothold and exfiltrates the target evidence within the task window.",
+      "unit_of_analysis": "run",
+      "metric_definitions": {
+        "foothold-achieved": {
+          "metric_id": "foothold-achieved",
+          "metric_version": "1.0.0",
+          "name": "Foothold achieved",
+          "measured_construct": "Initial access success",
+          "unit_of_analysis": "run",
+          "value_kind": "boolean",
+          "direction": "higher-is-better",
+          "aggregation": null,
+          "missingness_policy": null,
+          "uncertainty_policy": null,
+          "evidence_requirements": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            }
+          ]
+        }
+      },
+      "observation_requirements": [
+        {
+          "ref_kind": "evidence",
+          "ref_id": "auth-log-evidence",
+          "ref_version": null,
+          "ref_digest": null,
+          "ref_path": null
+        }
+      ],
+      "aggregation_policy": "Report per-run outcome and aggregate with binomial uncertainty across repeated runs.",
+      "acceptance_policy": null
+    },
+    "intended_use": "Benchmark red-team participant performance under a fixed scenario snapshot.",
+    "non_use": [
+      "Do not use as evidence of production-system risk without external validation."
+    ],
+    "population_or_construct": "Automated red-team agent behavior in a controlled enterprise scenario.",
+    "split_and_leakage_controls": {
+      "partitioning_strategy": "Hold out final scenario snapshot until evaluation.",
+      "grouping_constraints": [],
+      "temporal_availability": null,
+      "hidden_material_policy": "Answer keys and scoring artifacts are not participant-visible.",
+      "leakage_checks": [
+        "Verify participant input excludes scoring artifacts and solution traces."
+      ],
+      "unresolved_risks": []
+    },
+    "apparatus_constraints": {
+      "allowed_processor_refs": [
+        {
+          "ref_kind": "processor",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "0.1.0"
+        }
+      ],
+      "allowed_backend_refs": [
+        {
+          "ref_kind": "backend",
+          "ref_id": "stub-backend",
+          "ref_version": "0.1.0"
+        }
+      ],
+      "required_manifest_refs": [
+        {
+          "ref_kind": "manifest",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "processor-manifest/v2",
+          "ref_digest": null,
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "processor",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        {
+          "ref_kind": "manifest",
+          "ref_id": "stub-backend",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": null,
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "stub-backend",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        }
+      ],
+      "required_capabilities": [
+        "workflow-results",
+        "evaluation-results"
+      ],
+      "notes": []
+    },
+    "validity_notes": [
+      {
+        "category": "external",
+        "note": "The scenario is a controlled range and does not claim direct production generalization.",
+        "mitigation": null
+      }
+    ],
+    "artifact_refs": [
+      {
+        "artifact_id": "protocol-red-team-success-doc",
+        "role": "protocol",
+        "media_type": "text/markdown",
+        "uri": "docs/protocols/red-team-success.md",
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "size_bytes": 8192,
+        "created_at": "2026-05-26T00:00:00Z",
+        "source": "experiment protocol repository document",
+        "satisfies_refs": [],
+        "sensitivity": "internal",
+        "description": null
+      }
+    ],
+    "validation_basis_disclosures": [],
+    "observation_demands": null,
+    "evidence_requirement_relations": []
+  },
+  "runs": {
+    "reference": {
+      "schema_version": "experiment-run/v1",
+      "run_id": "run-techvault-001",
+      "run_version": "1.0.0",
+      "task_ref": {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0"
+      },
+      "scenario_snapshot_ref": {
+        "ref_kind": "scenario-snapshot",
+        "ref_id": "scenario-techvault",
+        "ref_version": "2026-05-26",
+        "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "ref_path": null
+      },
+      "trial_provenance": null,
+      "difficulty_provenance": null,
+      "apparatus_context": {
+        "schema_version": "experiment-apparatus-context/v1",
+        "apparatus_context_id": "apparatus-techvault-reference",
+        "context_version": "1.0.0",
+        "declared_at": "2026-05-26T00:00:00Z",
+        "components": {
+          "processor": {
+            "component_kind": "processor",
+            "identity": {
+              "name": "raes-reference-processor",
+              "version": "0.1.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          },
+          "backend": {
+            "component_kind": "backend",
+            "identity": {
+              "name": "stub-backend",
+              "version": "0.1.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "stub-backend",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "stub-backend",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          },
+          "participant-policy": {
+            "component_kind": "participant-implementation",
+            "identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "reference-red-agent",
+              "ref_version": "participant-implementation-manifest/v1",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "participant-implementation",
+                "ref_id": "reference-red-agent",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          }
+        },
+        "selected_manifests": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "processor-manifest/v2",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          {
+            "ref_kind": "manifest",
+            "ref_id": "stub-backend",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "stub-backend",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          {
+            "ref_kind": "manifest",
+            "ref_id": "reference-red-agent",
+            "ref_version": "participant-implementation-manifest/v1",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "participant-implementation",
+              "ref_id": "reference-red-agent",
+              "ref_version": "1.0.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "compatibility_declarations": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "reference-stack-v1",
+            "ref_version": "semantic-profile/v1"
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "workflow-results",
+            "ref_version": null
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "evaluation-results",
+            "ref_version": null
+          }
+        ],
+        "configuration_parameters": [
+          {
+            "name": "worker-count",
+            "value": 1,
+            "value_kind": "apparatus",
+            "redaction": "none"
+          }
+        ],
+        "stochastic_controls": [
+          {
+            "control_id": "task-seed",
+            "role": "seed",
+            "value": 12345,
+            "description": "Seed supplied to task randomization.",
+            "executable_binding": null
+          }
+        ],
+        "clocks": [
+          {
+            "clock_id": "range-wall-clock",
+            "authority": "backend wall clock",
+            "time_domain": "wall-clock",
+            "synchronization": "NTP synchronized before run seal."
+          }
+        ],
+        "measurement_channels": [
+          {
+            "ref_kind": "measurement-channel",
+            "ref_id": "evaluation-history-channel",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "observed_setup_evidence": [
+          {
+            "artifact_id": "setup-attestation",
+            "role": "apparatus-evidence",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/setup.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "size_bytes": 2048,
+            "created_at": "2026-05-26T00:09:30Z",
+            "source": "stub-backend setup attestation",
+            "satisfies_refs": [],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "known_limitations": [
+          {
+            "category": "apparatus",
+            "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+            "mitigation": null
+          }
+        ]
+      },
+      "participant_implementation_provenance": {
+        "schema_version": "participant-implementation-provenance/v1",
+        "run_id": "run-techvault-001",
+        "participant_implementations": [
+          {
+            "participant_address": "participants.red",
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+            "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "configuration_ref": null,
+            "configuration_digest": null,
+            "selected_decision_surface_mode": "policy-directed",
+            "participant_contract_versions": [
+              "participant-episode-state-envelope-v1",
+              "participant-behavior-history-event-stream-v1"
+            ],
+            "exposure_policy": {
+              "policy_id": "red-agent-policy",
+              "policy_version": "1.0.0",
+              "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "exposure_policy_kinds": [
+                "task-statement",
+                "tool-affordance"
+              ],
+              "disclosed_refs": [
+                "scenario.tasks.red"
+              ],
+              "withheld_refs": [
+                "scenario.hidden.answer-key"
+              ],
+              "tool_affordance_refs": [
+                "tool.shell"
+              ],
+              "visibility_scope_refs": [
+                "participants.red.visible"
+              ],
+              "constraints": {}
+            }
+          }
+        ],
+        "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+        "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+        "metadata": {}
+      },
+      "parameter_set": [
+        {
+          "name": "difficulty",
+          "value": "standard",
+          "value_kind": "protocol",
+          "redaction": "none"
+        }
+      ],
+      "realized_bindings": [],
+      "stochastic_controls": [
+        {
+          "control_id": "task-seed",
+          "role": "seed",
+          "value": 12345,
+          "description": null,
+          "executable_binding": null
+        }
+      ],
+      "stochastic_draws": [],
+      "started_at": "2026-05-26T00:10:00Z",
+      "ended_at": "2026-05-26T00:40:00Z",
+      "clock_context": {
+        "clock_id": "range-wall-clock",
+        "authority": "backend wall clock",
+        "time_domain": "wall-clock",
+        "synchronization": null
+      },
+      "realized_time_model": null,
+      "run_status": "completed",
+      "outcome_status": "succeeded",
+      "traceability": {
+        "capture_spec_refs": [
+          {
+            "ref_kind": "capture-spec",
+            "ref_id": "capture-techvault-evidence-v1",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "evidence_record_refs": [
+          {
+            "ref_kind": "evidence-record",
+            "ref_id": "evidence-techvault-network-trace-001",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "derived_measure_refs": [
+          {
+            "ref_kind": "derived-measure",
+            "ref_id": "measure-techvault-foothold-001",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "claim_refs": [
+          {
+            "ref_kind": "result",
+            "ref_id": "foothold-achieved-result",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "notes": [
+          "The run provenance chain binds the declared capture spec, raw evidence record, derived foothold measure, and result claim."
+        ]
+      },
+      "realized_form_disclosures": [
+        {
+          "concern_id": "composed-scenario-snapshot",
+          "concern_kind": "scenario-module",
+          "basis": "processor-realized",
+          "realized_by_ref": {
+            "ref_kind": "processor",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "authored_ref": {
+            "ref_kind": "scenario",
+            "ref_id": "scenario-techvault",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "realized_ref": {
+            "ref_kind": "scenario-snapshot",
+            "ref_id": "scenario-techvault",
+            "ref_version": "2026-05-26",
+            "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "ref_path": null
+          },
+          "realized_value_summary": null,
+          "disclosure": "The processor resolved the authored TechVault scenario into the canonical composed scenario snapshot used by this run.",
+          "evidence_refs": [
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence-techvault-network-trace-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "typed_description": null
+        }
+      ],
+      "augmentation_disclosures": [],
+      "materialization_attestations": [],
+      "evidence_artifacts": [
+        {
+          "artifact_id": "auth-log-evidence",
+          "role": "observation",
+          "media_type": "application/json",
+          "uri": "runs/run-techvault-001/evaluation-history.json",
+          "checksum": {
+            "algorithm": "sha256",
+            "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "size_bytes": 4096,
+          "created_at": "2026-05-26T00:40:00Z",
+          "source": "stub-backend evaluator history export",
+          "satisfies_refs": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence",
+              "ref_version": null
+            }
+          ],
+          "sensitivity": "internal",
+          "description": null
+        }
+      ],
+      "result_summaries": {
+        "foothold-achieved-result": {
+          "metric_id": "foothold-achieved",
+          "value": true,
+          "value_status": "reported",
+          "evidence_refs": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence"
+            }
+          ],
+          "uncertainty": null,
+          "notes": null
+        }
+      },
+      "deviations": [],
+      "invalidation": null,
+      "used_refs": [
+        {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0",
+          "ref_digest": null,
+          "ref_path": null
+        }
+      ],
+      "generated_refs": [
+        {
+          "ref_kind": "result",
+          "ref_id": "foothold-achieved-result",
+          "ref_version": null,
+          "ref_digest": null,
+          "ref_path": null
+        }
+      ],
+      "derived_from_refs": [],
+      "validation_basis_disclosures": [],
+      "evidence_requirement_relations": []
+    },
+    "typed-treatment": {
+      "schema_version": "experiment-run/v1",
+      "run_id": "run-techvault-001",
+      "run_version": "1.0.0",
+      "task_ref": {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0"
+      },
+      "scenario_snapshot_ref": {
+        "ref_kind": "scenario-snapshot",
+        "ref_id": "scenario-techvault",
+        "ref_version": "2026-05-26",
+        "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "ref_path": null
+      },
+      "trial_provenance": null,
+      "difficulty_provenance": null,
+      "apparatus_context": {
+        "schema_version": "experiment-apparatus-context/v1",
+        "apparatus_context_id": "apparatus-techvault-reference",
+        "context_version": "1.0.0",
+        "declared_at": "2026-05-26T00:00:00Z",
+        "components": {
+          "backend": {
+            "component_kind": "backend",
+            "identity": {
+              "name": "stub-backend",
+              "version": "0.1.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "stub-backend",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "stub-backend",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          },
+          "participant-policy": {
+            "component_kind": "participant-implementation",
+            "identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "reference-red-agent",
+              "ref_version": "participant-implementation-manifest/v1",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "participant-implementation",
+                "ref_id": "reference-red-agent",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          },
+          "processor": {
+            "component_kind": "processor",
+            "identity": {
+              "name": "raes-reference-processor",
+              "version": "0.1.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          }
+        },
+        "selected_manifests": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "processor-manifest/v2",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          {
+            "ref_kind": "manifest",
+            "ref_id": "stub-backend",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "stub-backend",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          {
+            "ref_kind": "manifest",
+            "ref_id": "reference-red-agent",
+            "ref_version": "participant-implementation-manifest/v1",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "participant-implementation",
+              "ref_id": "reference-red-agent",
+              "ref_version": "1.0.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "compatibility_declarations": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "reference-stack-v1",
+            "ref_version": "semantic-profile/v1"
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "workflow-results",
+            "ref_version": null
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "evaluation-results",
+            "ref_version": null
+          }
+        ],
+        "configuration_parameters": [
+          {
+            "name": "worker-count",
+            "value": 1,
+            "value_kind": "apparatus",
+            "redaction": "none"
+          }
+        ],
+        "stochastic_controls": [
+          {
+            "control_id": "task-seed",
+            "role": "seed",
+            "value": 12345,
+            "description": "Seed supplied to task randomization.",
+            "executable_binding": null
+          }
+        ],
+        "clocks": [
+          {
+            "clock_id": "range-wall-clock",
+            "authority": "backend wall clock",
+            "time_domain": "wall-clock",
+            "synchronization": "NTP synchronized before run seal."
+          }
+        ],
+        "measurement_channels": [
+          {
+            "ref_kind": "measurement-channel",
+            "ref_id": "evaluation-history-channel",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "observed_setup_evidence": [
+          {
+            "artifact_id": "setup-attestation",
+            "role": "apparatus-evidence",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/setup.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "size_bytes": 2048,
+            "created_at": "2026-05-26T00:09:30Z",
+            "source": "stub-backend setup attestation",
+            "satisfies_refs": [],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "known_limitations": [
+          {
+            "category": "apparatus",
+            "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+            "mitigation": null
+          }
+        ]
+      },
+      "participant_implementation_provenance": {
+        "schema_version": "participant-implementation-provenance/v1",
+        "run_id": "run-techvault-001",
+        "participant_implementations": [
+          {
+            "participant_address": "participants.red",
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+            "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "configuration_ref": null,
+            "configuration_digest": null,
+            "selected_decision_surface_mode": "policy-directed",
+            "participant_contract_versions": [
+              "participant-episode-state-envelope-v1",
+              "participant-behavior-history-event-stream-v1"
+            ],
+            "exposure_policy": {
+              "policy_id": "red-agent-policy",
+              "policy_version": "1.0.0",
+              "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "exposure_policy_kinds": [
+                "task-statement",
+                "tool-affordance"
+              ],
+              "disclosed_refs": [
+                "scenario.tasks.red"
+              ],
+              "withheld_refs": [
+                "scenario.hidden.answer-key"
+              ],
+              "tool_affordance_refs": [
+                "tool.shell"
+              ],
+              "visibility_scope_refs": [
+                "participants.red.visible"
+              ],
+              "constraints": {}
+            }
+          }
+        ],
+        "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+        "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+        "metadata": {}
+      },
+      "parameter_set": [
+        {
+          "name": "difficulty",
+          "value": "standard",
+          "value_kind": "protocol",
+          "redaction": "none"
+        }
+      ],
+      "realized_bindings": [],
+      "realized_selections": [
+        {
+          "target": {
+            "plane": "scenario",
+            "scenario_family_id": "compiler-family",
+            "variation_point_id": "worker-presence",
+            "target_id": "nodes.worker.presence"
+          },
+          "scenario_family_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "owner": {
+            "contract_id": "sdl-authoring-input-v1",
+            "contract_version": "1",
+            "validator_id": "raes-selected-scenario",
+            "validator_version": "1"
+          },
+          "outcome": {
+            "kind": "member",
+            "member_id": "absent"
+          },
+          "selection_id": "selection-c5eb0b62b41fd17df0759ed0433bdf76cdcd06437683ffede7b2421cbd8f2851",
+          "source_factor_id": "path",
+          "source_factor_level_id": "a",
+          "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80"
+        }
+      ],
+      "stochastic_controls": [
+        {
+          "control_id": "task-seed",
+          "role": "seed",
+          "value": 12345,
+          "description": null,
+          "executable_binding": null
+        }
+      ],
+      "stochastic_draws": [],
+      "started_at": "2026-05-26T00:10:00Z",
+      "ended_at": "2026-05-26T00:40:00Z",
+      "clock_context": {
+        "clock_id": "range-wall-clock",
+        "authority": "backend wall clock",
+        "time_domain": "wall-clock",
+        "synchronization": null
+      },
+      "realized_time_model": null,
+      "run_status": "completed",
+      "outcome_status": "succeeded",
+      "traceability": {
+        "capture_spec_refs": [
+          {
+            "ref_kind": "capture-spec",
+            "ref_id": "capture-techvault-evidence-v1",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "evidence_record_refs": [
+          {
+            "ref_kind": "evidence-record",
+            "ref_id": "evidence-techvault-network-trace-001",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "derived_measure_refs": [
+          {
+            "ref_kind": "derived-measure",
+            "ref_id": "measure-techvault-foothold-001",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "claim_refs": [
+          {
+            "ref_kind": "result",
+            "ref_id": "foothold-achieved-result",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "notes": [
+          "The run provenance chain binds the declared capture spec, raw evidence record, derived foothold measure, and result claim."
+        ]
+      },
+      "realized_form_disclosures": [
+        {
+          "concern_id": "composed-scenario-snapshot",
+          "concern_kind": "scenario-module",
+          "basis": "processor-realized",
+          "realized_by_ref": {
+            "ref_kind": "processor",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "authored_ref": {
+            "ref_kind": "scenario",
+            "ref_id": "scenario-techvault",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "realized_ref": {
+            "ref_kind": "scenario-snapshot",
+            "ref_id": "scenario-techvault",
+            "ref_version": "2026-05-26",
+            "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "ref_path": null
+          },
+          "realized_value_summary": null,
+          "disclosure": "The processor resolved the authored TechVault scenario into the canonical composed scenario snapshot used by this run.",
+          "evidence_refs": [
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence-techvault-network-trace-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "typed_description": null
+        }
+      ],
+      "augmentation_disclosures": [],
+      "materialization_attestations": [],
+      "evidence_artifacts": [
+        {
+          "artifact_id": "auth-log-evidence",
+          "role": "observation",
+          "media_type": "application/json",
+          "uri": "runs/run-techvault-001/evaluation-history.json",
+          "checksum": {
+            "algorithm": "sha256",
+            "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "size_bytes": 4096,
+          "created_at": "2026-05-26T00:40:00Z",
+          "source": "stub-backend evaluator history export",
+          "satisfies_refs": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence",
+              "ref_version": null
+            }
+          ],
+          "sensitivity": "internal",
+          "description": null
+        }
+      ],
+      "result_summaries": {
+        "foothold-achieved-result": {
+          "metric_id": "foothold-achieved",
+          "value": true,
+          "value_status": "reported",
+          "evidence_refs": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence"
+            }
+          ],
+          "uncertainty": null,
+          "notes": null
+        }
+      },
+      "deviations": [],
+      "invalidation": null,
+      "used_refs": [
+        {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0",
+          "ref_digest": null,
+          "ref_path": null
+        }
+      ],
+      "generated_refs": [
+        {
+          "ref_kind": "result",
+          "ref_id": "foothold-achieved-result",
+          "ref_version": null,
+          "ref_digest": null,
+          "ref_path": null
+        }
+      ],
+      "derived_from_refs": [],
+      "validation_basis_disclosures": [],
+      "evidence_requirement_relations": []
+    }
+  },
+  "taxonomy": {
+    "schema_version": "scientific-completeness-taxonomy/v1",
+    "profile_family": "scientific-scenario-completeness",
+    "revision": "rev1",
+    "concerns": [
+      {
+        "concern_id": "source-profile-validity",
+        "title": "Source profile validity",
+        "definition": "The source obeys a governed profile.",
+        "semantic_owner": "SDL parser"
+      }
+    ],
+    "profiles": [
+      {
+        "profile_id": "valid-sdl-fragment",
+        "title": "Valid SDL fragment",
+        "intended_claim": "The source is admitted as SDL.",
+        "explicit_non_claims": [
+          "No deployability or scientific-adequacy claim."
+        ],
+        "behavioral_claims": [
+          {
+            "taxonomy_id": "raes-behavioral-relations",
+            "taxonomy_revision": "rev8",
+            "relation_id": "semantic-validity",
+            "subject": "One SDL source",
+            "left_carrier_ref": "fixture:source",
+            "right_carrier_ref": null,
+            "observation_projection_ref": null,
+            "observation_projection_revision": null,
+            "relation_parameter_profile_ref": null,
+            "relation_parameter_profile_revision": null,
+            "quantifier_scope": "single-artifact",
+            "evidence_scope": "structural",
+            "assurance_axis": null,
+            "evidence_boundary": "Validation of the fixture source only.",
+            "assurance_status": "tested",
+            "evidence_refs": [],
+            "limitations": [
+              "The validation result is local to this artifact."
+            ],
+            "explicit_non_claims": [
+              "No behavioral equivalence claim."
+            ]
+          }
+        ],
+        "non_claimed_relation_ids": [
+          "trace-equivalence"
+        ],
+        "dispositions": {
+          "source-profile-validity": "required"
+        },
+        "example_refs": []
+      }
+    ]
+  },
+  "scenario": {
+    "name": "training-range",
+    "version": "1.0.0"
+  },
+  "scenario_digest": "sha256:796080894156eb2912134644e4e9072f2752f431e2a12cd438d9cb0f3726d908",
+  "control_declarations": [
+    {
+      "declaration_ref": "control-transition.proposal",
+      "kind": "proposal",
+      "participant_address": "participants.red.operator",
+      "episode_id": "episode-1",
+      "controller_ref": "controller.human.red",
+      "controller_state_ref": "controller-state.human",
+      "authority_basis_refs": [
+        "authority:red-team"
+      ],
+      "controlled_scope_refs": [
+        "scope:red-team"
+      ],
+      "behavior_specification_ref": "behavior-spec:red",
+      "mixed_control_policy_ref": "mixed-control:red",
+      "policy_revision": "policy-v3",
+      "expected_state_revision": 4,
+      "effective_order": 10,
+      "valid_from_order": 8,
+      "valid_until_order": 12
+    }
+  ],
+  "control_v1": [
+    {
+      "event_id": "control-occurrence.proposal.1",
+      "schema_name": "participant-control-occurrence",
+      "schema_version": "1.0.0",
+      "event_type": "participant-control-occurrence",
+      "extension_policy": "closed",
+      "event_classification": null,
+      "source_status": null,
+      "participant_address": "participants.red.operator",
+      "episode_id": "episode-1",
+      "sequence_number": null,
+      "occurred_at": "2026-07-24T08:00:00Z",
+      "recorded_at": "2026-07-24T08:00:01Z",
+      "ingested_at": "2026-07-24T08:00:02Z",
+      "clock_authority": "clock.logical",
+      "temporal_context": null,
+      "ordering_basis": "logical_clock",
+      "logical_order_ref": "order:10",
+      "predecessor_event_refs": [],
+      "actor_ref": "controller.human.red",
+      "producer_ref": "participant-runtime.red",
+      "source_system_ref": null,
+      "source_record_ref": null,
+      "source_raw_ref": null,
+      "source_pipeline": null,
+      "raw_data_integrity": null,
+      "confidence": null,
+      "provenance_refs": [
+        "provenance:proposal-1"
+      ],
+      "evidence_refs": [
+        "evidence:proposal-1"
+      ],
+      "marking_definition_refs": [],
+      "object_marking_refs": [
+        "marking:participant-control"
+      ],
+      "markings": [],
+      "granular_markings": {},
+      "redaction_policy_ref": null,
+      "authorization_scope": "scope:red-team",
+      "occurrence": {
+        "declaration_ref": "control-transition.proposal",
+        "controller_ref": "controller.human.red",
+        "controller_state_ref": "controller-state.human",
+        "authority_basis_refs": [
+          "authority:red-team"
+        ],
+        "controlled_scope_refs": [
+          "scope:red-team"
+        ],
+        "behavior_specification_ref": "behavior-spec:red",
+        "mixed_control_policy_ref": "mixed-control:red",
+        "policy_revision": "policy-v3",
+        "expected_state_revision": 4,
+        "effective_order": 10,
+        "valid_from_order": 8,
+        "valid_until_order": 12,
+        "occurrence_revision": 1,
+        "disposition": "recorded",
+        "reason_code": null,
+        "reason_ref": null,
+        "limitation_refs": [
+          "limitation:not-admitted"
+        ],
+        "kind": "proposal",
+        "proposal_id": "proposal.1",
+        "proposal_revision": 1,
+        "admission_status": "not-admitted",
+        "action_contract_ref": "action-contract:contain-host",
+        "decision_surface_ref": null,
+        "proposal_binding_ref": null,
+        "payload_ref": null,
+        "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_proposal_ref": null,
+        "source_proposal_revision": null,
+        "transformation_ref": null
+      }
+    }
+  ],
+  "control_v2": [
+    {
+      "event_id": "participant-control.episode-1.1",
+      "schema_name": "participant-control-occurrence",
+      "schema_version": "2.0.0",
+      "event_type": "participant-control-occurrence",
+      "extension_policy": "closed",
+      "event_classification": null,
+      "source_status": null,
+      "participant_address": "participant.behavior.red-agent",
+      "episode_id": "episode-1",
+      "sequence_number": null,
+      "occurred_at": "2026-10-13T00:00:00Z",
+      "recorded_at": "2026-10-13T00:00:01Z",
+      "ingested_at": "2026-10-13T00:00:02Z",
+      "clock_authority": "runtime.control-plane.clock",
+      "temporal_context": null,
+      "ordering_basis": "logical_clock",
+      "logical_order_ref": null,
+      "predecessor_event_refs": [],
+      "actor_ref": "participant.behavior.red-agent",
+      "producer_ref": "runtime.control-plane.test",
+      "source_system_ref": null,
+      "source_record_ref": null,
+      "source_raw_ref": null,
+      "source_pipeline": null,
+      "raw_data_integrity": null,
+      "confidence": null,
+      "provenance_refs": [
+        "provenance:test"
+      ],
+      "evidence_refs": [
+        "evidence:test"
+      ],
+      "marking_definition_refs": [],
+      "object_marking_refs": [
+        "marking:participant-control"
+      ],
+      "markings": [],
+      "granular_markings": {},
+      "redaction_policy_ref": null,
+      "authorization_scope": "provision.node.web",
+      "semantics": "mixed-control-policy-occurrence/rev1",
+      "policy": {
+        "behavior_specification_ref": "participant.behavior-specification.controlled-red",
+        "policy_ref": "participant.behavior-specification.controlled-red.mixed-control-policy",
+        "policy_revision": "1.0.0",
+        "form": "reusable-policy"
+      },
+      "occurrence": {
+        "disposition": "accepted",
+        "permitted_transition_ref": "participant.behavior-specification.controlled-red.permitted-transition.take",
+        "kind": "handoff",
+        "prior_state_ref": "participant.behavior-specification.controlled-red.controller-state.autonomous",
+        "expected_state_revision": 0,
+        "resulting_state_ref": "participant.behavior-specification.controlled-red.controller-state.supervised",
+        "resulting_state_revision": 1,
+        "expected_history_head": 0,
+        "occurrence_revision": 1,
+        "controller_ref": "participant.behavior.red-agent",
+        "authority_basis_refs": [
+          "entities.red-team"
+        ],
+        "controlled_scope_refs": [
+          "provision.node.web"
+        ],
+        "effective_order": 10,
+        "valid_from_order": 0,
+        "valid_until_order": 1000,
+        "script_step_ref": null,
+        "limitation_refs": [
+          "limitation.not-admitted"
+        ],
+        "completion_evidence_ref": "evidence.completion-1"
+      }
+    },
+    {
+      "event_id": "participant-control.episode-1.2",
+      "schema_name": "participant-control-occurrence",
+      "schema_version": "2.0.0",
+      "event_type": "participant-control-occurrence",
+      "extension_policy": "closed",
+      "event_classification": null,
+      "source_status": null,
+      "participant_address": "participant.behavior.red-agent",
+      "episode_id": "episode-1",
+      "sequence_number": null,
+      "occurred_at": "2026-10-13T00:00:00Z",
+      "recorded_at": "2026-10-13T00:00:01Z",
+      "ingested_at": "2026-10-13T00:00:02Z",
+      "clock_authority": "runtime.control-plane.clock",
+      "temporal_context": null,
+      "ordering_basis": "logical_clock",
+      "logical_order_ref": null,
+      "predecessor_event_refs": [],
+      "actor_ref": "participant.behavior.red-agent",
+      "producer_ref": "runtime.control-plane.test",
+      "source_system_ref": null,
+      "source_record_ref": null,
+      "source_raw_ref": null,
+      "source_pipeline": null,
+      "raw_data_integrity": null,
+      "confidence": null,
+      "provenance_refs": [
+        "provenance:test"
+      ],
+      "evidence_refs": [
+        "evidence:test"
+      ],
+      "marking_definition_refs": [],
+      "object_marking_refs": [
+        "marking:participant-control"
+      ],
+      "markings": [],
+      "granular_markings": {},
+      "redaction_policy_ref": null,
+      "authorization_scope": "provision.node.web",
+      "semantics": "mixed-control-policy-occurrence/rev1",
+      "policy": {
+        "behavior_specification_ref": "participant.behavior-specification.controlled-red",
+        "policy_ref": "participant.behavior-specification.controlled-red.mixed-control-policy",
+        "policy_revision": "1.0.0",
+        "form": "reusable-policy"
+      },
+      "occurrence": {
+        "disposition": "rejected",
+        "occurrence_revision": 2,
+        "reason_code": "stale-state",
+        "reason_ref": null,
+        "attempted": {
+          "permitted_transition_ref": "participant.behavior-specification.controlled-red.permitted-transition.take",
+          "kind": "handoff",
+          "state_ref": "participant.behavior-specification.controlled-red.controller-state.autonomous",
+          "expected_state_revision": 0,
+          "effective_order": 20,
+          "expected_history_head": 1,
+          "controller_ref": "participant.behavior.red-agent",
+          "authority_basis_refs": [
+            "entities.red-team"
+          ],
+          "controlled_scope_refs": [
+            "provision.node.web"
+          ],
+          "script_step_ref": null,
+          "target": null
+        },
+        "observed": {
+          "state_ref": "participant.behavior-specification.controlled-red.controller-state.supervised",
+          "state_revision": 1,
+          "last_accepted_order": 10,
+          "history_head": 1
+        },
+        "state_change": "none",
+        "limitation_refs": [
+          "limitation.not-admitted"
+        ]
+      }
+    }
+  ],
+  "control_policies": [
+    {
+      "semantics": "mixed-control-policy-occurrence/rev1",
+      "participant_address": "participant.behavior.red-agent",
+      "episode_id": "episode-1",
+      "pin": {
+        "behavior_specification_ref": "participant.behavior-specification.controlled-red",
+        "policy_ref": "participant.behavior-specification.controlled-red.mixed-control-policy",
+        "policy_revision": "1.0.0",
+        "form": "reusable-policy"
+      },
+      "order_strategy": "total-effective-order",
+      "initial_state_ref": "participant.behavior-specification.controlled-red.controller-state.autonomous",
+      "behavior_scope_refs": [
+        "provision.node.web"
+      ],
+      "states": [
+        {
+          "state_ref": "participant.behavior-specification.controlled-red.controller-state.autonomous",
+          "controller_ref": "participant.behavior.red-agent",
+          "authority_basis_refs": [
+            "entities.red-team"
+          ],
+          "scope_refs": [
+            "provision.node.web"
+          ],
+          "authority_status": "active",
+          "valid_from_order": 0,
+          "valid_until_order": 1000
+        },
+        {
+          "state_ref": "participant.behavior-specification.controlled-red.controller-state.supervised",
+          "controller_ref": "controller.supervised",
+          "authority_basis_refs": [
+            "entities.red-team"
+          ],
+          "scope_refs": [
+            "provision.node.web"
+          ],
+          "authority_status": "active",
+          "valid_from_order": 0,
+          "valid_until_order": 1000
+        }
+      ],
+      "transitions": [
+        {
+          "transition_ref": "participant.behavior-specification.controlled-red.permitted-transition.take",
+          "kind": "handoff",
+          "from_state_ref": "participant.behavior-specification.controlled-red.controller-state.autonomous",
+          "to_state_ref": "participant.behavior-specification.controlled-red.controller-state.supervised",
+          "valid_from_order": 0,
+          "valid_until_order": 1000,
+          "target_kinds": []
+        }
+      ],
+      "script_steps": []
+    }
+  ],
+  "crossing": [
+    {
+      "event_id": "crossing-occurrence.requested.1",
+      "schema_name": "participant-crossing-occurrence",
+      "schema_version": "1.0.0",
+      "event_type": "participant-crossing-occurrence",
+      "extension_policy": "closed",
+      "event_classification": null,
+      "source_status": null,
+      "participant_address": "participants.red.operator",
+      "episode_id": "episode-1",
+      "sequence_number": null,
+      "occurred_at": "2026-07-26T08:00:00Z",
+      "recorded_at": "2026-07-26T08:00:01Z",
+      "ingested_at": "2026-07-26T08:00:02Z",
+      "clock_authority": "clock.logical",
+      "temporal_context": null,
+      "ordering_basis": "logical_clock",
+      "logical_order_ref": "order:10",
+      "predecessor_event_refs": [],
+      "actor_ref": "controller.human.red",
+      "producer_ref": "participant-runtime.red",
+      "source_system_ref": null,
+      "source_record_ref": null,
+      "source_raw_ref": null,
+      "source_pipeline": null,
+      "raw_data_integrity": null,
+      "confidence": null,
+      "provenance_refs": [
+        "provenance:crossing-1"
+      ],
+      "evidence_refs": [
+        "evidence:crossing-1"
+      ],
+      "marking_definition_refs": [],
+      "object_marking_refs": [
+        "marking:participant-control"
+      ],
+      "markings": [],
+      "granular_markings": {},
+      "redaction_policy_ref": null,
+      "authorization_scope": "scope:red-team",
+      "occurrence": {
+        "direction": "ingress",
+        "interaction_kind": "action-proposal",
+        "audience_scope_ref": "audience:red-operator",
+        "subject": {
+          "subject_kind": "participant-control-occurrence",
+          "contract_id": "participant-control-occurrence-v1",
+          "subject_ref": "control-occurrence.proposal.1",
+          "subject_revision": "1",
+          "subject_digest": null,
+          "participant_address": "participants.red.operator",
+          "episode_id": "episode-1"
+        },
+        "controller_ref": "controller.human.red",
+        "authority_basis_refs": [
+          "authority:red-team"
+        ],
+        "policy": {
+          "policy_id": "participant-crossing-policy:red",
+          "policy_revision": "revision-3",
+          "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+          "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+          "effective_order": 8,
+          "valid_from_order": 8,
+          "valid_until_order": 20
+        },
+        "effective_order": 10,
+        "order_model": "logical_clock",
+        "backend_posture": "exact",
+        "loss_and_limitations": [
+          "limitation:contract-only"
+        ],
+        "stage": "requested",
+        "request_id": "crossing-request.1",
+        "requested_operation": "admission",
+        "action_or_projection_ref": "action-contract:contain-host",
+        "required_evidence_refs": [
+          "evidence-requirement:crossing-decision"
+        ]
+      }
+    }
+  ],
+  "crossing_subjects": [
+    {
+      "subject_kind": "participant-control-occurrence",
+      "contract_id": "participant-control-occurrence-v1",
+      "subject_ref": "control-occurrence.proposal.1",
+      "subject_revision": "1",
+      "subject_digest": null,
+      "participant_address": "participants.red.operator",
+      "episode_id": "episode-1"
+    }
+  ],
+  "crossing_policies": [
+    {
+      "policy_id": "participant-crossing-policy:red",
+      "policy_revision": "revision-3",
+      "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+      "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+      "effective_order": 8,
+      "valid_from_order": 8,
+      "valid_until_order": 20
+    }
+  ],
+  "crossing_evidence": [
+    "evidence:crossing-1",
+    "evidence-requirement:crossing-decision"
+  ],
+  "crossing_authorities": [
+    "authority:red-team"
+  ],
+  "claims": {
+    "participant-opacity-baseline": {
+      "taxonomy_id": "raes-behavioral-relations",
+      "taxonomy_revision": "rev8",
+      "relation_id": "participant-predicate-opacity",
+      "subject": "The fixed reference profile carrier.",
+      "left_carrier_ref": "possible-point-carrier:participant-opacity-fixture-v1",
+      "right_carrier_ref": null,
+      "observation_projection_ref": "participant-opacity-observation:complete-v1",
+      "observation_projection_revision": "rev1",
+      "relation_parameter_profile_ref": "participant-opacity-baseline-v1",
+      "relation_parameter_profile_revision": "sem-231/rev2",
+      "quantifier_scope": "finite-cases",
+      "evidence_scope": "finite",
+      "assurance_axis": "bounded-test",
+      "evidence_boundary": "The fixed reference carrier only.",
+      "assurance_status": "tested",
+      "evidence_refs": [
+        "evidence:reference"
+      ],
+      "limitations": [
+        "No claim beyond this carrier."
+      ],
+      "explicit_non_claims": [
+        "No external execution authority."
+      ]
+    },
+    "participant-opacity-runtime-reference": {
+      "taxonomy_id": "raes-behavioral-relations",
+      "taxonomy_revision": "rev10",
+      "relation_id": "participant-predicate-opacity",
+      "subject": "The fixed reference profile carrier.",
+      "left_carrier_ref": "possible-point-carrier:runtime-reference-v1",
+      "right_carrier_ref": null,
+      "observation_projection_ref": "participant-opacity-observation:runtime-reference-v1",
+      "observation_projection_revision": "rev1",
+      "relation_parameter_profile_ref": "participant-opacity-runtime-reference-v1",
+      "relation_parameter_profile_revision": "sem-231/runtime-rev1",
+      "quantifier_scope": "finite-cases",
+      "evidence_scope": "finite",
+      "assurance_axis": "bounded-test",
+      "evidence_boundary": "The fixed reference carrier only.",
+      "assurance_status": "tested",
+      "evidence_refs": [
+        "evidence:reference"
+      ],
+      "limitations": [
+        "No claim beyond this carrier."
+      ],
+      "explicit_non_claims": [
+        "No external execution authority."
+      ]
+    },
+    "participant-opacity-theorem": {
+      "taxonomy_id": "raes-behavioral-relations",
+      "taxonomy_revision": "rev9",
+      "relation_id": "participant-predicate-opacity",
+      "subject": "The fixed reference profile carrier.",
+      "left_carrier_ref": "possible-point-carrier:sem-231-abstract-v1",
+      "right_carrier_ref": null,
+      "observation_projection_ref": "participant-opacity-observation:sem-230-complete-support-v1",
+      "observation_projection_revision": "rev1",
+      "relation_parameter_profile_ref": "participant-opacity-theorem-v1",
+      "relation_parameter_profile_revision": "sem-231-proof/rev1",
+      "quantifier_scope": "finite-cases",
+      "evidence_scope": "finite",
+      "assurance_axis": "bounded-test",
+      "evidence_boundary": "The fixed reference carrier only.",
+      "assurance_status": "tested",
+      "evidence_refs": [
+        "evidence:reference"
+      ],
+      "limitations": [
+        "No claim beyond this carrier."
+      ],
+      "explicit_non_claims": [
+        "No external execution authority."
+      ]
+    },
+    "participant-crossing": {
+      "taxonomy_id": "raes-behavioral-relations",
+      "taxonomy_revision": "rev8",
+      "relation_id": "divergence-preserving-branching-bisimulation",
+      "subject": "The fixed reference profile carrier.",
+      "left_carrier_ref": "sem-230-participant-crossing-abstract",
+      "right_carrier_ref": "api-423-run-319-crossing-kernel",
+      "observation_projection_ref": "participant-crossing-projection",
+      "observation_projection_revision": "rev1",
+      "relation_parameter_profile_ref": "participant-crossing-dpbb-finite-v1",
+      "relation_parameter_profile_revision": "rev2",
+      "quantifier_scope": "finite-cases",
+      "evidence_scope": "finite",
+      "assurance_axis": "bounded-test",
+      "evidence_boundary": "The fixed reference carrier only.",
+      "assurance_status": "tested",
+      "evidence_refs": [
+        "evidence:reference"
+      ],
+      "limitations": [
+        "No claim beyond this carrier."
+      ],
+      "explicit_non_claims": [
+        "No external execution authority."
+      ]
+    },
+    "multi-operation-crossing": {
+      "taxonomy_id": "raes-behavioral-relations",
+      "taxonomy_revision": "rev8",
+      "relation_id": "divergence-preserving-branching-bisimulation",
+      "subject": "The fixed reference profile carrier.",
+      "left_carrier_ref": "sem-230-participant-crossing-multi-abstract",
+      "right_carrier_ref": "api-423-run-319-crossing-multi-kernel",
+      "observation_projection_ref": "participant-crossing-multi-operation-projection",
+      "observation_projection_revision": "rev1",
+      "relation_parameter_profile_ref": "participant-crossing-multi-operation-dpbb-finite-v1",
+      "relation_parameter_profile_revision": "rev1",
+      "quantifier_scope": "finite-cases",
+      "evidence_scope": "finite",
+      "assurance_axis": "bounded-test",
+      "evidence_boundary": "The fixed reference carrier only.",
+      "assurance_status": "tested",
+      "evidence_refs": [
+        "evidence:reference"
+      ],
+      "limitations": [
+        "No claim beyond this carrier."
+      ],
+      "explicit_non_claims": [
+        "No external execution authority."
+      ]
+    }
+  },
+  "backend_operation": {
+    "request": {
+      "schema_version": "backend-operation-request/v1",
+      "binding": {
+        "operation_id": "operation-1",
+        "invocation_id": "invocation-1",
+        "attempt_id": "attempt-1",
+        "worker_id": "worker-1",
+        "deployment_id": "deployment-1",
+        "owner_generation": 1,
+        "execution_generation": 1,
+        "backend_id": "backend-1",
+        "baseline_revision": "revision-1",
+        "context": {
+          "actor_id": "author-1",
+          "authorization_scope": [
+            "role:operator"
+          ],
+          "target_scope": "target-1",
+          "run_scope": "run-1",
+          "operation_kind": "provisioning",
+          "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "parent_operation_id": null
+        },
+        "effect_scope": {
+          "kind": "target-run",
+          "addresses": [],
+          "independence": null
+        }
+      },
+      "command": {
+        "contract_id": "provisioning-plan-v1",
+        "artifact_id": "artifact-1",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "requirement_refs": [
+        {
+          "contract_id": "artifact-requirement-v1",
+          "artifact_id": "artifact-1",
+          "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "required_guarantees": [
+        "cessation-evidence"
+      ],
+      "budget": {
+        "origin_id": "budget-1",
+        "started_at": "2026-09-24T00:00:00Z",
+        "limit_ms": 1000,
+        "remaining_ms": 900
+      }
+    },
+    "control": {
+      "schema_version": "backend-operation-control/v1",
+      "binding": {
+        "operation_id": "operation-1",
+        "invocation_id": "invocation-1",
+        "attempt_id": "attempt-1",
+        "worker_id": "worker-1",
+        "deployment_id": "deployment-1",
+        "owner_generation": 1,
+        "execution_generation": 1,
+        "backend_id": "backend-1",
+        "baseline_revision": "revision-1",
+        "context": {
+          "actor_id": "author-1",
+          "authorization_scope": [
+            "role:operator"
+          ],
+          "target_scope": "target-1",
+          "run_scope": "run-1",
+          "operation_kind": "provisioning",
+          "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "parent_operation_id": null
+        },
+        "effect_scope": {
+          "kind": "target-run",
+          "addresses": [],
+          "independence": null
+        }
+      },
+      "request_digest": "sha256:3182586fa3572b311637fe36d00e2bfb0ba5e1ba680dcd05aed5784bd8c79d5b",
+      "control_id": "control-1",
+      "actor_id": "supervisor-1",
+      "authorization_scope": [
+        "role:operator"
+      ],
+      "action": "cancel",
+      "budget": {
+        "origin_id": "budget-1",
+        "started_at": "2026-09-24T00:00:00Z",
+        "limit_ms": 1000,
+        "remaining_ms": 900
+      }
+    },
+    "admission": {
+      "schema_version": "backend-operation-response/v1",
+      "binding": {
+        "operation_id": "operation-1",
+        "invocation_id": "invocation-1",
+        "attempt_id": "attempt-1",
+        "worker_id": "worker-1",
+        "deployment_id": "deployment-1",
+        "owner_generation": 1,
+        "execution_generation": 1,
+        "backend_id": "backend-1",
+        "baseline_revision": "revision-1",
+        "context": {
+          "actor_id": "author-1",
+          "authorization_scope": [
+            "role:operator"
+          ],
+          "target_scope": "target-1",
+          "run_scope": "run-1",
+          "operation_kind": "provisioning",
+          "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "parent_operation_id": null
+        },
+        "effect_scope": {
+          "kind": "target-run",
+          "addresses": [],
+          "independence": null
+        }
+      },
+      "request_digest": "sha256:3182586fa3572b311637fe36d00e2bfb0ba5e1ba680dcd05aed5784bd8c79d5b",
+      "sequence": 1,
+      "message": {
+        "kind": "admission",
+        "disposition": "willing",
+        "capability_digest": "sha256:066b3fa652e3c59d655a6c8f443164e8b5f5e79c08cbb911d18a363f0a912b9e",
+        "reason": null
+      }
+    },
+    "installed": {
+      "schema_version": "backend-operation-capabilities/v1",
+      "backend_id": "backend-1",
+      "revision": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "supported_operation_kinds": [
+        "provisioning"
+      ],
+      "guarantees": [
+        "cessation-evidence",
+        "cancellation",
+        "effect-observation",
+        "partial-effects"
+      ]
+    }
+  },
+  "inject": {
+    "occurrence": {
+      "schema_version": "inject-occurrence/v1",
+      "operation_id": "operation-release-1",
+      "request": {
+        "schema_version": "inject-trigger-request/v1",
+        "request_key": "researcher-release-key-1",
+        "occurrence_id": "release-occurrence-1",
+        "target_scope": "target:reference",
+        "run_scope": "run:environment-1",
+        "plan": {
+          "contract_id": "orchestration-plan-v1",
+          "artifact_id": "orchestration-plan-1",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "inject": "orchestration.inject.release",
+        "bindings": [
+          {
+            "binding": "orchestration.inject-binding.host.release",
+            "node": "provision.node.host",
+            "instance": "host-1",
+            "revision": "realization-r1"
+          }
+        ],
+        "placement": {
+          "kind": "event",
+          "event": "orchestration.event.gate"
+        },
+        "input_ref": null,
+        "expected_head": "order-head-9"
+      },
+      "admission": {
+        "actor_id": "researcher-1",
+        "authorization_scope": [
+          "role:operator"
+        ],
+        "target_scope": "target:reference",
+        "run_scope": "run:environment-1",
+        "operation_kind": "orchestration",
+        "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "parent_operation_id": null
+      },
+      "admission_evidence": [
+        {
+          "contract_id": "proposition-truth-result-v1",
+          "artifact_id": "precondition-results-1",
+          "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        }
+      ],
+      "store_revision": "store-revision-41",
+      "order": {
+        "scope": "run:environment-1",
+        "predecessor": "order-head-9",
+        "position": 10
+      },
+      "scenario": {
+        "contract_id": "instantiated-scenario-v1",
+        "artifact_id": "external-trigger-environment",
+        "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "source": {
+        "contract_id": "associated-artifact-manifest-v1",
+        "artifact_id": "release-notice-source",
+        "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "realization": {
+        "contract_id": "backend-manifest-v2",
+        "artifact_id": "reference-realization",
+        "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "evidence_requirements": [
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "artifact_id": "readback-requirement-1",
+          "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        }
+      ]
+    },
+    "request": {
+      "schema_version": "backend-operation-request/v1",
+      "binding": {
+        "operation_id": "operation-release-1",
+        "invocation_id": "invocation-release-1",
+        "attempt_id": "attempt-release-1",
+        "worker_id": "worker-1",
+        "deployment_id": "deployment-1",
+        "owner_generation": 1,
+        "execution_generation": 1,
+        "backend_id": "backend-1",
+        "baseline_revision": "store-revision-41",
+        "context": {
+          "actor_id": "researcher-1",
+          "authorization_scope": [
+            "role:operator"
+          ],
+          "target_scope": "target:reference",
+          "run_scope": "run:environment-1",
+          "operation_kind": "orchestration",
+          "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "parent_operation_id": null
+        },
+        "effect_scope": {
+          "kind": "target-run",
+          "addresses": [],
+          "independence": null
+        }
+      },
+      "command": {
+        "contract_id": "inject-occurrence-v1",
+        "artifact_id": "release-occurrence-1",
+        "digest": "sha256:42128c86ad7cf88ea3af5863ae8d5529d379bc8370a81748eb1e849872a34a74"
+      },
+      "requirement_refs": [
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "artifact_id": "readback-requirement-1",
+          "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        }
+      ],
+      "required_guarantees": [
+        "effect-observation"
+      ],
+      "budget": {
+        "origin_id": "budget-release-1",
+        "started_at": "2026-10-09T00:00:00Z",
+        "limit_ms": 60000,
+        "remaining_ms": 59000
+      }
+    },
+    "outcome": {
+      "schema_version": "inject-occurrence-outcome/v1",
+      "occurrence": {
+        "contract_id": "inject-occurrence-v1",
+        "artifact_id": "release-occurrence-1",
+        "digest": "sha256:42128c86ad7cf88ea3af5863ae8d5529d379bc8370a81748eb1e849872a34a74"
+      },
+      "response": {
+        "schema_version": "backend-operation-response/v1",
+        "binding": {
+          "operation_id": "operation-release-1",
+          "invocation_id": "invocation-release-1",
+          "attempt_id": "attempt-release-1",
+          "worker_id": "worker-1",
+          "deployment_id": "deployment-1",
+          "owner_generation": 1,
+          "execution_generation": 1,
+          "backend_id": "backend-1",
+          "baseline_revision": "store-revision-41",
+          "context": {
+            "actor_id": "researcher-1",
+            "authorization_scope": [
+              "role:operator"
+            ],
+            "target_scope": "target:reference",
+            "run_scope": "run:environment-1",
+            "operation_kind": "orchestration",
+            "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "parent_operation_id": null
+          },
+          "effect_scope": {
+            "kind": "target-run",
+            "addresses": [],
+            "independence": null
+          }
+        },
+        "request_digest": "sha256:4be0f6a1a42f34ac1dcf4c0e759b7d931c40e938555b19ab7fbe9c89884a5f45",
+        "sequence": 3,
+        "message": {
+          "kind": "outcome",
+          "proposed_state": "succeeded",
+          "effects": {
+            "effect": "complete",
+            "cessation_established": true,
+            "evidence_refs": [
+              {
+                "contract_id": "runtime-snapshot-v1",
+                "artifact_id": "host-1-effect-evidence-1",
+                "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ],
+            "residual_scope": [],
+            "residual_state": null,
+            "external_fence": null
+          },
+          "satisfaction": "satisfied",
+          "release_gates_satisfied": true,
+          "cancellation_established": false,
+          "result": {
+            "contract_id": "associated-artifact-manifest-v1",
+            "artifact_id": "release-notice-result-1",
+            "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        }
+      },
+      "bindings": [
+        {
+          "binding": {
+            "binding": "orchestration.inject-binding.host.release",
+            "node": "provision.node.host",
+            "instance": "host-1",
+            "revision": "realization-r1"
+          },
+          "effects": {
+            "effect": "complete",
+            "cessation_established": true,
+            "evidence_refs": [
+              {
+                "contract_id": "runtime-snapshot-v1",
+                "artifact_id": "host-1-effect-evidence-1",
+                "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ],
+            "residual_scope": [],
+            "residual_state": null,
+            "external_fence": null
+          },
+          "readback": {
+            "contract_id": "runtime-snapshot-v1",
+            "artifact_id": "host-1-readback-1",
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        }
+      ],
+      "effect": "effect-applied"
+    },
+    "retry": {
+      "schema_version": "inject-occurrence/v1",
+      "operation_id": "operation-handover-1",
+      "request": {
+        "schema_version": "inject-trigger-request/v1",
+        "request_key": "slot-key-1",
+        "occurrence_id": "handover-occurrence-1",
+        "target_scope": "target:reference",
+        "run_scope": "run:exercise-1",
+        "plan": {
+          "contract_id": "orchestration-plan-v1",
+          "artifact_id": "orchestration-plan-1",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "inject": "orchestration.inject.handover",
+        "bindings": [
+          {
+            "binding": "orchestration.inject-binding.workstation.handover",
+            "node": "provision.node.workstation",
+            "instance": "workstation-1",
+            "revision": "realization-r3"
+          },
+          {
+            "binding": "orchestration.inject-binding.workstation.handover",
+            "node": "provision.node.workstation",
+            "instance": "workstation-2",
+            "revision": "realization-r3"
+          }
+        ],
+        "placement": {
+          "kind": "schedule",
+          "event": "orchestration.event.shift-change",
+          "script": "orchestration.script.day-one",
+          "story": "orchestration.story.exercise",
+          "slot": "day-one/shift-change/1"
+        },
+        "input_ref": {
+          "contract_id": "handover-input-v1",
+          "artifact_id": "handover-input-1",
+          "digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+        },
+        "expected_head": "order-head-19"
+      },
+      "admission": {
+        "actor_id": "scheduler-1",
+        "authorization_scope": [
+          "role:operator"
+        ],
+        "target_scope": "target:reference",
+        "run_scope": "run:exercise-1",
+        "operation_kind": "orchestration",
+        "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "parent_operation_id": null
+      },
+      "admission_evidence": [
+        {
+          "contract_id": "proposition-truth-result-v1",
+          "artifact_id": "precondition-results-1",
+          "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        }
+      ],
+      "store_revision": "store-revision-41",
+      "order": {
+        "scope": "run:exercise-1",
+        "predecessor": "order-head-19",
+        "position": 20
+      },
+      "scenario": {
+        "contract_id": "instantiated-scenario-v1",
+        "artifact_id": "external-trigger-environment",
+        "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "source": {
+        "contract_id": "associated-artifact-manifest-v1",
+        "artifact_id": "release-notice-source",
+        "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "realization": {
+        "contract_id": "backend-manifest-v2",
+        "artifact_id": "reference-realization",
+        "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "evidence_requirements": [
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "artifact_id": "readback-requirement-1",
+          "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        }
+      ]
+    }
+  },
+  "cleanup": {
+    "schema_version": "trial-cleanup-plan/v1",
+    "plan_id": "cleanup-plan-a",
+    "plan_entry_id": "trial-entry-a",
+    "run_id": "run-a",
+    "clean_state": {
+      "mode": "fresh",
+      "boundary_refs": [
+        "range-a"
+      ],
+      "verification_probe_refs": [
+        "probe:range-fresh"
+      ],
+      "reusable_state_claim_ref": null
+    },
+    "resource_boundaries": {
+      "range-a": {
+        "boundary_id": "range-a",
+        "resource_kind": "range-instance",
+        "owner_ref": "apparatus:range-a",
+        "resource_refs": [
+          "node.vm-a",
+          "network.lab-a"
+        ]
+      }
+    },
+    "cleanup_obligations": {
+      "destroy-range": {
+        "obligation_id": "destroy-range",
+        "boundary_refs": [
+          "range-a"
+        ],
+        "action_kind": "destroy",
+        "action_profile_ref": null,
+        "triggers": [
+          "success",
+          "failure",
+          "cancellation",
+          "timeout",
+          "abort"
+        ],
+        "requirement": "required",
+        "depends_on": [],
+        "idempotency": "idempotent",
+        "compensation_refs": [],
+        "verification_probe_refs": [
+          "probe:range-absent"
+        ],
+        "timeout_seconds": 120
+      }
+    },
+    "retry_policy": {
+      "max_attempts": 1,
+      "after_effect_policy": "disallow",
+      "reset_obligation_refs": [],
+      "compensation_refs": []
+    }
+  }
+}

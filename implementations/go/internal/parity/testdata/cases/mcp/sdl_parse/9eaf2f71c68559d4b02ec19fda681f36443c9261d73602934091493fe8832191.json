@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:760ad49babbebbd164ecd0821ce6ab9b3576964042b6ca188945edd199a1ccc9"
+  },
+  "name": "regression/e9511cfc9ccd01c1ee8e4a58b1ed81540fc503a906102aa3f1505aa29aa41bba",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "r-k",
+            "populated_sections": {
+              "accounts": 4,
+              "features": 4,
+              "infrastructure": 3,
+              "nodes": 3,
+              "relationships": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "r-k",
+          "populated_sections": {
+            "accounts": 4,
+            "features": 4,
+            "infrastructure": 3,
+            "nodes": 3,
+            "relationships": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

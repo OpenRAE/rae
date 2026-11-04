@@ -1,0 +1,132 @@
+{
+  "SDL": "name: materialized-example\nmaterialization_provenance:\n  profile: raes-materialization-attestation/v1\n  attestation_id: materialization-1\n  authored_digest:\n    profile: raes-sdl-semantic/v2\n    algorithm: sha256\n    value: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n  instantiated_digest:\n    profile: raes-sdl-instantiated-snapshot/v2\n    algorithm: sha256\n    value: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n  plan_digest: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\n  predecessor_digest: sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\n  operation_id: operation-1\n  run_id: run-1\n  recorded_at: '2026-09-14T12:00:00Z'\n  boundary: post-materialization\n  producer:\n    name: test-backend\n    version: 1.0.0\n    configuration_digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\n    manifest_digest: sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\n  coverage_profile: raes-materialization-effects/v1\n  origins: []\n  resource_bindings: []\n",
+  "SourceSHA256": "sha256:b25a3211895055e60030871adc1ded5694d1e33ab84f7c4c1d3f02528923ccc2",
+  "Document": {
+    "name": "materialized-example",
+    "materialization_provenance": {
+      "profile": "raes-materialization-attestation/v1",
+      "attestation_id": "materialization-1",
+      "authored_digest": {
+        "profile": "raes-sdl-semantic/v2",
+        "algorithm": "sha256",
+        "value": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "instantiated_digest": {
+        "profile": "raes-sdl-instantiated-snapshot/v2",
+        "algorithm": "sha256",
+        "value": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "plan_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "predecessor_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "operation_id": "operation-1",
+      "run_id": "run-1",
+      "recorded_at": "2026-09-14T12:00:00Z",
+      "boundary": "post-materialization",
+      "producer": {
+        "name": "test-backend",
+        "version": "1.0.0",
+        "configuration_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "manifest_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "coverage_profile": "raes-materialization-effects/v1",
+      "origins": [],
+      "resource_bindings": []
+    }
+  },
+  "FullDocument": {
+    "name": "materialized-example",
+    "version": "*",
+    "description": "",
+    "nodes": {},
+    "infrastructure": {},
+    "features": {},
+    "conditions": {},
+    "propositions": {},
+    "assertions": {},
+    "entities": {},
+    "injects": {},
+    "events": {},
+    "scripts": {},
+    "stories": {},
+    "content": {},
+    "generated_artifacts": {},
+    "persistent_volumes": {},
+    "accounts": {},
+    "identity_domains": {},
+    "identity_forests": {},
+    "identity_facades": {},
+    "deployment_tenants": {},
+    "deployment_cells": {},
+    "relationships": {},
+    "forwarding_agents": [],
+    "agents": {},
+    "action_contracts": {},
+    "observation_boundaries": {},
+    "outcome_interpretation_rules": {},
+    "behavior_specifications": {},
+    "evidence_requirements": {},
+    "time_domains": {},
+    "clocks": {},
+    "time_domain_mappings": {},
+    "time_progression_policies": {},
+    "temporal_constraints": {},
+    "objectives": {},
+    "workflows": {},
+    "materialization_provenance": {
+      "profile": "raes-materialization-attestation/v1",
+      "attestation_id": "materialization-1",
+      "authored_digest": {
+        "profile": "raes-sdl-semantic/v2",
+        "algorithm": "sha256",
+        "value": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "instantiated_digest": {
+        "profile": "raes-sdl-instantiated-snapshot/v2",
+        "algorithm": "sha256",
+        "value": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "plan_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "predecessor_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "operation_id": "operation-1",
+      "run_id": "run-1",
+      "recorded_at": "2026-09-14T12:00:00Z",
+      "boundary": "post-materialization",
+      "producer": {
+        "name": "test-backend",
+        "version": "1.0.0",
+        "configuration_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "manifest_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "coverage_profile": "raes-materialization-effects/v1",
+      "origins": [],
+      "resource_bindings": []
+    }
+  },
+  "Record": {
+    "reference": {
+      "ref_kind": "materialization-attestation",
+      "ref_id": "materialization-1",
+      "ref_version": "raes-sdl-materialized/v1",
+      "ref_digest": "sha256:d31ab0c07b725714197101f84422cc1fead1ef978d8096ec8ebd9563cf244319",
+      "ref_path": "runs/run-1/attestations/materialization-1.sdl"
+    },
+    "artifact": {
+      "artifact_id": "materialization-1",
+      "role": "materialization-attestation",
+      "media_type": "application/vnd.raes.sdl+yaml",
+      "uri": "urn:sha256:b25a3211895055e60030871adc1ded5694d1e33ab84f7c4c1d3f02528923ccc2",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b25a3211895055e60030871adc1ded5694d1e33ab84f7c4c1d3f02528923ccc2"
+      },
+      "size_bytes": 1102,
+      "created_at": "2026-09-14T12:00:00+00:00",
+      "source": "test-backend",
+      "satisfies_refs": [],
+      "sensitivity": "restricted",
+      "description": null
+    },
+    "run_id": "run-1",
+    "operation_id": "operation-1"
+  }
+}
