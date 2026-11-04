@@ -121,13 +121,14 @@ def test_projected_admission_keeps_exact_inventory_membership(kind, field, value
         entries["provision.node.other"] = replace(entry, address="provision.node.other", payload=payload)
     else:
         payload["spec"]["node"]["runtime"][field] *= 2
+    snapshot = result.snapshot.with_entries(entries)
     with pytest.raises(InvalidInputError, match="complete returned scope"):
         admit_materialization_submission(
             result.materialization_attestation,
             request,
             execution.manifest,
             previous,
-            result.snapshot.with_entries(entries),
+            snapshot,
         )
 
 
@@ -189,11 +190,13 @@ def test_projected_values_do_not_excuse_invalid_source_or_execution_bindings(fie
         provenance[field]["value"] = "sha256:" + "0" * 64
     else:
         provenance[field] = "sha256:" + "0" * 64 if field.endswith("digest") else "other"
+    submission = MaterializationSubmission(sdl=json.dumps(document))
+    snapshot = result.snapshot.with_entries({entry.address: replace(entry, payload=payload)})
     with pytest.raises(InvalidInputError, match="bind this source and execution"):
         admit_materialization_submission(
-            MaterializationSubmission(sdl=json.dumps(document)),
+            submission,
             request,
             execution.manifest,
             previous,
-            result.snapshot.with_entries({entry.address: replace(entry, payload=payload)}),
+            snapshot,
         )

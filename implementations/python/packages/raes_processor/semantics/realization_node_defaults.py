@@ -11,7 +11,7 @@ from raes_contracts.planning import PlannedResource, ProvisionOp
 from raes_contracts.runtime_state import SnapshotEntry
 
 from .realization_concern_observations import typed_runtime_observation_shape
-from .realization_concerns import realization_concern_descriptors
+from .realization_concerns import RealizationConcernDescriptor, realization_concern_descriptors
 
 
 def defaulted_node_payload(resource: ProvisionOp, cache: dict[str, object]) -> object:
@@ -65,15 +65,22 @@ def materialization_node_projection(value: object, *, observed: bool) -> dict[st
             continue
         if observed:
             _restore_supplied_concern(value, node, descriptor.authored_path)
-        parent = node
-        for token in descriptor.authored_path[:-1]:
-            parent = parent.get(token)
-            if not isinstance(parent, dict):
-                break
-        leaf = descriptor.authored_path[-1]
-        if isinstance(parent, dict) and leaf in parent and parent[leaf] is not None:
-            parent[leaf] = descriptor.project(parent[leaf], observed=observed, recursive=True)
+        _project_materialization_concern(node, descriptor, observed=observed)
     return node
+
+
+def _project_materialization_concern(
+    node: dict[str, object], descriptor: RealizationConcernDescriptor, *, observed: bool
+) -> None:
+    parent = node
+    for token in descriptor.authored_path[:-1]:
+        child = parent.get(token)
+        if not isinstance(child, dict):
+            return
+        parent = child
+    leaf = descriptor.authored_path[-1]
+    if leaf in parent and parent[leaf] is not None:
+        parent[leaf] = descriptor.project(parent[leaf], observed=observed, recursive=True)
 
 
 def _restore_supplied_concern(original: object, normalized: object, path: tuple[str, ...]) -> None:

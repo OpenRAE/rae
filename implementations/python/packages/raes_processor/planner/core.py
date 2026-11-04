@@ -443,14 +443,8 @@ def plan(
     )
     diagnostics.extend(provisioning_diagnostics)
     orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
-    evaluation = cast(
-        "EvaluationPlan",
-        replace(
-            _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands),
-            run_id=run_id,
-            instantiation_id=instantiation_id,
-        ),
-    )
+    evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
+    evaluation = replace(evaluation, run_id=run_id, instantiation_id=instantiation_id)
 
     (provisioning, orchestration, evaluation), policy_diagnostics = _attach_phase_policies(
         effective_model, manifest, (provisioning, orchestration, evaluation)

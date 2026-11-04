@@ -59,6 +59,7 @@ Verification completed: the standalone issue reproduction accepts both forms;
 49 focused admission, public-runtime and positive conformance cases pass, as do
 55 existing materialization/origin/inventory/source-bound cases. The three
 published plan schemas match the generated reference and their change ledgers.
-Four targeted mutations are rejected by tests: accepting unequal nodes, omitting
-the initial report, dropping the all-phase default, and skipping later
-augmentation reports. File-local policy and changed Python lint pass.
+Five targeted mutations are rejected by tests: accepting unequal nodes, omitting
+the initial report, dropping the all-phase default, skipping later augmentation
+reports, and removing concern-owner projection. File-local policy and changed
+Python lint pass.

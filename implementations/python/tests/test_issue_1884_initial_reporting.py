@@ -183,8 +183,10 @@ def test_reporting_scope_is_bound_and_published_for_every_phase(phase, model):
     schema_path = Path(__file__).resolve().parents[3] / f"contracts/schemas/plans/{phase}-plan-v1.json"
     schema = json.loads(schema_path.read_text())
     jsonschema.Draft202012Validator(schema).validate(model(changed).model_dump(mode="json"))
+    source_type = type(source)
+    invalid_source = {**source.model_dump(), "reporting_scope": "none"}
     with pytest.raises(ValueError):
-        type(source).model_validate({**source.model_dump(), "reporting_scope": "none"})
+        source_type.model_validate(invalid_source)
 
 
 @pytest.mark.parametrize("phase", ["orchestration", "evaluation"])
