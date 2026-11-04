@@ -47,11 +47,17 @@ repository root. The model declares these items:
 | --- | --- |
 | Module | The directory of a `go.mod` file and the module path that it states |
 | Layer | A name, a directory, a description, the layers whose packages it may import (`uses`), and the permitted external import paths, each with a reason (`external`) |
-| Package | A directory in its layer, a description, a `public` flag, and its first-party imports |
+| Package | A directory in its layer, a description, a `public` flag, first-party imports, owning design and exact typed API |
 
 A package can import a package of its own layer. It can also import a public
 package of a layer that its layer uses. The `uses` relation has no cycle. An
 external path permits the import paths below it.
+
+Large typed snapshots may use ordered `api_files` under `implementations/architecture-api/`.
+Each file contains declarations for its build configuration.
+Loading expands these bounded files before the same exact API comparison and design commitment.
+The model retains its 4 MiB limit; files have a 500 KiB limit and share a 16 MiB read budget.
+A package can reference at most 64 files and cannot also declare an inline API.
 
 ### 2. Layers
 
@@ -222,4 +228,5 @@ Do not add a second model or copy semantic code.
 | --- | --- | --- |
 | 2026-10-31 | #1778 | Section 2: the `parity` layer holds the checker of the Go implementation against the golden corpus. |
 | 2026-11-02 | #1859 | Version 2 binds typed package interfaces to designs, checks package cycles before code, and verifies current system views. |
+| 2026-11-03 | #1780 | Bounded API snapshot files retain exact generated binding declarations without enlarging the model bound. |
 | 2026-11-04 | #1891 | Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions. |

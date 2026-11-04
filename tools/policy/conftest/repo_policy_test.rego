@@ -151,3 +151,30 @@ test_concept_authority_schema_publication_record_is_allowed if {
   }
   count(failures) == 0
 }
+
+
+test_generated_transport_does_not_allow_sibling_authority_paths if {
+  generated := "implementations/go/internal/contract/binding/concept-families-v1_generated.go"
+  forbidden := {
+    "implementations/go/internal/contract/binding/concept-families-v1.json",
+    "docs/drafts/concept-authority-notes.md",
+    "implementations/go/internal/contract/binding/concept-families-v1_generated.go.copy",
+  }
+  failures := deny with input as {
+    "changed": array.concat([generated], sort(forbidden)),
+    "check_set": "file-local",
+    "policy": {
+      "legacy_top_level_roots": [],
+      "generated_contracts": {"generated_roots": []},
+      "concept_authority": {
+        "reserved_path_tokens": ["concept-authority", "concept-families-v1"],
+        "allowed_paths": [generated],
+      },
+      "source_roots": [],
+      "changelog_path": "CHANGELOG.md",
+      "changelog_fragment_dir": "changelog.d",
+    },
+  }
+  {failure.path | some failure in failures; failure.rule_id == "concept-authority-reserved-path"} == forbidden
+  count(failures) == 3
+}

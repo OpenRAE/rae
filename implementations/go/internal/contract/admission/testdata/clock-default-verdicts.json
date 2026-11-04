@@ -1,0 +1,4615 @@
+{
+  "reference": "TimeRuntimeStateModel.model_validate",
+  "source_sha256": "sha256:de69a7368398a748bf4f3d751f61cac982be9d772158fc058669006873c582b3",
+  "cases": [
+    {
+      "name": "initialize-explicit",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-segment-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-segment-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-segment-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-segment-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-segment-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-microstep-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-microstep-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-microstep-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-microstep-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "initialize-microstep-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-explicit",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-segment-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-segment-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-segment-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-segment-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-segment-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-microstep-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-microstep-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-microstep-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-microstep-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "advance-microstep-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 1
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-explicit",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-segment-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-segment-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-segment-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-segment-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-segment-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-microstep-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-microstep-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-microstep-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-microstep-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "pause-microstep-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-explicit",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-segment-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-segment-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-segment-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-segment-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-segment-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-microstep-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-microstep-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-microstep-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-microstep-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-microstep-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-explicit",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-segment-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-segment-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-segment-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-segment-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-segment-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-microstep-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-microstep-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-microstep-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-microstep-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-microstep-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-explicit",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-segment-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-segment-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-segment-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-segment-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-segment-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-microstep-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-microstep-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-microstep-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-microstep-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "reset-microstep-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-explicit",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-segment-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-segment-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-segment-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-segment-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-segment-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-microstep-coordinate",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-microstep-initial",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-microstep-previous",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-microstep-resulting",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "replay-microstep-all",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0
+                },
+                "resulting": {
+                  "segment": 1,
+                  "tick": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "invalid-segment-None",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": null,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-segment-True",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": true,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-segment--1",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": -1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "missing-segment",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "mismatched-segment",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 1,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-microstep-None",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": null
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-microstep-True",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": true
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-microstep--1",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": -1
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "missing-microstep",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "mismatched-microstep",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 1
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-tick-None",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": null,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-tick-True",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": true,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "invalid-tick--1",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": -1,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "missing-tick",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "mismatched-tick",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 1,
+              "microstep": 0
+            },
+            "sequence": 0,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "advance-unchanged",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "advance",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "pause-unchanged",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "paused",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "pause",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "paused"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "resume-unchanged",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "resume",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": true
+    },
+    {
+      "name": "jump-unchanged",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "jump",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "reset-unchanged",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "reset",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    },
+    {
+      "name": "replay-unchanged",
+      "input": {
+        "schema_version": "time-runtime-state/v1",
+        "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
+        "clocks": {
+          "time.clock.logical": {
+            "clock_address": "time.clock.logical",
+            "time_domain_address": "time.domain.logical",
+            "progression_policy_address": null,
+            "authority_kind": "runtime",
+            "authority_ref": "runtime.clock",
+            "state": "running",
+            "coordinate": {
+              "segment": 0,
+              "tick": 0,
+              "microstep": 0
+            },
+            "sequence": 1,
+            "history": [
+              {
+                "sequence": 0,
+                "kind": "initialize",
+                "previous": null,
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              },
+              {
+                "sequence": 1,
+                "kind": "replay",
+                "previous": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting": {
+                  "segment": 0,
+                  "tick": 0,
+                  "microstep": 0
+                },
+                "resulting_state": "running"
+              }
+            ]
+          }
+        }
+      },
+      "admitted": false
+    }
+  ]
+}

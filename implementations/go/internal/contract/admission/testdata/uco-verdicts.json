@@ -1,0 +1,37 @@
+{
+  "contract_id": "uco-alignment-v1",
+  "cases": [
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/invalid/adapted-without-divergence.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/invalid/empty-divergence.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/invalid/iri-mismatch.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/invalid/missing-family.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/invalid/native-family.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/invalid/provenance-mismatch.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/invalid/unknown-family.json",
+      "valid": false
+    },
+    {
+      "fixture": "fixtures/concept-authority/uco-alignment-v1/valid/reference.json",
+      "valid": true
+    }
+  ]
+}
