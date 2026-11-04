@@ -25,3 +25,14 @@ PLAN_VALUE_LIMITS = RealizationConstraintLimits(
     max_total_scalar_bytes=8 * 1048576,
     max_document_scalar_bytes=MATERIALIZATION_MAX_BYTES,
 )
+
+# Recursive authority includes scopes, origins and keyed identities in addition to the projected inventory.
+# This fixed process-owned profile is shared by compilation, binding, preparation and delivery evaluation.
+PLAN_AUTHORITY_LIMITS = RealizationConstraintLimits(
+    max_nodes=65536,
+    max_operations=1048576,
+    max_members=65536,
+    max_identity_checks=65536,
+    max_scalar_bytes=1048576,
+    max_total_scalar_bytes=8 * 1048576,
+)

@@ -6,21 +6,39 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 
 from ..json_pointer import pointer_from_tokens
-from ._common import RelationBudget
+from ._common import RealizationRelationResult, RelationBudget, relation_result
 from ._models import (
+    DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     RealizationAllOf,
     RealizationCollectionProfile,
     RealizationConstraintDocument,
+    RealizationConstraintLimits,
     RealizationDefinitionReference,
     RealizationDomainValue,
     RealizationGraphReference,
     RealizationKeyedCollectionConstraint,
     RealizationLiteral,
     RealizationRecordConstraint,
+    RealizationRelationStatus,
     RealizationScope,
     RealizationSequenceConstraint,
     RecursiveRealizationStructure,
 )
+
+
+def validate_realization_constraint_document(
+    document: RealizationConstraintDocument,
+    *,
+    limits: RealizationConstraintLimits = DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
+) -> RealizationRelationResult:
+    """Admit recursive authority without evaluating or granting a selected value."""
+
+    violation = admit_constraint_document(document, RelationBudget(limits))
+    return (
+        relation_result(RealizationRelationStatus.LIMIT_EXCEEDED, violation.pointer, violation.message)
+        if violation is not None
+        else RealizationRelationResult(RealizationRelationStatus.CONFORMANT)
+    )
 
 
 @dataclass(frozen=True)
