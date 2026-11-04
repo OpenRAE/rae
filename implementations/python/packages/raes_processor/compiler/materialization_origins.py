@@ -5,10 +5,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from typing import Any
 
-from pydantic import ValidationError
 from raes.materialization import MaterializedScenario
 from raes.materialization_provenance import MaterializationOrigin
-from raes.nodes import Node
 from raes.runtime_inventory import runtime_inventory_collection_identity
 from raes.scenario import InstantiatedScenario, ScenarioContent
 from raes_contracts.canonical import canonical_json_digest
@@ -23,6 +21,7 @@ from raes_contracts.realization_structure import (
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 from ..semantics.realization_concerns import registered_realization_concern_descriptors
+from ..semantics.realization_node_defaults import materialization_node_projection
 
 _ABSENT = object()
 type _CollectionProfiles = dict[tuple[str, ...], tuple[str, ...]]
@@ -184,9 +183,9 @@ def materialization_node_payloads_match(name: str, described: object, observed: 
     if not validate_realization_value([described, observed], limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
         return False
     try:
-        left = Node.model_validate(described).model_dump(mode="json")
-        right = Node.model_validate(observed).model_dump(mode="json")
-    except ValidationError:
+        left = materialization_node_projection(described, observed=False)
+        right = materialization_node_projection(observed, observed=True)
+    except ValueError:
         return False
     path = ("nodes", name)
     try:

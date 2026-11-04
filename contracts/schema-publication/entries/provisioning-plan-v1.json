@@ -1,9 +1,9 @@
 {
-  "content_hash": "2c5b3dffd9b6911030f3ad02933a25dcfe7838f53b6ab78f3a1f5731a3e4b155",
+  "content_hash": "210e47000dadcd5a0e0ddf5fa777f4a2d3bdead1e64c06e597444623ae15212d",
   "contract_id": "provisioning-plan-v1",
   "last_change": {
-    "content_hash": "2c5b3dffd9b6911030f3ad02933a25dcfe7838f53b6ab78f3a1f5731a3e4b155",
-    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
+    "content_hash": "210e47000dadcd5a0e0ddf5fa777f4a2d3bdead1e64c06e597444623ae15212d",
+    "summary": "Bind an optional provisioning-only materialization reporting scope while preserving the all-phase default and full source context (#1884)."
   },
   "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
   "stability": "draft"

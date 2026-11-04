@@ -51,6 +51,31 @@ def with_node_defaults(
     )
 
 
+def materialization_node_projection(value: object, *, observed: bool) -> dict[str, object]:
+    """Compare native SDL and safe readback through their concern owners.
+
+    Observation placeholders serve only closed shape validation. Supplied
+    commitments and presence markers are restored before concern projection.
+    """
+    adapter = TypeAdapter(Node)
+    validated = typed_runtime_observation_shape(value, adapter=adapter) if observed else adapter.validate_python(value)
+    node = adapter.dump_python(validated, mode="json")
+    for descriptor in realization_concern_descriptors():
+        if descriptor.section != "nodes" or descriptor.projector is None:
+            continue
+        if observed:
+            _restore_supplied_concern(value, node, descriptor.authored_path)
+        parent = node
+        for token in descriptor.authored_path[:-1]:
+            parent = parent.get(token)
+            if not isinstance(parent, dict):
+                break
+        leaf = descriptor.authored_path[-1]
+        if isinstance(parent, dict) and leaf in parent and parent[leaf] is not None:
+            parent[leaf] = descriptor.project(parent[leaf], observed=observed, recursive=True)
+    return node
+
+
 def _restore_supplied_concern(original: object, normalized: object, path: tuple[str, ...]) -> None:
     for token in path[:-1]:
         original = original.get(token) if isinstance(original, dict) else None
