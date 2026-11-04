@@ -319,7 +319,14 @@ def _compiled_registered_realization(
         )
     )
     if compiled.root_open and (compiled.structure is not None or compiled.constraint_document is not None):
-        posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
+        scalar_only = compiled.constraint_document is not None and not any(
+            scope.closure.posture.value == "open" for scope in compiled.constraint_document.scopes
+        )
+        posture = replace(
+            posture,
+            explicitness=ExplicitnessClass.CONSTRAINED if scalar_only else ExplicitnessClass.OPEN,
+            mode=RealizationAuthorityMode.CONSTRAINED if scalar_only else RealizationAuthorityMode.OPEN,
+        )
     verification_scope, observation_strength = _registered_verification(scenario, registered, authored_value)
     authority = CompiledRealizationAuthority(
         field_path=registered.field_path,

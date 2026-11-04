@@ -395,7 +395,10 @@ def compile_recursive_realization_constraint(
         document = bind_scalar_set_choices(built.document)
     except _UnrepresentableAuthority, ValidationError:
         return None, True, False
-    return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes)
+    opened = any(scope.closure.posture.value == "open" for scope in metadata.scopes) or any(
+        isinstance(constraint, RealizationDelegatedValue) for constraint in metadata.leaf_constraints.values()
+    )
+    return document, False, opened
 
 
 __all__ = ["compile_registered_constraint", "compile_recursive_realization_constraint"]
