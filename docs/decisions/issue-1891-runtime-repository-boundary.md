@@ -245,8 +245,9 @@ Do not invent destination modules for absent code or bypass Go `internal` visibi
 Later package moves update that same model through #1825 and existing Go design gates.
 
 Targeted checks cover complete inventory ownership, source/provenance identities, collision/containment checks, product dependency direction, executable publishers and release-gate data.
-The canonical test shards fetch full history so these checks can read the pinned source objects.
-Checkout credentials remain unpersisted.
+The existing Go architecture-tool test lane owns these structural checks.
+It already fetches full history without persisting checkout credentials.
+The product Python test tree and frozen parity corpus stay unchanged.
 Native `archcheck -design` and `archcheck` validate model, typed APIs and source-bound views.
 ADR-059 checks amendment records and canonical pins.
 Changed-document Vale checks apply the repository's writing rules.
