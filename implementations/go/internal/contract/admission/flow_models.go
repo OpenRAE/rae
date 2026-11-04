@@ -129,6 +129,6 @@ func (e *Validator) flowLocalInstances(id string, root any) error {
 
 // Keep the model dispatcher aligned with the compiled schema names.
 func flowNeedsDefaults(instance validation.SchemaInstance) bool {
-	name := strings.TrimPrefix(instance.SchemaPointer, "#/$defs/")
+	name := strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix)
 	return strings.HasPrefix(name, "ParticipantFlow") || name == "ParticipantEffectiveFlowLabelModel" || name == "ParticipantRuntimeFactFlowBindingModel" || name == "ParticipantActionArgumentFlowBindingModel" || name == "ParticipantControlOccurrenceFlowBindingModel" || name == "ParticipantCrossingOccurrenceFlowBindingModel"
 }

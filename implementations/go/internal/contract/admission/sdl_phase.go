@@ -52,7 +52,7 @@ func (e *Validator) checkSDLPhase(id string, data []byte, limits ingress.Limits,
 	if ownerErr != nil || phase.ContractID != id || phase.SourceSHA256 != commitment || digest.SHA256(request.Source) != commitment {
 		return invalid()
 	}
-	if schemaErr := e.low.CheckSchema(id, phase.Document, limits); schemaErr != nil {
+	if e.low.CheckSchema(id, phase.Document, limits) != nil {
 		return invalid()
 	}
 	source, err := ingress.Parse(data, limits, ingress.Object)

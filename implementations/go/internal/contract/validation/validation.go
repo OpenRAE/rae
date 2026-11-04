@@ -73,7 +73,7 @@ type Validator struct {
 func New(rules []Rule) (*Validator, error) {
 	source, err := corpus.Open()
 	if err != nil {
-		return nil, failure(fault.Operational, "contract-corpus-invalid")
+		return nil, failure(fault.Operational, codeContractCorpusInvalid)
 	}
 	return load(source, rules)
 }
@@ -94,7 +94,7 @@ func load(source fs.FS, rules []Rule) (*Validator, error) {
 	validator := &Validator{contracts: map[string]contract{}, rules: map[Key]Rule{}}
 	for _, publication := range publications {
 		if validator.contracts[publication.ID].schema != nil {
-			return nil, failure(fault.Operational, "contract-corpus-invalid")
+			return nil, failure(fault.Operational, codeContractCorpusInvalid)
 		}
 		compiled, err := compileContract(source, publication)
 		if err != nil {
@@ -179,7 +179,7 @@ func (v *Validator) checkReferences() error {
 		for _, row := range allAnnotations(contract) {
 			for _, input := range row.Inputs {
 				if v.contracts[input.ContractID].schema == nil {
-					return failure(fault.Operational, "contract-invariant-invalid")
+					return failure(fault.Operational, codeContractInvariantInvalid)
 				}
 			}
 		}
@@ -194,7 +194,7 @@ func checkProfileReference(id string, root map[string]any) error {
 	}
 	fields, ok := profile.(map[string]any)
 	if !ok || fields["contract_id"] != id || fields["keyword"] != "x-raes-invariants" || fields[keywordRequired] != true || fields["id"] != "raes-semantic-invariants-v1" || fields["entry_schema_contract_id"] != "raes-semantic-invariants-v1" {
-		return failure(fault.Operational, "contract-invariant-invalid")
+		return failure(fault.Operational, codeContractInvariantInvalid)
 	}
 	return nil
 }
@@ -213,11 +213,11 @@ func readPublications(source fs.FS) ([]publication, error) {
 	}
 	directory, ok := strings.CutPrefix(manifest.Directory, "contracts/")
 	if !ok || !fs.ValidPath(directory) {
-		return nil, failure(fault.Operational, "contract-corpus-invalid")
+		return nil, failure(fault.Operational, codeContractCorpusInvalid)
 	}
 	entries, err := fs.ReadDir(source, directory)
 	if err != nil {
-		return nil, failure(fault.Operational, "contract-corpus-invalid")
+		return nil, failure(fault.Operational, codeContractCorpusInvalid)
 	}
 	var result []publication
 	for _, entry := range entries {
@@ -226,7 +226,7 @@ func readPublications(source fs.FS) ([]publication, error) {
 			return nil, err
 		}
 		if row.ID == "" || !strings.HasPrefix(row.Path, "contracts/schemas/") || !fs.ValidPath(row.Path) {
-			return nil, failure(fault.Operational, "contract-corpus-invalid")
+			return nil, failure(fault.Operational, codeContractCorpusInvalid)
 		}
 		result = append(result, row)
 	}
@@ -239,10 +239,10 @@ func readPublications(source fs.FS) ([]publication, error) {
 func readJSON(source fs.FS, name string, target any) error {
 	data, err := fs.ReadFile(source, name)
 	if err != nil {
-		return failure(fault.Operational, "contract-corpus-invalid")
+		return failure(fault.Operational, codeContractCorpusInvalid)
 	}
 	if err := json.Unmarshal(data, target); err != nil {
-		return failure(fault.Operational, "contract-corpus-invalid")
+		return failure(fault.Operational, codeContractCorpusInvalid)
 	}
 	return nil
 }
@@ -250,11 +250,11 @@ func readJSON(source fs.FS, name string, target any) error {
 func compileContract(source fs.FS, publication publication) (contract, error) {
 	raw, err := fs.ReadFile(source, strings.TrimPrefix(publication.Path, "contracts/"))
 	if err != nil {
-		return contract{}, failure(fault.Operational, "contract-corpus-invalid")
+		return contract{}, failure(fault.Operational, codeContractCorpusInvalid)
 	}
 	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
 	if err != nil {
-		return contract{}, failure(fault.Operational, "contract-schema-invalid")
+		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
 	}
 	compiler := jsonschema.NewCompiler()
 	compiler.DefaultDraft(jsonschema.Draft2020)
@@ -262,15 +262,15 @@ func compileContract(source fs.FS, publication publication) (contract, error) {
 	compiler.UseRegexpEngine(compilePattern)
 	location := "urn:raes:contract:" + publication.ID
 	if err = compiler.AddResource(location, doc); err != nil {
-		return contract{}, failure(fault.Operational, "contract-schema-invalid")
+		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
 	}
 	compiled, err := compiler.Compile(location)
 	if err != nil {
-		return contract{}, failure(fault.Operational, "contract-schema-invalid")
+		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
 	}
 	root, ok := doc.(map[string]any)
 	if !ok {
-		return contract{}, failure(fault.Operational, "contract-schema-invalid")
+		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
 	}
 	annotations := map[string][]annotation{}
 	if err := collect(root, "#", annotations); err != nil {
@@ -299,11 +299,11 @@ func (v *Validator) DecodeSchema(id string, data []byte, limits ingress.Limits) 
 func decodeTransport(id string, data []byte) (any, error) {
 	transport, err := binding.Decode(id, data)
 	if err != nil {
-		return nil, failure(fault.Operational, "contract-binding-mismatch")
+		return nil, failure(fault.Operational, codeContractBindingMismatch)
 	}
 	encoded, err := json.Marshal(transport)
 	if err != nil {
-		return nil, failure(fault.Operational, "contract-binding-mismatch")
+		return nil, failure(fault.Operational, codeContractBindingMismatch)
 	}
 	original, err := canonjson.Sorted(data, false)
 	if err != nil {
@@ -311,7 +311,7 @@ func decodeTransport(id string, data []byte) (any, error) {
 	}
 	restored, err := canonjson.Sorted(encoded, false)
 	if err != nil || !bytes.Equal(original, restored) {
-		return nil, failure(fault.Operational, "contract-binding-mismatch")
+		return nil, failure(fault.Operational, codeContractBindingMismatch)
 	}
 	return transport, nil
 }
@@ -368,7 +368,7 @@ func (v *Validator) Validate(id string, data []byte, limits ingress.Limits, trus
 		return Value{}, err
 	}
 	if _, err := decodeTransport(id, data); err != nil {
-		return Value{}, failure(fault.Operational, "contract-binding-mismatch")
+		return Value{}, failure(fault.Operational, codeContractBindingMismatch)
 	}
 	return Value{id, slices.Clone(data)}, nil
 }

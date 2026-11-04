@@ -1,7 +1,7 @@
 package admission
 
 import (
-	_ "embed"
+	_ "embed" // Required by go:embed for the pinned Unicode classification data.
 	"encoding/json"
 	"maps"
 	"sort"

@@ -36,7 +36,7 @@ func manifestReference(i validation.Invocation) error {
 	if at(v, "ref_digest") == nil {
 		return nil
 	}
-	return require((kind == kindProcessor || kind == kindBackend) && stringAt(v, fieldRefVersion) == kind+"-manifest/v2")
+	return require((kind == kindProcessor || kind == kindBackend) && stringAt(v, fieldRefVersion) == kind+manifestV2Suffix)
 }
 
 func occurrenceActor(i validation.Invocation) error {

@@ -155,7 +155,7 @@ func controlCompositionDisposition(v any, blockers map[string]bool, gate string)
 			causes[controlSupportCause(controlRows(at(v, "support"), "instance_id")[identity])] = true
 		case "predecessor":
 			causes[termWithhold] = true
-		case "effect-conflict":
+		case reasonEffectConflict:
 			causes["conflict"] = true
 		case "incumbent-gates":
 			causes[controlUnsatisfiedStatus(gate)] = true

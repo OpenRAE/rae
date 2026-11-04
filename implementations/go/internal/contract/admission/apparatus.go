@@ -27,7 +27,7 @@ func apparatusSelected(i validation.Invocation) error {
 		if stringAt(component, "component_kind") != kind {
 			return invalid()
 		}
-		if err := componentManifest(component, kind, kind+"-manifest/v2", selected); err != nil {
+		if err := componentManifest(component, kind, kind+manifestV2Suffix, selected); err != nil {
 			return err
 		}
 		canonical[referenceKey(at(component, "manifest_ref"))] = true
@@ -79,7 +79,7 @@ func apparatusConstraint(i validation.Invocation) error {
 	}
 	for _, kind := range []string{kindProcessor, kindBackend} {
 		for _, ref := range array(at(v, "allowed_"+kind+"_refs")) {
-			if !keys[join(kind, stringAt(ref, fieldRefID), stringAt(ref, fieldRefVersion), kind+"-manifest/v2")] {
+			if !keys[join(kind, stringAt(ref, fieldRefID), stringAt(ref, fieldRefVersion), kind+manifestV2Suffix)] {
 				return invalid()
 			}
 		}
@@ -88,7 +88,7 @@ func apparatusConstraint(i validation.Invocation) error {
 }
 func requiredManifest(ref, subject any) error {
 	kind := stringAt(subject, fieldRefKind)
-	if (kind != kindProcessor && kind != kindBackend) || stringAt(ref, fieldRefVersion) != kind+"-manifest/v2" {
+	if (kind != kindProcessor && kind != kindBackend) || stringAt(ref, fieldRefVersion) != kind+manifestV2Suffix {
 		return nil
 	}
 	return require(equal(at(ref, fieldRefID), at(subject, fieldRefID)) && at(subject, "ref_digest") == nil && at(subject, "ref_path") == nil)

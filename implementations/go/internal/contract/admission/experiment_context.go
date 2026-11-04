@@ -1,7 +1,10 @@
 package admission
 
-// ExperimentTaskContext supplies the concrete task whose protocol a run names.
-type ExperimentTaskContext interface{ ExperimentTask() []byte }
+// ExperimentTaskProvider supplies the concrete task whose protocol a run names.
+type ExperimentTaskProvider interface{ ExperimentTask() []byte }
+
+// ExperimentTaskContext retains the original name for ExperimentTaskProvider.
+type ExperimentTaskContext = ExperimentTaskProvider
 
 // ExperimentStudyContext supplies the concrete task and run artifacts used to
 // resolve study membership, analysis and allocation claims.

@@ -93,7 +93,7 @@ func (e *Validator) crossingFragments(name string, raw [][]byte) ([]any, error) 
 			return nil, invalid()
 		}
 		remaining -= len(data)
-		v, err := e.low.DecodeObjectFragment(termParticipantCrossingOccurrenceV1, "#/$defs/"+name, data, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
+		v, err := e.low.DecodeObjectFragment(termParticipantCrossingOccurrenceV1, schemaDefinitionsPrefix+name, data, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
 		if err != nil {
 			return nil, err
 		}

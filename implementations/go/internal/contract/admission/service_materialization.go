@@ -9,7 +9,7 @@ import (
 var variableReference = regexp.MustCompile(`^\$\{(?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\.)*[a-z0-9][a-z0-9_-]{0,63}\}$`)
 
 func variableRef(v string) bool { return variableReference.MatchString(v) }
-func declaredRefs(refs any, declarations any) bool {
+func declaredRefs(refs, declarations any) bool {
 	for _, ref := range stringsOf(refs) {
 		if _, ok := object(declarations)[ref]; !ok && !variableRef(ref) {
 			return false

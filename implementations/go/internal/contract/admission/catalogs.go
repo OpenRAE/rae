@@ -11,7 +11,7 @@ import (
 func (e *Validator) checkCatalogs() error {
 	source, err := corpus.Open()
 	if err != nil {
-		return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+		return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 	}
 	for id, path := range map[string]string{
 		"uco-alignment-v1":                        "concept-authority/uco-alignment-v1.json",
@@ -45,14 +45,14 @@ func (e *Validator) checkCatalogs() error {
 func (e *Validator) checkCatalog(id string, v any) error {
 	raw, err := json.Marshal(v)
 	if err != nil {
-		return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+		return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 	}
 	limits := ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64}
 	if err = e.low.CheckLocal(id, raw, limits); err != nil {
-		return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+		return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 	}
 	if err = e.checkModels(id, raw, limits); err != nil {
-		return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+		return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 	}
 	return nil
 }

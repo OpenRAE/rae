@@ -19,7 +19,7 @@ func (e *Validator) loadControlProfiles(source fs.FS) error {
 		}
 		digest, err := jsonDigest(profile)
 		if err != nil {
-			return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+			return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 		}
 		e.controlDigests[id] = digest
 	}

@@ -25,7 +25,7 @@ func (c *controlResolutionTestContext) ControlResolutionSnapshot() ControlResolu
 	}
 	return c.snapshot
 }
-func (c *controlResolutionTestContext) ControlDeclaredSupport(_ json.RawMessage, support json.RawMessage) (string, error) {
+func (c *controlResolutionTestContext) ControlDeclaredSupport(_, support json.RawMessage) (string, error) {
 	if c.refusal {
 		return "", errors.New("private-owner-state")
 	}

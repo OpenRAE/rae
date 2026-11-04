@@ -22,6 +22,9 @@ func TestGeneratedRegistry(t *testing.T) {
 	}
 	for _, entry := range entries {
 		id := strings.TrimSuffix(entry.Name(), ".json")
+		if _, err := Decode(id+"-unknown", []byte(`{}`)); err == nil {
+			t.Errorf("Decode(%s-unknown) = nil, want refusal", id)
+		}
 		if _, err := Decode(id, []byte(`{`)); err == nil {
 			t.Errorf("Decode(%s,malformed) = nil, want refusal", id)
 		}

@@ -25,7 +25,7 @@ func (c controlHistoryTestContext) ControlAvailableTargets() []AvailableControlT
 
 func handoffPolicy(record any) map[string]any {
 	v := at(record, "occurrence")
-	state := func(id any, controller any) any {
+	state := func(id, controller any) any {
 		return map[string]any{"state_ref": id, "controller_ref": controller, "authority_basis_refs": at(v, "authority_basis_refs"), "scope_refs": at(v, "controlled_scope_refs"), "authority_status": "active", "valid_from_order": at(v, "valid_from_order"), "valid_until_order": at(v, "valid_until_order")}
 	}
 	return map[string]any{"semantics": at(record, "semantics"), "participant_address": at(record, "participant_address"), "episode_id": at(record, "episode_id"), "pin": at(record, "policy"), "order_strategy": "total-effective-order", "initial_state_ref": at(v, "prior_state_ref"), "behavior_scope_refs": at(v, "controlled_scope_refs"), "states": []any{state(at(v, "prior_state_ref"), at(v, "controller_ref")), state(at(v, "resulting_state_ref"), "controller.supervised")}, "transitions": []any{map[string]any{"transition_ref": at(v, "permitted_transition_ref"), "kind": "handoff", "from_state_ref": at(v, "prior_state_ref"), "to_state_ref": at(v, "resulting_state_ref"), "valid_from_order": at(v, "valid_from_order"), "valid_until_order": at(v, "valid_until_order"), "target_kinds": []any{}}}, "script_steps": []any{}}

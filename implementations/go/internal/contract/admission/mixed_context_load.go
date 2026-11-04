@@ -3,7 +3,7 @@ package admission
 import "github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
 
 func (r *mixedResolution) fragment(name string, data []byte) (any, error) {
-	return r.owner.low.DefaultedObjectFragment(termMixedParticipantCompositionProfileV1, "#/$defs/"+name, data, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
+	return r.owner.low.DefaultedObjectFragment(termMixedParticipantCompositionProfileV1, schemaDefinitionsPrefix+name, data, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
 }
 
 func (r *mixedResolution) load() error {

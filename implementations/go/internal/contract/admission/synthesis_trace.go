@@ -3,7 +3,7 @@ package admission
 import "github.com/OpenRAE/rae/implementations/go/internal/contract/validation"
 
 func contributionKeys(rows any) (map[string]bool, error) {
-	ranks := map[string]string{"imported-assertion": "0", "transformation-assumption": "1", contributionInferredStructure: "2", "transformation-default": "3", contributionAuthorDecision: "4", contributionPolicyDecision: "5"}
+	ranks := map[string]string{traceImportedAssertion: "0", traceTransformationAssumption: "1", contributionInferredStructure: "2", "transformation-default": "3", contributionAuthorDecision: "4", contributionPolicyDecision: "5"}
 	keys := map[string]bool{}
 	var previous string
 	for index, row := range array(rows) {
@@ -60,8 +60,8 @@ func (e *Validator) synthesisProvenance(i validation.Invocation) error {
 }
 func contributionOwners(v any) map[string]map[string]bool {
 	owners := map[string]map[string]bool{
-		"imported-assertion":          rowSet(at(v, "input", "assertions"), "assertion_id"),
-		"transformation-assumption":   rowSet(at(v, "input", fieldAssumptions), "assumption_id"),
+		traceImportedAssertion:        rowSet(at(v, "input", "assertions"), "assertion_id"),
+		traceTransformationAssumption: rowSet(at(v, "input", fieldAssumptions), "assumption_id"),
 		contributionInferredStructure: set(at(v, termProfile, "rule_ids")),
 		"transformation-default":      set(at(v, termProfile, "default_ids")),
 		contributionAuthorDecision:    {}, contributionPolicyDecision: {},
@@ -99,12 +99,12 @@ func traceContributions(v, trace, decision any, owners map[string]map[string]boo
 		return invalid()
 	}
 	for _, assertion := range stringsOf(at(decision, "assertion_ids")) {
-		if !keys[join("imported-assertion", assertion)] {
+		if !keys[join(traceImportedAssertion, assertion)] {
 			return invalid()
 		}
 	}
 	for _, assumption := range array(at(v, "input", fieldAssumptions)) {
-		if !disjoint(stringsOf(at(assumption, "assertion_ids")), set(at(decision, "assertion_ids"))) && !keys[join("transformation-assumption", stringAt(assumption, "assumption_id"))] {
+		if !disjoint(stringsOf(at(assumption, "assertion_ids")), set(at(decision, "assertion_ids"))) && !keys[join(traceTransformationAssumption, stringAt(assumption, "assumption_id"))] {
 			return invalid()
 		}
 	}

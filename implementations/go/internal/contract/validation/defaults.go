@@ -29,10 +29,10 @@ func (v *Validator) Defaulted(id string, data []byte, limits ingress.Limits) (an
 func defaultedSchema(schema *jsonschema.Schema, original any, limits ingress.Limits) (any, error) {
 	encoded, err := json.Marshal(original)
 	if err != nil {
-		return nil, failure(fault.InvalidInput, "contract-defaults-limit")
+		return nil, failure(fault.InvalidInput, codeContractDefaultsLimit)
 	}
 	if len(encoded) > limits.MaxBytes {
-		return nil, failure(fault.InvalidInput, "contract-defaults-limit")
+		return nil, failure(fault.InvalidInput, codeContractDefaultsLimit)
 	}
 	target, err := copyJSON(encoded)
 	if err != nil {
@@ -47,7 +47,7 @@ func defaultedSchema(schema *jsonschema.Schema, original any, limits ingress.Lim
 		return nil, err
 	}
 	if err := schema.Validate(target); err != nil {
-		return nil, failure(fault.Operational, "contract-default-invalid")
+		return nil, failure(fault.Operational, codeContractDefaultInvalid)
 	}
 	return target, nil
 }
@@ -63,7 +63,7 @@ func copyJSON(encoded []byte) (any, error) {
 	decoder.UseNumber()
 	var copyValue any
 	if err := decoder.Decode(&copyValue); err != nil {
-		return nil, failure(fault.Operational, "contract-default-invalid")
+		return nil, failure(fault.Operational, codeContractDefaultInvalid)
 	}
 	return copyValue, nil
 }
@@ -73,12 +73,12 @@ func (w *defaultWalk) walk(root visit) error {
 	seen := map[visitIdentity]bool{}
 	for work := 0; len(stack) > 0; work++ {
 		if work >= 100000 {
-			return failure(fault.InvalidInput, "contract-defaults-limit")
+			return failure(fault.InvalidInput, codeContractDefaultsLimit)
 		}
 		current := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
 		if strings.Count(current.path, "/") > w.depth {
-			return failure(fault.InvalidInput, "contract-defaults-limit")
+			return failure(fault.InvalidInput, codeContractDefaultsLimit)
 		}
 		identity := visitIdentity{current.schema, current.path}
 		if seen[identity] {
@@ -102,11 +102,11 @@ func (w *defaultWalk) addDefaults(current visit) ([]visit, error) {
 	}
 	resolved, ok := atDefaultPath(w.target, current.path)
 	if !ok {
-		return nil, failure(fault.Operational, "contract-default-invalid")
+		return nil, failure(fault.Operational, codeContractDefaultInvalid)
 	}
 	target, ok := resolved.(map[string]any)
 	if !ok {
-		return nil, failure(fault.Operational, "contract-default-invalid")
+		return nil, failure(fault.Operational, codeContractDefaultInvalid)
 	}
 	var additional []visit
 	for _, name := range slices.Sorted(maps.Keys(current.schema.Properties)) {
@@ -127,7 +127,7 @@ func (w *defaultWalk) addDefaults(current visit) ([]visit, error) {
 func (w *defaultWalk) addMember(path, name string, value any, target map[string]any) (any, error) {
 	encoded, err := json.Marshal(value)
 	if err != nil {
-		return nil, failure(fault.Operational, "contract-default-invalid")
+		return nil, failure(fault.Operational, codeContractDefaultInvalid)
 	}
 	if previous, assigned := w.assigned[path]; assigned && !bytes.Equal(previous, encoded) {
 		return nil, failure(fault.Operational, "contract-default-conflict")
@@ -135,7 +135,7 @@ func (w *defaultWalk) addMember(path, name string, value any, target map[string]
 	w.assigned[path] = encoded
 	if _, present := target[name]; !present {
 		if len(encoded)+6*len(name)+4 > w.remaining {
-			return nil, failure(fault.InvalidInput, "contract-defaults-limit")
+			return nil, failure(fault.InvalidInput, codeContractDefaultsLimit)
 		}
 		w.remaining -= len(encoded) + 6*len(name) + 4
 		target[name], err = copyJSON(encoded)

@@ -43,7 +43,7 @@ func (e *Validator) experimentLocalRules() map[string]definition {
 func timestamps(v any, fields ...string) error {
 	for _, field := range fields {
 		if value := at(v, field); value != nil {
-			if _, err := timestamp.ParseRFC3339("contract-time", text(value)); err != nil {
+			if _, err := timestamp.ParseRFC3339(codeContractTime, text(value)); err != nil {
 				return invalid()
 			}
 		}
@@ -63,11 +63,11 @@ func interval(v any, start, end string) error {
 	if left == nil || right == nil {
 		return nil
 	}
-	a, err := timestamp.ParseRFC3339("contract-time", text(left))
+	a, err := timestamp.ParseRFC3339(codeContractTime, text(left))
 	if err != nil {
 		return invalid()
 	}
-	b, err := timestamp.ParseRFC3339("contract-time", text(right))
+	b, err := timestamp.ParseRFC3339(codeContractTime, text(right))
 	if err != nil {
 		return invalid()
 	}

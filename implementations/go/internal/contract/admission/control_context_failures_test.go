@@ -14,27 +14,8 @@ func TestControlDisclosureRefusesSubstitutedAuthoritySources(t *testing.T) {
 	for _, name := range []string{"scope", "run", "participant", "episode", "audience", "generation", "generation-fraction", "cut-json", "cut-kind", "cut-shape", "asset-json", "selection-json", "surface-json", "view-json", "duplicate-asset", "duplicate-selection", "duplicate-surface", "duplicate-view", "missing-original", "original-disposition", "original-identity", "record-identity", "missing-surface", "invisible-item", "missing-binding", "duplicate-binding", "binding-source", "missing-view", "view-source", "view-transformation", "inactive-exposure", "denied", "unavailable", "withheld-no-authority"} {
 		t.Run(name, func(t *testing.T) {
 			v, c, surface, view, binding := controlDisclosureFixture(t)
+			corruptControlSnapshot(name, c)
 			switch name {
-			case "scope":
-				c.snapshot.ScopeRef = ""
-			case "run":
-				c.snapshot.RunID = ""
-			case "participant":
-				c.snapshot.ParticipantAddress = ""
-			case "episode":
-				c.snapshot.EpisodeID = ""
-			case "audience":
-				c.snapshot.AudienceScopeRef = ""
-			case "generation":
-				c.snapshot.EpisodeGeneration = json.Number("-1")
-			case "generation-fraction":
-				c.snapshot.EpisodeGeneration = json.Number("0.5")
-			case "cut-json":
-				c.snapshot.RecordCut = []byte("{")
-			case "cut-kind":
-				c.snapshot.RecordCut = []byte(`{"cut_kind":"unknown"}`)
-			case "cut-shape":
-				c.snapshot.RecordCut = []byte(`{"cut_kind":"sequence_prefix"}`)
 			case "asset-json":
 				c.assets = [][]byte{[]byte("{")}
 			case "selection-json":
@@ -100,5 +81,30 @@ func TestControlDisclosureRefusesSubstitutedAuthoritySources(t *testing.T) {
 				t.Fatal("accepted substituted control authority", name)
 			}
 		})
+	}
+}
+
+func corruptControlSnapshot(name string, c *controlAgreementTestContext) {
+	switch name {
+	case "scope":
+		c.snapshot.ScopeRef = ""
+	case "run":
+		c.snapshot.RunID = ""
+	case "participant":
+		c.snapshot.ParticipantAddress = ""
+	case "episode":
+		c.snapshot.EpisodeID = ""
+	case "audience":
+		c.snapshot.AudienceScopeRef = ""
+	case "generation":
+		c.snapshot.EpisodeGeneration = json.Number("-1")
+	case "generation-fraction":
+		c.snapshot.EpisodeGeneration = json.Number("0.5")
+	case "cut-json":
+		c.snapshot.RecordCut = []byte("{")
+	case "cut-kind":
+		c.snapshot.RecordCut = []byte(`{"cut_kind":"unknown"}`)
+	case "cut-shape":
+		c.snapshot.RecordCut = []byte(`{"cut_kind":"sequence_prefix"}`)
 	}
 }

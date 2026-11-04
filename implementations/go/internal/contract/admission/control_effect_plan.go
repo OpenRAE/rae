@@ -55,7 +55,7 @@ func controlParentEffectGraph(v any, effects []any) error {
 	if !subsetSet(realized, rowSet(effects, "effect_id")) {
 		return invalid()
 	}
-	edges := map[string][]string{"@parent-admitted": {}, "@parent-applied": {"@parent-admitted"}}
+	edges := map[string][]string{parentAdmittedMarker: {}, "@parent-applied": {parentAdmittedMarker}}
 	for _, effect := range effects {
 		id := stringAt(effect, "effect_id")
 		edges[id] = stringsOf(at(effect, "predecessor_effect_ids"))
@@ -63,7 +63,7 @@ func controlParentEffectGraph(v any, effects []any) error {
 			return invalid()
 		}
 		if stringAt(effect, "phase") == termRequiredPredecessor {
-			edges["@parent-admitted"] = append(edges["@parent-admitted"], id)
+			edges[parentAdmittedMarker] = append(edges[parentAdmittedMarker], id)
 		}
 		if stringAt(effect, "phase") == termSuccessDependent {
 			edges[id] = append(edges[id], "@parent-"+stringAt(effect, "parent_outcome"))

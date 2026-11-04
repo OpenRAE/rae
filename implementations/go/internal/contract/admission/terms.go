@@ -1,5 +1,16 @@
 package admission
 
+const (
+	codeContractCatalogInvalid    = "contract-catalog-invalid"
+	manifestV2Suffix              = "-manifest/v2"
+	parentAdmittedMarker          = "@parent-admitted"
+	reasonEffectConflict          = "effect-conflict"
+	codeContractTime              = "contract-time"
+	schemaDefinitionsPrefix       = "#/$defs/"
+	traceImportedAssertion        = "imported-assertion"
+	traceTransformationAssumption = "transformation-assumption"
+)
+
 // Published terms shared by the family validators.
 const (
 	outcomeSuccess        = "success"

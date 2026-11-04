@@ -360,7 +360,7 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/internal/contract/admission 27a1d1ee90140c06c7f36da91eb3150f03123343d62d960c52c1b6df8be2a599 -->
+<!-- go-api implementations/go/internal/contract/admission 85c9cbb8db679033d77c04cded0c363811ba73664b374750c804ef95ca727b2a -->
 
 ## Model parity repairs
 
@@ -405,3 +405,12 @@ The contract package copies the request source, rejects mutation, checks the ret
 Focused model comparisons additionally enforce nested inject occurrence/outcome identity joins, materialization-parent canonical references, ordered exploit-witness observations and prerequisites, and participant time-management claim/mode coupling. These remain local contract/model checks in the existing admission package and visitor; they add no public API or external authority.
 
 The allowed-enum reference matrix extends the portable model visitor to nested artifact coordinates, plan-operation identities, recursive closure/domain rules and context-view source joins. It also covers joint-action conflicts, local outcome claims and interpretation rules, observation selectors, operation authority scopes and bounded-vector outcomes. Native instantiated-scenario snapshots use the existing exact-source compiler-owner port alongside the other native SDL phase roots. The contract layer continues to validate portable payloads and owner commitments; it does not acquire native SDL admission authority.
+
+## Artifact provider names
+
+The single-method artifact ports use provider names: `CleanupPlanProvider`,
+`CompletenessTaxonomyProvider`, `BehavioralClaimProvider`,
+`ExperimentTaskProvider` and `InjectClaimsProvider`. Their existing methods and
+trust requirements stay the same. The original `Context` names remain as type
+aliases, so existing consumers continue to compile. No published schema or
+context payload changes.

@@ -6,26 +6,35 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/internal/contract/validation"
 )
 
+type resourceSchemaProjection struct {
+	Capabilities resourceCapabilitiesProjection `json:"capabilities"`
+}
+type resourceCapabilitiesProjection struct {
+	Runtime resourceRuntimeProjection `json:"participant_runtime"`
+}
+type resourceRuntimeProjection struct {
+	Budgets resourceBudgetsProjection `json:"resource_budgets"`
+}
+type resourceBudgetsProjection struct {
+	Context resourceContextProjection `json:"domain_profile_context"`
+}
+type resourceContextProjection struct {
+	Definitions []resourceDefinitionProjection `json:"definitions"`
+}
+type resourceDefinitionProjection struct {
+	Definition resourceProfileProjection `json:"definition"`
+}
+type resourceProfileProjection struct {
+	ProfileSchema resourceDocumentProjection `json:"profile_schema"`
+}
+type resourceDocumentProjection struct {
+	Schema json.RawMessage `json:"schema_document"`
+}
+
 // Profile schemas retain their original member order for the reference's
 // bounded evaluator. Raw bytes are used only within this admission call.
 func resourceProfileSchemas(data []byte) ([]json.RawMessage, error) {
-	var wire struct {
-		Capabilities struct {
-			Runtime struct {
-				Budgets struct {
-					Context struct {
-						Definitions []struct {
-							Definition struct {
-								ProfileSchema struct {
-									Schema json.RawMessage `json:"schema_document"`
-								} `json:"profile_schema"`
-							} `json:"definition"`
-						} `json:"definitions"`
-					} `json:"domain_profile_context"`
-				} `json:"resource_budgets"`
-			} `json:"participant_runtime"`
-		} `json:"capabilities"`
-	}
+	var wire resourceSchemaProjection
 	if err := json.Unmarshal(data, &wire); err != nil {
 		return nil, invalid()
 	}

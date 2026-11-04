@@ -62,7 +62,7 @@ func newCatalogOwner() (*Validator, error) {
 			return nil, loadErr
 		}
 		if stringAt(profile, termProfileID) != id || !keyed(at(profile, "transforms"), "transform_id") {
-			return nil, fault.New(fault.Operational, "contract-catalog-invalid", nil)
+			return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 		}
 		owner.streams[id] = profile
 	}
@@ -87,17 +87,17 @@ func newCatalogOwner() (*Validator, error) {
 func readCatalog(source fs.FS, path string) (map[string]any, error) {
 	file, err := source.Open(path)
 	if err != nil {
-		return nil, fault.New(fault.Operational, "contract-catalog-invalid", nil)
+		return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 	}
 	const maxBytes = 8 * 1048576
 	raw, readErr := io.ReadAll(io.LimitReader(file, maxBytes+1))
 	closeErr := file.Close()
 	if readErr != nil || closeErr != nil || len(raw) > maxBytes {
-		return nil, fault.New(fault.Operational, "contract-catalog-invalid", nil)
+		return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 	}
 	value, err := ingress.Parse(raw, ingress.Limits{MaxBytes: maxBytes, MaxDepth: 64}, ingress.Object)
 	if err != nil {
-		return nil, fault.New(fault.Operational, "contract-catalog-invalid", nil)
+		return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 	}
 	return object(value), nil
 }

@@ -152,7 +152,7 @@ func (e *Validator) controlCut(raw []byte) (any, error) {
 	if name == "" {
 		return nil, invalid()
 	}
-	value, err = e.low.DecodeObjectFragment(termParticipantControlContextRecordV1, "#/$defs/"+name, raw, ingress.Limits{MaxBytes: 1048576, MaxDepth: 32})
+	value, err = e.low.DecodeObjectFragment(termParticipantControlContextRecordV1, schemaDefinitionsPrefix+name, raw, ingress.Limits{MaxBytes: 1048576, MaxDepth: 32})
 	if err != nil {
 		return nil, err
 	}

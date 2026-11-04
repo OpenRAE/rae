@@ -18,11 +18,11 @@ func (v *Validator) DecodeObjectFragment(id, pointer string, data []byte, limits
 		return nil, failure(fault.InvalidInput, "contract-unknown")
 	}
 	if pointer != "#" && !strings.HasPrefix(pointer, "#/") {
-		return nil, failure(fault.InvalidInput, "contract-fragment-unknown")
+		return nil, failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
 	schema := findSchemaFragment(v.contracts[id].schema, pointer)
 	if schema == nil {
-		return nil, failure(fault.InvalidInput, "contract-fragment-unknown")
+		return nil, failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
 	parsed, err := ingress.Parse(data, limits, ingress.Object)
 	if err != nil {
@@ -52,7 +52,7 @@ func (v *Validator) DefaultedObjectFragment(id, pointer string, data []byte, lim
 	}
 	schema := findSchemaFragment(v.contracts[id].schema, pointer)
 	if schema == nil {
-		return nil, failure(fault.InvalidInput, "contract-fragment-unknown")
+		return nil, failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
 	target, err := defaultedSchema(schema, original, limits)
 	if err != nil {
@@ -60,7 +60,7 @@ func (v *Validator) DefaultedObjectFragment(id, pointer string, data []byte, lim
 	}
 	result, ok := target.(map[string]any)
 	if !ok {
-		return nil, failure(fault.Operational, "contract-default-invalid")
+		return nil, failure(fault.Operational, codeContractDefaultInvalid)
 	}
 	return result, nil
 }

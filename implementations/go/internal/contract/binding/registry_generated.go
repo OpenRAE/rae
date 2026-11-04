@@ -4,8 +4,34 @@ package binding
 
 import "encoding/json"
 
+const unknownContractMessage = "unknown contract"
+
 // Decode decodes schema-checked transport bytes. It grants no semantic authority.
 func Decode(id string, data []byte) (any, error) {
+	if id <= "controlled-vocabularies-v1" {
+		return decodeGroup0(id, data)
+	}
+	if id <= "inject-trigger-request-v1" {
+		return decodeGroup1(id, data)
+	}
+	if id <= "participant-control-selection-v1" {
+		return decodeGroup2(id, data)
+	}
+	if id <= "participant-opacity-analysis-input-v1" {
+		return decodeGroup3(id, data)
+	}
+	if id <= "reusable-asset-trust-policy-v1" {
+		return decodeGroup4(id, data)
+	}
+	if id <= "validation-profile-catalog-v1" {
+		return decodeGroup5(id, data)
+	}
+	if id <= "workflow-result-envelope-v1" {
+		return decodeGroup6(id, data)
+	}
+	return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+}
+func decodeGroup0(id string, data []byte) (any, error) {
 	switch id {
 	case "admitted-trial-plan-v1":
 		var v AdmittedTrialPlanV1
@@ -151,6 +177,12 @@ func Decode(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup1(id string, data []byte) (any, error) {
+	switch id {
 	case "domain-profile-admission-policy-v1":
 		var v DomainProfileAdmissionPolicyV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -295,6 +327,12 @@ func Decode(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup2(id string, data []byte) (any, error) {
+	switch id {
 	case "instantiated-scenario-snapshot-v1":
 		var v InstantiatedScenarioSnapshotV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -439,6 +477,12 @@ func Decode(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup3(id string, data []byte) (any, error) {
+	switch id {
 	case "participant-control-selection-v2":
 		var v ParticipantControlSelectionV2
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -583,6 +627,12 @@ func Decode(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup4(id string, data []byte) (any, error) {
+	switch id {
 	case "participant-opacity-model-check-evidence-v1":
 		var v ParticipantOpacityModelCheckEvidenceV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -727,6 +777,12 @@ func Decode(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup5(id string, data []byte) (any, error) {
+	switch id {
 	case "runtime-fact-binding-plane-v1":
 		var v RuntimeFactBindingPlaneV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -871,6 +927,12 @@ func Decode(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup6(id string, data []byte) (any, error) {
+	switch id {
 	case "w3c-activitystreams-activity-types-source-v1":
 		var v W3cActivitystreamsActivityTypesSourceV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -896,6 +958,6 @@ func Decode(id string, data []byte) (any, error) {
 		}
 		return v, nil
 	default:
-		return nil, &json.UnsupportedValueError{Str: "unknown contract"}
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
 	}
 }

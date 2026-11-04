@@ -7,8 +7,11 @@ type InjectRetryContext interface {
 	ActorID() string
 }
 
-// InjectClaimsContext supplies the bounded claim set of one target/run store.
-type InjectClaimsContext interface{ InjectClaims() [][]byte }
+// InjectClaimsProvider supplies the bounded claim set of one target/run store.
+type InjectClaimsProvider interface{ InjectClaims() [][]byte }
+
+// InjectClaimsContext retains the original name for InjectClaimsProvider.
+type InjectClaimsContext = InjectClaimsProvider
 
 // InjectOutcomeContext supplies the claimed occurrence and exact invocation.
 type InjectOutcomeContext interface {

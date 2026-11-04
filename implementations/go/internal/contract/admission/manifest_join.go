@@ -19,10 +19,10 @@ func (e *Validator) apparatusManifests(i validation.Invocation) error {
 	if err != nil {
 		return err
 	}
-	if err := manifestComponent(at(i.Instance, termComponents, kindProcessor), processor, kindProcessor+"-manifest/v2", c.ProcessorManifestDigest()); err != nil {
+	if err := manifestComponent(at(i.Instance, termComponents, kindProcessor), processor, kindProcessor+manifestV2Suffix, c.ProcessorManifestDigest()); err != nil {
 		return err
 	}
-	if err := manifestComponent(at(i.Instance, termComponents, kindBackend), backend, kindBackend+"-manifest/v2", c.BackendManifestDigest()); err != nil {
+	if err := manifestComponent(at(i.Instance, termComponents, kindBackend), backend, kindBackend+manifestV2Suffix, c.BackendManifestDigest()); err != nil {
 		return err
 	}
 	return require(set(at(processor, "compatibility", "backends"))[stringAt(backend, termIdentity, termName)] && set(at(backend, "compatibility", "processors"))[stringAt(processor, termIdentity, termName)])

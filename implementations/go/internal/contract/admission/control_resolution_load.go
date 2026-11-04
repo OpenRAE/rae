@@ -8,7 +8,7 @@ import (
 )
 
 func (r *controlResolution) fragment(name string, raw []byte) (any, error) {
-	v, err := r.owner.low.DefaultedObjectFragment(r.id, "#/$defs/"+name, raw, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
+	v, err := r.owner.low.DefaultedObjectFragment(r.id, schemaDefinitionsPrefix+name, raw, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
 	if err != nil {
 		return nil, err
 	}

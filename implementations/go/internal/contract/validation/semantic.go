@@ -33,20 +33,20 @@ func collect(node map[string]any, pointer string, result map[string][]annotation
 func parseAnnotations(raw any) ([]annotation, error) {
 	encoded, err := json.Marshal(raw)
 	if err != nil {
-		return nil, failure(fault.Operational, "contract-invariant-invalid")
+		return nil, failure(fault.Operational, codeContractInvariantInvalid)
 	}
 	var rows []annotation
 	if err := json.Unmarshal(encoded, &rows); err != nil {
-		return nil, failure(fault.Operational, "contract-invariant-invalid")
+		return nil, failure(fault.Operational, codeContractInvariantInvalid)
 	}
 	seen := map[string]bool{}
 	for _, row := range rows {
 		if row.ID == "" || seen[row.ID] || len(row.Inputs) == 0 {
-			return nil, failure(fault.Operational, "contract-invariant-invalid")
+			return nil, failure(fault.Operational, codeContractInvariantInvalid)
 		}
 		for _, input := range row.Inputs {
 			if input.ContractID == "" || input.Path != "#" && !strings.HasPrefix(input.Path, "#/") {
-				return nil, failure(fault.Operational, "contract-invariant-invalid")
+				return nil, failure(fault.Operational, codeContractInvariantInvalid)
 			}
 		}
 		seen[row.ID] = true
@@ -102,7 +102,7 @@ func (v *Validator) semanticSource(id string, root, context any, complete bool, 
 	contract := v.contracts[id]
 	invoked := map[ruleIdentity]bool{}
 	return walkSchema(visit{contract.schema, root, ""}, func(current visit) error {
-		return v.invoke(id, current, root, context, contract.annotations, invoked, complete, source)
+		return v.invoke(id, current, root, context, contract.annotations, invoked, semanticInvocationOptions{complete: complete, source: source})
 	})
 }
 
@@ -143,10 +143,15 @@ type visitIdentity struct {
 }
 type ruleIdentity struct{ id, path string }
 
-func (v *Validator) invoke(id string, current visit, root, context any, annotations map[string][]annotation, invoked map[ruleIdentity]bool, complete bool, source string) error {
+type semanticInvocationOptions struct {
+	complete bool
+	source   string
+}
+
+func (v *Validator) invoke(id string, current visit, root, context any, annotations map[string][]annotation, invoked map[ruleIdentity]bool, options semanticInvocationOptions) error {
 	location, err := url.Parse(current.schema.Location)
 	if err != nil {
-		return failure(fault.Operational, "contract-invariant-invalid")
+		return failure(fault.Operational, codeContractInvariantInvalid)
 	}
 	pointer := "#" + location.Fragment
 	for _, row := range annotations[pointer] {
@@ -160,13 +165,13 @@ func (v *Validator) invoke(id string, current visit, root, context any, annotati
 		if rule.Check == nil {
 			return failure(fault.InvalidInput, "contract-semantic-rule-required")
 		}
-		if !complete && (rule.Contextual || rule.RequiresContext) {
+		if !options.complete && (rule.Contextual || rule.RequiresContext) {
 			continue
 		}
 		if rule.RequiresContext && context == nil {
 			return failure(fault.InvalidInput, "contract-semantic-context-required")
 		}
-		if err := rule.Check(Invocation{Key: key, Path: current.path, Root: root, Instance: current.value, Context: context, Inputs: slices.Clone(row.Inputs), Source: source}); err != nil {
+		if err := rule.Check(Invocation{Key: key, Path: current.path, Root: root, Instance: current.value, Context: context, Inputs: slices.Clone(row.Inputs), Source: options.source}); err != nil {
 			return failure(fault.InvalidInput, "contract-semantic-mismatch")
 		}
 	}

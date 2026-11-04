@@ -22,7 +22,7 @@ func (e *Validator) loadBehavioral(source fs.FS) error {
 			return loadErr
 		}
 		if stringAt(catalog, fieldTaxonomyRevision) != revision {
-			return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+			return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 		}
 		e.relationCatalogs[revision] = catalog
 	}
@@ -36,7 +36,7 @@ func (e *Validator) loadRelationProfiles(source fs.FS) error {
 			return loadErr
 		}
 		if stringAt(profile, termProfileID) != id {
-			return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+			return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 		}
 		e.relationProfiles[join(id, stringAt(profile, "profile_revision"))] = profile
 	}
@@ -49,7 +49,7 @@ func (e *Validator) loadRelationProfiles(source fs.FS) error {
 			return loadErr
 		}
 		if stringAt(profile, termProfileID) != historical[0] || stringAt(profile, "profile_revision") != historical[1] {
-			return fault.New(fault.Operational, "contract-catalog-invalid", nil)
+			return fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 		}
 		e.relationProfiles[join(historical[0], historical[1])] = profile
 	}

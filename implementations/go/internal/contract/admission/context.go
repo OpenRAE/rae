@@ -5,17 +5,26 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
 )
 
-// CleanupContext supplies the exact admitted cleanup plan for one receipt.
+// CleanupPlanProvider supplies the exact admitted cleanup plan for one receipt.
 // The trusted owner supplies this artifact; payload claims cannot implement it.
-type CleanupContext interface{ CleanupPlan() []byte }
+type CleanupPlanProvider interface{ CleanupPlan() []byte }
 
-// CompletenessContext supplies the taxonomy revision against which an
+// CleanupContext retains the original name for CleanupPlanProvider.
+type CleanupContext = CleanupPlanProvider
+
+// CompletenessTaxonomyProvider supplies the taxonomy revision against which an
 // assessment makes its completeness claim.
-type CompletenessContext interface{ CompletenessTaxonomy() []byte }
+type CompletenessTaxonomyProvider interface{ CompletenessTaxonomy() []byte }
 
-// BehavioralClaimContext supplies the independently identified claim joined
+// CompletenessContext retains the original name for CompletenessTaxonomyProvider.
+type CompletenessContext = CompletenessTaxonomyProvider
+
+// BehavioralClaimProvider supplies the independently identified claim joined
 // to a standalone behavioral profile during full contextual validation.
-type BehavioralClaimContext interface{ BehavioralClaim() []byte }
+type BehavioralClaimProvider interface{ BehavioralClaim() []byte }
+
+// BehavioralClaimContext retains the original name for BehavioralClaimProvider.
+type BehavioralClaimContext = BehavioralClaimProvider
 
 // BackendResponseContext supplies the exact request and, for control evidence,
 // its independently admitted control. OperationControl may return nil otherwise.

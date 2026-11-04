@@ -24,7 +24,7 @@ func controlEffectBlockers(request any, results, realizations []any) (map[string
 	for index, left := range effects.variants {
 		for _, right := range effects.variants[index+1:] {
 			if controlEffectPair(left, right, effects.ancestors, at(request, "context")) {
-				blockers["effect-conflict"] = true
+				blockers[reasonEffectConflict] = true
 			}
 		}
 	}
@@ -176,7 +176,7 @@ func (effects *controlEffectSet) addResult(request, result any, seen, blockers m
 	effects.byID[id] = append(effects.byID[id], effect)
 	effects.byKey[key] = append(effects.byKey[key], effect)
 	if len(effects.byID[id]) > 1 || len(effects.byKey[key]) > 1 {
-		blockers["effect-conflict"] = true
+		blockers[reasonEffectConflict] = true
 	}
 	if stringAt(effect, "phase") == termRequiredPredecessor {
 		blockers["predecessor:"+id] = true
@@ -191,10 +191,10 @@ func controlRetainedEffect(effect, prior any, priorIDs map[string]any, blockers 
 		return err
 	}
 	if prior != nil && (!equal(at(prior, "effect_id"), at(effect, "effect_id")) || stringAt(prior, "content_digest") != digest) {
-		blockers["effect-conflict"] = true
+		blockers[reasonEffectConflict] = true
 	}
 	if previous := priorIDs[stringAt(effect, "effect_id")]; previous != nil && !equal(at(previous, "key"), at(effect, "key")) {
-		blockers["effect-conflict"] = true
+		blockers[reasonEffectConflict] = true
 	}
 
 	return nil

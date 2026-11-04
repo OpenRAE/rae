@@ -65,7 +65,7 @@ func flowArgumentScalar(v any) bool {
 }
 
 func (e *Validator) flowOwnerFragment(id, name string, raw []byte) (any, error) {
-	v, err := e.low.DefaultedObjectFragment(id, "#/$defs/"+name, raw, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
+	v, err := e.low.DefaultedObjectFragment(id, schemaDefinitionsPrefix+name, raw, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
 	if err != nil {
 		return nil, err
 	}

@@ -38,48 +38,8 @@ func (e *Validator) controlModel(name string, v any) (bool, error) {
 		return true, controlCutCoordinates(v)
 	case "ControlCrossingEffectModel":
 		return true, controlReferenceKinds(v, map[string]string{"crossing_decision": termCrossing})
-	case "ControlTransformationEffectModel":
-		return true, controlTransformationEffect(v)
-	case "ControlInjectEffectModel":
-		return true, controlInjectEffect(v)
-	case "ControlDelayEffectModel":
-		return true, controlDelayEffect(v)
-	case "ControlHandoffEffectModel":
-		return true, controlHandoffEffect(v)
-	case "ControlReviewEffectModel":
-		return true, controlReviewEffect(v)
-	case "ControlLifecycleEffectModel":
-		return true, controlLifecycleEffect(v)
-	case "ControlAuditEffectModel":
-		return true, controlReferenceKinds(v, map[string]string{"audit_record": "audit", "retention_policy": termPolicy})
-	case "ControlEffectRequestModel":
-		return true, controlEffectIdentity(v)
-	case "ControlEffectRequestV2Model":
-		return true, controlEffectPhase(v)
-	case "ControlTeachingFactModel":
-		return true, require(sortedUnique(stringsOf(at(v, "tokens"))))
-	case "ControlSecurityFactModel":
-		return true, controlReferenceKinds(v, map[string]string{"relation": "flow-relation"})
-	case "ControlOwnerSecurityFactModel":
-		if stringAt(v, "profile", "ref") != termParticipantOwnerFlowPolicyV1 || stringAt(v, "relation", termKind) != "flow-relation" {
-			return true, invalid()
-		}
-		return true, e.controlProfile(at(v, "profile"))
-	case "ControlDecisionModel":
-		return true, controlReferenceKinds(v, map[string]string{termRule: termRule})
-	case "ControlMechanismResultModel":
-		return true, controlResultPayload(v)
-	case "ControlMechanismResultV2Model":
-		return true, controlResultPayloadV2(v)
-	case "ControlCompositionModel":
-		return true, require(fieldsUnique(v, "contributing_result_ids") && sortedUnique(stringsOf(at(v, "blockers"))))
-	case "ControlRealizationBindingModel":
-		return true, controlReferenceKinds(v, map[string]string{termReceipt: termReceipt})
-	case "ControlSupportAssessmentV2Model":
-		return true, controlSupportAssessment(v)
-	default:
-		return false, nil
 	}
+	return e.controlModelDetails(name, v)
 }
 
 func controlReferenceKinds(v any, fields map[string]string) error {
@@ -168,5 +128,50 @@ func controlSupportAssessment(v any) error {
 		return nil
 	default:
 		return invalid()
+	}
+}
+func (e *Validator) controlModelDetails(name string, v any) (bool, error) {
+	switch name {
+	case "ControlTransformationEffectModel":
+		return true, controlTransformationEffect(v)
+	case "ControlInjectEffectModel":
+		return true, controlInjectEffect(v)
+	case "ControlDelayEffectModel":
+		return true, controlDelayEffect(v)
+	case "ControlHandoffEffectModel":
+		return true, controlHandoffEffect(v)
+	case "ControlReviewEffectModel":
+		return true, controlReviewEffect(v)
+	case "ControlLifecycleEffectModel":
+		return true, controlLifecycleEffect(v)
+	case "ControlAuditEffectModel":
+		return true, controlReferenceKinds(v, map[string]string{"audit_record": "audit", "retention_policy": termPolicy})
+	case "ControlEffectRequestModel":
+		return true, controlEffectIdentity(v)
+	case "ControlEffectRequestV2Model":
+		return true, controlEffectPhase(v)
+	case "ControlTeachingFactModel":
+		return true, require(sortedUnique(stringsOf(at(v, "tokens"))))
+	case "ControlSecurityFactModel":
+		return true, controlReferenceKinds(v, map[string]string{"relation": "flow-relation"})
+	case "ControlOwnerSecurityFactModel":
+		if stringAt(v, "profile", "ref") != termParticipantOwnerFlowPolicyV1 || stringAt(v, "relation", termKind) != "flow-relation" {
+			return true, invalid()
+		}
+		return true, e.controlProfile(at(v, "profile"))
+	case "ControlDecisionModel":
+		return true, controlReferenceKinds(v, map[string]string{termRule: termRule})
+	case "ControlMechanismResultModel":
+		return true, controlResultPayload(v)
+	case "ControlMechanismResultV2Model":
+		return true, controlResultPayloadV2(v)
+	case "ControlCompositionModel":
+		return true, require(fieldsUnique(v, "contributing_result_ids") && sortedUnique(stringsOf(at(v, "blockers"))))
+	case "ControlRealizationBindingModel":
+		return true, controlReferenceKinds(v, map[string]string{termReceipt: termReceipt})
+	case "ControlSupportAssessmentV2Model":
+		return true, controlSupportAssessment(v)
+	default:
+		return false, nil
 	}
 }

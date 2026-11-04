@@ -29,7 +29,7 @@ func (v *Validator) CheckInstances(id string, data []byte, limits ingress.Limits
 	return walkSchema(visit{contract.schema, root, ""}, func(current visit) error {
 		location, err := url.Parse(current.schema.Location)
 		if err != nil {
-			return failure(fault.Operational, "contract-schema-invalid")
+			return failure(fault.Operational, codeContractSchemaInvalid)
 		}
 		var discriminator string
 		if raw, ok := atDefaultPath(contract.raw, location.Fragment); ok {

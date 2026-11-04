@@ -60,6 +60,152 @@ func (e *Validator) localModels(id string, root any) error {
 		return e.backendManifestModel(root)
 	case termExperimentRunV1:
 		return selectionDescriptorSet(array(at(root, "realized_selections")))
+	}
+	return e.localModelDetails(id, root)
+}
+
+// These are the portable entry point's actual contextual gates, distinct from
+// the larger metadata set whose strength is "structural-context-required".
+func portableContextRequired(id string) bool {
+	switch id {
+	case termParticipantControlContextAssetV1, termParticipantControlContextChangeV1, termParticipantControlContextRecordV1,
+		termParticipantControlEvaluationV1, termParticipantControlEvaluationV2, termParticipantInformationStateRecordV1,
+		termParticipantFlowControlRelationV1, termMixedParticipantCompositionProfileV1:
+		return true
+	default:
+		return false
+	}
+}
+
+func (e *Validator) checkModels(id string, data []byte, limits ingress.Limits) error {
+	checkedRoot := false
+	var normalized any
+	return e.low.CheckInstances(id, data, limits, func(instance validation.SchemaInstance) error {
+		if instance.Discriminator != "" {
+			if _, present := object(instance.Value)[instance.Discriminator]; !present && !legacyServiceProfileDefault(instance) {
+				return invalid()
+			}
+		}
+		if !checkedRoot {
+			checkedRoot = true
+			if err := e.initialModel(id, instance.Root, data); err != nil {
+				return err
+			}
+		}
+		var err error
+		instance, err = e.controlDefaultInstance(instance, data, limits, &normalized)
+		if err != nil {
+			return err
+		}
+		return e.instanceModel(instance)
+	})
+}
+
+func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
+	if known, err := e.additionalModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
+		return err
+	}
+	if known, err := e.domainProfileModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
+		return err
+	}
+	if known, err := e.resourceModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
+		return err
+	}
+	if known, err := e.capabilityModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
+		return err
+	}
+	if known, err := materializationModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
+		return err
+	}
+	if known, err := e.controlModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
+		return err
+	}
+	if known, err := flowModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
+		return err
+	}
+	switch strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix) {
+	case "AssociatedArtifactParentReferenceModel":
+		return associatedParentReference(instance.Value)
+	case "InjectOccurrenceCorrelationModel":
+		return injectCorrelationModel(instance.Value)
+	case "ExploitPathStepModel":
+		return exploitStepModel(instance.Value)
+	case "ParticipantTimeManagementContextModel":
+		return timeManagementModel(instance.Value)
+	case "ParticipantBehaviorHistoryEventModel":
+		return behaviorLifecycle(instance.Value)
+	case "PropositionProbeBindingModel":
+		return require(fieldsUnique(instance.Value, "capability_refs"))
+	case "PropositionTruthResultModel":
+		return propositionTruth(instance.Value)
+	case "LineageClaimModel":
+		return lineageClaimDimensions(instance.Value)
+	case "ConfigurationTargetDeclarationModel":
+		return configurationTargetModel(instance.Value)
+	case "SemanticProfileModel":
+		return e.semanticProfile(instance.Value)
+	case "SemanticProfilePhaseModel":
+		return e.semanticProfilePhase(instance.Value)
+	case "ScenarioSatisfiabilityEvidenceModel":
+		return e.satisfiabilityModel(instance.Value)
+	case "SourceArtifactIdentityModel":
+		return constraintSource(instance.Value)
+	case "NormalizedConstraintModel":
+		return constraintGraph(instance.Value)
+	case "ConstraintSymbolModel":
+		_, err := constraintValues(at(instance.Value, "domain"), stringAt(instance.Value, "sort"))
+		return err
+	case "ConstraintClauseModel":
+		_, err := constraintValues(at(instance.Value, "allowed_values"), "")
+		return err
+	case "UnsatisfiableCoreModel":
+		return require(sortedUnique(stringsOf(at(instance.Value, "clause_ids"))))
+	case "UnsupportedAnalysisModel":
+		return require(sortedUnique(stringsOf(at(instance.Value, "reason_codes"))))
+	}
+	return e.instanceModelDetails(instance)
+}
+
+func bindingScalarType(v any) error {
+	if stringAt(v, "value", termKind) == "secret-reference" {
+		return require(stringAt(v, "value_type") != termNull)
+	}
+	return require(scalarMatches(at(v, "value", "value"), stringAt(v, "value_type")))
+}
+
+func (e *Validator) controlDefaultInstance(instance validation.SchemaInstance, data []byte, limits ingress.Limits, normalized *any) (validation.SchemaInstance, error) {
+	name := strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix)
+	if !controlNeedsDefaults(name) && !flowNeedsDefaults(instance) {
+		return instance, nil
+	}
+	if *normalized == nil {
+		var err error
+		*normalized, err = e.low.Defaulted(instance.ContractID, data, limits)
+		if err != nil {
+			return instance, err
+		}
+	}
+	value, present := pointerAt(*normalized, instance.Path)
+	if !present {
+		return instance, invalid()
+	}
+	instance.Value = value
+	return instance, nil
+}
+func controlNeedsDefaults(name string) bool {
+	return strings.HasPrefix(name, "Control") || name == termParticipantControlContextModel || name == termParticipantControlRequestModel || name == termParticipantControlRequestV2Model
+}
+
+func (e *Validator) initialModel(id string, root any, data []byte) error {
+	if id == termBackendManifestV2 {
+		if err := checkResourceProfiles(root, data); err != nil {
+			return err
+		}
+	}
+	return e.localModels(id, root)
+}
+func (e *Validator) localModelDetails(id string, root any) error {
+	switch id {
 	case termBackendMaterializationAttestationV1:
 		return require(len(stringAt(root, "sdl")) <= 4*1048576)
 	case termMaterializedScenarioV1:
@@ -116,106 +262,8 @@ func (e *Validator) localModels(id string, root any) error {
 		return nil
 	}
 }
-
-// These are the portable entry point's actual contextual gates, distinct from
-// the larger metadata set whose strength is "structural-context-required".
-func portableContextRequired(id string) bool {
-	switch id {
-	case termParticipantControlContextAssetV1, termParticipantControlContextChangeV1, termParticipantControlContextRecordV1,
-		termParticipantControlEvaluationV1, termParticipantControlEvaluationV2, termParticipantInformationStateRecordV1,
-		termParticipantFlowControlRelationV1, termMixedParticipantCompositionProfileV1:
-		return true
-	default:
-		return false
-	}
-}
-
-func (e *Validator) checkModels(id string, data []byte, limits ingress.Limits) error {
-	checkedRoot := false
-	var normalized any
-	return e.low.CheckInstances(id, data, limits, func(instance validation.SchemaInstance) error {
-		if instance.Discriminator != "" {
-			if _, present := object(instance.Value)[instance.Discriminator]; !present && !legacyServiceProfileDefault(instance) {
-				return invalid()
-			}
-		}
-		if !checkedRoot {
-			checkedRoot = true
-			if err := e.initialModel(id, instance.Root, data); err != nil {
-				return err
-			}
-		}
-		var err error
-		instance, err = e.controlDefaultInstance(instance, data, limits, &normalized)
-		if err != nil {
-			return err
-		}
-		return e.instanceModel(instance)
-	})
-}
-
-func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
-	if known, err := e.additionalModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
-		return err
-	}
-	if known, err := e.domainProfileModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
-		return err
-	}
-	if known, err := e.resourceModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
-		return err
-	}
-	if known, err := e.capabilityModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
-		return err
-	}
-	if known, err := materializationModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
-		return err
-	}
-	if known, err := e.controlModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
-		return err
-	}
-	if known, err := flowModel(strings.TrimPrefix(instance.SchemaPointer, "#/$defs/"), instance.Value); known {
-		return err
-	}
-	switch strings.TrimPrefix(instance.SchemaPointer, "#/$defs/") {
-	case "AssociatedArtifactParentReferenceModel":
-		return associatedParentReference(instance.Value)
-	case "InjectOccurrenceCorrelationModel":
-		return injectCorrelationModel(instance.Value)
-	case "ExploitPathStepModel":
-		return exploitStepModel(instance.Value)
-	case "ParticipantTimeManagementContextModel":
-		return timeManagementModel(instance.Value)
-	case "ParticipantBehaviorHistoryEventModel":
-		return behaviorLifecycle(instance.Value)
-	case "PropositionProbeBindingModel":
-		return require(fieldsUnique(instance.Value, "capability_refs"))
-	case "PropositionTruthResultModel":
-		return propositionTruth(instance.Value)
-	case "LineageClaimModel":
-		return lineageClaimDimensions(instance.Value)
-	case "ConfigurationTargetDeclarationModel":
-		return configurationTargetModel(instance.Value)
-	case "SemanticProfileModel":
-		return e.semanticProfile(instance.Value)
-	case "SemanticProfilePhaseModel":
-		return e.semanticProfilePhase(instance.Value)
-	case "ScenarioSatisfiabilityEvidenceModel":
-		return e.satisfiabilityModel(instance.Value)
-	case "SourceArtifactIdentityModel":
-		return constraintSource(instance.Value)
-	case "NormalizedConstraintModel":
-		return constraintGraph(instance.Value)
-	case "ConstraintSymbolModel":
-		_, err := constraintValues(at(instance.Value, "domain"), stringAt(instance.Value, "sort"))
-		return err
-	case "ConstraintClauseModel":
-		_, err := constraintValues(at(instance.Value, "allowed_values"), "")
-		return err
-	case "UnsatisfiableCoreModel":
-		return require(sortedUnique(stringsOf(at(instance.Value, "clause_ids"))))
-	case "UnsupportedAnalysisModel":
-		return require(sortedUnique(stringsOf(at(instance.Value, "reason_codes"))))
-
+func (e *Validator) instanceModelDetails(instance validation.SchemaInstance) error {
+	switch strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix) {
 	case "ParticipantImplementationProvenanceModel":
 		return participantProvenanceModel(instance.Value)
 	case "ParticipantImplementationManifestModel":
@@ -267,43 +315,4 @@ func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
 	default:
 		return nil
 	}
-}
-
-func bindingScalarType(v any) error {
-	if stringAt(v, "value", termKind) == "secret-reference" {
-		return require(stringAt(v, "value_type") != termNull)
-	}
-	return require(scalarMatches(at(v, "value", "value"), stringAt(v, "value_type")))
-}
-
-func (e *Validator) controlDefaultInstance(instance validation.SchemaInstance, data []byte, limits ingress.Limits, normalized *any) (validation.SchemaInstance, error) {
-	name := strings.TrimPrefix(instance.SchemaPointer, "#/$defs/")
-	if !controlNeedsDefaults(name) && !flowNeedsDefaults(instance) {
-		return instance, nil
-	}
-	if *normalized == nil {
-		var err error
-		*normalized, err = e.low.Defaulted(instance.ContractID, data, limits)
-		if err != nil {
-			return instance, err
-		}
-	}
-	value, present := pointerAt(*normalized, instance.Path)
-	if !present {
-		return instance, invalid()
-	}
-	instance.Value = value
-	return instance, nil
-}
-func controlNeedsDefaults(name string) bool {
-	return strings.HasPrefix(name, "Control") || name == termParticipantControlContextModel || name == termParticipantControlRequestModel || name == termParticipantControlRequestV2Model
-}
-
-func (e *Validator) initialModel(id string, root any, data []byte) error {
-	if id == termBackendManifestV2 {
-		if err := checkResourceProfiles(root, data); err != nil {
-			return err
-		}
-	}
-	return e.localModels(id, root)
 }

@@ -37,19 +37,16 @@ func Generate(source fs.FS) (map[string][]byte, error) {
 		return nil, err
 	}
 	output := map[string][]byte{}
-	var registry strings.Builder
-	registry.WriteString(generatedHeader)
-	registry.WriteString("// Decode decodes schema-checked transport bytes. It grants no semantic authority.\nfunc Decode(id string, data []byte) (any, error) {\nswitch id {\n")
+	roots := map[string]string{}
 	for _, entry := range entries {
 		formatted, rootName, err := generateBinding(source, entry)
 		if err != nil {
 			return nil, err
 		}
 		output[outputRoot+"binding/"+entry.ID+"_generated.go"] = formatted
-		fmt.Fprintf(&registry, "case %q: var v %s; if err := json.Unmarshal(data, &v); err != nil { return nil, err }; return v, nil\n", entry.ID, rootName)
+		roots[entry.ID] = rootName
 	}
-	registry.WriteString("default: return nil, &json.UnsupportedValueError{Str: \"unknown contract\"}\n}\n}\n")
-	formatted, err := format.Source([]byte(registry.String()))
+	formatted, err := registrySource(roots)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +57,28 @@ func Generate(source fs.FS) (map[string][]byte, error) {
 	}
 	addArchivePieces(output, archive)
 	return output, nil
+}
+
+func registrySource(roots map[string]string) ([]byte, error) {
+	const groupSize = 24
+	ids := slices.Sorted(maps.Keys(roots))
+	var registry strings.Builder
+	registry.WriteString(generatedHeader)
+	registry.WriteString("const unknownContractMessage = \"unknown contract\"\n\n")
+	registry.WriteString("// Decode decodes schema-checked transport bytes. It grants no semantic authority.\nfunc Decode(id string, data []byte) (any, error) {\n")
+	for start := 0; start < len(ids); start += groupSize {
+		end := min(start+groupSize, len(ids))
+		fmt.Fprintf(&registry, "if id <= %q { return decodeGroup%d(id, data) }\n", ids[end-1], start/groupSize)
+	}
+	registry.WriteString("return nil, &json.UnsupportedValueError{Str: unknownContractMessage}\n}\n")
+	for start := 0; start < len(ids); start += groupSize {
+		fmt.Fprintf(&registry, "func decodeGroup%d(id string, data []byte) (any, error) {\nswitch id {\n", start/groupSize)
+		for _, id := range ids[start:min(start+groupSize, len(ids))] {
+			fmt.Fprintf(&registry, "case %q: var v %s; if err := json.Unmarshal(data, &v); err != nil { return nil, err }; return v, nil\n", id, roots[id])
+		}
+		registry.WriteString("default: return nil, &json.UnsupportedValueError{Str: unknownContractMessage}\n}\n}\n")
+	}
+	return format.Source([]byte(registry.String()))
 }
 
 func generateBinding(source fs.FS, entry publication) ([]byte, string, error) {
