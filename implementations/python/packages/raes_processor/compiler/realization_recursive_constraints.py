@@ -383,7 +383,10 @@ def _normalized_recursive_constraint(
         error = built.diagnostics[0] if built.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
         return None, error, False
     document = bind_scalar_set_choices(built.document)
-    return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes)
+    opened = any(scope.closure.posture.value == "open" for scope in metadata.scopes) or any(
+        isinstance(constraint, RealizationDelegatedValue) for constraint in metadata.leaf_constraints.values()
+    )
+    return document, False, opened
 
 
 def compile_recursive_realization_constraint(
