@@ -1,5 +1,19 @@
 # Runtime architecture: SDL processor runtime backend
 
+The [repository split](../../decisions/issue-1891-runtime-repository-boundary.md) moves the shared engine and live adapters to a new runtime owner at the common #1804 Go launch.
+`OpenRAE/rae` keeps SDL, the processor and trial compiler.
+It keeps the contracts, portable backend interfaces, stubs and authoring services.
+Runtime uses those released public APIs.
+`rae` product modules and `raes-mcp` do not import runtime.
+Only runtime publishes the combined `raes` executable.
+It imports authoring commands through the #1825 public API.
+The Python path below stays the reference until cutover.
+The split keeps existing HTTP, CLI, MCP, store and security behavior.
+It adds no required service or backend.
+Each run keeps its fixed scope.
+The split grants no new rights to a caller.
+Store claims and leases keep their current scope.
+
 ## Shared engine and workload composition
 
 RAE supplies the common execution engine for CTFs, experiments, product tests, and simulated enterprises.

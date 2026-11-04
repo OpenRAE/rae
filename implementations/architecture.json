@@ -14,7 +14,7 @@
     {
       "name": "base",
       "dir": "implementations/go/internal/base",
-      "doc": "Shared primitives: canonical JSON, digests, random streams, input limits, errors, logging, and the clock.",
+      "doc": "Shared primitives: canonical JSON, digests, random streams, input limits, errors, logging, and the clock. Post-#1804 owner: OpenRAE/rae. Keep primitive authority; expose only required consumer types through #1825/#1892.",
       "uses": [],
       "external": [
         {
@@ -42,7 +42,7 @@
     {
       "name": "contract",
       "dir": "implementations/go/internal/contract",
-      "doc": "Bindings and validation of the published contracts, concept authority, vocabularies, and profiles.",
+      "doc": "Bindings and validation of the published contracts, concept authority, vocabularies, and profiles. Post-#1804 owner: OpenRAE/rae, including all normative bindings, schemas, IDs, profiles and validation; runtime consumes released public APIs.",
       "uses": [
         "base"
       ],
@@ -60,7 +60,7 @@
     {
       "name": "sdl",
       "dir": "implementations/go/internal/sdl",
-      "doc": "The RAES SDL: source loading, the document model, semantic validation, instantiation, and composition.",
+      "doc": "The RAES SDL: source loading, the document model, semantic validation, instantiation, and composition. Post-#1804 owner: OpenRAE/rae, including runtime vocabulary, inventory descriptions, instantiation and authoring.",
       "uses": [
         "contract",
         "base"
@@ -70,7 +70,7 @@
     {
       "name": "processor",
       "dir": "implementations/go/internal/processor",
-      "doc": "Compilation, planning, trial compilation, and the analysis services.",
+      "doc": "Compilation, planning, trial compilation, and the analysis services. Post-#1804 owner: OpenRAE/rae, including trial compilation; runtime imports released public processor APIs without semantic copies.",
       "uses": [
         "sdl",
         "contract",
@@ -81,7 +81,7 @@
     {
       "name": "backend",
       "dir": "implementations/go/internal/backend",
-      "doc": "The interfaces that the runtime needs from a backend, backend manifests, and the backend test doubles.",
+      "doc": "The interfaces that the runtime needs from a backend, backend manifests, and the backend test doubles. Post-#1804 owner: OpenRAE/rae for portable interfaces, manifests and stubs; existing external backends retain native realization.",
       "uses": [
         "contract",
         "base"
@@ -91,7 +91,7 @@
     {
       "name": "runtime",
       "dir": "implementations/go/internal/runtime",
-      "doc": "The runtime control plane, its stores, distributed execution, and participant control.",
+      "doc": "The runtime control plane, its stores, distributed execution, and participant control. Post-#1804 owner: new runtime repository (planning name OpenRAE/rae-runtime; destination approval required). Runtime imports released public rae SDL/processor/contract/backend APIs; rae product modules never import runtime.",
       "uses": [
         "backend",
         "processor",
@@ -104,7 +104,7 @@
     {
       "name": "conformance",
       "dir": "implementations/go/internal/conformance",
-      "doc": "Processor and backend conformance checks.",
+      "doc": "Processor and backend conformance checks. Post-#1804 split: pure fixture/processor/contract checks stay OpenRAE/rae; execution-dependent runners belong to runtime. Split the facade without a reverse import.",
       "uses": [
         "runtime",
         "backend",
@@ -118,7 +118,7 @@
     {
       "name": "app",
       "dir": "implementations/go/internal/app",
-      "doc": "Application services that the command line, the MCP server, and the HTTP API share.",
+      "doc": "Application services that the command line, the MCP server, and the HTTP API share. Post-#1804 split: authoring services stay OpenRAE/rae and never import runtime; live execution services belong to runtime.",
       "uses": [
         "conformance",
         "runtime",
@@ -133,7 +133,7 @@
     {
       "name": "adapter",
       "dir": "implementations/go/internal/adapter",
-      "doc": "Thin adapters for the raes command, the raes-mcp server, and the control-plane HTTP API.",
+      "doc": "Thin adapters for the raes command, the raes-mcp server, and the control-plane HTTP API. Post-#1804 split: authoring commands and MCP stay OpenRAE/rae; runtime commands and HTTP belong to runtime. #1825 owns public command composition.",
       "uses": [
         "app",
         "runtime",
@@ -145,7 +145,7 @@
     {
       "name": "command",
       "dir": "implementations/go/cmd",
-      "doc": "The main packages of the raes and raes-mcp binaries.",
+      "doc": "The main packages of the raes and raes-mcp binaries. Post-#1804 publishers: runtime alone publishes combined raes, importing public rae authoring command implementations; OpenRAE/rae alone publishes raes-mcp with no runtime dependency.",
       "uses": [
         "adapter",
         "base"
@@ -155,7 +155,7 @@
     {
       "name": "parity",
       "dir": "implementations/go/internal/parity",
-      "doc": "The checker of the Go implementation against the golden corpus that the Python implementation recorded (issue #1778).",
+      "doc": "The checker of the Go implementation against the golden corpus that the Python implementation recorded (issue #1778). Migration-only through #1804. Retain historical golden evidence in OpenRAE/rae; consumers use immutable versioned vectors with provenance.",
       "uses": [
         "base",
         "contract"
@@ -170,7 +170,7 @@
     {
       "name": "tooling",
       "dir": "implementations/tooling/go",
-      "doc": "Development tools: the repository analyzers, the architecture check, and CI checks.",
+      "doc": "Development tools: the repository analyzers, the architecture check, and CI checks. Existing tooling remains OpenRAE/rae-owned; runtime adapts applicable existing CI/release controls for its own source.",
       "uses": [],
       "external": [
         {
@@ -5173,9 +5173,9 @@
   ],
   "overview": "docs/develop/go-architecture.md",
   "sources": {
-    "docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md": "b8a790286f92fa21777e4220ec25a321273fe2c6741345732d9aa14bc448e2cf",
+    "docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md": "790d2c4119d2c37562aaad3d5cee3ffa4740ac150511f035f3376dd46d28e4b0",
     "docs/decisions/adrs/adr-113-reusable-execution-machinery.md": "6d904befc0d37d44b07ed083d297c7a0e3ba0d520d79f9ddce1999477c78e91d",
-    "docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md": "d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558",
+    "docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md": "e7994a017f64937bfa48edfb8600b933e2acca330a2d5ebaef8a6ae95fcc91be",
     "docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md": "a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa",
     "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md": "938ce2443ce7bd9e5cfa151d9740610ac23fa4338efa48c3cb022c7543bab24a",
     "docs/decisions/issue-1779-canonical-json-design.md": "c68392c70e55eabd39a1d1b287c082fc98b40aea2a50a90a43384f34aea752a3",
@@ -5184,9 +5184,11 @@
     "docs/decisions/issue-1778-parity-corpus-design.md": "c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830",
     "docs/decisions/issue-1859-go-architecture-contract-design.md": "ed0f2251cdbfb59c3a7806b71f58df17278b4873d73afad42c41cfe003d18fcb",
     "contracts/schemas/experiment-core/materialization-archive-record-v1.json": "fb61b1d9bb70ffedf7fec94325c3751a29ef7db7f6e8bea8fc96c064d101ba90",
-    "docs/decisions/adrs/adr-122-go-architecture-model.md": "e4cf1ddd7deed20c8b1890842b72a3f7b0f0ac14fa6659121f02e92ab9658954",
+    "docs/decisions/adrs/adr-122-go-architecture-model.md": "bb34edd9eb80bb56645ef57f4f48eb3113ac02e95b7af696f32de3bdb8d11fa6",
     "docs/decisions/issue-1775-go-architecture-model-design.md": "d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8",
     "docs/decisions/issue-1779-shared-primitives-completion.md": "6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e",
-    "docs/decisions/issue-1780-contract-validation-design.md": "ed1ba1a0d0cc07b995cacd8407799152bac9b09b1b43670d4e08ea62ad6c4aec"
+    "docs/decisions/issue-1780-contract-validation-design.md": "ed1ba1a0d0cc07b995cacd8407799152bac9b09b1b43670d4e08ea62ad6c4aec",
+    "docs/decisions/issue-1891-runtime-repository-boundary.md": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406",
+    "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa"
   }
 }

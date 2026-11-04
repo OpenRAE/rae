@@ -229,7 +229,11 @@ adrs:
         summary: "Separated portable unit identity/native names from the explicitly selected systemd state profile and preserved omission semantics."
   - id: ADR-036
     path: docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md
-    pin: 80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9
+    pin: aee93f41150cc685096c78dd3379449a5fe8e51db8d8897e7b26d9c53c21b0a6
+    amendments:
+      - date: 2026-11-04
+        ref: "#1891"
+        summary: "Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions."
   - id: ADR-037
     path: docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md
     pin: d58c39b1132fe59dedb53fa389fc9c9bee063c37fca4d30aecff056683550baa
@@ -622,7 +626,7 @@ adrs:
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: e5e614841ad22ae35f9f48cab4e1a1399c0f5b87936f1f12d406f820a57050a4
+    pin: 354e154b3d5f1b338117b7f1808c399d8984e857fdf8b7151abdb4bfe5b3aca0
     amendments:
       - date: 2026-09-03
         ref: "#1151"
@@ -648,6 +652,9 @@ adrs:
       - date: 2026-10-28
         ref: "#1629"
         summary: "Separated shared engine lifetime from fixed run contexts, preserving resource reservations and authored retry policy across local and Temporal execution."
+      - date: 2026-11-04
+        ref: "#1891"
+        summary: "Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
     pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e
@@ -718,7 +725,11 @@ adrs:
     pin: 432d75b65d0ef06e022b260240fa7b8f99513f568048796b2b3811a1aeefebcb
   - id: ADR-115
     path: docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md
-    pin: d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558
+    pin: 1129cef984047760925b956129688e3018c54c145febc23c16dbeffe893af145
+    amendments:
+      - date: 2026-11-04
+        ref: "#1891"
+        summary: "Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions."
   - id: ADR-116
     path: docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md
     pin: a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa
@@ -750,7 +761,7 @@ adrs:
         summary: "Separate exhaustive mutation testing from normal PR admission; keep the other Go gates and bound normal Go jobs to 25 minutes."
   - id: ADR-122
     path: docs/decisions/adrs/adr-122-go-architecture-model.md
-    pin: 37dca65986e9d5d43fa79a9f25e45d9944a53010df3b70324e2c2bd93c3e9465
+    pin: dd519fd123f07d56d10c54063874665bab188a9ded9eb0f09f53fa412cef6905
     amendments:
       - date: 2026-10-31
         ref: "#1778"
@@ -761,3 +772,6 @@ adrs:
       - date: 2026-11-03
         ref: "#1780"
         summary: "Bounded API snapshot files retain full generated binding declarations without enlarging the model bound."
+      - date: 2026-11-04
+        ref: "#1891"
+        summary: "Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions."
