@@ -7,7 +7,6 @@ from raes.explicitness import ExplicitnessRecord
 from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_processor.compiler.realization_concern_explicitness import semantic_explicitness_leaves
 from raes_processor.semantics.realization_requirement import CompiledRealizationRequirement
-
 from tools.check_formal_semantic_validation import load_retest_bundle, replay_case
 
 
