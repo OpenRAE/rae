@@ -213,9 +213,9 @@
     {
       "path": "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover. Records the issue-1891 repository ownership amendment and pins while preserving the pre-cutover identity text.",
       "occurrences": 18,
-      "content_sha256": "80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9"
+      "content_sha256": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa"
     },
     {
       "path": "docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-1776 ADR-055 and ADR-098 amendments, the issue-1778 ADR-122 amendment, the issue-976 ADR-100 amendment, and their pins. Also records the issue-1780 ADR-122 snapshot-storage amendment.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-1776 ADR-055 and ADR-098 amendments, the issue-1778 ADR-122 amendment, the issue-976 ADR-100 amendment, and their pins. Also records the issue-1780 ADR-122 snapshot-storage amendment. Records the issue-1891 repository ownership amendment and pins while preserving the pre-cutover identity text.",
       "occurrences": 4,
-      "content_sha256": "909b1345c2b62d63006df3e0c5d549eef5d403a28f414def5d3b7dc9feac0268"
+      "content_sha256": "2acd087d8b6f533a019b7ab3372e692014bec5b1394c0f79a6b82d9980f66f0e"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
