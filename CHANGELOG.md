@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.7.2](https://github.com/OpenRAE/rae/compare/v10.7.1...v10.7.2) (2026-11-04)
+
+
+### Bug Fixes
+
+* admit bounded full-size cloud runtime authorities ([#1900](https://github.com/OpenRAE/rae/issues/1900)) ([6d3b286](https://github.com/OpenRAE/rae/commit/6d3b2869e5cdf722aeed9c2850f63b06d9486a15))
+* preserve scalar-only open realization authority ([#1899](https://github.com/OpenRAE/rae/issues/1899)) ([7181348](https://github.com/OpenRAE/rae/commit/71813480a97c231886ba1e05cf66dac63daa47eb))
+
 ## [10.7.1](https://github.com/OpenRAE/rae/compare/v10.7.0...v10.7.1) (2026-11-04)
 
 
