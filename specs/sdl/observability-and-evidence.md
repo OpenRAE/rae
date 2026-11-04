@@ -228,6 +228,17 @@ retention, and export terms. Scope-ref offers name concrete targets; wildcard
 scope refs are not admission authority. Support must not be synthesized by
 combining legacy capability lists or independent offers.
 
+Scientific evidence admission MUST also require an implemented response verifier for the requested integrity mode.
+The current shared content proof supports `checksum` and `sha256-digest`.
+An authored `none` adds no integrity constraint to the backend offer and MUST NOT count as a stronger scoped requirement.
+The returned artifact still satisfies its existing content and checksum contract.
+Custody, signature, timestamp, and unknown modes MUST be refused before backend effects when that response verifier is absent.
+A matching backend offer or wildcard MUST NOT substitute for a verifier or weaken custody to checksum.
+Installed observation integrity providers keep their separate runtime interface and admission rules.
+RAE owns execution or refusal of effective SDL semantics through the backend interface.
+The experimentalist owns custody after the result handoff.
+RAE does not add a signing-key policy, external archive assurance, or a universal custody rule for experiment claims.
+
 An absent offer, or an offer marked unsupported, unavailable, lossy, redacted,
 or withheld where the demand requires available complete full capture, fails
 admission. Precise images, files, packages, and other installation detail do
