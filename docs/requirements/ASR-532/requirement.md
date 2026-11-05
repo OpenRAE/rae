@@ -30,6 +30,10 @@ requirement.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1914_materialization_source_budget.py`
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Original authority is validated before cleanup comparison)
 - TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Reject unsupported success and preserve trusted or recoverable inventory)
 

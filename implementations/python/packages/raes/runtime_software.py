@@ -69,6 +69,13 @@ class RuntimeSoftwareComponent(SDLModel):
 
     component_id: str
     name: str
+    model: str | None = Field(
+        default=None,
+        min_length=1,
+        pattern=r"\S",
+        exclude_if=lambda value: value is None,
+        description="Model identifier selected for this software component.",
+    )
     presence: RealizationPresence = RealizationPresence.REQUIRED
     version: str = ""
     version_constraint: VersionDomain | None = None

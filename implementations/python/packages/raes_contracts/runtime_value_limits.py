@@ -15,14 +15,19 @@ RUNTIME_SNAPSHOT_VALUE_LIMITS = RealizationConstraintLimits(
     max_document_scalar_bytes=MATERIALIZATION_MAX_BYTES,
 )
 
-# Planner-produced operation plans and their compiled realization authority. Only the node and operation budgets
-# are larger: a released full-size scenario carries about 74,000 authority nodes. Other carriers keep the limits above.
+# Full SDL source and report admission needs a document budget, independent of runtime snapshots.
+# Keep scalar and depth limits unchanged; cap recursive document work explicitly.
+MATERIALIZATION_VALUE_LIMITS = RUNTIME_SNAPSHOT_VALUE_LIMITS.model_copy(
+    update={"max_nodes": 262144, "max_operations": 4 * 262144, "max_members": 65536}
+)
+
+# Planner-produced plans carry the document and its compiled authority under a separate aggregate budget.
 PLAN_VALUE_LIMITS = RealizationConstraintLimits(
-    max_nodes=262144,
-    max_operations=4 * 262144,
+    max_nodes=524288,
+    max_operations=4 * 524288,
     max_members=16384,
     max_scalar_bytes=1048576,
-    max_total_scalar_bytes=8 * 1048576,
+    max_total_scalar_bytes=16 * 1048576,
     max_document_scalar_bytes=MATERIALIZATION_MAX_BYTES,
 )
 

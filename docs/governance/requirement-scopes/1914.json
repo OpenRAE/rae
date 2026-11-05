@@ -1,0 +1,34 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1914,
+  "primary_requirement_uid": "ASR-532",
+  "requirement_uids": [
+    "ASR-532"
+  ],
+  "bindings": {
+    "docs/governance/requirement-scopes/1914.json": [
+      "ASR-532"
+    ],
+    "docs/decisions/issue-1914-materialization-source-budget.md": [
+      "ASR-532"
+    ],
+    "docs/explain/reference/materialization-attestations.md": [
+      "ASR-532"
+    ],
+    "docs/requirements/ASR-532/requirement.md": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes/materialization.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_contracts/materialization.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_contracts/runtime_value_limits.py": [
+      "ASR-532"
+    ],
+    "implementations/python/tests/test_issue_1914_materialization_source_budget.py": [
+      "ASR-532"
+    ]
+  }
+}
