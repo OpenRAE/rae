@@ -11,7 +11,8 @@ import pytest
 def test_architecture_checksum_exception_preserves_secret_detection(tmp_path: Path) -> None:
     repo = Path(__file__).resolve().parents[3]
     scan = tmp_path / "scan"
-    model = scan / "implementations/architecture.json"
+    source = tmp_path / "source"
+    model = source / "implementations/architecture.json"
     model.parent.mkdir(parents=True)
     checksum = "0123456789abcdef" * 4
     allowed = f'"existing_api_sha256": "{checksum}"\n"docs/decisions/issue-1825-public-go-api.md": "{checksum}"\n'
@@ -27,7 +28,7 @@ def test_architecture_checksum_exception_preserves_secret_detection(tmp_path: Pa
         encoding="utf-8",
     )
     for relative in ("other.json", "not-implementations/architecture.json", "implementations/architecture.json.bak"):
-        elsewhere = scan / relative
+        elsewhere = source / relative
         elsewhere.parent.mkdir(parents=True, exist_ok=True)
         elsewhere.write_text(allowed, encoding="utf-8")
     installed = subprocess.run(
@@ -48,9 +49,13 @@ def test_architecture_checksum_exception_preserves_secret_detection(tmp_path: Pa
         check=True,
         timeout=90,
     )
-    # Match the hygiene hook's resolved-symlink scanning boundary.
-    scan_link = tmp_path / "scan-link"
-    scan_link.symlink_to(scan, target_is_directory=True)
+    # Match hygiene: a real scan directory containing file symlinks. Gitleaks
+    # does not traverse a directory symlink supplied as the scan root.
+    for original in source.rglob("*"):
+        if original.is_file():
+            linked = scan / original.relative_to(source)
+            linked.parent.mkdir(parents=True, exist_ok=True)
+            linked.symlink_to(original)
     report = tmp_path / "report.json"
     result = subprocess.run(
         [
@@ -67,7 +72,7 @@ def test_architecture_checksum_exception_preserves_secret_detection(tmp_path: Pa
             "json",
             "--report-path",
             str(report),
-            str(scan_link),
+            str(scan),
         ],
         capture_output=True,
         check=False,
@@ -75,7 +80,7 @@ def test_architecture_checksum_exception_preserves_secret_detection(tmp_path: Pa
     )
     assert result.returncode == 1
     observed = {
-        (Path(item["File"]).relative_to(scan).as_posix(), item["StartLine"], item["RuleID"])
+        (Path(item["File"]).relative_to(source).as_posix(), item["StartLine"], item["RuleID"])
         for item in json.loads(report.read_text(encoding="utf-8"))
     }
     expected = {
