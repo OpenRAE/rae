@@ -92,7 +92,7 @@ def evaluate_repo_policy(
 
 
 def _ratchet_failures(
-    repo_root: Path, policy: dict, base_rev: str | None, ratchet_runner: RatchetRunner | None
+    repo_root: Path, policy: dict[str, object], base_rev: str | None, ratchet_runner: RatchetRunner | None
 ) -> list[PolicyFailure]:
     if ratchet_runner is not None:
         return ratchet_runner(policy)
@@ -101,7 +101,7 @@ def _ratchet_failures(
 
 def _by_file_failures(
     repo_root: Path,
-    policy: dict,
+    policy: dict[str, object],
     changed: list[str],
     check_set: str,
     structural_runner: StructuralPolicyRunner | None,
