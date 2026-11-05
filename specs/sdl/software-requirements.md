@@ -23,18 +23,20 @@ existing service, condition, proposition and participant-contract owners.
 
 ### Model configuration
 
-Optional `model` identifies the model selected for a software component.
-It is an opaque nonblank string; RAES does not infer a provider, fetch a model, or execute inference.
-It does not classify the component as an agent or change participant identity.
-Authors MAY use a literal or the existing `${variable}` syntax and parameter variation points.
-Each instantiated trial SDL MUST retain its selected model identifier.
-Model revisions can be included in the identifier when the experiment requires them.
+`model` names the model that a software component uses. The field is optional.
+A value MUST be a string with at least one non-whitespace character.
+RAES treats it as an opaque name. RAES does not select a provider, fetch the model or run inference.
+Authors MAY use a literal or `${variable}`. Existing parameter variation points can choose the value.
+Each trial SDL MUST keep its chosen model.
+Include a model revision in the name when the experiment needs to fix that revision.
 
-Existing realization rules apply to this field.
-A literal is exact, and parameter bindings retain their existing constrained realization semantics.
-When `model` is absent or null under an open software scope, model selection is delegated to the backend.
-Absence MUST NOT introduce a model choice or a new requirement in existing documents.
-Declaring a model states a requirement; independent runtime evidence establishes what was used.
+The field follows existing realization rules. A literal fixes the exact model.
+A variable keeps its declared domain until a variation point selects its trial value.
+The trial then admits only that choice. The source family keeps the full domain.
+The backend MUST NOT replace the choice with another member of that domain.
+When `model` is absent or null in an open software scope, the backend selects the model.
+SDL documents that omit this field gain no new model requirement.
+A declaration states what is required. Runtime evidence shows which model was used.
 
 The optional `package` refinement reuses the exact `RuntimePackage` wire shape:
 manager, name and distribution-package version, with optional architecture,

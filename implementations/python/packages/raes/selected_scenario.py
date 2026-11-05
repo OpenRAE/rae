@@ -422,7 +422,7 @@ def select_scenario_family(
         validate_selection_outcome(family.variation_points[point_id], outcomes[point_id])
     _validate_cross_point_relations(family, outcomes)
 
-    payload = family.model_dump(mode="python", by_alias=True)
+    payload = family.model_dump(mode="python", by_alias=True, exclude_unset=True)
     _validate_target_writes(payload, family, outcomes)
     parameters: dict[str, object] = {}
     for point_id in sorted(family.variation_points):
@@ -430,6 +430,10 @@ def select_scenario_family(
         outcome = outcomes[point_id]
         if isinstance(point, ParameterVariationPoint) and isinstance(outcome, LiteralBindingValueModel):
             parameters[point.target.variable] = outcome.value
+            # A selected experimental factor is fixed for this trial, while its
+            # original family retains the complete admissible domain.
+            payload["variables"][point.target.variable]["allowed_values"] = [outcome.value]
+            payload["variables"][point.target.variable]["default"] = outcome.value
         else:
             _apply_structural_outcome(payload, family, point, outcome)
     payload["variation_points"] = {}

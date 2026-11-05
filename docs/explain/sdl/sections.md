@@ -907,9 +907,9 @@ equal names do not imply a relation. Optional acquisition `refinements` carry
 pinned public profile definitions and bounded values through the existing plan
 host. The target must independently support their semantics before execution.
 
-A software component can also declare an optional `model` identifier.
-Use a revision-qualified identifier when a specific revision matters to the experiment.
-Model choice uses ordinary SDL variables and parameter variation points:
+`model` is an optional field on a software component.
+Use a name that includes a revision when the experiment needs that exact revision.
+The model can be set with a variable and a parameter variation point:
 
 ```yaml
 name: model-comparison
@@ -934,10 +934,10 @@ variation_points:
     domain: {kind: enum, values: [vendor/model-a@revision-1, vendor/model-b@revision-2]}
 ```
 
-The selected identifier remains in each concrete trial SDL.
-Omit `model` to delegate its selection within an open software scope.
-A literal binds an exact choice; variables follow the existing constrained parameter rules.
-This configuration does not assign participant identity or require an `agents` declaration.
+Each trial SDL keeps its chosen model. The trial admits only that choice.
+The backend cannot replace it with another choice from the source family.
+Omit `model` to let the backend choose it in an open software scope.
+Literal names fix an exact model. Variables follow the existing rules for constrained values.
 
 `runtime.repository_state` separately records shared repository and trust
 identities; component `repository_refs` and repository `trust_ref` resolve there.
