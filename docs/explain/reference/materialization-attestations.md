@@ -84,11 +84,16 @@ These budgets are different:
 | Materialization document | 4 MiB | One source, report or prospective document. |
 | SDL parser input | 8 MiB | Any SDL document. |
 | Portable runtime value | 1 MiB for each value, 8 MiB total | All other runtime values. |
-| Operation plan nodes | 262,144 | Plans from the planner and their compiled realization authority. |
+| Source and report value nodes | 262,144 | `MATERIALIZATION_VALUE_LIMITS`; at most 1,048,576 traversal operations. |
+| Operation plan nodes | 524,288 | Plans from the planner and their compiled realization authority. |
+| Operation plan aggregate scalars | 16 MiB | Source document plus compiled authority; ordinary runtime snapshots retain 8 MiB. |
 | HTTP request | 1,000,000 bytes by default | Control-plane requests. A larger plan needs an explicit `max_request_bytes`. |
 
 The runtime gives the document limit only to contract fields that declare a document body.
 Another string keeps the 1 MiB value limit.
+Source and report traversal permits 65,536 members per collection.
+Depth, scalar and aggregate scalar limits remain those of the runtime profile.
+Digest and provenance checks still apply to the complete source.
 A source above the limit fails planning with `materialization.source-limit-exceeded`.
 A missing run identity or target scope fails with `materialization.source-context-required`.
 
