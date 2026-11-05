@@ -1,5 +1,7 @@
 """Pure admission of normalized, import-free SDL scenario families."""
 
+from collections.abc import Iterable
+
 from pydantic import BaseModel, ValidationError
 
 from ._declaration_sources import semantic_source_diagnostics
@@ -17,13 +19,14 @@ from .validator import SemanticValidator
 
 
 def _model_children(value: object) -> tuple[object, ...]:
+    children: Iterable[object] = ()
     if isinstance(value, BaseModel):
-        return tuple(getattr(value, name) for name in type(value).model_fields)
-    if isinstance(value, dict):
-        return tuple(value.values())
-    if isinstance(value, (list, tuple)):
-        return tuple(value)
-    return ()
+        children = (getattr(value, name) for name in type(value).model_fields)
+    elif isinstance(value, dict):
+        children = value.values()
+    elif isinstance(value, (list, tuple)):
+        children = value
+    return tuple(children)
 
 
 def _omitted_default_changed(value: object) -> bool:
