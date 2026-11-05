@@ -1,0 +1,27 @@
+package processor
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/sdl"
+)
+
+type RuntimeModel interface {
+	Document() map[string]any
+	compiledModel()
+}
+type Compilation interface {
+	Model() RuntimeModel
+	Document() map[string]any
+	Nodes() int
+	Networks() int
+	Diagnostics() []diagnostic.Diagnostic
+	compiledScenario()
+}
+type ComponentOptions struct{ WithOrchestrator, WithEvaluator, WithParticipantRuntime, WithTime, WithObservation bool }
+
+func Compile(scenario sdl.Scenario, parameters map[string]any) (Compilation, error)
+func CompileInstantiated(scenario sdl.InstantiatedScenario) (Compilation, error)
+func TimeModelContract(compilation Compilation) (*binding.TimeModelV1, error)
+func ScenarioComponentOptions(scenario sdl.Scenario) (ComponentOptions, error)
+func CompiledComponentOptions(model RuntimeModel) (ComponentOptions, error)

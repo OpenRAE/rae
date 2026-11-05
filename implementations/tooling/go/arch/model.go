@@ -64,14 +64,17 @@ type ConsumerModule struct {
 // ConsumerPackage commits a public path, operations, dependencies and delivery owners.
 // Uses names packages as owner:path; Existing names a package awaiting relocation.
 type ConsumerPackage struct {
-	Owner     string   `json:"owner"`
-	Path      string   `json:"path"`
-	Layer     string   `json:"layer"`
-	Symbols   []string `json:"symbols"`
-	Uses      []string `json:"uses"`
-	Issues    []int    `json:"issues"`
-	Consumers []string `json:"consumers"`
-	Existing  string   `json:"existing,omitempty"`
+	Owner              string   `json:"owner"`
+	Path               string   `json:"path"`
+	Layer              string   `json:"layer"`
+	Symbols            []string `json:"symbols"`
+	Uses               []string `json:"uses"`
+	Issues             []int    `json:"issues"`
+	Consumers          []string `json:"consumers"`
+	Existing           string   `json:"existing,omitempty"`
+	ExistingAPISHA256  string   `json:"existing_api_sha256,omitempty"`
+	Declarations       string   `json:"declarations,omitempty"`
+	DeclarationsSHA256 string   `json:"declarations_sha256,omitempty"`
 }
 
 // Module is a Go module: the directory that holds its go.mod, and its module path.

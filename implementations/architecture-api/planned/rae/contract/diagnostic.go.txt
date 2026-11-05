@@ -1,0 +1,16 @@
+package diagnostic
+
+import "github.com/OpenRAE/rae/implementations/go/base/fault"
+
+type Range struct{ StartLine, StartColumn, EndLine, EndColumn int }
+type Diagnostic struct {
+	Code, Severity, Stage, Source, Pointer, Message, Domain, Address string
+	Range                                                            *Range
+}
+type Error interface {
+	error
+	Code() string
+	Category() fault.Category
+	Diagnostics() []Diagnostic
+	Unwrap() error
+}

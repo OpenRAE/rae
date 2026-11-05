@@ -24,6 +24,7 @@ const (
 	ruleAPI             = "ARCH-013"
 	ruleViews           = "ARCH-014"
 	ruleExported        = "ARCH-012"
+	ruleConsumer        = "ARCH-015"
 )
 
 // The checks that enforce the rules.
@@ -35,6 +36,7 @@ const (
 // rules maps each rule of ADR-122 to the check that enforces it.
 func rules() map[string]string {
 	return map[string]string{
+		ruleConsumer:        byArchcheck,
 		ruleAPI:             byArchcheck,
 		ruleViews:           byArchcheck,
 		ruleModules:         byArchcheck,

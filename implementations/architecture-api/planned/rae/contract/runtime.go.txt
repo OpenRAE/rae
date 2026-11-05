@@ -1,0 +1,100 @@
+package runtime
+
+import (
+	"context"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+)
+
+type MaterializationSubmission struct {
+	ContractID string
+	SDL        []byte
+}
+
+func NewMaterializationSubmission(sdl []byte) (MaterializationSubmission, error)
+
+type RealizationObservationDisclosure struct {
+	Address, FieldPath, Domain, RequirementKind, VerificationScope, ObservationStrength string
+	ObservedValue                                                                       *string
+	OperatingSystem                                                                     *ObservedOperatingSystemIdentity
+	OperationID, EnvelopeDigest, ConfigurationDigest, ObserverVersion                   *string
+	Sequence                                                                            *int64
+	BindingVerified                                                                     bool
+}
+type ObservedOperatingSystemIdentity struct{ Family, Distribution, Version string }
+type ProvisionOperation struct {
+	Action, Address, ResourceType             string
+	Payload                                   map[string]any
+	OrderingDependencies, RefreshDependencies []string
+	ExecutionPolicy                           admission.Fragment
+	ExecutionPolicyScopes                     []admission.Fragment
+	ProfileBindings                           []binding.DomainProfileBindingV1
+}
+type RealizationPreparation struct {
+	RequestDigest, PredecessorDigest string
+	Operations                       []ProvisionOperation
+	Success                          bool
+	Diagnostics                      []diagnostic.Diagnostic
+}
+
+func PrepareForRequest(plan binding.ProvisioningPlanV1, snapshot binding.RuntimeSnapshotV1, operations []ProvisionOperation, success bool, diagnostics []diagnostic.Diagnostic) (RealizationPreparation, error)
+
+type ApplyResult struct {
+	Success                            bool
+	Snapshot                           binding.RuntimeSnapshotV1
+	Diagnostics                        []diagnostic.Diagnostic
+	ChangedAddresses                   []string
+	Details                            map[string]any
+	OperationalRealizationObservations []RealizationObservationDisclosure
+	MaterializationAttestation         *MaterializationSubmission
+}
+type EpisodeInitializeRequest struct {
+	ParticipantAddress string
+	EpisodeID          *string
+}
+type EpisodeResetRequest struct {
+	ParticipantAddress string
+	EpisodeID          *string
+	Reason             string
+}
+type EpisodeRestartRequest struct {
+	ParticipantAddress string
+	EpisodeID          *string
+	Reason             string
+}
+type EpisodeTerminateRequest struct{ ParticipantAddress, TerminalReason, Detail string }
+type ParticipantActionRequest interface {
+	Input() ParticipantActionInput
+	admittedAction()
+}
+type ParticipantActionInput struct {
+	ParticipantAddress, ActionContractAddress, ObservationBoundaryAddress, ActionInstanceID string
+	ImplementationManifest                                                                  binding.ParticipantImplementationManifestV1
+	ImplementationSelection                                                                 admission.Fragment
+	EvidenceRefs, VisibleRefs, DisclosedRefs, ObservationBoundaryEvidenceRefs               []string
+	TemporalContexts                                                                        []admission.Fragment
+	ActionResult                                                                            admission.Fragment
+	ValidatedSelection                                                                      admission.Fragment
+	StateTransitionKind                                                                     string
+	PostStateDigest                                                                         *string
+	RequiresTerminalOutcome                                                                 bool
+	TargetAddresses                                                                         []string
+	ExecutionScopeRef                                                                       *string
+	ExecutionGeneration                                                                     *int64
+	ResourceMeasurementRequirements, TemporalEvidence                                       []admission.Fragment
+}
+type ParticipantActionApplyResult struct {
+	ApplyResult
+	ActionResult admission.Fragment
+}
+type NativeActionOutcome struct {
+	ApplyResult     ApplyResult
+	ActionResult    admission.Fragment
+	PostStateDigest *string
+}
+type NativeActionExecution interface {
+	Invoke(context.Context, ParticipantActionRequest, binding.RuntimeSnapshotV1) (NativeActionOutcome, error)
+}
+
+func BindParticipantAction(input ParticipantActionInput) (ParticipantActionRequest, error)

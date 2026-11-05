@@ -1,0 +1,38 @@
+package result
+
+import (
+	"context"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	runtimecontract "github.com/OpenRAE/rae/implementations/go/contract/runtime"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
+	"github.com/OpenRAE/rae/implementations/go/processor"
+)
+
+type Context struct {
+	Validator                *admission.Validator
+	Operation                binding.OperationStatusV1
+	Request                  binding.BackendOperationRequestV1
+	ControlRequest           *binding.BackendOperationControlV1
+	InstalledCapabilities    binding.BackendOperationCapabilitiesV1
+	Snapshot                 binding.RuntimeSnapshotV1
+	TargetScope, RunScope    string
+	Predecessor              binding.RuntimeSnapshotV1
+	OutcomeModel             processor.RuntimeModel
+	Crossing                 admission.CrossingContext
+	InformationState         admission.InformationStateContext
+	Control                  admission.ControlOccurrenceContext
+	Flow                     admission.FlowControlContext
+	Mixed                    admission.MixedCompositionContext
+	Materialization          admission.MaterializationExecutionContext
+	MaterializationInventory admission.MaterializationInventoryContext
+	Evidence                 EvidenceResolver
+}
+type EvidenceResolver interface {
+	ValidateEffects(context.Context, binding.BackendOperationRequestV1, binding.BackendOperationResponseV1) (bool, error)
+	ResolveResult(context.Context, binding.BackendOperationRequestV1, binding.BackendOperationResponseV1, binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+}
+
+func AdmitResult(context Context, result binding.BackendOperationResponseV1) (validation.Value, error)
+
+func AdmitApplyResult(context Context, result runtimecontract.ApplyResult) (runtimecontract.ApplyResult, error)

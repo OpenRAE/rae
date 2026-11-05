@@ -1,0 +1,17 @@
+package stub
+
+import "github.com/OpenRAE/rae/implementations/go/backend"
+
+type Options struct{ WithOrchestrator, WithEvaluator, WithParticipantRuntime, WithTime, WithObservation, WithRealizationEnvelope bool }
+type Provisioner interface{ backend.Provisioner }
+type Orchestrator interface{ backend.Orchestrator }
+type Evaluator interface{ backend.Evaluator }
+type ParticipantRuntime interface{ backend.ParticipantRuntime }
+
+func Manifest(options Options) (backend.Manifest, error)
+func DefaultOptions() Options
+
+func NewProvisioner() (Provisioner, error)
+func NewOrchestrator() (Orchestrator, error)
+func NewEvaluator() (Evaluator, error)
+func NewParticipantRuntime() (ParticipantRuntime, error)

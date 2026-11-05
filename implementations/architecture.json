@@ -196,6 +196,10 @@
         {
           "path": "golang.org/x/tools/go/packages",
           "reason": "The admitted Go package loader provides standard typed API snapshots with explicit build configurations."
+        },
+        {
+          "path": "golang.org/x/mod/module",
+          "reason": "Validate planned public module paths with the admitted Go module parser."
         }
       ]
     }
@@ -708,6 +712,7 @@
           "method *github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding func (github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding).String() string selected=func() string",
           "method *github.com/OpenRAE/rae/implementations/tooling/go/arch.Model func (*github.com/OpenRAE/rae/implementations/tooling/go/arch.Model).CheckAPI(actual github.com/OpenRAE/rae/implementations/tooling/go/arch.API) []github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding selected=func(actual github.com/OpenRAE/rae/implementations/tooling/go/arch.API) []github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding",
           "method *github.com/OpenRAE/rae/implementations/tooling/go/arch.Model func (*github.com/OpenRAE/rae/implementations/tooling/go/arch.Model).CheckCode(code github.com/OpenRAE/rae/implementations/tooling/go/arch.Code) []github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding selected=func(code github.com/OpenRAE/rae/implementations/tooling/go/arch.Code) []github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding",
+          "method *github.com/OpenRAE/rae/implementations/tooling/go/arch.Model func (*github.com/OpenRAE/rae/implementations/tooling/go/arch.Model).CheckConsumerTypes(ctx context.Context, root string) error selected=func(ctx context.Context, root string) error",
           "method *github.com/OpenRAE/rae/implementations/tooling/go/arch.Model func (*github.com/OpenRAE/rae/implementations/tooling/go/arch.Model).CheckDesign() []github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding selected=func() []github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding",
           "method *github.com/OpenRAE/rae/implementations/tooling/go/arch.Model func (*github.com/OpenRAE/rae/implementations/tooling/go/arch.Model).CheckDocuments(repo io/fs.FS) ([]github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding, error) selected=func(repo io/fs.FS) ([]github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding, error)",
           "method *github.com/OpenRAE/rae/implementations/tooling/go/arch.Model func (*github.com/OpenRAE/rae/implementations/tooling/go/arch.Model).View() string selected=func() string",
@@ -862,7 +867,7 @@
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerAPI constraints[] struct{Design string \"json:\\\"design\\\"\" embedded=false; Modules []github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerModule \"json:\\\"modules\\\"\" embedded=false; Packages []github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerPackage \"json:\\\"packages\\\"\" embedded=false; Commands []github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerCommand \"json:\\\"commands\\\"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerCommand constraints[] struct{Name string \"json:\\\"name\\\"\" embedded=false; Owner string \"json:\\\"owner\\\"\" embedded=false; EntryPoint string \"json:\\\"entrypoint\\\"\" embedded=false; Uses []string \"json:\\\"uses\\\"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerModule constraints[] struct{Owner string \"json:\\\"owner\\\"\" embedded=false; Repository string \"json:\\\"repository\\\"\" embedded=false; Module string \"json:\\\"module\\\"\" embedded=false} unexported-fields=false comparable=true",
-          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerPackage constraints[] struct{Owner string \"json:\\\"owner\\\"\" embedded=false; Path string \"json:\\\"path\\\"\" embedded=false; Layer string \"json:\\\"layer\\\"\" embedded=false; Symbols []string \"json:\\\"symbols\\\"\" embedded=false; Uses []string \"json:\\\"uses\\\"\" embedded=false; Issues []int \"json:\\\"issues\\\"\" embedded=false; Consumers []string \"json:\\\"consumers\\\"\" embedded=false; Existing string \"json:\\\"existing,omitempty\\\"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerPackage constraints[] struct{Owner string \"json:\\\"owner\\\"\" embedded=false; Path string \"json:\\\"path\\\"\" embedded=false; Layer string \"json:\\\"layer\\\"\" embedded=false; Symbols []string \"json:\\\"symbols\\\"\" embedded=false; Uses []string \"json:\\\"uses\\\"\" embedded=false; Issues []int \"json:\\\"issues\\\"\" embedded=false; Consumers []string \"json:\\\"consumers\\\"\" embedded=false; Existing string \"json:\\\"existing,omitempty\\\"\" embedded=false; ExistingAPISHA256 string \"json:\\\"existing_api_sha256,omitempty\\\"\" embedded=false; Declarations string \"json:\\\"declarations,omitempty\\\"\" embedded=false; DeclarationsSHA256 string \"json:\\\"declarations_sha256,omitempty\\\"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.External constraints[] struct{Path string \"json:\\\"path\\\"\" embedded=false; Reason string \"json:\\\"reason\\\"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding constraints[] struct{Rule string \"\" embedded=false; Location string \"\" embedded=false; Problem string \"\" embedded=false; Fix string \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Imports constraints[] struct{Code []string \"\" embedded=false; Test []string \"\" embedded=false; External []string \"\" embedded=false} unexported-fields=false comparable=false",
@@ -5186,15 +5191,15 @@
     "docs/decisions/issue-1779-ingress-design.md": "21fe1ede3a371941bd13605037cf6e378a6f442d9622dbc9fa716e952cbad281",
     "docs/decisions/issue-1779-random-streams-design.md": "dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b",
     "docs/decisions/issue-1778-parity-corpus-design.md": "c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830",
-    "docs/decisions/issue-1859-go-architecture-contract-design.md": "b511f5eb9e6649e49297ea43be696a8263b443b8ea22fa3f4f7e1f29c370f249",
+    "docs/decisions/issue-1859-go-architecture-contract-design.md": "5842d05eca8c9cfb69b01ba1edbde3ba7053bbf40a30ba60d4ab24731b2705de",
     "contracts/schemas/experiment-core/materialization-archive-record-v1.json": "fb61b1d9bb70ffedf7fec94325c3751a29ef7db7f6e8bea8fc96c064d101ba90",
-    "docs/decisions/adrs/adr-122-go-architecture-model.md": "bb34edd9eb80bb56645ef57f4f48eb3113ac02e95b7af696f32de3bdb8d11fa6",
+    "docs/decisions/adrs/adr-122-go-architecture-model.md": "7ddd90a8486fb218b224bcb8addeffeefc8bff7f0351c90d72400ebd413f7b63",
     "docs/decisions/issue-1775-go-architecture-model-design.md": "d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8",
     "docs/decisions/issue-1779-shared-primitives-completion.md": "6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e",
     "docs/decisions/issue-1780-contract-validation-design.md": "ed1ba1a0d0cc07b995cacd8407799152bac9b09b1b43670d4e08ea62ad6c4aec",
     "docs/decisions/issue-1891-runtime-repository-boundary.md": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406",
     "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa",
-    "docs/decisions/issue-1825-public-go-api.md": "c04e22c6013dedea0333fd07bcf52992b52d933684298ba55ed884a51ed4c5e7"
+    "docs/decisions/issue-1825-public-go-api.md": "6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",
@@ -5230,7 +5235,8 @@
           "lilrae",
           "runtime"
         ],
-        "existing": "implementations/go/internal/base/fault"
+        "existing": "implementations/go/internal/base/fault",
+        "existing_api_sha256": "d6f3062c93ff2c6dbd99bc8a6dc5357fae4d03fa279a950a2261cd987ad8cffb"
       },
       {
         "owner": "rae",
@@ -5251,7 +5257,8 @@
           "lilrae",
           "runtime"
         ],
-        "existing": "implementations/go/internal/base/ingress"
+        "existing": "implementations/go/internal/base/ingress",
+        "existing_api_sha256": "9d82f448fa16114a6e1da8c27f68870bd207b8ff9479a67a5f7be5ae6997fc87"
       },
       {
         "owner": "rae",
@@ -5272,7 +5279,8 @@
           "lilrae",
           "runtime"
         ],
-        "existing": "implementations/go/internal/base/canonjson"
+        "existing": "implementations/go/internal/base/canonjson",
+        "existing_api_sha256": "0e2c3043b65e8d2fc2039404227223f0acd6c80b1bee5198d42ecf3f57281d04"
       },
       {
         "owner": "rae",
@@ -5291,7 +5299,8 @@
           "lilrae",
           "runtime"
         ],
-        "existing": "implementations/go/internal/base/digest"
+        "existing": "implementations/go/internal/base/digest",
+        "existing_api_sha256": "aaf372dbbacd35fa5c22f9c6841ef09ce0f1c1934464ed36951afc77eb03db6d"
       },
       {
         "owner": "rae",
@@ -5313,7 +5322,8 @@
           "lilrae",
           "runtime"
         ],
-        "existing": "implementations/go/internal/base/address"
+        "existing": "implementations/go/internal/base/address",
+        "existing_api_sha256": "1ff9daf3a2cd7b3fe11f75514362e5d546cafaa872c0a4bf021399860a9fa736"
       },
       {
         "owner": "rae",
@@ -5333,7 +5343,8 @@
           "lilrae",
           "runtime"
         ],
-        "existing": "implementations/go/internal/base/clock"
+        "existing": "implementations/go/internal/base/clock",
+        "existing_api_sha256": "f83a85c9f46be5e8193bf0cd550d8b6fe3b733ba63e5a9198e2bc880fac9b122"
       },
       {
         "owner": "rae",
@@ -5344,7 +5355,8 @@
           "MaterializationArchiveRecordV1",
           "RuntimeSnapshotV1",
           "BackendManifestV2",
-          "AdmittedTrialPlanV1"
+          "AdmittedTrialPlanV1",
+          "BackendRuntimeDescendantsV1"
         ],
         "uses": [],
         "issues": [
@@ -5356,7 +5368,8 @@
           "coldlight",
           "runtime"
         ],
-        "existing": "implementations/go/internal/contract/binding"
+        "existing": "implementations/go/internal/contract/binding",
+        "existing_api_sha256": "4f983e6244c2be2dda9b6da71dced64aade0376de49670b31bd8544bd0b6c76b"
       },
       {
         "owner": "rae",
@@ -5384,7 +5397,8 @@
           "coldlight",
           "runtime"
         ],
-        "existing": "implementations/go/internal/contract/validation"
+        "existing": "implementations/go/internal/contract/validation",
+        "existing_api_sha256": "7c459c734474cacccd2baea0ea1225e31f32465c65a61c81e4aaca5c02ba9539"
       },
       {
         "owner": "rae",
@@ -5405,16 +5419,43 @@
           "ValidateAssociatedManifest",
           "AssociatedArtifactSetDigest",
           "EvaluateRealizationConstraint",
-          "ValidateParticipantConfiguration",
-          "ParticipantConfigurationValidator"
+          "ParticipantConfigurationValidator",
+          "MaterializationArchive",
+          "RestoreMaterializationArchive",
+          "Fragment",
+          "FragmentProfile",
+          "ImplementationIdentity",
+          "BindingOwner",
+          "BindingValue",
+          "ControlContextAssetReference",
+          "ControlContextSelection",
+          "ConfigurationOverride",
+          "RealizedConfigurationValue",
+          "ParticipantConfiguration",
+          "ParticipantControlContextValidator",
+          "ParticipantConfigurationRequest",
+          "ParticipantManifestKey",
+          "ApparatusManifestKey",
+          "ApparatusManifest",
+          "ScenarioBindingResolution",
+          "ScenarioBindingTargetResolver",
+          "AdmitFragment",
+          "RealizeParticipantConfiguration",
+          "ValidateParticipantConfigurationSelection",
+          "ValidateExperimentBindingTargets",
+          "ConstraintLimits",
+          "DefaultConstraintLimits",
+          "ConstraintLimits.Validate"
         ],
         "uses": [
-          "rae:contract/validation",
-          "rae:base/ingress"
+          "rae:base/ingress",
+          "rae:contract/binding",
+          "rae:contract/validation"
         ],
         "issues": [
           1892,
-          1788
+          1788,
+          1781
         ],
         "consumers": [
           "environment-packs",
@@ -5422,7 +5463,10 @@
           "coldlight",
           "runtime"
         ],
-        "existing": "implementations/go/internal/contract/admission"
+        "existing": "implementations/go/internal/contract/admission",
+        "existing_api_sha256": "85c9cbb8db679033d77c04cded0c363811ba73664b374750c804ef95ca727b2a",
+        "declarations": "implementations/architecture-api/planned/rae/contract/admission.go.txt",
+        "declarations_sha256": "bfbb9a7d90629c247c7fd1b567369ae6fcf396200774eb5f120a39ce1865876c"
       },
       {
         "owner": "rae",
@@ -5432,11 +5476,15 @@
           "AdmitBindings",
           "SchemeSnapshot",
           "ResolutionOutcome",
-          "Vocabulary"
+          "Vocabulary",
+          "Subject",
+          "SnapshotTerm",
+          "BindingResolution",
+          "ResolutionOutcome.Admitted"
         ],
         "uses": [
-          "rae:contract/admission",
-          "rae:contract/binding"
+          "rae:contract/binding",
+          "rae:contract/diagnostic"
         ],
         "issues": [
           1781
@@ -5445,7 +5493,34 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/contract/concept.go.txt",
+        "declarations_sha256": "c70c4c08d460d712f6473db067773fc0c182a621995a4a0d485ac8de3eb4273e"
+      },
+      {
+        "owner": "rae",
+        "path": "contract/diagnostic",
+        "layer": "contract",
+        "symbols": [
+          "Diagnostic",
+          "Range",
+          "Error"
+        ],
+        "uses": [
+          "rae:base/fault"
+        ],
+        "issues": [
+          1782,
+          1783
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "coldlight",
+          "runtime"
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/contract/diagnostic.go.txt",
+        "declarations_sha256": "3ae4238f9b7278c98faaae0d11dc9b53e5feebf4eccbd003208624fc0d00ba10"
       },
       {
         "owner": "rae",
@@ -5469,13 +5544,21 @@
           "ArtifactRequirements",
           "Requirement",
           "ResolveRealizationDesignation",
-          "Diagnostic",
-          "Range"
+          "MigrationPolicy",
+          "ParseOptions",
+          "SourceContext",
+          "DefaultParseOptions",
+          "ParseContext",
+          "ValidateExperimentSelectionAgainstFamily",
+          "Limits.Validate",
+          "ParseOptions.Validate"
         ],
         "uses": [
-          "rae:base/fault",
-          "rae:base/ingress",
-          "rae:contract/admission"
+          "rae:contract/admission",
+          "rae:contract/binding",
+          "rae:contract/concept",
+          "rae:contract/diagnostic",
+          "rae:sdl/module"
         ],
         "issues": [
           1782,
@@ -5487,7 +5570,9 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/sdl.go.txt",
+        "declarations_sha256": "98cd49ab9cdd3505d5493942957852d8bd0bf5791e17572beccddb551c6de428"
       },
       {
         "owner": "rae",
@@ -5498,11 +5583,15 @@
           "Lockfile",
           "TrustPolicy",
           "LoadLockfile",
-          "ResolveLock"
+          "ResolveLock",
+          "LockRecord",
+          "VerificationFacts",
+          "RegistryTrust",
+          "Policy",
+          "DefaultPolicy",
+          "Policy.AdmitModule"
         ],
-        "uses": [
-          "rae:sdl"
-        ],
+        "uses": [],
         "issues": [
           1785
         ],
@@ -5510,7 +5599,9 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/sdl/module.go.txt",
+        "declarations_sha256": "c957945fa23f50b976ca264b5d391e16487a97affe2d74113d86c574e69cd7ca"
       },
       {
         "owner": "rae",
@@ -5525,6 +5616,7 @@
           "Format"
         ],
         "uses": [
+          "rae:contract/diagnostic",
           "rae:sdl"
         ],
         "issues": [
@@ -5533,7 +5625,9 @@
         "consumers": [
           "environment-packs",
           "lilrae"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/sdl/language.go.txt",
+        "declarations_sha256": "b52f1cda7fe0be31b7ea2e6c51e2f65ecc34310522c0de3db742db28209aaa45"
       },
       {
         "owner": "rae",
@@ -5546,11 +5640,13 @@
           "RuntimeModel",
           "TimeModelContract",
           "ScenarioComponentOptions",
-          "ComponentOptions"
+          "ComponentOptions",
+          "CompiledComponentOptions"
         ],
         "uses": [
-          "rae:sdl",
-          "rae:contract/binding"
+          "rae:contract/binding",
+          "rae:contract/diagnostic",
+          "rae:sdl"
         ],
         "issues": [
           1787
@@ -5559,7 +5655,9 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/processor.go.txt",
+        "declarations_sha256": "15869a14c8a56e739f5ebbfa1dba537f7c265990139d7a692188c3de6da4859c"
       },
       {
         "owner": "rae",
@@ -5568,11 +5666,24 @@
         "symbols": [
           "Plan",
           "Result",
-          "PlanWithManifest"
+          "PlanWithManifest",
+          "ExecutionPlan",
+          "Scope",
+          "Closure",
+          "ApparatusDefaultResolver",
+          "ArtifactAvailability",
+          "MixedControlAdmission",
+          "Options",
+          "RequirementKey",
+          "PlanningContext",
+          "NewMixedControlAdmission"
         ],
         "uses": [
-          "rae:processor",
-          "rae:contract/binding"
+          "rae:contract/admission",
+          "rae:contract/binding",
+          "rae:contract/diagnostic",
+          "rae:contract/validation",
+          "rae:processor"
         ],
         "issues": [
           1787
@@ -5581,7 +5692,9 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/processor/planning.go.txt",
+        "declarations_sha256": "2b0b01a9161734cace0fee8d749aeb0a02b436db19c198fc27878c631322a602"
       },
       {
         "owner": "rae",
@@ -5592,13 +5705,30 @@
           "Compile",
           "PlanBatchSchedule",
           "ScheduledEntry",
-          "BatchSchedule"
+          "BatchSchedule",
+          "ParticipantManifestKey",
+          "ApparatusManifestKey",
+          "ConfigurationValidatorKey",
+          "Limits",
+          "MixedCompositionLimits",
+          "Result",
+          "DefaultLimits",
+          "DefaultMixedCompositionLimits",
+          "Limits.Validate",
+          "MixedCompositionLimits.Validate",
+          "RealizationInputs",
+          "Realization",
+          "RealizationOptions",
+          "InstantiateEntry",
+          "RealizeEntry"
         ],
         "uses": [
-          "rae:processor",
-          "rae:processor/planning",
+          "rae:contract/admission",
           "rae:contract/binding",
-          "rae:contract/admission"
+          "rae:contract/diagnostic",
+          "rae:contract/validation",
+          "rae:processor/planning",
+          "rae:sdl"
         ],
         "issues": [
           1788
@@ -5607,7 +5737,9 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/processor/trial.go.txt",
+        "declarations_sha256": "8df17ba604bf263eaba285fba6730e111dff034422f517336dda294304e3c36f"
       },
       {
         "owner": "rae",
@@ -5616,11 +5748,11 @@
         "symbols": [
           "ProjectConcern",
           "ConcernDescriptors",
-          "HasRequiredObservationSupport"
+          "HasRequiredObservationSupport",
+          "Descriptor"
         ],
         "uses": [
-          "rae:processor",
-          "rae:contract/binding"
+          "rae:contract/admission"
         ],
         "issues": [
           1787
@@ -5629,16 +5761,21 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/processor/realization.go.txt",
+        "declarations_sha256": "4063c07a5b47c2073649cd87c396a624b6822473d8b0d6a4926c708a4b54f15c"
       },
       {
         "owner": "rae",
         "path": "processor/analysis",
         "layer": "processor",
         "symbols": [
-          "Analyze"
+          "Analyze",
+          "Request",
+          "Result"
         ],
         "uses": [
+          "rae:contract/diagnostic",
           "rae:processor"
         ],
         "issues": [
@@ -5647,7 +5784,9 @@
         "consumers": [
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/processor/analysis.go.txt",
+        "declarations_sha256": "359d73a29c433f1f6aa989467ae4ae15ae838c74e3c33b3ded26ed18b503a6eb"
       },
       {
         "owner": "rae",
@@ -5659,11 +5798,24 @@
           "Evaluator",
           "ParticipantRuntime",
           "Manifest",
-          "LoadProfile"
+          "LoadProfile",
+          "PreparingProvisioner",
+          "TimeRuntime",
+          "AutonomousActionBinding",
+          "AutonomousParticipantRuntime",
+          "ControlledAutonomousParticipantRuntime",
+          "CoordinatedParticipantResetRuntime",
+          "CoordinatedParticipantTimeRuntime",
+          "OperationProvider",
+          "ParticipantControlProvider",
+          "ParticipantControlProviderV2",
+          "ProfilePreparingProvisioner"
         ],
         "uses": [
+          "rae:contract/admission",
           "rae:contract/binding",
-          "rae:contract/admission"
+          "rae:contract/diagnostic",
+          "rae:contract/runtime"
         ],
         "issues": [
           1790
@@ -5672,7 +5824,9 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/backend.go.txt",
+        "declarations_sha256": "9b677982825ca1e0e920a2795e0039d923fc75210def935506b88dedb299317c"
       },
       {
         "owner": "rae",
@@ -5684,7 +5838,12 @@
           "Provisioner",
           "Orchestrator",
           "Evaluator",
-          "ParticipantRuntime"
+          "ParticipantRuntime",
+          "DefaultOptions",
+          "NewProvisioner",
+          "NewOrchestrator",
+          "NewEvaluator",
+          "NewParticipantRuntime"
         ],
         "uses": [
           "rae:backend"
@@ -5696,7 +5855,9 @@
           "environment-packs",
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/backend/stub.go.txt",
+        "declarations_sha256": "8901dc89db8706659d4af65eaa0a9c113f42c1d90601929e70f7ee8744471750"
       },
       {
         "owner": "rae",
@@ -5710,9 +5871,8 @@
           "ModularOwnerObservation"
         ],
         "uses": [
-          "rae:processor",
-          "rae:backend",
-          "rae:contract/admission"
+          "rae:contract/diagnostic",
+          "rae:processor"
         ],
         "issues": [
           1796
@@ -5720,7 +5880,9 @@
         "consumers": [
           "lilrae",
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/conformance.go.txt",
+        "declarations_sha256": "ba5e420e16cfabd317a755896a51689fdcc018e0f19987121044e328b8f0106c"
       },
       {
         "owner": "rae",
@@ -5737,7 +5899,9 @@
         ],
         "consumers": [
           "runtime"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/command/authoring.go.txt",
+        "declarations_sha256": "f25887b72929443d28ded316c62c6762f185a790be6f555507003ba72a529c7f"
       },
       {
         "owner": "runtime",
@@ -5750,14 +5914,102 @@
           "ControlPlane.Operation",
           "ControlPlane.Snapshot",
           "ControlPlane.TransitionParticipant",
-          "ControlPlane.Audit"
+          "ControlPlane.Audit",
+          "Target",
+          "NewTarget",
+          "Options",
+          "Request",
+          "Identity",
+          "Authority",
+          "Components",
+          "ParticipantContexts",
+          "Supervision",
+          "PlanPhase",
+          "RegisteredPlan",
+          "Command",
+          "ParticipantCommandInput",
+          "ParticipantTransition",
+          "DefaultSupervision",
+          "PlanCommand",
+          "ParticipantCommand",
+          "ControlResolution",
+          "ControlResolver",
+          "ControlResolverV2",
+          "ControlStageBinding",
+          "ControlInstallation",
+          "ParticipantControlBinding",
+          "LiveCut",
+          "CutResolver",
+          "DeliveryCutResolver",
+          "MixedControlBinding",
+          "InjectResolution",
+          "InjectDeliveryResolver",
+          "InjectDeliveryBinding",
+          "InjectAdmission",
+          "ResolvedInjectOutcome",
+          "InjectExecutionResolver",
+          "NewParticipantControlBinding",
+          "NewMixedControlBinding",
+          "NewInjectDeliveryBinding",
+          "CrossingIntent",
+          "CrossingGates",
+          "CrossingTransformation",
+          "CrossingResolution",
+          "CrossingValidation",
+          "CrossingEvidence",
+          "ParticipantAudienceBinding",
+          "ViewEvidenceRequest",
+          "CrossingResolver",
+          "CrossingCut",
+          "FlowSinkRequest",
+          "FlowSinkResolution",
+          "FlowSinkResolver",
+          "SupervisionAction",
+          "SupervisionRequest",
+          "ResolutionDisposition",
+          "ResolutionRequest",
+          "EffectKind",
+          "EffectOperation",
+          "EffectRealization",
+          "InjectCaptureResult",
+          "RunProgress",
+          "RunContext",
+          "SequenceOptions",
+          "TrialUnitRequest",
+          "TrialUnitResult",
+          "TrialObservation",
+          "TrialConfigurationObservation",
+          "TrialExecutionObservation",
+          "TrialCaptureObservation",
+          "TrialCleanupObservation",
+          "TrialRetryObservation",
+          "TrialRuntimeServices",
+          "RetryTrialRuntimeServices",
+          "TrialArchiveOwner",
+          "ExperimentReplacement",
+          "ExperimentRequest",
+          "ExperimentProgress",
+          "AdmitTrialUnitRequest",
+          "TrialUnitRequest.RunID",
+          "TrialUnitRequest.ParticipantConfigurations",
+          "TrialUnitRequest.ExecutionControls",
+          "TrialUnitRequest.CleanupPlan",
+          "ParticipantCancellationStatus"
         ],
         "uses": [
-          "runtime:runtime/provider",
-          "runtime:runtime/execution",
-          "rae:processor/planning",
           "rae:backend",
-          "rae:contract/admission"
+          "rae:base/clock",
+          "rae:contract/admission",
+          "rae:contract/binding",
+          "rae:contract/runtime",
+          "rae:contract/validation",
+          "rae:processor",
+          "rae:processor/planning",
+          "rae:processor/trial",
+          "runtime:runtime/execution",
+          "runtime:runtime/profile",
+          "runtime:runtime/provider",
+          "runtime:runtime/result"
         ],
         "issues": [
           1791
@@ -5765,7 +6017,9 @@
         "consumers": [
           "coldlight",
           "lilrae"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/runtime/runtime/control.go.txt",
+        "declarations_sha256": "37253a91a20233772bb10c23293779b1865cd121e1282a5e6d65cbce2ca1a83e"
       },
       {
         "owner": "runtime",
@@ -5776,11 +6030,36 @@
           "AtomicStore",
           "LeaseProvider",
           "OwnerLease",
-          "Capabilities"
+          "Capabilities",
+          "SnapshotState",
+          "AuditEvent",
+          "OperationRecord",
+          "OperationAdmissionContext",
+          "ClaimIdentity",
+          "ClaimState",
+          "Transition",
+          "NewClaimBlock",
+          "ClaimOptions",
+          "TerminalCommitMode",
+          "TerminalCommit",
+          "DecodeOperationRecord",
+          "RecordsEqual",
+          "IdempotencyClaimIdentity",
+          "ValidateIdempotencyReplay",
+          "ValidateNewClaim",
+          "ValidateInvocationTransition",
+          "LedgerIdentity",
+          "SequenceDecision",
+          "RuntimeDecision",
+          "RuntimeStoreDigest",
+          "NewSequenceDecision",
+          "DecodeRuntimeDecision",
+          "ValidateIdenticalDecision"
         ],
         "uses": [
           "rae:contract/binding",
-          "rae:base/clock"
+          "runtime:runtime/execution",
+          "runtime:runtime/profile"
         ],
         "issues": [
           1792
@@ -5788,7 +6067,9 @@
         "consumers": [
           "coldlight",
           "lilrae"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/runtime/runtime/provider.go.txt",
+        "declarations_sha256": "2f04ff0fb68161f1f0d7cce526a3b803a92b9477aedfa9245f26830ea5a7a1b9"
       },
       {
         "owner": "runtime",
@@ -5797,11 +6078,19 @@
         "symbols": [
           "Adapter",
           "Request",
-          "LocalAdapter"
+          "LocalAdapter",
+          "Lane",
+          "EngineReference",
+          "DeliveryBinding",
+          "RuntimeSequenceReference",
+          "Dispatcher",
+          "InvocationGrant",
+          "ControlDeliveryGrant",
+          "WorkerAuthority",
+          "NewLocal"
         ],
         "uses": [
-          "rae:contract/binding",
-          "rae:backend"
+          "rae:contract/binding"
         ],
         "issues": [
           1793
@@ -5809,7 +6098,9 @@
         "consumers": [
           "coldlight",
           "lilrae"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/runtime/runtime/execution.go.txt",
+        "declarations_sha256": "7b4c20bde3d229957f688bca5a46f260765b67fe08a9010f106ac6f00a157069"
       },
       {
         "owner": "runtime",
@@ -5819,18 +6110,29 @@
           "New",
           "Adapter",
           "Configuration",
-          "Worker"
+          "Worker",
+          "ClientOptions",
+          "Client",
+          "WorkerOptions",
+          "DefaultConfiguration",
+          "Dial",
+          "NewWorker",
+          "Configuration.Validate",
+          "RuntimeWorkerOptions",
+          "NewRuntimeWorker"
         ],
         "uses": [
-          "runtime:runtime/execution",
-          "runtime:runtime/provider"
+          "rae:backend",
+          "runtime:runtime/execution"
         ],
         "issues": [
           1793
         ],
         "consumers": [
           "coldlight"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/runtime/runtime/temporal.go.txt",
+        "declarations_sha256": "effab6e075090dd68d45d43937cf87c0a97f5f16bfacc3d584c2e8663e562cff"
       },
       {
         "owner": "runtime",
@@ -5838,11 +6140,16 @@
         "layer": "runtime",
         "symbols": [
           "AdmitResult",
-          "Context"
+          "Context",
+          "EvidenceResolver",
+          "AdmitApplyResult"
         ],
         "uses": [
           "rae:contract/admission",
-          "rae:contract/binding"
+          "rae:contract/binding",
+          "rae:contract/runtime",
+          "rae:contract/validation",
+          "rae:processor"
         ],
         "issues": [
           1794,
@@ -5851,7 +6158,84 @@
         "consumers": [
           "lilrae",
           "coldlight"
-        ]
+        ],
+        "declarations": "implementations/architecture-api/planned/runtime/runtime/result.go.txt",
+        "declarations_sha256": "f51f0447542dd430fc5dd1dccaeb8ec331ef51e137e89962a3c75d2ee1316102"
+      },
+      {
+        "owner": "runtime",
+        "path": "runtime/profile",
+        "layer": "runtime",
+        "symbols": [
+          "ID",
+          "P0",
+          "P1",
+          "P2",
+          "P3",
+          "Capability",
+          "Claim",
+          "Declaration",
+          "StoreCapabilities",
+          "DeclarationFor",
+          "Select",
+          "RequireCapabilities",
+          "CoreCapabilities",
+          "ErrProfileUnavailable",
+          "NewStoreCapabilities",
+          "StoreCapabilities.Values",
+          "ActorBoundary",
+          "RecoveryObservationRequirement"
+        ],
+        "uses": [],
+        "issues": [
+          1791,
+          1792
+        ],
+        "consumers": [
+          "coldlight",
+          "lilrae"
+        ],
+        "declarations": "implementations/architecture-api/planned/runtime/runtime/profile.go.txt",
+        "declarations_sha256": "74bc6febeea48b7859d43c890a85affde1e77945c773739e6f3606b36736b603"
+      },
+      {
+        "owner": "rae",
+        "path": "contract/runtime",
+        "layer": "contract",
+        "symbols": [
+          "ApplyResult",
+          "MaterializationSubmission",
+          "NewMaterializationSubmission",
+          "ParticipantActionRequest",
+          "NativeActionExecution",
+          "RealizationObservationDisclosure",
+          "ObservedOperatingSystemIdentity",
+          "ProvisionOperation",
+          "RealizationPreparation",
+          "EpisodeInitializeRequest",
+          "EpisodeResetRequest",
+          "EpisodeRestartRequest",
+          "EpisodeTerminateRequest",
+          "ParticipantActionInput",
+          "ParticipantActionApplyResult",
+          "NativeActionOutcome",
+          "PrepareForRequest",
+          "BindParticipantAction"
+        ],
+        "uses": [
+          "rae:contract/admission",
+          "rae:contract/binding",
+          "rae:contract/diagnostic"
+        ],
+        "issues": [
+          1790
+        ],
+        "consumers": [
+          "lilrae",
+          "runtime"
+        ],
+        "declarations": "implementations/architecture-api/planned/rae/contract/runtime.go.txt",
+        "declarations_sha256": "eabf0dd0965481c173a3a928fccc7a187480e26c428d12dd5e99caaddc3dba22"
       }
     ],
     "commands": [

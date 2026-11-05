@@ -1,0 +1,18 @@
+package authoring
+
+import (
+	"context"
+	"io"
+)
+
+type Streams struct {
+	In       io.Reader
+	Out, Err io.Writer
+}
+type Command struct {
+	Path    []string
+	Summary string
+	Run     func(context.Context, []string, Streams) int
+}
+
+func Commands() []Command

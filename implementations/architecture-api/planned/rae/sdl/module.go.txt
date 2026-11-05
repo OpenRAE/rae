@@ -1,0 +1,40 @@
+package module
+
+import (
+	"context"
+	"io/fs"
+)
+
+const LockfileName = "raes.lock.json"
+
+type Lockfile struct {
+	SchemaVersion string
+	Imports       []LockRecord
+}
+type LockRecord struct {
+	Source, Namespace, RequestedVersion, ResolvedSource                          string
+	ModuleID, ModuleVersion, ManifestDigest, ContentDigest, ExportHash, SignerID string
+}
+type VerificationFacts struct {
+	Record                                                                             LockRecord
+	Registry, SignerPublicKey                                                          string
+	LocalSource, SignatureVerified, ManifestVerified, ContentVerified, ExportsVerified bool
+}
+type TrustPolicy interface {
+	AdmitModule(context.Context, VerificationFacts) error
+}
+type RegistryTrust struct {
+	RequireSignatures, AllowInsecureHTTP bool
+	TrustedSigners                       map[string]string
+}
+type Policy struct {
+	SchemaVersion             string
+	AllowUnsignedLocalSources bool
+	Registries                map[string]RegistryTrust
+}
+
+func DefaultPolicy() Policy
+func (policy Policy) AdmitModule(context.Context, VerificationFacts) error
+
+func LoadLockfile(source fs.FS, directory string) (Lockfile, error)
+func ResolveLock(context.Context, fs.FS, string, TrustPolicy) (Lockfile, error)

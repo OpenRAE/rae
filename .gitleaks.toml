@@ -74,3 +74,14 @@ condition = "AND"
 regexTarget = "match"
 regexes = ['''zeroKey\s*=\s*"[0-9a-f]{64}"''']
 paths = ['''(^|/)implementations/go/internal/base/randstream/randstream_test\.go$''']
+
+[[allowlists]]
+description = "Issue #1825: SHA-256 checksums of the public API snapshot and design document, verified by archcheck; not credentials. Only these exact JSON field contexts in the architecture model are exempt from generic-api-key. Other fields, files and scanner rules remain checked."
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "match"
+regexes = [
+  '''existing_api_sha256":\s*"[0-9a-f]{64}"''',
+  '''issue-1825-public-go-api\.md":\s*"[0-9a-f]{64}"''',
+]
+paths = ['''(^|/)implementations/architecture\.json$''']

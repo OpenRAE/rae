@@ -44,6 +44,27 @@ func TestConsumerAPIDesign(t *testing.T) {
 		func(a *ConsumerAPI) { a.Packages[0].Symbols = []string{"private"} },
 		func(a *ConsumerAPI) { a.Design = "../design.md" },
 		func(a *ConsumerAPI) { a.Modules = append(a.Modules, a.Modules[0]) },
+		func(a *ConsumerAPI) { a.Modules = nil },
+		func(a *ConsumerAPI) { a.Modules[1].Owner = "other" },
+		func(a *ConsumerAPI) { a.Modules[1].Module = "github.com/OpenRAE/example" },
+		func(a *ConsumerAPI) { a.Modules[1].Repository = "OpenRAE/example" },
+		func(a *ConsumerAPI) {
+			a.Modules[1].Repository = "OpenRAE/example"
+			a.Modules[1].Module = "github.com/OpenRAE/example-impersonator"
+		},
+		func(a *ConsumerAPI) {
+			a.Modules[1].Repository = "OpenRAE/rae"
+			a.Modules[1].Module = "github.com/OpenRAE/rae/implementations/go"
+		},
+		func(a *ConsumerAPI) { a.Design = "docs/absent.md" },
+		func(a *ConsumerAPI) { a.Packages[0].Symbols = nil },
+		func(a *ConsumerAPI) { a.Packages[0].Symbols = []string{"A.B.C"} },
+		func(a *ConsumerAPI) { a.Packages[0].Symbols = []string{"Error", "Error"} },
+		func(a *ConsumerAPI) { a.Packages[0].Issues = nil },
+		func(a *ConsumerAPI) { a.Packages[0].Issues = []int{0} },
+		func(a *ConsumerAPI) { a.Packages[0].Consumers = nil },
+		func(a *ConsumerAPI) { a.Packages[0].Layer = "runtime" },
+		func(a *ConsumerAPI) { a.Packages[0].Issues = []int{1780} },
 	} {
 		m = consumerModel(t)
 		change(m.ConsumerAPI)
@@ -73,17 +94,31 @@ func TestConsumerAPIBoundaries(t *testing.T) {
 	}{
 		{"internal", func(m *Model) { consumerPackage(t, m, "rae:sdl").Path = "internal/sdl" }},
 		{"main package", func(m *Model) { consumerPackage(t, m, "rae:sdl").Path = "cmd/sdl" }},
+		{"invalid segment", func(m *Model) { consumerPackage(t, m, "rae:sdl").Path = "sdl/invalid-path" }},
+		{"layer direction", func(m *Model) { consumerPackage(t, m, "rae:base/clock").Uses = []string{"rae:sdl"} }},
 		{"escape", func(m *Model) { consumerPackage(t, m, "rae:sdl").Path = "../sdl" }},
+		{"reverse permitted layer", func(m *Model) { consumerPackage(t, m, "rae:conformance").Uses = []string{"runtime:runtime/control"} }},
 		{"reverse", func(m *Model) { consumerPackage(t, m, "rae:sdl").Uses = []string{"runtime:runtime/control"} }},
 		{"missing import", func(m *Model) { consumerPackage(t, m, "rae:sdl").Uses = []string{"rae:missing"} }},
 		{"self import", func(m *Model) { consumerPackage(t, m, "rae:sdl").Uses = []string{"rae:sdl"} }},
+		{"same layer cycle", func(m *Model) {
+			p := consumerPackage(t, m, "rae:processor")
+			p.Uses = append(p.Uses, "rae:processor/planning")
+		}},
 		{"cycle", func(m *Model) { consumerPackage(t, m, "rae:contract/admission").Uses = []string{"rae:sdl"} }},
 		{"reverse command", func(m *Model) { m.ConsumerAPI.Commands[1].Uses = []string{"runtime:runtime/control"} }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := consumerModel(t)
 			tc.change(m)
-			if !hasFinding(m.CheckDesign(), "ARCH-015", "consumer") {
+			problem := "consumer"
+			if slices.Contains([]string{"internal", "main package", "escape", "invalid segment"}, tc.name) {
+				problem = "public Go path"
+			}
+			if tc.name == "same layer cycle" {
+				problem = "consumer dependency cycle"
+			}
+			if !hasFinding(m.CheckDesign(), "ARCH-015", problem) {
 				t.Error("unsafe consumer dependency was accepted")
 			}
 		})
@@ -121,6 +156,11 @@ func TestConsumerAPICompatibility(t *testing.T) {
 	}
 	for _, change := range []func(*ConsumerAPI){
 		func(a *ConsumerAPI) { a.Commands[0].Owner = "rae" },
+		func(a *ConsumerAPI) { a.Commands = nil },
+		func(a *ConsumerAPI) { a.Commands[0].Name = "different" },
+		func(a *ConsumerAPI) { a.Commands[0].EntryPoint = "internal/main" },
+		func(a *ConsumerAPI) { a.Commands[0].Uses = nil },
+		func(a *ConsumerAPI) { a.Commands[0].Uses = []string{"rae:missing"} },
 		func(a *ConsumerAPI) { a.Commands = append(a.Commands, a.Commands[0]) },
 		func(a *ConsumerAPI) { a.Modules[0].Module = "github.com/other/contracts" },
 	} {
@@ -144,5 +184,69 @@ func TestConsumerAPIJSONRoundTrip(t *testing.T) {
 	}
 	if got := copyModel.CheckDesign(); len(got) != 0 {
 		t.Fatalf("round-trip design = %v", got)
+	}
+}
+
+func TestConsumerAPIView(t *testing.T) {
+	m := consumerModel(t)
+	view := m.View()
+	for _, want := range []string{"Planned public package", "github.com/OpenRAE/rae/implementations/go/contract/admission", "RUNTIME/runtime/control", "approval pending #1893", "| `raes` | runtime |", "<!-- go-consumer "} {
+		if !strings.Contains(view, want) {
+			t.Errorf("consumer view lacks %q", want)
+		}
+	}
+	consumerPackage(t, m, "rae:sdl").Issues = []int{1782}
+	if m.View() == view {
+		t.Error("consumer delivery commitments are not bound to the view")
+	}
+}
+
+func TestConsumerAPIApprovedRuntimeIdentity(t *testing.T) {
+	for _, suffix := range []string{"", "/implementations/go"} {
+		m := consumerModel(t)
+		m.ConsumerAPI.Modules[1].Repository = "OpenRAE/example"
+		m.ConsumerAPI.Modules[1].Module = "github.com/OpenRAE/example" + suffix
+		if got := m.CheckDesign(); len(got) != 0 {
+			t.Fatalf("approved runtime identity CheckDesign() = %v", got)
+		}
+	}
+}
+
+func TestConsumerAPIRequiredForProductModule(t *testing.T) {
+	m := consumerModel(t)
+	m.ConsumerAPI = nil
+	if !hasFinding(m.CheckDesign(), "ARCH-015", "consumer") {
+		t.Error("omitted consumer plan was accepted")
+	}
+}
+
+func TestConsumerAPIRuntimeModulePaths(t *testing.T) {
+	for _, suffix := range []string{"/internal/go", "/../other", "/bad path", "/.hidden"} {
+		m := consumerModel(t)
+		m.ConsumerAPI.Modules[1] = ConsumerModule{Owner: "runtime", Repository: "OpenRAE/example", Module: "github.com/OpenRAE/example" + suffix}
+		if !hasFinding(m.CheckDesign(), "ARCH-015", "runtime consumer module") {
+			t.Errorf("private or invalid runtime module suffix %q was accepted", suffix)
+		}
+	}
+}
+
+func TestConsumerAPIRelocationIdentity(t *testing.T) {
+	m := consumerModel(t)
+	p := consumerPackage(t, m, "rae:base/fault")
+	p.Existing = "implementations/go/internal/base/ingress"
+	if !hasFinding(m.CheckDesign(), "ARCH-015", "consumer relocation") {
+		t.Error("swapped source API was accepted")
+	}
+	m = consumerModel(t)
+	consumerPackage(t, m, "rae:base/fault").Symbols = append(consumerPackage(t, m, "rae:base/fault").Symbols, "InventedExport")
+	if err := m.CheckConsumerTypes(t.Context(), extractionRoot(t)); err == nil || !strings.Contains(err.Error(), "InventedExport") {
+		t.Errorf("invented source export check = %v", err)
+	}
+}
+
+func TestConsumerAPITypedDeclarations(t *testing.T) {
+	m := consumerModel(t)
+	if err := m.CheckConsumerTypes(t.Context(), extractionRoot(t)); err != nil {
+		t.Fatal(err)
 	}
 }

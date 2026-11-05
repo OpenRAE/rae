@@ -95,12 +95,18 @@ func check(ctx context.Context, design bool) ([]arch.Finding, error) {
 		return findings, nil
 	}
 	documents, err := model.CheckDocuments(repo)
-	if err != nil || len(documents) > 0 || design {
+	if err != nil || len(documents) > 0 {
 		return documents, err
 	}
 	repoRoot, err := os.Getwd()
 	if err != nil {
 		return nil, err
+	}
+	if err = model.CheckConsumerTypes(ctx, repoRoot); err != nil {
+		return nil, err
+	}
+	if design {
+		return nil, nil
 	}
 	actual, err := arch.LoadAPI(ctx, repoRoot, model)
 	if err != nil {

@@ -1,0 +1,73 @@
+package sdl
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/concept"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/sdl/module"
+	"io/fs"
+)
+
+type Scenario interface {
+	Document() map[string]any
+	SemanticallyValidated() bool
+	admittedScenario()
+}
+type InstantiatedScenario interface {
+	Scenario
+	instantiatedScenario()
+}
+type Limits struct {
+	MaxInputBytes, MaxScalarBytes, MaxComposedBytes              int64
+	MaxDepth, MaxNodes, MaxAliases, MaxExpandedNodes, MaxImports int
+	MaxComposedNodes, MaxCompositionDepth, MaxNamespaceDepth     int
+}
+type MigrationPolicy string
+
+const (
+	RejectMigration MigrationPolicy = "reject"
+	AcceptMigration MigrationPolicy = "accept"
+	SourceFormat                    = "sdl-yaml/v1"
+)
+
+type ParseOptions struct {
+	Limits                   Limits
+	SourceFormat             string
+	MigrationPolicy          MigrationPolicy
+	RequiredSemanticRevision string
+}
+
+// SourceContext supplies only a contained filesystem or a copied source map.
+// RootBytes, when supplied, replaces only Root for an editor's unsaved buffer.
+type SourceContext struct {
+	Root      string
+	RootBytes []byte
+	FS        fs.FS
+	Sources   map[string][]byte
+	Lock      *module.Lockfile
+	Trust     module.TrustPolicy
+}
+type Requirement struct {
+	Trail    []string
+	Document binding.ArtifactRequirementV1
+}
+
+func DefaultLimits() Limits
+func (limits Limits) Validate() error
+func DefaultParseOptions() ParseOptions
+func (options ParseOptions) Validate() error
+func Parse(source []byte, options ParseOptions) (Scenario, error)
+func ParseSources(sources map[string][]byte, root string, options ParseOptions) (Scenario, error)
+func ParseFile(source fs.FS, root string, options ParseOptions) (Scenario, error)
+func ParseContext(source SourceContext, options ParseOptions) (Scenario, error)
+func AuthoredScenario(source []byte, options ParseOptions) (Scenario, error)
+func Validate(scenario Scenario) ([]diagnostic.Diagnostic, error)
+func Instantiate(scenario Scenario, parameters map[string]any) (InstantiatedScenario, error)
+func AdmitInstantiated(scenario Scenario) (InstantiatedScenario, error)
+func AdmitFamily(scenario Scenario) (Scenario, error)
+func CanonicalDigest(scenario Scenario) (string, error)
+func ConceptSubjects(scenario Scenario) ([]concept.Subject, error)
+func ArtifactRequirements(scenario Scenario) ([]Requirement, error)
+func ResolveRealizationDesignation(scenario Scenario, fieldPointer string) (admission.Fragment, error)
+func ValidateExperimentSelectionAgainstFamily(spec binding.ExperimentAuthoringInputV1, family Scenario) (binding.ExperimentAuthoringInputV1, error)
