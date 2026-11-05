@@ -80,16 +80,33 @@ def evaluate_repo_policy(
     assert policy is not None
 
     failures: list[PolicyFailure] = []
-    if check_set == "full":
+    if check_set in ("full", "structural"):
         # The structural ratchets are global (ADR-117): they run for every full check, also
         # when the change list is empty or holds only deletions.
-        if ratchet_runner is None:
+        failures.extend(_ratchet_failures(repo_root, policy, base_rev, ratchet_runner))
+    if check_set != "structural":
+        # The design structural check runs only the ADR-117 checks. The by-file checks
+        # stay in the full set, which CI runs.
+        failures.extend(_by_file_failures(repo_root, policy, changed, check_set, structural_runner))
+    return failures
 
-            def ratchet_runner(loaded_policy: dict[str, object]) -> list[PolicyFailure]:
-                return evaluate_structural_ratchet(repo_root, loaded_policy, base_rev=base_rev)
 
-        failures.extend(ratchet_runner(policy))
+def _ratchet_failures(
+    repo_root: Path, policy: dict[str, object], base_rev: str | None, ratchet_runner: RatchetRunner | None
+) -> list[PolicyFailure]:
+    if ratchet_runner is not None:
+        return ratchet_runner(policy)
+    return evaluate_structural_ratchet(repo_root, policy, base_rev=base_rev)
 
+
+def _by_file_failures(
+    repo_root: Path,
+    policy: dict[str, object],
+    changed: list[str],
+    check_set: str,
+    structural_runner: StructuralPolicyRunner | None,
+) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
     # Drop any changed path that escapes the repository root (absolute,
     # parent-traversal, or a planted symlink that resolves outside the
     # tree) BEFORE any checker reads it. This is a single chokepoint:
