@@ -39,7 +39,7 @@ def _inventory_path_changes(
     pointer_changes: PathChanges = []
     model_changes: PathChanges = []
     for spec in RUNTIME_SERVICE_FAMILIES:
-        rows = selected[spec.collection_name]
+        rows = selected.get(spec.collection_name, ())
         positions = {row[spec.id_field]: position for position, row in enumerate(rows)}
         for before, row in enumerate(getattr(original, spec.collection_name)):
             after = positions.get(getattr(row, spec.id_field))
@@ -62,7 +62,7 @@ def _child_path_changes(
         collection, child = runtime_child_slot_collections(slot)
         spec = next(item for item in RUNTIME_SERVICE_FAMILIES if item.collection_name == collection)
         child_id = next(item.id_field for item in spec.child_refs if item.collection_name == child)
-        rows = {row[spec.id_field]: (position, row) for position, row in enumerate(selected[collection])}
+        rows = {row[spec.id_field]: (position, row) for position, row in enumerate(selected.get(collection, ()))}
         for before, record in enumerate(getattr(original, collection)):
             retained = rows.get(getattr(record, spec.id_field))
             if retained is None:
@@ -74,7 +74,7 @@ def _child_path_changes(
                 (f"{pointer}{before}/{child}/", f"{model}[{before}].{child}"),
                 (f"{pointer}{after}/{child}/", f"{model}[{after}].{child}"),
                 [getattr(item, child_id) for item in getattr(record, child)],
-                {item[child_id]: position for position, item in enumerate(row[child])},
+                {item[child_id]: position for position, item in enumerate(row.get(child, ()))},
             )
             pointer_changes.extend(pointers)
             model_changes.extend(models)
@@ -123,7 +123,9 @@ def _declaration_path_changes(family: ExpandedScenario, payload: dict[str, Any])
             # Protect declarations with qualified names from a removed shorter name's model-path prefix.
             model_changes.append((f"{section}.{name}", f"{section}.{name}"))
             if section in _CONSUMER_SECTIONS:
-                pointers, models = _consumer_path_changes(section, name, original.consumers, retained["consumers"])
+                pointers, models = _consumer_path_changes(
+                    section, name, original.consumers, retained.get("consumers", [])
+                )
                 pointer_changes.extend(pointers)
                 model_changes.extend(models)
     return pointer_changes, model_changes
@@ -165,7 +167,7 @@ def reconcile_selection_provenance(family: ExpandedScenario, payload: dict[str, 
     """Remove evidence only with its owner; retain surviving bounds at their new positions."""
 
     pointer_changes, model_changes = _selection_path_changes(family, payload)
-    provenance = payload["expansion_provenance"]
+    provenance = payload.get("expansion_provenance", {})
     for field in (
         "capability_constraints",
         "parameter_derivations",
@@ -173,4 +175,6 @@ def reconcile_selection_provenance(family: ExpandedScenario, payload: dict[str, 
         "realization_constraints",
     ):
         provenance[field] = _remap_records(provenance.get(field, ()), "field_pointer", pointer_changes, ("/",))
-    provenance["explicitness"] = _remap_records(provenance["explicitness"], "model_path", model_changes, (".", "["))
+    provenance["explicitness"] = _remap_records(
+        provenance.get("explicitness", ()), "model_path", model_changes, (".", "[")
+    )
