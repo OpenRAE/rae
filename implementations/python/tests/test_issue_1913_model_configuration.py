@@ -84,6 +84,23 @@ def test_model_configuration_schema_and_absence():
     assert "model" not in concrete.model_dump(mode="json")["nodes"]["host"]["runtime"]["software_components"][0]
 
 
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "sdl/instantiated-scenario-v1.json",
+        "sdl/instantiated-scenario-snapshot-v1.json",
+        "sdl/materialized-scenario-v1.json",
+        "satisfiability/scenario-satisfiability-evidence-v1.json",
+    ],
+)
+def test_concrete_model_schema_rejects_unresolved_variables(relative):
+    schema = json.loads((REPO_ROOT / "contracts/schemas" / relative).read_text())
+    component_schema = {"$ref": "#/$defs/RuntimeSoftwareComponent", "$defs": schema["$defs"]}
+    validator = Draft202012Validator(component_schema)
+    validator.validate(_component(model=MODELS[0]))
+    assert list(validator.iter_errors(_component(model="${model_choice}")))
+
+
 @pytest.mark.parametrize("value", ["", "   ", 42, [], {}])
 def test_invalid_model_configuration_is_rejected(value):
     source = _source(model=value)
