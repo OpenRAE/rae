@@ -1,3 +1,5 @@
+To get started and run a scenario, see [LilRÆ](https://github.com/openrae/lilrae).
+
 # Reproducible Agentic Environments System
 
 [![CI](https://github.com/OpenRAE/rae/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/OpenRAE/rae/actions/workflows/ci.yml)
