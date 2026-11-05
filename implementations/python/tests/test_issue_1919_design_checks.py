@@ -151,7 +151,15 @@ def test_existing_workflow_gates_remain_configured() -> None:
     assert "make policy" in workflow["policy_command"]
     assert "verify-fast-feedback" in workflow["test_command"]
     assert workflow["codex_review"] == {"pre_push_cap": 1}
-    assert configuration["sonarcloud"] == {"project_key": "Brad-Edwards_aces", "organization": "brad-edwards"}
+    sonar = dict(
+        line.split("=", 1)
+        for line in (REPO_ROOT / "sonar-project.properties").read_text(encoding="utf-8").splitlines()
+        if line.startswith(("sonar.projectKey=", "sonar.organization="))
+    )
+    assert configuration["sonarcloud"] == {
+        "project_key": sonar["sonar.projectKey"],
+        "organization": sonar["sonar.organization"],
+    }
     assert configuration["rules"] == {"plan_rules": ".gc/plan-rules.md"}
 
 
