@@ -612,6 +612,9 @@ jobs:
           cd "${RUNNER_TEMP}/contract-boundary-empty"
           "${RUNNER_TEMP}/contract-boundary.test" -test.run '^Test(PublishedSchemaBoundary|ImmutableAdmission)$'
           "${RUNNER_TEMP}/contract-admission.test" -test.run '^TestCompleteRegistry$'
+      - name: Prepare pinned product dependencies for offline consumer API tests
+        if: matrix.name == 'tooling'
+        run: go -C implementations/go mod download
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |

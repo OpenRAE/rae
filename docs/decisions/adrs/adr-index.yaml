@@ -761,7 +761,7 @@ adrs:
         summary: "Separate exhaustive mutation testing from normal PR admission; keep the other Go gates and bound normal Go jobs to 25 minutes."
   - id: ADR-122
     path: docs/decisions/adrs/adr-122-go-architecture-model.md
-    pin: dd519fd123f07d56d10c54063874665bab188a9ded9eb0f09f53fa412cef6905
+    pin: 9d05b3c604bcb6eb73b53da5e4e70623d5c458ff2c6a8b9b88be8955271648fe
     amendments:
       - date: 2026-10-31
         ref: "#1778"
@@ -775,3 +775,6 @@ adrs:
       - date: 2026-11-04
         ref: "#1891"
         summary: "Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions."
+      - date: 2026-11-05
+        ref: "#1825"
+        summary: "Declared planned public consumer imports and command publishers in the existing model; added ARCH-015 and generated consumer views."

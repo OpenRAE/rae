@@ -179,6 +179,9 @@ It reviews this overview when source commitments change.
 `archcheck -view` prints the generated section for review; it does not overwrite the overview.
 `archcheck -api` prints actual interfaces for comparison; it does not approve them.
 The existing go-architecture CI job checks documentation and code changes.
+Before running the architecture checker or its consumer API tests, run `go -C implementations/go mod download`.
+This prepares the pinned product dependencies for offline type inspection.
+The tooling test job and architecture job run this preparation before their checks.
 
 <!-- go-view -->
 
