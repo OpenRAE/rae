@@ -1,4 +1,4 @@
-"""Authored experiment capacity, independent of isolation and live leases."""
+"""Authored experiment capacity: an arbitrary cap on concurrent trials."""
 
 from __future__ import annotations
 
@@ -9,7 +9,8 @@ from pydantic import ConfigDict, Field, model_validator
 from ._base import ContractModel
 from .realization_posture import Posture
 
-TrialCount = Annotated[int, Field(strict=True, ge=1)]
+MAX_TRIAL_PARALLELISM = 4096
+TrialCount = Annotated[int, Field(strict=True, ge=1, le=MAX_TRIAL_PARALLELISM)]
 
 
 class OpenTrialParallelismModel(ContractModel):
@@ -56,19 +57,27 @@ TrialParallelismModel = Annotated[
 ]
 
 
-def parallelism_bounds(intent: TrialParallelismModel | None, ceiling: int) -> tuple[int, int]:
-    """Intersect author intent with independently admitted isolation capacity."""
+def parallelism_bounds(intent: TrialParallelismModel | None, entry_count: int) -> tuple[int, int]:
+    """Return the inclusive parallel-trial bounds that the author sets.
 
-    lower = 1
+    The upper bound is the exact count, the maximum, or ``entry_count`` (at most
+    ``MAX_TRIAL_PARALLELISM``) when the value is open or has no maximum. Without
+    a value, trials run one at a time.
+    """
+
+    if intent is None:
+        return 1, 1
+    available = min(entry_count, MAX_TRIAL_PARALLELISM)
     if isinstance(intent, ExactTrialParallelismModel):
-        lower, ceiling = intent.count, min(ceiling, intent.count)
+        lower = upper = intent.count
     elif isinstance(intent, ConstrainedTrialParallelismModel):
         lower = intent.minimum or 1
-        if intent.maximum is not None:
-            ceiling = min(ceiling, intent.maximum)
-    if lower > ceiling:
-        raise ValueError("trial parallelism cannot be met by the admitted isolation capacity")
-    return lower, ceiling
+        upper = available if intent.maximum is None else intent.maximum
+    else:
+        lower, upper = 1, available
+    if lower > upper:
+        raise ValueError("trial parallelism minimum exceeds the trial count")
+    return lower, upper
 
 
-__all__ = ["TrialParallelismModel", "parallelism_bounds"]
+__all__ = ["MAX_TRIAL_PARALLELISM", "TrialParallelismModel", "parallelism_bounds"]

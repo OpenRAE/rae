@@ -1,9 +1,9 @@
 {
-  "content_hash": "f9c187493f6447836918e193115ff38f26acaa3ffa7d6a114c3a1985e4ef60f8",
+  "content_hash": "474bf62073099b78e7f283780a79c1f33b50a62d2486cd9adfaf6a455bbf2ecf",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "f9c187493f6447836918e193115ff38f26acaa3ffa7d6a114c3a1985e4ef60f8",
-    "summary": "Add optional parameterizable software component model configuration (issue #1913)."
+    "content_hash": "474bf62073099b78e7f283780a79c1f33b50a62d2486cd9adfaf6a455bbf2ecf",
+    "summary": "Cap authored trial_parallelism counts at 4096, the assigned-trial parallelism limit (#1940)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

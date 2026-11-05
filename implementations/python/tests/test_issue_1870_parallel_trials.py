@@ -9,15 +9,17 @@ from raes_runtime import RuntimeControlPlane
 from test_issue_1870_assigned_trials import OriginalRuntimeReader
 
 
-def test_parallel_assignment_requires_proof_membership_for_the_selected_entry():
-    _, inputs, target = parallel_inputs(omit_first_from_proof=True)
-    grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease:hosts",))
+def test_parallel_assignment_needs_only_authored_trial_parallelism():
+    _, inputs, target = parallel_inputs(intent={"posture": "exact", "count": 2})
+    assert inputs.plan.parallelism_bounds() == (2, 2)
     with RuntimeControlPlane(target) as runtime:
         experiment = runtime.admit_experiment(inputs, services=TrialServices(target))
         entry_id = next(iter(inputs.plan.entries))
-        with pytest.raises(ConflictError, match="proof"):
-            runtime.assign_trial(experiment, entry_id, owner_id="worker-a", grant=grant)
-        assert runtime.experiment_records(experiment).accounting.started_runs == 0
+        assignment = runtime.assign_trial(
+            experiment, entry_id, owner_id="worker-a", grant=AllocatorGrant(effective_parallelism=2)
+        )
+        assert assignment.effective_parallelism == 2
+        assert "isolation_proof_ref" not in assignment.model_dump(mode="json")
 
 
 def test_unknown_assignment_and_original_deadline_survive_coordinator_restart(tmp_path):
@@ -50,7 +52,7 @@ def test_two_independent_hosts_complete_out_of_order_under_original_ceiling():
     services, a, b = TrialServices(target), TrialServices(target_a), TrialServices(target_b)
     a.pending = True
     verifier = OriginalRuntimeReader()
-    grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease:independent-hosts",))
+    grant = AllocatorGrant(effective_parallelism=2)
     first, second, third = list(inputs.plan.entries)[:3]
     with (
         RuntimeControlPlane(target) as coordinator,

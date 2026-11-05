@@ -4,7 +4,7 @@ A coordinator can admit an experiment once.
 It can send the plan entries to separate workers.
 RAE keeps the original scenario, settings, and run IDs.
 It also owns attempts, cleanup, and replacement policy.
-The application supplies hosts, live leases, trusted identities, and transport.
+The application supplies hosts, trusted identities, and transport.
 
 ## Compose the owners
 
@@ -41,12 +41,11 @@ It resolves secret references only through existing authorized backend sinks.
 `plan_batch_schedule(inputs.plan)` exposes the original canonical entry order.
 `assign_trial()` admits assignments in that order and atomically checks occupied capacity.
 Serial execution is the default.
-Parallel execution requires the original embedded isolation proof and an explicit downstream `AllocatorGrant`.
-The selected entry must belong to that proof.
-The effective bound cannot exceed its admitted ceiling.
-Lease reference strings record an allocator decision; they do not prove live ownership.
+Parallel execution requires an explicit downstream `AllocatorGrant`.
+The SDL `trial_parallelism` value sets the admitted floor and ceiling.
+The grant's `effective_parallelism` must be inside them.
 
-<!-- example-skip: Requires the retained coordinator admission, selected entry, authenticated owner, and live allocator grant. -->
+<!-- example-skip: Requires the retained coordinator admission, selected entry, authenticated owner, and allocator grant. -->
 ```python
 assignment = coordinator.assign_trial(
     experiment_id,
@@ -178,7 +177,7 @@ The coordinator uses `assign_trial()` to assign that work.
 The original lineage and dispatch order still apply.
 Owner generation is fixed at one.
 This interface does not reassign an uncertain attempt to a new owner.
-Live host leases and their release remain downstream responsibilities.
+Host placement and its release remain downstream responsibilities.
 
 ## Supported versions and bounds
 

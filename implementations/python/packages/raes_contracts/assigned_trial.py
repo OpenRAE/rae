@@ -18,6 +18,7 @@ from .json_ingress import parse_bounded_json_object
 from .realization_structure import validate_realization_value
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 from .trial_observations import TrialObservation
+from .trial_parallelism import MAX_TRIAL_PARALLELISM
 
 Identity = Annotated[str, Field(strict=True, min_length=1, max_length=256)]
 Digest = Annotated[str, Field(strict=True, pattern=r"^sha256:[a-f0-9]{64}$")]
@@ -61,7 +62,7 @@ class TrialHandoffModel(BaseModel):
 
 
 class TrialAssignmentModel(TrialHandoffModel):
-    """Data binding only; trusted composition supplies authentication and leases."""
+    """Data binding only; trusted composition supplies authentication."""
 
     schema_version: Literal["assigned-trial/v1"] = "assigned-trial/v1"
     plan: AdmittedTrialPlanModel = Field(repr=False)
@@ -75,9 +76,7 @@ class TrialAssignmentModel(TrialHandoffModel):
     owner_generation: Annotated[int, Field(strict=True, ge=1, le=1)] = 1
     instantiated_sdl_digest: Digest
     processor_plan_refs: tuple[TrialProcessorPlanReferenceModel, ...] = Field(min_length=3, max_length=3, repr=False)
-    effective_parallelism: Annotated[int, Field(strict=True, ge=1, le=4096)] = 1
-    isolation_proof_ref: Identity | None = None
-    lease_evidence_refs: tuple[Identity, ...] = Field(default=(), max_length=4096, repr=False)
+    effective_parallelism: Annotated[int, Field(strict=True, ge=1, le=MAX_TRIAL_PARALLELISM)] = 1
 
     @model_validator(mode="after")
     def binding(self) -> TrialAssignmentModel:
@@ -107,25 +106,7 @@ class TrialAssignmentModel(TrialHandoffModel):
         lower, upper = admitted.parallelism_bounds()
         if not lower <= self.effective_parallelism <= upper:
             raise ValueError("assignment parallelism is outside the admitted bounds")
-        self._validate_grant(admitted)
         return self
-
-    def _validate_grant(self, plan: AdmittedTrialPlanModel) -> None:
-        if self.effective_parallelism == 1:
-            if self.isolation_proof_ref is not None or self.lease_evidence_refs:
-                raise ValueError("serial assignment cannot claim parallel isolation or leases")
-            return
-        proof = plan.isolation_proof
-        if (
-            proof is None
-            or self.isolation_proof_ref != proof.proof_id
-            or self.plan_entry_id not in proof.plan_entry_ids
-            or self.effective_parallelism > min(proof.requested_parallelism, len(plan.entries))
-            or not self.lease_evidence_refs
-        ):
-            raise ValueError("parallel assignment exceeds the admitted isolation proof")
-        if len(set(self.lease_evidence_refs)) != len(self.lease_evidence_refs):
-            raise ValueError("assignment lease references must be unique")
 
     @property
     def experiment_id(self) -> str:
