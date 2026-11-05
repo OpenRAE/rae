@@ -110,10 +110,12 @@ def test_dense_source_planning_and_report_admission(tmp_path, count):
     assert result.success, result.diagnostics
     assert backend.calls == 1
     assert len(result.snapshot.materialization_attestations) == 1
+    wrong_instantiated = {**source.model_dump(), "instantiated_digest": "sha256:" + "0" * 64}
+    wrong_authored = {**source.model_dump(), "authored_digest": "sha256:" + "0" * 64}
     with pytest.raises(ValidationError, match="instantiated identity"):
-        MaterializationSource.model_validate({**source.model_dump(), "instantiated_digest": "sha256:" + "0" * 64})
+        MaterializationSource.model_validate(wrong_instantiated)
     with pytest.raises(ValidationError, match="authored identity"):
-        MaterializationSource.model_validate({**source.model_dump(), "authored_digest": "sha256:" + "0" * 64})
+        MaterializationSource.model_validate(wrong_authored)
 
 
 def test_dense_source_over_byte_limit_is_refused():
@@ -133,7 +135,6 @@ def test_source_over_work_limit_is_refused(content):
     payload["scenario"]["description"] = content
     snapshot = json.dumps(payload, separators=(",", ":"))
     assert len(snapshot.encode()) < MATERIALIZATION_MAX_BYTES
+    oversized = {**source.model_dump(), "snapshot": snapshot, "instantiated_digest": canonical_json_digest(payload)}
     with pytest.raises(ValidationError, match="portable bounds"):
-        MaterializationSource.model_validate(
-            {**source.model_dump(), "snapshot": snapshot, "instantiated_digest": canonical_json_digest(payload)}
-        )
+        MaterializationSource.model_validate(oversized)
