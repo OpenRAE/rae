@@ -213,6 +213,7 @@ class ScenarioContent(LegacyClassificationGuard):
     description: str = ""
     trial_parallelism: TrialParallelismModel | None = Field(
         default=None,
+        repr=False,
         exclude_if=lambda value: value is None,
         json_schema_extra={"x-raes-realization-dimension": False},
     )
