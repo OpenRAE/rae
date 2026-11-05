@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [10.8.0](https://github.com/OpenRAE/rae/compare/v10.7.3...v10.8.0) (2026-11-05)
+
+
+### Features
+
+* configure Ground Control design checks ([#1924](https://github.com/OpenRAE/rae/issues/1924)) ([3adbd20](https://github.com/OpenRAE/rae/commit/3adbd20835f787b6729e10f3e061a72b01626ea0))
+* declare model configuration in SDL software components ([#1921](https://github.com/OpenRAE/rae/issues/1921)) ([75d9606](https://github.com/OpenRAE/rae/commit/75d9606ae0dba46f2f9398a55d7914185a3d75b9))
+* declare parallel trial capacity in SDL ([#1915](https://github.com/OpenRAE/rae/issues/1915)) ([af6079f](https://github.com/OpenRAE/rae/commit/af6079f8e51224703f0a6cf9ecf1252ffc81d65a))
+
+
+### Bug Fixes
+
+* admit full-size materialization source and reports ([#1923](https://github.com/OpenRAE/rae/issues/1923)) ([6f51f2d](https://github.com/OpenRAE/rae/commit/6f51f2d9cf7ff455ad328797f2e06e9082e6db18))
+* preserve omitted capabilities during scenario selection ([#1918](https://github.com/OpenRAE/rae/issues/1918)) ([9dd78ba](https://github.com/OpenRAE/rae/commit/9dd78ba65344b2eb5fcaf1a008bf108c9b84880e))
+
 ## [10.7.3](https://github.com/OpenRAE/rae/compare/v10.7.2...v10.7.3) (2026-11-04)
 
 
