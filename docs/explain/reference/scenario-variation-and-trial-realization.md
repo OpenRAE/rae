@@ -725,6 +725,11 @@ refuses a minimum above one; use the assigned-trial API with an allocator grant.
 The capacity describes available slots; fewer trials can be active during
 startup, cleanup, or the final part of a batch.
 
+The shared contract owner is `raes_contracts.trial_parallelism`. Its `Posture`
+enum lives in `raes_contracts.realization_posture` and remains available through
+the existing `realization_envelope` import path. This follows ADR-084's existing
+authority boundaries; that ADR remains an unchanged historical record.
+
 The portable handoff for clean-state requirements, cleanup obligations,
 execution-attempt receipts, backend capability, and serial-by-default isolation
 proof is specified in

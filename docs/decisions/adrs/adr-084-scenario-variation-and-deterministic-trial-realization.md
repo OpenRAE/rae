@@ -419,19 +419,3 @@ Implementation is sequenced by native GitHub dependencies:
 
 SCE-002 remains DRAFT until executable contract, implementation, and test
 evidence is reconciled through those issues.
-
-## Amendment: authored trial capacity (#1912)
-
-The SDL root can declare `trial_parallelism` using the existing open,
-constrained, and exact realization postures. The shared contract owner is
-`raes_contracts.trial_parallelism`; the compiler preserves the declaration in
-the sealed admitted plan. The shared `Posture` enum lives in
-`raes_contracts.realization_posture` and remains available through its existing
-`realization_envelope` import path.
-
-The batch scheduler intersects author bounds with the plan's isolation proof.
-The assigned-trial and receipt boundaries enforce the resulting interval.
-Authored capacity cannot grant isolation, leases, or scientific authority.
-Omitted declarations retain existing serialization and allocator behavior.
-The formal SVR-031 invariant and its reference guide define the field forms
-and refusal behavior.
