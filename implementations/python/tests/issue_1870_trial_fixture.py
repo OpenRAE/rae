@@ -1,28 +1,35 @@
 """Original admitted parallel allocation for separate synthetic execution hosts."""
 
-from dataclasses import replace
-
 from issue_1629_trial_fixture import factorial_inputs
-from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import AdmittedTrialPlanModel
-from test_sce_006_batch_scheduler import _proof
 
 
-def parallel_inputs(*, omit_first_from_proof=False, transform=None):
-    request, inputs, target = factorial_inputs(transform)
-    # This is the original admission fixture, before any coordinator or worker
-    # exists. Its cleanup ranges are independently owned synthetic resources.
-    payload = inputs.plan.model_dump(mode="json")
-    for index, cleanup in enumerate(payload["cleanup_plans"].values()):
-        for boundary in cleanup["resource_boundaries"].values():
-            boundary["resource_refs"] = [f"range:synthetic-owner-{index}"]
-    covered = list(payload["entries"])[1:] if omit_first_from_proof else list(payload["entries"])
-    payload["isolation_proof"] = _proof(covered).model_dump(mode="json")
-    payload["plan_digest"] = canonical_json_digest(
-        {key: value for key, value in payload.items() if key != "plan_digest"}
+def with_parallelism(request, intent):
+    """Author ``trial_parallelism`` on the family and re-pin factorial selections to it."""
+    from pydantic import TypeAdapter
+    from raes.canonical import canonical_sdl_digest
+    from raes_contracts.trial_parallelism import TrialParallelismModel
+    from test_issue_1666_factorial_compilation import _with_design
+
+    family = request.family.model_copy(
+        update={"trial_parallelism": TypeAdapter(TrialParallelismModel).validate_python(intent)}
     )
-    plan = AdmittedTrialPlanModel.model_validate(payload)
-    return request, replace(inputs, plan=plan), target
+    request = request.with_family(family)
+    design = request.experiment.model_dump(mode="json")
+    for levels in design["factorial_design"]["level_effects"].values():
+        for effect in levels.values():
+            for selection in effect.get("selections", []):
+                selection["scenario_family_digest"] = canonical_sdl_digest(family).value
+    return _with_design(request, design)
+
+
+def parallel_inputs(*, intent=None, transform=None):
+    """Compile the original factorial admission with authored trial parallelism (open by default)."""
+    intent = intent or {"posture": "open"}
+
+    def authored(request):
+        return with_parallelism(transform(request) if transform else request, intent)
+
+    return factorial_inputs(authored)
 
 
 def replacement_inputs():

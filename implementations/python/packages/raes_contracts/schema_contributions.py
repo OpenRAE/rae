@@ -102,7 +102,7 @@ from .contracts.schema_constraints import raes_semantic_invariant_profile_schema
 from .contracts.schema_invariants import add_raes_invariant
 from .contracts.time_model import RealizedTimeModelProvenanceModel, TimeModelDeclarationModel, TimeRuntimeStateModel
 from .contracts.transformation_schemas import transformation_schema_bundle
-from .contracts.trial_cleanup import SchedulerIsolationProofModel, TrialCleanupPlanModel, TrialCleanupReceiptModel
+from .contracts.trial_cleanup import TrialCleanupPlanModel, TrialCleanupReceiptModel
 from .contracts.validation_disclosure import ValidationBasisDisclosureDocumentModel
 from .contracts.vocabulary_sources import (
     ActivityStreamsActivityTypesSourceModel,
@@ -144,7 +144,6 @@ def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
         "mixed-participant-composition-profile-v1": MixedParticipantCompositionProfileModel.model_json_schema(),
         "trial-cleanup-plan-v1": TrialCleanupPlanModel.model_json_schema(),
         "trial-cleanup-receipt-v1": TrialCleanupReceiptModel.model_json_schema(),
-        "scheduler-isolation-proof-v1": SchedulerIsolationProofModel.model_json_schema(),
         "batch-execution-receipt-v1": BatchExecutionReceiptModel.model_json_schema(),
         "time-model-v1": TimeModelDeclarationModel.model_json_schema(),
         "time-runtime-state-v1": TimeRuntimeStateModel.model_json_schema(),

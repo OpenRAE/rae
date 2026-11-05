@@ -1,9 +1,9 @@
 {
-  "content_hash": "666884cf5127e4973171af7305513faeb10398f431a308002f64917a335ac07f",
+  "content_hash": "7c3ae21c2ae767b2116a0a550f2fd6a3f79da6b5202b2f6252d088ddf01e0e39",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "666884cf5127e4973171af7305513faeb10398f431a308002f64917a335ac07f",
-    "summary": "Add optional parameterizable software component model configuration (issue #1913)."
+    "content_hash": "7c3ae21c2ae767b2116a0a550f2fd6a3f79da6b5202b2f6252d088ddf01e0e39",
+    "summary": "Cap authored trial_parallelism counts at 4096, the assigned-trial parallelism limit (#1940)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

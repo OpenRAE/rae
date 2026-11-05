@@ -606,11 +606,6 @@
           "title": "Integrity Profile",
           "type": "string"
         },
-        "isolation_profile": {
-          "const": "scheduler-isolation-v1",
-          "title": "Isolation Profile",
-          "type": "string"
-        },
         "random_stream_profile": {
           "const": "blake3-xof-v1",
           "title": "Random Stream Profile",
@@ -653,8 +648,7 @@
         "selection_policy_profile",
         "random_stream_profile",
         "execution_control_profile",
-        "cleanup_profile",
-        "isolation_profile"
+        "cleanup_profile"
       ],
       "title": "AdmittedTrialPlanProfilesModel",
       "type": "object"
@@ -1149,6 +1143,7 @@
         "maximum": {
           "anyOf": [
             {
+              "maximum": 4096,
               "minimum": 1,
               "type": "integer"
             },
@@ -1162,6 +1157,7 @@
         "minimum": {
           "anyOf": [
             {
+              "maximum": 4096,
               "minimum": 1,
               "type": "integer"
             },
@@ -1231,6 +1227,7 @@
       "description": "Require one exact effective capacity.",
       "properties": {
         "count": {
+          "maximum": 4096,
           "minimum": 1,
           "title": "Count",
           "type": "integer"
@@ -2136,46 +2133,6 @@
       "title": "GovernedRandomOutcomeRefModel",
       "type": "object"
     },
-    "IsolationDimensionEvidenceModel": {
-      "additionalProperties": false,
-      "description": "Evidence for one bounded-parallelism isolation dimension.",
-      "properties": {
-        "dimension": {
-          "enum": [
-            "range-instance",
-            "host-capacity",
-            "ports",
-            "storage",
-            "control-plane-locks",
-            "secret-scope",
-            "cleanup"
-          ],
-          "title": "Dimension",
-          "type": "string"
-        },
-        "evidence_refs": {
-          "items": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "minItems": 1,
-          "title": "Evidence Refs",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "independent": {
-          "title": "Independent",
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "dimension",
-        "independent",
-        "evidence_refs"
-      ],
-      "title": "IsolationDimensionEvidenceModel",
-      "type": "object"
-    },
     "LiteralBindingValueModel": {
       "additionalProperties": false,
       "description": "Portable literal value; strict type validation occurs at its descriptor.",
@@ -2824,236 +2781,6 @@
       "title": "ScenarioBindingTargetModel",
       "type": "object"
     },
-    "SchedulerIsolationProofModel": {
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "requested_parallelism": {
-                "minimum": 2
-              }
-            },
-            "required": [
-              "requested_parallelism"
-            ]
-          },
-          "then": {
-            "properties": {
-              "dimensions": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "cleanup"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "control-plane-locks"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "host-capacity"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "ports"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "range-instance"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "secret-scope"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "storage"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  }
-                ],
-                "minItems": 7
-              }
-            }
-          }
-        }
-      ],
-      "description": "Schedule-independent proof permitting a bounded parallelism request.",
-      "properties": {
-        "dimensions": {
-          "items": {
-            "$ref": "#/$defs/IsolationDimensionEvidenceModel"
-          },
-          "title": "Dimensions",
-          "type": "array"
-        },
-        "plan_entry_ids": {
-          "items": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "minItems": 1,
-          "title": "Plan Entry Ids",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "proof_id": {
-          "minLength": 1,
-          "title": "Proof Id",
-          "type": "string"
-        },
-        "requested_parallelism": {
-          "default": 1,
-          "minimum": 1,
-          "title": "Requested Parallelism",
-          "type": "integer"
-        },
-        "schema_version": {
-          "const": "scheduler-isolation-proof/v1",
-          "default": "scheduler-isolation-proof/v1",
-          "title": "Schema Version",
-          "type": "string"
-        }
-      },
-      "required": [
-        "proof_id",
-        "plan_entry_ids"
-      ],
-      "title": "SchedulerIsolationProofModel",
-      "type": "object",
-      "x-raes-invariants": [
-        {
-          "description": "Scheduling defaults to serial; bounded parallelism requires independent evidence for range, capacity, ports, storage, control-plane locks, secret scope, and cleanup.",
-          "id": "scheduler-isolation-serial-default-and-complete-parallel-proof",
-          "inputs": [
-            {
-              "contract_id": "scheduler-isolation-proof-v1",
-              "instance_path": "#"
-            }
-          ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.SchedulerIsolationProofModel._validate_isolation"
-        }
-      ]
-    },
     "SecretReferenceBindingValueModel": {
       "additionalProperties": false,
       "description": "Non-sensitive identity of a secret resolved only at an authorized sink.",
@@ -3516,17 +3243,6 @@
     "input_refs": {
       "$ref": "#/$defs/AdmittedTrialPlanInputRefsModel"
     },
-    "isolation_proof": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/SchedulerIsolationProofModel"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
     "plan_digest": {
       "minLength": 1,
       "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
@@ -3623,7 +3339,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, gives every entry a unique logical coordinate and archival run_id, resolves cleanup and stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches admission cardinality, binds a replacement profile to a distinct single-entry child within the original replacement budget, and binds the complete plan with a recomputed plan_digest over the entry set.",
+      "description": "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, gives every entry a unique logical coordinate and archival run_id, resolves cleanup and stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition profile inputs within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, binding condition/family) to agree, matches admission cardinality, binds a replacement profile to a distinct single-entry child within the original replacement budget, and binds the complete plan with a recomputed plan_digest over the entry set.",
       "id": "admitted-trial-plan-identity-joins-and-integrity",
       "inputs": [
         {
