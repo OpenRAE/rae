@@ -12,7 +12,6 @@
     "random_stream_profile": "blake3-xof-v1",
     "execution_control_profile": "attempt-control-v1",
     "cleanup_profile": "trial-cleanup-v1",
-    "isolation_profile": "scheduler-isolation-v1",
     "allocation_profile": "fisher-yates-allocation-v1"
   },
   "input_refs": {
@@ -535,7 +534,6 @@
       }
     }
   },
-  "isolation_proof": null,
   "allocation": {
     "policy": {
       "kind": "randomized",
@@ -2008,5 +2006,5 @@
     "limitations": [],
     "diagnostics": []
   },
-  "plan_digest": "sha256:a8cf491a62b26ba2ac9be0ab45413adca34fd3850645c7d9af1ce6a5f75b8019"
+  "plan_digest": "sha256:204c31a98329834b42731c8e57969fb03b7df7ff4c04ad2cdabc64c1aadc17a0"
 }

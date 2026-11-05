@@ -27,7 +27,7 @@ FORMS = [
 
 
 def _limited_plan(intent):
-    payload = _plan("parallel-isolated").model_dump(mode="json")
+    payload = _plan("two-entry").model_dump(mode="json")
     payload["trial_parallelism"] = intent
     payload["plan_digest"] = canonical_json_digest({k: v for k, v in payload.items() if k != "plan_digest"})
     return AdmittedTrialPlanModel.model_validate(payload)
@@ -62,7 +62,7 @@ def test_parallel_trial_limits_at_execution_boundaries(intent):
     lower = 2 if intent.get("count") == 2 or intent.get("minimum") == 2 else 1
     assert schedule.admitted_parallelism_floor == lower
     for count in (1, 2, 3):
-        grant = AllocatorGrant(effective_parallelism=count, lease_evidence_refs=("lease:hosts",) if count > 1 else ())
+        grant = AllocatorGrant(effective_parallelism=count)
         kwargs = dict(receipt_id="receipt", outcome=AttemptOutcome("attempt", "succeeded", "cleanup"), grant=grant)
         if lower <= count <= 2:
             receipt = build_batch_execution_receipt(schedule, "entry-a", **kwargs)
@@ -75,7 +75,7 @@ def test_parallel_trial_limits_at_execution_boundaries(intent):
 def test_parallel_trial_count_omission_compatibility():
     scenario = parse_sdl('{"name": "legacy"}')
     assert "trial_parallelism" not in scenario.model_dump(mode="json")
-    plan = _plan("parallel-isolated")
+    plan = _plan("two-entry")
     assert "trial_parallelism" not in plan.model_dump(mode="json")
     assert plan_batch_schedule(plan).admitted_parallelism_floor == 1
 
@@ -91,6 +91,8 @@ def test_parallel_trial_count_omission_compatibility():
         {"posture": "constrained", "minimum": 3, "maximum": 2},
         {"posture": "constrained", "maximum": False},
         {"posture": "constrained", "minimum": 0},
+        {"posture": "exact", "count": 4097},
+        {"posture": "constrained", "maximum": 4097},
     ],
 )
 def test_invalid_parallelism_rejected_at_sdl_boundary(intent):
@@ -101,34 +103,44 @@ def test_invalid_parallelism_rejected_at_sdl_boundary(intent):
         parse_sdl(source)
 
 
+def test_minimum_above_the_trial_count_fails_before_dispatch():
+    plan = _limited_plan({"posture": "constrained", "minimum": 3})
+    with pytest.raises(InvalidInputError, match="parallelism"):
+        plan_batch_schedule(plan)
+
+
 @pytest.mark.parametrize(
-    "intent",
+    "intent, bounds",
     [
-        {"posture": "exact", "count": 3},
-        {"posture": "constrained", "minimum": 3},
+        ({"posture": "open"}, (1, 2)),
+        ({"posture": "exact", "count": 2}, (2, 2)),
+        ({"posture": "exact", "count": 5}, (5, 5)),
+        ({"posture": "constrained", "minimum": 2}, (2, 2)),
+        ({"posture": "constrained", "maximum": 4}, (1, 4)),
+        ({"posture": "constrained", "minimum": 1, "maximum": 3}, (1, 3)),
     ],
 )
-def test_unreachable_parallelism_fails_before_dispatch(intent):
+def test_trial_parallelism_sets_the_limit_without_an_isolation_proof(intent, bounds):
     plan = _limited_plan(intent)
-    with pytest.raises(InvalidInputError, match="parallelism"):
-        plan_batch_schedule(plan)
+    assert "isolation_proof" not in plan.model_dump(mode="json")
+    schedule = plan_batch_schedule(plan)
+    assert (schedule.admitted_parallelism_floor, schedule.admitted_parallelism_ceiling) == bounds
+    outcome = AttemptOutcome("attempt", "succeeded", "cleanup")
+    receipt = build_batch_execution_receipt(
+        schedule,
+        "entry-a",
+        receipt_id="receipt",
+        outcome=outcome,
+        grant=AllocatorGrant(effective_parallelism=bounds[1]),
+    )
+    assert receipt.effective_parallelism == bounds[1]
 
 
-def test_author_count_never_grants_isolation():
-    plan = _limited_plan({"posture": "exact", "count": 2})
-    payload = plan.model_dump(mode="json")
-    payload["isolation_proof"] = None
-    payload["plan_digest"] = canonical_json_digest({k: v for k, v in payload.items() if k != "plan_digest"})
-    plan = AdmittedTrialPlanModel.model_validate(payload)
-    with pytest.raises(InvalidInputError, match="parallelism"):
-        plan_batch_schedule(plan)
-
-
-def test_author_maximum_reduces_isolation_ceiling():
+def test_author_maximum_caps_the_ceiling():
     schedule = plan_batch_schedule(_limited_plan({"posture": "constrained", "maximum": 1}))
     assert schedule.admitted_parallelism_ceiling == 1
     outcome = AttemptOutcome("attempt", "succeeded", "cleanup")
-    grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease",))
+    grant = AllocatorGrant(effective_parallelism=2)
     with pytest.raises(InvalidInputError, match="parallelism"):
         build_batch_execution_receipt(
             schedule,
@@ -170,12 +182,7 @@ def test_receipt_join_enforces_both_author_bounds(intent, count):
     from test_sce_006_batch_scheduler import _receipt, _success_cleanup_receipt
 
     plan = _limited_plan(intent)
-    receipt = _receipt(
-        plan,
-        effective_parallelism=count,
-        isolation_proof_ref="proof-parallel" if count > 1 else None,
-        lease_evidence_refs=["lease"] if count > 1 else [],
-    )
+    receipt = _receipt(plan, effective_parallelism=count)
     cleanup = _success_cleanup_receipt()
     with pytest.raises(ValueError, match="parallelism"):
         validate_batch_execution_receipt(plan, receipt, cleanup_receipt=cleanup)
@@ -188,7 +195,7 @@ def test_assignment_ingress_enforces_both_author_bounds():
     from raes_runtime import RuntimeControlPlane
 
     _, inputs, target = parallel_inputs()
-    grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease",))
+    grant = AllocatorGrant(effective_parallelism=2)
     with RuntimeControlPlane(target) as runtime:
         experiment = runtime.admit_experiment(inputs, services=TrialServices(target))
         assignment = runtime.assign_trial(experiment, next(iter(inputs.plan.entries)), owner_id="worker", grant=grant)
@@ -198,14 +205,15 @@ def test_assignment_ingress_enforces_both_author_bounds():
         ({"posture": "constrained", "maximum": 1}, 2, False),
         ({"posture": "exact", "count": 2}, 2, True),
         ({"posture": "open"}, 2, True),
+        ({"posture": "constrained", "minimum": 2}, 2, True),
+        ({"posture": "constrained", "maximum": 4}, 3, True),
+        ({"posture": "exact", "count": 4}, 4, True),
     ]:
         payload = assignment.model_dump(mode="json")
         plan = payload["plan"]
         plan["trial_parallelism"] = intent
         plan["plan_digest"] = canonical_json_digest({k: v for k, v in plan.items() if k != "plan_digest"})
         payload["effective_parallelism"] = count
-        if count == 1:
-            payload["lease_evidence_refs"], payload["isolation_proof_ref"] = [], None
         if allowed:
             assert TrialAssignmentModel.model_validate(payload).effective_parallelism == count
         else:
@@ -236,6 +244,7 @@ def test_published_sdl_schema_accepts_each_form(intent):
         {"posture": "exact", "count": 0},
         {"posture": "constrained"},
         {"posture": "constrained", "minimum": None, "maximum": None},
+        {"posture": "exact", "count": 4097},
     ],
 )
 def test_published_sdl_schema_rejects_malformed_forms(intent):
@@ -254,3 +263,9 @@ def test_root_parallelism_survives_module_composition(tmp_path):
     root = _root_import(tmp_path / "root.yaml", "path: child.yaml\nnamespace: child")
     root.write_text(root.read_text() + "\ntrial_parallelism: {posture: exact, count: 2}\n")
     assert parse_sdl_file(root).trial_parallelism.count == 2
+
+
+def test_open_ceiling_never_exceeds_the_assignment_limit():
+    from raes_contracts.trial_parallelism import MAX_TRIAL_PARALLELISM, OpenTrialParallelismModel, parallelism_bounds
+
+    assert parallelism_bounds(OpenTrialParallelismModel(posture="open"), 10_000) == (1, MAX_TRIAL_PARALLELISM)

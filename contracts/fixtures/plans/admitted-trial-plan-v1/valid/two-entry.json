@@ -383,67 +383,7 @@
       "ref_version": "1"
     }
   },
-  "isolation_proof": {
-    "dimensions": [
-      {
-        "dimension": "range-instance",
-        "evidence_refs": [
-          "evidence:range-instance"
-        ],
-        "independent": true
-      },
-      {
-        "dimension": "host-capacity",
-        "evidence_refs": [
-          "evidence:host-capacity"
-        ],
-        "independent": true
-      },
-      {
-        "dimension": "ports",
-        "evidence_refs": [
-          "evidence:ports"
-        ],
-        "independent": true
-      },
-      {
-        "dimension": "storage",
-        "evidence_refs": [
-          "evidence:storage"
-        ],
-        "independent": true
-      },
-      {
-        "dimension": "control-plane-locks",
-        "evidence_refs": [
-          "evidence:control-plane-locks"
-        ],
-        "independent": true
-      },
-      {
-        "dimension": "secret-scope",
-        "evidence_refs": [
-          "evidence:secret-scope"
-        ],
-        "independent": true
-      },
-      {
-        "dimension": "cleanup",
-        "evidence_refs": [
-          "evidence:cleanup"
-        ],
-        "independent": true
-      }
-    ],
-    "plan_entry_ids": [
-      "entry-a",
-      "entry-b"
-    ],
-    "proof_id": "proof-parallel",
-    "requested_parallelism": 2,
-    "schema_version": "scheduler-isolation-proof/v1"
-  },
-  "plan_digest": "sha256:a8d7c3fa96d0d31ba986b634d3abba2831be4df4d8ce00f17c2a4cdec9c67069",
+  "plan_digest": "sha256:96528b6cd2a93ff8c2fe77964cdc2aabaea2efe92d9a503d6e7ae85e8abdd0cc",
   "plan_id": "plan-a",
   "profiles": {
     "canonicalization_profile": "jcs-sha256-v1",
@@ -453,7 +393,6 @@
     "entry_identity_profile": "trial-entry-identity-v1",
     "execution_control_profile": "attempt-control-v1",
     "integrity_profile": "acyclic-digest-chain-v1",
-    "isolation_profile": "scheduler-isolation-v1",
     "random_stream_profile": "blake3-xof-v1",
     "run_identity_profile": "archival-run-identity-v1",
     "selection_policy_profile": "experiment-selection-v1"

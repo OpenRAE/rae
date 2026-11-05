@@ -10,16 +10,11 @@ allocates a ``run_id``, interprets factors, or scores.
 :func:`plan_batch_schedule` is pure. It validates and integrity-checks the
 *complete* admitted plan before exposing any entry, derives the canonical
 dispatch order from the plan's ``trial-coordinate-v1`` coordinates, and reports
-the admitted parallelism interval: author intent intersected with the sealed
-plan's embedded isolation proof (one when there is no such proof). It
-deliberately does NOT decide the effective concurrency: proving live,
-non-overlapping, currently-owned range/host/port/storage/lock/secret leases is
-the downstream allocator's responsibility, and a non-empty tuple of caller
-reference strings is not proof of any of that. The allocator decides an
-effective bound no greater than the ceiling and records it, with its live lease
-evidence, in a :class:`BatchExecutionReceiptModel` via
-:func:`build_batch_execution_receipt`; that receipt records the allocator's
-decision rather than authorizing it.
+the admitted parallelism interval that the authored ``trial_parallelism`` sets
+(one when it is absent). It does NOT decide the effective concurrency: the
+downstream allocator picks a value inside the interval and records it in a
+:class:`BatchExecutionReceiptModel` via :func:`build_batch_execution_receipt`;
+that receipt records the allocator's decision rather than authorizing it.
 """
 
 from __future__ import annotations
@@ -30,7 +25,6 @@ from dataclasses import dataclass
 from raes_contracts.contracts import (
     AdmittedTrialPlanModel,
     BatchExecutionReceiptModel,
-    validate_scheduler_isolation_proof,
 )
 from raes_contracts.contracts.admitted_trial_plan import canonical_entry_order, scheduling_policy_id
 from raes_contracts.contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
@@ -52,16 +46,15 @@ class ScheduledEntry:
 class BatchSchedule:
     """A deterministic, schedule-independent dispatch decision for one plan.
 
-    The floor and ceiling intersect author intent with the sealed isolation
-    proof (one by default). The allocator selects effective capacity within this
-    interval; scheduling never grants isolation or live leases.
+    The floor and ceiling come from the authored ``trial_parallelism`` (one when
+    it is absent). The allocator selects effective capacity within this
+    interval.
     """
 
     plan_id: str
     plan_digest: str
     scheduling_policy_id: str
     admitted_parallelism_ceiling: int
-    isolation_proof_ref: str | None
     entries: tuple[ScheduledEntry, ...]
     admitted_parallelism_floor: int = 1
 
@@ -84,25 +77,18 @@ class AttemptOutcome:
 
 @dataclass(frozen=True)
 class AllocatorGrant:
-    """The downstream allocator's live-lease parallelism decision for one attempt.
-
-    ``effective_parallelism`` (serial by default) and ``lease_evidence_refs`` are
-    the allocator's decision and its live lease evidence; ``isolation_proof_ref``
-    defaults to the schedule's admitted proof for a bounded-parallel attempt.
-    """
+    """The downstream allocator's parallelism decision for one attempt (serial by default)."""
 
     effective_parallelism: int = 1
-    lease_evidence_refs: Sequence[str] = ()
-    isolation_proof_ref: str | None = None
 
 
 def plan_batch_schedule(plan: AdmittedTrialPlanModel) -> BatchSchedule:
     """Compute the canonical dispatch order and admitted parallelism ceiling.
 
-    The complete plan is revalidated before any per-entry consumption. Author
-    bounds intersect the plan's embedded isolation proof, which its digest
-    binds. A standalone proof cannot widen this authority. Without a parallel
-    proof, capacity is one; an authored minimum above it is rejected.
+    The complete plan is revalidated before any per-entry consumption. The
+    authored ``trial_parallelism`` sets the bounds: the exact count, the
+    maximum, or the entry count when it is open or has no maximum. Without it,
+    capacity is one. An authored minimum above the entry count is rejected.
     """
 
     admitted = revalidate_admitted_trial_plan(plan)
@@ -111,24 +97,15 @@ def plan_batch_schedule(plan: AdmittedTrialPlanModel) -> BatchSchedule:
         ScheduledEntry(plan_entry_id=entry_id, run_id=admitted.entries[entry_id].run_id, dispatch_ordinal=index)
         for index, entry_id in enumerate(order)
     )
-    proof_ref: str | None = None
-    proof = admitted.isolation_proof
-    if proof is not None:
-        validate_scheduler_isolation_proof(admitted, proof)
-        if proof.requested_parallelism > 1:
-            proof_ref = proof.proof_id
     try:
         floor, ceiling = admitted.parallelism_bounds()
     except ValueError as exc:
         raise InvalidInputError(str(exc)) from exc
-    if ceiling == 1:
-        proof_ref = None
     return BatchSchedule(
         plan_id=admitted.plan_id,
         plan_digest=admitted.plan_digest,
         scheduling_policy_id=scheduling_policy_id(admitted),
         admitted_parallelism_ceiling=ceiling,
-        isolation_proof_ref=proof_ref,
         entries=scheduled,
         admitted_parallelism_floor=floor,
     )
@@ -165,10 +142,8 @@ def build_batch_execution_receipt(
 ) -> BatchExecutionReceiptModel:
     """Record one attempt's evidence, binding it to this schedule's decision.
 
-    ``grant`` is the downstream allocator's live-lease parallelism decision
-    (serial by default); its effective bound must meet the schedule's admitted
-    interval, and for a bounded-parallel attempt its isolation proof
-    reference defaults to the schedule's admitted proof.
+    ``grant`` is the downstream allocator's parallelism decision (serial by
+    default); its effective bound must meet the schedule's admitted interval.
     """
 
     grant = grant if grant is not None else AllocatorGrant()
@@ -176,10 +151,6 @@ def build_batch_execution_receipt(
     if scheduled is None:
         raise NotFoundError("plan_entry_id is not part of the batch schedule")
     _require_parallelism(schedule, grant.effective_parallelism)
-    parallel = grant.effective_parallelism > 1
-    proof_ref = grant.isolation_proof_ref
-    if parallel and proof_ref is None:
-        proof_ref = schedule.isolation_proof_ref
     return BatchExecutionReceiptModel(
         receipt_id=receipt_id,
         plan_id=schedule.plan_id,
@@ -190,8 +161,6 @@ def build_batch_execution_receipt(
         dispatch_ordinal=scheduled.dispatch_ordinal,
         scheduling_policy_id=schedule.scheduling_policy_id,
         effective_parallelism=grant.effective_parallelism,
-        isolation_proof_ref=proof_ref if parallel else None,
-        lease_evidence_refs=list(grant.lease_evidence_refs) if parallel else [],
         attempt_deadline=outcome.attempt_deadline,
         trial_outcome=outcome.trial_outcome,
         operation_refs=list(outcome.operation_refs),

@@ -1,9 +1,9 @@
 {
-  "content_hash": "3ea0cd5c849c81cb10df4914d07cb878a60124a25e8592538152bc604a9be82e",
+  "content_hash": "e7c1203b4f744ac3b9dce0bf63a086017a3cb29ee4581bcfa9d47e01e7614693",
   "contract_id": "batch-execution-receipt-v1",
   "last_change": {
-    "content_hash": "3ea0cd5c849c81cb10df4914d07cb878a60124a25e8592538152bc604a9be82e",
-    "summary": "Add EXP-719 bounded cross-plane factorial conditions, realized binding criteria, and integrity-bound randomized allocation with matching dispatch receipts; preserve legacy profile semantics (#275)."
+    "content_hash": "e7c1203b4f744ac3b9dce0bf63a086017a3cb29ee4581bcfa9d47e01e7614693",
+    "summary": "Remove the scheduler isolation proof and allocator lease evidence; authored trial_parallelism alone sets the parallel trial limit (#1940)."
   },
   "schema_path": "contracts/schemas/control-plane/batch-execution-receipt-v1.json",
   "stability": "draft"

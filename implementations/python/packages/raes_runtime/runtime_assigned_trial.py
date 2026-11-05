@@ -45,7 +45,7 @@ def assigned_attempt(assignment: TrialAssignmentModel) -> TrialAttemptDecision:
 
 
 class AssignedTrial:
-    """Public bound BackendTrialUnit; transport and host leases are downstream."""
+    """Public bound BackendTrialUnit; transport and host placement are downstream."""
 
     def __init__(
         self,
@@ -176,11 +176,7 @@ class AssignedTrial:
                             self._assignment.plan_entry_id,
                             capture_succeeded=self._unit.capture_succeeded(),
                             reusable=self._unit.reusable(),
-                            grant=AllocatorGrant(
-                                effective_parallelism=self._assignment.effective_parallelism,
-                                lease_evidence_refs=self._assignment.lease_evidence_refs,
-                                isolation_proof_ref=self._assignment.isolation_proof_ref,
-                            ),
+                            grant=AllocatorGrant(effective_parallelism=self._assignment.effective_parallelism),
                         )
                     )
                 self._progress = "completed" if state == "succeeded" else state

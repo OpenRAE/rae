@@ -61,7 +61,7 @@ def test_installed_replacement_fixture_reconstructs_original_compiler_authority(
         ("attempt", "1"),
         ("execution_attempt_id", "worker-created-attempt"),
         ("credential", "unapproved-value"),
-        ("effective_parallelism", 3),
+        ("effective_parallelism", 17),
         ("lease_evidence_refs", ["lease:unexpected-serial"]),
         ("isolation_proof_ref", "foreign-proof"),
     ],

@@ -1,7 +1,7 @@
 {
   "plan": {
     "schema_version": "admitted-trial-plan/v1",
-    "plan_id": "trial-plan-598e08f5b794e2b5243803946ea906cef11a8a0caaa914644f6c08076654ad9f",
+    "plan_id": "trial-plan-a1e4a071d18fdd06cec1a0ddb1ae50fb365009319e46416b47551ec08a3fbedf",
     "profiles": {
       "coordinate_profile": "trial-coordinate-v1",
       "entry_identity_profile": "trial-entry-identity-v1",
@@ -13,7 +13,6 @@
       "random_stream_profile": "blake3-xof-v1",
       "execution_control_profile": "attempt-control-v1",
       "cleanup_profile": "trial-cleanup-v1",
-      "isolation_profile": "scheduler-isolation-v1",
       "treatment_profile": "factorial-treatments-v1"
     },
     "input_refs": {
@@ -57,11 +56,11 @@
     },
     "stochastic_controls": {},
     "cleanup_plans": {
-      "trial-cleanup-c71a3547eb587e653ff429a9d75d0a7030510c9ca0637e0c571355b6454bbaf9": {
+      "trial-cleanup-28705c60a511fdf4dd004a3e499ac49b8b0e6217580b0e310affea4e56749eff": {
         "schema_version": "trial-cleanup-plan/v1",
-        "plan_id": "trial-cleanup-c71a3547eb587e653ff429a9d75d0a7030510c9ca0637e0c571355b6454bbaf9",
-        "plan_entry_id": "trial-entry-06df8cbf4a5ff7f9539eee27d14cd4e3e21ec4598e95d5a3b683f0fbc2803ce8",
-        "run_id": "archival-run-8237b51d0bd66f2ba18232ce2d57aef04b0beefa7d5a6c190b08da4d17777491",
+        "plan_id": "trial-cleanup-28705c60a511fdf4dd004a3e499ac49b8b0e6217580b0e310affea4e56749eff",
+        "plan_entry_id": "trial-entry-eaee3fc24c3a6bf736697d1f133b47d9bf4b39f3d44c1b2b40552a53a8991f94",
+        "run_id": "archival-run-1791d6c5dc3384973173d874b2fdcbf7b5198be3510554d1b16b856a131bed1f",
         "clean_state": {
           "mode": "fresh",
           "boundary_refs": [
@@ -115,7 +114,6 @@
         }
       }
     },
-    "isolation_proof": null,
     "replacement_policy": {
       "schema_version": "trial-replacement-policy/v1",
       "max_replacements": 1,
@@ -124,14 +122,14 @@
       ]
     },
     "entries": {
-      "trial-entry-06df8cbf4a5ff7f9539eee27d14cd4e3e21ec4598e95d5a3b683f0fbc2803ce8": {
-        "plan_entry_id": "trial-entry-06df8cbf4a5ff7f9539eee27d14cd4e3e21ec4598e95d5a3b683f0fbc2803ce8",
+      "trial-entry-eaee3fc24c3a6bf736697d1f133b47d9bf4b39f3d44c1b2b40552a53a8991f94": {
+        "plan_entry_id": "trial-entry-eaee3fc24c3a6bf736697d1f133b47d9bf4b39f3d44c1b2b40552a53a8991f94",
         "coordinate": {
           "condition_id": "condition-b791141140e63f36fd4399564ad36800b8fcfccde81776d7",
           "block_id": null,
           "replicate_id": "replicate-000001"
         },
-        "run_id": "archival-run-8237b51d0bd66f2ba18232ce2d57aef04b0beefa7d5a6c190b08da4d17777491",
+        "run_id": "archival-run-1791d6c5dc3384973173d874b2fdcbf7b5198be3510554d1b16b856a131bed1f",
         "selections": [
           {
             "variation_point_id": "deployment-shape",
@@ -350,15 +348,15 @@
           "attempt_timeout_seconds": 600,
           "on_timeout": "cleanup-and-fail",
           "on_cancellation": "cleanup-and-fail",
-          "cleanup_plan_ref": "trial-cleanup-c71a3547eb587e653ff429a9d75d0a7030510c9ca0637e0c571355b6454bbaf9"
+          "cleanup_plan_ref": "trial-cleanup-28705c60a511fdf4dd004a3e499ac49b8b0e6217580b0e310affea4e56749eff"
         },
         "instantiation_provenance": {
-          "plan_id": "trial-plan-598e08f5b794e2b5243803946ea906cef11a8a0caaa914644f6c08076654ad9f",
-          "plan_entry_id": "trial-entry-06df8cbf4a5ff7f9539eee27d14cd4e3e21ec4598e95d5a3b683f0fbc2803ce8",
-          "run_id": "archival-run-8237b51d0bd66f2ba18232ce2d57aef04b0beefa7d5a6c190b08da4d17777491",
+          "plan_id": "trial-plan-a1e4a071d18fdd06cec1a0ddb1ae50fb365009319e46416b47551ec08a3fbedf",
+          "plan_entry_id": "trial-entry-eaee3fc24c3a6bf736697d1f133b47d9bf4b39f3d44c1b2b40552a53a8991f94",
+          "run_id": "archival-run-1791d6c5dc3384973173d874b2fdcbf7b5198be3510554d1b16b856a131bed1f",
           "scenario_family_id": "compiler-family"
         },
-        "entry_digest": "sha256:c491fd9becc0424604eb5165699dac5bb1bc2caefb04aa8317b5d0df900e1e35"
+        "entry_digest": "sha256:525cd41e02f8d6deaccd09be3ff7c4c6d6d36b55a551f3a67a0a2c640c195c26"
       }
     },
     "admission": {
@@ -367,7 +365,7 @@
       "limitations": [],
       "diagnostics": []
     },
-    "plan_digest": "sha256:b3a84ce493369a75bd9b7337ea16396011e371dea79a1d386c49ee24774e9dab"
+    "plan_digest": "sha256:e5911ccc5eb2c4ec86add3b0b4c9fc1ed7a723f3afda8257ba920490e75c3bf7"
   },
   "family": {
     "name": "compiler-family",

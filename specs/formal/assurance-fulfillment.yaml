@@ -217,9 +217,9 @@ entries:
   - subsystem: scenario-variation-trial-realization
     # Executable SCE-002 coverage: #786/#787 deliver family/selection authoring,
     # #788 the sealed plan, and #789 selected-scenario admission plus deterministic
-    # compilation. #785 delivers the SCE-006 isolated batch-trial scheduling
-    # handoff (deterministic order, secret-scope isolation proof, and the
-    # immutable batch execution receipt over the one-entry realization seam).
+    # compilation. #785 delivers the SCE-006 batch-trial scheduling handoff
+    # (deterministic order and the immutable batch execution receipt over the
+    # one-entry realization seam). #1940 removed the isolation proof.
     # Runtime provenance/fact-binding remains sequenced.
     delivered_artifacts:
       - kind: unit_tests

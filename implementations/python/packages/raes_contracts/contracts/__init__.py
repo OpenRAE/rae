@@ -91,7 +91,6 @@ from .base import ContractModel
 from .base import NonEmptyString as NonEmptyString
 from .batch_execution import BatchExecutionReceiptModel as BatchExecutionReceiptModel
 from .batch_execution import validate_batch_execution_receipt as validate_batch_execution_receipt
-from .batch_execution import validate_scheduler_isolation_proof as validate_scheduler_isolation_proof
 from .capabilities import (
     ApparatusIdentityModel,
     BackendCompatibilityModel,
@@ -480,8 +479,6 @@ from .trial_cleanup import CleanupObligationModel as CleanupObligationModel
 from .trial_cleanup import CleanupObligationResultModel as CleanupObligationResultModel
 from .trial_cleanup import CleanupResourceBoundaryModel as CleanupResourceBoundaryModel
 from .trial_cleanup import ExecutionRetryPolicyModel as ExecutionRetryPolicyModel
-from .trial_cleanup import IsolationDimensionEvidenceModel as IsolationDimensionEvidenceModel
-from .trial_cleanup import SchedulerIsolationProofModel as SchedulerIsolationProofModel
 from .trial_cleanup import TrialCleanupPlanModel as TrialCleanupPlanModel
 from .trial_cleanup import TrialCleanupReceiptModel as TrialCleanupReceiptModel
 from .trial_cleanup import validate_trial_cleanup_receipt as validate_trial_cleanup_receipt

@@ -211,8 +211,7 @@
       "ref_version": "1"
     }
   },
-  "isolation_proof": null,
-  "plan_digest": "sha256:6cf259e1cd9d60745dec7ae118be964aca47a65606fed309a10db14cb52ba5db",
+  "plan_digest": "sha256:f6484bf975e1e7a2da23ddb1cc8a75964a0e21a992ca8be3b840eea906ecec73",
   "plan_id": "plan-a",
   "profiles": {
     "canonicalization_profile": "jcs-sha256-v1",
@@ -222,7 +221,6 @@
     "entry_identity_profile": "trial-entry-identity-v1",
     "execution_control_profile": "attempt-control-v1",
     "integrity_profile": "acyclic-digest-chain-v1",
-    "isolation_profile": "scheduler-isolation-v1",
     "random_stream_profile": "blake3-xof-v1",
     "run_identity_profile": "archival-run-identity-v1",
     "selection_policy_profile": "experiment-selection-v1"

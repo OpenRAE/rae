@@ -162,7 +162,7 @@ class RuntimeExperiment:
         slots = self._slots(records)
         slot = self._assignment_slot(slots, entry_id)
         attempt = self._assignment_attempt(slot, slots, latest, records)
-        self._require_assignment_grant(entry_id, grant)
+        self._require_assignment_grant(grant)
         if self._occupied_entries(records, slots, excluding=entry_id, identity=identity) >= grant.effective_parallelism:
             raise ConflictError("admitted assignment capacity is occupied")
         assignment = self._assignment_model(slot, attempt, owner_id, grant)
@@ -176,26 +176,11 @@ class RuntimeExperiment:
     def _require_grant_shape(grant: AllocatorGrant) -> None:
         if type(grant.effective_parallelism) is not int:
             raise InvalidInputError("allocator parallelism requires an integer")
-        if grant.effective_parallelism == 1 and (grant.isolation_proof_ref is not None or grant.lease_evidence_refs):
-            raise InvalidInputError("serial allocator grants cannot claim parallel isolation or leases")
 
     def _replay_assignment(
         self, existing: TrialAssignmentModel, owner_id: str, grant: AllocatorGrant
     ) -> TrialAssignmentModel:
-        proof = grant.isolation_proof_ref or self.schedule.isolation_proof_ref
-        requested = (
-            owner_id,
-            grant.effective_parallelism,
-            tuple(grant.lease_evidence_refs),
-            proof if grant.effective_parallelism > 1 else None,
-        )
-        retained = (
-            existing.owner_id,
-            existing.effective_parallelism,
-            existing.lease_evidence_refs,
-            existing.isolation_proof_ref,
-        )
-        if retained != requested:
+        if (existing.owner_id, existing.effective_parallelism) != (owner_id, grant.effective_parallelism):
             raise ConflictError("entry already has a different assignment")
         return TrialAssignmentModel.reconstruct(existing)
 
@@ -224,27 +209,17 @@ class RuntimeExperiment:
             raise ConflictError("assignment must preserve canonical dispatch order")
         return self._new_attempt(slot, 1)
 
-    def _require_assignment_grant(self, entry_id: str, grant: AllocatorGrant) -> None:
+    def _require_assignment_grant(self, grant: AllocatorGrant) -> None:
         if not (
             self.schedule.admitted_parallelism_floor
             <= grant.effective_parallelism
             <= self.schedule.admitted_parallelism_ceiling
         ):
             raise ConflictError("allocator grant is outside admitted parallelism bounds")
-        if grant.effective_parallelism > 1:
-            self._require_parallel_assignment(entry_id, grant)
-
-    def _require_parallel_assignment(self, entry_id: str, grant: AllocatorGrant) -> None:
-        proof = grant.isolation_proof_ref or self.schedule.isolation_proof_ref
-        if proof != self.schedule.isolation_proof_ref or not grant.lease_evidence_refs:
-            raise ConflictError("parallel assignment requires the admitted proof and live allocator decision")
-        if entry_id not in self.plan.isolation_proof.plan_entry_ids:
-            raise ConflictError("parallel assignment entry is outside the admitted isolation proof")
 
     def _assignment_model(
         self, slot: TrialSlot, attempt: TrialAttemptDecision, owner_id: str, grant: AllocatorGrant
     ) -> TrialAssignmentModel:
-        proof = grant.isolation_proof_ref or self.schedule.isolation_proof_ref
         return TrialAssignmentModel(
             plan=slot.plan,
             plan_entry_id=slot.entry.plan_entry_id,
@@ -257,8 +232,6 @@ class RuntimeExperiment:
             instantiated_sdl_digest=slot.realization.snapshot_digest,
             processor_plan_refs=slot.realization.processor_plan_refs,
             effective_parallelism=grant.effective_parallelism,
-            isolation_proof_ref=proof if grant.effective_parallelism > 1 else None,
-            lease_evidence_refs=tuple(grant.lease_evidence_refs) if grant.effective_parallelism > 1 else (),
         )
 
     def _occupied_entries(
@@ -329,11 +302,7 @@ class RuntimeExperiment:
                 self,
                 slot,
                 unit,
-                grant=AllocatorGrant(
-                    effective_parallelism=assignment.effective_parallelism,
-                    lease_evidence_refs=assignment.lease_evidence_refs,
-                    isolation_proof_ref=assignment.isolation_proof_ref,
-                ),
+                grant=AllocatorGrant(effective_parallelism=assignment.effective_parallelism),
             )
         return self._progress(outcome.progress, slot.entry, attempt)
 

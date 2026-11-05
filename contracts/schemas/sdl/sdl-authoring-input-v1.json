@@ -1737,6 +1737,7 @@
         "maximum": {
           "anyOf": [
             {
+              "maximum": 4096,
               "minimum": 1,
               "type": "integer"
             },
@@ -1750,6 +1751,7 @@
         "minimum": {
           "anyOf": [
             {
+              "maximum": 4096,
               "minimum": 1,
               "type": "integer"
             },
@@ -4525,6 +4527,7 @@
       "description": "Require one exact effective capacity.",
       "properties": {
         "count": {
+          "maximum": 4096,
           "minimum": 1,
           "title": "Count",
           "type": "integer"

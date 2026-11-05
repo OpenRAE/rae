@@ -384,8 +384,7 @@ helper. Allocated plans use `experiment-recorded-allocation-v1`; legacy plans
 use `trial-coordinate-canonical-v1`. Receipts must record the matching policy
 and exact ordinal. A serialized coordinator commits decisions in this order;
 resuming consumes the retained order and attempt receipts without reshuffling.
-Isolation proofs, live leases, parallelism ceilings, deadlines, and cleanup
-remain separate requirements.
+Parallelism ceilings, deadlines, and cleanup remain separate requirements.
 
 Random order mitigates systematic condition/time confounding. It does not
 certify stable external APIs, model revisions, host load, caches, or carryover.
@@ -539,31 +538,29 @@ plan entries, run ids, selections, factors, snapshots, and streams. A scheduler
 may control placement, isolation, bounded parallelism, timeouts, cancellation,
 and cleanup only.
 
-Portable cleanup intent, receipts, clean-state claims, retry safety, backend
-capability, and bounded-parallelism proof (including the governed secret-scope
-isolation dimension) are defined in [cleanup-contracts.md](cleanup-contracts.md).
+Portable cleanup intent, receipts, clean-state claims, retry safety, and backend
+capability are defined in [cleanup-contracts.md](cleanup-contracts.md).
 The `batch-execution-receipt-v1` contract is the immutable per-attempt evidence
 that composes those authorities: it binds the sealed plan/entry/run identities,
 a distinct execution-attempt identity, the canonical dispatch ordinal and
-scheduling policy, the effective concurrency, isolation-proof and live-lease
-evidence refs, the primary trial disposition, control-plane operation refs, and
-the cleanup-receipt ref. Serial is the effective default; bounded parallelism is
-authorized only by an isolation proof joined to the exact sealed plan plus live
-lease evidence. Scheduler policy, worker management, live leasing, and range
+scheduling policy, the effective concurrency, the primary trial disposition,
+control-plane operation refs, and the cleanup-receipt ref. Serial is the
+effective default. Scheduler policy, worker management, placement, and range
 allocation remain outside these contract semantics.
 
 The optional SDL root `trial_parallelism` constrains the allocator's effective
 capacity for the experiment. It uses the existing `open`, `constrained`, and
-`exact` postures. Exact intent declares a positive integer `count`. Constrained
-intent declares a positive integer `minimum`, `maximum`, or both; a minimum
-cannot exceed a maximum. Open intent carries no count or bounds. Omission
+`exact` postures. Each count is an integer from 1 to 4096. Exact intent
+declares a `count`. Constrained intent declares a `minimum`, `maximum`, or both;
+a minimum cannot exceed a maximum. Open intent carries no count or bounds. Omission
 retains the existing allocator choice and serial default.
 
-The trial compiler copies this intent into the sealed admitted plan. The
-scheduler intersects it with the embedded isolation proof and the plan's entry
-count. An empty intersection fails before dispatch. Assignment and receipt
-boundaries enforce both ends of the admitted interval. The declaration never
-grants isolation or live resource leases. A minimum or exact count describes
+The trial compiler copies this intent into the sealed admitted plan. It is an
+author-set cap on concurrent trials and needs no other proof. The admitted
+ceiling is the exact count, the maximum, or the entry count (at most 4096) when
+the intent is open or has no maximum. Without the intent, the ceiling is one. A minimum above
+the entry count fails before dispatch. Assignment and receipt boundaries
+enforce both ends of the admitted interval. A minimum or exact count describes
 configured capacity, not a promise that all slots remain occupied during startup,
 cleanup, or the final trials. A serial executor must refuse a capacity greater
 than one before it starts a trial.
