@@ -3,7 +3,7 @@
 from collections.abc import Mapping
 
 from raes.explicitness import ExplicitnessRecord
-from raes.nodes import NodeType
+from raes.nodes import COMPUTE_ONLY_NODE_FIELDS, NodeType
 from raes.profile_selections import profile_owned_mailbox_inventory
 from raes.scenario import InstantiatedScenario
 from raes.semantics.domain_topology import DomainTopologyAnalysis
@@ -19,7 +19,11 @@ from ..semantics.realization import (
     CompiledRealizationRequirement,
     registered_realization_concern_descriptors,
 )
-from ..semantics.realization_concerns import CONCERN_PAYLOAD_PATH, RegisteredRealizationConcern
+from ..semantics.realization_concerns import (
+    CONCERN_PAYLOAD_PATH,
+    RealizationConcernDescriptor,
+    RegisteredRealizationConcern,
+)
 from ..semantics.realization_operational_verification import operational_verification_requirement
 from .addresses import (
     _account_address,
@@ -291,6 +295,16 @@ def _structured_registered_posture(
     )
 
 
+def _absent_switch_concern(declaration: object, descriptor: RealizationConcernDescriptor) -> bool:
+    """A switch cannot populate a compute-only field, so a supplied empty value is an omission."""
+
+    return (
+        descriptor.section == "nodes"
+        and getattr(declaration, "type", None) is NodeType.SWITCH
+        and descriptor.authored_path[0] in COMPUTE_ONLY_NODE_FIELDS
+    )
+
+
 def _compiled_registered_realization(
     scenario: InstantiatedScenario,
     registered: RegisteredRealizationConcern,
@@ -301,15 +315,17 @@ def _compiled_registered_realization(
     declaration_name = registered.declaration_name
     encoded_name = escape_token(declaration_name)
     field_pointer = f"/{section_name}/{encoded_name}/{'/'.join(descriptor.authored_path)}"
-    record = semantic_explicitness_record(
-        explicitness,
-        field_path=registered.field_path,
-        excluded_fields=descriptor.explicitness_excluded_fields,
+    declaration = getattr(scenario, section_name)[declaration_name]
+    record = (
+        None
+        if _absent_switch_concern(declaration, descriptor)
+        else semantic_explicitness_record(
+            explicitness,
+            field_path=registered.field_path,
+            excluded_fields=descriptor.explicitness_excluded_fields,
+        )
     )
-    authored_value = nested_authored_value(
-        getattr(scenario, section_name)[declaration_name],
-        descriptor.authored_path,
-    )
+    authored_value = nested_authored_value(declaration, descriptor.authored_path)
     bounds = _concern_value_bounds(scenario, descriptor, field_pointer=field_pointer, authored_value=authored_value)
     if record is not None and not descriptor.includes_authored_value(authored_value):
         return None, None

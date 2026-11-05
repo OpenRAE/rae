@@ -16,20 +16,27 @@ from .scenario import ExpandedScenario, Scenario
 from .validator import SemanticValidator
 
 
-def _check_omitted_defaults(value: object) -> None:
-    """Refuse mutations that an exclude-unset reconstruction would discard."""
+def has_modified_omitted_default(value: object) -> bool:
+    """Return whether a field outside the presence set differs from its default."""
     if isinstance(value, BaseModel):
         for name, field in type(value).model_fields.items():
             current = getattr(value, name)
             if name not in value.model_fields_set and current != field.get_default(call_default_factory=True):
-                raise SDLParseError("Scenario has a modified omitted default; reparse SDL before family admission")
-            _check_omitted_defaults(current)
-    elif isinstance(value, dict):
-        for current in value.values():
-            _check_omitted_defaults(current)
-    elif isinstance(value, (list, tuple)):
-        for current in value:
-            _check_omitted_defaults(current)
+                return True
+            if has_modified_omitted_default(current):
+                return True
+        return False
+    if isinstance(value, dict):
+        return any(has_modified_omitted_default(current) for current in value.values())
+    if isinstance(value, (list, tuple)):
+        return any(has_modified_omitted_default(current) for current in value)
+    return False
+
+
+def _check_omitted_defaults(value: object) -> None:
+    """Refuse mutations that an exclude-unset reconstruction would discard."""
+    if has_modified_omitted_default(value):
+        raise SDLParseError("Scenario has a modified omitted default; reparse SDL before family admission")
 
 
 def admit_scenario_family(scenario: Scenario) -> ExpandedScenario:

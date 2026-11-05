@@ -108,6 +108,7 @@ from .runtime_configuration import (
 _RUNTIME_SERVICE_FAMILY_EXPORTS = install_runtime_service_family_exports(globals())
 
 __all__ = [
+    "COMPUTE_ONLY_NODE_FIELDS",
     "AssetValue",
     "AssetValueLevel",
     "ContainerImageBuildProvenance",
@@ -288,6 +289,25 @@ class ServicePort(SDLModel):
         return parse_int_or_var(v, minimum=1, maximum=65535, field_name="port")
 
 
+# Fields that only a compute node can populate. A switch keeps each at its empty value.
+COMPUTE_ONLY_NODE_FIELDS: tuple[str, ...] = (
+    "source",
+    "resources",
+    "os",
+    "os_distribution",
+    "os_version",
+    "architecture",
+    "features",
+    "conditions",
+    "injects",
+    "roles",
+    "services",
+    "asset_value",
+    "endpoint_persona",
+    "runtime",
+)
+
+
 class Node(LegacyClassificationGuard):
     """A scenario node — either a compute endpoint or a strict switch.
 
@@ -408,7 +428,7 @@ class Node(LegacyClassificationGuard):
             "endpoint_persona": self.endpoint_persona is not None,
             "runtime": self.runtime is not None,
         }
-        return [field_name for field_name, is_populated in fields.items() if is_populated]
+        return [field_name for field_name in COMPUTE_ONLY_NODE_FIELDS if fields[field_name]]
 
     @model_validator(mode="after")
     def validate_unique_service_ports(self) -> Node:
