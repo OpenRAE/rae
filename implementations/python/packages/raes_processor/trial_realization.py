@@ -114,6 +114,8 @@ def instantiate_admitted_trial_entry(
     family_digest = canonical_sdl_digest(family).value
     if family.name != family_reference.ref_id or family_digest != family_reference.ref_digest:
         raise InvalidInputError("scenario family identity does not match the admitted plan")
+    if admitted_plan.trial_parallelism != family.trial_parallelism:
+        raise InvalidInputError("trial parallelism differs from the admitted scenario family")
     entry = admitted_plan.entries.get(plan_entry_id)
     if entry is None or entry.plan_entry_id != plan_entry_id:
         raise NotFoundError("plan_entry_id does not resolve inside the admitted plan")

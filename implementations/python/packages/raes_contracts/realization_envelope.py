@@ -50,6 +50,7 @@ from raes_contracts.contracts.capabilities import (
 )
 from raes_contracts.contracts.realization_plans import RealizationEnvelopeIdentityModel
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
+from raes_contracts.realization_posture import Posture as Posture
 from raes_contracts.versions import REALIZATION_ENVELOPE_SCHEMA_VERSION
 from raes_contracts.vocabulary import Closure, ObservationStrength
 
@@ -88,14 +89,6 @@ def scope_specificity(scope: EnvelopeScope) -> int:
     """Return semantic specificity; topology and app are sibling scopes."""
 
     return _SCOPE_SPECIFICITY[scope]
-
-
-class Posture(str, Enum):
-    """Author/backend intent for a bound value or child scope."""
-
-    OPEN = "open"
-    CONSTRAINED = "constrained"
-    EXACT = "exact"
 
 
 class EnvelopeBinding(ContractModel):
