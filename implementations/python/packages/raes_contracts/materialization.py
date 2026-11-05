@@ -12,7 +12,7 @@ from .canonical import canonical_json_digest
 from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from .materialization_inventory import InventoryTargetScope
 from .realization_structure import DOCUMENT_SCALAR, validate_realization_value
-from .runtime_value_limits import MATERIALIZATION_MAX_BYTES, RUNTIME_SNAPSHOT_VALUE_LIMITS
+from .runtime_value_limits import MATERIALIZATION_MAX_BYTES, MATERIALIZATION_VALUE_LIMITS
 
 MATERIALIZATION_ATTESTATION_CONTRACT = "backend-materialization-attestation-v1"
 MATERIALIZATION_LIMIT_ERROR = "materialization_limit_exceeded"
@@ -59,7 +59,7 @@ class MaterializationSource(ContractModel):
             payload = parse_bounded_json_object(self.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
         except StrictJsonIngressError as exc:
             raise ValueError(f"materialization source snapshot failed strict JSON ingress ({exc.code})") from exc
-        if not validate_realization_value(payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
+        if not validate_realization_value(payload, limits=MATERIALIZATION_VALUE_LIMITS).conformant:
             raise PydanticCustomError(MATERIALIZATION_LIMIT_ERROR, "materialization source exceeds portable bounds")
         if payload.get("profile") != "raes-sdl-instantiated-snapshot/v2" or set(payload) != {"profile", "scenario"}:
             raise ValueError("materialization source requires the admitted instantiated snapshot profile")
