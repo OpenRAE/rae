@@ -8,8 +8,8 @@ from raes_contracts.contracts import AdmittedTrialPlanModel
 from test_sce_006_batch_scheduler import _proof
 
 
-def parallel_inputs(*, omit_first_from_proof=False):
-    request, inputs, target = factorial_inputs()
+def parallel_inputs(*, omit_first_from_proof=False, transform=None):
+    request, inputs, target = factorial_inputs(transform)
     # This is the original admission fixture, before any coordinator or worker
     # exists. Its cleanup ranges are independently owned synthetic resources.
     payload = inputs.plan.model_dump(mode="json")
