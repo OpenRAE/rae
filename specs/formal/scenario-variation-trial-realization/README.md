@@ -721,8 +721,9 @@ the projection contains `profile="trial-compiler-replacement-v1"`,
 `root_plan_id`, `root_plan_digest`, `root_entry_id`, and `ordinal`. Entry/run and
 cleanup ids then use the existing acyclic algorithms with this new plan id.
 Parent/evidence linkage is sealed in the child digest without a child-to-parent
-digest cycle. Fixed vectors live in
-`contracts/fixtures/plans/trial-compiler-replacement-v1/identity-vectors.json`.
+digest cycle. Tests in `implementations/python/tests/test_issue_1396_trial_replacement.py`
+show that the same inputs give the same identities, that the child digest binds
+the parent run, and that a different root plan gives different identities.
 
 Complete contiguous lineage, exact original inputs and positive scope-complete
 terminal cleanup evidence are required. Failed/partial/unverified cleanup cannot
