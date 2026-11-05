@@ -442,6 +442,10 @@ def select_scenario_family(
         outcome = outcomes[point_id]
         if isinstance(point, ParameterVariationPoint) and isinstance(outcome, LiteralBindingValueModel):
             parameters[point.target.variable] = outcome.value
+            # A selected experimental factor is fixed for this trial, while its
+            # original family retains the complete admissible domain.
+            payload["variables"][point.target.variable]["allowed_values"] = [outcome.value]
+            payload["variables"][point.target.variable]["default"] = outcome.value
         else:
             _apply_structural_outcome(payload, family, point, outcome)
     payload["variation_points"] = {}
