@@ -1,5 +1,7 @@
 # Describe a reproducible agentic environment
 
+To get started and run a scenario, see [LilRÆ](https://github.com/openrae/lilrae).
+
 RAES, the Reproducible Agentic Environments System, helps you describe an
 agentic environment, check it before anything runs, and keep evidence about
 what a run realized. RAES SDL is its YAML language for authored scenarios.
