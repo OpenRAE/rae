@@ -400,6 +400,18 @@ def _validate_target_writes(
         raise SDLSelectionError("a collection variation write conflicts with a descendant variation write")
 
 
+def _selection_payload(family: ExpandedScenario) -> dict[str, object]:
+    """Preserve runtime field presence and existing node identity commitments."""
+
+    payload = family.model_dump(mode="python", by_alias=True)
+    for name, node in family.nodes.items():
+        if node.runtime is not None:
+            payload["nodes"][name]["runtime"] = node.runtime.model_dump(
+                mode="python", by_alias=True, exclude_unset=True
+            )
+    return payload
+
+
 def select_scenario_family(
     family: ExpandedScenario,
     outcomes: Mapping[str, object],
@@ -422,7 +434,7 @@ def select_scenario_family(
         validate_selection_outcome(family.variation_points[point_id], outcomes[point_id])
     _validate_cross_point_relations(family, outcomes)
 
-    payload = family.model_dump(mode="python", by_alias=True)
+    payload = _selection_payload(family)
     _validate_target_writes(payload, family, outcomes)
     parameters: dict[str, object] = {}
     for point_id in sorted(family.variation_points):
@@ -430,6 +442,10 @@ def select_scenario_family(
         outcome = outcomes[point_id]
         if isinstance(point, ParameterVariationPoint) and isinstance(outcome, LiteralBindingValueModel):
             parameters[point.target.variable] = outcome.value
+            # A selected experimental factor is fixed for this trial, while its
+            # original family retains the complete admissible domain.
+            payload["variables"][point.target.variable]["allowed_values"] = [outcome.value]
+            payload["variables"][point.target.variable]["default"] = outcome.value
         else:
             _apply_structural_outcome(payload, family, point, outcome)
     payload["variation_points"] = {}

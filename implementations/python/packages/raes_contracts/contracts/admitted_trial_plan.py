@@ -38,6 +38,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
+from ..trial_parallelism import TrialParallelismModel, parallelism_bounds
 from ..versions import ADMITTED_TRIAL_PLAN_SCHEMA_VERSION
 from .admitted_trial_plan_components import (
     AdmittedApparatusBindingModel,
@@ -210,12 +211,18 @@ class AdmittedTrialPlanModel(ContractModel):
     stochastic_controls: dict[NonEmptyString, ExperimentStochasticControlModel] = Field(default_factory=dict)
     cleanup_plans: dict[NonEmptyString, TrialCleanupPlanModel] = Field(min_length=1)
     isolation_proof: SchedulerIsolationProofModel | None = None
+    trial_parallelism: TrialParallelismModel | None = Field(default=None, exclude_if=lambda value: value is None)
     replacement_policy: TrialReplacementPolicyModel | None = None
     replacement_origin: TrialReplacementOriginModel | None = None
     allocation: AdmittedExperimentAllocationModel | None = None
     entries: dict[NonEmptyString, AdmittedTrialEntryModel] = Field(min_length=1)
     admission: AdmittedTrialPlanAdmissionModel
     plan_digest: PrefixedDigestString
+
+    def parallelism_bounds(self) -> tuple[int, int]:
+        """Return the author bounds intersected with sealed isolation authority."""
+        ceiling = min(self.isolation_proof.requested_parallelism, len(self.entries)) if self.isolation_proof else 1
+        return parallelism_bounds(self.trial_parallelism, ceiling)
 
     @model_serializer(mode="wrap")
     def _serialize_replacement(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:

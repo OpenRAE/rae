@@ -651,6 +651,36 @@
           },
           "title": "Stochastic Controls",
           "type": "object"
+        },
+        "trial_parallelism": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "constrained": "#/$defs/ConstrainedTrialParallelismModel",
+                  "exact": "#/$defs/ExactTrialParallelismModel",
+                  "open": "#/$defs/OpenTrialParallelismModel"
+                },
+                "propertyName": "posture"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OpenTrialParallelismModel"
+                },
+                {
+                  "$ref": "#/$defs/ExactTrialParallelismModel"
+                },
+                {
+                  "$ref": "#/$defs/ConstrainedTrialParallelismModel"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trial Parallelism"
         }
       },
       "required": [
@@ -1253,6 +1283,70 @@
       "title": "CleanupResourceBoundaryModel",
       "type": "object"
     },
+    "ConstrainedTrialParallelismModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "minimum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "minimum"
+          ]
+        },
+        {
+          "properties": {
+            "maximum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maximum"
+          ]
+        }
+      ],
+      "description": "Require an inclusive lower bound, upper bound, or both.",
+      "properties": {
+        "maximum": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "posture": {
+          "const": "constrained",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "ConstrainedTrialParallelismModel",
+      "type": "object"
+    },
     "DiagnosticModel": {
       "additionalProperties": false,
       "description": "Closed portable diagnostic shape for published contracts.",
@@ -1293,6 +1387,28 @@
         "message"
       ],
       "title": "DiagnosticModel",
+      "type": "object"
+    },
+    "ExactTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Require one exact effective capacity.",
+      "properties": {
+        "count": {
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "posture": {
+          "const": "exact",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture",
+        "count"
+      ],
+      "title": "ExactTrialParallelismModel",
       "type": "object"
     },
     "ExecutionRetryPolicyModel": {
@@ -2258,6 +2374,22 @@
         "value"
       ],
       "title": "LiteralBindingValueModel",
+      "type": "object"
+    },
+    "OpenTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Leave effective capacity to the allocator.",
+      "properties": {
+        "posture": {
+          "const": "open",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "OpenTrialParallelismModel",
       "type": "object"
     },
     "ParticipantConfigurationModel": {

@@ -1708,6 +1708,70 @@
       "title": "Condition",
       "type": "object"
     },
+    "ConstrainedTrialParallelismModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "minimum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "minimum"
+          ]
+        },
+        {
+          "properties": {
+            "maximum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maximum"
+          ]
+        }
+      ],
+      "description": "Require an inclusive lower bound, upper bound, or both.",
+      "properties": {
+        "maximum": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "posture": {
+          "const": "constrained",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "ConstrainedTrialParallelismModel",
+      "type": "object"
+    },
     "ConsumerAccessMode": {
       "enum": [
         "read_only",
@@ -4454,6 +4518,28 @@
         "denominator"
       ],
       "title": "ExactRatio",
+      "type": "object"
+    },
+    "ExactTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Require one exact effective capacity.",
+      "properties": {
+        "count": {
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "posture": {
+          "const": "exact",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture",
+        "count"
+      ],
+      "title": "ExactTrialParallelismModel",
       "type": "object"
     },
     "ExecutionPolicy": {
@@ -8441,6 +8527,22 @@
         "names"
       ],
       "title": "ObservationSelector",
+      "type": "object"
+    },
+    "OpenTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Leave effective capacity to the allocator.",
+      "properties": {
+        "posture": {
+          "const": "open",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "OpenTrialParallelismModel",
       "type": "object"
     },
     "OperatorSecretCredentialMaterial": {
@@ -26593,6 +26695,21 @@
           "title": "Manifest Path",
           "type": "string"
         },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model identifier selected for this software component.",
+          "title": "Model"
+        },
         "name": {
           "title": "Name",
           "type": "string"
@@ -30524,6 +30641,37 @@
       },
       "title": "Time Progression Policies",
       "type": "object"
+    },
+    "trial_parallelism": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "constrained": "#/$defs/ConstrainedTrialParallelismModel",
+              "exact": "#/$defs/ExactTrialParallelismModel",
+              "open": "#/$defs/OpenTrialParallelismModel"
+            },
+            "propertyName": "posture"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/OpenTrialParallelismModel"
+            },
+            {
+              "$ref": "#/$defs/ExactTrialParallelismModel"
+            },
+            {
+              "$ref": "#/$defs/ConstrainedTrialParallelismModel"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trial Parallelism",
+      "x-raes-realization-dimension": false
     },
     "variables": {
       "additionalProperties": false,

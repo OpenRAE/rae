@@ -1,3 +1,5 @@
+To get started and run a scenario, see [LilRÆ](https://github.com/openrae/lilrae).
+
 # Reproducible Agentic Environments System
 
 [![CI](https://github.com/OpenRAE/rae/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/OpenRAE/rae/actions/workflows/ci.yml)
@@ -185,6 +187,8 @@ It scaffolds a first pack and validates it.
   the [governance model](https://github.com/OpenRAE/rae/blob/main/GOVERNANCE.md),
   and the
   [developer documentation index](https://github.com/OpenRAE/rae/blob/main/docs/README.md).
+  To configure the Ground Control design checks for `/implement`, read
+  [Ground Control design checks](https://github.com/OpenRAE/rae/blob/main/docs/develop/ground-control-design-checks.md).
 - **Help:** See [get help](https://openrae.github.io/rae/support.html) for
   issues and private security reports.
 

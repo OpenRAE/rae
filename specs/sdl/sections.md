@@ -40,6 +40,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `module` | composition | mapping | normalized | optional; default null | `module.id` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `imports` | composition | list | normalized | optional; default empty list | `namespace` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `realization` | composition | mapping | normalized | optional; default null | none | none | [explicitness and realization](../formal/realization/explicitness-and-realization.md) |
+| `trial_parallelism` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [trial scheduling](../formal/scenario-variation-trial-realization/README.md#svr-031--scheduler-opacity) |
 | `nodes` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [nodes and runtime inventory](runtime-inventory.md) |
 | `infrastructure` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
 | `features` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
@@ -87,7 +88,7 @@ addition would impose a large, unexpected authoring burden. The policy also
 survives into materialized descriptions, where its addresses retain their
 original-source meaning. See [augmentation scope](augmentation-scope.md).
 
-<!-- sdl-catalog-summary top-level=47 metadata-composition=7 sections=40 maps=37 lists=1 -->
+<!-- sdl-catalog-summary top-level=48 metadata-composition=7 sections=41 maps=37 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose
