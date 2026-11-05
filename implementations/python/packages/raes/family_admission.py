@@ -16,21 +16,28 @@ from .scenario import ExpandedScenario, Scenario
 from .validator import SemanticValidator
 
 
+def _model_children(value: object) -> tuple[object, ...]:
+    if isinstance(value, BaseModel):
+        return tuple(getattr(value, name) for name in type(value).model_fields)
+    if isinstance(value, dict):
+        return tuple(value.values())
+    if isinstance(value, (list, tuple)):
+        return tuple(value)
+    return ()
+
+
+def _omitted_default_changed(value: object) -> bool:
+    return isinstance(value, BaseModel) and any(
+        name not in value.model_fields_set and getattr(value, name) != field.get_default(call_default_factory=True)
+        for name, field in type(value).model_fields.items()
+    )
+
+
 def has_modified_omitted_default(value: object) -> bool:
     """Return whether a field outside the presence set differs from its default."""
-    if isinstance(value, BaseModel):
-        for name, field in type(value).model_fields.items():
-            current = getattr(value, name)
-            if name not in value.model_fields_set and current != field.get_default(call_default_factory=True):
-                return True
-            if has_modified_omitted_default(current):
-                return True
-        return False
-    if isinstance(value, dict):
-        return any(has_modified_omitted_default(current) for current in value.values())
-    if isinstance(value, (list, tuple)):
-        return any(has_modified_omitted_default(current) for current in value)
-    return False
+    return _omitted_default_changed(value) or any(
+        has_modified_omitted_default(child) for child in _model_children(value)
+    )
 
 
 def _check_omitted_defaults(value: object) -> None:
