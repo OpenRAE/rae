@@ -400,6 +400,18 @@ def _validate_target_writes(
         raise SDLSelectionError("a collection variation write conflicts with a descendant variation write")
 
 
+def _selection_payload(family: ExpandedScenario) -> dict[str, object]:
+    """Preserve runtime field presence and existing node identity commitments."""
+
+    payload = family.model_dump(mode="python", by_alias=True)
+    for name, node in family.nodes.items():
+        if node.runtime is not None:
+            payload["nodes"][name]["runtime"] = node.runtime.model_dump(
+                mode="python", by_alias=True, exclude_unset=True
+            )
+    return payload
+
+
 def select_scenario_family(
     family: ExpandedScenario,
     outcomes: Mapping[str, object],
@@ -422,14 +434,7 @@ def select_scenario_family(
         validate_selection_outcome(family.variation_points[point_id], outcomes[point_id])
     _validate_cross_point_relations(family, outcomes)
 
-    payload = family.model_dump(mode="python", by_alias=True)
-    # Node identity keeps its complete typed carrier. Runtime configuration
-    # keeps authored field presence so defaults cannot become new demands.
-    for name, node in family.nodes.items():
-        if node.runtime is not None:
-            payload["nodes"][name]["runtime"] = node.runtime.model_dump(
-                mode="python", by_alias=True, exclude_unset=True
-            )
+    payload = _selection_payload(family)
     _validate_target_writes(payload, family, outcomes)
     parameters: dict[str, object] = {}
     for point_id in sorted(family.variation_points):
