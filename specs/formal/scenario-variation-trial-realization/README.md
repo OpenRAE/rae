@@ -552,6 +552,22 @@ authorized only by an isolation proof joined to the exact sealed plan plus live
 lease evidence. Scheduler policy, worker management, live leasing, and range
 allocation remain outside these contract semantics.
 
+The optional SDL root `trial_parallelism` constrains the allocator's effective
+capacity for the experiment. It uses the existing `open`, `constrained`, and
+`exact` postures. Exact intent declares a positive integer `count`. Constrained
+intent declares a positive integer `minimum`, `maximum`, or both; a minimum
+cannot exceed a maximum. Open intent carries no count or bounds. Omission
+retains the existing allocator choice and serial default.
+
+The trial compiler copies this intent into the sealed admitted plan. The
+scheduler intersects it with the embedded isolation proof and the plan's entry
+count. An empty intersection fails before dispatch. Assignment and receipt
+boundaries enforce both ends of the admitted interval. The declaration never
+grants isolation or live resource leases. A minimum or exact count describes
+configured capacity, not a promise that all slots remain occupied during startup,
+cleanup, or the final trials. A serial executor must refuse a capacity greater
+than one before it starts a trial.
+
 ### SVR-032 — Archival separation
 
 The admitted plan is not stored as mutable runtime state, and live operation

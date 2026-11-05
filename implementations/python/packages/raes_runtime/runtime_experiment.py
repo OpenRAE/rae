@@ -225,8 +225,12 @@ class RuntimeExperiment:
         return self._new_attempt(slot, 1)
 
     def _require_assignment_grant(self, entry_id: str, grant: AllocatorGrant) -> None:
-        if not 1 <= grant.effective_parallelism <= self.schedule.admitted_parallelism_ceiling:
-            raise ConflictError("allocator grant exceeds admitted parallelism")
+        if not (
+            self.schedule.admitted_parallelism_floor
+            <= grant.effective_parallelism
+            <= self.schedule.admitted_parallelism_ceiling
+        ):
+            raise ConflictError("allocator grant is outside admitted parallelism bounds")
         if grant.effective_parallelism > 1:
             self._require_parallel_assignment(entry_id, grant)
 

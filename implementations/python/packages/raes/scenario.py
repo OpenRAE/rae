@@ -21,6 +21,7 @@ from raes_contracts.execution_policy import OptionalExecutionPolicy
 from raes_contracts.identifiers import PortableIdentifier, QualifiedName, require_portable_identifier
 from raes_contracts.json_pointer import unescape_token
 from raes_contracts.participant_outcome_semantics import OutcomeInterpretationRule
+from raes_contracts.trial_parallelism import TrialParallelismModel
 
 from ._classification_guard import LegacyClassificationGuard
 from ._declaration_sources import DeclarationSource
@@ -210,6 +211,12 @@ class ScenarioContent(LegacyClassificationGuard):
     name: PortableIdentifier
     version: str = "*"
     description: str = ""
+    trial_parallelism: TrialParallelismModel | None = Field(
+        default=None,
+        repr=False,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
+    )
     semantic_revision: Literal["raes-progressive-semantics/v1"] | None = Field(
         default=None,
         exclude_if=lambda value: value is None,

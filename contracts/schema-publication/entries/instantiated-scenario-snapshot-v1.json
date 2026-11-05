@@ -1,9 +1,9 @@
 {
-  "content_hash": "46bea2e7db9a78dfe18b281881fae5ffceac8400ff8f1c132ec9c3db7ad30047",
+  "content_hash": "f49853c3357f640e203359174c0d77d393346e3522bc5f90a8f5546f764d1667",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "46bea2e7db9a78dfe18b281881fae5ffceac8400ff8f1c132ec9c3db7ad30047",
-    "summary": "Add explicit provider-qualified secret replication policies, replicas and native encryption key constraints (issue #1848)."
+    "content_hash": "f49853c3357f640e203359174c0d77d393346e3522bc5f90a8f5546f764d1667",
+    "summary": "Add optional SDL trial_parallelism with open, constrained and exact capacity, preserved in admitted and assigned trial plans (#1912)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"
