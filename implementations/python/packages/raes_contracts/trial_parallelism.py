@@ -67,13 +67,14 @@ def parallelism_bounds(intent: TrialParallelismModel | None, entry_count: int) -
 
     if intent is None:
         return 1, 1
-    if isinstance(intent, ExactTrialParallelismModel):
-        return intent.count, intent.count
     available = min(entry_count, MAX_TRIAL_PARALLELISM)
-    if isinstance(intent, OpenTrialParallelismModel):
-        return 1, available
-    lower = intent.minimum or 1
-    upper = available if intent.maximum is None else intent.maximum
+    if isinstance(intent, ExactTrialParallelismModel):
+        lower = upper = intent.count
+    elif isinstance(intent, ConstrainedTrialParallelismModel):
+        lower = intent.minimum or 1
+        upper = available if intent.maximum is None else intent.maximum
+    else:
+        lower, upper = 1, available
     if lower > upper:
         raise ValueError("trial parallelism minimum exceeds the trial count")
     return lower, upper

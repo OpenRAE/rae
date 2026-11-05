@@ -124,7 +124,8 @@ def test_trial_parallelism_sets_the_limit_without_an_isolation_proof(intent, bou
     plan = _limited_plan(intent)
     assert "isolation_proof" not in plan.model_dump(mode="json")
     schedule = plan_batch_schedule(plan)
-    assert (schedule.admitted_parallelism_floor, schedule.admitted_parallelism_ceiling) == bounds
+    admitted = (schedule.admitted_parallelism_floor, schedule.admitted_parallelism_ceiling)
+    assert admitted == bounds
     outcome = AttemptOutcome("attempt", "succeeded", "cleanup")
     receipt = build_batch_execution_receipt(
         schedule,

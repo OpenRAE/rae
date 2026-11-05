@@ -177,8 +177,9 @@ class RuntimeExperiment:
         if type(grant.effective_parallelism) is not int:
             raise InvalidInputError("allocator parallelism requires an integer")
 
+    @staticmethod
     def _replay_assignment(
-        self, existing: TrialAssignmentModel, owner_id: str, grant: AllocatorGrant
+        existing: TrialAssignmentModel, owner_id: str, grant: AllocatorGrant
     ) -> TrialAssignmentModel:
         if (existing.owner_id, existing.effective_parallelism) != (owner_id, grant.effective_parallelism):
             raise ConflictError("entry already has a different assignment")
