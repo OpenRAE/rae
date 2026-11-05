@@ -17,5 +17,5 @@ No schema, network destination or storage behavior changes.
 
 Regression tests exercise dense 32-node and 64-node fixtures through planning,
 backend delivery, report admission and archival. Refusal cases cover altered identities,
-128-node input beyond the byte ceiling and compact input beyond the traversal ceiling.
+oversized source input beyond the byte ceiling and compact input beyond the traversal ceiling.
 The profile is executable through the existing `validate_realization_value` interface.

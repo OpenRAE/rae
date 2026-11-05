@@ -117,7 +117,9 @@ def test_dense_source_planning_and_report_admission(tmp_path, count):
 
 
 def test_dense_source_over_byte_limit_is_refused():
-    execution, _ = attesting_plan(dense_source(128))
+    from test_issue_1742_bounded_materialization_source import _full_size_source
+
+    execution, _ = attesting_plan(_full_size_source(entities=1500))
     assert not execution.is_valid
     assert "materialization.source-limit-exceeded" in {d.code for d in execution.diagnostics}
 
