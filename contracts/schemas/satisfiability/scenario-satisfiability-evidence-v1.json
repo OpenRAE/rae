@@ -30822,6 +30822,21 @@
           "title": "Manifest Path",
           "type": "string"
         },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model identifier selected for this software component.",
+          "title": "Model"
+        },
         "name": {
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"

@@ -114,9 +114,15 @@ declared service behavior and separately requested reporting retain their own
 owners. Unsupported execution support is refused, not inferred from a profile
 definition or a successfully parsed package.
 
+Issue #1913 adds optional `model` configuration to the same software component owner.
+The model identifier is SDL data and can be an experimental factor through existing variables and variation points.
+It follows the existing realization rules and remains in each instantiated trial SDL.
+This field does not establish an agent type, participant identity, invocation, or evidence of the model actually used.
+
 ## Amendments
 
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-07-13 | #417 | Clarified that authored software components describe required final state; scanner, SBOM, filesystem, and process-inspection capture methods remain evidence provenance and are no longer accepted as component provenance values in SDL. |
 | 2026-09-12 | #1205 | Adopted generic software refinements, exact-package compatibility, shared final repository/trust identity and independent acquisition/reporting boundaries. |
+| 2026-11-05 | #1913 | Add optional model configuration and experimental parameterization to software components. |

@@ -1,9 +1,9 @@
 {
-  "content_hash": "ab5d6b8f975c2f886b8bf096ffd6773f6a05dfa1054a45c6bca085c0375fe7fa",
+  "content_hash": "47d2dd34cd61c0119aa8b057a5d72e34daf89a2f02897cfeaa17f18debe2f9bc",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "ab5d6b8f975c2f886b8bf096ffd6773f6a05dfa1054a45c6bca085c0375fe7fa",
-    "summary": "Add explicit provider-qualified secret replication policies, replicas and native encryption key constraints (issue #1848)."
+    "content_hash": "47d2dd34cd61c0119aa8b057a5d72e34daf89a2f02897cfeaa17f18debe2f9bc",
+    "summary": "Add optional parameterizable software component model configuration (issue #1913)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"
