@@ -4,13 +4,13 @@ import json
 from dataclasses import replace
 
 import pytest
+import test_issue_1241_materialization_runtime as reporting
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSource
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import MATERIALIZATION_VALUE_LIMITS, RUNTIME_SNAPSHOT_VALUE_LIMITS
 from test_issue_1241_materialization_context import attesting_plan
-from test_issue_1241_materialization_runtime import _apply
 
 
 @pytest.fixture(autouse=True)
@@ -106,16 +106,29 @@ def test_dense_source_planning_and_report_admission(tmp_path, count):
             for name in document["nodes"]
         ]
 
-    result, backend = _apply(tmp_path, source=dense_source(count), mutate=bind_all_nodes)
+    backend = reporting.ReportingProvisioner(execution.manifest, mutate=bind_all_nodes)
+    previous = reporting.RuntimeSnapshot()
+    result = reporting._call_backend_apply(
+        backend.apply,
+        execution.provisioning,
+        previous,
+        snapshot=previous,
+        address="runtime.attesting",
+        realization=reporting._RealizationApplyContext(plan=execution.provisioning, manifest=execution.manifest),
+        call=reporting._BackendCallContext(materialization_archive=reporting.RunMaterializationArchive(tmp_path)),
+    )
     assert result.success, result.diagnostics
     assert backend.calls == 1
     assert len(result.snapshot.materialization_attestations) == 1
-    wrong_instantiated = {**source.model_dump(), "instantiated_digest": "sha256:" + "0" * 64}
-    wrong_authored = {**source.model_dump(), "authored_digest": "sha256:" + "0" * 64}
-    with pytest.raises(ValidationError, match="instantiated identity"):
-        MaterializationSource.model_validate(wrong_instantiated)
-    with pytest.raises(ValidationError, match="authored identity"):
-        MaterializationSource.model_validate(wrong_authored)
+
+
+@pytest.mark.parametrize("identity", ["instantiated", "authored"])
+def test_dense_source_rejects_wrong_identity(identity):
+    execution, _ = attesting_plan(dense_source(32))
+    source = execution.provisioning.materialization_source
+    substituted = {**source.model_dump(), f"{identity}_digest": "sha256:" + "0" * 64}
+    with pytest.raises(ValidationError, match=f"{identity} identity"):
+        MaterializationSource.model_validate(substituted)
 
 
 def test_dense_source_over_byte_limit_is_refused():
