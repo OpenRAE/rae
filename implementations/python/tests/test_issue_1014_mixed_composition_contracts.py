@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from copy import deepcopy
 from dataclasses import replace
@@ -770,16 +769,8 @@ def test_published_schema_bundle_fixtures_and_change_ledger_are_consistent() -> 
             MixedParticipantCompositionProfileModel.model_validate(payload)
 
     publication = json.loads(PUBLICATION_PATH.read_text(encoding="utf-8"))
-    digest = hashlib.sha256(
-        json.dumps(schema, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
-    ).hexdigest()
     assert publication == {
-        "content_hash": digest,
         "contract_id": MIXED_COMPOSITION_CONTRACT_ID,
-        "last_change": {
-            "content_hash": digest,
-            "summary": "Publish the initial closed SEM-234 mixed-participant composition profile (#1014).",
-        },
         "schema_path": "contracts/schemas/plans/mixed-participant-composition-profile-v1.json",
         "stability": "draft",
     }

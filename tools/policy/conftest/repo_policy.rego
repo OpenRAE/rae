@@ -16,19 +16,6 @@ deny contains result if {
 
 deny contains result if {
   path := input.changed[_]
-  path_matches_any(path, input.policy.generated_contracts.generated_roots)
-  endswith(path, ".json")
-  not manifest_touched
-  result := {
-    "msg": "published schemas under contracts/schemas/ are hand-governed normative authority (ADR-009 section 7); a schema change must update its contracts/schema-publication record with a contract-facing change-ledger entry",
-    "rule_id": "schema-change-missing-manifest",
-    "path": path,
-  }
-}
-
-
-deny contains result if {
-  path := input.changed[_]
   contains_reserved_token(path)
   not path_matches_any(path, input.policy.concept_authority.allowed_paths)
   result := {
@@ -36,17 +23,6 @@ deny contains result if {
     "rule_id": "concept-authority-reserved-path",
     "path": path,
   }
-}
-
-
-manifest_touched if {
-  input.policy.generated_contracts.manifest_path in input.changed
-}
-
-
-manifest_touched if {
-  some path in input.changed
-  path_matches_prefix(path, input.policy.generated_contracts.manifest_records_root)
 }
 
 
