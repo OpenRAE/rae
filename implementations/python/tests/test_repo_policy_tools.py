@@ -883,11 +883,13 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
         "python compatibility / direct wheel metadata and imports",
         "python compatibility / direct wheel CLI version",
         "python compatibility / direct wheel CLI help",
+        "python compatibility / direct wheel assigned trial inputs",
         "python compatibility / direct wheel assigned trial processes",
         "python compatibility / install sdist-built wheel",
         "python compatibility / sdist-built wheel metadata and imports",
         "python compatibility / sdist-built wheel CLI version",
         "python compatibility / sdist-built wheel CLI help",
+        "python compatibility / sdist-built wheel assigned trial inputs",
         "python compatibility / sdist-built wheel assigned trial processes",
     ]
     assert len(sync_calls) == 1
@@ -914,6 +916,12 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
     ]
     assert len(assigned) == 2
     assert all("-I" in command and command[-1].endswith("assigned-trial-inputs.json") for command in assigned)
+    generated = [
+        command for command in commands if any(arg.endswith("tests/assigned_trial_inputs.py") for arg in command)
+    ]
+    assert [command[0] for command in generated] == [command[0] for command in assigned]
+    assert all("-I" not in command for command in generated)
+    assert [Path(command[-1]).parent for command in assigned] == [Path(command[-1]) for command in generated]
 
 
 def test_python_compatibility_smoke_omits_redundant_hermetic_suite(

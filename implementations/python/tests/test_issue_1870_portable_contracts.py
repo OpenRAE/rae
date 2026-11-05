@@ -4,6 +4,7 @@ import json
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from assigned_trial_inputs import ORIGINAL_INPUTS, REPLACEMENT_INPUTS, write_inputs
 from installed_assigned_trial_consumer import load_inputs
 from paths import REPO_ROOT
 from raes_contracts.assigned_trial import TrialAssignmentModel, TrialOutcomeModel, trial_attempt_id
@@ -12,8 +13,15 @@ from raes_processor.trial_realization import realize_admitted_trial_entry
 
 
 @pytest.fixture(scope="module")
-def assignment():
-    inputs, _ = load_inputs(REPO_ROOT / "implementations/python/tests/fixtures/assigned-trial-inputs.json")
+def inputs_dir(tmp_path_factory):
+    directory = tmp_path_factory.mktemp("assigned-trial")
+    write_inputs(directory)
+    return directory
+
+
+@pytest.fixture(scope="module")
+def assignment(inputs_dir):
+    inputs, _ = load_inputs(inputs_dir / ORIGINAL_INPUTS)
     first = next(iter(inputs.plan.entries))
     realized = realize_admitted_trial_entry(inputs=inputs, plan_entry_id=first, target_name="trial")
     start = datetime(2026, 11, 3, tzinfo=UTC)
@@ -39,11 +47,11 @@ def test_original_portable_sources_reconstruct_the_exact_assignment(assignment):
     assert restored.content_digest == assignment.content_digest
 
 
-def test_installed_replacement_fixture_reconstructs_original_compiler_authority():
+def test_installed_replacement_fixture_reconstructs_original_compiler_authority(inputs_dir):
     from installed_assigned_trial_consumer import replacement_request
     from raes_processor.trial_compiler import compile_admitted_trial_plan
 
-    path = REPO_ROOT / "implementations/python/tests/fixtures/assigned-trial-replacement-inputs.json"
+    path = inputs_dir / REPLACEMENT_INPUTS
     inputs, _ = load_inputs(path)
     result = compile_admitted_trial_plan(replacement_request(inputs, json.loads(path.read_text())))
     assert result.plan is not None, result.diagnostics
