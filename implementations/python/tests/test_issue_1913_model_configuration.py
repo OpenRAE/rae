@@ -144,10 +144,10 @@ def test_selected_model_factor_cannot_be_substituted():
 
 
 def test_model_variation_rejects_an_undeclared_choice():
+    family = _family()
+    outcomes = {"model-choice": LiteralBindingValueModel(kind="literal", value="outside-domain")}
     with pytest.raises(SDLSelectionError):
-        select_scenario_family(
-            _family(), {"model-choice": LiteralBindingValueModel(kind="literal", value="outside-domain")}
-        )
+        select_scenario_family(family, outcomes)
 
 
 def test_model_configuration_schema_and_absence():
@@ -187,5 +187,6 @@ def test_invalid_model_configuration_is_rejected(value):
     source = _source(model=value)
     path = REPO_ROOT / "contracts/schemas/sdl/sdl-authoring-input-v1.json"
     assert list(Draft202012Validator(json.loads(path.read_text())).iter_errors(source))
+    encoded_source = json.dumps(source)
     with pytest.raises(SDLParseError):
-        parse_sdl(json.dumps(source))
+        parse_sdl(encoded_source)
