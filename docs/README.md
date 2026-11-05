@@ -20,6 +20,7 @@ pull requests.
 ## Work on the repository
 
 - [Development workflow](DEVELOPMENT_WORKFLOW.md)
+- [Ground Control design checks](develop/ground-control-design-checks.md)
 - [Development container](explain/development-container.md)
 - [Coding standards](explain/reference/coding-standards.md)
 - [Documentation style guide](explain/reference/documentation-style-guide.md)
