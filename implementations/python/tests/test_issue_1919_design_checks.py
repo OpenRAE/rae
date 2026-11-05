@@ -6,17 +6,20 @@ session. The cases that it observes are in tests/fixtures/design_acceptance.
 
 from __future__ import annotations
 
+import io
 import json
 import re
 import subprocess
 import sys
 from collections import Counter
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 import yaml
 from tools import design_acceptance, design_wiring
 from tools.policy.common import PolicyFailure
+from tools.policy.import_graph import ImportAnalysis
 from tools.policy.repo_policy import evaluate_repo_policy
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -187,25 +190,110 @@ def test_adapter_reports_a_file_that_does_not_collect_as_broken() -> None:
     assert "raes_missing_design_acceptance_module" in str(observation["message"])
 
 
-@pytest.mark.parametrize(
-    "stdin",
-    [
-        "not json",
-        json.dumps({"test_file": CASES}),
-        json.dumps({"test_file": CASES, "test_name": "test_passing", "extra": 1}),
-        json.dumps({"test_file": str(REPO_ROOT / CASES), "test_name": "test_passing"}),
-        json.dumps({"test_file": "implementations/python/../../" + CASES, "test_name": "test_passing"}),
-        json.dumps({"test_file": "tools/design_acceptance.py", "test_name": "test_passing"}),
-        json.dumps({"test_file": "implementations/python/tests/absent.py", "test_name": "test_passing"}),
-        json.dumps({"test_file": CASES, "test_name": ""}),
-    ],
-)
-def test_adapter_refuses_an_invalid_request_with_a_nonzero_exit(stdin: str) -> None:
-    completed = _run_adapter(stdin)
+INVALID_REQUESTS = [
+    "not json",
+    "[]",
+    json.dumps({"test_file": CASES}),
+    json.dumps({"test_file": CASES, "test_name": "test_passing", "extra": 1}),
+    json.dumps({"test_file": str(REPO_ROOT / CASES), "test_name": "test_passing"}),
+    json.dumps({"test_file": "implementations/python/../../" + CASES, "test_name": "test_passing"}),
+    json.dumps({"test_file": "tools/design_acceptance.py", "test_name": "test_passing"}),
+    json.dumps({"test_file": "implementations/python/tests/absent.py", "test_name": "test_passing"}),
+    json.dumps({"test_file": "implementations/python/pyproject.toml", "test_name": "test_passing"}),
+    json.dumps({"test_file": CASES, "test_name": ""}),
+    json.dumps({"test_file": CASES, "test_name": 1}),
+    json.dumps({"test_file": CASES, "test_name": "x" * (design_acceptance.MAX_INPUT_BYTES + 1)}),
+]
+
+
+def test_adapter_refuses_an_invalid_request_with_a_nonzero_exit() -> None:
+    completed = _run_adapter(INVALID_REQUESTS[0])
 
     assert completed.returncode == 1
     assert completed.stdout == ""
     assert completed.stderr.startswith("design-acceptance: ")
+
+
+@pytest.mark.parametrize("stdin", INVALID_REQUESTS)
+def test_request_reader_refuses_an_invalid_request(stdin: str) -> None:
+    with pytest.raises(design_acceptance.InvalidInputError):
+        design_acceptance.read_request(stdin)
+
+
+def test_request_reader_returns_the_resolved_file_and_exact_name() -> None:
+    request = json.dumps({"test_file": CASES, "test_name": "TestFirst::test_duplicate"})
+
+    assert design_acceptance.read_request(request) == (REPO_ROOT / CASES, "TestFirst::test_duplicate")
+
+
+@pytest.fixture
+def isolated_import_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """Keep a nested pytest session from leaving modules or import paths behind."""
+
+    monkeypatch.setattr(sys, "path", list(sys.path))
+    before = set(sys.modules)
+    yield
+    for name in set(sys.modules) - before:
+        del sys.modules[name]
+
+
+def _main_in_process(
+    request: dict[str, str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> tuple[int, str, str]:
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(request)))
+    status = design_acceptance.main()
+    captured = capsys.readouterr()
+    return status, captured.out, captured.err
+
+
+@pytest.mark.usefixtures("isolated_import_state")
+def test_adapter_main_reports_observations_in_process(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    expected = {
+        "test_failing_assertion": ("failed", 1),
+        "test_passing": ("passed", 1),
+        "test_skipped": ("skipped", 1),
+        "test_expected_failure": ("skipped", 1),
+        "test_integration_marked": ("skipped", 0),
+        "test_setup_error": ("broken", 1),
+        "test_duplicate": ("missing", 2),
+        "test_absent": ("missing", 0),
+    }
+    observed = {}
+    for name in expected:
+        status, out, _ = _main_in_process({"test_file": CASES, "test_name": name}, monkeypatch, capsys)
+        assert status == 0
+        observed[name] = _status(json.loads(out))
+    broken_status, broken_out, _ = _main_in_process(
+        {"test_file": COLLECTION_ERROR, "test_name": "test_unreachable"}, monkeypatch, capsys
+    )
+
+    assert observed == expected
+    assert broken_status == 0
+    assert _status(json.loads(broken_out)) == ("broken", 0)
+
+
+def test_adapter_main_exits_nonzero_when_pytest_cannot_run(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(design_acceptance.pytest, "main", lambda args, plugins: pytest.ExitCode.USAGE_ERROR)
+
+    status, out, err = _main_in_process({"test_file": CASES, "test_name": "test_passing"}, monkeypatch, capsys)
+
+    assert status == 1
+    assert out == ""
+    assert "pytest stopped with exit code 4" in err
+
+
+def test_adapter_main_exits_nonzero_for_an_invalid_request(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    status, out, err = _main_in_process({"test_file": CASES}, monkeypatch, capsys)
+
+    assert status == 1
+    assert out == ""
+    assert err.startswith("design-acceptance: ")
 
 
 def test_adapter_refuses_a_symlinked_test_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -227,7 +315,8 @@ def test_adapter_bounds_a_long_message_to_its_head_and_tail() -> None:
     bounded = design_acceptance.bounded(text)
 
     assert len(bounded) <= design_acceptance.MAX_MESSAGE_CHARS
-    assert bounded.startswith("h") and bounded.endswith("t")
+    assert bounded.startswith("h")
+    assert bounded.endswith("t")
     assert design_acceptance.bounded("short") == "short"
 
 
@@ -296,3 +385,31 @@ def test_structural_check_set_runs_only_the_structural_ratchet(tmp_path: Path) -
     )
 
     assert failures == [ratchet]
+
+
+def test_wiring_main_prints_the_package_graph(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    captured_roots: list[tuple[str, ...]] = []
+
+    def analyzer(packages_roots, config_path, *, root_packages, exclude_type_checking_imports):
+        captured_roots.append(tuple(root_packages))
+        assert config_path == REPO_ROOT / "tools" / "policy" / "import_contracts.toml"
+        assert exclude_type_checking_imports is True
+        return ImportAnalysis(
+            modules=frozenset({"raes_runtime.a", "raes_contracts.b"}),
+            imports=frozenset({("raes_runtime.a", "raes_contracts.b")}),
+            contracts=(),
+            versions={},
+        )
+
+    monkeypatch.setattr(design_wiring, "analyze_imports", analyzer)
+
+    assert design_wiring.main(["--depth", "1"]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "graph TD",
+        '    n0["raes_contracts"]',
+        '    n1["raes_runtime"]',
+        "    n1 -->|1| n0",
+    ]
+    assert "raes_contracts" in captured_roots[0]

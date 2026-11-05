@@ -159,18 +159,19 @@ class Observer:
 def observation(observer: Observer) -> dict[str, object]:
     """Reduce the recorded reports to one observation."""
 
-    test_name = observer.test_name
     matches = len(observer.cases)
     if observer.collection_errors:
-        return result(test_name, "broken", matches, bounded("\n".join(observer.collection_errors)))
-    if matches == 1:
+        status, message = "broken", bounded("\n".join(observer.collection_errors))
+    elif matches == 1:
         case = next(iter(observer.cases.values()))
-        return result(test_name, case.status, matches, case.message)
-    if matches > 1:
-        return result(test_name, "missing", matches, f"{matches} executed cases have the exact name.")
-    if observer.marker_deselected:
-        return result(test_name, "skipped", 0, "The default marker expression deselected the acceptance case.")
-    return result(test_name, "missing", 0, "No collected case has the exact name.")
+        status, message = case.status, case.message
+    elif matches > 1:
+        status, message = "missing", f"{matches} executed cases have the exact name."
+    elif observer.marker_deselected:
+        status, message = "skipped", "The default marker expression deselected the acceptance case."
+    else:
+        status, message = "missing", "No collected case has the exact name."
+    return result(observer.test_name, status, matches, message)
 
 
 def result(test_name: str, status: str, matches: int, message: str) -> dict[str, object]:

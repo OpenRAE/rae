@@ -40,7 +40,7 @@ def test_setup_error(broken_setup: None) -> None:
 
 @pytest.mark.integration
 def test_integration_marked() -> None:
-    assert True
+    assert test_integration_marked.__name__ == "test_integration_marked"
 
 
 @pytest.mark.parametrize("value", [1, 2])
@@ -50,9 +50,9 @@ def test_parametrized(value: int) -> None:
 
 class TestFirst:
     def test_duplicate(self) -> None:
-        assert True
+        assert isinstance(self, TestFirst)
 
 
 class TestSecond:
     def test_duplicate(self) -> None:
-        assert True
+        assert isinstance(self, TestSecond)
