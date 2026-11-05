@@ -695,6 +695,36 @@ It may not instantiate a different scenario, create run IDs, or decide factors.
 It may not evaluate scientific results or implement a private comparison/scoring engine.
 All schedulers use this same handoff.
 
+### Declare trial capacity in SDL
+
+Set `trial_parallelism` at the SDL root. These declarations require exactly two
+slots, at most two slots, or at least two slots:
+
+```yaml
+trial_parallelism: {posture: exact, count: 2}
+```
+
+```yaml
+trial_parallelism: {posture: constrained, maximum: 2}
+```
+
+```yaml
+trial_parallelism: {posture: constrained, minimum: 2}
+```
+
+A constrained declaration can include both bounds. Counts must be positive
+integers. Use `{posture: open}`, or omit the field, to let the allocator choose
+within the admitted isolation capacity. The default allocator grant remains one.
+
+The compiler carries the declaration into `admitted-trial-plan-v1`. The batch
+schedule reports its inclusive `admitted_parallelism_floor` and
+`admitted_parallelism_ceiling`. A coordinator selects an effective capacity
+inside this interval and supplies the existing isolation proof and live lease
+evidence. An impossible requirement fails before dispatch. A serial executor
+refuses a minimum above one; use the assigned-trial API with an allocator grant.
+The capacity describes available slots; fewer trials can be active during
+startup, cleanup, or the final part of a batch.
+
 The portable handoff for clean-state requirements, cleanup obligations,
 execution-attempt receipts, backend capability, and serial-by-default isolation
 proof is specified in

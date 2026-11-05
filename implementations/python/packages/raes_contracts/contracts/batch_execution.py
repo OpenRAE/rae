@@ -7,10 +7,10 @@ bounded parallelism, timeouts, cancellation, and cleanup only; it never composes
 SDL, selects a variation, draws randomness, allocates a ``run_id``, or scores.
 
 Authority boundary. This layer never turns a caller-presented reference string
-into live parallelism authority. The *admitted* concurrency ceiling comes only
-from an isolation proof that is embedded in the sealed plan (bound to the plan
-by its digest). The *effective* concurrency actually run, and the live lease
-evidence backing it, are decided by the downstream allocator (APTL) against
+into live parallelism authority. The admitted concurrency interval intersects
+authored capacity with an isolation proof embedded in the sealed plan (bound
+to the plan by its digest). The effective concurrency and its live lease
+evidence are decided by the downstream allocator (APTL) against
 resources this repository cannot certify; a receipt therefore *records* that
 prior allocator decision as evidence and this layer verifies only that the
 recorded claim is authorized by the sealed plan's own proof -- it does not, and
@@ -204,6 +204,10 @@ def validate_batch_execution_receipt(
 
 
 def _validate_receipt_isolation(plan: AdmittedTrialPlanModel, receipt: BatchExecutionReceiptModel) -> None:
+    if plan.trial_parallelism is not None:
+        lower, upper = plan.parallelism_bounds()
+        if not lower <= receipt.effective_parallelism <= upper:
+            raise ValueError("receipt parallelism is outside the admitted bounds")
     if receipt.effective_parallelism <= 1:
         return
     proof = plan.isolation_proof

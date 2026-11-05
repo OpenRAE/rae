@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from raes_contracts.errors import ConflictError
+
 from .runtime_assignment_decisions import TrialAssignmentDecision
 from .runtime_decisions import RunContextDecision
 from .runtime_trial_binding import ExperimentProgress, trial_terminal_decision
@@ -67,6 +69,12 @@ def _advance_existing_slot(
     identity: object | None,
 ) -> ExperimentProgress | None:
     assigned_entries = {item.assignment.plan_entry_id for item in records if isinstance(item, TrialAssignmentDecision)}
+    if (
+        not existing
+        and slot.root_entry_id not in assigned_entries
+        and experiment.schedule.admitted_parallelism_floor > 1
+    ):
+        raise ConflictError("trial parallelism requires an allocator assignment before execution")
     attempt = existing[-1] if existing else experiment._attempt(slot, 1, records)
     records = experiment.store.load_runtime_decisions()
     assigned = attempt_assignment(records, attempt.execution_attempt_id) is not None

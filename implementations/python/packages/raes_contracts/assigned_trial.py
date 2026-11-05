@@ -108,6 +108,9 @@ class TrialAssignmentModel(TrialHandoffModel):
         return self
 
     def _validate_grant(self, plan: AdmittedTrialPlanModel) -> None:
+        lower, upper = plan.parallelism_bounds()
+        if not lower <= self.effective_parallelism <= upper:
+            raise ValueError("assignment parallelism is outside the admitted bounds")
         if self.effective_parallelism == 1:
             if self.isolation_proof_ref is not None or self.lease_evidence_refs:
                 raise ValueError("serial assignment cannot claim parallel isolation or leases")
