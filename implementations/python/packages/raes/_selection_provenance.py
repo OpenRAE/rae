@@ -123,9 +123,7 @@ def _declaration_path_changes(family: ExpandedScenario, payload: dict[str, Any])
             # Protect declarations with qualified names from a removed shorter name's model-path prefix.
             model_changes.append((f"{section}.{name}", f"{section}.{name}"))
             if section in _CONSUMER_SECTIONS:
-                pointers, models = _consumer_path_changes(
-                    section, name, original.consumers, retained.get("consumers", [])
-                )
+                pointers, models = _consumer_path_changes(section, name, original.consumers, retained["consumers"])
                 pointer_changes.extend(pointers)
                 model_changes.extend(models)
     return pointer_changes, model_changes
@@ -167,7 +165,7 @@ def reconcile_selection_provenance(family: ExpandedScenario, payload: dict[str, 
     """Remove evidence only with its owner; retain surviving bounds at their new positions."""
 
     pointer_changes, model_changes = _selection_path_changes(family, payload)
-    provenance = payload.get("expansion_provenance", {})
+    provenance = payload["expansion_provenance"]
     for field in (
         "capability_constraints",
         "parameter_derivations",
@@ -175,6 +173,4 @@ def reconcile_selection_provenance(family: ExpandedScenario, payload: dict[str, 
         "realization_constraints",
     ):
         provenance[field] = _remap_records(provenance.get(field, ()), "field_pointer", pointer_changes, ("/",))
-    provenance["explicitness"] = _remap_records(
-        provenance.get("explicitness", ()), "model_path", model_changes, (".", "[")
-    )
+    provenance["explicitness"] = _remap_records(provenance["explicitness"], "model_path", model_changes, (".", "["))

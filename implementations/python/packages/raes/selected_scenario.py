@@ -422,8 +422,13 @@ def select_scenario_family(
         validate_selection_outcome(family.variation_points[point_id], outcomes[point_id])
     _validate_cross_point_relations(family, outcomes)
 
-    # Rebuilding defaults as present fields would turn omissions into exact author declarations.
-    payload = family.model_dump(mode="python", by_alias=True, exclude_unset=True)
+    payload = family.model_dump(mode="python", by_alias=True)
+    for name, node in family.nodes.items():
+        if node.runtime is not None:
+            # Keep omitted runtime settings distinct from exact author declarations.
+            payload["nodes"][name]["runtime"] = node.runtime.model_dump(
+                mode="python", by_alias=True, exclude_unset=True
+            )
     _validate_target_writes(payload, family, outcomes)
     parameters: dict[str, object] = {}
     for point_id in sorted(family.variation_points):
