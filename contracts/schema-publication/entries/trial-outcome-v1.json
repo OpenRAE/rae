@@ -1,10 +1,5 @@
 {
   "contract_id": "trial-outcome-v1",
   "schema_path": "contracts/schemas/control-plane/trial-outcome-v1.json",
-  "stability": "draft",
-  "content_hash": "2c0f029be2ee559cabcc040fcc3e7f8363baebadb70ffe551bf13379da9dd09a",
-  "last_change": {
-    "summary": "Publish assigned trial facts, with required execution and cleanup evidence for completion (#1870).",
-    "content_hash": "2c0f029be2ee559cabcc040fcc3e7f8363baebadb70ffe551bf13379da9dd09a"
-  }
+  "stability": "draft"
 }

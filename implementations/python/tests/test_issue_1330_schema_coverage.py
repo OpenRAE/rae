@@ -88,7 +88,6 @@ def _publish(
     schema_path = f"contracts/schemas/{family}/{contract_id}.json"
     _write(repo_root / schema_path, _SCHEMA + "\n")
     entry: dict[str, Any] = {
-        "content_hash": "0" * 64,
         "contract_id": contract_id,
         "schema_path": schema_path,
         "stability": "draft",
@@ -109,7 +108,6 @@ def _seal_sharded(repo_root: Path) -> None:
         repo_root / "contracts/schema-publication-manifest.json",
         {
             "entries_directory": "contracts/schema-publication/entries",
-            "hash_algorithm": "sha256",
             "schema_version": "schema-publication-manifest/v2",
             "tombstones_directory": "contracts/schema-publication/tombstones",
         },
@@ -119,7 +117,6 @@ def _seal_sharded(repo_root: Path) -> None:
 def _append_legacy(repo_root: Path, entry: dict[str, Any]) -> None:
     manifest = repo_root / "contracts/schema-publication-manifest.json"
     document: dict[str, Any] = {
-        "hash_algorithm": "sha256",
         "schema_version": "schema-publication-manifest/v1",
         "schemas": [],
     }
@@ -590,7 +587,6 @@ def _carrier_repo(tmp_path: Path, node: Any) -> str:
     )
     _write_json(tmp_path / "contracts/profiles/carriers/host.json", {"schema_version": "host-v1", "annotations": node})
     entry = {
-        "content_hash": "0" * 64,
         "contract_id": "annotation-entry-v1",
         "schema_path": "contracts/schemas/profiles/annotation-entry-v1.json",
         "stability": "draft",

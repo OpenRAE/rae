@@ -1,10 +1,5 @@
 {
-  "content_hash": "e7c1203b4f744ac3b9dce0bf63a086017a3cb29ee4581bcfa9d47e01e7614693",
   "contract_id": "batch-execution-receipt-v1",
-  "last_change": {
-    "content_hash": "e7c1203b4f744ac3b9dce0bf63a086017a3cb29ee4581bcfa9d47e01e7614693",
-    "summary": "Remove the scheduler isolation proof and allocator lease evidence; authored trial_parallelism alone sets the parallel trial limit (#1940)."
-  },
   "schema_path": "contracts/schemas/control-plane/batch-execution-receipt-v1.json",
   "stability": "draft"
 }

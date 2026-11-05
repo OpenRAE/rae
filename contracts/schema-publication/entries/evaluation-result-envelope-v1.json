@@ -1,10 +1,5 @@
 {
   "contract_id": "evaluation-result-envelope-v1",
   "schema_path": "contracts/schemas/control-plane/evaluation-result-envelope-v1.json",
-  "stability": "draft",
-  "content_hash": "61d283c67f54b993b7620c808c4c20149dc301140f8b7d80c0c6438c569f934b",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "61d283c67f54b993b7620c808c4c20149dc301140f8b7d80c0c6438c569f934b"
-  }
+  "stability": "draft"
 }

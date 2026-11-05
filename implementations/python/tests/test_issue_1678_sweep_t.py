@@ -203,7 +203,6 @@ def _sharded_schema_publication(root: Path, entry_text: str) -> None:
         json.dumps(
             {
                 "schema_version": "schema-publication-manifest/v2",
-                "hash_algorithm": "sha256-canonical-json",
                 "entries_directory": "contracts/schema-publication/entries",
                 "tombstones_directory": "contracts/schema-publication/tombstones",
             }
@@ -1595,14 +1594,8 @@ def test_schema_publication_gate_reports_an_undecodable_base_manifest(tmp_path, 
     assert reason == "base schema publication manifest at base is not valid JSON"
 
 
-def test_schema_publication_gate_reports_a_schema_without_a_utf8_form(tmp_path, monkeypatch, capsys):
+def test_schema_publication_gate_reports_an_invalid_input_failure(monkeypatch, capsys):
     from tools import check_schema_publication
-
-    path = _write(tmp_path, "contracts/schemas/example.json", '{"title": "\\ud800"}')
-    schema, reason = check_schema_publication._load_schema(path, "contracts/schemas/example.json")
-    assert reason is None
-    with pytest.raises(InvalidInputError, match="UTF-8"):
-        check_schema_publication._schema_content_digest(schema)
 
     def refuse(*_args, **_kwargs):
         raise InvalidInputError("published schema text has no UTF-8 form")
@@ -2014,7 +2007,7 @@ def test_schema_publication_gate_reports_a_stable_schema_beyond_the_comparison_d
     deep = _nested_objects(5000)
     base = json.dumps({"properties": {"value": deep}})
     entry = gate.ManifestEntry(
-        "example-contract", "contracts/schemas/example-contract.json", "stable", "0" * 64, {"properties": {}}
+        "example-contract", "contracts/schemas/example-contract.json", "stable", {"properties": {}}
     )
     base_entry = {"contract_id": "example-contract", "schema_path": entry.schema_path, "stability": "stable"}
     monkeypatch.setattr(gate, "_load_base_manifest", lambda _root, _rev: ({"example-contract": base_entry}, None))

@@ -1,10 +1,5 @@
 {
-  "content_hash": "1143da11a07cd9e98fd93693e8026e4764de06e738bd287c48503278d8683e4e",
   "contract_id": "participant-implementation-manifest-v1",
-  "last_change": {
-    "content_hash": "1143da11a07cd9e98fd93693e8026e4764de06e738bd287c48503278d8683e4e",
-    "summary": "Add exact authored participant control-context references and pinned ADR-094 configuration selections; preserve omitted-field compatibility (DSL-118, #299)."
-  },
   "schema_path": "contracts/schemas/participant-implementation-manifest/participant-implementation-manifest-v1.json",
   "stability": "draft"
 }
