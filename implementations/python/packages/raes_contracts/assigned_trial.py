@@ -104,13 +104,13 @@ class TrialAssignmentModel(TrialHandoffModel):
             raise ValueError("assignment requires each processor commitment")
         if not self.target_scope.startswith("target:"):
             raise ValueError("assignment requires a logical target scope")
+        lower, upper = admitted.parallelism_bounds()
+        if not lower <= self.effective_parallelism <= upper:
+            raise ValueError("assignment parallelism is outside the admitted bounds")
         self._validate_grant(admitted)
         return self
 
     def _validate_grant(self, plan: AdmittedTrialPlanModel) -> None:
-        lower, upper = plan.parallelism_bounds()
-        if not lower <= self.effective_parallelism <= upper:
-            raise ValueError("assignment parallelism is outside the admitted bounds")
         if self.effective_parallelism == 1:
             if self.isolation_proof_ref is not None or self.lease_evidence_refs:
                 raise ValueError("serial assignment cannot claim parallel isolation or leases")

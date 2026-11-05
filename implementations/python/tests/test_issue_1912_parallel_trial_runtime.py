@@ -43,8 +43,9 @@ def test_coordinator_refuses_serial_grants_and_serial_execution(intent):
         with pytest.raises(ConflictError, match="parallelism"):
             runtime.advance_experiment(experiment)
         assert runtime.experiment_records(experiment).accounting.started_runs == 0
+        grant = AllocatorGrant(effective_parallelism=2)
         with pytest.raises(ConflictError, match="lease|allocator"):
-            runtime.assign_trial(experiment, entry_id, owner_id="worker", grant=AllocatorGrant(effective_parallelism=2))
+            runtime.assign_trial(experiment, entry_id, owner_id="worker", grant=grant)
         assignment = runtime.assign_trial(
             experiment,
             entry_id,
@@ -61,11 +62,13 @@ def test_coordinator_refuses_capacity_above_author_maximum():
     )
     with RuntimeControlPlane(target) as runtime:
         experiment = runtime.admit_experiment(inputs, services=TrialServices(target))
+        entry_id = next(iter(inputs.plan.entries))
+        grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease",))
         with pytest.raises(ConflictError, match="parallelism"):
             runtime.assign_trial(
                 experiment,
-                next(iter(inputs.plan.entries)),
+                entry_id,
                 owner_id="worker",
-                grant=AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease",)),
+                grant=grant,
             )
         assert runtime.experiment_records(experiment).accounting.started_runs == 0

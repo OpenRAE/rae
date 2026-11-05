@@ -148,6 +148,13 @@ def dispatch_batch_schedule[T](schedule: BatchSchedule, *, realize: Callable[[st
     return [realize(entry.plan_entry_id) for entry in schedule.entries]
 
 
+def _require_parallelism(schedule: BatchSchedule, count: int) -> None:
+    if type(count) is not int or count < schedule.admitted_parallelism_floor:
+        raise InvalidInputError("effective_parallelism must meet the admitted parallelism floor")
+    if count > schedule.admitted_parallelism_ceiling:
+        raise InvalidInputError("effective_parallelism cannot exceed the schedule's admitted parallelism ceiling")
+
+
 def build_batch_execution_receipt(
     schedule: BatchSchedule,
     plan_entry_id: str,
@@ -168,13 +175,7 @@ def build_batch_execution_receipt(
     scheduled = next((entry for entry in schedule.entries if entry.plan_entry_id == plan_entry_id), None)
     if scheduled is None:
         raise NotFoundError("plan_entry_id is not part of the batch schedule")
-    if (
-        type(grant.effective_parallelism) is not int
-        or grant.effective_parallelism < schedule.admitted_parallelism_floor
-    ):
-        raise InvalidInputError("effective_parallelism must meet the admitted parallelism floor")
-    if grant.effective_parallelism > schedule.admitted_parallelism_ceiling:
-        raise InvalidInputError("effective_parallelism cannot exceed the schedule's admitted parallelism ceiling")
+    _require_parallelism(schedule, grant.effective_parallelism)
     parallel = grant.effective_parallelism > 1
     proof_ref = grant.isolation_proof_ref
     if parallel and proof_ref is None:
