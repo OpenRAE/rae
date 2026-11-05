@@ -1,0 +1,14 @@
+{
+  "args": [
+    "external-concept-bindings-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:cfb896618348cad3666c1cf329752e99ccb3851a4e8ea46879777b9aa01c91d6"
+  },
+  "name": "regression/007fdf010a9d17e32d5c3157f4624eb60fb7508aed2cab67d54a16c893acdcf3",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

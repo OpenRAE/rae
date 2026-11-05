@@ -1717,6 +1717,12 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     assert mutation["env"]["GIT_CONFIG_VALUE_0"] == "true"
     # The job runs pull request code, so it must not receive a secret.
     assert "secrets." not in json.dumps(go)
+    prepare = _named_step(go, "Prepare pinned product dependencies for offline consumer API tests")
+    assert prepare["if"] == "matrix.name == 'tooling'"
+    assert prepare["run"] == "go -C implementations/go mod download"
+    assert go["steps"].index(prepare) < go["steps"].index(
+        _named_step(go, "Test with the race detector and the coverage floor")
+    )
     # Gremlins ignores a threshold flag, so the thresholds are numbers in its configuration file.
     gremlins = yaml.safe_load((REPO_ROOT / "implementations" / ".gremlins.yaml").read_text(encoding="utf-8"))
     assert gremlins == {"unleash": {"threshold": {"efficacy": 99.99, "mutant-coverage": 99.99}}}

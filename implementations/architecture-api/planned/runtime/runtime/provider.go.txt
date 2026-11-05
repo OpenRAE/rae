@@ -1,0 +1,160 @@
+package provider
+
+import (
+	"RUNTIME/runtime/execution"
+	"RUNTIME/runtime/profile"
+	"context"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+)
+
+type Capabilities = profile.StoreCapabilities
+type SnapshotState struct {
+	Snapshot binding.RuntimeSnapshotV1
+	Revision int64
+}
+type AuditEvent struct {
+	Timestamp, Action, Identity, Target, OperationID, Reason string
+	Allowed                                                  bool
+	Details                                                  map[string]any
+}
+type OperationRecord interface {
+	Receipt() binding.OperationReceiptV1
+	Status() binding.OperationStatusV1
+	JSON() []byte
+	ClaimIdentity() ClaimIdentity
+	AdmissionContext() OperationAdmissionContext
+	RequestFingerprint() string
+	DecisionHistoryHeads() map[string]*string
+	ResultHistoryHeads() map[string]*string
+	LegacyRequestCommitment() bool
+	operationRecord()
+}
+
+func DecodeOperationRecord(data []byte) (OperationRecord, error)
+func RecordsEqual(left, right OperationRecord) bool
+
+type OperationAdmissionContext struct {
+	ActorID                                                 string
+	AuthorizationScope                                      []string
+	TargetScope, RunScope, OperationKind, RequestCommitment string
+	ParentOperationID                                       *string
+}
+type ClaimIdentity struct {
+	ActorID, OperationKind, IdempotencyKey string
+}
+
+func IdempotencyClaimIdentity(context OperationAdmissionContext, key string) (ClaimIdentity, error)
+func ValidateIdempotencyReplay(existing, candidate OperationRecord, legacyFingerprint string) error
+
+type ClaimState struct {
+	Snapshot               SnapshotState
+	Records                []OperationRecord
+	EffectAdmissionStopped bool
+}
+
+// Must run under the same transaction as claim lookup and publication.
+func ValidateNewClaim(candidate OperationRecord, state ClaimState, options ClaimOptions) error
+
+var ErrConflict error
+var ErrAdmissionStopped error
+var ErrIdempotencyConflict error
+var ErrIndeterminateBlocked error
+var ErrStaleBaseSnapshot error
+
+type Transition struct {
+	ParticipantAddress   string
+	ExpectedHead         *string
+	ExpectedHistoryHeads map[string]*string
+	ExpectedRevision     int64
+	Snapshot             binding.RuntimeSnapshotV1
+	Record               OperationRecord
+	Audit                AuditEvent
+}
+type NewClaimBlock string
+
+const (
+	ClaimAllowed           NewClaimBlock = ""
+	BlockCurrentState      NewClaimBlock = "current-state"
+	BlockIndeterminate     NewClaimBlock = "indeterminate"
+	BlockStaleBaseSnapshot NewClaimBlock = "stale-base-snapshot"
+)
+
+type ClaimOptions struct {
+	LegacyRequestFingerprint string
+	NewClaimBlocked          NewClaimBlock
+}
+type TerminalCommitMode string
+
+const (
+	SnapshotBearing TerminalCommitMode = "snapshot-bearing"
+	OperationOnly   TerminalCommitMode = "operation-only"
+)
+
+type TerminalCommit struct {
+	Snapshot         binding.RuntimeSnapshotV1
+	Record           OperationRecord
+	Audit            *AuditEvent
+	Mode             TerminalCommitMode
+	ExpectedRevision int64
+}
+type Store interface {
+	Capabilities() Capabilities
+	Identity() LedgerIdentity
+	AdmitRuntime(context.Context, string, string) error
+	LoadSnapshot(context.Context) (binding.RuntimeSnapshotV1, error)
+	LoadSnapshotState(context.Context) (SnapshotState, error)
+	SaveSnapshot(context.Context, binding.RuntimeSnapshotV1, int64) (SnapshotState, error)
+	LoadRecords(context.Context) (map[string]OperationRecord, error)
+	SaveRecord(context.Context, OperationRecord) error
+	FindByIdempotency(context.Context, string, *OperationAdmissionContext) (OperationRecord, error)
+	AppendAudit(context.Context, AuditEvent) error
+	ReadAudit(context.Context) ([]AuditEvent, error)
+	CommitControlTransition(context.Context, Transition) (SnapshotState, error)
+	CommitParticipantTransition(context.Context, Transition) (SnapshotState, error)
+	Close() error
+}
+type AtomicStore interface {
+	Store
+	ClaimRecord(context.Context, OperationRecord, ClaimOptions) (OperationRecord, error)
+	CommitTerminalOperation(context.Context, TerminalCommit) (SnapshotState, error)
+	CommitInvocationTransition(context.Context, OperationRecord, OperationRecord, AuditEvent) (SnapshotState, error)
+	AdmitExecutionGeneration(context.Context) (int64, error)
+	EffectAdmissionStopped(context.Context) (bool, error)
+	StopEffectAdmission(context.Context, AuditEvent) error
+	LoadRuntimeDecisions(context.Context) ([]RuntimeDecision, error)
+	ClaimRuntimeDecision(context.Context, RuntimeDecision) (bool, error)
+}
+type LedgerIdentity struct {
+	Kind        string
+	Coordinates []any
+}
+
+func RuntimeStoreDigest(LedgerIdentity) (string, error)
+
+type SequenceDecision struct {
+	Reference          execution.RuntimeSequenceReference
+	ActorID            string
+	AuthorizationScope []string
+}
+type RuntimeDecision interface {
+	ID() string
+	SchemaVersion() string
+	JSON() []byte
+	Sequence() *SequenceDecision
+	runtimeDecision()
+}
+
+func NewSequenceDecision(SequenceDecision) (RuntimeDecision, error)
+func DecodeRuntimeDecision([]byte) (RuntimeDecision, error)
+func ValidateIdenticalDecision(existing, candidate RuntimeDecision) error
+
+func ValidateInvocationTransition(expected, record OperationRecord, audit AuditEvent) error
+
+type OwnerLease interface {
+	AssertOwner() error
+	Closed() bool
+	Close() error
+}
+type LeaseProvider interface {
+	Acquire(context.Context, string) (OwnerLease, error)
+}

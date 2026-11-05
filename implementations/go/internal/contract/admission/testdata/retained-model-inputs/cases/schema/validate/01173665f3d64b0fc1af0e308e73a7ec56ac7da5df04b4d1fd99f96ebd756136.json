@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scheduler-isolation-proof-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:60e8fdc66e15d413d52ce07a489463d43042e8e1f229b87bdbf024c825528720"
+  },
+  "name": "regression/397859b702020611847933b2ac398d2ca399fb26f50e23c06e8e4ad808705f7f",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

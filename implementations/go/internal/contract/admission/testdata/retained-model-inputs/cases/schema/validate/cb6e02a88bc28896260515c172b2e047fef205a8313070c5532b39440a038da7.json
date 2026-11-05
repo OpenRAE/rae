@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:6ec2635602906479603519c937e4cbd06edf775d43e8e74e61c9c0231d6b8cd5"
+  },
+  "name": "backend-profile-v1/routed/contracts/profiles/backend/full-remote-control-plane.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

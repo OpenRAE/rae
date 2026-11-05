@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:37094dce7c6ebca7749c1f414833bd6794c79411481d8905eddda28f9e56ecee"
+  },
+  "name": "inject-occurrence-v1/routed/contracts/fixtures/control-plane/inject-occurrence-v1/valid/scheduled-fan-out.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

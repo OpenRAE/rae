@@ -1,0 +1,12 @@
+package realization
+
+import "github.com/OpenRAE/rae/implementations/go/contract/admission"
+
+type Descriptor struct {
+	Kind     string
+	Document admission.Fragment
+}
+
+func ProjectConcern(kind string, value admission.Fragment, observed, recursive bool) (admission.Fragment, error)
+func ConcernDescriptors() []Descriptor
+func HasRequiredObservationSupport(requirement admission.Fragment, declarations []admission.Fragment, observationKind string) (bool, error)

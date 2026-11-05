@@ -1,0 +1,14 @@
+{
+  "args": [
+    "concept-families-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:cc49229cfa3c711b75aee317edf0ef0b39e0f9188a53d90376cd4c85c987bb7a"
+  },
+  "name": "concept-families-v1/routed/contracts/concept-authority/concept-families-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

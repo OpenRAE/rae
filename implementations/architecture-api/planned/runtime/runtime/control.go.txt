@@ -1,0 +1,485 @@
+package control
+
+import (
+	"RUNTIME/runtime/execution"
+	"RUNTIME/runtime/profile"
+	"RUNTIME/runtime/provider"
+	"RUNTIME/runtime/result"
+	"context"
+	"github.com/OpenRAE/rae/implementations/go/backend"
+	"github.com/OpenRAE/rae/implementations/go/base/clock"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	runtimecontract "github.com/OpenRAE/rae/implementations/go/contract/runtime"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
+	"github.com/OpenRAE/rae/implementations/go/processor"
+	"github.com/OpenRAE/rae/implementations/go/processor/planning"
+	"github.com/OpenRAE/rae/implementations/go/processor/trial"
+	"time"
+)
+
+type Identity interface {
+	ActorRef() string
+	ScopeRef() string
+	TargetRef() string
+}
+type Authority interface {
+	Authorize(context.Context, Identity, string, string) error
+}
+type Target interface {
+	Manifest() binding.BackendManifestV2
+	target()
+}
+
+type Components struct {
+	Provisioner          backend.Provisioner
+	Orchestrator         backend.Orchestrator
+	Evaluator            backend.Evaluator
+	Participant          backend.ParticipantRuntime
+	Time                 backend.TimeRuntime
+	ParticipantControl   backend.ParticipantControlProvider
+	ParticipantControlV2 backend.ParticipantControlProviderV2
+	Operations           backend.OperationProvider
+	NativeActions        runtimecontract.NativeActionExecution
+}
+
+func NewTarget(manifest binding.BackendManifestV2, components Components) (Target, error)
+
+type ParticipantContexts struct {
+	OutcomeModel     processor.RuntimeModel
+	Crossing         admission.CrossingContext
+	InformationState admission.InformationStateContext
+	Control          admission.ControlOccurrenceContext
+	Flow             admission.FlowControlContext
+	Mixed            admission.MixedCompositionContext
+	Inject           admission.InjectOutcomeContext
+}
+type CrossingIntent struct {
+	ParticipantAddress, EpisodeID, Direction, InteractionKind, AudienceScopeRef string
+	Subject                                                                     admission.Fragment
+	ControllerRef                                                               string
+	AuthorityBasisRefs                                                          []string
+	RequestedOperation, ActionOrProjectionRef                                   string
+	RequiredEvidenceRefs                                                        []string
+	EffectiveOrder                                                              int64
+	OrderModel                                                                  string
+	ProvenanceRefs, EvidenceRefs, ObjectMarkingRefs                             []string
+	AuthorizationScope                                                          string
+	LossAndLimitations                                                          []string
+}
+type CrossingGates struct {
+	ParticipantAuthority, ActionAdmission, Visibility, MarkingAuthorization, Declassification, TransformationValidity string
+}
+type CrossingTransformation struct {
+	ResultSubject            admission.Fragment
+	RuleRef, RuleRevision    string
+	ResultMarkingRefs        []string
+	DeclassificationBasisRef *string
+	Losses                   []map[string]string
+}
+type CrossingResolution struct {
+	Policy                                     admission.Fragment
+	Gates                                      CrossingGates
+	ReasonCode                                 string
+	RequiredOperation                          *string
+	RequiredSupportLevel                       string
+	AllowedDowngrades                          map[string]string
+	DowngradePolicyRef, DowngradeProvenanceRef *string
+	Transformation                             *CrossingTransformation
+	OpacityEnforcement                         admission.Fragment
+}
+type CrossingValidation struct {
+	KnownSubjects, Policies                    []admission.Fragment
+	KnownEvidenceRefs, KnownAuthorityBasisRefs []string
+	OpacityEnforcementSupports                 []admission.Fragment
+}
+type CrossingEvidence struct {
+	AudienceScopeRef                                                      string
+	RequiredEvidenceRefs, ProvenanceRefs, EvidenceRefs, ObjectMarkingRefs []string
+	AuthorizationScope                                                    string
+	LossAndLimitations                                                    []string
+}
+type ParticipantAudienceBinding struct{ ParticipantAddress, AudienceScopeRef string }
+type ViewEvidenceRequest struct {
+	Snapshot                                                      binding.RuntimeSnapshotV1
+	ParticipantAddress, EpisodeID, InteractionKind, ProjectionRef string
+	AudienceBinding                                               ParticipantAudienceBinding
+}
+type CrossingResolver interface {
+	Resolve(context.Context, CrossingIntent, binding.RuntimeSnapshotV1) (CrossingResolution, error)
+	ValidationContext(context.Context, binding.RuntimeSnapshotV1, string) (CrossingValidation, error)
+	ResolveParticipantViewEvidence(context.Context, ViewEvidenceRequest) (CrossingEvidence, error)
+}
+type CrossingCut struct {
+	Intent               CrossingIntent
+	Identity             Identity
+	NextSnapshot         binding.RuntimeSnapshotV1
+	ExpectedHistoryHeads map[string]*string
+	Record               provider.OperationRecord
+	Audit                provider.AuditEvent
+	Decision             *binding.ParticipantCrossingOccurrenceV1
+	Disposition          *string
+	GovernedSubject      admission.Fragment
+	ExistingReceipt      *binding.OperationReceiptV1
+}
+type FlowSinkRequest struct {
+	Snapshot                binding.RuntimeSnapshotV1
+	Intent                  CrossingIntent
+	Crossing                CrossingCut
+	SinkKind                string
+	ExpectedHistoryHeadRefs []string
+}
+type FlowSinkResolution struct {
+	Relation binding.ParticipantFlowControlRelationV1
+	Context  admission.FlowControlContext
+}
+type FlowSinkResolver interface {
+	ResolveFlowSinkDecision(context.Context, FlowSinkRequest) (FlowSinkResolution, error)
+}
+type ControlResolution struct {
+	Request                  admission.Fragment
+	Support                  []admission.Fragment
+	IncumbentGateDisposition string
+	IncumbentGateEvidence    admission.Fragment
+}
+type ControlResolver interface {
+	Resolve(context.Context, map[string]any) (*ControlResolution, error)
+	ValidationContext(context.Context, admission.Fragment) (admission.ControlResolutionContext, error)
+	EffectOperation(context.Context, admission.Fragment, admission.ControlResolutionContext) (*EffectOperation, error)
+}
+type EffectKind string
+
+const (
+	InjectEffect    EffectKind = "inject"
+	HandoffEffect   EffectKind = "handoff"
+	InterruptEffect EffectKind = "interrupt"
+)
+
+// This is owner input, not a command, dispatch grant or completed effect.
+type EffectOperation struct {
+	Kind               EffectKind
+	View               *binding.ParticipantStatusViewV1
+	Intent             admission.Fragment
+	CrossingEvidence   *CrossingEvidence
+	InjectApplication  *binding.ParticipantInjectApplicationV1
+	InjectRequest      *binding.InjectTriggerRequestV1
+	ParticipantAddress *string
+}
+type EffectRealization struct {
+	EffectID, Disposition, ReceiptRef string
+	Binding                           admission.Fragment
+}
+type ParticipantCancellationStatus struct {
+	ControlOperationID, OccurrenceRef, ControlDisposition                       string
+	TargetOperationID, BackendControlID, BackendDisposition, CancellationEffect *string
+	EvidenceRefs                                                                []string
+}
+type ControlResolverV2 interface {
+	ControlResolver
+	Projection(context.Context, admission.Fragment, string, []admission.Fragment) (admission.Fragment, error)
+}
+type ControlStageBinding struct {
+	UnavailableProjection            admission.Fragment
+	CommitOn, StatePredecessorSlotID *string
+}
+type ControlInstallation struct {
+	Selection       validation.Value
+	Providers       map[string]backend.ParticipantControlProvider
+	ProvidersV2     map[string]backend.ParticipantControlProviderV2
+	Resolver        ControlResolver
+	ResolverV2      ControlResolverV2
+	Stages          map[string]ControlStageBinding
+	ContractDigests map[string]string
+}
+type ParticipantControlBinding interface{ participantControlBinding() }
+
+func NewParticipantControlBinding(ControlInstallation) (ParticipantControlBinding, error)
+
+type LiveCut struct {
+	RequestRef                                                  string
+	EffectiveOrder                                              int64
+	ActiveAuthorityBasisRefs, AuthorizedScopeRefs, EvidenceRefs []string
+}
+type CutResolver interface {
+	ResolveCut(context.Context, admission.Fragment, admission.Fragment, binding.RuntimeSnapshotV1) (LiveCut, error)
+}
+type DeliveryCutResolver interface {
+	CutResolver
+	ResolveDeliveryCut(context.Context, admission.Fragment, binding.ParticipantInjectApplicationV1, binding.RuntimeSnapshotV1) (LiveCut, error)
+}
+type MixedControlBinding interface{ mixedControlBinding() }
+
+func NewMixedControlBinding(processor.RuntimeModel, CutResolver, []admission.Fragment) (MixedControlBinding, error)
+
+type InjectResolution struct {
+	Content  binding.ParticipantInjectDeliveryV1
+	Evidence admission.Fragment
+	Cut      LiveCut
+}
+type InjectDeliveryResolver interface {
+	ResolveDelivery(context.Context, admission.Fragment, binding.ParticipantInjectApplicationV1, binding.InjectOccurrenceCorrelationV1, binding.RuntimeSnapshotV1) (InjectResolution, error)
+}
+type InjectDeliveryBinding interface{ injectDeliveryBinding() }
+
+func NewInjectDeliveryBinding(processor.RuntimeModel, InjectDeliveryResolver) (InjectDeliveryBinding, error)
+
+type InjectAdmission struct {
+	Plan       binding.OrchestrationPlanV1
+	Occurrence binding.InjectOccurrenceV1
+}
+type ResolvedInjectOutcome struct {
+	Outcome  binding.InjectOccurrenceOutcomeV1
+	Manifest validation.Value
+	Contents map[string][]byte
+}
+type InjectExecutionResolver interface {
+	Admit(context.Context, binding.InjectTriggerRequestV1, provider.OperationAdmissionContext, string, int64, binding.RuntimeSnapshotV1) (InjectAdmission, error)
+	Revalidate(context.Context, binding.InjectOccurrenceV1, binding.RuntimeSnapshotV1) error
+	ResolveOutcome(context.Context, binding.InjectOccurrenceV1, binding.BackendOperationRequestV1, binding.BackendOperationResponseV1) (ResolvedInjectOutcome, error)
+}
+type Supervision struct {
+	Admission, Execution, Observation, Commit, Drain time.Duration
+	EffectCapacity, ControlCapacity, StoreCapacity   int
+}
+
+func DefaultSupervision() Supervision
+
+type Options struct {
+	RunScope                    string
+	Store                       provider.AtomicStore
+	Lease                       provider.OwnerLease
+	Clock                       clock.Clock
+	Execution                   execution.Adapter
+	Authority                   Authority
+	Profile                     profile.ID
+	InitialSnapshot             *binding.RuntimeSnapshotV1
+	Distributed                 execution.Dispatcher
+	Participants                ParticipantContexts
+	CrossingPolicy              CrossingResolver
+	FlowSink                    FlowSinkResolver
+	EnforceFinalSinkFlowControl *bool
+	ParticipantControl          ParticipantControlBinding
+	MixedControl                MixedControlBinding
+	InjectDelivery              InjectDeliveryBinding
+	InjectExecution             InjectExecutionResolver
+	Evidence                    result.EvidenceResolver
+	Materialization             admission.MaterializationExecutionContext
+	MaterializationInventory    admission.MaterializationInventoryContext
+	MaterializationArchive      admission.MaterializationArchiveContext
+	Supervision                 Supervision
+	StochasticControls          []admission.Fragment
+	RequiredOperationGuarantees []string
+}
+type PlanPhase string
+
+const (
+	Provisioning  PlanPhase = "provisioning"
+	Orchestration PlanPhase = "orchestration"
+	Evaluation    PlanPhase = "evaluation"
+)
+
+type RegisteredPlan interface {
+	Digest(PlanPhase) (string, error)
+	registeredPlan()
+}
+type Command interface{ operationCommand() }
+
+func PlanCommand(plan RegisteredPlan, phase PlanPhase, inventoryRefresh bool) (Command, error)
+
+type ParticipantCommandInput struct {
+	Action           runtimecontract.ParticipantActionRequest
+	Initialize       *runtimecontract.EpisodeInitializeRequest
+	Reset            *runtimecontract.EpisodeResetRequest
+	Restart          *runtimecontract.EpisodeRestartRequest
+	Terminate        *runtimecontract.EpisodeTerminateRequest
+	ExecutionControl *binding.ParticipantExecutionControlV1
+}
+
+func ParticipantCommand(input ParticipantCommandInput) (Command, error)
+
+type Request struct {
+	Command        Command
+	IdempotencyKey string
+	BaseSnapshot   *binding.RuntimeSnapshotV1
+}
+type ParticipantTransition struct {
+	ParticipantAddress   string
+	ExpectedHistoryHeads map[string]*string
+	Command              Command
+}
+type SupervisionAction string
+
+const (
+	Observe   SupervisionAction = "observe"
+	Cancel    SupervisionAction = "cancel"
+	Reconcile SupervisionAction = "reconcile"
+)
+
+type SupervisionRequest struct {
+	OperationID, ControlID string
+	Action                 SupervisionAction
+}
+type ResolutionDisposition string
+
+const AcceptCurrentSnapshot ResolutionDisposition = "accept-current-snapshot"
+
+type ResolutionRequest struct {
+	OperationID, IdempotencyKey string
+	Disposition                 ResolutionDisposition
+}
+type InjectCaptureResult struct {
+	SchemaVersion, Status string
+	Observation           map[string]any
+}
+type RunProgress struct {
+	ExecutionID, RunScope, State string
+	Phase                        int
+	OperationIDs                 []string
+}
+type RunContext interface {
+	ScopeRef() string
+	Control() ControlPlane
+	AdvancePlan(context.Context, Identity, planning.ExecutionPlan, string) (RunProgress, error)
+	runContext()
+}
+type SequenceOptions struct {
+	Kind, ScopeID, ExecutionID, WorkerID, StateQueue string
+	Plan                                             planning.ExecutionPlan
+	ActivityBudget, PollInterval                     time.Duration
+}
+type TrialUnitRequest struct {
+	Plan                                                   binding.AdmittedTrialPlanV1
+	PlanEntryID, ExecutionAttemptID, InstantiatedSDLDigest string
+	ProvisioningPlan                                       binding.ProvisioningPlanV1
+	OrchestrationPlan                                      binding.OrchestrationPlanV1
+	EvaluationPlan                                         binding.EvaluationPlanV1
+}
+
+func AdmitTrialUnitRequest(TrialUnitRequest) (TrialUnitRequest, error)
+func (request TrialUnitRequest) RunID() (string, error)
+func (request TrialUnitRequest) ParticipantConfigurations() ([]binding.ParticipantConfigurationResultV1, error)
+func (request TrialUnitRequest) ExecutionControls() (admission.Fragment, error)
+func (request TrialUnitRequest) CleanupPlan() (binding.TrialCleanupPlanV1, error)
+
+type TrialUnitResult struct {
+	OperationReceipts []binding.OperationReceiptV1
+	ExecutionSnapshot binding.RuntimeSnapshotV1
+	Evidence          []binding.ExperimentEvidenceRecordV1
+	CleanupReceipt    binding.TrialCleanupReceiptV1
+	CleanupEvidence   []binding.ExperimentEvidenceRecordV1
+}
+type TrialObservation interface{ trialObservation() }
+type TrialConfigurationObservation struct {
+	Configurations []binding.ParticipantConfigurationResultV1
+	Evidence       []binding.ExperimentEvidenceRecordV1
+}
+
+func (TrialConfigurationObservation) trialObservation()
+
+type TrialExecutionObservation struct {
+	State                 string
+	Ceased, EffectsAbsent bool
+	Evidence              []binding.ExperimentEvidenceRecordV1
+}
+
+func (TrialExecutionObservation) trialObservation()
+
+type TrialCaptureObservation struct {
+	Complete bool
+	Evidence []binding.ExperimentEvidenceRecordV1
+}
+
+func (TrialCaptureObservation) trialObservation()
+
+type TrialCleanupObservation struct {
+	Receipt               binding.TrialCleanupReceiptV1
+	Evidence              []binding.ExperimentEvidenceRecordV1
+	IdempotentEffects     bool
+	VerifiedCompensations []string
+}
+
+func (TrialCleanupObservation) trialObservation()
+
+type TrialRetryObservation struct {
+	Ready                 bool
+	ObligationResults     map[string]admission.Fragment
+	VerifiedCompensations []string
+	Evidence              []binding.ExperimentEvidenceRecordV1
+}
+
+func (TrialRetryObservation) trialObservation()
+
+type TrialRuntimeServices interface {
+	Admit(context.Context, TrialUnitRequest) error
+	Configure(context.Context, TrialUnitRequest, binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, TrialConfigurationObservation, error)
+	Observe(context.Context, TrialUnitRequest, binding.RuntimeSnapshotV1) (TrialExecutionObservation, error)
+	Capture(context.Context, TrialUnitRequest, binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, TrialCaptureObservation, error)
+	Cleanup(context.Context, TrialUnitRequest, string, binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, TrialCleanupObservation, error)
+	Stop(context.Context, TrialUnitRequest, string, binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Verify(context.Context, TrialUnitRequest, TrialObservation) error
+}
+type RetryTrialRuntimeServices interface {
+	TrialRuntimeServices
+	PrepareRetry(context.Context, TrialUnitRequest, binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, TrialRetryObservation, error)
+}
+type TrialArchiveOwner interface {
+	BuildRun(context.Context, TrialUnitRequest, trial.Realization, []TrialUnitResult) (binding.ExperimentRunV1, error)
+	WriteRun(context.Context, binding.ExperimentRunV1) error
+	ReadRun(context.Context, string, string) (binding.ExperimentRunV1, error)
+}
+type ExperimentReplacement struct {
+	CompilationRequest trial.Request
+	Archive            TrialArchiveOwner
+}
+type ExperimentRequest struct {
+	Inputs       trial.RealizationInputs
+	Services     TrialRuntimeServices
+	StoreFactory func(context.Context, string) (provider.AtomicStore, error)
+	Replacement  *ExperimentReplacement
+}
+type ExperimentProgress struct {
+	ExperimentID, State             string
+	PlanEntryID, ExecutionAttemptID *string
+}
+type ControlPlane interface {
+	RegisterPlannerProducedPlan(context.Context, planning.ExecutionPlan) (RegisteredPlan, error)
+	MixedControlPlanningAdmission(context.Context) (planning.MixedControlAdmission, error)
+	WorkerAuthority(context.Context, Identity) (execution.WorkerAuthority, error)
+	IsPlannerAuthorized(context.Context, RegisteredPlan, PlanPhase) (bool, error)
+	Submit(context.Context, Identity, Request) (binding.OperationReceiptV1, error)
+	SubmitInject(context.Context, Identity, binding.InjectTriggerRequestV1) (binding.OperationReceiptV1, error)
+	DeliverParticipantInject(context.Context, Identity, binding.ParticipantInjectApplicationV1) (binding.ParticipantInjectDeliveryReceiptV1, error)
+	InjectOccurrence(context.Context, Identity, string) (*binding.InjectOccurrenceV1, error)
+	InjectOutcome(context.Context, Identity, string) (*binding.InjectOccurrenceOutcomeV1, error)
+	InjectCorrelation(context.Context, Identity, string) (*binding.InjectOccurrenceCorrelationV1, error)
+	InjectResult(context.Context, Identity, string) (*binding.AssociatedArtifactManifestV1, error)
+	InjectArtifact(context.Context, Identity, string, string) ([]byte, bool, error)
+	InjectDelivery(context.Context, Identity, string) (*binding.ParticipantInjectDeliveryV1, error)
+	InjectCapture(context.Context, Identity, string) (*InjectCaptureResult, error)
+	DeliverParticipantDirectedView(context.Context, Identity, string, binding.ParticipantStatusViewV1, *CrossingEvidence, string) (binding.ParticipantStatusViewV1, error)
+	RecordParticipantControl(context.Context, Identity, string, admission.Fragment, *CrossingEvidence, string) (binding.OperationReceiptV1, error)
+	DispatchParticipantControlEffects(context.Context, Identity, string) ([]EffectRealization, error)
+	DispatchParticipantCancellation(context.Context, Identity, string) (ParticipantCancellationStatus, error)
+	ParticipantCancellationStatus(context.Context, Identity, string) (ParticipantCancellationStatus, error)
+	SuperviseOperation(context.Context, Identity, SupervisionRequest) (binding.BackendOperationControlV1, error)
+	SubmitOperationControl(context.Context, Identity, binding.BackendOperationControlV1) (binding.BackendOperationControlV1, error)
+	ControlResponse(context.Context, Identity, string, string) (*binding.BackendOperationResponseV1, error)
+	StopAdmission(context.Context, Identity) error
+	ResolveIndeterminateOperation(context.Context, Identity, ResolutionRequest) (binding.OperationReceiptV1, error)
+	OpenRun(context.Context, Identity, Options) (RunContext, error)
+	Run(context.Context, Identity, string) (RunContext, error)
+	RetireRun(context.Context, Identity, string) error
+	AdmitExperiment(context.Context, Identity, ExperimentRequest) (string, error)
+	AdvanceExperiment(context.Context, Identity, string) (ExperimentProgress, error)
+	CancelExperiment(context.Context, Identity, string) error
+	ExperimentResults(context.Context, Identity, string) ([]TrialUnitResult, error)
+	BindSequence(context.Context, Identity, SequenceOptions) (execution.RuntimeSequenceReference, error)
+	AdvanceSequence(context.Context, Identity, execution.RuntimeSequenceReference) (string, error)
+	Operation(context.Context, Identity, string) (binding.OperationStatusV1, error)
+	Snapshot(context.Context, Identity) (provider.SnapshotState, error)
+	TransitionParticipant(context.Context, Identity, ParticipantTransition) (binding.OperationReceiptV1, error)
+	Audit(context.Context, Identity) ([]provider.AuditEvent, error)
+	Close() error
+}
+
+func New(target Target, options Options) (ControlPlane, error)

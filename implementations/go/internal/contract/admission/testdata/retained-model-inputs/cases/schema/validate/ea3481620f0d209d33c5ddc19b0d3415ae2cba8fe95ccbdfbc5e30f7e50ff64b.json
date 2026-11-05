@@ -1,0 +1,14 @@
+{
+  "args": [
+    "uco-alignment-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:660660ed4861708eb63c20393f0509930842a0b04c9a5368de22dba96a0dfb58"
+  },
+  "name": "regression/7daa29b946ae07382ccce612529bea14cf4be3f7e6ad397435f142838c4ba3cc",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

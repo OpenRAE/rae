@@ -106,6 +106,22 @@ here come from mature workflow and distributed-runtime systems:
 
 ## Package boundary
 
+The [Go consumer API](../../decisions/issue-1825-public-go-api.md) fixes the planned public packages for the repository split.
+RAE retains SDL, compilation and planning.
+It also owns contract bindings and admission, portable backend interfaces and pure checks.
+The future runtime module owns `runtime/control` and `runtime/provider`.
+It also owns `runtime/execution`, `runtime/temporal`, `runtime/result` and the existing profile declarations in `runtime/profile`.
+It imports released public RAE packages; RAE product code and `raes-mcp` never import runtime.
+Coldlight and LilRAE embed the shared control plane through those interfaces.
+Environment packs uses RAE's authoring and contract operations without requiring live execution.
+
+Published snapshot, receipt and materialization DTOs retain their RAE type identity.
+Runtime result enforcement adds its live context checks through `runtime/result.AdmitResult`.
+Runtime alone publishes the combined `raes` command, using RAE's `command/authoring.Commands` composition surface.
+RAE alone publishes `raes-mcp`.
+These packages remain planned until their port and extraction issues deliver them.
+The split preserves ADR-104 and ADR-113 behavior; P3 coordinated service remains a nonclaim.
+
 RAE is the shared product runtime driving the backends; backend ownership of
 concrete realization does not imply a separate scenario runtime per backend.
 The [operation supervision decision](../../decisions/issue-1348-operation-lifecycle.md)

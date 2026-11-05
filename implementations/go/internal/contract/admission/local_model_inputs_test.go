@@ -120,7 +120,7 @@ func retainedModelInput(t *testing.T, c localModelInputCase) []byte {
 		Args  []string          `json:"args"`
 		Files map[string]string `json:"files"`
 	}
-	readFullReferenceJSON(t, "../../parity/testdata/"+c.CaseFile, &original)
+	readFullReferenceJSON(t, "testdata/retained-model-inputs/"+c.CaseFile, &original)
 	if len(original.Args) != 1 || original.Args[0] != c.Contract || original.Files["payload.json"] != "sha256:"+c.InputSHA {
 		t.Fatal("model input differs from its original corpus case")
 	}
@@ -135,14 +135,16 @@ func retainedModelInput(t *testing.T, c localModelInputCase) []byte {
 
 var sharedRetainedModelBytes sync.Map //nolint:gochecknoglobals // Immutable independently recorded baseline bytes; return copies while inflating each retained blob once across parallel reference groups.
 
-// The parity package imports admission, so an in-package model-stage test
-// cannot import its loader. This bounded fixture reader uses the same v2 format.
+// Keep independently recorded model inputs with their owner: parity snapshots
+// can be regenerated without changing these baselines. This reader retains
+// the original bounded v2 format; parity imports admission, so its loader
+// cannot be imported by an in-package test.
 func retainedParityBlob(t *testing.T, identity string) []byte {
 	t.Helper()
 	if decoded, err := hex.DecodeString(identity); err != nil || len(decoded) != 32 || strings.ToLower(identity) != identity {
 		t.Fatal("invalid retained blob identity")
 	}
-	root := "../../parity/testdata/"
+	root := "testdata/retained-model-inputs/"
 	data, err := fs.ReadFile(os.DirFS(root), "inputs/"+identity)
 	if err != nil {
 		t.Fatal(err)

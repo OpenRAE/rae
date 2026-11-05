@@ -1,0 +1,30 @@
+package concept
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+)
+
+type Subject struct{ SubjectKind, OwningContractID, LifecyclePhase, CanonicalRef, ArtifactDigest string }
+type SnapshotTerm struct {
+	ConceptID, Status   string
+	SuccessorConceptIDs []string
+}
+type SchemeSnapshot struct {
+	SchemeID, Authority, Revision, SourceLocator, SourceDigest string
+	Concepts                                                   []SnapshotTerm
+}
+type BindingResolution struct {
+	BindingID, Outcome string
+	Active             bool
+	ResolvedConceptID  *string
+	Diagnostics        []diagnostic.Diagnostic
+}
+type ResolutionOutcome struct {
+	BindingSetID string
+	Results      []BindingResolution
+}
+
+func (result ResolutionOutcome) Admitted() bool
+func AdmitBindings(subjects []Subject, bindings binding.ExternalConceptBindingsV1, snapshots []SchemeSnapshot) (ResolutionOutcome, error)
+func Vocabulary(name string) (map[string]any, error)

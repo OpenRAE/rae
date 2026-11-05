@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-operation-capabilities-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:b2b75b1196f637c85df7aff09d27d59b1a912afb1928f237713526d3ca79ddaf"
+  },
+  "name": "backend-operation-capabilities-v1/routed/contracts/fixtures/control-plane/backend-operation-capabilities-v1/valid/mixed-bridge.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

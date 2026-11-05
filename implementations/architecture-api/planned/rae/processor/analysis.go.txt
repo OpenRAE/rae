@@ -1,0 +1,18 @@
+package analysis
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/processor"
+)
+
+type Request struct {
+	Kind        string
+	Compilation processor.Compilation
+	Options     map[string]any
+}
+type Result struct {
+	Document    map[string]any
+	Diagnostics []diagnostic.Diagnostic
+}
+
+func Analyze(request Request) (Result, error)
