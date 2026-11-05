@@ -107,3 +107,15 @@ records:
     notice_window: "Removal eligibility is an independently released, working backend distribution (LilRAE 8.1.0, pinned to the released RAES 6.0.1). The removal ships as a breaking change in the release after RAES 7.0.0. The libvirt backend has no successor; RAES 7.0.0 stays available for operators who must clean up its native resources."
     verification_evidence: "test_corpus_packaging.py builds the wheel and sdist and asserts that no concrete backend package or command ships, that `raes --help` works, and that the removed imports do not resolve from an installed wheel."
     removal_record: "Issue #967 removes the packages, commands, CI container lanes, and backend-only tooling in one change. Published schemas, contract fixtures, realization envelopes, and portable runtime contracts are unchanged."
+
+  # Milestone 74 replaces the Python implementation with Go in one cutover. A
+  # release must carry this notice before the cutover removes the distribution.
+  - id: python-distribution-go-cutover
+    surface_class: python-distribution
+    identifier: "the `raes` PyPI distribution (`implementations/python/pyproject.toml`), including the Python import API of its `raes` and `raes_*` packages and the Python implementation of the `raes` and `raes-mcp` commands"
+    status: deprecated
+    first_notice: "Issue #1777 (milestone 74, Go port and hard cutover); the first `raes` release after 10.2.0 carries this notice"
+    replacement: "The Go release of the `raes` command, the `raes-mcp` server, and the control-plane HTTP API, with the same machine-readable behavior and published contracts. The Python import API has no replacement."
+    migration_reference: "docs/migration/go-cutover.md"
+    notice_window: "Removal is eligible after one `raes` release carries this notice (maintainer decision, 2026-10-31). The milestone 74 cutover removes the distribution."
+    verification_evidence: "Until the cutover, `implementations/python/pyproject.toml` and the release workflow publish the `raes` distribution with its `raes` and `raes-mcp` entry points. test_corpus_packaging.py builds and installs the wheel and runs the installed `raes` entry point."
