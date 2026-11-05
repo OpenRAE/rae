@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-correlation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:bf9294e3552e4c311277703921267e95b863de6151c9f01c327f26e07b50646a"
+  },
+  "name": "inject-occurrence-correlation-v1/routed/contracts/fixtures/control-plane/inject-occurrence-correlation-v1/valid/participant-free-environment.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

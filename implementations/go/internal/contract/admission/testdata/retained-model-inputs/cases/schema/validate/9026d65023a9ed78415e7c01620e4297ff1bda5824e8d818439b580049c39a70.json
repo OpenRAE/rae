@@ -1,0 +1,14 @@
+{
+  "args": [
+    "time-model-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c3972330b56a760431c981b506e7e9e3252c60db486271e3ce631529a0121a33"
+  },
+  "name": "regression/5dfe2b07c1de0d0e53eb7fb5ee2cb742d90911bd6bc0adfb0261a51fa253e21b",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

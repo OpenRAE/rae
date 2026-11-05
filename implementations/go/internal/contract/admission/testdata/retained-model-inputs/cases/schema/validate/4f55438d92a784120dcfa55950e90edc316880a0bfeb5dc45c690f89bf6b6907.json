@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-transformation-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:6b25290aae8b7aa94da1249d4294bebd556d6232e76769c7f6b4b37eac4e6997"
+  },
+  "name": "regression/3d7f1bced28c4cb530782abf167936a5df570d666a8fd92eed89ffb8c1e0a424",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

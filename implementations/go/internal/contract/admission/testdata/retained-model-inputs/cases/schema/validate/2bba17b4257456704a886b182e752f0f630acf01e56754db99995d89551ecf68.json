@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-apparatus-context-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7934cce53a68e45fd70a50293ff5daef99b53c40c21ea86b662c8b687d1aff88"
+  },
+  "name": "regression/3cd268078d6f2e10698b895874baaec3b4649df5444f409d823adad8fd251527",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

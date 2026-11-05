@@ -1,0 +1,14 @@
+{
+  "args": [
+    "nist-csf-defensive-categories-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:82c7cbf0562dd63d532b65b92c477511485c047b0b3e9fc534c197f466c49a39"
+  },
+  "name": "regression/d9ebaa640a6108a720c0c77ad9a7b6737168d0b8e667f6511cc77031070d701f",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

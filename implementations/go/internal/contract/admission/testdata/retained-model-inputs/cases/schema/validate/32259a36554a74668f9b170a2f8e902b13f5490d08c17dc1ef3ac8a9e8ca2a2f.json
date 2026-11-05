@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-behavior-history-event-stream-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c73cb1a41a96db39d6bfd14c42da5d7df18a243f7c38f9ee636479f97ac500d0"
+  },
+  "name": "regression/b18d81a31d4c0854feb4a9b5c9cd56e82f9f92254bcff3afe41af8b14e070d9e",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

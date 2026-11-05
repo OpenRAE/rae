@@ -182,6 +182,9 @@ The existing go-architecture CI job checks documentation and code changes.
 Before running the architecture checker or its consumer API tests, run `go -C implementations/go mod download`.
 This prepares the pinned product dependencies for offline type inspection.
 The tooling test job and architecture job run this preparation before their checks.
+Contract admission's independent model tests retain their recorded inputs in `admission/testdata/retained-model-inputs`.
+Parity corpus refreshes preserve these original test baselines.
+Product CI decodes and scans this retained store before running its Go tests.
 
 <!-- go-view -->
 

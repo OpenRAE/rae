@@ -615,6 +615,14 @@ jobs:
       - name: Prepare pinned product dependencies for offline consumer API tests
         if: matrix.name == 'tooling'
         run: go -C implementations/go mod download
+      - name: Scan decoded independent model fixtures
+        if: matrix.name == 'product'
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.parity_storage unpack implementations/go/internal/contract/admission/testdata/retained-model-inputs \
+            --output "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.parity_storage scan "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |

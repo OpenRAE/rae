@@ -1,0 +1,14 @@
+{
+  "args": [
+    "authoring-adapter-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:36a0c9e18566c0dae636c7d1b2c97178be342544d80c156a7f8482af09aa7580"
+  },
+  "name": "authoring-adapter-vector-v1/routed/contracts/fixtures/authoring-adapters-v1/cases/declaration-difference.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
