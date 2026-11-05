@@ -922,6 +922,7 @@ variables:
 nodes:
   host:
     type: compute
+    os: linux
     runtime:
       software_components:
         - component_id: controller

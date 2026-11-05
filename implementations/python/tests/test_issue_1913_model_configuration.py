@@ -12,8 +12,9 @@ from raes.instantiate import instantiate_scenario
 from raes.scenario import InstantiatedScenario
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import LiteralBindingValueModel
+from raes_contracts.realization_structure import evaluate_realization_constraint
 from raes_processor.compiler import compile_runtime_model
-from raes_processor.planner import plan
+from raes_processor.semantics.realization_concerns import project_realization_concern
 from raes_processor.trial_compiler import compile_admitted_trial_plan
 from raes_processor.trial_realization import instantiate_admitted_trial_entry
 from test_issue_1200_mixed_runtime_constraints import _apply, _fixture
@@ -33,7 +34,9 @@ def _source(**values):
             "default": "closed",
             "scopes": [{"field_pointer": "/nodes/host/runtime/software_components", "posture": "open"}],
         },
-        "nodes": {"host": {"type": "compute", "runtime": {"software_components": [_component(**values)]}}},
+        "nodes": {
+            "host": {"type": "compute", "os": "linux", "runtime": {"software_components": [_component(**values)]}}
+        },
     }
 
 
@@ -115,36 +118,29 @@ def test_admitted_trial_plan_retains_each_selected_model():
     assert models == set(MODELS)
 
 
-def _execution(concrete):
-    _, _, manifest = _fixture({"software_components": [_component()]}, scope="/nodes/host/runtime/software_components")
-    execution = plan(compile_runtime_model(concrete), manifest)
-    assert execution.is_valid, execution.diagnostics
-    return execution.provisioning, manifest
+def _model_satisfied(concrete, **values):
+    kind = "runtime-software-components"
+    compiled = compile_runtime_model(concrete)
+    requirement = next(item for item in compiled.realization_requirements if item.requirement_kind == kind)
+    assert requirement.constraint_document is not None
+    projected = project_realization_concern(kind, [_component(**values)], recursive=True)
+    return evaluate_realization_constraint(requirement.constraint_document, projected).status.value == "conformant"
 
 
 def test_constrained_model_parameter_retains_its_finite_domain():
     source = _source(model="${model_choice}")
     source["variables"] = {"model_choice": {"type": "string", "allowed_values": list(MODELS), "required": True}}
     concrete = instantiate_scenario(parse_sdl(json.dumps(source)), parameters={"model_choice": MODELS[0]})
-    request, manifest = _execution(concrete)
-    assert _apply(request, manifest, {"software_components": [_component(model=MODELS[1])]}, observe=False).success
-    assert not _apply(
-        request, manifest, {"software_components": [_component(model="outside-domain")]}, observe=False
-    ).success
+    assert _model_satisfied(concrete, model=MODELS[1])
+    assert not _model_satisfied(concrete, model="outside-domain")
 
 
 def test_selected_model_factor_cannot_be_substituted():
     selected = select_scenario_family(
         _family(), {"model-choice": LiteralBindingValueModel(kind="literal", value=MODELS[0])}
     )
-    request, manifest = _execution(selected)
-    assert _apply(
-        request,
-        manifest,
-        {"software_components": [_component(model=MODELS[0], version="backend-choice")]},
-        observe=False,
-    ).success
-    assert not _apply(request, manifest, {"software_components": [_component(model=MODELS[1])]}, observe=False).success
+    assert _model_satisfied(selected, model=MODELS[0], version="backend-choice")
+    assert not _model_satisfied(selected, model=MODELS[1])
 
 
 def test_model_variation_rejects_an_undeclared_choice():
@@ -166,8 +162,7 @@ def test_model_configuration_schema_and_absence():
         concrete = instantiate_scenario(parse_sdl(json.dumps(absent)))
         assert concrete.nodes["host"].runtime.software_components[0].model is None
         assert "model" not in concrete.model_dump(mode="json")["nodes"]["host"]["runtime"]["software_components"][0]
-        request, manifest = _execution(concrete)
-        assert _apply(request, manifest, {"software_components": [_component(model=MODELS[1])]}, observe=False).success
+        assert _model_satisfied(concrete, model=MODELS[1])
 
 
 @pytest.mark.parametrize(
