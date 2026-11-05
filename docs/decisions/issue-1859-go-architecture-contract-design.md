@@ -130,7 +130,7 @@ Review each interface change before changing its digest.
 <!-- go-api implementations/go/internal/base/randstream 06452bf0a8d69c8ea109834dd58e24ddd3fc65a94598a720eb6a947cf421930a -->
 <!-- go-api implementations/go/internal/base/urisafety a31c041a65c2eac38a9e7568935516a08e94d536f628a673e2d5b725ba6ef836 -->
 <!-- go-api implementations/go/internal/parity e0db1d9b34d0312c792ed380c20d67bbf2052b81672ad290edeb3339c247cfdf -->
-<!-- go-api implementations/tooling/go/arch e9cbfd3477f836e3fae0b38882b78808fdf07c33f0496b2a9f793c65cf2dba05 -->
+<!-- go-api implementations/tooling/go/arch a7b1d8fd4981c702fd745f53dc3beee6c70a1340dd3228a8d4109d3c3e926a5a -->
 <!-- go-api implementations/tooling/go/cmd/archcheck dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 <!-- go-api implementations/tooling/go/cmd/raesvet dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 <!-- go-api implementations/tooling/go/cmd/regressiontest dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->

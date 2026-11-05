@@ -28,6 +28,7 @@ const Schema = "raes-go-architecture/v2"
 // Model is the machine-readable architecture of the repository's Go code.
 // Each directory in it is relative to the repository root.
 type Model struct {
+	ConsumerAPI    *ConsumerAPI      `json:"consumer_api,omitempty"`
 	Configurations []Configuration   `json:"configurations"`
 	Overview       string            `json:"overview"`
 	Sources        map[string]string `json:"sources"`
@@ -35,6 +36,42 @@ type Model struct {
 	Modules        []Module          `json:"modules"`
 	Layers         []Layer           `json:"layers"`
 	Packages       []Package         `json:"packages"`
+}
+
+// ConsumerAPI declares future public imports without claiming implemented packages.
+type ConsumerAPI struct {
+	Design   string            `json:"design"`
+	Modules  []ConsumerModule  `json:"modules"`
+	Packages []ConsumerPackage `json:"packages"`
+	Commands []ConsumerCommand `json:"commands"`
+}
+
+// ConsumerCommand names the sole publisher and public dependencies of a binary.
+type ConsumerCommand struct {
+	Name       string   `json:"name"`
+	Owner      string   `json:"owner"`
+	EntryPoint string   `json:"entrypoint"`
+	Uses       []string `json:"uses"`
+}
+
+// ConsumerModule identifies a repository owner. An empty module is pending approval.
+type ConsumerModule struct {
+	Owner      string `json:"owner"`
+	Repository string `json:"repository"`
+	Module     string `json:"module"`
+}
+
+// ConsumerPackage commits a public path, operations, dependencies and delivery owners.
+// Uses names packages as owner:path; Existing names a package awaiting relocation.
+type ConsumerPackage struct {
+	Owner     string   `json:"owner"`
+	Path      string   `json:"path"`
+	Layer     string   `json:"layer"`
+	Symbols   []string `json:"symbols"`
+	Uses      []string `json:"uses"`
+	Issues    []int    `json:"issues"`
+	Consumers []string `json:"consumers"`
+	Existing  string   `json:"existing,omitempty"`
 }
 
 // Module is a Go module: the directory that holds its go.mod, and its module path.
@@ -124,7 +161,7 @@ func Load(fsys fs.FS, name string) (*Model, error) {
 // CheckDesign checks the rules that the model must meet on its own, before any
 // code exists.
 func (m *Model) CheckDesign() []Finding {
-	return slices.Concat(m.checkModules(), m.checkLayers(), m.checkExternal(), m.checkPackages(), m.checkImports(), m.checkPackageCycles(), m.checkAPIShape())
+	return slices.Concat(m.checkModules(), m.checkLayers(), m.checkExternal(), m.checkPackages(), m.checkImports(), m.checkPackageCycles(), m.checkAPIShape(), m.checkConsumerAPI())
 }
 
 func (m *Model) checkModules() []Finding {

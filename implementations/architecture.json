@@ -859,11 +859,15 @@
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.API constraints[] map[string]map[string][]string comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Code constraints[] struct{Modules map[string]string \"\" embedded=false; Packages map[string]github.com/OpenRAE/rae/implementations/tooling/go/arch.Imports \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Configuration constraints[] struct{ID string \"json:\\\"id\\\"\" embedded=false; GOOS string \"json:\\\"goos\\\"\" embedded=false; GOARCH string \"json:\\\"goarch\\\"\" embedded=false; Tags []string \"json:\\\"tags\\\"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerAPI constraints[] struct{Design string \"json:\\\"design\\\"\" embedded=false; Modules []github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerModule \"json:\\\"modules\\\"\" embedded=false; Packages []github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerPackage \"json:\\\"packages\\\"\" embedded=false; Commands []github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerCommand \"json:\\\"commands\\\"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerCommand constraints[] struct{Name string \"json:\\\"name\\\"\" embedded=false; Owner string \"json:\\\"owner\\\"\" embedded=false; EntryPoint string \"json:\\\"entrypoint\\\"\" embedded=false; Uses []string \"json:\\\"uses\\\"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerModule constraints[] struct{Owner string \"json:\\\"owner\\\"\" embedded=false; Repository string \"json:\\\"repository\\\"\" embedded=false; Module string \"json:\\\"module\\\"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerPackage constraints[] struct{Owner string \"json:\\\"owner\\\"\" embedded=false; Path string \"json:\\\"path\\\"\" embedded=false; Layer string \"json:\\\"layer\\\"\" embedded=false; Symbols []string \"json:\\\"symbols\\\"\" embedded=false; Uses []string \"json:\\\"uses\\\"\" embedded=false; Issues []int \"json:\\\"issues\\\"\" embedded=false; Consumers []string \"json:\\\"consumers\\\"\" embedded=false; Existing string \"json:\\\"existing,omitempty\\\"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.External constraints[] struct{Path string \"json:\\\"path\\\"\" embedded=false; Reason string \"json:\\\"reason\\\"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Finding constraints[] struct{Rule string \"\" embedded=false; Location string \"\" embedded=false; Problem string \"\" embedded=false; Fix string \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Imports constraints[] struct{Code []string \"\" embedded=false; Test []string \"\" embedded=false; External []string \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Layer constraints[] struct{Name string \"json:\\\"name\\\"\" embedded=false; Dir string \"json:\\\"dir\\\"\" embedded=false; Doc string \"json:\\\"doc\\\"\" embedded=false; Uses []string \"json:\\\"uses\\\"\" embedded=false; External []github.com/OpenRAE/rae/implementations/tooling/go/arch.External \"json:\\\"external\\\"\" embedded=false} unexported-fields=false comparable=false",
-          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Model constraints[] struct{Configurations []github.com/OpenRAE/rae/implementations/tooling/go/arch.Configuration \"json:\\\"configurations\\\"\" embedded=false; Overview string \"json:\\\"overview\\\"\" embedded=false; Sources map[string]string \"json:\\\"sources\\\"\" embedded=false; Schema string \"json:\\\"schema\\\"\" embedded=false; Modules []github.com/OpenRAE/rae/implementations/tooling/go/arch.Module \"json:\\\"modules\\\"\" embedded=false; Layers []github.com/OpenRAE/rae/implementations/tooling/go/arch.Layer \"json:\\\"layers\\\"\" embedded=false; Packages []github.com/OpenRAE/rae/implementations/tooling/go/arch.Package \"json:\\\"packages\\\"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Model constraints[] struct{ConsumerAPI *github.com/OpenRAE/rae/implementations/tooling/go/arch.ConsumerAPI \"json:\\\"consumer_api,omitempty\\\"\" embedded=false; Configurations []github.com/OpenRAE/rae/implementations/tooling/go/arch.Configuration \"json:\\\"configurations\\\"\" embedded=false; Overview string \"json:\\\"overview\\\"\" embedded=false; Sources map[string]string \"json:\\\"sources\\\"\" embedded=false; Schema string \"json:\\\"schema\\\"\" embedded=false; Modules []github.com/OpenRAE/rae/implementations/tooling/go/arch.Module \"json:\\\"modules\\\"\" embedded=false; Layers []github.com/OpenRAE/rae/implementations/tooling/go/arch.Layer \"json:\\\"layers\\\"\" embedded=false; Packages []github.com/OpenRAE/rae/implementations/tooling/go/arch.Package \"json:\\\"packages\\\"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Module constraints[] struct{Dir string \"json:\\\"dir\\\"\" embedded=false; Path string \"json:\\\"path\\\"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/tooling/go/arch.Package constraints[] struct{Design string \"json:\\\"design\\\"\" embedded=false; API map[string][]string \"json:\\\"api\\\"\" embedded=false; APIFiles map[string][]string \"json:\\\"api_files,omitempty\\\"\" embedded=false; Dir string \"json:\\\"dir\\\"\" embedded=false; Layer string \"json:\\\"layer\\\"\" embedded=false; Public bool \"json:\\\"public\\\"\" embedded=false; Doc string \"json:\\\"doc\\\"\" embedded=false; Imports []string \"json:\\\"imports\\\"\" embedded=false} unexported-fields=false comparable=false",
           "type io/fs.FS constraints[] interface{Open(name string) (io/fs.File, error)} comparable=true",
@@ -5182,13 +5186,694 @@
     "docs/decisions/issue-1779-ingress-design.md": "21fe1ede3a371941bd13605037cf6e378a6f442d9622dbc9fa716e952cbad281",
     "docs/decisions/issue-1779-random-streams-design.md": "dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b",
     "docs/decisions/issue-1778-parity-corpus-design.md": "c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830",
-    "docs/decisions/issue-1859-go-architecture-contract-design.md": "ed0f2251cdbfb59c3a7806b71f58df17278b4873d73afad42c41cfe003d18fcb",
+    "docs/decisions/issue-1859-go-architecture-contract-design.md": "b511f5eb9e6649e49297ea43be696a8263b443b8ea22fa3f4f7e1f29c370f249",
     "contracts/schemas/experiment-core/materialization-archive-record-v1.json": "fb61b1d9bb70ffedf7fec94325c3751a29ef7db7f6e8bea8fc96c064d101ba90",
     "docs/decisions/adrs/adr-122-go-architecture-model.md": "bb34edd9eb80bb56645ef57f4f48eb3113ac02e95b7af696f32de3bdb8d11fa6",
     "docs/decisions/issue-1775-go-architecture-model-design.md": "d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8",
     "docs/decisions/issue-1779-shared-primitives-completion.md": "6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e",
     "docs/decisions/issue-1780-contract-validation-design.md": "ed1ba1a0d0cc07b995cacd8407799152bac9b09b1b43670d4e08ea62ad6c4aec",
     "docs/decisions/issue-1891-runtime-repository-boundary.md": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406",
-    "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa"
+    "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa",
+    "docs/decisions/issue-1825-public-go-api.md": "c04e22c6013dedea0333fd07bcf52992b52d933684298ba55ed884a51ed4c5e7"
+  },
+  "consumer_api": {
+    "design": "docs/decisions/issue-1825-public-go-api.md",
+    "modules": [
+      {
+        "owner": "rae",
+        "repository": "OpenRAE/rae",
+        "module": "github.com/OpenRAE/rae/implementations/go"
+      },
+      {
+        "owner": "runtime",
+        "repository": "",
+        "module": ""
+      }
+    ],
+    "packages": [
+      {
+        "owner": "rae",
+        "path": "base/fault",
+        "layer": "base",
+        "symbols": [
+          "Error",
+          "Category",
+          "CategoryOf",
+          "New"
+        ],
+        "uses": [],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/base/fault"
+      },
+      {
+        "owner": "rae",
+        "path": "base/ingress",
+        "layer": "base",
+        "symbols": [
+          "Limits",
+          "Parse"
+        ],
+        "uses": [
+          "rae:base/fault"
+        ],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/base/ingress"
+      },
+      {
+        "owner": "rae",
+        "path": "base/canonjson",
+        "layer": "base",
+        "symbols": [
+          "JCS",
+          "Sorted"
+        ],
+        "uses": [
+          "rae:base/fault"
+        ],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/base/canonjson"
+      },
+      {
+        "owner": "rae",
+        "path": "base/digest",
+        "layer": "base",
+        "symbols": [
+          "SHA256",
+          "NewChecksum"
+        ],
+        "uses": [],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/base/digest"
+      },
+      {
+        "owner": "rae",
+        "path": "base/address",
+        "layer": "base",
+        "symbols": [
+          "Valid",
+          "Render",
+          "PlanRoot"
+        ],
+        "uses": [
+          "rae:base/fault"
+        ],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/base/address"
+      },
+      {
+        "owner": "rae",
+        "path": "base/clock",
+        "layer": "base",
+        "symbols": [
+          "Clock",
+          "Read",
+          "System"
+        ],
+        "uses": [],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/base/clock"
+      },
+      {
+        "owner": "rae",
+        "path": "contract/binding",
+        "layer": "contract",
+        "symbols": [
+          "Field",
+          "MaterializationArchiveRecordV1",
+          "RuntimeSnapshotV1",
+          "BackendManifestV2",
+          "AdmittedTrialPlanV1"
+        ],
+        "uses": [],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "coldlight",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/contract/binding"
+      },
+      {
+        "owner": "rae",
+        "path": "contract/validation",
+        "layer": "contract",
+        "symbols": [
+          "New",
+          "Validator",
+          "Value",
+          "Validator.CheckSchema",
+          "Validator.DecodeSchema",
+          "Validator.Defaulted",
+          "Value.JSON",
+          "Value.Transport"
+        ],
+        "uses": [
+          "rae:base/ingress"
+        ],
+        "issues": [
+          1892
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "coldlight",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/contract/validation"
+      },
+      {
+        "owner": "rae",
+        "path": "contract/admission",
+        "layer": "contract",
+        "symbols": [
+          "New",
+          "Validator",
+          "Validator.Validate",
+          "Validator.CheckPortable",
+          "AssociatedArtifactsContext",
+          "MaterializationCompiler",
+          "MaterializationInventoryContext",
+          "SDLPhaseOwner",
+          "AssociatedArtifactLimits",
+          "DefaultAssociatedArtifactLimits",
+          "LoadAssociatedManifest",
+          "ValidateAssociatedManifest",
+          "AssociatedArtifactSetDigest",
+          "EvaluateRealizationConstraint",
+          "ValidateParticipantConfiguration",
+          "ParticipantConfigurationValidator"
+        ],
+        "uses": [
+          "rae:contract/validation",
+          "rae:base/ingress"
+        ],
+        "issues": [
+          1892,
+          1788
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "coldlight",
+          "runtime"
+        ],
+        "existing": "implementations/go/internal/contract/admission"
+      },
+      {
+        "owner": "rae",
+        "path": "contract/concept",
+        "layer": "contract",
+        "symbols": [
+          "AdmitBindings",
+          "SchemeSnapshot",
+          "ResolutionOutcome",
+          "Vocabulary"
+        ],
+        "uses": [
+          "rae:contract/admission",
+          "rae:contract/binding"
+        ],
+        "issues": [
+          1781
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "sdl",
+        "layer": "sdl",
+        "symbols": [
+          "Scenario",
+          "InstantiatedScenario",
+          "Limits",
+          "DefaultLimits",
+          "Parse",
+          "ParseSources",
+          "ParseFile",
+          "AuthoredScenario",
+          "Validate",
+          "Instantiate",
+          "AdmitInstantiated",
+          "AdmitFamily",
+          "CanonicalDigest",
+          "ConceptSubjects",
+          "ArtifactRequirements",
+          "Requirement",
+          "ResolveRealizationDesignation",
+          "Diagnostic",
+          "Range"
+        ],
+        "uses": [
+          "rae:base/fault",
+          "rae:base/ingress",
+          "rae:contract/admission"
+        ],
+        "issues": [
+          1782,
+          1783,
+          1784,
+          1785
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "sdl/module",
+        "layer": "sdl",
+        "symbols": [
+          "LockfileName",
+          "Lockfile",
+          "TrustPolicy",
+          "LoadLockfile",
+          "ResolveLock"
+        ],
+        "uses": [
+          "rae:sdl"
+        ],
+        "issues": [
+          1785
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "sdl/language",
+        "layer": "sdl",
+        "symbols": [
+          "Edit",
+          "EditResult",
+          "ApplyEdit",
+          "Completions",
+          "Diagnostics",
+          "Format"
+        ],
+        "uses": [
+          "rae:sdl"
+        ],
+        "issues": [
+          1786
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "processor",
+        "layer": "processor",
+        "symbols": [
+          "Compilation",
+          "Compile",
+          "CompileInstantiated",
+          "RuntimeModel",
+          "TimeModelContract",
+          "ScenarioComponentOptions",
+          "ComponentOptions"
+        ],
+        "uses": [
+          "rae:sdl",
+          "rae:contract/binding"
+        ],
+        "issues": [
+          1787
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "processor/planning",
+        "layer": "processor",
+        "symbols": [
+          "Plan",
+          "Result",
+          "PlanWithManifest"
+        ],
+        "uses": [
+          "rae:processor",
+          "rae:contract/binding"
+        ],
+        "issues": [
+          1787
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "processor/trial",
+        "layer": "processor",
+        "symbols": [
+          "Request",
+          "Compile",
+          "PlanBatchSchedule",
+          "ScheduledEntry",
+          "BatchSchedule"
+        ],
+        "uses": [
+          "rae:processor",
+          "rae:processor/planning",
+          "rae:contract/binding",
+          "rae:contract/admission"
+        ],
+        "issues": [
+          1788
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "processor/realization",
+        "layer": "processor",
+        "symbols": [
+          "ProjectConcern",
+          "ConcernDescriptors",
+          "HasRequiredObservationSupport"
+        ],
+        "uses": [
+          "rae:processor",
+          "rae:contract/binding"
+        ],
+        "issues": [
+          1787
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "processor/analysis",
+        "layer": "processor",
+        "symbols": [
+          "Analyze"
+        ],
+        "uses": [
+          "rae:processor"
+        ],
+        "issues": [
+          1789
+        ],
+        "consumers": [
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "backend",
+        "layer": "backend",
+        "symbols": [
+          "Provisioner",
+          "Orchestrator",
+          "Evaluator",
+          "ParticipantRuntime",
+          "Manifest",
+          "LoadProfile"
+        ],
+        "uses": [
+          "rae:contract/binding",
+          "rae:contract/admission"
+        ],
+        "issues": [
+          1790
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "backend/stub",
+        "layer": "backend",
+        "symbols": [
+          "Manifest",
+          "Options",
+          "Provisioner",
+          "Orchestrator",
+          "Evaluator",
+          "ParticipantRuntime"
+        ],
+        "uses": [
+          "rae:backend"
+        ],
+        "issues": [
+          1790
+        ],
+        "consumers": [
+          "environment-packs",
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "conformance",
+        "layer": "conformance",
+        "symbols": [
+          "ValidateFixture",
+          "ValidateProcessor",
+          "ValidateModularReport",
+          "ModularControlEvidence",
+          "ModularOwnerObservation"
+        ],
+        "uses": [
+          "rae:processor",
+          "rae:backend",
+          "rae:contract/admission"
+        ],
+        "issues": [
+          1796
+        ],
+        "consumers": [
+          "lilrae",
+          "runtime"
+        ]
+      },
+      {
+        "owner": "rae",
+        "path": "command/authoring",
+        "layer": "adapter",
+        "symbols": [
+          "Commands",
+          "Command",
+          "Streams"
+        ],
+        "uses": [],
+        "issues": [
+          1797
+        ],
+        "consumers": [
+          "runtime"
+        ]
+      },
+      {
+        "owner": "runtime",
+        "path": "runtime/control",
+        "layer": "runtime",
+        "symbols": [
+          "New",
+          "ControlPlane",
+          "ControlPlane.Submit",
+          "ControlPlane.Operation",
+          "ControlPlane.Snapshot",
+          "ControlPlane.TransitionParticipant",
+          "ControlPlane.Audit"
+        ],
+        "uses": [
+          "runtime:runtime/provider",
+          "runtime:runtime/execution",
+          "rae:processor/planning",
+          "rae:backend",
+          "rae:contract/admission"
+        ],
+        "issues": [
+          1791
+        ],
+        "consumers": [
+          "coldlight",
+          "lilrae"
+        ]
+      },
+      {
+        "owner": "runtime",
+        "path": "runtime/provider",
+        "layer": "runtime",
+        "symbols": [
+          "Store",
+          "AtomicStore",
+          "LeaseProvider",
+          "OwnerLease",
+          "Capabilities"
+        ],
+        "uses": [
+          "rae:contract/binding",
+          "rae:base/clock"
+        ],
+        "issues": [
+          1792
+        ],
+        "consumers": [
+          "coldlight",
+          "lilrae"
+        ]
+      },
+      {
+        "owner": "runtime",
+        "path": "runtime/execution",
+        "layer": "runtime",
+        "symbols": [
+          "Adapter",
+          "Request",
+          "LocalAdapter"
+        ],
+        "uses": [
+          "rae:contract/binding",
+          "rae:backend"
+        ],
+        "issues": [
+          1793
+        ],
+        "consumers": [
+          "coldlight",
+          "lilrae"
+        ]
+      },
+      {
+        "owner": "runtime",
+        "path": "runtime/temporal",
+        "layer": "runtime",
+        "symbols": [
+          "New",
+          "Adapter",
+          "Configuration",
+          "Worker"
+        ],
+        "uses": [
+          "runtime:runtime/execution",
+          "runtime:runtime/provider"
+        ],
+        "issues": [
+          1793
+        ],
+        "consumers": [
+          "coldlight"
+        ]
+      },
+      {
+        "owner": "runtime",
+        "path": "runtime/result",
+        "layer": "runtime",
+        "symbols": [
+          "AdmitResult",
+          "Context"
+        ],
+        "uses": [
+          "rae:contract/admission",
+          "rae:contract/binding"
+        ],
+        "issues": [
+          1794,
+          1795
+        ],
+        "consumers": [
+          "lilrae",
+          "coldlight"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "name": "raes",
+        "owner": "runtime",
+        "entrypoint": "cmd/raes",
+        "uses": [
+          "rae:command/authoring",
+          "runtime:runtime/control"
+        ]
+      },
+      {
+        "name": "raes-mcp",
+        "owner": "rae",
+        "entrypoint": "cmd/raes-mcp",
+        "uses": [
+          "rae:sdl/language",
+          "rae:processor",
+          "rae:contract/admission"
+        ]
+      }
+    ]
   }
 }
