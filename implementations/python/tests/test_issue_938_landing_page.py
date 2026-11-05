@@ -36,11 +36,12 @@ _COMMAND_AND_OUTPUT = re.compile(
     r"```console\npython - <<'PY'\n(?P<script>.*?)\nPY\n```.*?```text\n(?P<output>.*?)\n```",
     re.DOTALL,
 )
-# The parts of a landing page that are not shared: the title, the README
-# badges, the scenario block (inline in the README, included from a file on the
-# front page), and the front page's toctree.
+# The parts of a landing page that are not shared: the title (the single H1
+# line, which can follow a lead line), the README badges, the scenario block
+# (inline in the README, included from a file on the front page), and the
+# front page's toctree.
 _PAGE_SPECIFIC = re.compile(
-    r"\A# [^\n]*$"
+    r"^# [^\n]*$"
     r"|^\[!\[[^\n]*$"
     r"|<!-- quickstart-sdl:start -->.*?<!-- quickstart-sdl:end -->"
     r"|^```\{(?:literalinclude|toctree)\}.*?^```$",
@@ -90,6 +91,9 @@ def test_quickstart_prints_the_output_each_page_shows(page: str, tmp_path: Path)
 
 
 def test_readme_and_front_page_share_their_text_and_links() -> None:
+    for page in LANDING_PAGES:
+        titles = re.findall(r"^# ", (REPO_ROOT / page).read_text(encoding="utf-8"), re.MULTILINE)
+        assert len(titles) == 1, f"{page} must have exactly one H1 title line"
     readme_prose, readme_targets = _shared_text("README.md")
     front_prose, front_targets = _shared_text("docs/public/index.md")
 
