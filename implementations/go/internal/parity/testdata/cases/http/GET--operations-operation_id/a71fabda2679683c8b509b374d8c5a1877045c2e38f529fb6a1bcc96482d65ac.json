@@ -1,0 +1,17 @@
+{
+  "args": [],
+  "command": "GET /operations/{operation_id}",
+  "files": {
+    "body.bin": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "request.json": "sha256:78e57370024e5e9a00b7452c21b465596328cd3f7b70fe17a546ea06944677d8"
+  },
+  "name": "regression/48780bc9c8dc58c65e5ebeb364490021f3573b56e62522703a014d0d71ef8fac",
+  "result": {
+    "body": {},
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 404
+  },
+  "surface": "http"
+}

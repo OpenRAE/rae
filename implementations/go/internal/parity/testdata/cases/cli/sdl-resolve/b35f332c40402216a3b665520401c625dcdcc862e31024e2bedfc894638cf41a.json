@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "input/root-oci.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "input/raes-trust.yaml": "sha256:d330397fcedd465ecb58a589e9d385f7a9c72272bbe972cbcaae6c6c8939d9b3",
+    "input/root-oci.yaml": "sha256:364c59316058e9e0a9abc9ba7fb48147d841ae4e50d5aaa901a965f30ffe0aae"
+  },
+  "name": "regression/b3049971703278e1d957fdb7935955791a663ca7a08eda30494a5c6b206c7823",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}
