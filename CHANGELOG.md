@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [11.0.0](https://github.com/OpenRAE/rae/compare/v10.8.0...v11.0.0) (2026-11-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* let trial_parallelism set the trial limit and remove the isolation proof ([#1942](https://github.com/OpenRAE/rae/issues/1942))
+
+### Bug Fixes
+
+* keep absent switch identity absent through selection and planning ([#1941](https://github.com/OpenRAE/rae/issues/1941)) ([c3f5636](https://github.com/OpenRAE/rae/commit/c3f5636e6a71468d2d3380b5b51c2db6ad4b0b27))
+* let trial_parallelism set the trial limit and remove the isolation proof ([#1942](https://github.com/OpenRAE/rae/issues/1942)) ([2a5e410](https://github.com/OpenRAE/rae/commit/2a5e4102fe7949a226f49e9d483a0f82fc94b436))
+* remove hand-managed derived values from the repository ([#1949](https://github.com/OpenRAE/rae/issues/1949)) ([80b089b](https://github.com/OpenRAE/rae/commit/80b089b55b1f09ce594657d9c81cfa1f9a05e8a7))
+
 ## [10.8.0](https://github.com/OpenRAE/rae/compare/v10.7.3...v10.8.0) (2026-11-05)
 
 
