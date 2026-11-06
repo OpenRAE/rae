@@ -92,7 +92,7 @@ and MyST's MIT notices in the installed distributions. Checked docutils'
 Run the focused regression module with:
 
 ```shell
-RAES_REQUIREMENT_UID=GOV-901 uv run --project implementations/python --frozen python -m pytest -q -m integration implementations/python/tests/test_issue_1931_documentation_tools.py
+RAES_REQUIREMENT_UID=GOV-901 uv run --project implementations/python --frozen python -m pytest -q -m 'not fuzz' implementations/python/tests/test_issue_1931_documentation_tools.py
 ```
 
 The tests execute the shared private nox stage with real pinned Vale.
@@ -121,7 +121,9 @@ mutations also failed: omit reStructuredText, omit ADR protection, bypass path
 containment, and disconnect the shared documentation stage.
 Restored the original command after each mutation.
 
-The final focused prose module passed all 33 cases. The installer module
+The final focused prose module passed all 33 cases. Its pure CI wiring case
+runs in fast feedback. The 32 cases that need installed Vale or subprocess
+fixtures stay in the integration lane. The installer module
 `implementations/python/tests/test_vale_tool.py` passed all three cases.
 The existing nox tests and operational-binding consumer test passed 35 cases. File-local repository policy, Ruff and changed-document Vale
 also passed. Full documentation, policy and test lanes remain in CI.

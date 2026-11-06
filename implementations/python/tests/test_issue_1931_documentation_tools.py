@@ -16,7 +16,6 @@ import yaml
 from raes_contracts.errors import InvalidInputError, OperationalError
 
 ROOT = Path(__file__).resolve().parents[3]
-pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
@@ -108,6 +107,7 @@ def prose_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         "docs/a\npage.md",
     ],
 )
+@pytest.mark.integration
 def test_changed_prose_check_catches_and_clears_style_violations(prose_check, path: str) -> None:
     heading = "Check a file\n============\n" if path.endswith(".rst") else "# Check a file\n"
     bad = prose_check.run(path, heading + "\nUtilize the tool to check a file.\n")
@@ -117,12 +117,14 @@ def test_changed_prose_check_catches_and_clears_style_violations(prose_check, pa
     assert good.returncode == 0, good.stdout + good.stderr
 
 
+@pytest.mark.integration
 def test_changed_prose_check_runs_without_personal_skills(prose_check) -> None:
     result = prose_check.run("docs/explain/task.md", "# Check a file\n\nCheck the file.\n")
     assert result.returncode == 0, result.stdout + result.stderr
     assert "unchanged.md" not in result.stdout
 
 
+@pytest.mark.integration
 def test_changed_prose_check_preserves_literal_content(prose_check) -> None:
     result = prose_check.run(
         "docs/explain/task.md", "# Check a file\n\nCheck the file.\n\n```text\nSimply utilize this tool.\n```\n"
@@ -130,12 +132,14 @@ def test_changed_prose_check_preserves_literal_content(prose_check) -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.integration
 def test_changed_prose_check_leaves_build_and_hooks_unchanged(prose_check) -> None:
     result = prose_check.run("implementations/data.json", "{}\n")
     assert result.returncode == 0, result.stdout + result.stderr
     assert not prose_check.state["calls"]
 
 
+@pytest.mark.integration
 def test_changed_prose_check_propagates_git_failure(prose_check) -> None:
     result = prose_check.run("docs/task.md", "# Check a file\n\nCheck the file.\n", base_rev="missing-revision")
     assert result.returncode != 0
@@ -151,6 +155,7 @@ def test_changed_prose_check_propagates_git_failure(prose_check) -> None:
         "docs/research/experiment-core/issue-233-exp-707-capture-spec-preflight-guardrails.md",
     ],
 )
+@pytest.mark.integration
 def test_changed_prose_check_preserves_release_and_legal_records(prose_check, path: str) -> None:
     result = prose_check.run(path, "# Exact Record\n\nSimply utilize this tool.\n")
     assert result.returncode == 0, result.stdout + result.stderr
@@ -162,6 +167,7 @@ def test_changed_prose_check_preserves_release_and_legal_records(prose_check, pa
 @pytest.mark.parametrize(
     "catalog", ["docs/decisions/adrs/adr-index.yaml", "tools/policy/historical_identity_records.json"]
 )
+@pytest.mark.integration
 def test_changed_prose_check_rejects_malformed_protection_catalog(prose_check, catalog: str) -> None:
     (prose_check.root / catalog).write_text("{}")
     result = prose_check.run("docs/task.md", "# Check a file\n\nCheck the file.\n")
@@ -170,12 +176,14 @@ def test_changed_prose_check_rejects_malformed_protection_catalog(prose_check, c
     assert not prose_check.state["calls"]
 
 
+@pytest.mark.integration
 def test_changed_prose_check_accepts_explicit_paths(prose_check) -> None:
     result = prose_check.run("docs/task.md", "# Check a file\n\nUtilize the tool.\n", posargs=["docs/task.md"])
     assert result.returncode != 0
     assert "RAES.PlainWords" in result.stdout
 
 
+@pytest.mark.integration
 def test_shared_docs_lane_runs_prose_check(prose_check, monkeypatch: pytest.MonkeyPatch) -> None:
     lanes = prose_check.lanes
     calls = []
@@ -190,6 +198,7 @@ def test_shared_docs_lane_runs_prose_check(prose_check, monkeypatch: pytest.Monk
     assert calls == [["--base-rev", "verified-base"]]
 
 
+@pytest.mark.integration
 def test_changed_prose_check_refuses_paths_outside_repository(prose_check) -> None:
     outside = prose_check.root.parent / "outside.md"
     outside.write_text("# Check a file\n\nUtilize the tool.\n")
@@ -200,6 +209,7 @@ def test_changed_prose_check_refuses_paths_outside_repository(prose_check) -> No
 
 
 @pytest.mark.parametrize(("posargs", "stage"), [(["--staged"], True), ([], True), ([], False)])
+@pytest.mark.integration
 def test_changed_prose_check_selects_staged_working_and_untracked(prose_check, posargs: list[str], stage: bool) -> None:
     result = prose_check.run(
         "docs/task.md", "# Check a file\n\nUtilize the tool.\n", posargs=posargs, commit=False, stage=stage
@@ -208,6 +218,7 @@ def test_changed_prose_check_selects_staged_working_and_untracked(prose_check, p
     assert "RAES.PlainWords" in result.stdout
 
 
+@pytest.mark.integration
 def test_changed_prose_check_lints_rename_destination(prose_check) -> None:
     prose_check.run("docs/old.md", "# Check a file\n\nUtilize the tool.\n")
     before = prose_check.git("rev-parse", "HEAD")
@@ -219,6 +230,7 @@ def test_changed_prose_check_lints_rename_destination(prose_check) -> None:
     assert "new.md" in result.stdout
 
 
+@pytest.mark.integration
 def test_changed_prose_check_ignores_deleted_paths(prose_check) -> None:
     prose_check.run("docs/old.md", "# Check a file\n\nUtilize the tool.\n")
     before = prose_check.git("rev-parse", "HEAD")
@@ -229,6 +241,7 @@ def test_changed_prose_check_ignores_deleted_paths(prose_check) -> None:
     assert not prose_check.state["calls"]
 
 
+@pytest.mark.integration
 def test_changed_prose_check_does_not_exempt_operational_bindings(prose_check) -> None:
     catalog = prose_check.root / "tools/policy/historical_identity_records.json"
     data = json.loads(catalog.read_text())
@@ -247,6 +260,7 @@ def test_changed_prose_check_does_not_exempt_operational_bindings(prose_check) -
     assert "RAES.PlainWords" in result.stdout
 
 
+@pytest.mark.integration
 def test_changed_prose_check_refuses_external_symlinks(prose_check) -> None:
     outside = prose_check.root.parent / "outside.md"
     outside.write_text("# Check a file\n\nUtilize the tool.\n")
@@ -259,6 +273,7 @@ def test_changed_prose_check_refuses_external_symlinks(prose_check) -> None:
     assert not prose_check.state["calls"]
 
 
+@pytest.mark.integration
 def test_changed_prose_check_rejects_unsafe_adr_catalog_paths(prose_check) -> None:
     catalog = prose_check.root / "docs/decisions/adrs/adr-index.yaml"
     data = yaml.safe_load(catalog.read_text())
@@ -271,6 +286,7 @@ def test_changed_prose_check_rejects_unsafe_adr_catalog_paths(prose_check) -> No
 
 
 @pytest.mark.parametrize("content", [b"adrs: [", b"\xff", None])
+@pytest.mark.integration
 def test_changed_prose_check_reports_unreadable_adr_catalog(prose_check, content: bytes | None) -> None:
     catalog = prose_check.root / "docs/decisions/adrs/adr-index.yaml"
     if content is None:
@@ -283,6 +299,7 @@ def test_changed_prose_check_reports_unreadable_adr_catalog(prose_check, content
     assert not prose_check.state["calls"]
 
 
+@pytest.mark.integration
 def test_changed_prose_check_uses_selected_docs_environment(prose_check, monkeypatch: pytest.MonkeyPatch) -> None:
     environment = prose_check.root / "isolated"
     (environment / "bin").mkdir(parents=True)
@@ -328,6 +345,7 @@ def test_canonical_ci_passes_verified_base_to_shared_docs_lane(tmp_path: Path) -
     ]
 
 
+@pytest.mark.integration
 def test_full_verification_forwards_selection_to_docs_lane(prose_check) -> None:
     graph = importlib.import_module("tools.nox_support.graph")
     lanes = graph._verification_lanes(
