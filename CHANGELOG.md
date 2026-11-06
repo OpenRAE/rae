@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [11.0.2](https://github.com/OpenRAE/rae/compare/v11.0.1...v11.0.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* pass content placements to prepared-node generated-artifact validation ([#1966](https://github.com/OpenRAE/rae/issues/1966)) ([bce1629](https://github.com/OpenRAE/rae/commit/bce1629771b4c7b42ffa051373a735d59fe98528))
+* refuse control-plane stores whose operation claim columns do not match their records ([#1962](https://github.com/OpenRAE/rae/issues/1962)) ([4230f55](https://github.com/OpenRAE/rae/commit/4230f557b224ab88ef0ea75419f2724814ab46f9))
+
 ## [11.0.1](https://github.com/OpenRAE/rae/compare/v11.0.0...v11.0.1) (2026-11-06)
 
 
