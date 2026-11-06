@@ -15,6 +15,7 @@ import pytest
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 from raes_operations import run_artifacts
 from raes_operations.run_artifacts import RunMaterializationArchive
+from raes_runtime.control_plane_store_claim_columns import ledger_operation_claim_columns
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_local_codec import encode_payload
 from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
@@ -178,7 +179,7 @@ def test_postgresql_loader_refuses_stored_inject_history_that_does_not_replay() 
     rows = []
     for record in _BROKEN_HISTORIES["duplicate-claim"]():
         payload, digest = encode_payload(_record_payload(record))
-        rows.append((record.receipt.operation_id, payload, digest))
+        rows.append((record.receipt.operation_id, *ledger_operation_claim_columns(record), payload, digest))
     connection = SimpleNamespace(execute=lambda _statement: SimpleNamespace(fetchall=lambda: rows))
 
     with pytest.raises(EvidenceIntegrityError) as caught:

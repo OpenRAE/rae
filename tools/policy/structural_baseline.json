@@ -1677,11 +1677,9 @@
     },
     "raes_runtime.control_plane_store_postgresql": {
       "raes_runtime.control_plane_store_records._audit_event_from_payload": 1,
-      "raes_runtime.control_plane_store_records._record_from_payload": 1,
       "raes_runtime.control_plane_store_records._record_payload": 1
     },
     "raes_runtime.control_plane_store_postgresql_mutations": {
-      "raes_runtime.control_plane_store_records._record_from_payload": 1,
       "raes_runtime.control_plane_store_snapshots._canonical_snapshot": 1
     },
     "raes_runtime.control_plane_store_postgresql_projection": {
@@ -3071,14 +3069,8 @@
       "raes_runtime.control_plane_store": 1,
       "raes_runtime.control_plane_store_local_invocations": 1,
       "raes_runtime.control_plane_store_postgresql_mutations": 1,
-      "raes_runtime.control_plane_store_postgresql_projection": 3,
       "raes_runtime.control_plane_store_postgresql_schema": 4,
       "raes_runtime.inject_claims": 2
-    },
-    "raes_runtime.control_plane_store_postgresql_mutations": {
-      "raes_runtime.control_plane_store_local_codec": 1,
-      "raes_runtime.control_plane_store_postgresql_projection": 2,
-      "raes_runtime.control_plane_store_records": 1
     },
     "raes_runtime.control_plane_store_postgresql_projection": {
       "raes_contracts.runtime_state": 1,
