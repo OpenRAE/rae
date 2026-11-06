@@ -13,6 +13,7 @@ from cloud_authority_budget_fixtures import (
     inventory_source,
 )
 from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.realization_structure import (
     RealizationLiteral,
     evaluate_realization_constraint,
@@ -177,6 +178,41 @@ def test_planning_rejects_evaluation_exhaustion_even_when_normalization_fits(mon
         for item in errors
     ), errors
     assert not execution.is_valid
+
+
+@pytest.mark.parametrize("python_carriers", [False, True])
+@pytest.mark.parametrize(
+    "leaf, updates, code",
+    [
+        (float("inf"), {}, "realization.invalid"),
+        (object(), {}, "realization.invalid"),
+        ("\ud800", {}, "realization.invalid"),
+        ("exceeds", {"max_scalar_bytes": 5}, "realization.limit-exceeded"),
+        (0, {"max_nodes": 3}, "realization.limit-exceeded"),
+    ],
+)
+def test_value_admission_keeps_escaped_failure_addresses(leaf, updates, code, python_carriers):
+    result = validate_realization_value(
+        {"a/b": {"~key": [leaf]}},
+        limits=PLAN_AUTHORITY_LIMITS.model_copy(update=updates),
+        python_carriers=python_carriers,
+    )
+    assert not result.conformant
+    assert result.diagnostics[0].code == code
+    assert result.diagnostics[0].address == "/a~1b/~0key/0"
+
+
+@pytest.mark.parametrize(
+    "leaf", [RealizationLiteral(kind="literal", value=0), Diagnostic(code="x", domain="x", address="", message="x")]
+)
+def test_carrier_member_limits_keep_escaped_failure_addresses(leaf):
+    result = validate_realization_value(
+        {"a/b": {"~key": [leaf]}},
+        limits=PLAN_AUTHORITY_LIMITS.model_copy(update={"max_members": 1}),
+        python_carriers=True,
+    )
+    assert result.diagnostics[0].code == "realization.limit-exceeded"
+    assert result.diagnostics[0].address == "/a~1b/~0key/0"
 
 
 def test_prepared_node_projection_retains_the_supported_inventory_scale(full_inventory):

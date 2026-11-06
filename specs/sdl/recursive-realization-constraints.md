@@ -170,6 +170,8 @@ The compiler's recursive constraint builder checks evaluation work against the
 source projection through `evaluate_realization_constraint` before publishing authority.
 This check rejects evaluation exhaustion during planning, even when normalization
 and binding fit their budgets. It does not grant conformance to changed selections.
+Value admission renders diagnostic addresses only when a check fails.
+Successful traversal retains the same node, operation, and scalar accounting.
 
 Generic relation APIs retain `DEFAULT_REALIZATION_CONSTRAINT_LIMITS` unless a
 caller supplies explicit finite `limits`. This includes

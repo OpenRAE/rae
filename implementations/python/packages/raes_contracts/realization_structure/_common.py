@@ -203,7 +203,7 @@ def _json_list_equal(expected: list[object], actual: list[object]) -> bool:
 
 def _bounded_scalar_failure(
     value: object,
-    current_pointer: str,
+    path: tuple[str, ...],
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
 
@@ -213,19 +213,19 @@ def _bounded_scalar_failure(
             RealizationRelationStatus.INVALID
             if exhausted == "invalid_utf8"
             else RealizationRelationStatus.LIMIT_EXCEEDED,
-            current_pointer,
+            pointer_from_tokens(path),
             f"Realization value validation exceeded {exhausted}.",
         )
     elif isinstance(value, float) and not math.isfinite(value):
         failure = relation_result(
             RealizationRelationStatus.INVALID,
-            current_pointer,
+            pointer_from_tokens(path),
             "Realization values must use finite JSON numbers.",
         )
     elif type(value) is int and value.bit_length() > budget.limits.max_scalar_bytes * 8:
         failure = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            current_pointer,
+            pointer_from_tokens(path),
             "Realization value validation exceeded the integer-size limit.",
         )
     elif type(value) not in (str, _DeclaredDocumentScalar, int, float, bool, type(None), dict, list) and not (
@@ -233,7 +233,7 @@ def _bounded_scalar_failure(
     ):
         failure = relation_result(
             RealizationRelationStatus.INVALID,
-            current_pointer,
+            pointer_from_tokens(path),
             "Realization value is not JSON-compatible.",
         )
     return failure
@@ -249,15 +249,14 @@ def _bounded_member_failure(
 ) -> RealizationRelationResult | None:
     """Validate one container member, including a record key's own scalar cost."""
 
-    current_pointer = pointer_from_tokens(path)
     if isinstance(value, Mapping):
         if not isinstance(key, str):
             return relation_result(
                 RealizationRelationStatus.INVALID,
-                current_pointer,
+                pointer_from_tokens(path),
                 "Realization record keys must be strings.",
             )
-        key_failure = _bounded_scalar_failure(key, current_pointer, budget)
+        key_failure = _bounded_scalar_failure(key, path, budget)
         if key_failure is not None:
             return key_failure
     return validate_bounded_value(child, (*path, str(key)), depth + 1, budget)
@@ -283,7 +282,7 @@ def _bounded_container_failure(
     return None
 
 
-def _node_budget_failure(depth: int, current_pointer: str, budget: RelationBudget) -> RealizationRelationResult | None:
+def _node_budget_failure(depth: int, path: tuple[str, ...], budget: RelationBudget) -> RealizationRelationResult | None:
     """Charge one node against the traversal budget."""
 
     exhausted = budget.spend_node(depth)
@@ -291,7 +290,7 @@ def _node_budget_failure(depth: int, current_pointer: str, budget: RelationBudge
         return None
     return relation_result(
         RealizationRelationStatus.LIMIT_EXCEEDED,
-        current_pointer,
+        pointer_from_tokens(path),
         f"Realization value validation exceeded {exhausted}.",
     )
 
@@ -303,16 +302,16 @@ def validate_bounded_value(
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
 
-    current_pointer = pointer_from_tokens(path)
+    # Successful admission needs tokens for traversal, but no rendered diagnostic address.
     if budget.python_carriers and charge_immutable_history(value, depth, budget):
         return None
     if budget.python_carriers and isinstance(value, Enum):
         value = value.value
-    failure = _node_budget_failure(depth, current_pointer, budget)
+    failure = _node_budget_failure(depth, path, budget)
     if failure is None and budget.python_carriers:
-        value, failure = _python_record_values(value, current_pointer, budget)
+        value, failure = _python_record_values(value, path, budget)
     if failure is None:
-        failure = _bounded_scalar_failure(value, current_pointer, budget)
+        failure = _bounded_scalar_failure(value, path, budget)
     container = _is_bounded_container(value, python_carriers=budget.python_carriers)
     if failure is None and container:
         failure = _bounded_container_failure(value, path, depth, budget)
@@ -325,7 +324,7 @@ def _is_bounded_container(value: object, *, python_carriers: bool) -> bool:
 
 
 def _python_record_values(
-    value: object, current_pointer: str, budget: RelationBudget
+    value: object, path: tuple[str, ...], budget: RelationBudget
 ) -> tuple[object, RealizationRelationResult | None]:
     """Visit DTO fields without invoking serialization or recursively copying."""
 
@@ -342,7 +341,7 @@ def _python_record_values(
     if len(names) + len(extra) > budget.limits.max_members:
         return value, relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            current_pointer,
+            pointer_from_tokens(path),
             "Realization value validation exceeded max_members.",
         )
     record = {name: getattr(value, name) for name in names}
