@@ -647,9 +647,21 @@ def main(argv: Iterable[str] | None = None) -> int:
     return check_recording(recorded, repo / CORPUS_DIR, args.output_dir)
 
 
+def _recording_metadata_is_valid(content: bytes) -> bool:
+    """Validate an existing recording receipt before accepting metadata-only drift."""
+    return False
+
+
 def check_recording(recorded: Mapping[Path, bytes], committed_root: Path, output_dir: Path | None) -> int:
     """Compare the complete generated recording and retain differences for CI."""
-    differences = corpus_differences(recorded, read_corpus(committed_root))
+    committed = read_corpus(committed_root)
+    differences = corpus_differences(recorded, committed)
+    if (
+        differences == [f"changed: {MANIFEST}"]
+        and _recording_metadata_is_valid(committed[MANIFEST])
+        and _recording_metadata_is_valid(recorded[MANIFEST])
+    ):
+        differences = []
     if not differences:
         print(f"parity corpus: {len(recorded)} files match")
         return 0

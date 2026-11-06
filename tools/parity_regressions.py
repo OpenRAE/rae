@@ -15,6 +15,11 @@ FORMAT = "raes-parity-regressions/v1"
 FROZEN = Path("implementations/go/internal/parity/testdata/regressions")
 
 
+def _snapshot_identity(document: dict[str, Any]) -> dict[str, str]:
+    """Validate historical capture provenance without requiring the live tree."""
+    raise ValueError("historical snapshot validation is not implemented")
+
+
 def source_identity(repo: Path) -> dict[str, str]:
     trees = subprocess.check_output(
         [
@@ -43,6 +48,7 @@ def frozen_document(root: Path, identity: dict[str, str] | None) -> dict[str, An
     document = read_document(root.parent, Path(root.name, MANIFEST_FILE))
     if document.get("schema") != FORMAT:
         raise ValueError("unknown frozen regression input schema")
+    _snapshot_identity(document)
     if identity is not None and document.get("source_identity") != identity:
         raise ValueError("Python test inputs need a fresh CI capture")
     return document

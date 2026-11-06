@@ -40,6 +40,11 @@ on:
         required: false
         default: false
         type: boolean
+      refresh-parity-inputs:
+        description: Explicitly replace the recorded regression input snapshot
+        required: false
+        default: false
+        type: boolean
     secrets:
       sonar_token:
         description: SonarCloud token; only consumed by the internally trust-gated sonar job
@@ -746,7 +751,13 @@ jobs:
           version: "0.13.4"
       - name: Decide whether regression inputs need collection
         id: capture
+        env:
+          REFRESH_PARITY_INPUTS: ${{ inputs.refresh-parity-inputs }}
         run: |
+          if [ "${REFRESH_PARITY_INPUTS}" = "true" ]; then
+            echo "Explicit corpus refresh is not implemented" >&2
+            exit 1
+          fi
           if uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current; then
             if [ "${{ matrix.shard }}" = "0" ]; then
               mkdir -p "${RUNNER_TEMP}/parity-inputs"
