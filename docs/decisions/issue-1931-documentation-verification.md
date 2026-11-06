@@ -1,0 +1,151 @@
+# Documentation tools verification
+
+This reference records the checks for issue #1931. It gives the source and
+review evidence for its delivery PR. It does not replace the style guide.
+
+## Revision and scope
+
+The source revision is `665b747f882c1bfee717d15e266c9bb1db84ec07`.
+The candidate adds changed-path Vale checks to canonical CI and updates the
+existing style guide and `AGENTS.md`. Product code, published pages, legal text,
+pinned evidence, generated output, and pre-commit hooks are unchanged.
+
+The style guide is reference. `AGENTS.md` remains an agent entry page.
+This record is reference. No page path or published URL changes.
+
+## Section and source review
+
+All paths in the table are repository-relative. The source revision above
+applies unless the row names the candidate.
+
+| Rewritten section | Sources and observed result | Correction or review result |
+| --- | --- | --- |
+| Guide opening and Stripe exemplar | Existing guide and its linked official Stripe examples | Expanded the stated scope to examples and agent prose. Replaced praise with the visible reader outcome. Kept the prohibition on copying. |
+| Vale enforcement | `tools/nox_support/test_lanes.py`, `.vale.ini`, `styles/RAES/` and candidate canonical workflow | Corrected the coverage claim. The old lane selects only Markdown. The added check selects changed Markdown and reStructuredText across the repository. |
+| Tool setup and explicit paths | `tools/vale_tool.py`, `tools/tool_versions.py`, `implementations/tooling/artifacts.lock.json`, `implementations/python/uv.lock` | Compared the source, version, license and installation route with the locked files. The commands below passed in fresh environments. |
+| Skill availability | Examined local `documentation` skill and its license notice. Public `ste-review` v0.10.1 and its MIT license | The local skill has no verified public source for its complete text. The public skill needs another analyzer. Used the issue's tools-and-guidance fallback. Made no copy of skill content. |
+| Reader purpose | [Diataxis compass](https://diataxis.fr/compass/) | Checked each of the four forms against its reader need. Kept entry-page routing and useful heading links. |
+| Technical meaning | [Official STE Issue 9](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf) | Examined meaning in context. Used the existing local copy of official Issue 9. No standard text or dictionary enters the repository. |
+| Source verification and normative conflicts | ADR-009 and its schema-authority amendment. Current code and contracts | Kept required meaning separate from observed behavior. A conflict needs resolution. It does not give permission for a silent contract change. |
+| Protected material | ADR-059, ADR-096, `tools/policy/historical_identity_records.json`, release-please configuration | Kept protected text. Gave narrow exceptions and required examination of maintained surrounding prose. |
+| Rendered review | Existing Markdown parser and local Chrome file views of all three changed prose pages | Heading order, heading anchors, link text, local targets and keyboard focus passed. See the rendered observations below. |
+| Prohibited content | Existing guide and `styles/RAES/AvoidHype.yml` | Replaced the inline list of prohibited words with the owning rule path. Kept the measurable-evidence exception. |
+| Agent entry | Existing `AGENTS.md` and candidate style guide | Added one route to the existing guide. Kept policy and targeted-test obligations. Changed heading case without changing anchors. |
+
+The remaining guide sections keep their existing obligations and reference
+links. No runtime, backend, schema, or normative specification changed.
+
+## Language and meaning review
+
+The language review used the existing local copy of official ASD-STE100 Issue 9,
+dated 2025-01-15. The PDF SHA-256 is
+`d1f4ea9e7cd6e46b47aa9057209f99e78c0e9cfc4e27a5b07895b05c1a166431`.
+The official URL returned HTTP 403 during the web check. The local PDF supplied
+the definitive rules and dictionary for this review. No copy enters the repository.
+
+The review covered all maintained prose in the style guide, agent entry, and
+this record. Code, paths, identifiers, product names and existing quotations
+kept their exact text.
+
+| Rules | Finding and correction |
+| --- | --- |
+| 1.1–1.4, 9.1–9.2 | The guide used `state`, `preserve`, `establish`, `verify` and `inspect` as general verbs. Changed those instructions to give information, keep meaning, compare sources or examine text. Each correction keeps the original condition and obligation. |
+| 1.5–1.11 | Kept the subject terms Markdown, reStructuredText, normative contract, pinned evidence, heading anchor and STE conformance. They identify software or documentation concepts. Used the same term for each concept. |
+| 1.12–1.13 | Kept `lint`, `render`, `parse`, `install`, `download` and `run` for their computer processes. Kept general instructions separate from these technical verbs. |
+| 1.14 | Used American English in maintained prose. Kept exact external titles and identifiers. |
+| 2.1–2.2 | Divided long noun groups. For example, the setup now gives an environment for each project, not an unexplained chain of modifiers. |
+| 3.1–3.7 | Removed general verbal `-ing` forms, such as `before presenting detail`. The revised sentence gives the actor and uses `before it gives detail`. Kept the simple present, simple past and imperative forms. |
+| 4.1–4.5 | Kept articles and connecting words. Divided clauses without removing conditions. Used lists and tables for related facts. |
+| 5.1–5.5 | Kept one command in each instruction. Put the branch-name condition before the UID command in `AGENTS.md`. Separated the error correction from the command to repeat the check. |
+| 6.1–6.6 | Kept descriptive sentences within 25 words and instructions within 20 words. Kept each paragraph to one topic and no more than six sentences. Put setup before the commands that need it. |
+| 7.1–7.3 | No safety instruction or risk classification changed. Kept restrictions beside their affected material. |
+| 8.1–8.7 | Removed semicolons from maintained prose. Kept punctuation in literal commands and identifiers. Counted each identifier as one item. |
+| 9.3–9.4 | Replaced general phrasal constructions where they obscured the action. Kept one name for each tool and format. |
+
+The review kept the distinction between observed behavior and normative meaning.
+It did not turn permission into obligation. Vale supplied a separate style check,
+not a substitute for this language and meaning review.
+
+## Clean setup and commands
+
+Platform: Linux x86_64. Interpreter: CPython 3.14.7. Installer: uv 0.13.4.
+Used a new temporary HOME, empty uv cache, and new environments.
+Set `UV_PROJECT_ENVIRONMENT` separately for each project to isolate its files.
+No personal skills or existing Vale installation were available in that HOME.
+
+| Command or check | Observed result |
+| --- | --- |
+| `uv sync --project implementations/tooling/python --frozen --no-default-groups` | Exit 0. installed the frozen tooling environment. |
+| `uv sync --project implementations/python --frozen --extra docs` | Exit 0. installed the frozen project and docs environment. |
+| `tools.vale_tool.ensure_vale()` with a new installation root | Exit 0. acquired and verified the locked archive and installed binary. |
+| `vale --version` | Exit 0. `vale version 3.15.2`. |
+| `rst2html --version` | Exit 0. Docutils 0.22.4, Python 3.14.7, Linux. |
+| Explicit Vale checks with `.vale.ini` | Exit 0. no findings in `docs/public/index.md`, `docs/public/api/index.rst`, the style guide, and `AGENTS.md`. |
+
+Vale's MIT license and approved route are in the artifact lock, under ADR-106.
+Read the upstream license at tag v3.15.2 too. Checked Sphinx's BSD-2-Clause
+and MyST's MIT notices in the installed distributions. Checked docutils'
+`COPYING.rst`, including its file-specific exceptions. No new dependency was added.
+
+## Behavioral checks
+
+Run the focused regression module with:
+
+```shell
+RAES_REQUIREMENT_UID=GOV-901 uv run --project implementations/python --frozen python -m pytest -q -m integration implementations/python/tests/test_issue_1931_documentation_tools.py
+```
+
+The tests execute the actual CI shell command with real pinned Vale.
+These fixtures replace only acquisition. The clean setup above tested actual
+acquisition separately.
+
+The initial tests failed because the changed-prose CI check was absent.
+The check then caught a real `RAES.PlainWords` violation in all three page forms.
+Replacing the prohibited word with `Use` cleared the violation.
+An unchanged page with known violations did not enter the selection.
+
+Additional cases cover filenames with spaces, filenames starting with a hyphen,
+literal code, non-prose diffs, and Git failures. A nested `docs/CHANGELOG.md`
+case shows that root exclusions keep maintained nested pages covered.
+The path specifications name the two excluded root files explicitly.
+
+Three manual mutations each failed the relevant case: omit reStructuredText,
+omit repository-only prose, and suppress Vale's failure status.
+Restored the original command after each mutation.
+
+The installer module `implementations/python/tests/test_vale_tool.py` passed
+all three cases. File-local repository policy, Ruff and changed-document Vale
+also passed. Full documentation, policy and test lanes remain in CI.
+
+## Exclusions and preserved records
+
+The changed-path check excludes only root `CHANGELOG.md`, which release-please
+generates, and root `THIRD_PARTY_NOTICES.md`, which contains legal notices.
+Neither file changed. Maintained introductions still need direct review.
+
+No preserved quotation, accepted ADR, pinned capture, code block or generated
+artifact was rewritten. No maintained changed prose page was omitted.
+Other formats have an explicit maintainer-review route in the style guide.
+
+Issues #1509 and #1562 remain open. This delivery covers their changed-file
+gaps. It does not claim to clear all legacy findings.
+Issues #1799 and #1803 own equivalent Go checks and the Go build migration.
+Issue #1804 owns publication. The supported Python site remains the default.
+
+## Rendered observations
+
+Rendered all three changed prose pages with the existing Markdown parser and
+examined their local HTML in headless Chrome. This includes this evidence
+record. No page was hosted or uploaded.
+
+| Check | Observed result |
+| --- | --- |
+| Heading order | One first-level heading per page. no omitted heading levels. |
+| Heading links | Every previous heading anchor remains present. |
+| Descriptive links | Link text names its destination. Relative file targets exist. |
+| Keyboard access | Tab reached the guide link in `AGENTS.md` and the first guide link. Focus was visible. Links use native anchors. |
+| Text alternatives | No image or diagram changed. No custom control was added. |
+| Color | No meaning depends on color. Commands remain copyable text. |
+
+The browser observations cover repository-only prose. This PR changes no public
+page, site navigation, redirect, or publication workflow.

@@ -67,6 +67,7 @@ from tools.nox_support.test_lanes import (
     _run_coverage_reduce,
     _run_docs,
     _run_docs_linkcheck,
+    _run_docs_prose,
     _run_fuzz,
     _run_integration_tests,
     _run_osv_scan,
@@ -227,6 +228,17 @@ def docs_local(session: nox.Session) -> None:
     reporter = SessionReporter(session, "docs-local")
     try:
         _run_docs(session, reporter, include_external_links=False)
+    finally:
+        reporter.summary()
+
+
+@nox.session(name="docs-prose")
+def docs_prose(session: nox.Session) -> None:
+    """Run the existing style linter on selected maintained prose only."""
+    reporter = SessionReporter(session, "docs-prose")
+    try:
+        _sync_project(session)
+        _run_docs_prose(session, reporter)
     finally:
         reporter.summary()
 

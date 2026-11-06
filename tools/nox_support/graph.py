@@ -95,6 +95,7 @@ def _verification_lanes(
         VerificationLane(
             name="docs-local",
             nox_session="docs-local",
+            posargs=shared_posargs,
             env={
                 "PYTEST_ADDOPTS": f"-o cache_dir={coverage_dir / 'pytest-docs'}",
             },

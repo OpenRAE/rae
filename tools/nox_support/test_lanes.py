@@ -255,6 +255,11 @@ def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
         )
 
 
+def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
+    """Lint selected maintained prose; report exact protected identities for review."""
+    raise OperationalError("changed-prose selection is not implemented")
+
+
 def _run_docs(
     session: nox.Session,
     reporter: SessionReporter,
@@ -262,6 +267,7 @@ def _run_docs(
     include_external_links: bool = True,
 ) -> None:
     _sync_project(session)
+    _run_docs_prose(session, reporter)
     html_dir = DOCS_BUILD_ROOT / "html"
     linkcheck_dir = DOCS_BUILD_ROOT / "linkcheck"
 

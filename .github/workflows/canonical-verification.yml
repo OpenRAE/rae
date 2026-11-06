@@ -418,8 +418,10 @@ jobs:
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s contracts -- --base-rev "${{ steps.commit.outputs.base_rev }}"
       - name: Run deterministic documentation checks
+        env:
+          BASE_REV: ${{ steps.commit.outputs.base_rev }}
         run: |
-          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local -- --base-rev "$BASE_REV"
 
   # The proof-bearing lane stays on Ubuntu 22.04 so Bubblewrap enforces the
   # sandbox without disabling a host security control on the runner.
