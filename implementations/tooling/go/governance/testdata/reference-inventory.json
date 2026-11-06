@@ -1,0 +1,361 @@
+[
+  {
+    "source": "tools/check_adr_immutability.py",
+    "check": "adr-immutability",
+    "case": "TestReferenceParity/adr-immutability",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1205_repository_governance.py",
+      "implementations/python/tests/test_issue_1338_identity_evidence.py",
+      "implementations/python/tests/test_issue_1567_adr_immutability_base.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_989_versioned_evidence.py",
+      "implementations/python/tests/test_repo_policy_tools.py"
+    ]
+  },
+  {
+    "source": "tools/check_agent_guidance.py",
+    "check": "agent-guidance",
+    "case": "TestReferenceParity/agent-guidance",
+    "reference_test_modules": [
+      "implementations/python/tests/test_agent_guidance_policy.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py"
+    ]
+  },
+  {
+    "source": "tools/check_assurance_policy.py",
+    "check": "assurance-policy",
+    "case": "TestReferenceParity/assurance-policy",
+    "reference_test_modules": [
+      "implementations/python/tests/test_assurance_policy.py"
+    ]
+  },
+  {
+    "source": "tools/check_atlas_tactic_vocabulary.py",
+    "check": "atlas-tactic-vocabulary",
+    "case": "TestReferenceParity/atlas-tactic-vocabulary",
+    "reference_test_modules": []
+  },
+  {
+    "source": "tools/check_attack_tactic_vocabulary.py",
+    "check": "attack-tactic-vocabulary",
+    "case": "TestReferenceParity/attack-tactic-vocabulary",
+    "reference_test_modules": []
+  },
+  {
+    "source": "tools/check_authority_boundary.py",
+    "check": "authority-boundary",
+    "case": "TestReferenceParity/authority-boundary",
+    "reference_test_modules": [
+      "implementations/python/tests/test_authority_boundary.py"
+    ]
+  },
+  {
+    "source": "tools/check_autonomous_behavior_vocabularies.py",
+    "check": "autonomous-behavior-vocabularies",
+    "case": "TestReferenceParity/autonomous-behavior-vocabularies",
+    "reference_test_modules": []
+  },
+  {
+    "source": "tools/check_concept_authority_governance.py",
+    "check": "concept-authority-governance",
+    "case": "TestReferenceParity/concept-authority-governance",
+    "reference_test_modules": [
+      "implementations/python/tests/test_concept_authority_governance.py"
+    ]
+  },
+  {
+    "source": "tools/check_contract_requirement_tracing.py",
+    "check": "contract-requirement-tracing",
+    "case": "TestReferenceParity/contract-requirement-tracing",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_712_contract_requirement_tracing.py"
+    ]
+  },
+  {
+    "source": "tools/check_deprecation_lifecycle.py",
+    "check": "deprecation-lifecycle",
+    "case": "TestReferenceParity/deprecation-lifecycle",
+    "reference_test_modules": [
+      "implementations/python/tests/test_deprecation_lifecycle.py"
+    ]
+  },
+  {
+    "source": "tools/check_identity_cutover.py",
+    "check": "identity-cutover",
+    "case": "TestReferenceParity/identity-cutover",
+    "reference_test_modules": [
+      "implementations/python/tests/test_identity_cutover_policy.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_pr_title_guard.py"
+    ]
+  },
+  {
+    "source": "tools/check_json_artifacts.py",
+    "check": "json-artifacts",
+    "case": "TestReferenceParity/json-artifacts",
+    "reference_test_modules": [
+      "implementations/python/tests/test_authoring_adapters.py",
+      "implementations/python/tests/test_issue_1330_schema_coverage.py",
+      "implementations/python/tests/test_repo_policy_tools.py"
+    ]
+  },
+  {
+    "source": "tools/check_nist_csf_defensive_vocabulary.py",
+    "check": "nist-csf-defensive-vocabulary",
+    "case": "TestReferenceParity/nist-csf-defensive-vocabulary",
+    "reference_test_modules": []
+  },
+  {
+    "source": "tools/check_pr_body.py",
+    "check": "pr-body",
+    "case": "TestReferenceParity/pr-body",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_pr_body_guard.py"
+    ]
+  },
+  {
+    "source": "tools/check_pr_title.py",
+    "check": "pr-title",
+    "case": "TestReferenceParity/pr-title",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_pr_title_guard.py"
+    ]
+  },
+  {
+    "source": "tools/check_project_positioning.py",
+    "check": "project-positioning",
+    "case": "TestReferenceParity/project-positioning",
+    "reference_test_modules": [
+      "implementations/python/tests/test_project_positioning.py"
+    ]
+  },
+  {
+    "source": "tools/check_public_docs.py",
+    "check": "public-docs",
+    "case": "TestReferenceParity/public-docs",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_954_docs_publication_boundary.py",
+      "implementations/python/tests/test_public_docs_policy.py"
+    ]
+  },
+  {
+    "source": "tools/check_repo_policy.py",
+    "check": "repo-policy",
+    "case": "TestReferenceParity/repo-policy",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1734_structural_ratchet.py",
+      "implementations/python/tests/test_repo_policy_tools.py"
+    ]
+  },
+  {
+    "source": "tools/check_requirement_governance.py",
+    "check": "requirement-governance",
+    "case": "TestReferenceParity/requirement-governance",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1237_requirement_scope.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_requirement_governance.py"
+    ]
+  },
+  {
+    "source": "tools/check_schema_coverage.py",
+    "check": "schema-coverage",
+    "case": "TestReferenceParity/schema-coverage",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1330_schema_coverage.py"
+    ]
+  },
+  {
+    "source": "tools/check_schema_publication.py",
+    "check": "schema-publication",
+    "case": "TestReferenceParity/schema-publication",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1330_schema_coverage.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_712_contract_requirement_tracing.py",
+      "implementations/python/tests/test_repo_policy_tools.py",
+      "implementations/python/tests/test_reusable_asset_trust_policy.py"
+    ]
+  },
+  {
+    "source": "tools/policy/adr.py",
+    "check": "repo-policy",
+    "case": "TestReferenceParity/repo-policy",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_219_participant_semantic_coverage.py",
+      "implementations/python/tests/test_repo_policy_tools.py"
+    ]
+  },
+  {
+    "source": "tools/policy/common.py",
+    "check": "repo-policy",
+    "case": "TestReferenceParity/repo-policy",
+    "reference_test_modules": [
+      "implementations/python/tests/test_dsl_language_evaluation.py",
+      "implementations/python/tests/test_issue_1205_repository_governance.py",
+      "implementations/python/tests/test_issue_1567_adr_immutability_base.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_1734_structural_ratchet.py",
+      "implementations/python/tests/test_issue_712_contract_requirement_tracing.py",
+      "implementations/python/tests/test_issue_954_docs_publication_boundary.py",
+      "implementations/python/tests/test_repo_policy_tools.py",
+      "implementations/python/tests/test_requirement_governance.py"
+    ]
+  },
+  {
+    "source": "tools/policy/conftest_tool.py",
+    "check": "repo-policy",
+    "case": "TestReferenceParity/repo-policy",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1454_conftest_evaluation_errors.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_repo_policy_tools.py"
+    ]
+  },
+  {
+    "source": "tools/policy/repo_policy.py",
+    "check": "repo-policy",
+    "case": "TestReferenceParity/repo-policy",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_1734_structural_integration.py",
+      "implementations/python/tests/test_repo_policy_tools.py"
+    ]
+  },
+  {
+    "source": "tools/policy/repository_requirements.py",
+    "check": "requirement-governance",
+    "case": "TestReferenceParity/requirement-governance",
+    "reference_test_modules": [
+      "implementations/python/tests/test_api_424_governance.py",
+      "implementations/python/tests/test_authoring_adapter_governance.py",
+      "implementations/python/tests/test_issue_1008_evaluation_backed_claims.py",
+      "implementations/python/tests/test_issue_1185_api_404_profile_alignment.py",
+      "implementations/python/tests/test_issue_1204_repository_governance.py",
+      "implementations/python/tests/test_issue_1210_governance.py",
+      "implementations/python/tests/test_issue_1237_governance.py",
+      "implementations/python/tests/test_issue_1237_requirement_scope.py",
+      "implementations/python/tests/test_issue_1352_governance.py",
+      "implementations/python/tests/test_issue_1354_governance.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_298_tool_authoring.py",
+      "implementations/python/tests/test_issue_712_contract_requirement_tracing.py",
+      "implementations/python/tests/test_sce_006_requirement_governance.py",
+      "implementations/python/tests/test_sem_234_governance.py",
+      "implementations/python/tests/test_sem_235_governance.py"
+    ]
+  },
+  {
+    "source": "tools/policy/requirement_governance.py",
+    "check": "requirement-governance",
+    "case": "TestReferenceParity/requirement-governance",
+    "reference_test_modules": [
+      "implementations/python/tests/test_api_424_governance.py",
+      "implementations/python/tests/test_authoring_adapter_governance.py",
+      "implementations/python/tests/test_issue_1008_evaluation_backed_claims.py",
+      "implementations/python/tests/test_issue_1205_repository_governance.py",
+      "implementations/python/tests/test_issue_1206_vocabulary_governance.py",
+      "implementations/python/tests/test_issue_1207_policy_ownership.py",
+      "implementations/python/tests/test_issue_1209_policy_ownership.py",
+      "implementations/python/tests/test_issue_1210_governance.py",
+      "implementations/python/tests/test_issue_1237_governance.py",
+      "implementations/python/tests/test_issue_1241_policy_ownership.py",
+      "implementations/python/tests/test_issue_1352_governance.py",
+      "implementations/python/tests/test_issue_1354_governance.py",
+      "implementations/python/tests/test_issue_1360_backend_operations.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_712_contract_requirement_tracing.py",
+      "implementations/python/tests/test_issue_972_mapping_ownership.py",
+      "implementations/python/tests/test_requirement_governance.py",
+      "implementations/python/tests/test_sce_006_requirement_governance.py",
+      "implementations/python/tests/test_sem_234_governance.py",
+      "implementations/python/tests/test_sem_235_governance.py"
+    ]
+  },
+  {
+    "source": "tools/policy/requirement_scope.py",
+    "check": "requirement-governance",
+    "case": "TestReferenceParity/requirement-governance",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1237_requirement_scope.py",
+      "implementations/python/tests/test_issue_1352_governance.py",
+      "implementations/python/tests/test_issue_1354_governance.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py",
+      "implementations/python/tests/test_issue_298_tool_authoring.py",
+      "implementations/python/tests/test_issue_712_contract_requirement_tracing.py"
+    ]
+  },
+  {
+    "source": "tools/pr_body_issue_scope.py",
+    "check": "pr-body",
+    "case": "TestReferenceParity/pr-body",
+    "reference_test_modules": [
+      "implementations/python/tests/test_pr_body_guard.py"
+    ]
+  },
+  {
+    "source": "tools/public_docs_guard.py",
+    "check": "public-docs",
+    "case": "TestReferenceParity/public-docs",
+    "reference_test_modules": []
+  },
+  {
+    "source": "tools/public_docs_markup.py",
+    "check": "public-docs",
+    "case": "TestReferenceParity/public-docs",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_954_docs_publication_boundary.py"
+    ]
+  },
+  {
+    "source": "tools/requirement_context.py",
+    "check": "requirement-context",
+    "case": "TestReferenceParity/requirement-context",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1237_requirement_scope.py",
+      "implementations/python/tests/test_issue_298_tool_authoring.py"
+    ]
+  },
+  {
+    "source": "tools/schema_coverage/__init__.py",
+    "check": "schema-coverage",
+    "case": "TestReferenceParity/schema-coverage",
+    "reference_test_modules": []
+  },
+  {
+    "source": "tools/schema_coverage/_classify.py",
+    "check": "schema-coverage",
+    "case": "TestReferenceParity/schema-coverage",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1678_sweep_t.py"
+    ]
+  },
+  {
+    "source": "tools/schema_coverage/_declaration.py",
+    "check": "schema-coverage",
+    "case": "TestReferenceParity/schema-coverage",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1678_sweep_t.py"
+    ]
+  },
+  {
+    "source": "tools/schema_coverage/_evidence.py",
+    "check": "schema-coverage",
+    "case": "TestReferenceParity/schema-coverage",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1330_schema_coverage.py",
+      "implementations/python/tests/test_issue_1678_sweep_t.py"
+    ]
+  },
+  {
+    "source": "tools/schema_coverage/_keys.py",
+    "check": "schema-coverage",
+    "case": "TestReferenceParity/schema-coverage",
+    "reference_test_modules": [
+      "implementations/python/tests/test_issue_1678_sweep_t.py"
+    ]
+  }
+]

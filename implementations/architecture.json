@@ -171,7 +171,10 @@
       "name": "tooling",
       "dir": "implementations/tooling/go",
       "doc": "Development tools: the repository analyzers, the architecture check, and CI checks. Existing tooling remains OpenRAE/rae-owned; runtime adapts applicable existing CI/release controls for its own source.",
-      "uses": [],
+      "uses": [
+        "base",
+        "contract"
+      ],
       "external": [
         {
           "path": "github.com/google/go-cmp/cmp",
@@ -200,6 +203,26 @@
         {
           "path": "golang.org/x/mod/module",
           "reason": "Validate planned public module paths with the admitted Go module parser."
+        },
+        {
+          "path": "go.yaml.in/yaml/v3",
+          "reason": "Maintained YAML parser for existing policy and workflow syntax; surface adapters retain reference scalar and alias rules."
+        },
+        {
+          "path": "github.com/santhosh-tekuri/jsonschema/v6",
+          "reason": "Existing offline Draft 2020-12 engine for candidate repository schema bytes, distinct from packaged semantic admission."
+        },
+        {
+          "path": "github.com/yuin/goldmark",
+          "reason": "Maintained CommonMark syntax-tree parser for documentation links, references and nested directive bodies without execution."
+        },
+        {
+          "path": "github.com/odvcencio/gotreesitter",
+          "reason": "Maintained pure-Go Tree-sitter runtime and Python grammar preserve inert Python source trees within the existing CGO-disabled architecture checks."
+        },
+        {
+          "path": "github.com/open-policy-agent/opa/v1",
+          "reason": "The same Apache-2.0 Rego engine version as locked Conftest 0.68.0; evaluates unchanged policy locally without another binary installer or network policy service."
         }
       ]
     }
@@ -5390,10 +5413,19 @@
       "layer": "tooling",
       "public": false,
       "doc": "Repository governance checks with shared contained readers and reference findings.",
-      "imports": [],
+      "imports": [
+        "implementations/go/base/canonjson",
+        "implementations/go/base/clock",
+        "implementations/go/base/ingress",
+        "implementations/go/contract/admission",
+        "implementations/go/contract/validation"
+      ],
       "design": "docs/decisions/issue-1799-go-governance-design.md",
       "api": {
         "linux-amd64": [
+          "const github.com/OpenRAE/rae/implementations/tooling/go/governance.ClosingAudit github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"closing-audit\"",
+          "const github.com/OpenRAE/rae/implementations/tooling/go/governance.Evaluate github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"\"",
+          "const github.com/OpenRAE/rae/implementations/tooling/go/governance.Inventory github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"report\"",
           "func github.com/OpenRAE/rae/implementations/tooling/go/governance.Check(ctx context.Context, request github.com/OpenRAE/rae/implementations/tooling/go/governance.Request) (github.com/OpenRAE/rae/implementations/tooling/go/governance.Report, error)",
           "method *time.Duration func (time.Duration).Abs() time.Duration selected=func() time.Duration",
           "method *time.Duration func (time.Duration).Hours() float64 selected=func() float64",
@@ -5519,9 +5551,13 @@
           "type any = interface{}",
           "type context.Context constraints[] interface{Deadline() (deadline time.Time, ok bool); Done() <-chan struct{}; Err() error; Value(key any) any} comparable=true",
           "type error constraints[] interface{Error() string} comparable=true",
-          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding constraints[] struct{RuleID string \"json:\\\"rule_id\\\"\" embedded=false; Message string \"json:\\\"message\\\"\" embedded=false; Path *string \"json:\\\"path\\\"\" embedded=false} unexported-fields=false comparable=true",
-          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Report constraints[] struct{Findings []github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding \"\" embedded=false; Status string \"\" embedded=false} unexported-fields=false comparable=false",
-          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Request constraints[] struct{Tool string \"\" embedded=false; Root string \"\" embedded=false; Paths []string \"\" embedded=false; BaseRevision string \"\" embedded=false; RequirementUID string \"\" embedded=false; Today string \"\" embedded=false; Body string \"\" embedded=false; Title string \"\" embedded=false; CommitMessages string \"\" embedded=false; Repository string \"\" embedded=false; IssueFacts []byte \"\" embedded=false; RequireGovernance bool \"\" embedded=false; Staged bool \"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/go/base/clock.Clock constraints[] func() time.Time comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.DocumentRead constraints[] struct{Page string \"\" embedded=false; File string \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Documentation constraints[] struct{SourceRoot string \"\" embedded=false; Reads []github.com/OpenRAE/rae/implementations/tooling/go/governance.DocumentRead \"\" embedded=false; ImportedModules []string \"\" embedded=false; ModuleRoots []string \"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding constraints[] struct{RuleID string \"json:\\\"rule_id\\\"\" embedded=false; Message string \"json:\\\"message\\\"\" embedded=false; Path *string \"json:\\\"path\\\"\" embedded=false; Status string \"json:\\\"status,omitempty\\\"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode constraints[] string comparable=true",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Report constraints[] struct{Findings []github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding \"\" embedded=false; Status string \"\" embedded=false; Text string \"\" embedded=false; ExitCode int \"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Request constraints[] struct{Tool string \"\" embedded=false; Root string \"\" embedded=false; Paths []string \"\" embedded=false; BaseRevision string \"\" embedded=false; RequirementUID string \"\" embedded=false; Today string \"\" embedded=false; Clock github.com/OpenRAE/rae/implementations/go/base/clock.Clock \"\" embedded=false; Mode github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode \"\" embedded=false; CheckSet string \"\" embedded=false; OutputRoot string \"\" embedded=false; Documentation *github.com/OpenRAE/rae/implementations/tooling/go/governance.Documentation \"\" embedded=false; Body string \"\" embedded=false; Title string \"\" embedded=false; CommitMessages string \"\" embedded=false; CommitMessagesFile string \"\" embedded=false; Repository string \"\" embedded=false; EventPath string \"\" embedded=false; IssuesFile string \"\" embedded=false; SummaryFile string \"\" embedded=false; RequireGovernance bool \"\" embedded=false; Staged bool \"\" embedded=false} unexported-fields=false comparable=false",
           "type time.Duration constraints[] int64 comparable=true",
           "type time.Location constraints[] struct{} unexported-fields=true comparable=false",
           "type time.Month constraints[] int comparable=true",
@@ -5575,7 +5611,7 @@
     "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa",
     "docs/decisions/issue-1825-public-go-api.md": "6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721",
     "docs/decisions/issue-1892-public-go-packages-design.md": "e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53",
-    "docs/decisions/issue-1799-go-governance-design.md": "7f377404440ad34637405c7fcc69b60fb347e3e1e1f6c76c82d568913abab1b2"
+    "docs/decisions/issue-1799-go-governance-design.md": "337eb81ac2188e2d0709f1c18d74ed438f181a97f1c9f667172335f6616173c6"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",

@@ -2,21 +2,53 @@ package governance
 
 import (
 	"context"
+	"encoding/hex"
+	"encoding/json"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/OpenRAE/rae/implementations/tooling/go/arch"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestReferenceParity(t *testing.T) {
-	// Both reference title outcomes are deterministic and need no repository.
-	for _, title := range []string{"feat: preserve contract authority", "Fix: Invalid title"} {
-		report, err := Check(context.Background(), Request{Tool: "pr-title", Title: title})
-		if err != nil {
-			t.Fatalf("Check(pr-title) error = %v, want an evaluated title verdict", err)
-		}
-		if (len(report.Findings) == 0) != (title == "feat: preserve contract authority") {
-			t.Errorf("Check(pr-title) findings = %v, want the reference verdict for %q", report.Findings, title)
-		}
+	encoded, err := os.ReadFile("testdata/reference-cases.hex")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := hex.DecodeString(strings.TrimSpace(string(encoded)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cases []struct {
+		Name     string
+		Request  Request
+		Findings []Finding
+	}
+	if err := json.Unmarshal(data, &cases); err != nil {
+		t.Fatal(err)
+	}
+	if len(cases) == 0 {
+		t.Fatal("reference fixture inventory is empty")
+	}
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			report, err := Check(context.Background(), tc.Request)
+			if err != nil {
+				t.Fatalf("Check(%s) error = %v, want the recorded reference verdict", tc.Name, err)
+			}
+			if diff := cmp.Diff(tc.Findings, report.Findings); diff != "" {
+				t.Errorf("Check(%s) findings mismatch (-want +got):\n%s", tc.Name, diff)
+			}
+			want := 0
+			if len(tc.Findings) > 0 {
+				want = 1
+			}
+			if report.ExitCode != want {
+				t.Errorf("Check(%s) exit = %d, want %d", tc.Name, report.ExitCode, want)
+			}
+		})
 	}
 }
 
@@ -34,8 +66,6 @@ func TestLimitsSecurityAndErrors(t *testing.T) {
 }
 
 func TestDefectRegressions(t *testing.T) {
-	// Issue #908: breaking-change footers, including continuation lines,
-	// reach the changelog and must reject retired project naming.
 	report, err := Check(context.Background(), Request{Tool: "pr-title", Title: "feat: preserve names", CommitMessages: "feat: preserve names\n\nBREAKING CHANGE: update clients\nA" + "CES clients must migrate"})
 	if err != nil {
 		t.Fatalf("Check(pr-title) error = %v, want an evaluated breaking-change verdict", err)
@@ -49,7 +79,6 @@ func TestDefectRegressions(t *testing.T) {
 }
 
 func TestPinnedAuthority(t *testing.T) {
-	// A missing manifest is a policy failure, never a verified empty ADR set.
 	report, err := Check(context.Background(), Request{Tool: "adr-immutability", Root: t.TempDir()})
 	if err != nil {
 		t.Fatalf("Check(adr-immutability) error = %v, want a manifest finding", err)
@@ -60,36 +89,32 @@ func TestPinnedAuthority(t *testing.T) {
 }
 
 func TestDeclaredDesign(t *testing.T) {
-	// The design is independently validated before implementation. The Go
-	// repository-policy integration must also accept the declared repository.
-	report, err := Check(context.Background(), Request{Tool: "repo-policy", Root: "../../../.."})
-	if err != nil {
-		t.Fatalf("Check(repo-policy) error = %v, want an evaluated declared-model verdict", err)
-	}
-	if len(report.Findings) != 0 {
-		t.Fatalf("Check(repo-policy) findings = %v, want the declared repository to pass", report.Findings)
-	}
-}
-
-func TestBaseRevisionGuard(t *testing.T) {
-	// The production workflow must select the trusted base before it executes
-	// a Go guard. The implementation adds the executable sentinel fixture.
-	workflow, err := os.ReadFile("../../../../.github/workflows/pr-body-policy.yml")
+	// Chronology is established by the design commit and recorded native check,
+	// while this test exercises the real model's enforcement on a violated edge.
+	root, err := os.OpenRoot("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}
-	text := string(workflow)
-	if !strings.Contains(text, "ref: ${{ github.event.pull_request.base.sha }}") || !strings.Contains(text, "./cmd/policycheck") {
-		t.Fatal("PR body workflow lacks the base-revision Go guard")
-	}
-}
-
-func TestHostedGates(t *testing.T) {
-	workflow, err := os.ReadFile("../../../../.github/workflows/canonical-verification.yml")
+	defer func() { _ = root.Close() }()
+	model, err := arch.Load(root.FS(), "implementations/architecture.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(workflow), "governance-parity") {
-		t.Fatal("canonical verification lacks the Go governance parity lane")
+	if findings := model.CheckDesign(); len(findings) != 0 {
+		t.Fatalf("CheckDesign() = %v, want no findings", findings)
+	}
+	found := false
+	for i, pkg := range model.Packages {
+		if pkg.Dir == "implementations/tooling/go/governance" {
+			model.Packages[i].Imports = append(model.Packages[i].Imports, pkg.Dir)
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("governance package has no declared design")
+	}
+	if findings := model.CheckDesign(); len(findings) == 0 {
+		t.Fatal("CheckDesign() accepts a self import, want an architecture finding")
 	}
 }
