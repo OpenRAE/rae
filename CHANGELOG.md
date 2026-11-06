@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [11.0.1](https://github.com/OpenRAE/rae/compare/v11.0.0...v11.0.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* admit bounded verification work for large secret plans ([#1959](https://github.com/OpenRAE/rae/issues/1959)) ([faa91c5](https://github.com/OpenRAE/rae/commit/faa91c5096d2b989783dbaa543e5b65d3104fcfc))
+
 ## [11.0.0](https://github.com/OpenRAE/rae/compare/v10.8.0...v11.0.0) (2026-11-06)
 
 
