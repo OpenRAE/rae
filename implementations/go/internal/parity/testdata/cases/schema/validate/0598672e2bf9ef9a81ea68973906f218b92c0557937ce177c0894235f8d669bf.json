@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-context-record-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:756688007e69dbf6508e6dc7426a6da81bc7a9a3f997d18df0251d2074ea3297"
+  },
+  "name": "regression/fbf7b15f1e4ba147223b39e4de4bc98b66e89932e422b80e58807d8bb2399ffb",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

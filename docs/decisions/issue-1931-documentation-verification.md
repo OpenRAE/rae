@@ -241,3 +241,23 @@ it does not combine records from different captures or edit their provenance.
 The documentation implementation and its 33 tests remain present. CI must
 capture the combined source tree and verify the replacement corpus before the
 updated PR is ready to merge.
+
+The 39 targeted documentation and content-placement tests passed on the merged
+tree. File-local policy, changed-prose checks and rendered-page checks passed.
+CI run `42257476199`, job `128034690391`, then captured the combined sources
+and scanned the decoded inputs before uploading artifact `13524627875`.
+This capture supersedes the earlier promotion after the base advancement.
+Its ZIP SHA-256 is
+`edab0d0a309283bcc3cdbf3d9e32ee35312231db7d61a907935a1e13d2cd2ab6`.
+
+The artifact contains 45,304 files, 25,178 cases and 18,134 distinct regression
+inputs. It retains all 19,712 integration-branch test identities and adds the
+33 documentation tests. Its source identity matches the merged product and
+test trees. The promotion uses the complete generated artifact without editing
+expected results or source identities.
+
+Independent review approved the exact artifact. Both inventories are complete;
+all 6,880 replacement groups retain the same case counts. Non-regression
+inventory is unchanged. Eight representative CLI, HTTP, MCP and schema
+replacements have identical recorded results. The provenance commit now names
+the integration branch's squash commit; its product tree is unchanged.
