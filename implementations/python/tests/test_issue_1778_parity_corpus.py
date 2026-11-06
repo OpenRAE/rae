@@ -172,7 +172,8 @@ def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.Monk
     monkeypatch.setattr(pc, "all_cases", lambda root: list(pc.schema_cases(root)))
     from tools import parity_regressions
 
-    monkeypatch.setattr(parity_regressions, "source_identity", lambda root: None)
+    # This fixture records schema cases; capture integrity has separate tests.
+    monkeypatch.setattr(parity_regressions, "read_inputs", lambda *args, **kwargs: ([], {"complete": False}, {}))
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err

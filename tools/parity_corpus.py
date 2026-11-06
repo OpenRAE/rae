@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -608,7 +609,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     frozen_root = args.regression_inputs or (repo / regressions.FROZEN)
     identity = (
         regressions.source_identity(repo)
-        if (frozen_root / "manifest.json").is_file() or args.regression_inputs
+        if args.regression_inputs and not (frozen_root / "manifest.json").is_file()
         else None
     )
     captured, coverage, frozen = regressions.read_inputs(frozen_root, identity=identity)
@@ -649,11 +650,31 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 def _recording_metadata_is_valid(content: bytes) -> bool:
     """Validate an existing recording receipt before accepting metadata-only drift."""
-    return False
+    try:
+        document = json.loads(content.decode("utf-8"))
+    except ValueError:
+        return False
+    if not isinstance(document, dict) or set(document) != {"schema", "provenance"} or document["schema"] != SCHEMA:
+        return False
+    provenance = document["provenance"]
+    patterns = {
+        "python_commit": r"[0-9a-f]{40}",
+        "python_tree": r"[0-9a-f]{40}",
+        "recorder_sha256": r"[0-9a-f]{64}",
+        "lock_sha256": r"[0-9a-f]{64}",
+        "python_version": r"[0-9]+\.[0-9]+\.[0-9]+",
+        "unicode_version": r"[0-9]+\.[0-9]+\.[0-9]+",
+        "hash_seed": "0",
+    }
+    if not isinstance(provenance, dict) or set(provenance) != set(patterns):
+        return False
+    return all(
+        isinstance(provenance[key], str) and re.fullmatch(pattern, provenance[key]) for key, pattern in patterns.items()
+    )
 
 
 def check_recording(recorded: Mapping[Path, bytes], committed_root: Path, output_dir: Path | None) -> int:
-    """Compare the complete generated recording and retain differences for CI."""
+    """Compare data exactly; keep historical provenance when only valid receipts differ."""
     committed = read_corpus(committed_root)
     differences = corpus_differences(recorded, committed)
     if (
@@ -661,7 +682,8 @@ def check_recording(recorded: Mapping[Path, bytes], committed_root: Path, output
         and _recording_metadata_is_valid(committed[MANIFEST])
         and _recording_metadata_is_valid(recorded[MANIFEST])
     ):
-        differences = []
+        print("parity corpus: all data files match; retained recorded source provenance")
+        return 0
     if not differences:
         print(f"parity corpus: {len(recorded)} files match")
         return 0

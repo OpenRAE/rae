@@ -261,3 +261,38 @@ all 6,880 replacement groups retain the same case counts. Non-regression
 inventory is unchanged. Eight representative CLI, HTTP, MCP and schema
 replacements have identical recorded results. The provenance commit now names
 the integration branch's squash commit; its product tree is unchanged.
+
+## Targeted replay after user clarification
+
+The user requested that manifests remain while unrelated merges stop forcing
+whole-corpus refreshes. The earlier promotions above record the former workflow.
+The fixed input snapshot now retains its original source identity across test
+and product tree changes. Fresh worker captures still require matching current
+source identities. Blob digests, completeness and live surface coverage remain
+checked. Snapshot completeness describes the recorded collection, not all current
+Python tests.
+
+Every stored case is still replayed. Only a root manifest difference can receive
+metadata-only tolerance, and both recording receipts must have valid schemas,
+fields, hashes, versions and hash seeds. Any other changed input, result or
+inventory file still fails. A replacement candidate retains the current recording
+provenance. The stored snapshot is not rewritten when behavior matches.
+
+The existing CI workflow has an optional `refresh-parity-inputs` boolean.
+It defaults to false. An explicit request uses the existing collection, scan,
+artifact review and promotion path. A missing or invalid snapshot fails ordinary
+CI instead of silently starting full collection.
+
+Three focused tests reproduced the original failures before implementation.
+Local design commit `fefaac0324c3c594f5c165432a95ca9d8d736c3d` contains safe
+refusing validators and the workflow input wiring. Compilation, file-local policy
+and five existing capture/integrity cases passed. Independent design review
+approved the structure and required the invalid-snapshot failure path.
+
+Completed-code review found that Python's JSON parser also accepts UTF-16 and
+UTF-32 receipts. The validator now decodes strict UTF-8 before parsing, matching
+the Go loader. Both encoding regressions pass. The 39 focused refresh cases
+include a real Git merge of an unrelated test and prove the snapshot remains
+usable without changing its bytes. Five mutation checks caught weakened
+provenance, data comparison, validation and refresh controls. A sixth caught
+removal of the UTF-8 guard.
