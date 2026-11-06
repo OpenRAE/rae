@@ -39,6 +39,7 @@ func codeCases() []codeCase {
 		{"undeclared module", func(c *Code) { c.Modules["n"] = "example.com/n" }, "ARCH-001", "does not declare this Go module"},
 		{"declared module without go.mod", func(c *Code) { delete(c.Modules, "m") }, "ARCH-001", "has no go.mod"},
 		{"different module path", func(c *Code) { c.Modules["m"] = "example.com/x" }, "ARCH-001", `module path "example.com/x"`},
+		{"replaced module", func(c *Code) { c.Replaced = []string{"m"} }, "ARCH-001", "replace directive"},
 		{"undeclared package", func(c *Code) { c.Packages["m/base/extra"] = Imports{} }, "ARCH-005", "does not declare this package"},
 		{"declared package without code", func(c *Code) { delete(c.Packages, "m/base/hidden") }, "ARCH-005", "has no code"},
 		{
@@ -125,9 +126,9 @@ func TestFindModulesSkipsTheDirectoriesThatTheGoCommandIgnores(t *testing.T) {
 		"a/_skip/go.mod":    module("example.com/s"),
 		"c/go.sum":          {},
 	}
-	got, err := findModules(fsys)
-	if err != nil {
-		t.Fatalf("findModules() error = %v", err)
+	got, replaced, err := findModules(fsys)
+	if err != nil || replaced != nil {
+		t.Fatalf("findModules() replaced, error = %v, %v", replaced, err)
 	}
 	want := map[string]string{"a": "example.com/a", "a/b": "example.com/a/b"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -136,8 +137,26 @@ func TestFindModulesSkipsTheDirectoriesThatTheGoCommandIgnores(t *testing.T) {
 }
 
 func TestFindModulesReportsAnUnreadableGoMod(t *testing.T) {
-	if _, err := findModules(fstest.MapFS{"a/go.mod": {Mode: fs.ModeSymlink}}); err == nil {
+	if _, _, err := findModules(fstest.MapFS{"a/go.mod": {Mode: fs.ModeSymlink}}); err == nil {
 		t.Error("findModules() error = nil, want an error")
+	}
+	if _, _, err := findModules(fstest.MapFS{"a/go.mod": {Data: []byte("module example.com/a\nunknown directive\n")}}); err == nil {
+		t.Error("findModules(malformed) error = nil, want an error")
+	}
+}
+
+// Released module metadata never carries a development override.
+func TestFindModulesListsEachReplacingModule(t *testing.T) {
+	fsys := fstest.MapFS{
+		"a/go.mod": {Data: []byte("module example.com/a\n\nreplace example.com/b => ../b\n")},
+		"b/go.mod": {Data: []byte("module example.com/b\n")},
+	}
+	_, replaced, err := findModules(fsys)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff([]string{"a"}, replaced); diff != "" {
+		t.Errorf("findModules() replaced mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -172,6 +191,7 @@ func TestLoadCodeRecordsTheImportsOfEachPackageAndItsTests(t *testing.T) {
 			"m/c": {},
 			"m/d": {Code: []string{"m/a"}},
 		},
+		Replaced: []string{"m"},
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("LoadCode() mismatch (-want +got):\n%s", diff)

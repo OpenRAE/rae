@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 // The bounded record limits retain the ADR-116 chain/group/message ceilings.

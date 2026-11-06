@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/fs"
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -120,7 +121,7 @@ func TestGeneratedNestedTypesAndCompleteOutput(t *testing.T) {
 	for name, data := range got {
 		output[name] = &fstest.MapFile{Data: data}
 	}
-	const extra = "implementations/go/internal/contract/binding/stale_generated.go"
+	const extra = "implementations/go/contract/binding/stale_generated.go"
 	output[extra] = &fstest.MapFile{Data: []byte("stale")}
 	if err := Check(output, got); err == nil {
 		t.Error("Check(extra) = nil, want refusal")
@@ -160,5 +161,25 @@ func TestRuleSpecificationsKeepLocations(t *testing.T) {
 	source["specs/conformance/contract-invariant-rules.json"] = &fstest.MapFile{Data: data}
 	if _, err := Generate(source); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// The public binding package and the internal corpus are the only destinations.
+func TestGeneratedDestinationsKeepTheCorpusInternal(t *testing.T) {
+	got, err := Generate(generatorSource())
+	if err != nil {
+		t.Fatal(err)
+	}
+	output := fstest.MapFS{}
+	for name, data := range got {
+		if !strings.HasPrefix(name, "implementations/go/contract/binding/") && !strings.HasPrefix(name, "implementations/go/internal/contract/corpus/data/") {
+			t.Errorf("Generate wrote %s outside the binding and corpus destinations", name)
+		}
+		output[name] = &fstest.MapFile{Data: data}
+	}
+	const extra = "implementations/go/internal/contract/corpus/data/9999"
+	output[extra] = &fstest.MapFile{Data: []byte("stale")}
+	if err := Check(output, got); err == nil {
+		t.Error("Check(extra corpus piece) = nil, want refusal")
 	}
 }

@@ -29,7 +29,7 @@ func checkArchiveBoundary(t *testing.T, size int) {
 	}
 	var actual bytes.Buffer
 	for index := range count {
-		name := fmt.Sprintf("%scorpus/data/%04d", outputRoot, index)
+		name := fmt.Sprintf("%s%04d", corpusRoot, index)
 		encoded, exists := output[name]
 		if !exists {
 			t.Fatal("missing archive piece", name)

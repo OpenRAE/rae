@@ -19,7 +19,9 @@ No destination or source transfer is approved by this plan.
 Environment packs and LilRAE consume the relevant public language/processor/contract/backend APIs.
 Coldlight embeds the shared runtime from its planned new repository owner.
 [The consumer API reference](../decisions/issue-1825-public-go-api.md) names their package owners, operations, command composition and compatibility policy.
-No product package is downstream-importable today.
+The nine packages that #1892 moved are downstream-importable at their public paths.
+These are `base/fault`, `base/ingress`, `base/canonjson`, `base/digest`, `base/address`, `base/clock`, `contract/binding`, `contract/validation` and `contract/admission`.
+All other product packages stay below `internal`.
 The `public` flag is for layers.
 It does not bypass Go's `internal` rule.
 The tooling module is a development dependency, not the consumer product API.
@@ -35,10 +37,10 @@ flowchart TB
         Transport[Authoring CLI / MCP adapters - planned]
         App[Authoring services - planned]
         SDL[SDL admission - planned]
-        Contracts[Published contract admission - implemented]
+        Contracts[Published contract admission - implemented, public]
         Processor[Compilation / planning / trial compilation - planned]
         Backend[Backend interfaces - planned]
-        Base[Shared base primitives - implemented]
+        Base[Shared base primitives - implemented, required types public]
     end
     subgraph RuntimeRepo[Runtime repository - planned]
         Runtime[Shared runtime control plane - planned]
@@ -150,14 +152,17 @@ Review checks these trust explanations whenever bound evidence changes.
 | Architecture checks | Tooling `arch`; standard Go types and existing model/findings, no product-internal imports |
 
 These primitive owners stay in `rae`.
-The model's `consumer_api` section declares the planned public imports.
-#1892 moves the required existing packages; later port issues implement their named interfaces.
+The model's `consumer_api` section declares the public imports.
+#1892 moved the required existing packages to their public paths; later port issues implement their named interfaces.
+The other base helpers and `contract/corpus` stay below `internal`.
 The model's `public` flag does not override Go `internal` visibility.
 Pure conformance, authoring services and MCP remain in `rae`; live conformance, execution services, HTTP and combined `raes` publication belong with runtime.
 The current model graph below still describes this checkout before extraction.
 Its layer descriptions and bound split decision define future ownership.
 The generated consumer tables show the public package plan and the sole executable publishers.
-No moved package is claimed as delivered.
+ARCH-015 keeps implemented runtime code on public `rae` packages and keeps `rae` consumer packages away from runtime code.
+The [external consumer fixture](../../implementations/go/testdata/consumer) imports the public packages at a pinned module version.
+The [#1892 design](../decisions/issue-1892-public-go-packages-design.md) records the moves and their controls.
 
 Compatibility reasons and parity evidence:
 [canonical JSON](../decisions/issue-1779-canonical-json-design.md),
@@ -255,14 +260,14 @@ flowchart BT
 
 | Package owner | Layer | Cross-layer visibility | Consumer importable | Actual dependencies |
 | --- | --- | --- | --- | --- |
-| `implementations/go/internal/base/address` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/canonjson` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/digest` | base | true | false |  |
-| `implementations/go/internal/base/ingress` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/base/address` | base | true | true | implementations/go/base/fault |
+| `implementations/go/base/canonjson` | base | true | true | implementations/go/base/fault |
+| `implementations/go/base/digest` | base | true | true |  |
+| `implementations/go/base/ingress` | base | true | true | implementations/go/base/fault |
 | `implementations/go/internal/base/jsonpointer` | base | true | false |  |
-| `implementations/go/internal/base/randstream` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/urisafety` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/parity` | parity | false | false | implementations/go/internal/base/address, implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/ingress, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/randstream, implementations/go/internal/base/urisafety, implementations/go/internal/base/clock, implementations/go/internal/base/domain, implementations/go/internal/base/fault, implementations/go/internal/base/graph, implementations/go/internal/base/logrecord, implementations/go/internal/base/secretref, implementations/go/internal/base/softwareversion, implementations/go/internal/base/timestamp, implementations/go/internal/base/value, implementations/go/internal/contract/validation, implementations/go/internal/contract/admission |
+| `implementations/go/internal/base/randstream` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/urisafety` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/parity` | parity | false | false | implementations/go/base/address, implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/ingress, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/randstream, implementations/go/internal/base/urisafety, implementations/go/base/clock, implementations/go/internal/base/domain, implementations/go/base/fault, implementations/go/internal/base/graph, implementations/go/internal/base/logrecord, implementations/go/internal/base/secretref, implementations/go/internal/base/softwareversion, implementations/go/internal/base/timestamp, implementations/go/internal/base/value, implementations/go/contract/validation, implementations/go/contract/admission |
 | `implementations/tooling/go/arch` | tooling | false | true |  |
 | `implementations/tooling/go/cmd/archcheck` | tooling | false | false | implementations/tooling/go/arch |
 | `implementations/tooling/go/cmd/raesvet` | tooling | false | false | implementations/tooling/go/lint/getprefix, implementations/tooling/go/lint/gotwant, implementations/tooling/go/lint/wrapverb |
@@ -270,21 +275,21 @@ flowchart BT
 | `implementations/tooling/go/lint/getprefix` | tooling | false | true |  |
 | `implementations/tooling/go/lint/gotwant` | tooling | false | true |  |
 | `implementations/tooling/go/lint/wrapverb` | tooling | false | true |  |
-| `implementations/go/internal/base/clock` | base | true | false |  |
-| `implementations/go/internal/base/fault` | base | true | false |  |
-| `implementations/go/internal/base/timestamp` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/softwareversion` | base | true | false | implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/fault |
-| `implementations/go/internal/base/domain` | base | true | false | implementations/go/internal/base/softwareversion, implementations/go/internal/base/fault |
-| `implementations/go/internal/base/value` | base | true | false | implementations/go/internal/base/fault, implementations/go/internal/base/canonjson |
-| `implementations/go/internal/base/logrecord` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/graph` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/secretref` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/base/clock` | base | true | true |  |
+| `implementations/go/base/fault` | base | true | true |  |
+| `implementations/go/internal/base/timestamp` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/softwareversion` | base | true | false | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault |
+| `implementations/go/internal/base/domain` | base | true | false | implementations/go/internal/base/softwareversion, implementations/go/base/fault |
+| `implementations/go/internal/base/value` | base | true | false | implementations/go/base/fault, implementations/go/base/canonjson |
+| `implementations/go/internal/base/logrecord` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/graph` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/secretref` | base | true | false | implementations/go/base/fault |
 | `implementations/go/internal/contract/corpus` | contract | true | false |  |
-| `implementations/go/internal/contract/binding` | contract | true | false |  |
-| `implementations/go/internal/contract/validation` | contract | true | false | implementations/go/internal/contract/corpus, implementations/go/internal/contract/binding, implementations/go/internal/base/ingress, implementations/go/internal/base/fault, implementations/go/internal/base/canonjson, implementations/go/internal/base/jsonpointer |
+| `implementations/go/contract/binding` | contract | true | true |  |
+| `implementations/go/contract/validation` | contract | true | true | implementations/go/internal/contract/corpus, implementations/go/contract/binding, implementations/go/base/ingress, implementations/go/base/fault, implementations/go/base/canonjson, implementations/go/internal/base/jsonpointer |
 | `implementations/tooling/go/contractgen` | tooling | false | true |  |
 | `implementations/tooling/go/cmd/contractgen` | tooling | false | false | implementations/tooling/go/contractgen |
-| `implementations/go/internal/contract/admission` | contract | true | false | implementations/go/internal/contract/validation, implementations/go/internal/contract/corpus, implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/timestamp, implementations/go/internal/base/graph, implementations/go/internal/base/urisafety, implementations/go/internal/base/address, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/value, implementations/go/internal/base/domain, implementations/go/internal/base/randstream, implementations/go/internal/base/fault, implementations/go/internal/base/ingress |
+| `implementations/go/contract/admission` | contract | true | true | implementations/go/contract/validation, implementations/go/contract/binding, implementations/go/internal/contract/corpus, implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/internal/base/timestamp, implementations/go/internal/base/graph, implementations/go/internal/base/urisafety, implementations/go/base/address, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/value, implementations/go/internal/base/domain, implementations/go/internal/base/randstream, implementations/go/base/fault, implementations/go/base/ingress |
 
 | Consumer repository owner | Module |
 | --- | --- |
@@ -329,7 +334,7 @@ flowchart BT
 | `raes` | runtime | `RUNTIME/cmd/raes` | rae:command/authoring, runtime:runtime/control |
 | `raes-mcp` | rae | `github.com/OpenRAE/rae/implementations/go/cmd/raes-mcp` | rae:sdl/language, rae:processor, rae:contract/admission |
 
-<!-- go-consumer d8802bf779d358c33967d4b1510bc75e38fa92a2ba1768d96ab405dfe6165286 -->
+<!-- go-consumer 40c900431da64f79c821149f324d6ddebb56e63b2df74639d9139b0aa49765d4 -->
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
@@ -340,28 +345,29 @@ flowchart BT
 | `docs/decisions/adrs/adr-113-reusable-execution-machinery.md` | `6d904befc0d37d44b07ed083d297c7a0e3ba0d520d79f9ddce1999477c78e91d` |
 | `docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md` | `e7994a017f64937bfa48edfb8600b933e2acca330a2d5ebaef8a6ae95fcc91be` |
 | `docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md` | `a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa` |
-| `docs/decisions/adrs/adr-122-go-architecture-model.md` | `7ddd90a8486fb218b224bcb8addeffeefc8bff7f0351c90d72400ebd413f7b63` |
+| `docs/decisions/adrs/adr-122-go-architecture-model.md` | `80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c` |
 | `docs/decisions/issue-1775-go-architecture-model-design.md` | `d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8` |
 | `docs/decisions/issue-1778-parity-corpus-design.md` | `c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830` |
-| `docs/decisions/issue-1779-canonical-json-design.md` | `c68392c70e55eabd39a1d1b287c082fc98b40aea2a50a90a43384f34aea752a3` |
-| `docs/decisions/issue-1779-ingress-design.md` | `21fe1ede3a371941bd13605037cf6e378a6f442d9622dbc9fa716e952cbad281` |
+| `docs/decisions/issue-1779-canonical-json-design.md` | `28f5cff66fdc26e01392d143e5ad52ba23072c2bd6010a35fb4f1e0c0162e8f0` |
+| `docs/decisions/issue-1779-ingress-design.md` | `0dcde22676a7429a0c92d01ed2e8d0eaf15da84d5be800404e12c9414348bed1` |
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
-| `docs/decisions/issue-1779-shared-primitives-completion.md` | `6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e` |
-| `docs/decisions/issue-1780-contract-validation-design.md` | `ed1ba1a0d0cc07b995cacd8407799152bac9b09b1b43670d4e08ea62ad6c4aec` |
+| `docs/decisions/issue-1779-shared-primitives-completion.md` | `bc5ae3bbcd6ac6a98fd475a108eacc61191cc6f39c564400a1201e2230921545` |
+| `docs/decisions/issue-1780-contract-validation-design.md` | `c8f4f8afc16d401f329de8fc7a2bac28ec639bf0ccaf9b7c144e98a7ff64fdca` |
 | `docs/decisions/issue-1825-public-go-api.md` | `6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721` |
-| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `5842d05eca8c9cfb69b01ba1edbde3ba7053bbf40a30ba60d4ab24731b2705de` |
+| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `0057d0da3d7466e02c34cf5545aa14245bc398486519d3dd15457e515f6230ce` |
 | `docs/decisions/issue-1891-runtime-repository-boundary.md` | `e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406` |
-<!-- go-component base 04321896edf5f4ad742656c8b66efa4700677b2a7993485fdb6e0f940af96eda -->
-<!-- go-component contract 136352fa4109d0f6e381e8d986be977d2a8c943fc760f33ced506618a76f5a69 -->
-<!-- go-component sdl b21f9190711ea203ad057c5239a2e1235eb7fead04c08dfa0ad7e3b63985b737 -->
-<!-- go-component processor 78be66f477d2c69c2ef04799381498b40215b3b1ea2258dba1d412c943a13c59 -->
-<!-- go-component backend c8b9396a657b0605c31a1b6c6bcb84be3bebd2c8d3368d8459862b73ef6f3337 -->
-<!-- go-component runtime cf99c7c0b9410724ce61471a1b2f5103e22f917f533a116f4347ed91009c14dd -->
-<!-- go-component conformance d1bb0c4dff7c7cba27650b5b43d49a736f59b068e73f52acde20365c209ddf20 -->
-<!-- go-component app c74e53df701bef04d311f1d77e82d7ae48b71be0dc2ff97bec7faabbb2759d48 -->
-<!-- go-component adapter d770a858f7668e37ec056d6e8ed3b4420bc8130ba38173abd290748ab2478fbf -->
-<!-- go-component command 5cf1c9b301f31cf79c5ae9c97d16014766f13fec5ea21eea3b0ad40ec1b28caf -->
-<!-- go-component parity 9a41c3ac51ba3859b764cdf662752928546f8838075a171d48ce366c17317d71 -->
-<!-- go-component tooling 0d2351108d3817df871e95364809c4029702f2ed61127b8d49a6f2bca14c7ee9 -->
+| `docs/decisions/issue-1892-public-go-packages-design.md` | `e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53` |
+<!-- go-component base 59b6f569945599032e30f91f595e588f75ce20bb87d277f629679106c4da8a81 -->
+<!-- go-component contract 983cece294932039e5323f5023dbe6fee3f19d86534259876776277e279e7e32 -->
+<!-- go-component sdl ae59970bb48c0bca3b8b6fca137ea2ddc5ed6c5d4109b6078c148826fefa4da9 -->
+<!-- go-component processor d5b6ed6972689d514e67ebfe3bcf47bfd0c4e16ee6fcc1d26bf460bbad5f4dff -->
+<!-- go-component backend 8dbf92f3d47234a7cd2dcce857f9e4f91da4df2d12ada53f5560123071632beb -->
+<!-- go-component runtime 7d98440ba0b0b01a5ab26f48c78fd908050f5e7375311641ffe16547c5cbd6f3 -->
+<!-- go-component conformance a09c5277291fa4b72e6cf1e068b17a7ac347c4bf4fa07ac019858ce4c61c40e3 -->
+<!-- go-component app 2958294cc25803ef58f62049016bb01218b337a40b0f90a53cf4da1b13be444a -->
+<!-- go-component adapter 98481cd83515cf8691abfa13f9765f711ffea837974a3dd5092b585b056990c9 -->
+<!-- go-component command 71795a5833c9c7bced69332c7d0a014edf35ac2a8be7cd60a99be41a694703c0 -->
+<!-- go-component parity dc9092f8185fd3fd16db31dc74036d5a1bd99209c9ac3a81cb25d3e3604a539e -->
+<!-- go-component tooling c797e770365abe04baa6150c481db69fcb13c6e0826b2d149a40ea10fc7aef0a -->
 
 <!-- /go-view -->

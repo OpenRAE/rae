@@ -122,15 +122,15 @@ Use short active sentences and consistent technical names. Do not claim automate
 These digests commit this design to the typed API in the architecture model.
 Review each interface change before changing its digest.
 
-<!-- go-api implementations/go/internal/base/address 1ff9daf3a2cd7b3fe11f75514362e5d546cafaa872c0a4bf021399860a9fa736 -->
-<!-- go-api implementations/go/internal/base/canonjson 0e2c3043b65e8d2fc2039404227223f0acd6c80b1bee5198d42ecf3f57281d04 -->
-<!-- go-api implementations/go/internal/base/digest aaf372dbbacd35fa5c22f9c6841ef09ce0f1c1934464ed36951afc77eb03db6d -->
-<!-- go-api implementations/go/internal/base/ingress 9d82f448fa16114a6e1da8c27f68870bd207b8ff9479a67a5f7be5ae6997fc87 -->
+<!-- go-api implementations/go/base/address 891513938d5d2633f5c5c5f090ffe1c53dd0ef6426d27c302a1a3b07186a87cc -->
+<!-- go-api implementations/go/base/canonjson 8090ef8e994683fb3b8bce36dec7bd5daf12063a5538ac7228112bfafc24cfd5 -->
+<!-- go-api implementations/go/base/digest 7ac25410216701be19eab0cdca4fde514939b437b66101fbf8ee25675283d869 -->
+<!-- go-api implementations/go/base/ingress ee2ea02d50e1d5188d79e85f22b20cf6c7ff183fbefa87415dfc7f442b954279 -->
 <!-- go-api implementations/go/internal/base/jsonpointer 44d069d984b7b4cd519a3481ad25ef1f76bc568818f62d27b65304c7e4a3d4e7 -->
 <!-- go-api implementations/go/internal/base/randstream 06452bf0a8d69c8ea109834dd58e24ddd3fc65a94598a720eb6a947cf421930a -->
 <!-- go-api implementations/go/internal/base/urisafety a31c041a65c2eac38a9e7568935516a08e94d536f628a673e2d5b725ba6ef836 -->
 <!-- go-api implementations/go/internal/parity e0db1d9b34d0312c792ed380c20d67bbf2052b81672ad290edeb3339c247cfdf -->
-<!-- go-api implementations/tooling/go/arch c85609e5a47ecd97902f08af0614f1f513aaaffe3b121c12814dafed15ea8f2f -->
+<!-- go-api implementations/tooling/go/arch 0be991df5a53aef010ed62bd269ab0a0b9bf4042814dda9a9e6dfb22fbdc8868 -->
 <!-- go-api implementations/tooling/go/cmd/archcheck dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 <!-- go-api implementations/tooling/go/cmd/raesvet dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 <!-- go-api implementations/tooling/go/cmd/regressiontest dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->

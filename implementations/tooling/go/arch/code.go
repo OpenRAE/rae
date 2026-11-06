@@ -22,6 +22,8 @@ type Code struct {
 	Modules map[string]string
 	// Packages maps the directory of each package in a declared module to its imports.
 	Packages map[string]Imports
+	// Replaced lists the directories of the go.mod files that state a replace directive.
+	Replaced []string
 }
 
 // Imports are the imports of one package outside the standard library.
@@ -40,11 +42,11 @@ type Imports struct {
 // each Go file whatever its build constraints, so the code of each platform
 // and build tag meets the model.
 func LoadCode(ctx context.Context, root string, model *Model) (Code, error) {
-	modules, err := findModules(os.DirFS(root))
+	modules, replaced, err := findModules(os.DirFS(root))
 	if err != nil {
 		return Code{}, err
 	}
-	code := Code{Modules: modules, Packages: map[string]Imports{}}
+	code := Code{Modules: modules, Packages: map[string]Imports{}, Replaced: replaced}
 	for _, module := range model.Modules {
 		if modules[module.Dir] != module.Path {
 			continue // CheckCode reports the missing or different module.
@@ -90,12 +92,12 @@ func (m *Model) readModule(ctx context.Context, root, dir string, modules map[st
 }
 
 // findModules maps the directory of each go.mod file in the repository to the
-// module path that it states. Like the go command, it skips testdata
-// directories and the directories whose names start with a dot or an
-// underscore.
-func findModules(repo fs.FS) (map[string]string, error) {
-	modules := map[string]string{}
-	err := fs.WalkDir(repo, ".", func(name string, entry fs.DirEntry, err error) error {
+// module path that it states, and lists the go.mod files that replace a module.
+// Like the go command, it skips testdata directories and the directories whose
+// names start with a dot or an underscore.
+func findModules(repo fs.FS) (modules map[string]string, replaced []string, err error) {
+	modules = map[string]string{}
+	err = fs.WalkDir(repo, ".", func(name string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -108,14 +110,33 @@ func findModules(repo fs.FS) (map[string]string, error) {
 		if entry.Name() != "go.mod" {
 			return nil
 		}
-		content, err := fs.ReadFile(repo, name)
+		file, err := readModFile(repo, name)
 		if err != nil {
 			return err
 		}
-		modules[path.Dir(name)] = modfile.ModulePath(content)
+		modules[path.Dir(name)] = file.Module.Mod.Path
+		if len(file.Replace) > 0 {
+			replaced = append(replaced, path.Dir(name))
+		}
 		return nil
 	})
-	return modules, err
+	return modules, replaced, err
+}
+
+// readModFile parses the go.mod file at name.
+func readModFile(repo fs.FS, name string) (*modfile.File, error) {
+	content, err := fs.ReadFile(repo, name)
+	if err != nil {
+		return nil, err
+	}
+	file, err := modfile.Parse(name, content, nil)
+	if err != nil {
+		return nil, err
+	}
+	if file.Module == nil {
+		return nil, fmt.Errorf("%s: no module directive", name)
+	}
+	return file, nil
 }
 
 // ignoredDir reports whether the go command ignores a directory with this
@@ -161,9 +182,12 @@ func (m *Model) dirOf(importPath string) (string, bool) {
 	return owner.Dir + strings.TrimPrefix(importPath, owner.Path), true
 }
 
+// goModSuffix names the module file below a module directory.
+const goModSuffix = "/go.mod"
+
 // CheckCode checks the code against the model.
 func (m *Model) CheckCode(code Code) []Finding {
-	return slices.Concat(m.checkModuleFiles(code), m.checkDeclared(code), m.checkCodeImports(code), m.checkExternalImports(code))
+	return slices.Concat(m.checkModuleFiles(code), m.checkDeclared(code), m.checkCodeImports(code), m.checkExternalImports(code), m.checkConsumerTestImports(code))
 }
 
 func (m *Model) checkModuleFiles(code Code) []Finding {
@@ -172,7 +196,7 @@ func (m *Model) checkModuleFiles(code Code) []Finding {
 		i := slices.IndexFunc(m.Modules, func(module Module) bool { return module.Dir == dir })
 		if i < 0 {
 			findings = append(findings, Finding{
-				Rule: ruleModules, Location: dir + "/go.mod",
+				Rule: ruleModules, Location: dir + goModSuffix,
 				Problem: "the model does not declare this Go module.",
 				Fix:     "declare the module and its packages in the model through the design step.",
 			})
@@ -180,11 +204,18 @@ func (m *Model) checkModuleFiles(code Code) []Finding {
 		}
 		if m.Modules[i].Path != code.Modules[dir] {
 			findings = append(findings, Finding{
-				Rule: ruleModules, Location: dir + "/go.mod",
+				Rule: ruleModules, Location: dir + goModSuffix,
 				Problem: fmt.Sprintf("the go.mod states module path %q, but the model declares %q.", code.Modules[dir], m.Modules[i].Path),
 				Fix:     "make the module path in the model and in the go.mod the same.",
 			})
 		}
+	}
+	for _, dir := range code.Replaced {
+		findings = append(findings, Finding{
+			Rule: ruleModules, Location: dir + goModSuffix,
+			Problem: "the go.mod states a replace directive, which released module metadata must not carry.",
+			Fix:     "remove the replace directive; resolve the dependency from a pinned published version.",
+		})
 	}
 	for _, module := range m.Modules {
 		if _, ok := code.Modules[module.Dir]; !ok {
