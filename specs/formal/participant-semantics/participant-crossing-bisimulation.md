@@ -16,10 +16,9 @@ profile/model rev2 as the downstream target. This sketch claims no equivalence,
 proof, runtime-realization, or backend-conformance result.
 
 The finite rev2 result is in the
-[machine-check specification](participant-crossing-machine-check.md). Its
-separately reviewed reproduction is in the
-[reproduction specification](participant-crossing-reproduction.md). That result
-is a finite model check of the complete rev2 carrier only.
+[machine-check specification](participant-crossing-machine-check.md). CI repeats
+that decision from the current sources on every commit. The result is a finite
+model check of the complete rev2 carrier only.
 
 The [executable rev2 refinement](participant-crossing-models.md) records #971's
 approved single-operation interpretation and independently generated models.

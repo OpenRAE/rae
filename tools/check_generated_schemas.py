@@ -73,7 +73,7 @@ def main() -> int:
             "(ADR-009 section 7: contracts/schemas/ is the authority; the reference implementation "
             "proves compatibility). Update the reference implementation (schema_bundle()) to match "
             "the published schemas, or — if the contract itself is changing — edit the published "
-            "schema and record a manifest ledger entry. Schemas that do not match:",
+            "schema. Schemas that do not match:",
             file=sys.stderr,
         )
         for path in drifted:

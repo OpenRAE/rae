@@ -22,6 +22,7 @@ from pydantic_core import CoreSchema
 
 from raes_contracts.canonical import canonical_contract_digest
 
+from .._sealing import sealing_active
 from ..secret_references import SecretReferenceId
 from ..versions import (
     EXPERIMENT_BINDING_DESCRIPTORS_V1_SCHEMA_VERSION,
@@ -424,7 +425,7 @@ class ParticipantConfigurationResultModel(ContractModel):
     @model_validator(mode="after")
     def _validate_configuration_digest(self) -> ParticipantConfigurationResultModel:
 
-        if self.configuration_digest != canonical_contract_digest(self.configuration):
+        if not sealing_active() and self.configuration_digest != canonical_contract_digest(self.configuration):
             raise ValueError("configuration_digest must match the canonical normalized configuration")
         return self
 

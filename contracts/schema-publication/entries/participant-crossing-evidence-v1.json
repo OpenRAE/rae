@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-crossing-evidence-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-crossing-evidence-v1.json",
-  "stability": "draft",
-  "content_hash": "2b63f0190448c1f5102603d431161d05a1e8ceda6dd364ed10e9b79f3d60203a",
-  "last_change": {
-    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
-    "content_hash": "2b63f0190448c1f5102603d431161d05a1e8ceda6dd364ed10e9b79f3d60203a"
-  }
+  "stability": "draft"
 }

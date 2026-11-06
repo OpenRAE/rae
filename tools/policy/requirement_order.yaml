@@ -241,7 +241,6 @@ ownership:
     - specs/formal/assurance-fulfillment.yaml
     - specs/formal/participant-semantics/README.md
     - specs/formal/participant-semantics/adversarial-flow-control.md
-    - specs/formal/participant-semantics/runtime-mapping
   participant-relation-assurance:
     # Issue #973 bounded negative evidence; no runtime or tooling ownership.
     - implementations/formal/participant_crossing/counterexample_corpus.py
@@ -249,29 +248,11 @@ ownership:
     - implementations/python/tests/test_issue_973_crossing_corpus.py
     - implementations/python/tests/test_issue_973_crossing_witnesses.py
     - docs/research/participant-bisimulation/worked-evidence.md
-    # Issue #974 finite decision and admitted artifact publication.
+    # Issue #974 finite decision, built and checked from the current sources.
     - implementations/formal/participant_crossing/machine_check.py
     - implementations/formal/participant_crossing/machine_check_evidence.py
-    - implementations/formal/participant_crossing/machine_check_publication.py
     - implementations/python/tests/test_issue_974_machine_check.py
     - implementations/python/tests/test_issue_974_machine_check_publication.py
-    # Issue #975 isolated measurements; reviewer acceptance remains separate.
-    - implementations/formal/participant_crossing/reproduction_checks.py
-    - implementations/python/tests/test_issue_975_reproduction_checks.py
-    - implementations/formal/participant_crossing/reproduction.py
-    - implementations/formal/participant_crossing/reproduction_sandbox.py
-    - implementations/python/tests/test_issue_975_reproduction.py
-    - implementations/python/tests/test_issue_975_reproduction_sandbox.py
-    - implementations/python/tests/test_issue_975_reproduction_workflow.py
-    - implementations/python/tests/test_issue_975_reproduction_record.py
-    - specs/formal/participant-semantics/participant-crossing-reproduction.md
-    - specs/formal/participant-semantics/reproduction
-    # Issue #976 retained-record admission and publication facts from admitted evidence.
-    - implementations/formal/participant_crossing/reproduction_record.py
-    - implementations/formal/participant_crossing/reproduction_attestation.py
-    - implementations/formal/participant_crossing/publication.py
-    - implementations/python/tests/test_issue_976_reproduction_record.py
-    - implementations/python/tests/test_issue_976_crossing_publication.py
     - implementations/python/tests/test_issue_976_evidence_identity.py
     - tools/check_participant_opacity_proof.py
     - specs/formal/participant-semantics/participant-opacity-proof-evidence.json
@@ -1434,10 +1415,6 @@ ownership:
     - docs/decisions/issue-1734-structural-policy-preflight.md
     - docs/decisions/issue-1734-structural-checks-design.md
     - docs/DEVELOPMENT_WORKFLOW.md
-    # The tooling lock is tool provenance in the counterexample corpus, and the
-    # runtime-mapping capture pins the changed tools and tests.
-    - specs/formal/participant-semantics/counterexamples
-    - specs/formal/participant-semantics/runtime-mapping
   decision-record-governance:
     - docs/decisions/adrs
     - docs/index.md

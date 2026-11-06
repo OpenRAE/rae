@@ -17,12 +17,12 @@ These encode the hard rules previously in `AGENTS.md` prose.
 - Plans MUST name the module that owns each piece of new code. Plans MUST also
   name the public interface that other modules use to reach that code
   (ADR-117).
-- Plans that change a published schema under `contracts/schemas/` (the
-  hand-governed normative authority per ADR-009 §7) MUST record a
-  contract-facing change-ledger entry (`last_change`: summary + content hash)
-  in `contracts/schema-publication-manifest.json`, and a plan that **removes**
-  a published schema MUST record a `removed_schemas` tombstone (schema path +
-  summary) in the same manifest. Plans MUST keep the reference implementation
+- Plans that add a published schema under `contracts/schemas/` (the
+  hand-governed normative authority per ADR-009 §7) MUST add its record under
+  `contracts/schema-publication/entries/`. A schema change does not edit its
+  record. A plan that **removes** a published schema MUST add a tombstone
+  record (schema path + summary) under `contracts/schema-publication/tombstones/`.
+  Plans MUST keep the reference implementation
   (`schema_bundle()`) generating an identical bundle so
   `tools/check_generated_schemas.py` passes. The published schema is the
   authority; a generator/Python edit alone is NOT authorization for a schema

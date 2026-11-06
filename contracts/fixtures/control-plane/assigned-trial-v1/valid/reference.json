@@ -241,8 +241,7 @@
           "plan_entry_id": "entry-a",
           "run_id": "run-a",
           "scenario_family_id": "family-a"
-        },
-        "entry_digest": "sha256:e1e0533ce89453684a554361eee26f2c561b2675172710cb161358e6f8c67eec"
+        }
       }
     },
     "admission": {
@@ -250,8 +249,7 @@
       "entry_count": 1,
       "limitations": [],
       "diagnostics": []
-    },
-    "plan_digest": "sha256:f6484bf975e1e7a2da23ddb1cc8a75964a0e21a992ca8be3b840eea906ecec73"
+    }
   },
   "plan_entry_id": "entry-a",
   "execution_attempt_id": "attempt:b1e800b3-c9de-59bb-b0e8-6bab5e1380de",

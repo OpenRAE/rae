@@ -566,10 +566,9 @@ def test_historical_archive_does_not_require_a_live_source_file(tmp_path):
 
 
 def test_classification_retirement_has_a_recorded_adr_001_amendment():
-    import hashlib
 
     import yaml
-    from tools.check_adr_immutability import amendment_refs, canonical_content
+    from tools.check_adr_immutability import amendment_refs
 
     path = ROOT / "docs/decisions/adrs/adr-001-scenario-description-language.md"
     content = path.read_text()
@@ -577,7 +576,6 @@ def test_classification_retirement_has_a_recorded_adr_001_amendment():
     entry = next(item for item in index["adrs"] if item["id"] == "ADR-001")
     assert "#989" in amendment_refs(content)
     assert "#989" in {item["ref"] for item in entry["amendments"]}
-    assert entry["pin"] == hashlib.sha256(canonical_content(content).encode()).hexdigest()
 
 
 def _release_managed_source_tree(tmp_path: Path, version_source: str) -> Path:

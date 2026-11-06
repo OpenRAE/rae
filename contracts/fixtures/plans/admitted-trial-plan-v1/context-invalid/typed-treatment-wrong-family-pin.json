@@ -100,7 +100,6 @@
         "condition_id": "baseline",
         "replicate_id": null
       },
-      "entry_digest": "sha256:9d694d7372f9766c38a3dc43d39d7050b041a21ca9670ab7e5204b94a73906e6",
       "execution_controls": {
         "attempt_timeout_seconds": 600,
         "cleanup_plan_ref": "cleanup-a",
@@ -135,7 +134,6 @@
               "validator_version": "1"
             },
             "scenario_family_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "selection_id": "selection-b6a094589a5ffb485936877eb9a51922a53f078b40909eb51deb01f61cbb0739",
             "source_condition_id": "baseline",
             "source_factor_id": "weather",
             "source_factor_level_id": "clear",

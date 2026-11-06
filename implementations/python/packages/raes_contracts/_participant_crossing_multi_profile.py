@@ -120,7 +120,7 @@ class MultiAbstractCarrierModel(ContractModel):
     model_id: Literal["sem-230-participant-crossing-multi-abstract"]
     revision: Literal["rev1"]
     source_path: Literal["implementations/formal/participant_crossing/multi_abstract.py"]
-    source_digest: PrefixedDigestString
+    source_digest: PrefixedDigestString | None = None
     initial_state_ordinal: StrictInt = Field(ge=0, le=0)
 
 
@@ -128,7 +128,7 @@ class MultiConcreteCarrierModel(ContractModel):
     model_id: Literal["api-423-run-319-crossing-multi-kernel"]
     revision: Literal["rev1"]
     source_path: Literal["implementations/formal/participant_crossing/multi_concrete.py"]
-    source_digest: PrefixedDigestString
+    source_digest: PrefixedDigestString | None = None
     initial_state_ordinal: StrictInt = Field(ge=0, le=0)
 
 
@@ -165,7 +165,7 @@ class MultiParticipantCrossingParametersModel(ContractModel):
     def _closed_labels_and_sources(self) -> Self:
         if self.visible_labels != VISIBLE or self.hidden_labels != HIDDEN:
             raise ValueError("multi-operation labels must match the exact projection")
-        if self.left.source_digest == self.right.source_digest:
+        if self.left.source_digest is not None and self.left.source_digest == self.right.source_digest:
             raise ValueError("crossing transition authorities must have independent source identities")
         return self
 

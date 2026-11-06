@@ -166,8 +166,8 @@ Both independent builders close all admitted transitions without sampled
 schedules. Safety caps fail instead of returning prefixes. Export checks
 domain membership, initial membership, closure, reachability, independence,
 strict AUT readback, exact source/profile identities and artifact counts.
-Complete bundles use trusted fixed repository paths and exclusive staged
-publication; changed published bytes are never overwritten.
+Each run builds the complete bundle from the current sources; no bundle is
+committed.
 
 Construction establishes no DPBB result, runtime realization, backend
 conformance, noninterference, opacity, latency, throughput, concurrency, handoff,

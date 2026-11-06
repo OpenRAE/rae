@@ -7,6 +7,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import _validate_payload
@@ -187,7 +188,7 @@ def test_secret_reference_rejects_host_locator_shapes(reference_id: str) -> None
 
 
 def _participant_manifest_payload() -> dict[str, object]:
-    payload = json.loads(_PARTICIPANT_MANIFEST_FIXTURE.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_PARTICIPANT_MANIFEST_FIXTURE)
     for contract_id in ["experiment-binding-descriptors-v1", "participant-configuration-result-v1"]:
         if contract_id not in payload["supported_contract_versions"]:
             payload["supported_contract_versions"].append(contract_id)
@@ -674,7 +675,7 @@ def test_apparatus_manifests_publish_typed_configuration_targets(
     model_type: type[ProcessorManifestV2Model] | type[BackendManifestV2Model],
     fixture_path: Path,
 ) -> None:
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["supported_contract_versions"].append("experiment-binding-descriptors-v1")
     payload["configuration_registry"] = {
         "owner": {
@@ -864,7 +865,7 @@ def _processor_manifest_payload_with_registry() -> dict[str, object]:
         / "valid"
         / "reference.json"
     )
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["supported_contract_versions"].append("experiment-binding-descriptors-v1")
     payload["configuration_registry"] = {
         "owner": {
@@ -1255,7 +1256,7 @@ def test_binding_contract_roots_are_published_and_registered(
         else "participant-implementation-configuration"
     )
     schema_path = _REPO_ROOT / "contracts" / "schemas" / schema_family / f"{contract_id}.json"
-    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    schema = json.loads((schema_path).read_text(encoding="utf-8"))
     assert not list(Draft202012Validator(schema).iter_errors(payload))
 
 
@@ -1275,9 +1276,9 @@ def test_binding_contract_fixture_corpora_are_nonempty_and_enforced(contract_id:
     assert valid_paths
     assert invalid_paths
     for path in valid_paths:
-        assert not _validate_payload(contract_id, json.loads(path.read_text(encoding="utf-8")))
+        assert not _validate_payload(contract_id, load_contract_fixture(path))
     for path in invalid_paths:
-        assert _validate_payload(contract_id, json.loads(path.read_text(encoding="utf-8")))
+        assert _validate_payload(contract_id, load_contract_fixture(path))
 
 
 def test_binding_schemas_disclose_semantic_invariants_and_explicit_mode_conditionals() -> None:

@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 
 import pytest
+from contract_fixtures import contract_fixture_text, load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_contracts.contracts.admitted_trial_plan import (
@@ -712,7 +713,7 @@ def test_schema_bundle_publishes_admitted_trial_plan_contract() -> None:
 def test_admitted_plan_ingress_reconstructs_and_revalidates_complete_plan() -> None:
     fixture = FIXTURES_ROOT / "plans" / CONTRACT_ID / "valid" / "minimal.json"
 
-    admitted = parse_admitted_trial_plan_json(fixture.read_bytes())
+    admitted = parse_admitted_trial_plan_json(contract_fixture_text(fixture).encode())
 
     assert admitted.plan_id == "plan-a"
     assert tuple(admitted.entries) == ("entry-a",)
@@ -752,9 +753,9 @@ def test_admitted_trial_plan_fixture_corpora_validate() -> None:
     assert valid, "missing valid fixtures"
     assert invalid, "missing invalid fixtures"
     for path in valid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert not list(validator.iter_errors(payload)), path.name
         AdmittedTrialPlanModel.model_validate(payload)
     for path in invalid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert list(validator.iter_errors(payload)), path.name

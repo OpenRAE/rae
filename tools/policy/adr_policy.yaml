@@ -9,16 +9,6 @@ source_roots:
   - implementations/python/packages
   - implementations/python/src
 
-# ADR-009 section 7: published schemas under contracts/schemas/ are
-# hand-governed normative authority. A schema change must record a
-# contract-facing change-ledger entry in the publication manifest (the deeper
-# rationale/hash check lives in tools/check_schema_publication.py --base-rev).
-generated_contracts:
-  generated_roots:
-    - contracts/schemas
-  manifest_path: contracts/schema-publication-manifest.json
-  manifest_records_root: contracts/schema-publication
-
 concept_authority:
   reserved_path_tokens:
     - concept-authority

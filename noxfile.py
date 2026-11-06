@@ -129,12 +129,12 @@ def participant_opacity_proof(session: nox.Session) -> None:
 
 @nox.session(name="participant-crossing-machine-check")
 def participant_crossing_machine_check(session: nox.Session) -> None:
-    """Replay the complete finite decision without synchronization or acquisition."""
+    """Build and check the complete finite decision without synchronization or acquisition."""
     reporter = SessionReporter(session, "participant-crossing-machine-check")
     try:
-        if list(session.posargs) not in ([], ["--publish"]):
-            session.error("Use no arguments, or --publish for qualified CI artifact staging.")
-        run_machine_check(session, reporter, publish=list(session.posargs) == ["--publish"])
+        if session.posargs:
+            session.error("The participant-crossing machine check takes no arguments.")
+        run_machine_check(session, reporter)
     finally:
         reporter.summary()
 

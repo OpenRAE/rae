@@ -2,8 +2,6 @@
 
 import ast
 import hashlib
-import os
-import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
@@ -23,10 +21,9 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from . import abstract, concrete
 from .aut import parse_aut as parse_aut
 from .aut import render_aut
-from .ingress import MAX_BYTES, read_bytes, safe_path
+from .ingress import MAX_BYTES, read_bytes
 
 PROFILE_PATH = "contracts/profiles/behavioral-relation/participant-crossing-dpbb-finite-v1.json"
-OUTPUT_PATH = "specs/formal/participant-semantics/crossing-models/rev2"
 _PACKAGE = "implementations/python/packages/"
 SOURCE_PATHS = (
     "implementations/formal/participant_crossing/__init__.py",
@@ -148,12 +145,6 @@ def build_bundle(root: Path) -> dict[str, bytes]:
         raise InvalidInputError("expected crossing profile")
     sources = {path: read_bytes(root, path) for path in SOURCE_PATHS}
     identities = {path: digest(content) for path, content in sources.items()}
-    for carrier in (profile.parameters.left, profile.parameters.right):
-        if identities[carrier.source_path] != carrier.source_digest:
-            raise EvidenceIntegrityError("model source digest drift")
-    for source in profile.source_refs:
-        if identities.get(source.source_ref) != source.source_digest:
-            raise EvidenceIntegrityError("profile source digest drift")
     if any(identities[path] != value for path, value in _EXECUTING_SOURCE_DIGESTS.items()):
         raise EvidenceIntegrityError("executing source identity drift")
     _independence(sources)
@@ -208,40 +199,6 @@ def build_bundle(root: Path) -> dict[str, bytes]:
     return result
 
 
-def _check_expected(
-    root: Path, expected: dict[str, bytes], output_path: str = OUTPUT_PATH, *, max_bytes=MAX_BYTES
-) -> None:
-    target = safe_path(root, output_path)
-    if not target.is_dir() or {path.name for path in target.iterdir()} != set(expected):
-        raise EvidenceIntegrityError("model bundle artifact drift")
-    for name, content in expected.items():
-        if read_bytes(root, output_path + "/" + name, max_bytes=max_bytes) != content:
-            raise EvidenceIntegrityError("model bundle digest or count drift")
-
-
 def check(root: Path) -> None:
-    _check_expected(root, build_bundle(root))
-
-
-def publish(root: Path) -> None:
-    """Publish a new complete directory atomically; never overwrite drift."""
-    publish_bundle(root, build_bundle(root), OUTPUT_PATH)
-
-
-def publish_bundle(root: Path, expected: dict[str, bytes], output_path: str, *, max_bytes=MAX_BYTES) -> None:
-    """Nonsemantic fixed-repository publication; trusted parent, exclusive writer."""
-    target = safe_path(root, output_path)
-    if target.exists():
-        _check_expected(root, expected, output_path, max_bytes=max_bytes)
-        return
-    target.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix=".crossing-stage-", dir=target.parent) as temporary:
-        stage = Path(temporary) / "bundle"
-        stage.mkdir()
-        for name, content in expected.items():
-            with (stage / name).open("xb") as stream:
-                stream.write(content)
-                stream.flush()
-                os.fsync(stream.fileno())
-        safe_path(root, output_path)
-        os.rename(stage, target)
+    """Build and validate the model bundle from the current sources; nothing is committed (issue #1929)."""
+    build_bundle(root)

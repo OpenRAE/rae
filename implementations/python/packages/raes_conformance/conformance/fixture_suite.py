@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contract_seals import seal_contract_fixture
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import OperationalError
@@ -65,7 +66,9 @@ def _fixture_case(contract_name: str, path: Path, *, valid: bool) -> Conformance
         # The decoder raises a plain ValueError beyond the integer digit limit and RecursionError beyond its depth.
         case_diagnostics = [_payload_invalid(contract_name, "payload exceeds the JSON decoder limits")]
     else:
-        case_diagnostics = _fixture_case_diagnostics(contract_name, payload)
+        # Fixtures leave derived fields out; seal them as the owning contract computes them (issue #1929).
+        sealed = seal_contract_fixture(contract_name, payload, kind="valid" if valid else "invalid")
+        case_diagnostics = _fixture_case_diagnostics(contract_name, sealed)
     return ConformanceCaseResult(
         name=path.stem,
         contract_name=contract_name,

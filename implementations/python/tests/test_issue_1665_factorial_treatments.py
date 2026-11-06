@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -131,7 +132,7 @@ def test_archival_criteria_require_exact_selection_source_and_content() -> None:
     criterion = assignment.required_selections[0]
     # Isolate the structural criterion from participant realization obligations.
     assignment = type(assignment).model_validate({**assignment.model_dump(mode="json"), "required_bindings": []})
-    payload = json.loads(_RUN_FIXTURE.read_text())
+    payload = load_contract_fixture(_RUN_FIXTURE)
     payload["realized_selections"] = [criterion.model_dump(mode="json")]
     run = ExperimentRunModel.model_validate(payload)
     assert _run_satisfies_condition_assignment(run, assignment) == []
@@ -259,7 +260,7 @@ def test_plan_aware_archive_rejects_missing_or_relabelled_treatment() -> None:
 
     entry = next(iter(_treatment_plan_fields()["entries"].values()))
     criterion = entry.selections[0].treatment
-    payload = json.loads(_RUN_FIXTURE.read_text())
+    payload = load_contract_fixture(_RUN_FIXTURE)
     payload["realized_selections"] = [criterion.model_dump(mode="json")]
     _validate_run_binding_provenance(entry, ExperimentRunModel.model_validate(payload))
     for actual in ([], [{**criterion.model_dump(mode="json"), "source_factor_level_id": "other"}]):
@@ -387,7 +388,7 @@ def test_typed_profile_is_admitted_by_the_published_authoring_schema() -> None:
     from paths import REPO_ROOT
 
     schema = json.loads(
-        (REPO_ROOT / "contracts/schemas/experiment-core/experiment-authoring-input-v1.json").read_text()
+        (REPO_ROOT / "contracts/schemas/experiment-core/experiment-authoring-input-v1.json").read_text(encoding="utf-8")
     )
     Draft202012Validator(schema).validate(_typed_payload())
 
@@ -408,7 +409,7 @@ def test_published_typed_fixture_corpus_separates_shape_and_context(contract_id)
         "admitted-trial-plan-v1": AdmittedTrialPlanModel,
     }
     group = "plans" if contract_id == "admitted-trial-plan-v1" else "experiment-core"
-    schema = json.loads((REPO_ROOT / "contracts/schemas" / group / f"{contract_id}.json").read_text())
+    schema = json.loads((REPO_ROOT / "contracts/schemas" / group / f"{contract_id}.json").read_text(encoding="utf-8"))
     validator = Draft202012Validator(schema)
     root = REPO_ROOT / "contracts/fixtures" / group / contract_id
     for category in ("valid", "invalid", "context-invalid"):
@@ -419,7 +420,7 @@ def test_published_typed_fixture_corpus_separates_shape_and_context(contract_id)
         ]
         assert paths, (contract_id, category)
         for path in paths:
-            payload = json.loads(path.read_text())
+            payload = load_contract_fixture(path)
             assert validator.is_valid(payload) == (category != "invalid"), path
             if category == "valid":
                 model = models[contract_id].model_validate(payload)

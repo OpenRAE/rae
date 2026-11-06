@@ -9,12 +9,7 @@ from raes_contracts.operational_logging import run_application
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description="Construct or check the complete crossing model bundle.")
-    parser.add_argument(
-        "--write",
-        action="store_true",
-        help="Publish a new bundle; refuse existing drift.",
-    )
+    parser = argparse.ArgumentParser(description="Construct and check the complete crossing model bundle.")
     parser.add_argument(
         "--profile",
         choices=("single", "multi"),
@@ -25,11 +20,11 @@ def main(argv=None) -> int:
     root = Path(__file__).resolve().parents[3]
     try:
         if args.profile == "multi":
-            from .multi_export import check, publish
+            from .multi_export import check
         else:
-            from .export import check, publish
+            from .export import check
 
-        (publish if args.write else check)(root)
+        check(root)
     except OSError, OperationalError, InvalidInputError, EvidenceIntegrityError:
         # Host and authority failures, invalid inputs and drift get one fixed message; a defect reaches run_application.
         print("participant-crossing model export failed validation", file=sys.stderr)

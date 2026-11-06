@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from contract_fixtures import contract_fixture_text, load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes import admit_instantiated_scenario, instantiate_scenario, parse_sdl
@@ -198,9 +199,9 @@ def test_construct_trace_keeps_source_inference_and_author_decision_distinct() -
 
 
 def test_profile_digest_binds_the_complete_published_transformation_artifact() -> None:
-    payload = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    payload = json.loads((PROFILE_PATH).read_text(encoding="utf-8"))
     profile = CandidateSynthesisProfileDefinitionModel.model_validate(payload)
-    published_schema = json.loads(PROFILE_SCHEMA_PATH.read_text(encoding="utf-8"))
+    published_schema = json.loads((PROFILE_SCHEMA_PATH).read_text(encoding="utf-8"))
 
     Draft202012Validator(published_schema).validate(payload)
     assert profile == SYNTHESIS_PROFILE
@@ -208,7 +209,7 @@ def test_profile_digest_binds_the_complete_published_transformation_artifact() -
     assert schema_bundle()["sdl-candidate-synthesis-profile-v1"] == published_schema
     assert validate_contract_payload("sdl-candidate-synthesis-profile-v1", payload) == ()
     for path in sorted(VALID_ROOT.glob("*.json")):
-        candidate_input = CandidateSynthesisInputModel.model_validate_json(path.read_text(encoding="utf-8"))
+        candidate_input = CandidateSynthesisInputModel.model_validate_json(contract_fixture_text(path))
         assert candidate_input.transformation_profile == profile.coordinate()
 
     changed_rule = json.loads(json.dumps(payload))
@@ -240,9 +241,9 @@ def test_unsupported_relation_emits_schema_admitted_semantic_omission() -> None:
 
 @pytest.mark.parametrize("path", sorted(VALID_ROOT.glob("*.json")), ids=lambda path: path.stem)
 def test_positive_fixtures_share_published_contract_and_are_byte_stable(path: Path) -> None:
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(path)
     candidate_input = CandidateSynthesisInputModel.model_validate(payload)
-    published_schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    published_schema = json.loads((SCHEMA_PATH).read_text(encoding="utf-8"))
 
     Draft202012Validator(published_schema).validate(payload)
     first = synthesize_sdl_candidate(candidate_input)
@@ -257,11 +258,11 @@ def test_positive_fixtures_share_published_contract_and_are_byte_stable(path: Pa
 
 def test_synthesis_record_is_published_and_structurally_admitted() -> None:
     candidate_input = CandidateSynthesisInputModel.model_validate_json(
-        (VALID_ROOT / "attack-enterprise.json").read_text(encoding="utf-8")
+        contract_fixture_text(VALID_ROOT / "attack-enterprise.json")
     )
     record = synthesize_sdl_candidate(candidate_input).record
     payload = record.model_dump(mode="json")
-    published_schema = json.loads(RECORD_SCHEMA_PATH.read_text(encoding="utf-8"))
+    published_schema = json.loads((RECORD_SCHEMA_PATH).read_text(encoding="utf-8"))
 
     Draft202012Validator(published_schema).validate(payload)
     assert schema_bundle()["sdl-candidate-synthesis-record-v1"] == published_schema
@@ -270,7 +271,7 @@ def test_synthesis_record_is_published_and_structurally_admitted() -> None:
 
 def test_record_recomputes_input_digest_and_resolves_every_contribution_owner() -> None:
     candidate_input = CandidateSynthesisInputModel.model_validate_json(
-        (VALID_ROOT / "attack-enterprise.json").read_text(encoding="utf-8")
+        contract_fixture_text(VALID_ROOT / "attack-enterprise.json")
     )
     payload = synthesize_sdl_candidate(candidate_input).record.model_dump(mode="json")
     changed_input = json.loads(json.dumps(payload))
@@ -323,9 +324,7 @@ def test_assumptions_are_distinct_resolved_construct_contributions() -> None:
     ],
 )
 def test_negative_fixtures_refuse_without_partial_candidate(filename: str, reason: str) -> None:
-    candidate_input = CandidateSynthesisInputModel.model_validate_json(
-        (INVALID_ROOT / filename).read_text(encoding="utf-8")
-    )
+    candidate_input = CandidateSynthesisInputModel.model_validate_json(contract_fixture_text(INVALID_ROOT / filename))
 
     result = synthesize_sdl_candidate(candidate_input)
 
@@ -338,7 +337,7 @@ def test_negative_fixtures_refuse_without_partial_candidate(filename: str, reaso
 
 
 def test_stale_input_fixture_fails_closed_at_the_contract_join() -> None:
-    payload = json.loads((INVALID_ROOT / "stale-input.json").read_text(encoding="utf-8"))
+    payload = load_contract_fixture(INVALID_ROOT / "stale-input.json")
 
     with pytest.raises(ValidationError, match="stale against the pinned source envelope"):
         CandidateSynthesisInputModel.model_validate(payload)

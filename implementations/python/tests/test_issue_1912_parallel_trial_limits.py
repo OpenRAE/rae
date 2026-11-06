@@ -233,7 +233,7 @@ def test_published_sdl_schema_accepts_each_form(intent):
     from jsonschema import Draft202012Validator
     from paths import REPO_ROOT
 
-    schema = json.loads((REPO_ROOT / "contracts/schemas/sdl/sdl-authoring-input-v1.json").read_text())
+    schema = json.loads((REPO_ROOT / "contracts/schemas/sdl/sdl-authoring-input-v1.json").read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate({"name": "capacity", "trial_parallelism": intent})
 
 
@@ -252,7 +252,7 @@ def test_published_sdl_schema_rejects_malformed_forms(intent):
     from jsonschema import Draft202012Validator
     from paths import REPO_ROOT
 
-    schema = json.loads((REPO_ROOT / "contracts/schemas/sdl/sdl-authoring-input-v1.json").read_text())
+    schema = json.loads((REPO_ROOT / "contracts/schemas/sdl/sdl-authoring-input-v1.json").read_text(encoding="utf-8"))
     assert not Draft202012Validator(schema).is_valid({"name": "capacity", "trial_parallelism": intent})
 
 
