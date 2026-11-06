@@ -63,7 +63,7 @@ def test_full_size_authority_survives_transport_preparation_and_delivery(full_in
 
 
 @pytest.mark.parametrize("boundary", ["plan", "preparation", "delivery"])
-@pytest.mark.parametrize("field", ["role", "subject", "id", "payload"])
+@pytest.mark.parametrize("field", ["role", "subject", "id", "secret-id", "payload"])
 def test_changed_full_size_authority_is_refused(full_inventory, boundary, field):
     execution, manifest = full_inventory
     assert execution.is_valid, execution.diagnostics
