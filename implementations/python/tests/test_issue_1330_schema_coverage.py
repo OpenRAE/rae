@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from raes_contracts.contracts.backend_preparation import BackendPreparationResponseModel
 from raes_contracts.contracts.candidate_synthesis import CandidateSynthesisRecordModel
@@ -121,7 +122,7 @@ def _append_legacy(repo_root: Path, entry: dict[str, Any]) -> None:
         "schemas": [],
     }
     if manifest.is_file():
-        document = json.loads(manifest.read_text(encoding="utf-8"))
+        document = load_contract_fixture(manifest)
     document["schemas"] = sorted(
         [*(e for e in document["schemas"] if e["contract_id"] != entry["contract_id"]), entry],
         key=lambda item: item["contract_id"],
@@ -315,7 +316,7 @@ def test_every_checked_in_contract_payload_is_routed_or_frozen() -> None:
             continue
         if "/invalid/" in relative or relative in routed or relative in frozen:
             continue
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         schema_version = payload.get("schema_version") if isinstance(payload, dict) else None
         if isinstance(schema_version, str) and schema_version.replace("/", "-") in published:
             unrouted.append(relative)
@@ -634,7 +635,7 @@ def test_embedded_source_stops_covering_when_the_node_stops_conforming(tmp_path:
 def test_embedded_schema_pointer_must_name_a_published_definition(tmp_path: Path) -> None:
     _carrier_repo(tmp_path, [{"id": "entry-one"}])
     entry_path = tmp_path / "contracts/schema-publication/entries/annotation-entry-v1.json"
-    entry = json.loads(entry_path.read_text(encoding="utf-8"))
+    entry = json.loads((entry_path).read_text(encoding="utf-8"))
     entry[COVERAGE_KEY]["sources"][0]["schema_pointer"] = "#/$defs/DoesNotExist"
     _write_json(entry_path, entry)
 
@@ -646,7 +647,7 @@ def test_embedded_schema_pointer_must_name_a_published_definition(tmp_path: Path
 def test_one_schema_may_cite_several_nodes_of_one_carrier(tmp_path: Path) -> None:
     _carrier_repo(tmp_path, [{"id": "entry-one"}, {"id": "entry-two"}])
     entry_path = tmp_path / "contracts/schema-publication/entries/annotation-entry-v1.json"
-    entry = json.loads(entry_path.read_text(encoding="utf-8"))
+    entry = json.loads((entry_path).read_text(encoding="utf-8"))
     second = dict(entry[COVERAGE_KEY]["sources"][0])
     second["pointer"] = "/annotations/1"
     entry[COVERAGE_KEY]["sources"].append(second)
@@ -940,7 +941,7 @@ def test_backfilled_positive_cases_satisfy_the_published_schema_and_model(contra
     validator = _published_validator(contract_id, family)
 
     for path in _corpus_case_paths(contract_id, family, "valid"):
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert not list(validator.iter_errors(payload)), f"{path.name} violates the published schema"
         model.model_validate(payload)
 
@@ -951,7 +952,7 @@ def test_backfilled_negative_cases_are_rejected_by_a_named_layer(contract_id: st
     validator = _published_validator(contract_id, family)
 
     for path in _corpus_case_paths(contract_id, family, "invalid"):
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         rejected_by_schema = bool(list(validator.iter_errors(payload)))
         try:
             model.model_validate(payload)

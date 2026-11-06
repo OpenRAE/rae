@@ -126,4 +126,4 @@ plugin dispatcher, secret resolver, or second SDL binder.
 
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
-| 2026-11-06 | #1943 | Per-contract `last_change` hashes are removed (ADR-061 amendment, #1943). In-line changes to the affected draft schemas are reviewed in their pull requests and recorded by git history. |
+| 2026-11-06 | #1929 | Per-contract `last_change` hashes are removed (ADR-061 amendment, #1929). In-line changes to the affected draft schemas are reviewed in their pull requests and recorded by git history. |

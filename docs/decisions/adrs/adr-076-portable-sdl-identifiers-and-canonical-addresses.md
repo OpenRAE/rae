@@ -649,4 +649,4 @@ reserved-word list and a new general-purpose address parser.
 
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
-| 2026-11-06 | #1943 | The schema-publication change ledger is removed (ADR-061 amendment, #1943). Schema synchronization is governed by the generated-schema check and ADR-061 breaking-change detection. |
+| 2026-11-06 | #1929 | The schema-publication change ledger is removed (ADR-061 amendment, #1929). Schema synchronization is governed by the generated-schema check and ADR-061 breaking-change detection. |

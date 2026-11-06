@@ -38,6 +38,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
+from .._sealing import sealing_active
 from ..trial_parallelism import TrialParallelismModel, parallelism_bounds
 from ..versions import ADMITTED_TRIAL_PLAN_SCHEMA_VERSION
 from .admitted_trial_plan_components import (
@@ -87,6 +88,8 @@ def _canonical_content(model: ContractModel, digest_field: str) -> dict[str, obj
 def _verify_self_digest(model: ContractModel, digest_field: str) -> None:
     """Fail closed unless ``digest_field`` equals the JCS digest of the remaining content."""
 
+    if sealing_active():
+        return
     declared = getattr(model, digest_field)
     expected = canonical_json_digest(_canonical_content(model, digest_field))
     if declared != expected:

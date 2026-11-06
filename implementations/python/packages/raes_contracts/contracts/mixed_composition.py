@@ -17,6 +17,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
+from .._sealing import sealing_active
 from ..addressing import CompiledAddress
 from ..errors import InvalidInputError
 from ..json_ingress import JSONValue, parse_bounded_json_object
@@ -288,9 +289,8 @@ class MixedParticipantCompositionProfileModel(ContractModel):
         self._validate_scenario_reference()
         self._validate_phase_graph()
         self._validate_mode()
-        if not (isinstance(info.context, dict) and info.context.get("skip_profile_digest")):
-            expected = canonical_json_digest(_canonical_profile_content(self))
-            if self.profile_digest != expected:
+        if not sealing_active() and not (isinstance(info.context, dict) and info.context.get("skip_profile_digest")):
+            if self.profile_digest != mixed_composition_profile_digest(self):
                 raise ValueError("profile_digest does not match the canonical profile content")
         return self
 
@@ -359,6 +359,11 @@ class MixedParticipantCompositionProfileModel(ContractModel):
             inputs=[{"contract_id": MIXED_COMPOSITION_CONTRACT_ID, "instance_path": "#"}],
         )
         return schema
+
+
+def mixed_composition_profile_digest(profile: MixedParticipantCompositionProfileModel) -> str:
+    """Return the digest of the canonical profile content, excluding ``profile_digest``."""
+    return canonical_json_digest(_canonical_profile_content(profile))
 
 
 def _canonical_profile_content(profile: MixedParticipantCompositionProfileModel) -> dict[str, object]:

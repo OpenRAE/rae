@@ -10,6 +10,7 @@ from pydantic_core import CoreSchema
 
 from raes_contracts.canonical import canonical_json_digest
 
+from .._sealing import sealing_active
 from ..versions import (
     SDL_CANDIDATE_SYNTHESIS_INPUT_SCHEMA_VERSION,
     SDL_CANDIDATE_SYNTHESIS_PROFILE_SCHEMA_VERSION,
@@ -94,7 +95,7 @@ class CandidateSynthesisProfileDefinitionModel(ContractModel):
             if values != tuple(sorted(set(values))):
                 raise ValueError(f"candidate synthesis profile {label} must be sorted and unique")
         expected = canonical_json_digest(self.model_dump(mode="json", exclude={"profile_digest"}))
-        if self.profile_digest != expected:
+        if not sealing_active() and self.profile_digest != expected:
             raise ValueError("candidate synthesis profile_digest does not match the complete profile artifact")
         return self
 

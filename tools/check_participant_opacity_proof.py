@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import re
 import sys
 from dataclasses import dataclass
@@ -187,22 +186,11 @@ def _resolve_repo_path(repo_root: Path, raw_path: object) -> Path:
     return resolved
 
 
-def _file_digest(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return f"sha256:{digest.hexdigest()}"
-
-
-def _validate_digest_bound_path(repo_root: Path, payload: dict[str, Any], label: str) -> Path:
+def _validate_bound_path(repo_root: Path, payload: dict[str, Any], label: str) -> Path:
+    """Require a readable repository file; the replay reads its current bytes, so no digest is stored."""
     path = _resolve_repo_path(repo_root, payload.get("path"))
-    try:
-        digest = _file_digest(path)
-    except OSError as exc:
-        raise ProofEvidenceError(f"{label} repository file is unreadable") from exc
-    if payload.get("digest") != digest:
-        raise ProofEvidenceError(f"{label} digest does not match its repository source")
+    if not path.is_file():
+        raise ProofEvidenceError(f"{label} repository file is unreadable")
     return path
 
 
@@ -219,14 +207,14 @@ def _validate_authorities(manifest: dict[str, Any], repo_root: Path) -> tuple[An
     taxonomy = _require_object(manifest["taxonomy"], "taxonomy authority")
     _require_keys(
         taxonomy,
-        {"taxonomy_id", "taxonomy_revision", "path", "digest"},
+        {"taxonomy_id", "taxonomy_revision", "path"},
         "taxonomy authority",
     )
     if taxonomy["taxonomy_id"] != "raes-behavioral-relations" or taxonomy["taxonomy_revision"] != "rev9":
         raise ProofEvidenceError("proof taxonomy authority is not the declared rev9 authority")
     if taxonomy["path"] != "contracts/concept-authority/history/behavioral-relations-v1-rev9.json":
         raise ProofEvidenceError("proof taxonomy authority path is not the immutable rev9 authority")
-    _validate_digest_bound_path(repo_root, taxonomy, "taxonomy authority")
+    _validate_bound_path(repo_root, taxonomy, "taxonomy authority")
     catalog = load_behavioral_relation_catalog_revision("rev9")
     relation = catalog.relations["participant-predicate-opacity"]
     if relation.assurance.proof_status != "proved":
@@ -238,7 +226,7 @@ def _validate_authorities(manifest: dict[str, Any], repo_root: Path) -> tuple[An
     profile_item = _require_object(profiles[0], "proof profile")
     _require_keys(
         profile_item,
-        {"profile_id", "profile_revision", "path", "digest"},
+        {"profile_id", "profile_revision", "path"},
         "proof profile",
     )
     if (
@@ -247,7 +235,7 @@ def _validate_authorities(manifest: dict[str, Any], repo_root: Path) -> tuple[An
         or profile_item["path"] != "contracts/profiles/behavioral-relation/participant-opacity-theorem-v1.json"
     ):
         raise ProofEvidenceError("proof evidence does not bind the exact theorem profile")
-    _validate_digest_bound_path(repo_root, profile_item, "proof profile")
+    _validate_bound_path(repo_root, profile_item, "proof profile")
     profile = load_behavioral_relation_profile_revision(
         profile_item["profile_id"],
         profile_item["profile_revision"],
@@ -262,12 +250,12 @@ def _validate_sources(manifest: dict[str, Any], repo_root: Path) -> None:
     source_requirements: set[str] = set()
     for source in sources:
         item = _require_object(source, "semantic source")
-        _require_keys(item, {"requirement", "revision", "path", "digest"}, "semantic source")
+        _require_keys(item, {"requirement", "revision", "path"}, "semantic source")
         # A JSON array or object is not hashable, and it never names a required source.
         if isinstance(item["requirement"], (list, dict)):
             raise ProofEvidenceError("proof evidence semantic sources do not cover SEM-230 and SEM-231")
         source_requirements.add(item["requirement"])
-        _validate_digest_bound_path(repo_root, item, "semantic source")
+        _validate_bound_path(repo_root, item, "semantic source")
     if source_requirements != {"SEM-230", "SEM-231"}:
         raise ProofEvidenceError("proof evidence semantic sources do not cover SEM-230 and SEM-231")
 
@@ -277,13 +265,13 @@ def _validate_sources(manifest: dict[str, Any], repo_root: Path) -> None:
         item = _require_object(dependency, "proof dependency")
         _require_keys(
             item,
-            {"issue", "artifact_revision", "path", "digest", "evidence_boundary"},
+            {"issue", "artifact_revision", "path", "evidence_boundary"},
             "proof dependency",
         )
         if isinstance(item["issue"], (list, dict)):
             raise ProofEvidenceError("proof evidence dependency set is incomplete")
         dependency_issues.add(item["issue"])
-        _validate_digest_bound_path(repo_root, item, "proof dependency")
+        _validate_bound_path(repo_root, item, "proof dependency")
     if dependency_issues != {810, 961, 962}:
         raise ProofEvidenceError("proof evidence dependency set is incomplete")
 
@@ -445,8 +433,8 @@ def _validate_tool_sources(toolchain: dict[str, Any], repo_root: Path) -> None:
         raise ProofEvidenceError("proof tool source set or order is invalid")
     for source in tool_sources:
         item = _require_object(source, "proof tool source")
-        _require_keys(item, {"path", "digest"}, "proof tool source")
-        _validate_digest_bound_path(repo_root, item, "proof tool source")
+        _require_keys(item, {"path"}, "proof tool source")
+        _validate_bound_path(repo_root, item, "proof tool source")
 
 
 def _validate_toolchain(manifest: dict[str, Any], repo_root: Path) -> None:
@@ -490,13 +478,6 @@ def _validate_toolchain(manifest: dict[str, Any], repo_root: Path) -> None:
 _SESSION_SOURCE_UNREADABLE = "proof session source is unreadable or not UTF-8"
 
 
-def _session_digest(path: Path) -> str:
-    try:
-        return _file_digest(path)
-    except OSError as exc:
-        raise ProofEvidenceError(_SESSION_SOURCE_UNREADABLE) from exc
-
-
 def _session_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -511,9 +492,7 @@ def _validate_session(manifest: dict[str, Any], repo_root: Path) -> str:
         {
             "session_id",
             "root_path",
-            "root_digest",
             "theory_path",
-            "theory_digest",
             "imports",
             "forbidden_features",
             "generated_artifacts",
@@ -531,8 +510,6 @@ def _validate_session(manifest: dict[str, Any], repo_root: Path) -> str:
         raise ProofEvidenceError("proof session declaration drifted")
     root_path = _resolve_repo_path(repo_root, session["root_path"])
     theory_path = _resolve_repo_path(repo_root, session["theory_path"])
-    if session["root_digest"] != _session_digest(root_path) or session["theory_digest"] != _session_digest(theory_path):
-        raise ProofEvidenceError("proof session source digest drifted")
     root_text = _session_text(root_path)
     if "session Participant_Opacity = HOL +" not in root_text or "Participant_Opacity" not in root_text:
         raise ProofEvidenceError("proof session root does not bind the fixed HOL session")
@@ -544,13 +521,10 @@ def _validate_session(manifest: dict[str, Any], repo_root: Path) -> str:
 
 def _validate_results(manifest: dict[str, Any], *, repo_root: Path, run_prover: bool) -> None:
     expected_result = expected_isabelle_result()
-    kernel_result = _require_object(manifest["kernel_result"], "kernel result")
-    if kernel_result != expected_result:
-        raise ProofEvidenceError("proof kernel result or expected digest drifted")
     reproduction = _require_object(manifest["independent_reproduction"], "independent reproduction")
     _require_keys(
         reproduction,
-        {"command", "working_directory", "result", "reproduced_on"},
+        {"command", "working_directory", "reproduced_on"},
         "independent reproduction",
     )
     if (
@@ -566,7 +540,6 @@ def _validate_results(manifest: dict[str, Any], *, repo_root: Path, run_prover: 
             "tools.check_participant_opacity_proof",
         ]
         or reproduction["working_directory"] != "."
-        or reproduction["result"] != expected_result
         or reproduction["reproduced_on"] != "2026-07-31"
     ):
         raise ProofEvidenceError("independent proof reproduction record drifted")
@@ -596,7 +569,6 @@ def validate_proof_manifest(
             "negative_theorems",
             "toolchain",
             "session",
-            "kernel_result",
             "independent_reproduction",
             "limitations",
             "explicit_non_claims",

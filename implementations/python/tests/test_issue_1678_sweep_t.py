@@ -24,6 +24,7 @@ from types import SimpleNamespace
 
 import pytest
 import yaml
+from contract_fixtures import load_contract_fixture
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
 from test_pr_body_guard import GROUND_CONTROL_REQUIREMENT_FREE
 from tools.policy.common import PolicyFailure
@@ -3597,12 +3598,10 @@ def test_identity_cutover_record_with_an_unhashable_class_is_a_manifest_failure(
         class_field: value,
         "rationale": "retained history",
         "occurrences": 1,
-        "content_sha256": "0" * 64,
         **extra,
     }
     manifest = {
         "schema_version": cutover.MANIFEST_SCHEMA,
-        "hash_algorithm": "sha256",
         "records": [],
         "operational_bindings": [],
         "generated_history_records": [],
@@ -4889,7 +4888,7 @@ def test_tooling2_validator_launch_defects_still_propagate(monkeypatch):
 def _tooling2_edit_json(path: Path, edit) -> None:
     import json
 
-    document = json.loads(path.read_text(encoding="utf-8"))
+    document = load_contract_fixture(path)
     edit(document)
     path.write_text(json.dumps(document), encoding="utf-8")
 
@@ -5271,7 +5270,7 @@ def _sweep_t_tooling_failures(tmp_path: Path, edit_schema, edit_lock=None) -> se
     for relative, edit in ((POLICY_SCHEMAS[ARTIFACT_LOCK_PATH], edit_schema), (ARTIFACT_LOCK_PATH, edit_lock)):
         if edit is not None:
             path = tmp_path / relative
-            document = json.loads(path.read_text(encoding="utf-8"))
+            document = load_contract_fixture(path)
             edit(document)
             path.write_text(json.dumps(document), encoding="utf-8")
     failures = evaluate_tooling_artifact_policy(tmp_path, tracked_paths=["tools/acquire_tool_a.py"])

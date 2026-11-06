@@ -54,6 +54,7 @@ from raes_contracts.realization_posture import Posture as Posture
 from raes_contracts.versions import REALIZATION_ENVELOPE_SCHEMA_VERSION
 from raes_contracts.vocabulary import Closure, ObservationStrength
 
+from ._sealing import sealing_active
 from .json_serialization import sorted_json_digest
 
 _ENVELOPE_PATH_RE = re.compile(r"^[^.\[\]]+(?:\.[^.\[\]]+|\[\d+\])*$")
@@ -555,10 +556,12 @@ class BackendRealizationEnvelopeModel(ContractModel):
                 )
         elif operating_system_claim.disposition is not ConcernDisposition.UNSUPPORTED:
             raise ValueError("operating-system concern support requires coupled operating_systems capability rows")
-        if self.configuration.configuration_digest != realizer_configuration_digest(self.configuration):
+        if not sealing_active() and self.configuration.configuration_digest != realizer_configuration_digest(
+            self.configuration
+        ):
             raise ValueError("realizer configuration digest does not match canonical content")
         expected = realization_envelope_digest(self)
-        if self.digest != expected:
+        if not sealing_active() and self.digest != expected:
             raise ValueError("realization envelope digest does not match canonical content")
         return self
 

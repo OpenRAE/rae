@@ -56,7 +56,7 @@ adrs:
         ref: "#499"
         summary: "Recorded the section 7 schema-authority milestone as reached (contracts/schemas/ normative; reference implementation proves compatibility; manifest change-ledger governs schema edits)."
       - date: 2026-11-06
-        ref: "#1943"
+        ref: "#1929"
         summary: "Schema-publication records no longer store a `content_hash` or a `last_change` block, and the `schema-change-missing-manifest` rule is removed. Git holds schema history. Breaking-change detection against the base branch and removal tombstones still govern published schemas. The decision text above is unchanged."
   - id: ADR-010
     path: docs/decisions/adrs/adr-010-repository-realignment-order-and-compatibility-policy.md
@@ -389,7 +389,7 @@ adrs:
     pin: 08849a676cdaaf21bd1ac425f552d6347032d3f545b9cb5618090d22c56cd5dd
     amendments:
       - date: 2026-11-06
-        ref: "#1943"
+        ref: "#1929"
         summary: "Publication records no longer store `content_hash`, and the manifest root no longer records `hash_algorithm`. A schema change needs no record edit; git holds the schema history. Breaking-change detection compares each `stable` schema with its base revision directly. Removal tombstones are unchanged."
   - id: ADR-062
     path: docs/decisions/adrs/adr-062-concept-authority-catalog-governance-gate.md
@@ -466,8 +466,8 @@ adrs:
     pin: cd28329002c1befb1920f0037c07517adbe3811d15e4f559455d05b893c69203
     amendments:
       - date: 2026-11-06
-        ref: "#1943"
-        summary: "The schema-publication change ledger is removed (ADR-061 amendment, #1943). Schema synchronization is governed by the generated-schema check and ADR-061 breaking-change detection."
+        ref: "#1929"
+        summary: "The schema-publication change ledger is removed (ADR-061 amendment, #1929). Schema synchronization is governed by the generated-schema check and ADR-061 breaking-change detection."
   - id: ADR-077
     path: docs/decisions/adrs/adr-077-associated-artifact-manifest-boundary.md
     pin: bbbcb25d36c0b81b4b19198321ae2578e433bc238465397367f5e7dcf3407138
@@ -568,8 +568,8 @@ adrs:
     pin: 90578754323795ca8775c47dd6095752ccb5a769a0f932ebe60abbe1d8954246
     amendments:
       - date: 2026-11-06
-        ref: "#1943"
-        summary: "Per-contract `last_change` hashes are removed (ADR-061 amendment, #1943). In-line changes to the affected draft schemas are reviewed in their pull requests and recorded by git history."
+        ref: "#1929"
+        summary: "Per-contract `last_change` hashes are removed (ADR-061 amendment, #1929). In-line changes to the affected draft schemas are reviewed in their pull requests and recorded by git history."
   - id: ADR-095
     path: docs/decisions/adrs/adr-095-participant-decision-epoch-state-cut-and-delivery-semantics.md
     pin: 3628560706a56687051ea42df732c25922d233f51aad3a433f4cb35d5ff019cb
@@ -593,6 +593,9 @@ adrs:
       - date: 2026-07-31
         ref: "#963"
         summary: "Rebound the canonical published-schema URI root to https://openrae.github.io/rae/schemas/ after the GitHub organization was renamed from RAESystem to OpenRAE."
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "Historical records, operational bindings, and generated history records no longer store a content digest. An occurrence count binds each exemption, the generated head stays at zero occurrences, and the live-token rule applies everywhere else, so a record can be amended without a hand-edited digest."
   - id: ADR-098
     path: docs/decisions/adrs/adr-098-portable-artifact-requirement-satisfaction.md
     pin: cabc306d07b60b7d1c62cf85750a57025651e69f55946261e315d772644309e3

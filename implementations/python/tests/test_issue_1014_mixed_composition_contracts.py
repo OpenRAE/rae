@@ -9,6 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 from raes_backend_protocols.capabilities import ParticipantFeatureSupport
 from raes_backend_protocols.participant_feature_admission import resolve_participant_feature_support
@@ -747,7 +748,7 @@ def test_contract_layer_keeps_feature_resolution_dependency_inverted() -> None:
 
 
 def test_published_schema_bundle_fixtures_and_change_ledger_are_consistent() -> None:
-    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    schema = json.loads((SCHEMA_PATH).read_text(encoding="utf-8"))
     assert schema_bundle()[MIXED_COMPOSITION_CONTRACT_ID] == schema
 
     valid = sorted((FIXTURE_ROOT / "valid").glob("*.json"))
@@ -762,13 +763,13 @@ def test_published_schema_bundle_fixtures_and_change_ledger_are_consistent() -> 
         "unknown-revision",
     }
     for path in valid:
-        MixedParticipantCompositionProfileModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
+        MixedParticipantCompositionProfileModel.model_validate(load_contract_fixture(path))
     for path in invalid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         with pytest.raises(ValidationError):
             MixedParticipantCompositionProfileModel.model_validate(payload)
 
-    publication = json.loads(PUBLICATION_PATH.read_text(encoding="utf-8"))
+    publication = json.loads((PUBLICATION_PATH).read_text(encoding="utf-8"))
     assert publication == {
         "contract_id": MIXED_COMPOSITION_CONTRACT_ID,
         "schema_path": "contracts/schemas/plans/mixed-participant-composition-profile-v1.json",

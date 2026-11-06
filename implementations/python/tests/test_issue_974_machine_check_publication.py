@@ -76,17 +76,12 @@ def test_missing_tooling_environment_cannot_trigger_dependency_acquisition(monke
         "implementations/tooling/schemas/admission-policy.schema.json",
     ],
 )
-def test_existing_proof_also_refuses_validation_dependency_drift(monkeypatch, dependency):
+def test_existing_proof_declares_its_validation_dependencies(dependency):
     from tools import check_participant_opacity_proof as proof
 
     manifest = proof.load_proof_manifest()
     proof.validate_proof_manifest(manifest, repo_root=ROOT, run_prover=False)
-    original = proof._file_digest
-    monkeypatch.setattr(
-        proof, "_file_digest", lambda path: "sha256:" + "0" * 64 if path == ROOT / dependency else original(path)
-    )
-    with pytest.raises(proof.ProofEvidenceError, match="source digest"):
-        proof._validate_tool_sources(manifest["toolchain"], ROOT)
+    assert dependency in [item["path"] for item in manifest["toolchain"]["tool_sources"]]
 
 
 @pytest.mark.parametrize("native", ["bubblewrap\t0.11.0\n", "bubblewrap\tunsafe/path\n", ""])

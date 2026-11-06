@@ -127,7 +127,6 @@
         "condition_id": "baseline",
         "replicate_id": null
       },
-      "entry_digest": "sha256:e1e0533ce89453684a554361eee26f2c561b2675172710cb161358e6f8c67eec",
       "execution_controls": {
         "attempt_timeout_seconds": 600,
         "cleanup_plan_ref": "cleanup-a",
@@ -211,7 +210,6 @@
       "ref_version": "1"
     }
   },
-  "plan_digest": "sha256:f6484bf975e1e7a2da23ddb1cc8a75964a0e21a992ca8be3b840eea906ecec73",
   "plan_id": "plan-a",
   "profiles": {
     "canonicalization_profile": "jcs-sha256-v1",

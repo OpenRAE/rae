@@ -145,4 +145,4 @@ semantic compatibility checks for later policy work under GOV-901.
 
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
-| 2026-11-06 | #1943 | Publication records no longer store `content_hash`, and the manifest root no longer records `hash_algorithm`. A schema change needs no record edit; git holds the schema history. Breaking-change detection compares each `stable` schema with its base revision directly. Removal tombstones are unchanged. |
+| 2026-11-06 | #1929 | Publication records no longer store `content_hash`, and the manifest root no longer records `hash_algorithm`. A schema change needs no record edit; git holds the schema history. Breaking-change detection compares each `stable` schema with its base revision directly. Removal tombstones are unchanged. |

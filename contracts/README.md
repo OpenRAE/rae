@@ -27,7 +27,13 @@ They grant no trigger authority and execute nothing.
 The goal of this bucket is organizational clarity:
 
 - `schemas/` contains published contract schemas
-- `fixtures/` contains valid and invalid payload corpora for those contracts
+- `fixtures/` contains valid and invalid payload corpora for those contracts.
+  A `valid/` or `context-invalid/` fixture leaves out derived fields, such as a
+  self-digest (`plan_digest`, `entry_digest`) or a derived identifier
+  (`selection_id`). Readers fill them with
+  `raes_contracts.contract_seals.seal_contract_fixture`, which computes each
+  value the way the owning contract verifies it. An `invalid/` fixture stays as
+  written, so it can test an absent or wrong derived value.
 - `profiles/` contains capability profiles, the governed validation-profile
   catalog, and separately versioned scientific-completeness
   taxonomy/assessment declarations

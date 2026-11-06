@@ -3,10 +3,10 @@ bounds, and immutable execution receipts over the one-entry seam."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -32,7 +32,7 @@ FIXTURES = Path(__file__).resolve().parents[3] / "contracts" / "fixtures" / "pla
 
 
 def _plan(name: str) -> AdmittedTrialPlanModel:
-    return AdmittedTrialPlanModel.model_validate(json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8")))
+    return AdmittedTrialPlanModel.model_validate(load_contract_fixture(FIXTURES / f"{name}.json"))
 
 
 def _resealed_plan(payload: dict) -> AdmittedTrialPlanModel:
@@ -43,7 +43,7 @@ def _resealed_plan(payload: dict) -> AdmittedTrialPlanModel:
 
 
 def _parallel_plan(intent: dict | None = None) -> AdmittedTrialPlanModel:
-    payload = json.loads((FIXTURES / "two-entry.json").read_text(encoding="utf-8"))
+    payload = load_contract_fixture(FIXTURES / "two-entry.json")
     payload["trial_parallelism"] = intent or {"posture": "open"}
     return _resealed_plan(payload)
 
@@ -112,7 +112,7 @@ def test_open_trial_parallelism_reports_entry_count_ceiling() -> None:
 
 
 def test_plan_refuses_a_removed_isolation_proof_field() -> None:
-    payload = json.loads((FIXTURES / "two-entry.json").read_text(encoding="utf-8"))
+    payload = load_contract_fixture(FIXTURES / "two-entry.json")
     payload["isolation_proof"] = None
     with pytest.raises(ValidationError, match="isolation_proof"):
         _resealed_plan(payload)
@@ -121,7 +121,7 @@ def test_plan_refuses_a_removed_isolation_proof_field() -> None:
 def test_schedule_is_independent_of_entry_map_order() -> None:
     # SVR-014 / SVR-031: reordering the entries map must not change identity or
     # the dispatch order; canonical order comes from the coordinate.
-    payload = json.loads((FIXTURES / "two-entry.json").read_text(encoding="utf-8"))
+    payload = load_contract_fixture(FIXTURES / "two-entry.json")
     payload["entries"] = dict(reversed(list(payload["entries"].items())))
     schedule = plan_batch_schedule(AdmittedTrialPlanModel.model_validate(payload))
 
@@ -364,9 +364,9 @@ def test_batch_execution_receipt_fixture_corpora_validate() -> None:
     assert valid, "missing compliant scheduler fixtures"
     assert invalid, "missing contaminating scheduler fixtures"
     for path in valid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert not list(validator.iter_errors(payload)), path.name
         BatchExecutionReceiptModel.model_validate(payload)
     for path in invalid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert list(validator.iter_errors(payload)), path.name

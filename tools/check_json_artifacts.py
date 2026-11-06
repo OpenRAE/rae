@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
@@ -18,6 +19,7 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
     if str(_source_root) not in sys.path:
         sys.path.insert(0, str(_source_root))
 
+from raes_contracts.contract_seals import seal_contract_fixture
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.operational_logging import run_application
 
@@ -392,7 +394,45 @@ def _validate_batch(batch: ValidationBatch) -> subprocess.CompletedProcess[str]:
     return _run_check_jsonschema("--schemafile", batch.schema_path, *batch.paths)
 
 
+def _sealed_fixture_targets(
+    targets: list[ValidationTarget], directory: Path
+) -> tuple[list[ValidationTarget], dict[str, str]]:
+    """Validate sealed copies of fixtures that leave derived fields out (issue #1929).
+
+    Return the substituted targets and a map from each copy back to its repository path.
+    """
+
+    substituted: list[ValidationTarget] = []
+    origins: dict[str, str] = {}
+    for target in targets:
+        parts = Path(target.path).parts
+        if target.mode != "schema" or parts[:2] != ("contracts", "fixtures") or len(parts) < 5:
+            substituted.append(target)
+            continue
+        contract_id, kind = parts[-3], parts[-2]
+        payload = _load_json(REPO_ROOT / target.path, target.path)
+        sealed = seal_contract_fixture(contract_id, payload, kind=kind)
+        if sealed is payload:
+            substituted.append(target)
+            continue
+        copy = directory / str(len(origins)) / Path(target.path).name
+        copy.parent.mkdir(parents=True)
+        copy.write_text(json.dumps(sealed), encoding="utf-8")
+        origins[str(copy)] = target.path
+        substituted.append(ValidationTarget(str(copy), target.schema_path, target.mode))
+    return substituted, origins
+
+
 def validate_targets(targets: list[ValidationTarget]) -> list[str]:
+    with tempfile.TemporaryDirectory(prefix="raes-sealed-fixtures-") as directory:
+        sealed_targets, origins = _sealed_fixture_targets(targets, Path(directory))
+        failures = _validate_targets(sealed_targets)
+    for copy, origin in origins.items():
+        failures = [failure.replace(copy, origin) for failure in failures]
+    return failures
+
+
+def _validate_targets(targets: list[ValidationTarget]) -> list[str]:
     batches = _validation_batches(targets)
     if not batches:
         return []
