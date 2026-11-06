@@ -101,7 +101,8 @@ def test_admission_accepts_a_store_whose_claim_columns_match_their_records(tmp_p
     try:
         assert set(store.load_records()) == {"keyed-operation", "unkeyed-operation", "prefixed-operation"}
         found = store.find_by_idempotency("client-key", context=_record("probe").receipt.context)
-        assert found is not None and found.receipt.operation_id == "keyed-operation"
+        assert found is not None
+        assert found.receipt.operation_id == "keyed-operation"
     finally:
         store.close()
         lease.close()
@@ -150,11 +151,9 @@ def test_an_idempotency_lookup_refuses_a_row_whose_claim_columns_do_not_match(tm
     try:
         # The lookup finds the row by its key. The changed fingerprint belongs to no record.
         _change_column(database, "request_fingerprint", "changed-fingerprint")
+        lookup_context = _record("probe").receipt.context if context else None
         with pytest.raises(EvidenceIntegrityError, match="operation claim columns do not match"):
-            store.find_by_idempotency(
-                "client-key",
-                context=_record("probe").receipt.context if context else None,
-            )
+            store.find_by_idempotency("client-key", context=lookup_context)
     finally:
         store.close()
         lease.close()

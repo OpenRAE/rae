@@ -37,7 +37,10 @@ _SELECT_OPERATIONS = (
 
 
 def _operation_from_row(row: tuple[object, ...]) -> ControlPlaneOperationRecord:
-    """Decode one `_SELECT_OPERATIONS` row and refuse a row whose key or claim columns do not match its record."""
+    """Decode one `_SELECT_OPERATIONS` row.
+
+    Refuse a row whose key or claim columns do not match its record.
+    """
 
     operation_id, *claim_columns, payload, digest = row
     record = _decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)

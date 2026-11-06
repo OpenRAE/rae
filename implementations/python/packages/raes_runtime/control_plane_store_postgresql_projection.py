@@ -24,14 +24,18 @@ from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_payloa
 
 _OPERATION_RECORD_KIND = "operation record"
 _RECORD_IDENTITY_MISMATCH = "operation record does not match its durable identity"
-# Each operation query reads the durable key, the claim columns in `ledger_operation_claim_columns` order and the record.
+# Each operation query reads the durable key, the claim columns in `ledger_operation_claim_columns` order,
+# and the record.
 SELECT_LEDGER_OPERATIONS = (
     "SELECT operation_id, actor_id, operation_kind, idempotency_key, payload, digest FROM raes_ledger_operations "
 )
 
 
 def ledger_operation_from_row(row: tuple[object, ...]) -> ControlPlaneOperationRecord:
-    """Decode one `SELECT_LEDGER_OPERATIONS` row and refuse a row whose key or claim columns do not match its record."""
+    """Decode one `SELECT_LEDGER_OPERATIONS` row.
+
+    Refuse a row whose key or claim columns do not match its record.
+    """
 
     operation_id, *claim_columns, payload, digest = row
     record = decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
