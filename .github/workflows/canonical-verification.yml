@@ -40,6 +40,11 @@ on:
         required: false
         default: false
         type: boolean
+      refresh-parity-inputs:
+        description: Explicitly replace the recorded regression input snapshot
+        required: false
+        default: false
+        type: boolean
     secrets:
       sonar_token:
         description: SonarCloud token; only consumed by the internally trust-gated sonar job
@@ -453,8 +458,10 @@ jobs:
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s contracts -- --base-rev "${{ steps.commit.outputs.base_rev }}"
       - name: Run deterministic documentation checks
+        env:
+          BASE_REV: ${{ steps.commit.outputs.base_rev }}
         run: |
-          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local -- --base-rev "$BASE_REV"
 
   # The proof-bearing lane stays on Ubuntu 22.04 so Bubblewrap enforces the
   # sandbox without disabling a host security control on the runner.
@@ -797,20 +804,23 @@ jobs:
           version: "0.13.4"
       - name: Decide whether regression inputs need collection
         id: capture
+        env:
+          REFRESH_PARITY_INPUTS: ${{ inputs.refresh-parity-inputs }}
         run: |
-          if uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current; then
-            if [ "${{ matrix.shard }}" = "0" ]; then
-              mkdir -p "${RUNNER_TEMP}/parity-inputs"
-              cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
-              cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
-              if [ -d implementations/go/internal/parity/testdata/pieces ]; then
-                cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
-              fi
-            fi
-            echo "needed=false" >> "${GITHUB_OUTPUT}"
-          else
+          if [ "${REFRESH_PARITY_INPUTS}" = "true" ]; then
             echo "needed=true" >> "${GITHUB_OUTPUT}"
+            exit 0
           fi
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current
+          if [ "${{ matrix.shard }}" = "0" ]; then
+            mkdir -p "${RUNNER_TEMP}/parity-inputs"
+            cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
+            cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
+            if [ -d implementations/go/internal/parity/testdata/pieces ]; then
+              cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
+            fi
+          fi
+          echo "needed=false" >> "${GITHUB_OUTPUT}"
       - name: Receive locked generic-tool inputs
         if: steps.capture.outputs.needed == 'true'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2

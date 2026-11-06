@@ -310,7 +310,7 @@ flowchart BT
 | `github.com/OpenRAE/rae/implementations/go/base/clock` | rae | Clock, Read, System |  | environment-packs, lilrae, runtime | #1892 |
 | `github.com/OpenRAE/rae/implementations/go/contract/binding` | rae | Field, MaterializationArchiveRecordV1, RuntimeSnapshotV1, BackendManifestV2, AdmittedTrialPlanV1, BackendRuntimeDescendantsV1 |  | environment-packs, lilrae, coldlight, runtime | #1892 |
 | `github.com/OpenRAE/rae/implementations/go/contract/validation` | rae | New, Validator, Value, Validator.CheckSchema, Validator.DecodeSchema, Validator.Defaulted, Value.JSON, Value.Transport | rae:base/ingress | environment-packs, lilrae, coldlight, runtime | #1892 |
-| `github.com/OpenRAE/rae/implementations/go/contract/admission` | rae | New, Validator, Validator.Validate, Validator.CheckPortable, AssociatedArtifactsContext, MaterializationCompiler, MaterializationInventoryContext, SDLPhaseOwner, AssociatedArtifactLimits, DefaultAssociatedArtifactLimits, LoadAssociatedManifest, ValidateAssociatedManifest, AssociatedArtifactSetDigest, EvaluateRealizationConstraint, ParticipantConfigurationValidator, MaterializationArchive, RestoreMaterializationArchive, Fragment, FragmentProfile, ImplementationIdentity, BindingOwner, BindingValue, ControlContextAssetReference, ControlContextSelection, ConfigurationOverride, RealizedConfigurationValue, ParticipantConfiguration, ParticipantControlContextValidator, ParticipantConfigurationRequest, ParticipantManifestKey, ApparatusManifestKey, ApparatusManifest, ScenarioBindingResolution, ScenarioBindingTargetResolver, AdmitFragment, RealizeParticipantConfiguration, ValidateParticipantConfigurationSelection, ValidateExperimentBindingTargets, ConstraintLimits, DefaultConstraintLimits, ConstraintLimits.Validate | rae:base/ingress, rae:contract/binding, rae:contract/validation | environment-packs, lilrae, coldlight, runtime | #1892, #1788, #1781 |
+| `github.com/OpenRAE/rae/implementations/go/contract/admission` | rae | New, Validator, Validator.Validate, Validator.CheckPortable, AssociatedArtifactsContext, MaterializationCompiler, MaterializationInventoryContext, SDLPhaseOwner, AssociatedArtifactLimits, DefaultAssociatedArtifactLimits, LoadAssociatedManifest, ValidateAssociatedManifest, AssociatedArtifactSetDigest, EvaluateRealizationConstraint, ParticipantConfigurationValidator, MaterializationArchive, RestoreMaterializationArchive, Fragment, FragmentProfile, ImplementationIdentity, BindingOwner, BindingValue, ControlContextAssetReference, ControlContextSelection, ConfigurationOverride, RealizedConfigurationValue, ParticipantConfiguration, ParticipantControlContextValidator, ParticipantConfigurationRequest, ParticipantManifestKey, ApparatusManifestKey, ApparatusManifest, ScenarioBindingResolution, ScenarioBindingTargetResolver, AdmitFragment, RealizeParticipantConfiguration, ValidateParticipantConfigurationSelection, ValidateExperimentBindingTargets, ConstraintLimits, DefaultConstraintLimits, ConstraintLimits.Validate, ParsePythonPattern, PythonPatternSyntax, PythonPatternSyntax.NamedCharacter | rae:base/ingress, rae:contract/binding, rae:contract/validation | environment-packs, lilrae, coldlight, runtime | #1892, #1788, #1781, #1963 |
 | `github.com/OpenRAE/rae/implementations/go/contract/concept` | rae | AdmitBindings, SchemeSnapshot, ResolutionOutcome, Vocabulary, Subject, SnapshotTerm, BindingResolution, ResolutionOutcome.Admitted | rae:contract/binding, rae:contract/diagnostic | environment-packs, lilrae, runtime | #1781 |
 | `github.com/OpenRAE/rae/implementations/go/contract/diagnostic` | rae | Diagnostic, Range, Error | rae:base/fault | environment-packs, lilrae, coldlight, runtime | #1782, #1783 |
 | `github.com/OpenRAE/rae/implementations/go/sdl` | rae | Scenario, InstantiatedScenario, Limits, DefaultLimits, Parse, ParseSources, ParseFile, AuthoredScenario, Validate, Instantiate, AdmitInstantiated, AdmitFamily, CanonicalDigest, ConceptSubjects, ArtifactRequirements, Requirement, ResolveRealizationDesignation, MigrationPolicy, ParseOptions, SourceContext, DefaultParseOptions, ParseContext, ValidateExperimentSelectionAgainstFamily, Limits.Validate, ParseOptions.Validate | rae:contract/admission, rae:contract/binding, rae:contract/concept, rae:contract/diagnostic, rae:sdl/module | environment-packs, lilrae, runtime | #1782, #1783, #1784, #1785 |
@@ -338,7 +338,7 @@ flowchart BT
 | `raes` | runtime | `RUNTIME/cmd/raes` | rae:command/authoring, runtime:runtime/control |
 | `raes-mcp` | rae | `github.com/OpenRAE/rae/implementations/go/cmd/raes-mcp` | rae:sdl/language, rae:processor, rae:contract/admission |
 
-<!-- go-consumer 40c900431da64f79c821149f324d6ddebb56e63b2df74639d9139b0aa49765d4 -->
+<!-- go-consumer 50ad702a37c830732ce68e89ede5cc4873aabf91a95d8b9c08ef80e22024062b -->
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
@@ -356,23 +356,23 @@ flowchart BT
 | `docs/decisions/issue-1779-ingress-design.md` | `0dcde22676a7429a0c92d01ed2e8d0eaf15da84d5be800404e12c9414348bed1` |
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
 | `docs/decisions/issue-1779-shared-primitives-completion.md` | `bc5ae3bbcd6ac6a98fd475a108eacc61191cc6f39c564400a1201e2230921545` |
-| `docs/decisions/issue-1780-contract-validation-design.md` | `c8f4f8afc16d401f329de8fc7a2bac28ec639bf0ccaf9b7c144e98a7ff64fdca` |
+| `docs/decisions/issue-1780-contract-validation-design.md` | `d35780cf19a7984404ae1f0b0d4201e97a588d845afbc3a4ea00afb26a9a35c9` |
 | `docs/decisions/issue-1799-go-governance-design.md` | `337eb81ac2188e2d0709f1c18d74ed438f181a97f1c9f667172335f6616173c6` |
 | `docs/decisions/issue-1825-public-go-api.md` | `6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721` |
 | `docs/decisions/issue-1859-go-architecture-contract-design.md` | `0057d0da3d7466e02c34cf5545aa14245bc398486519d3dd15457e515f6230ce` |
 | `docs/decisions/issue-1891-runtime-repository-boundary.md` | `e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406` |
 | `docs/decisions/issue-1892-public-go-packages-design.md` | `e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53` |
-<!-- go-component base 6d678d87e42d7f902095d09a6a34c0206a57a6c506f30be45e0cf2532bfcf42c -->
-<!-- go-component contract 8fce58f7fcd1e565c7efecaaf6ee8c41622344967e40f5e2ffe90e485eda72e3 -->
-<!-- go-component sdl 5e941383c80ac45916ec1f56eaaa93d11d8879222a2fe558d92e52d195b13376 -->
-<!-- go-component processor e2758ddc41ea2b03fe85e45c1d9072ad90fa9412426fbf10066c9a4da0e355e0 -->
-<!-- go-component backend ca14bac7fc57eaa20b32e0601f812653181da595c1f8c35fbf2d42d65a5e5cdd -->
-<!-- go-component runtime 39fca53e7265dd6be5ba7fa03e107d83806e1a05feefc86c0ccec66ab39cdc30 -->
-<!-- go-component conformance b385daae87d38a9657783dd681f957a40c37ac994f88c770bc32c59a409d18c4 -->
-<!-- go-component app a03a792f4d33c877a3f48cc83ca1c297eda5854404e76eeab1e1ac53c9c1790b -->
-<!-- go-component adapter 60f360f872f9d78a09a0897686e37a4ac23f001d4ef10f5bc99c5b822d8a4674 -->
-<!-- go-component command efd9c1f5cd2f0487b698da2c82f069e8883cb0799fd5f0a3fe4ce5ebb7b3e5a6 -->
-<!-- go-component parity 416f7cdc82728b8c803ed74bc774a1f41cea05177f7972ba73913cba3278ee7c -->
-<!-- go-component tooling 805ab4f50d15bbde4f7c491824854316da6c7555b999eb6ab1fee5f04e7a20e8 -->
+<!-- go-component base a6636aa96b86aff57d87f67f43a12dd87cd0b9fa8859402d19340fa1fdf4337f -->
+<!-- go-component contract 204c68e56bf32c6f5611751d7609a7b6807273979cf50709f9cbd4b25a1be78e -->
+<!-- go-component sdl 18e3c6e003d19218d4c8305f181a769c16654df2c135afe4ccbedc54ea866a10 -->
+<!-- go-component processor b53cd777ffb7dc6633eb921e2972034749f28c10fe911fd9bb48362e9f77f854 -->
+<!-- go-component backend b63080c98e528d932a9af7fcd7732560ccbeb69aeef8e6b65ff658ec97d47e48 -->
+<!-- go-component runtime ee5f2fdd44776013a6fe8ddae32dec45b83c79a8d41af451febbab879df0975b -->
+<!-- go-component conformance 2dada7ba231cd76ccc660a4e5dbabee620c42a7bb91fa8d03bd2cec1b69cdcb9 -->
+<!-- go-component app 8e9fc5f4a20c33ffdb51f9a014847afcc1d742e6012bff577353a1039d35fa2b -->
+<!-- go-component adapter b1d08cfd97a77c6079e325c49fbfb3cd691bb4d39eed18e7aa83613bf0863d6e -->
+<!-- go-component command d54e5dca978d9907f9ef1e0ff0c871125e4587c4e34576177fb825abb34396da -->
+<!-- go-component parity a34bf993ff538021f3e76231fba97096be9af96084348827fd3011c19eef3eed -->
+<!-- go-component tooling e06c7d1323810dfa325bfe550f3323317dd47d08d7a34efe9d79bcd7c0651246 -->
 
 <!-- /go-view -->

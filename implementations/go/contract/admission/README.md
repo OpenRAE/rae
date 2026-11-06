@@ -64,6 +64,14 @@ Go checks report order, ancestry and state changes.
 It checks full scope, collection membership, backend support and permission for additions.
 An SDL report grants no right to run work.
 
+## Metadata pattern syntax
+
+`ParsePythonPattern` checks metadata syntax through the existing Python-pattern parser.
+It returns `PythonPatternSyntax` or the contract's invalid-input fault.
+The result's `NamedCharacter` method returns a rune and presence flag for named escapes used in that expression.
+Names use the parser's Unicode spelling and aliases. The zero value has no named facts.
+This API checks syntax without executing the expression.
+
 ## Verification
 
 The [rule inventory](../../../../specs/conformance/contract-invariant-rules.json)
