@@ -96,6 +96,8 @@ def alter_inventory(operations, field):
         binding["principal_refs"] = ["nodes.iam.runtime.identity_authorities.cloud.subjects.secret-reader-role"]
     elif field == "id":
         cloud_value(operations, "secrets")["secrets"][-1]["native_id"] = "changed-native-id"
+    elif field == "secret-id":
+        cloud_value(operations, "secrets")["secrets"][-1]["secret_id"] = "changed-secret-id"
     elif field == "payload":
         version["payload_content_ref"] = "content.alternative"
     else:

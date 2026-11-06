@@ -35,6 +35,7 @@ from raes_contracts.realization_structure import (
     RealizationScope,
     RealizationStructure,
     RecursiveRealizationStructure,
+    evaluate_realization_constraint,
     normalize_realization_literal,
     realization_constraint_binding,
     validate_realization_value,
@@ -383,6 +384,11 @@ def _normalized_recursive_constraint(
         error = built.diagnostics[0] if built.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
         return None, error, False
     document = bind_scalar_set_choices(built.document)
+    # Admission and evaluation share work: normalization alone cannot prove
+    # that the unchanged source fits downstream preparation and delivery.
+    evaluated = evaluate_realization_constraint(document, projected, limits=PLAN_AUTHORITY_LIMITS)
+    if evaluated.status is RealizationRelationStatus.LIMIT_EXCEEDED:
+        return None, evaluated.diagnostics[0], False
     opened = any(scope.closure.posture.value == "open" for scope in metadata.scopes) or any(
         isinstance(constraint, RealizationDelegatedValue) for constraint in metadata.leaf_constraints.values()
     )

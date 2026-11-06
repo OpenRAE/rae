@@ -125,8 +125,8 @@ resulting presence instead of resetting it to required.
 
 The legacy `RealizationStructure` exact/open/record/keyed-collection form is a
 compatibility subset. Conversion binds its value-free exact nodes to the
-existing admitted baseline, retains semantic member identities, and refuses a
-lossy conversion of presence, provenance, domains, knowledge, references,
+existing admitted baseline and retains semantic member identities. It refuses
+a lossy conversion of presence, provenance, domains, knowledge, references,
 taxonomy sentinels, suffixed-field reinterpretation, unbound closed-record
 defaults, collection aliases or non-default cardinality. A sequence is
 projected to legacy exact authority only when its closure and recursive
@@ -153,17 +153,25 @@ For registered realization concerns, the Python compiler and planner use
 the fixed `PLAN_AUTHORITY_LIMITS` profile from `raes_contracts.runtime_value_limits`.
 It applies to recursive source admission,
 normalization, integrity binding, serialized plan authority, prepared selections,
-and delivered-value evaluation. Each relation permits 65,536 nodes and 1,048,576 operations.
+and delivered-value evaluation. Each relation permits 131,072 nodes and 1,048,576 operations.
+Value admission and constraint evaluation share this node budget during evaluation.
 The limits allow 65,536 metadata members and identity checks.
 They retain depth 32, 256 reference hops, and 16 diagnostics.
 Scalar bounds are 1 MiB per value and 8 MiB in total.
 Published structural cardinality bounds still apply, including 4,096 members
 per keyed collection or sequence. Aggregate plans and runtime carriers also
 retain their existing `PLAN_VALUE_LIMITS` and `RUNTIME_SNAPSHOT_VALUE_LIMITS`.
-The profile supports a concrete 500-secret inventory without changing author values
+The profile supports a concrete 2,048-secret inventory without changing author values
 or dividing its source node. An over-budget compilation reports
 `realization.limit-exceeded` and the exhausted limit, separately from an
 unrepresentable semantic bound. Backend-supplied data cannot raise these limits.
+
+The compiler's recursive constraint builder checks evaluation work against the
+source projection through `evaluate_realization_constraint` before publishing authority.
+This check rejects evaluation exhaustion during planning, even when normalization
+and binding fit their budgets. It does not grant conformance to changed selections.
+Value admission renders diagnostic addresses only when a check fails.
+Successful traversal retains the same node, operation, and scalar accounting.
 
 Generic relation APIs retain `DEFAULT_REALIZATION_CONSTRAINT_LIMITS` unless a
 caller supplies explicit finite `limits`. This includes
