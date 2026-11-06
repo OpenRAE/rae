@@ -15,14 +15,14 @@ import pytest
 import yaml
 from raes_contracts.errors import InvalidInputError, OperationalError
 
-from tools.vale_tool import ensure_vale
-
 ROOT = Path(__file__).resolve().parents[3]
 pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
 def prose_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from tools.vale_tool import ensure_vale
+
     monkeypatch.setitem(sys.modules, "nox", SimpleNamespace(Session=object))
     for name in ("tools.nox_support.runner", "tools.nox_support.test_lanes"):
         monkeypatch.setitem(sys.modules, name, None)
