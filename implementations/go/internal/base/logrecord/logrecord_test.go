@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 type privateError struct{}

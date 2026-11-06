@@ -10,8 +10,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 // The failure classes contain no rejected values.

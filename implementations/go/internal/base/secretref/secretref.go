@@ -2,7 +2,7 @@
 // references. It never reads or resolves secret material.
 package secretref
 
-import "github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+import "github.com/OpenRAE/rae/implementations/go/base/fault"
 
 // ErrID reports an invalid logical secret-reference identifier.
 var ErrID = fault.New(fault.InvalidInput, "secret-reference", nil)

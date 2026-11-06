@@ -296,3 +296,8 @@ include a real Git merge of an unrelated test and prove the snapshot remains
 usable without changing its bytes. Five mutation checks caught weakened
 provenance, data comparison, validation and refresh controls. A sixth caught
 removal of the UTF-8 guard.
+
+After merging `2f0edc0a35ab9cce48d9bbfae991a15cd93f37b3`, the generated
+corpus exactly matches the integration branch's complete snapshot. This removes
+the documentation PR's unnecessary generated-data changes. The snapshot usability
+command passes on the merged tree without collecting or rewriting inputs.

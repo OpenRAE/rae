@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
-	"github.com/OpenRAE/rae/implementations/go/internal/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 )
 
 // portableAdmissionRunner compares the library's admission decision. This is
