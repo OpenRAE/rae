@@ -182,6 +182,9 @@ func (m *Model) dirOf(importPath string) (string, bool) {
 	return owner.Dir + strings.TrimPrefix(importPath, owner.Path), true
 }
 
+// goModSuffix names the module file below a module directory.
+const goModSuffix = "/go.mod"
+
 // CheckCode checks the code against the model.
 func (m *Model) CheckCode(code Code) []Finding {
 	return slices.Concat(m.checkModuleFiles(code), m.checkDeclared(code), m.checkCodeImports(code), m.checkExternalImports(code), m.checkConsumerTestImports(code))
@@ -193,7 +196,7 @@ func (m *Model) checkModuleFiles(code Code) []Finding {
 		i := slices.IndexFunc(m.Modules, func(module Module) bool { return module.Dir == dir })
 		if i < 0 {
 			findings = append(findings, Finding{
-				Rule: ruleModules, Location: dir + "/go.mod",
+				Rule: ruleModules, Location: dir + goModSuffix,
 				Problem: "the model does not declare this Go module.",
 				Fix:     "declare the module and its packages in the model through the design step.",
 			})
@@ -201,7 +204,7 @@ func (m *Model) checkModuleFiles(code Code) []Finding {
 		}
 		if m.Modules[i].Path != code.Modules[dir] {
 			findings = append(findings, Finding{
-				Rule: ruleModules, Location: dir + "/go.mod",
+				Rule: ruleModules, Location: dir + goModSuffix,
 				Problem: fmt.Sprintf("the go.mod states module path %q, but the model declares %q.", code.Modules[dir], m.Modules[i].Path),
 				Fix:     "make the module path in the model and in the go.mod the same.",
 			})
@@ -209,7 +212,7 @@ func (m *Model) checkModuleFiles(code Code) []Finding {
 	}
 	for _, dir := range code.Replaced {
 		findings = append(findings, Finding{
-			Rule: ruleModules, Location: dir + "/go.mod",
+			Rule: ruleModules, Location: dir + goModSuffix,
 			Problem: "the go.mod states a replace directive, which released module metadata must not carry.",
 			Fix:     "remove the replace directive; resolve the dependency from a pinned published version.",
 		})

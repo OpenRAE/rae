@@ -261,17 +261,27 @@ func TestConsumerAPITypedDeclarations(t *testing.T) {
 // Implemented packages keep the one-way repository boundary: RAE consumer
 // packages and entrypoints never reach runtime, and runtime reaches RAE only
 // through implemented public RAE consumer packages.
-func TestConsumerImportsStayOnTheRepositoryBoundary(t *testing.T) {
-	const live = "implementations/go/internal/runtime/live"
-	runtime := func(imports ...string) Package {
-		return Package{Dir: live, Layer: "runtime", Doc: "live", Imports: imports}
-	}
-	addImport := func(m *Model, dir, dep string) {
-		for i := range m.Packages {
-			if m.Packages[i].Dir == dir {
-				m.Packages[i].Imports = append(m.Packages[i].Imports, dep)
-			}
+const liveRuntime = "implementations/go/internal/runtime/live"
+
+// runtimePackage returns a runtime-layer package with the imports.
+func runtimePackage(imports ...string) Package {
+	return Package{Dir: liveRuntime, Layer: "runtime", Doc: "live", Imports: imports}
+}
+
+// editPackage applies change to the model package in dir.
+func editPackage(m *Model, dir string, change func(*Package)) {
+	for i := range m.Packages {
+		if m.Packages[i].Dir == dir {
+			change(&m.Packages[i])
 		}
+	}
+}
+
+func TestConsumerImportsStayOnTheRepositoryBoundary(t *testing.T) {
+	const live = liveRuntime
+	runtime := runtimePackage
+	addImport := func(m *Model, dir, dep string) {
+		editPackage(m, dir, func(p *Package) { p.Imports = append(p.Imports, dep) })
 	}
 	for _, tc := range []struct {
 		name, problem string
@@ -296,11 +306,7 @@ func TestConsumerImportsStayOnTheRepositoryBoundary(t *testing.T) {
 			m.Packages = append(m.Packages, Package{Dir: "implementations/go/cmd/raes", Layer: "command", Doc: "raes", Imports: []string{"implementations/go/internal/base/jsonpointer"}})
 		}},
 		{"hidden consumer package", "must be public", func(m *Model) {
-			for i := range m.Packages {
-				if m.Packages[i].Dir == "implementations/go/base/fault" {
-					m.Packages[i].Public = false
-				}
-			}
+			editPackage(m, "implementations/go/base/fault", func(p *Package) { p.Public = false })
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
