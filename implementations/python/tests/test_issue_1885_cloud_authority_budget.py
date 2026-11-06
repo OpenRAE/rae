@@ -13,7 +13,6 @@ from cloud_authority_budget_fixtures import (
     inventory_source,
 )
 from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
-from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.realization_structure import (
     RealizationLiteral,
     evaluate_realization_constraint,
@@ -24,6 +23,8 @@ from raes_processor.planner import realization_authority_diagnostics
 from raes_processor.planner.prepared_node_projection import prepared_node_document, prepared_node_payload_projection
 from raes_processor.semantics.realization import project_realization_concern
 from raes_runtime.control_plane_api_models import _provisioning_plan
+
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(scope="module")
@@ -54,12 +55,22 @@ def selected_inventory(full_inventory):
     return _provisioning_plan(provisioning_plan_model(execution.provisioning)), manifest
 
 
-def test_full_size_authority_survives_transport_preparation_and_delivery(full_inventory):
+@pytest.fixture(scope="module")
+def transported_inventory(full_inventory):
     execution, manifest = full_inventory
     assert execution.is_valid, execution.diagnostics
-    request = _portable(execution)
+    return _portable(execution), manifest
+
+
+def test_full_size_authority_retains_transport_integrity(full_inventory, transported_inventory):
+    execution, _ = full_inventory
+    request, manifest = transported_inventory
     assert runtime_plan_digest(request) == runtime_plan_digest(execution.provisioning)
     assert realization_authority_diagnostics(request, manifest) == []
+
+
+def test_full_size_authority_survives_transport_preparation_and_delivery(transported_inventory):
+    request, manifest = transported_inventory
     backend = CloudPreparingProvisioner()
     _, result = apply_inventory(request, manifest, backend)
     assert result.success, result.diagnostics
@@ -178,41 +189,6 @@ def test_planning_rejects_evaluation_exhaustion_even_when_normalization_fits(mon
         for item in errors
     ), errors
     assert not execution.is_valid
-
-
-@pytest.mark.parametrize("python_carriers", [False, True])
-@pytest.mark.parametrize(
-    "leaf, updates, code",
-    [
-        (float("inf"), {}, "realization.invalid"),
-        (object(), {}, "realization.invalid"),
-        ("\ud800", {}, "realization.invalid"),
-        ("exceeds", {"max_scalar_bytes": 5}, "realization.limit-exceeded"),
-        (0, {"max_nodes": 3}, "realization.limit-exceeded"),
-    ],
-)
-def test_value_admission_keeps_escaped_failure_addresses(leaf, updates, code, python_carriers):
-    result = validate_realization_value(
-        {"a/b": {"~key": [leaf]}},
-        limits=PLAN_AUTHORITY_LIMITS.model_copy(update=updates),
-        python_carriers=python_carriers,
-    )
-    assert not result.conformant
-    assert result.diagnostics[0].code == code
-    assert result.diagnostics[0].address == "/a~1b/~0key/0"
-
-
-@pytest.mark.parametrize(
-    "leaf", [RealizationLiteral(kind="literal", value=0), Diagnostic(code="x", domain="x", address="", message="x")]
-)
-def test_carrier_member_limits_keep_escaped_failure_addresses(leaf):
-    result = validate_realization_value(
-        {"a/b": {"~key": [leaf]}},
-        limits=PLAN_AUTHORITY_LIMITS.model_copy(update={"max_members": 1}),
-        python_carriers=True,
-    )
-    assert result.diagnostics[0].code == "realization.limit-exceeded"
-    assert result.diagnostics[0].address == "/a~1b/~0key/0"
 
 
 def test_prepared_node_projection_retains_the_supported_inventory_scale(full_inventory):

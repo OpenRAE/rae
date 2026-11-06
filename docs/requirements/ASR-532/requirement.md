@@ -32,6 +32,7 @@ requirement.
 
 - IMPLEMENTS → GITHUB_ISSUE `1958` (Finite recursive verification work for unchanged large secret plans)
 - TESTS → TEST `implementations/python/tests/test_issue_1885_cloud_authority_budget.py` (2,048-secret completion, changed selections, and planning-time evaluation exhaustion)
+- TESTS → TEST `implementations/python/tests/test_issue_1885_binding_limits.py` (Finite binding admission and escaped value and carrier failure addresses)
 - TESTS → TEST `implementations/python/tests/cloud_authority_budget_fixtures.py` (Native and logical secret identity mutations across execution boundaries)
 - DOCUMENTS → SPEC `specs/sdl/recursive-realization-constraints.md` (Shared finite authority profile and compiler evaluation admission)
 
