@@ -354,13 +354,13 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/go/contract/binding 5b19be099a1427702f3603820cada98e8a2bd4171f71ccabdb411d4a78fd5f53 -->
 
-<!-- go-api implementations/go/contract/validation b870f44186d63f91852700a2a8a64b747a282818de80db4b142d81af4062e631 -->
+<!-- go-api implementations/go/contract/validation 483041a7c377db0cad2d709bce88bae65034c417acec24d4e8f54211a4f8c102 -->
 
 <!-- go-api implementations/tooling/go/contractgen 87666ceb97f022789f40a56348e27f85ee3d5d861f37920162f2ad7e027ebabe -->
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/contract/admission b97fbc7316fb48eca200af6cdc9d4b4d251a7cb4a6ac72327feadf6c6d7697fa -->
+<!-- go-api implementations/go/contract/admission 998cd981776e8c1b1f68dd5c5badb223d1c5136a9d451ee5abed978f7f3ab6b3 -->
 
 ## Model parity repairs
 

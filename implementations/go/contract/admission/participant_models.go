@@ -4,19 +4,19 @@ func participantContractVersions(values any) bool {
 	return declaredManifestContracts(values, "participant")
 }
 
+// vocabularyScope admits each value through the vocabulary that governs the
+// scope. A scope that no vocabulary governs admits only an empty list.
 func (e *Validator) vocabularyScope(scope string, values any) bool {
-	for id, definition := range e.vocabularies {
-		if !set(at(definition, "governed_scopes"))[scope] {
-			continue
-		}
-		for _, value := range stringsOf(values) {
-			if !e.vocabularyTerm(id, value) {
-				return false
-			}
-		}
-		return true
+	vocabulary, governed := e.authority.ScopeVocabulary(scope)
+	if !governed {
+		return len(array(values)) == 0
 	}
-	return len(array(values)) == 0
+	for _, value := range stringsOf(values) {
+		if !e.authority.Permits(vocabulary.ID, value) {
+			return false
+		}
+	}
+	return true
 }
 
 func (e *Validator) participantManifest(v any) error {
@@ -36,7 +36,7 @@ func (e *Validator) participantManifest(v any) error {
 	}
 	for _, binding := range bindings {
 		scope := stringAt(binding, "scope")
-		if !participantConceptScope(scope) || e.conceptFamilies[stringAt(binding, "family")] == nil || !manifestScopePresent(v, scope) {
+		if !participantConceptScope(scope) || !e.knownFamily(stringAt(binding, "family")) || !manifestScopePresent(v, scope) {
 			return invalid()
 		}
 	}

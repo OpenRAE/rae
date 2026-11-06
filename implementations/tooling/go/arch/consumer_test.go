@@ -148,10 +148,12 @@ func TestConsumerAPICompatibility(t *testing.T) {
 	if len(m.ConsumerAPI.Commands) != 2 || m.ConsumerAPI.Commands[0].Name != "raes" || m.ConsumerAPI.Commands[0].Owner != "runtime" || m.ConsumerAPI.Commands[1].Name != "raes-mcp" || m.ConsumerAPI.Commands[1].Owner != "rae" {
 		t.Fatal("each existing executable needs its decided publisher")
 	}
-	// Only the relocated packages are implemented; the other plans have no code.
+	// A relocated package is implemented. Another implemented package
+	// implements its typed planned declarations, which ARCH-015 compares.
 	for _, p := range m.ConsumerAPI.Packages {
-		if _, implemented := m.pkg("implementations/go/" + p.Path); implemented != (p.Existing != "") {
-			t.Errorf("%s: implemented=%t, relocation source %q", p.Path, implemented, p.Existing)
+		_, implemented := m.pkg("implementations/go/" + p.Path)
+		if p.Existing != "" && !implemented || implemented && p.Existing == "" && p.Declarations == "" {
+			t.Errorf("%s: implemented=%t, relocation source %q, declarations %q", p.Path, implemented, p.Existing, p.Declarations)
 		}
 	}
 	for _, change := range []func(*ConsumerAPI){

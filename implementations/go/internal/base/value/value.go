@@ -232,6 +232,16 @@ func numberSize(number json.Number) (int, error) {
 // Canonical admits a snapshot before invoking the canonical encoder. Unknown
 // marshal callbacks are refused during validation, not invoked during encoding.
 func Canonical(value any, limits Limits) ([]byte, error) {
+	text, err := Encode(value, limits)
+	if err != nil {
+		return nil, err
+	}
+	return canonjson.JCS(text)
+}
+
+// Encode admits a snapshot and returns its exact JSON text. Unlike Canonical,
+// it keeps an integer outside the exact range of RFC 8785.
+func Encode(value any, limits Limits) ([]byte, error) {
 	if err := Validate(value, limits); err != nil {
 		return nil, err
 	}
@@ -239,11 +249,7 @@ func Canonical(value any, limits Limits) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	text, err := json.Marshal(snapshot)
-	if err != nil {
-		return nil, err
-	}
-	return canonjson.JCS(text)
+	return json.Marshal(snapshot)
 }
 
 // snapshot preserves the int/float distinction that encoding/json's shortest

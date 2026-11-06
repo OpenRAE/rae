@@ -115,3 +115,45 @@ func compiledChildren(s *jsonschema.Schema) []*jsonschema.Schema {
 	}
 	return children
 }
+
+// CheckLocalFragment checks bounded JSON against a reachable fragment of a
+// compiled published schema. It then runs the local rules annotated within
+// the fragment, with the fragment as the rule root, and visits each
+// applicable schema instance for owner model checks. Contextual rules are
+// omitted, so the result makes no contextual or admission claim.
+func (v *Validator) CheckLocalFragment(id, pointer string, data []byte, limits ingress.Limits, check func(SchemaInstance) error) error {
+	if v == nil || v.contracts[id].schema == nil {
+		return failure(fault.InvalidInput, "contract-unknown")
+	}
+	if check == nil {
+		return failure(fault.Operational, "contract-model-check-required")
+	}
+	if !strings.HasPrefix(pointer, "#/") {
+		return failure(fault.InvalidInput, codeContractFragmentUnknown)
+	}
+	schema := findSchemaFragment(v.contracts[id].schema, pointer)
+	if schema == nil {
+		return failure(fault.InvalidInput, codeContractFragmentUnknown)
+	}
+	root, err := ingress.Parse(data, limits, ingress.Object)
+	if err != nil {
+		return err
+	}
+	if !boundedNumbers(root) {
+		return failure(fault.InvalidInput, "contract-number-limit")
+	}
+	if err := schema.Validate(root); err != nil {
+		return failure(fault.InvalidInput, "contract-schema-mismatch")
+	}
+	entry := v.contracts[id]
+	invoked := map[ruleIdentity]bool{}
+	options := semanticInvocationOptions{source: string(data)}
+	if err := walkSchema(visit{schema, root, ""}, func(current visit) error {
+		return v.invoke(id, current, root, nil, entry.annotations, invoked, options)
+	}); err != nil {
+		return err
+	}
+	return walkSchema(visit{schema, root, ""}, func(current visit) error {
+		return entry.visitInstance(id, current, root, check)
+	})
+}

@@ -109,7 +109,7 @@ These commitments bind this design to those interfaces under ADR-122.
 <!-- go-api implementations/go/internal/base/timestamp c79504fc0ab6c66598fc2a8d8c9bf3ccbbc1f5f6e8954e9d902df236d4635500 -->
 <!-- go-api implementations/go/internal/base/softwareversion 0f7a3362a64e8fcac70abfdc26358e7790cdc0e1e9cef8719867f7bcfd1ff30d -->
 <!-- go-api implementations/go/internal/base/domain ea76356b83da53da1d7df16365e800e2fda50d9737a16fbff7e734d968b26046 -->
-<!-- go-api implementations/go/internal/base/value eb8140517a8d1f156f90e04f9e07ae16285b70ea18cd738476c29864b258bcd4 -->
+<!-- go-api implementations/go/internal/base/value 81cfb18788d53ffb67184c6a31c1b2e81e7e782c3640e806030da6bc90dcd92b -->
 <!-- go-api implementations/go/internal/base/logrecord c727c748b50df444cbcd0770e49e3f5da51d8241b205e632211ff8a8ff02da45 -->
 <!-- go-api implementations/go/internal/base/graph a10bbf832cd1e4c63f9fcbc615d2bc5be73487b7a1611b841025430d2dff1c44 -->
 <!-- go-api implementations/go/internal/base/secretref 8e81040a60db6681196bcebfeaaedfdc5fbf34427ae303a7a0a88db92b00e758 -->

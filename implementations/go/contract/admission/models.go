@@ -102,6 +102,9 @@ func (e *Validator) checkModels(id string, data []byte, limits ingress.Limits) e
 }
 
 func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
+	if err := e.definitionModel(instance); err != nil {
+		return err
+	}
 	if known, err := e.additionalModel(strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix), instance.Value); known {
 		return err
 	}
@@ -198,7 +201,7 @@ func controlNeedsDefaults(name string) bool {
 
 func (e *Validator) initialModel(id string, root any, data []byte) error {
 	if id == termBackendManifestV2 {
-		if err := checkResourceProfiles(root, data); err != nil {
+		if err := e.checkResourceProfiles(root, data); err != nil {
 			return err
 		}
 	}

@@ -8,12 +8,8 @@ func (e *Validator) governedVocabularyScope(scope string) bool {
 	if backendConceptScope(scope) {
 		return true
 	}
-	for _, definition := range e.vocabularies {
-		if set(at(definition, "governed_scopes"))[scope] {
-			return true
-		}
-	}
-	return false
+	_, governed := e.authority.ScopeVocabulary(scope)
+	return governed
 }
 
 func (e *Validator) vocabularyDefinition(v any) error {

@@ -28,7 +28,7 @@ func (e *Validator) semanticProfilePhase(v any) error {
 	}
 	families := set(at(v, "required_concept_families"))
 	for id := range families {
-		if e.conceptFamilies[id] == nil {
+		if !e.knownFamily(id) {
 			return invalid()
 		}
 	}

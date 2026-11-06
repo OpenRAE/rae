@@ -1,8 +1,18 @@
 package concept
 
 import (
-	"github.com/OpenRAE/rae/implementations/go/contract/binding"
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
+)
+
+const (
+	ResolvedCurrent = "resolved-current"
+	Unavailable     = "unavailable"
+	Stale           = "stale"
+	Ambiguous       = "ambiguous"
+	Superseded      = "superseded"
+	UnknownConcept  = "unknown-concept"
+	SubjectNotFound = "subject-not-found"
 )
 
 type Subject struct{ SubjectKind, OwningContractID, LifecyclePhase, CanonicalRef, ArtifactDigest string }
@@ -26,5 +36,42 @@ type ResolutionOutcome struct {
 }
 
 func (result ResolutionOutcome) Admitted() bool
-func AdmitBindings(subjects []Subject, bindings binding.ExternalConceptBindingsV1, snapshots []SchemeSnapshot) (ResolutionOutcome, error)
-func Vocabulary(name string) (map[string]any, error)
+func (a *Authority) AdmitBindings(subjects []Subject, bindings validation.Value, snapshots []SchemeSnapshot) (ResolutionOutcome, error)
+
+type Document struct {
+	ContractID, Path string
+	JSON             []byte
+}
+type Authority struct{ _ []byte }
+
+func Load(schemas *validation.Validator) (*Authority, error)
+func (a *Authority) Documents() []Document
+
+type Family struct{ ID, Authority, Provenance string }
+
+func (a *Authority) Family(id string) (Family, bool)
+func (a *Authority) Families() []Family
+
+type Relation struct {
+	ID                                  string
+	ProjectionRequired, ProfileRequired bool
+}
+type RelationCatalog struct {
+	TaxonomyID, TaxonomyRevision string
+	Relations                    []Relation
+}
+
+func (c RelationCatalog) Relation(id string) (Relation, bool)
+func (a *Authority) RelationCatalog(revision string) (RelationCatalog, error)
+func (a *Authority) CurrentRelationCatalog() RelationCatalog
+func (a *Authority) PinnedSnapshots() []SchemeSnapshot
+
+type Vocabulary struct {
+	ID, Title, Description, Kind, ExtensionPolicy, ExtensionPattern string
+	GovernedScopes, Terms                                           []string
+}
+
+func (a *Authority) Vocabulary(id string) (Vocabulary, bool)
+func (a *Authority) ScopeVocabulary(scope string) (Vocabulary, bool)
+func (a *Authority) Permits(vocabularyID, term string) bool
+func (a *Authority) CheckScope(scope string, values ...string) error

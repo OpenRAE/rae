@@ -64,6 +64,33 @@ Go checks report order, ancestry and state changes.
 It checks full scope, collection membership, backend support and permission for additions.
 An SDL report grants no right to run work.
 
+## Authority owners
+
+`New` compiles the published schemas once.
+It loads `concept.Authority` and `profile.Profiles` with that validator.
+The vocabulary, concept-family, behavioral-claim and resource-profile rules call those owners.
+`New` checks every packaged catalog and profile with the complete family rules.
+
+## Native fragments
+
+`AdmitFragment` admits one native submodel of a closed `FragmentProfile`.
+It copies the document, applies the caller's byte and depth limits and checks the owner model of the profile.
+Only the `RealizationValue` profile accepts a root that is not an object.
+The returned `Fragment` is opaque, and `Document` returns a fresh copy.
+A fragment grants no execution authority.
+The owner model of each profile is in the [design record](../../../../docs/decisions/issue-1781-concept-profile-design.md).
+
+The model rules apply at each instance of their definition.
+Thus a nested definition has the same rules in a fragment and in each containing document.
+
+## Experiment binding targets
+
+`ValidateExperimentBindingTargets` resolves each binding descriptor through one plane owner.
+The caller's `ScenarioBindingTargetResolver` owns scenario targets.
+The selected participant and apparatus manifests own their targets.
+The result carries each canonical target ID.
+A failure returns an `InvalidInput` fault without the supplied value.
+
 ## Verification
 
 The [rule inventory](../../../../specs/conformance/contract-invariant-rules.json)

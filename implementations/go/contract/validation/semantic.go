@@ -99,10 +99,10 @@ func (v *Validator) semanticSource(id string, root, context any, complete bool, 
 	if missingContext(context) {
 		context = nil
 	}
-	contract := v.contracts[id]
+	entry := v.contracts[id]
 	invoked := map[ruleIdentity]bool{}
-	return walkSchema(visit{contract.schema, root, ""}, func(current visit) error {
-		return v.invoke(id, current, root, context, contract.annotations, invoked, semanticInvocationOptions{complete: complete, source: source})
+	return walkSchema(visit{entry.schema, root, ""}, func(current visit) error {
+		return v.invoke(id, current, root, context, entry.annotations, invoked, semanticInvocationOptions{complete: complete, source: source})
 	})
 }
 

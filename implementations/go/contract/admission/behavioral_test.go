@@ -57,7 +57,12 @@ func TestBehavioralRevisionedClaims(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	instance := e.relationProfiles[join("participant-opacity-baseline-v1", "sem-231/rev2")]
+	var instance any
+	for _, document := range e.owners.Documents() {
+		if document.Path == "profiles/behavioral-relation/history/participant-opacity-baseline-v1-sem-231-rev2.json" {
+			instance, _ = parseCatalog(document.JSON)
+		}
+	}
 	if err := validateTestDocument(t, e, "behavioral-relation-profile-v1", instance, testBehavioralContext{claim: data}); err != nil {
 		t.Fatal(err)
 	}
