@@ -44,6 +44,15 @@ def _portable(execution):
     return _provisioning_plan(type(wire).model_validate_json(wire.model_dump_json()))
 
 
+@pytest.fixture(scope="module")
+def selected_inventory(full_inventory):
+    execution, manifest = full_inventory
+    assert execution.is_valid, execution.diagnostics
+    # Keep the transport codec's normalized selection. The dedicated transport
+    # test covers JSON encoding and decoding; mutation cases share this value.
+    return _provisioning_plan(provisioning_plan_model(execution.provisioning)), manifest
+
+
 def test_full_size_authority_survives_transport_preparation_and_delivery(full_inventory):
     execution, manifest = full_inventory
     assert execution.is_valid, execution.diagnostics
@@ -64,10 +73,9 @@ def test_full_size_authority_survives_transport_preparation_and_delivery(full_in
 
 @pytest.mark.parametrize("boundary", ["plan", "preparation", "delivery"])
 @pytest.mark.parametrize("field", ["role", "subject", "id", "secret-id", "payload"])
-def test_changed_full_size_authority_is_refused(full_inventory, boundary, field):
-    execution, manifest = full_inventory
-    assert execution.is_valid, execution.diagnostics
-    request = _portable(execution)
+def test_changed_full_size_authority_is_refused(selected_inventory, boundary, field):
+    selected, manifest = selected_inventory
+    request = deepcopy(selected)
     if boundary == "plan":
         alter_inventory(request.operations, field)
         assert realization_authority_diagnostics(request, manifest)
