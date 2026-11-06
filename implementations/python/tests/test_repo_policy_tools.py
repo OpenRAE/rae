@@ -3522,23 +3522,19 @@ def _make_adr(
     return text
 
 
-def _write_manifest(adr_dir: Path, entries: list[dict], *, algorithm: str = "sha256") -> None:
-    write_text(
-        adr_dir / "adr-index.yaml",
-        yaml.safe_dump({"hash_algorithm": algorithm, "adrs": entries}, sort_keys=False),
-    )
+def _write_manifest(adr_dir: Path, entries: list[dict], *, algorithm: str | None = None) -> None:
+    document: dict = {"adrs": entries}
+    if algorithm is not None:
+        document["hash_algorithm"] = algorithm
+    write_text(adr_dir / "adr-index.yaml", yaml.safe_dump(document, sort_keys=False))
 
 
 def _entry(number: str, text: str, *, pin_text: str | None = None, amendments: list[dict] | None = None) -> dict:
-    # ``pin_text`` lets a caller pin over content that is NOT byte-identical to the
-    # on-disk ADR (``text``). Recorded-amendment tests rely on this to pin over the
-    # *unamended* body so the gate only stays green if ``canonical_content`` truly
-    # strips the ``## Amendments`` section — pinning over the amended text would be
-    # tautological (both sides hashed from the same amended bytes).
+    # The manifest stores no content pin (issue #1929); ``text`` and ``pin_text`` stay for call-site stability.
+    del text, pin_text
     entry = {
         "id": f"ADR-{number}",
         "path": f"docs/decisions/adrs/adr-{number}-example.md",
-        "pin": content_hash(pin_text if pin_text is not None else text),
     }
     if amendments is not None:
         entry["amendments"] = amendments
@@ -3581,25 +3577,19 @@ def test_adr_pin_gate_passes_on_pinned_accepted_corpus(tmp_path: Path) -> None:
     assert evaluate_adr_immutability(tmp_path) == []
 
 
-def test_adr_pin_gate_flags_unrecorded_edit(tmp_path: Path) -> None:
+def test_adr_pin_gate_rejects_a_retired_content_pin(tmp_path: Path) -> None:
+    # The base-revision check detects an unrecorded edit, so a stored pin is a retired key (issue #1929).
     adr_dir = _adr_dir(tmp_path)
     original = _make_adr(adr_dir, "001")
-    _write_manifest(adr_dir, [_entry("001", original)])
-    # Edit the ADR body without updating the pin.
-    _make_adr(adr_dir, "001", body="\n## Context\n\nA substantively different body.\n")
+    _write_manifest(adr_dir, [{**_entry("001", original), "pin": content_hash(original)}])
 
     failures = evaluate_adr_immutability(tmp_path)
-    assert "adr-pin-stale" in _rule_ids(failures)
+    assert _rule_ids(failures) == ["adr-manifest-malformed"]
 
 
 def test_adr_pin_gate_accepts_recorded_amendment(tmp_path: Path) -> None:
     adr_dir = _adr_dir(tmp_path)
     text = _make_adr(adr_dir, "001", amendment_rows=[("2026-06-07", "abc1234", "added a field")])
-    # Pin over the *unamended* body. If canonical_content stops stripping the
-    # ## Amendments section, the on-disk (amended) hash diverges from this pin and
-    # the gate fires adr-pin-stale — so this assertion genuinely verifies the
-    # "amendment records never change the pin" invariant rather than tautologically
-    # hashing the same amended bytes on both sides.
     _write_manifest(
         adr_dir,
         [
@@ -3612,8 +3602,7 @@ def test_adr_pin_gate_accepts_recorded_amendment(tmp_path: Path) -> None:
         ],
     )
 
-    # The pin is over canonical content (amendments excluded), so the recorded
-    # amendment does not perturb it, and the manifest refs match the table 1:1.
+    # The manifest refs match the table 1:1.
     assert evaluate_adr_immutability(tmp_path) == []
 
 
@@ -3667,7 +3656,7 @@ def test_adr_pin_gate_rejects_unsafe_path(tmp_path: Path) -> None:
     adr_dir = _adr_dir(tmp_path)
     _write_manifest(
         adr_dir,
-        [{"id": "ADR-001", "path": "../outside-the-repo.md", "pin": "0" * 64}],
+        [{"id": "ADR-001", "path": "../outside-the-repo.md"}],
     )
 
     failures = evaluate_adr_immutability(tmp_path)
@@ -3924,7 +3913,7 @@ def test_a_defect_while_loading_the_adr_manifest_is_not_reported_as_invalid_yaml
 
     manifest = tmp_path / adr_gate.MANIFEST_PATH
     manifest.parent.mkdir(parents=True)
-    manifest.write_text("hash_algorithm: sha256\nadrs: []\n", encoding="utf-8")
+    manifest.write_text("adrs: []\n", encoding="utf-8")
 
     def defective(_path: Path) -> dict:
         raise TypeError("manifest loader defect")

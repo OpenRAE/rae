@@ -868,7 +868,7 @@ def test_adr_pin_gate_reports_an_unconstructable_manifest_scalar_as_malformed(tm
 
     _nox_write(
         tmp_path / adr_gate.MANIFEST_PATH,
-        f"hash_algorithm: sha256\nnote: {_NOX_SENTINEL}\nadrs: [{{id: ADR-001, date: {scalar}}}]\n",
+        f"note: {_NOX_SENTINEL}\nadrs: [{{id: ADR-001, date: {scalar}}}]\n",
     )
 
     failures = adr_gate.evaluate_adr_immutability(tmp_path)
@@ -884,7 +884,7 @@ def test_adr_pin_gate_does_not_report_a_value_error_defect_as_invalid_yaml(
 ) -> None:
     import tools.check_adr_immutability as adr_gate
 
-    _nox_write(tmp_path / adr_gate.MANIFEST_PATH, "hash_algorithm: sha256\nadrs: []\n")
+    _nox_write(tmp_path / adr_gate.MANIFEST_PATH, "adrs: []\n")
 
     def defective(_path: Path) -> dict:
         raise ValueError(_NOX_DEFECT)
@@ -3684,7 +3684,7 @@ def test_repo_policy_and_adr_gate_report_an_empty_tagged_number_as_malformed(tmp
     from tools.policy.repo_policy import _load_policy_guarded
 
     _nox2_write(tmp_path / "tools/policy/adr_policy.yaml", 'value: !!int ""\n')
-    _nox2_write(tmp_path / adr_gate.MANIFEST_PATH, 'hash_algorithm: sha256\nadrs: [{id: ADR-001, pin: !!float ""}]\n')
+    _nox2_write(tmp_path / adr_gate.MANIFEST_PATH, 'adrs: [{id: ADR-001, path: !!float ""}]\n')
 
     policy, failures = _load_policy_guarded(tmp_path)
 
@@ -4009,10 +4009,7 @@ def test_adr_pin_gate_compares_a_base_revision_that_is_not_utf8(tmp_path: Path) 
         capture_output=True,
     )
     _nox2_write(tmp_path / relative, head)
-    manifest = {
-        "hash_algorithm": "sha256",
-        "adrs": [{"id": "ADR-001", "path": relative, "pin": adr_gate.content_hash(head)}],
-    }
+    manifest = {"adrs": [{"id": "ADR-001", "path": relative}]}
     _nox2_write(tmp_path / adr_gate.MANIFEST_PATH, json.dumps(manifest))
 
     failures = adr_gate.evaluate_adr_immutability(tmp_path, base_rev="HEAD")

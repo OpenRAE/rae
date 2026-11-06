@@ -4,7 +4,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from raes_contracts.errors import EvidenceIntegrityError, OperationalError
 
 ROOT = Path(__file__).resolve().parents[3]
 
