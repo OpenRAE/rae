@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-evaluation-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:44f381530fcffe8022db6a9dbb90e8b813803023d5716b461467350a6c4c1b48"
+  },
+  "name": "regression/45517b200c662324ac97389c089dba1c1e602d42c5aaf0b32f353e289369000a",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

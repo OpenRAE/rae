@@ -192,3 +192,29 @@ record. No page was hosted or uploaded.
 
 The browser observations cover repository-only prose. This PR changes no public
 page, site navigation, redirect, or publication workflow.
+
+## Required corpus promotion
+
+The 33 new tests change the Python test tree. The existing parity workflow
+therefore collected fresh public inputs in CI, as required by
+`docs/DEVELOPMENT_WORKFLOW.md`. The new capture retains all 19,706 previous test
+identities and adds the 33 documentation tests. It contains 18,134 distinct
+public inputs. The product, contracts, examples, collector and environment
+source identities are unchanged.
+
+CI run `42183463854`, job `127783090198`, produced artifact `13488580027`
+from merge revision `2efca1db4e77e24c1344ded77a0ca9d584ac18df`. Its decoded
+input credential scan passed before upload. The artifact contains 45,304 files.
+Its ZIP SHA-256 is
+`f316e41b742436c3cd83deca4df4ea78dc8fb82a89c9eabab31828f1212b45a0`.
+
+The fresh capture replaces 6,886 input descriptors. Representative differences
+include generated UUIDs, an ephemeral loopback registry port and SQLite backup
+bytes. The complete generated artifact supplies the replacement corpus. No
+expected result or source identity is edited by hand. Hosted checks verify
+reproduction and the Go runners against the promoted cases.
+
+The independent review approved this promotion. It confirmed complete coverage,
+unchanged non-regression inventory and identical replacement groups by surface,
+command, arguments, origin tests and filenames. Fourteen focused storage and
+comparison tests passed. The promoted files match every ZIP entry byte for byte.
