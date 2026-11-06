@@ -263,9 +263,9 @@ def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
         )
 
 
-def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
-    """Lint selected maintained prose; report exact protected identities for review."""
-    staged, base_rev, all_files, explicit = _hygiene_flags(session.posargs, default_all_files=False)
+def _selected_prose_paths(posargs: list[str]) -> list[str]:
+    """Resolve common selection arguments and validate every selected prose path."""
+    staged, base_rev, all_files, explicit = _hygiene_flags(posargs, default_all_files=False)
     if explicit:
         paths = explicit
     elif staged:
@@ -285,10 +285,11 @@ def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
         if not target.is_file():
             raise InvalidInputError("selected prose path is not a file")
         selected.append(path)
-    if not selected:
-        reporter.skip("docs / Vale changed prose", "no Markdown or reStructuredText selected")
-        return
+    return selected
 
+
+def _protected_prose_paths() -> set[str]:
+    """Read exact protected identities through the existing catalog validators."""
     try:
         adrs, failures = _coerce_manifest(load_yaml(REPO_ROOT / ADR_PIN_PATH), ADR_PIN_PATH)
     except (OSError, YAMLError, InvalidInputError, *YAML_CONTENT_FAILURES) as exc:
@@ -300,6 +301,16 @@ def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
         raise InvalidInputError("protected historical prose catalog is invalid")
     protected = {"CHANGELOG.md", "THIRD_PARTY_NOTICES.md", *records, *generated}
     protected.update(entry["path"] for entry in adrs)
+    return protected
+
+
+def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
+    """Lint selected maintained prose; report exact protected identities for review."""
+    selected = _selected_prose_paths(session.posargs)
+    if not selected:
+        reporter.skip("docs / Vale changed prose", "no Markdown or reStructuredText selected")
+        return
+    protected = _protected_prose_paths()
     excluded = [path for path in selected if path in protected]
     if excluded:
         reporter.skip(

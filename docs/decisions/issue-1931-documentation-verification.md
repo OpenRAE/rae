@@ -218,3 +218,11 @@ The independent review approved this promotion. It confirmed complete coverage,
 unchanged non-regression inventory and identical replacement groups by surface,
 command, arguments, origin tests and filenames. Fourteen focused storage and
 comparison tests passed. The promoted files match every ZIP entry byte for byte.
+
+## Sonar maintainability repair
+
+The first complete hosted analysis found two complexity findings in the prose
+stage. Private helpers in the same existing module now own path selection and
+protected-catalog loading. The stage coordinates those helpers and Vale.
+The 33 existing behavior cases passed after extraction. No test source,
+selection rule, protected identity or command behavior changed.
