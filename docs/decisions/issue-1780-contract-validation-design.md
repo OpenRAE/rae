@@ -21,6 +21,7 @@ Integral JSON numbers keep Draft 2020-12 integer semantics.
 | Schema package | `Rule`, `Key`, `Invocation`, `WithRules`, `Validate` | Run each rule at its matched schema instance |
 | Schema package | `Defaulted`, `DefaultedObjectFragment`, fragment and instance checks | Provide bounded views to rule owners |
 | Family package | `admission.New`, `Validate`, `CheckPortable` | Own the family rules and local model checks |
+| Family package | `ParsePythonPattern`, `PythonPatternSyntax.NamedCharacter` | Share metadata syntax checks and resolved named escapes |
 | Digest package | `digest.NewChecksum` | Construct a stream hash for a published checksum algorithm |
 
 The architecture model declares packages, layers, imports and external libraries.
@@ -133,8 +134,17 @@ Vocabulary metadata can contain Python regular-expression syntax.
 A syntax parser checks those expressions without running them.
 It checks groups, references, repetition, flags and fixed-width lookbehind.
 Unicode names come from the pinned text library and Unicode 16 data.
-The parser bounds nesting and stores no caller data after the check.
+The parser bounds nesting. Model checks retain no caller data.
 Schema patterns keep their existing linear-time matcher.
+
+Issue #1963 exposes that same syntax owner for Go repository tools.
+`ParsePythonPattern` returns an opaque `PythonPatternSyntax` or the existing invalid-input fault.
+The result retains only the named-character escapes used by that expression.
+`NamedCharacter` returns a rune and presence flag; callers receive no mutable map or parser state.
+Names retain the parser's Unicode 16 spelling and alias rules.
+The zero value has no resolved names. Separate parses do not share caller facts.
+This API validates syntax only. It never compiles or runs an expression.
+The tooling module consumes it through a pinned public module version.
 
 ## Family admission
 
@@ -233,12 +243,17 @@ flowchart LR
         Schema[Offline schema validator]
         Rules[Invariant dispatcher]
         Value[Immutable validated value]
+        Pattern[Existing metadata syntax parser]
+        Names[Opaque named-character facts]
         Archive -->|read-only schema and catalog bytes| Schema
         Ingress -->|parsed exact JSON values| Schema
         Schema -->|structurally valid instance| Rules
         Rules -->|verified bytes| Value
+        Pattern -->|checked syntax and resolved names| Names
     end
     Caller[External caller] -->|untrusted payload bytes| Ingress
+    Caller -->|untrusted pattern text| Pattern
+    Names -->|copied rune and presence flag| Consumer
     Owner[Trusted contract-family owner] -->|registered rules and explicit context| Rules
     Value -->|copied JSON or transport value| Consumer[Owning service]
 ```
@@ -360,7 +375,7 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/contract/admission b97fbc7316fb48eca200af6cdc9d4b4d251a7cb4a6ac72327feadf6c6d7697fa -->
+<!-- go-api implementations/go/contract/admission e27d3a68a2cf7431db95c52a1b46fa9eaf851e61aa24a44a584bbb25d1d8a906 -->
 
 ## Model parity repairs
 
