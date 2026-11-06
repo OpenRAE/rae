@@ -21,20 +21,23 @@ from raes_contracts.realization_structure import (
 from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_processor.planner import realization_authority_diagnostics
 from raes_processor.planner.prepared_node_projection import prepared_node_document, prepared_node_payload_projection
+from raes_processor.semantics.realization import project_realization_concern
 from raes_runtime.control_plane_api_models import _provisioning_plan
+
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(scope="module")
 def full_inventory():
-    return inventory_plan()
+    return inventory_plan(2048)
 
 
 def test_public_planner_admits_full_size_cloud_inventory(full_inventory):
     execution, _ = full_inventory
     assert execution.is_valid, execution.diagnostics
     application = cloud_value(execution.provisioning.operations, "secrets")
-    assert len(application["secrets"]) == 500
-    assert application["secrets"][-1]["native_id"] == "secret-499"
+    assert len(application["secrets"]) == 2048
+    assert application["secrets"][-1]["native_id"] == "secret-2047"
     assert not validate_realization_value(application).conformant
 
 
@@ -43,25 +46,48 @@ def _portable(execution):
     return _provisioning_plan(type(wire).model_validate_json(wire.model_dump_json()))
 
 
-def test_full_size_authority_survives_transport_preparation_and_delivery(full_inventory):
+@pytest.fixture(scope="module")
+def selected_inventory(full_inventory):
     execution, manifest = full_inventory
     assert execution.is_valid, execution.diagnostics
-    request = _portable(execution)
+    # Keep the transport codec's normalized selection. The dedicated transport
+    # test covers JSON encoding and decoding; mutation cases share this value.
+    return _provisioning_plan(provisioning_plan_model(execution.provisioning)), manifest
+
+
+@pytest.fixture(scope="module")
+def transported_inventory(full_inventory):
+    execution, manifest = full_inventory
+    assert execution.is_valid, execution.diagnostics
+    return _portable(execution), manifest
+
+
+def test_full_size_authority_retains_transport_integrity(full_inventory, transported_inventory):
+    execution, _ = full_inventory
+    request, manifest = transported_inventory
     assert runtime_plan_digest(request) == runtime_plan_digest(execution.provisioning)
     assert realization_authority_diagnostics(request, manifest) == []
+
+
+def test_full_size_authority_survives_transport_preparation_and_delivery(transported_inventory):
+    request, manifest = transported_inventory
     backend = CloudPreparingProvisioner()
     _, result = apply_inventory(request, manifest, backend)
     assert result.success, result.diagnostics
     assert backend.applies == 1
-    assert len(cloud_value(list(result.snapshot.entries.values()), "secrets")["secrets"]) == 500
+    delivered = cloud_value(list(result.snapshot.entries.values()), "secrets")
+    expected = cloud_value(request.operations, "secrets")
+    assert len(delivered["secrets"]) == 2048
+    assert project_realization_concern(
+        "runtime-platform-applications", [delivered], observed=True, recursive=True
+    ) == project_realization_concern("runtime-platform-applications", [expected], observed=True, recursive=True)
 
 
 @pytest.mark.parametrize("boundary", ["plan", "preparation", "delivery"])
-@pytest.mark.parametrize("field", ["role", "subject", "id", "payload"])
-def test_changed_full_size_authority_is_refused(full_inventory, boundary, field):
-    execution, manifest = full_inventory
-    assert execution.is_valid, execution.diagnostics
-    request = _portable(execution)
+@pytest.mark.parametrize("field", ["role", "subject", "id", "secret-id", "payload"])
+def test_changed_full_size_authority_is_refused(selected_inventory, boundary, field):
+    selected, manifest = selected_inventory
+    request = deepcopy(selected)
     if boundary == "plan":
         alter_inventory(request.operations, field)
         assert realization_authority_diagnostics(request, manifest)
@@ -146,6 +172,23 @@ def test_larger_inventory_exceeds_fixed_authority_budget():
     assert errors
     assert any(item.code == "realization.limit-exceeded" and "max_" in item.message for item in errors), errors
     assert not any(item.code == "realization.authority-bound-unavailable" for item in errors)
+
+
+def test_planning_rejects_evaluation_exhaustion_even_when_normalization_fits(monkeypatch):
+    # This inventory normalized and bound under the old profile, but could not
+    # pass unchanged completion because evaluation also traverses its value.
+    monkeypatch.setattr(
+        "raes_processor.compiler.realization_recursive_constraints.PLAN_AUTHORITY_LIMITS",
+        PLAN_AUTHORITY_LIMITS.model_copy(update={"max_nodes": 65536}),
+    )
+    execution, _ = inventory_plan(2048)
+    errors = [item for item in execution.diagnostics if item.is_error]
+    assert any(
+        item.code == "realization.limit-exceeded"
+        and "Recursive realization evaluation exceeded max_nodes" in item.message
+        for item in errors
+    ), errors
+    assert not execution.is_valid
 
 
 def test_prepared_node_projection_retains_the_supported_inventory_scale(full_inventory):
