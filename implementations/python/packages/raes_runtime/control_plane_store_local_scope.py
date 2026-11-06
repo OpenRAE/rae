@@ -10,6 +10,7 @@ from typing import cast
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 
 from .control_plane_store import ControlPlaneOperationRecord, require_operation_record_scopes
+from .control_plane_store_claim_columns import local_operation_claim_columns
 from .control_plane_store_legacy import _read_legacy_state
 from .control_plane_store_local_codec import CORE_LOCAL_TABLES, CURRENT_LOCAL_TABLES, require_local_tables
 from .control_plane_store_local_codec import decode_contract as _decode_contract
@@ -169,17 +170,11 @@ class LocalStoreScopeMigrationMixin:
             connection.execute(
                 """
                 UPDATE operations SET
-                    target_scope=?, run_scope=?, request_fingerprint=?, payload=?, digest=?
+                    idempotency_key=?, actor_id=?, operation_kind=?, target_scope=?, run_scope=?,
+                    request_commitment=?, legacy_opaque_claim=?, request_fingerprint=?, payload=?, digest=?
                 WHERE operation_id=?
                 """,
-                (
-                    target_scope,
-                    run_scope,
-                    rebound_context.request_commitment,
-                    rebound_payload,
-                    rebound_digest,
-                    operation_id,
-                ),
+                (*local_operation_claim_columns(rebound), rebound_payload, rebound_digest, operation_id),
             )
 
     @staticmethod
