@@ -8,13 +8,19 @@ import (
 )
 
 type resourceContextProjection struct {
-	Capabilities struct {
-		Runtime struct {
-			Budgets struct {
-				Context json.RawMessage `json:"domain_profile_context"`
-			} `json:"resource_budgets"`
-		} `json:"participant_runtime"`
-	} `json:"capabilities"`
+	Capabilities resourceCapabilitiesProjection `json:"capabilities"`
+}
+
+type resourceCapabilitiesProjection struct {
+	Runtime resourceRuntimeProjection `json:"participant_runtime"`
+}
+
+type resourceRuntimeProjection struct {
+	Budgets resourceBudgetsProjection `json:"resource_budgets"`
+}
+
+type resourceBudgetsProjection struct {
+	Context json.RawMessage `json:"domain_profile_context"`
 }
 
 // resourceProfileContext returns the original bytes of the resource-budget

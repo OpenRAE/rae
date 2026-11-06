@@ -66,20 +66,24 @@ func portableIdentifier(id string) bool {
 }
 
 type relationWire struct {
-	ProfileID                     string `json:"profile_id"`
-	ProfileRevision               string `json:"profile_revision"`
-	TaxonomyID                    string `json:"taxonomy_id"`
-	TaxonomyRevision              string `json:"taxonomy_revision"`
-	RelationID                    string `json:"relation_id"`
-	LeftCarrierRef                string `json:"left_carrier_ref"`
-	ObservationProjectionRef      string `json:"observation_projection_ref"`
-	ObservationProjectionRevision string `json:"observation_projection_revision"`
-	Parameters                    struct {
-		Kind  string `json:"kind"`
-		Right struct {
-			ModelID string `json:"model_id"`
-		} `json:"right"`
-	} `json:"parameters"`
+	ProfileID                     string                 `json:"profile_id"`
+	ProfileRevision               string                 `json:"profile_revision"`
+	TaxonomyID                    string                 `json:"taxonomy_id"`
+	TaxonomyRevision              string                 `json:"taxonomy_revision"`
+	RelationID                    string                 `json:"relation_id"`
+	LeftCarrierRef                string                 `json:"left_carrier_ref"`
+	ObservationProjectionRef      string                 `json:"observation_projection_ref"`
+	ObservationProjectionRevision string                 `json:"observation_projection_revision"`
+	Parameters                    relationParametersWire `json:"parameters"`
+}
+
+type relationParametersWire struct {
+	Kind  string            `json:"kind"`
+	Right relationRightWire `json:"right"`
+}
+
+type relationRightWire struct {
+	ModelID string `json:"model_id"`
 }
 
 func decodeRelationProfile(data []byte) (RelationProfile, error) {

@@ -32,11 +32,11 @@ func (v *Validator) DecodeObjectFragment(id, pointer string, data []byte, limits
 		return nil, failure(fault.InvalidInput, "contract-number-limit")
 	}
 	if err := schema.Validate(parsed); err != nil {
-		return nil, failure(fault.InvalidInput, "contract-schema-mismatch")
+		return nil, failure(fault.InvalidInput, codeContractSchemaMismatch)
 	}
 	object, ok := parsed.(map[string]any)
 	if !ok {
-		return nil, failure(fault.InvalidInput, "contract-schema-mismatch")
+		return nil, failure(fault.InvalidInput, codeContractSchemaMismatch)
 	}
 	return object, nil
 }
@@ -143,7 +143,7 @@ func (v *Validator) CheckLocalFragment(id, pointer string, data []byte, limits i
 		return failure(fault.InvalidInput, "contract-number-limit")
 	}
 	if err := schema.Validate(root); err != nil {
-		return failure(fault.InvalidInput, "contract-schema-mismatch")
+		return failure(fault.InvalidInput, codeContractSchemaMismatch)
 	}
 	entry := v.contracts[id]
 	invoked := map[ruleIdentity]bool{}

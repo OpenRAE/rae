@@ -7,5 +7,6 @@ const (
 	codeContractInvariantInvalid = "contract-invariant-invalid"
 	codeContractCorpusInvalid    = "contract-corpus-invalid"
 	codeContractSchemaInvalid    = "contract-schema-invalid"
+	codeContractSchemaMismatch   = "contract-schema-mismatch"
 	codeContractBindingMismatch  = "contract-binding-mismatch"
 )

@@ -90,7 +90,10 @@ func (f fragment) Document() any {
 	return document
 }
 
-func (fragment) admittedFragment() {}
+// admittedFragment seals the interface: only this package admits fragments.
+func (fragment) admittedFragment() {
+	// The marker method has no behavior; its presence restricts the implementers.
+}
 
 func fragmentInvalid() error { return fault.New(fault.InvalidInput, "fragment-invalid", nil) }
 

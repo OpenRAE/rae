@@ -5,6 +5,10 @@ import (
 	"slices"
 )
 
+// codeCompletenessJoinMismatch is the fault code of an assessment that does
+// not join its taxonomy.
+const codeCompletenessJoinMismatch = "completeness-join-mismatch"
+
 // CurrentAssessmentRevision is the reviewed current delivery assessment.
 const CurrentAssessmentRevision = "2026-10-31"
 
@@ -116,19 +120,19 @@ func (p *Profiles) CompletenessAssessment(revision string) (CompletenessAssessme
 // is an InvalidInput fault.
 func EvaluateCompleteness(taxonomy CompletenessTaxonomy, assessment CompletenessAssessment) ([]CompletenessResult, error) {
 	if assessment.ProfileFamily != taxonomy.ProfileFamily || assessment.TaxonomyRevision != taxonomy.Revision {
-		return nil, invalid("completeness-join-mismatch")
+		return nil, invalid(codeCompletenessJoinMismatch)
 	}
 	concerns := map[string]bool{}
 	for _, concern := range taxonomy.Concerns {
 		concerns[concern] = true
 	}
 	if !maps.Equal(concerns, setOf(slices.Collect(maps.Keys(assessment.Statuses)))) {
-		return nil, invalid("completeness-join-mismatch")
+		return nil, invalid(codeCompletenessJoinMismatch)
 	}
 	results := make([]CompletenessResult, 0, len(taxonomy.Profiles))
 	for _, profile := range taxonomy.Profiles {
 		if !maps.Equal(concerns, setOf(slices.Collect(maps.Keys(profile.Dispositions)))) {
-			return nil, invalid("completeness-join-mismatch")
+			return nil, invalid(codeCompletenessJoinMismatch)
 		}
 		blocking := []string{}
 		for _, concern := range slices.Sorted(maps.Keys(profile.Dispositions)) {
