@@ -13,8 +13,8 @@ from types import SimpleNamespace
 
 import pytest
 import yaml
-
 from raes_contracts.errors import InvalidInputError, OperationalError
+
 from tools.vale_tool import ensure_vale
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -64,16 +64,9 @@ def prose_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     git("commit", "-qm", "Initial fixture")
     base = git("rev-parse", "HEAD")
 
-    def run(path: str, text: str, *, base_rev: str | None = None, posargs: list[str] | None = None):
-        page = tmp_path / path
-        page.parent.mkdir(parents=True, exist_ok=True)
-        page.write_text(text)
-        git("add", "--", path)
-        git("commit", "-qm", "Update fixture", "--allow-empty")
+    def check(posargs: list[str]):
         state.update(result=None, logs=[], calls=[])
-        session = SimpleNamespace(
-            posargs=posargs if posargs is not None else ["--base-rev", base_rev or base], log=state["logs"].append
-        )
+        session = SimpleNamespace(posargs=posargs, log=state["logs"].append)
         reporter = lanes.SessionReporter(session, "docs-prose")
         try:
             lanes._run_docs_prose(session, reporter)
@@ -83,7 +76,25 @@ def prose_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
             return subprocess.CompletedProcess([], 2, "", str(exc))
         return state["result"] or subprocess.CompletedProcess([], 0, "\n".join(state["logs"]), "")
 
-    return SimpleNamespace(run=run, root=tmp_path, lanes=lanes, state=state)
+    def run(
+        path: str,
+        text: str,
+        *,
+        base_rev: str | None = None,
+        posargs: list[str] | None = None,
+        commit: bool = True,
+        stage: bool = True,
+    ):
+        page = tmp_path / path
+        page.parent.mkdir(parents=True, exist_ok=True)
+        page.write_text(text)
+        if stage:
+            git("add", "--", path)
+        if commit:
+            git("commit", "-qm", "Update fixture", "--allow-empty")
+        return check(posargs if posargs is not None else ["--base-rev", base_rev or base])
+
+    return SimpleNamespace(run=run, check=check, git=git, root=tmp_path, lanes=lanes, state=state)
 
 
 @pytest.mark.parametrize(
@@ -188,6 +199,108 @@ def test_changed_prose_check_refuses_paths_outside_repository(prose_check) -> No
     assert not prose_check.state["calls"]
 
 
+@pytest.mark.parametrize(("posargs", "stage"), [(["--staged"], True), ([], True), ([], False)])
+def test_changed_prose_check_selects_staged_working_and_untracked(prose_check, posargs: list[str], stage: bool) -> None:
+    result = prose_check.run(
+        "docs/task.md", "# Check a file\n\nUtilize the tool.\n", posargs=posargs, commit=False, stage=stage
+    )
+    assert result.returncode != 0
+    assert "RAES.PlainWords" in result.stdout
+
+
+def test_changed_prose_check_lints_rename_destination(prose_check) -> None:
+    prose_check.run("docs/old.md", "# Check a file\n\nUtilize the tool.\n")
+    before = prose_check.git("rev-parse", "HEAD")
+    prose_check.git("mv", "docs/old.md", "docs/new.md")
+    prose_check.git("commit", "-qm", "Rename fixture")
+    result = prose_check.check(["--base-rev", before])
+    assert result.returncode != 0
+    assert "RAES.PlainWords" in result.stdout
+    assert "new.md" in result.stdout
+
+
+def test_changed_prose_check_ignores_deleted_paths(prose_check) -> None:
+    prose_check.run("docs/old.md", "# Check a file\n\nUtilize the tool.\n")
+    before = prose_check.git("rev-parse", "HEAD")
+    prose_check.git("rm", "docs/old.md")
+    prose_check.git("commit", "-qm", "Delete fixture")
+    result = prose_check.check(["--base-rev", before])
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not prose_check.state["calls"]
+
+
+def test_changed_prose_check_does_not_exempt_operational_bindings(prose_check) -> None:
+    catalog = prose_check.root / "tools/policy/historical_identity_records.json"
+    data = json.loads(catalog.read_text())
+    data["operational_bindings"].append(
+        {
+            "path": "docs/current.md",
+            "binding_class": "external-service-project-key",
+            "rationale": "Fixture binding",
+            "occurrences": 1,
+            "content_sha256": "0" * 64,
+        }
+    )
+    catalog.write_text(json.dumps(data))
+    result = prose_check.run("docs/current.md", "# Check a file\n\nUtilize the tool.\n")
+    assert result.returncode != 0
+    assert "RAES.PlainWords" in result.stdout
+
+
+def test_changed_prose_check_refuses_external_symlinks(prose_check) -> None:
+    outside = prose_check.root.parent / "outside.md"
+    outside.write_text("# Check a file\n\nUtilize the tool.\n")
+    link = prose_check.root / "docs/link.md"
+    link.parent.mkdir(exist_ok=True)
+    link.symlink_to(outside)
+    result = prose_check.run("docs/link.md", outside.read_text())
+    assert result.returncode != 0
+    assert "unsafe" in result.stderr
+    assert not prose_check.state["calls"]
+
+
+def test_changed_prose_check_rejects_unsafe_adr_catalog_paths(prose_check) -> None:
+    catalog = prose_check.root / "docs/decisions/adrs/adr-index.yaml"
+    data = yaml.safe_load(catalog.read_text())
+    data["adrs"][0]["path"] = "../outside.md"
+    catalog.write_text(yaml.safe_dump(data))
+    result = prose_check.run("docs/task.md", "# Check a file\n\nCheck the file.\n")
+    assert result.returncode != 0
+    assert "catalog" in result.stderr
+    assert not prose_check.state["calls"]
+
+
+@pytest.mark.parametrize("content", [b"adrs: [", b"\xff", None])
+def test_changed_prose_check_reports_unreadable_adr_catalog(prose_check, content: bytes | None) -> None:
+    catalog = prose_check.root / "docs/decisions/adrs/adr-index.yaml"
+    if content is None:
+        catalog.unlink()
+    else:
+        catalog.write_bytes(content)
+    result = prose_check.run("docs/task.md", "# Check a file\n\nCheck the file.\n")
+    assert result.returncode != 0
+    assert "catalog" in result.stderr
+    assert not prose_check.state["calls"]
+
+
+def test_changed_prose_check_uses_selected_docs_environment(prose_check, monkeypatch: pytest.MonkeyPatch) -> None:
+    environment = prose_check.root / "isolated"
+    (environment / "bin").mkdir(parents=True)
+    marker = prose_check.root / "parser-used"
+    actual = str(ROOT / "implementations/python/.venv/bin/rst2html")
+    parser = environment / "bin/rst2html"
+    parser.write_text(
+        f"#!{sys.executable}\nimport os,sys\nfrom pathlib import Path\n"
+        f"Path({str(marker)!r}).write_text('used')\n"
+        f"os.execv({actual!r}, [{actual!r}, *sys.argv[1:]])\n"
+    )
+    parser.chmod(0o755)
+    monkeypatch.setenv("UV_PROJECT_ENVIRONMENT", str(environment))
+    result = prose_check.run("docs/task.rst", "Check a file\n============\n\nCheck the file.\n")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert marker.is_file(), "Vale must use docutils from the selected frozen docs environment"
+
+
 def test_canonical_ci_passes_verified_base_to_shared_docs_lane(tmp_path: Path) -> None:
     workflow = yaml.safe_load((ROOT / ".github/workflows/canonical-verification.yml").read_text())
     step = next(
@@ -213,3 +326,12 @@ def test_canonical_ci_passes_verified_base_to_shared_docs_lane(tmp_path: Path) -
         "--base-rev",
         "verified-base",
     ]
+
+
+def test_full_verification_forwards_selection_to_docs_lane(prose_check) -> None:
+    graph = importlib.import_module("tools.nox_support.graph")
+    lanes = graph._verification_lanes(
+        posargs=["--base-rev", "verified-base"], coverage_dir=prose_check.root / "coverage", include_policy=False
+    )
+    docs = next(lane for lane in lanes if lane.nox_session == "docs-local")
+    assert docs.posargs == ("--base-rev", "verified-base")

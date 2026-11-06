@@ -6,7 +6,7 @@ review evidence for its delivery PR. It does not replace the style guide.
 ## Revision and scope
 
 The source revision is `665b747f882c1bfee717d15e266c9bb1db84ec07`.
-The candidate adds changed-path Vale checks to canonical CI and updates the
+The candidate adds changed-path Vale checks to shared nox stages and updates the
 existing style guide and `AGENTS.md`. Product code, published pages, legal text,
 pinned evidence, generated output, and pre-commit hooks are unchanged.
 
@@ -21,7 +21,7 @@ applies unless the row names the candidate.
 | Rewritten section | Sources and observed result | Correction or review result |
 | --- | --- | --- |
 | Guide opening and Stripe exemplar | Existing guide and its linked official Stripe examples | Expanded the stated scope to examples and agent prose. Replaced praise with the visible reader outcome. Kept the prohibition on copying. |
-| Vale enforcement | `tools/nox_support/test_lanes.py`, `.vale.ini`, `styles/RAES/` and candidate canonical workflow | Corrected the coverage claim. The old lane selects only Markdown. The added check selects changed Markdown and reStructuredText across the repository. |
+| Vale enforcement | `tools/nox_support/test_lanes.py`, `noxfile.py`, `.vale.ini`, `styles/RAES/` and candidate canonical workflow | Corrected the coverage claim. The old reader-style check selects only Markdown. The shared prose stage selects maintained Markdown and reStructuredText across the repository. |
 | Tool setup and explicit paths | `tools/vale_tool.py`, `tools/tool_versions.py`, `implementations/tooling/artifacts.lock.json`, `implementations/python/uv.lock` | Compared the source, version, license and installation route with the locked files. The commands below passed in fresh environments. |
 | Skill availability | Examined local `documentation` skill and its license notice. Public `ste-review` v0.10.1 and its MIT license | The local skill has no verified public source for its complete text. The public skill needs another analyzer. Used the issue's tools-and-guidance fallback. Made no copy of skill content. |
 | Reader purpose | [Diataxis compass](https://diataxis.fr/compass/) | Checked each of the four forms against its reader need. Kept entry-page routing and useful heading links. |
@@ -75,12 +75,12 @@ No personal skills or existing Vale installation were available in that HOME.
 
 | Command or check | Observed result |
 | --- | --- |
-| `uv sync --project implementations/tooling/python --frozen --no-default-groups` | Exit 0. installed the frozen tooling environment. |
-| `uv sync --project implementations/python --frozen --extra docs` | Exit 0. installed the frozen project and docs environment. |
-| `tools.vale_tool.ensure_vale()` with a new installation root | Exit 0. acquired and verified the locked archive and installed binary. |
+| `uv sync --project implementations/tooling/python --frozen --no-default-groups` | Exit 0. Installed the frozen tooling environment. |
+| `uv sync --project implementations/python --frozen --extra docs` | Exit 0. Installed the frozen project and docs environment. |
+| `tools.vale_tool.ensure_vale()` with a new installation root | Exit 0. Acquired and verified the locked archive and installed binary. |
 | `vale --version` | Exit 0. `vale version 3.15.2`. |
 | `rst2html --version` | Exit 0. Docutils 0.22.4, Python 3.14.7, Linux. |
-| Explicit Vale checks with `.vale.ini` | Exit 0. no findings in `docs/public/index.md`, `docs/public/api/index.rst`, the style guide, and `AGENTS.md`. |
+| Explicit Vale checks with `.vale.ini` | Exit 0. No findings in `docs/public/index.md`, `docs/public/api/index.rst`, the style guide, and `AGENTS.md`. |
 
 Vale's MIT license and approved route are in the artifact lock, under ADR-106.
 Read the upstream license at tag v3.15.2 too. Checked Sphinx's BSD-2-Clause
@@ -95,33 +95,50 @@ Run the focused regression module with:
 RAES_REQUIREMENT_UID=GOV-901 uv run --project implementations/python --frozen python -m pytest -q -m integration implementations/python/tests/test_issue_1931_documentation_tools.py
 ```
 
-The tests execute the actual CI shell command with real pinned Vale.
+The tests execute the shared private nox stage with real pinned Vale.
+A separate wiring test confirms that CI passes its verified base to the same
+documentation lane. The full nox graph forwards the shared arguments too.
 These fixtures replace only acquisition. The clean setup above tested actual
 acquisition separately.
 
-The initial tests failed because the changed-prose CI check was absent.
+The initial tests failed because the changed-prose check was absent.
+The independent review found two gaps in the first candidate: CI-only
+orchestration and whole-file lint on protected records. Both needed repair.
 The check then caught a real `RAES.PlainWords` violation in all three page forms.
 Replacing the prohibited word with `Use` cleared the violation.
 An unchanged page with known violations did not enter the selection.
 
-Additional cases cover filenames with spaces, filenames starting with a hyphen,
-literal code, non-prose diffs, and Git failures. A nested `docs/CHANGELOG.md`
+Additional cases cover filenames with spaces, newlines, or an initial hyphen.
+They also cover literal code, non-prose diffs, Git failures, staged and untracked
+files, renames, deletions, malformed catalogs, and unsafe paths. A nested `docs/CHANGELOG.md`
 case shows that root exclusions keep maintained nested pages covered.
 The path specifications name the two excluded root files explicitly.
 
-Three manual mutations each failed the relevant case: omit reStructuredText,
-omit repository-only prose, and suppress Vale's failure status.
+Three manual mutations of the first candidate each failed the relevant case:
+omit reStructuredText, omit repository-only prose, and suppress Vale's failure
+status. The repaired shared stage has the same behavioral coverage. Four further
+mutations also failed: omit reStructuredText, omit ADR protection, bypass path
+containment, and disconnect the shared documentation stage.
 Restored the original command after each mutation.
 
-The installer module `implementations/python/tests/test_vale_tool.py` passed
-all three cases. File-local repository policy, Ruff and changed-document Vale
+The final focused prose module passed all 33 cases. The installer module
+`implementations/python/tests/test_vale_tool.py` passed all three cases.
+The existing nox tests and operational-binding consumer test passed 35 cases. File-local repository policy, Ruff and changed-document Vale
 also passed. Full documentation, policy and test lanes remain in CI.
 
 ## Exclusions and preserved records
 
-The changed-path check excludes only root `CHANGELOG.md`, which release-please
-generates, and root `THIRD_PARTY_NOTICES.md`, which contains legal notices.
-Neither file changed. Maintained introductions still need direct review.
+The shared stage excludes root `CHANGELOG.md`, which release-please generates,
+and root `THIRD_PARTY_NOTICES.md`, which contains legal notices.
+It also reports exact protected paths from the ADR pin index and historical
+catalog. It does not exempt whole directories or operational bindings.
+Malformed catalogs and unsafe paths fail. Existing policy pin gates stay in force.
+The Ground Control configuration gained the required module mapping. Its
+operational-binding digest was updated to match that current configuration.
+The historical record digests and service project designations did not change.
+For every reported protected file, new maintained passages need source/meaning
+review and a Vale stdin check. The PR must record each path, passage and result.
+No protected file changed in this delivery.
 
 No preserved quotation, accepted ADR, pinned capture, code block or generated
 artifact was rewritten. No maintained changed prose page was omitted.
@@ -131,6 +148,30 @@ Issues #1509 and #1562 remain open. This delivery covers their changed-file
 gaps. It does not claim to clear all legacy findings.
 Issues #1799 and #1803 own equivalent Go checks and the Go build migration.
 Issue #1804 owns publication. The supported Python site remains the default.
+
+
+## Independent review repairs
+
+The user authorized an independent read-only review after the automatic
+acceptance reviewer could not observe required evidence in its sandbox.
+The independent verdict was `ship-with-fixes`.
+
+The repair structure is local commit
+`1071f7f6862e917136291dd090c93cbb8761e250`. Python compilation, file-local
+policy, and 34 existing nox tests passed. The new acceptance cases failed for
+the safe refusing stub. An independent design review approved the structure
+before implementation.
+
+The existing nox module owns selection and Vale execution. It reuses the common
+selector grammar, NUL-safe Git collection, catalog validators, and path guards.
+`docs-prose` gives targeted feedback. `docs-local` and `docs` call the same stage.
+Canonical CI passes the verified base through `docs-local`.
+No new analyzer, dependency, service, or publication destination was added.
+The actual `docs-prose` command passed on the five named Markdown and
+reStructuredText pages in the retained clean HOME and frozen environments.
+A protected ADR check reported the exact manual-review obligation. The guide's
+Vale stdin example passed separately. `UV_PROJECT_ENVIRONMENT` selects the
+docutils installation used by the linter.
 
 ## Rendered observations
 

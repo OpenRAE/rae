@@ -86,13 +86,16 @@ Vale is a style linter. It does not check code accuracy, page purpose, or full
 ASD-STE100 conformance. A reading score does not replace technical review.
 
 The existing `docs` and `docs-local` lanes check root community pages and public
-Markdown. Canonical CI also checks changed `.md` and `.rst` files across the
-repository. This includes `docs/explain/` and `examples/README.md`.
-It compares the verified CI base with the candidate commit. It does not lint
-unchanged legacy pages or require a corpus rewrite before a section can change.
-It excludes the generated `CHANGELOG.md` and legal `THIRD_PARTY_NOTICES.md`.
-Examine any maintained introduction to these records and record the result in
-the PR. These exclusions do not give permission to change generated or legal text.
+Markdown. Both also call the shared `docs-prose` stage for selected `.md` and
+`.rst` files across the repository. This includes `docs/explain/` and
+`examples/README.md`. Canonical CI gives this stage its verified base revision.
+The full verification graph forwards the same base to the documentation lane.
+
+The stage does not lint unchanged legacy pages or require a corpus rewrite.
+It reports exact protected files from the existing ADR pin index and historical
+catalog for manual review. It also excludes root `CHANGELOG.md` and
+`THIRD_PARTY_NOTICES.md`. These exclusions do not give permission to change
+protected text. New maintained passages still need the checks below.
 
 Issues [#1509](https://github.com/OpenRAE/rae/issues/1509) and
 [#1562](https://github.com/OpenRAE/rae/issues/1562) describe these coverage gaps.
@@ -138,14 +141,24 @@ Agents start with [AGENTS.md](../../../AGENTS.md).
 
 #### Check explicit changed paths
 
-Use the setup above. Give Vale the exact maintained files you changed.
+Use the setup above. Give the shared nox stage the maintained files you changed.
 These commands cover Markdown, reStructuredText, and repository-only prose:
 
 ```shell
-"$vale_bin" --no-global --config=.vale.ini docs/public/index.md
-"$vale_bin" --no-global --config=.vale.ini docs/public/api/index.rst
-"$vale_bin" --no-global --config=.vale.ini docs/explain/reference/documentation-style-guide.md AGENTS.md
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -s docs-prose -- docs/public/index.md
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -s docs-prose -- docs/public/api/index.rst
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -s docs-prose -- docs/explain/reference/documentation-style-guide.md AGENTS.md
 ```
+
+For a comparison with the integration branch, use:
+
+```shell
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -s docs-prose -- --base-rev origin/go-cutover
+```
+
+With no arguments, the stage selects working-tree and untracked files.
+Use `--staged` for staged files. It keeps spaces and newlines in filenames.
+It refuses paths outside the repository and malformed protection catalogs.
 
 Exit code `0` means that Vale found no enabled style errors.
 If the result is nonzero, find the cause. Correct real prose errors.
@@ -241,11 +254,32 @@ pages because it contains historical material.
 | Code blocks and inline literals | Keep literal commands, output, identifiers, and data intact. Test commands where applicable. |
 
 Vale normally excludes code and inline literals. It may report a protected
-quotation or record. A finding does not give permission to rewrite protected text.
-Use a rule-specific Vale comment around the smallest affected passage only when
-that source permits an annotation. Set the rule to its initial value after the passage.
-Record the rule, path, passage, and reason in the PR. Get maintainer review
-when a pin or legal notice prevents annotation. Do not disable a style globally.
+quotation in an otherwise maintained page. A finding does not give permission
+to rewrite protected text. Use a rule-specific Vale comment only when that
+source permits an annotation. Set the rule to its initial value after the passage.
+Record the rule, path, passage, and reason in the PR.
+
+The shared stage reads exact identities from
+`docs/decisions/adrs/adr-index.yaml` and
+`tools/policy/historical_identity_records.json`. It does not exclude whole trees
+or exempt operational bindings. Existing pin and policy gates stay in force.
+
+For each reported protected file, examine the source and meaning.
+Do a separate Vale check of each new maintained introduction or amendment.
+Use the existing stdin interface, with the source path and format:
+
+```shell
+"$vale_bin" --no-global --config=.vale.ini --ext=.md --path=docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md <<'PROSE'
+## Amendment
+
+The command checks the file.
+PROSE
+```
+
+Replace the sample with the actual maintained passage. Keep its markup,
+conditions, terms, and obligations. Use `--ext=.rst` for reStructuredText.
+Record the exact source path, passage, command, result, and manual review in the
+PR. Do not rewrite or annotate pinned historical text to clear a style finding.
 
 ## Examine the rendered result
 

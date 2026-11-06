@@ -10,7 +10,11 @@ from pathlib import Path
 
 import nox
 from raes_contracts.errors import InvalidInputError, OperationalError
+from yaml import YAMLError
 
+from tools.check_adr_immutability import MANIFEST_PATH as ADR_PIN_PATH
+from tools.check_adr_immutability import _coerce_manifest
+from tools.check_identity_cutover import _load_historical_records
 from tools.nox_support.config import (
     DEFAULT_SUITE_EXPRESSION,
     DOCS_BUILD_ROOT,
@@ -25,6 +29,8 @@ from tools.nox_support.config import (
 )
 from tools.nox_support.runner import (
     SessionReporter,
+    _chunked,
+    _hygiene_flags,
     _run,
     _run_project_python,
     _run_pytest,
@@ -37,8 +43,10 @@ from tools.osv_scanner_tool import (
     ensure_osv_scanner,
     run_osv_scanner,
 )
+from tools.policy.common import YAML_CONTENT_FAILURES, load_yaml, safe_repo_path
 from tools.pytest_shard import ShardManifestError, read_manifest, verify_shard_partition
 from tools.vale_tool import ensure_vale
+from tools.verification_plan import _run_git, collect_git_changes
 
 
 def _run_tests(
@@ -257,7 +265,71 @@ def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
 
 def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
     """Lint selected maintained prose; report exact protected identities for review."""
-    raise OperationalError("changed-prose selection is not implemented")
+    staged, base_rev, all_files, explicit = _hygiene_flags(session.posargs, default_all_files=False)
+    if explicit:
+        paths = explicit
+    elif staged:
+        paths = _run_git(REPO_ROOT, "diff", "--cached", "--name-only", "--diff-filter=d", "-z").split("\0")
+    elif all_files:
+        paths = _run_git(REPO_ROOT, "ls-files", "--cached", "--others", "--exclude-standard", "-z").split("\0")
+    else:
+        paths = [change.path for change in collect_git_changes(REPO_ROOT, base_rev or "HEAD") if change.status != "D"]
+
+    selected: list[str] = []
+    for path in dict.fromkeys(paths):
+        if Path(path).suffix not in {".md", ".rst"}:
+            continue
+        target = safe_repo_path(REPO_ROOT, path)
+        if target is None:
+            raise InvalidInputError("unsafe prose path outside the repository")
+        if not target.is_file():
+            raise InvalidInputError("selected prose path is not a file")
+        selected.append(path)
+    if not selected:
+        reporter.skip("docs / Vale changed prose", "no Markdown or reStructuredText selected")
+        return
+
+    try:
+        adrs, failures = _coerce_manifest(load_yaml(REPO_ROOT / ADR_PIN_PATH), ADR_PIN_PATH)
+    except (OSError, YAMLError, InvalidInputError, *YAML_CONTENT_FAILURES) as exc:
+        raise InvalidInputError("protected prose catalog cannot be read") from exc
+    if failures or adrs is None or any(safe_repo_path(REPO_ROOT, entry["path"]) is None for entry in adrs):
+        raise InvalidInputError("protected ADR prose catalog is invalid")
+    records, _bindings, generated, failures = _load_historical_records(REPO_ROOT)
+    if failures:
+        raise InvalidInputError("protected historical prose catalog is invalid")
+    protected = {"CHANGELOG.md", "THIRD_PARTY_NOTICES.md", *records, *generated}
+    protected.update(entry["path"] for entry in adrs)
+    excluded = [path for path in selected if path in protected]
+    if excluded:
+        reporter.skip(
+            "docs / protected prose",
+            "manual source/meaning review and Vale stdin checks of new maintained passages required: " + repr(excluded),
+        )
+    maintained = [path for path in selected if path not in protected]
+    if not maintained:
+        return
+
+    binary = str(ensure_vale(REPO_ROOT))
+    project_environment = Path(os.environ.get("UV_PROJECT_ENVIRONMENT", str(PROJECT_ROOT / ".venv")))
+    if not project_environment.is_absolute():
+        project_environment = PROJECT_ROOT / project_environment
+    env = {"PATH": os.pathsep.join((str(project_environment / "bin"), os.environ.get("PATH", "")))}
+
+    def lint() -> None:
+        for batch in _chunked(maintained):
+            _run(
+                session,
+                binary,
+                "--no-global",
+                f"--config={REPO_ROOT / '.vale.ini'}",
+                "--glob=*.{md,rst}",
+                "--",
+                *(str(REPO_ROOT / path) for path in batch),
+                env=env,
+            )
+
+    reporter.run("docs / Vale changed prose", lint, detail=f"{len(maintained)} maintained files")
 
 
 def _run_docs(
