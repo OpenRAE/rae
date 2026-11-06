@@ -33,8 +33,9 @@ PLAN_VALUE_LIMITS = RealizationConstraintLimits(
 
 # Recursive authority includes scopes, origins and keyed identities in addition to the projected inventory.
 # This fixed process-owned profile is shared by compilation, binding, preparation and delivery evaluation.
+# Evaluation charges both input traversal and recursive relation nodes to its node budget.
 PLAN_AUTHORITY_LIMITS = RealizationConstraintLimits(
-    max_nodes=65536,
+    max_nodes=131072,
     max_operations=1048576,
     max_members=65536,
     max_identity_checks=65536,

@@ -21,20 +21,21 @@ from raes_contracts.realization_structure import (
 from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_processor.planner import realization_authority_diagnostics
 from raes_processor.planner.prepared_node_projection import prepared_node_document, prepared_node_payload_projection
+from raes_processor.semantics.realization import project_realization_concern
 from raes_runtime.control_plane_api_models import _provisioning_plan
 
 
 @pytest.fixture(scope="module")
 def full_inventory():
-    return inventory_plan()
+    return inventory_plan(2048)
 
 
 def test_public_planner_admits_full_size_cloud_inventory(full_inventory):
     execution, _ = full_inventory
     assert execution.is_valid, execution.diagnostics
     application = cloud_value(execution.provisioning.operations, "secrets")
-    assert len(application["secrets"]) == 500
-    assert application["secrets"][-1]["native_id"] == "secret-499"
+    assert len(application["secrets"]) == 2048
+    assert application["secrets"][-1]["native_id"] == "secret-2047"
     assert not validate_realization_value(application).conformant
 
 
@@ -53,7 +54,12 @@ def test_full_size_authority_survives_transport_preparation_and_delivery(full_in
     _, result = apply_inventory(request, manifest, backend)
     assert result.success, result.diagnostics
     assert backend.applies == 1
-    assert len(cloud_value(list(result.snapshot.entries.values()), "secrets")["secrets"]) == 500
+    delivered = cloud_value(list(result.snapshot.entries.values()), "secrets")
+    expected = cloud_value(request.operations, "secrets")
+    assert len(delivered["secrets"]) == 2048
+    assert project_realization_concern(
+        "runtime-platform-applications", [delivered], observed=True, recursive=True
+    ) == project_realization_concern("runtime-platform-applications", [expected], observed=True, recursive=True)
 
 
 @pytest.mark.parametrize("boundary", ["plan", "preparation", "delivery"])
@@ -146,6 +152,23 @@ def test_larger_inventory_exceeds_fixed_authority_budget():
     assert errors
     assert any(item.code == "realization.limit-exceeded" and "max_" in item.message for item in errors), errors
     assert not any(item.code == "realization.authority-bound-unavailable" for item in errors)
+
+
+def test_planning_rejects_evaluation_exhaustion_even_when_normalization_fits(monkeypatch):
+    # This inventory normalized and bound under the old profile, but could not
+    # pass unchanged completion because evaluation also traverses its value.
+    monkeypatch.setattr(
+        "raes_processor.compiler.realization_recursive_constraints.PLAN_AUTHORITY_LIMITS",
+        PLAN_AUTHORITY_LIMITS.model_copy(update={"max_nodes": 65536}),
+    )
+    execution, _ = inventory_plan(2048)
+    errors = [item for item in execution.diagnostics if item.is_error]
+    assert any(
+        item.code == "realization.limit-exceeded"
+        and "Recursive realization evaluation exceeded max_nodes" in item.message
+        for item in errors
+    ), errors
+    assert not execution.is_valid
 
 
 def test_prepared_node_projection_retains_the_supported_inventory_scale(full_inventory):
