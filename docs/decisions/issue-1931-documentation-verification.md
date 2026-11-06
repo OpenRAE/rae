@@ -226,3 +226,18 @@ stage. Private helpers in the same existing module now own path selection and
 protected-catalog loading. The stage coordinates those helpers and Vale.
 The 33 existing behavior cases passed after extraction. No test source,
 selection rule, protected identity or command behavior changed.
+
+## Base synchronization
+
+The integration branch advanced to
+`68af9beda9890e7bc94c68f5de82b6942d37ec02`. It adds prepared-node content
+placement validation and six regression tests. The source changes merge with
+the documentation work without conflicts.
+
+Both branches refreshed the generated parity corpus from different source
+trees. Their content-addressed metadata therefore conflicts. The resolution
+retains the integration branch's complete corpus for its newer product source;
+it does not combine records from different captures or edit their provenance.
+The documentation implementation and its 33 tests remain present. CI must
+capture the combined source tree and verify the replacement corpus before the
+updated PR is ready to merge.
