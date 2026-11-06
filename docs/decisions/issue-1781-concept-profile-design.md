@@ -403,7 +403,7 @@ Each input limit, security check, error case and defect case in the Python tests
 
 ## References
 
-- [ADR-012](adrs/adr-012-shared-concept-authority-and-aces-extension-discipline.md)
+- ADR-012, in the [ADR index](adrs/README.md)
 - [ADR-062](adrs/adr-062-concept-authority-catalog-governance-gate.md)
 - [ADR-072](adrs/adr-072-validation-and-admission-profiles.md)
 - [ADR-081](adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md)
