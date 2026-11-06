@@ -229,6 +229,7 @@ def test_sqlite_reopen_retains_the_occurrence_and_retry_claim(tmp_path):
 def test_postgresql_claim_checks_the_same_snapshot_cut_before_any_write():
     from raes_contracts.runtime_state import RuntimeSnapshot
     from raes_runtime.control_plane_store_postgresql_mutations import claim_record
+    from raes_runtime.control_plane_store_postgresql_projection import SELECT_LEDGER_OPERATIONS
     from raes_runtime.control_plane_store_revision import SnapshotState
 
     class Ledger:
@@ -243,7 +244,9 @@ def test_postgresql_claim_checks_the_same_snapshot_cut_before_any_write():
 
     class Connection:
         def execute(self, statement, parameters):
-            assert statement.startswith("SELECT payload, digest FROM raes_ledger_operations WHERE actor_id=")
+            assert statement == (
+                SELECT_LEDGER_OPERATIONS + "WHERE actor_id=%s AND operation_kind=%s AND idempotency_key=%s"
+            )
             context = candidate_record_8.receipt.context
             assert parameters == (context.actor_id, context.operation_kind.value, candidate_record_8.idempotency_key)
             return self

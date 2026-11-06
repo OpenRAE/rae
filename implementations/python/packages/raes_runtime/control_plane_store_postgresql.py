@@ -16,8 +16,16 @@ from raes_contracts.errors import ConflictError, EvidenceIntegrityError, Operati
 from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
 from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_store_changes import OperationChanges
+from .control_plane_store_claim_columns import ledger_operation_claim_columns
 from .control_plane_store_local_codec import decode_contract, encode_payload
-from .control_plane_store_records import _audit_event_from_payload, _record_from_payload, _record_payload
+from .control_plane_store_postgresql_projection import (
+    SELECT_LEDGER_OPERATIONS,
+    ledger_operation_from_row,
+    load_snapshot,
+    operation_changes,
+    stored_record,
+)
+from .control_plane_store_records import _audit_event_from_payload, _record_payload
 from .control_plane_store_revision import SnapshotState
 from .operation_execution_adapter import require_budget_ms
 from .runtime_decision_store import SQLRuntimeDecisionStoreMixin
@@ -252,8 +260,6 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
         return self.load_snapshot_state().snapshot
 
     def _load_snapshot_state(self, connection: Connection[tuple[object, ...]]) -> SnapshotState:
-        from .control_plane_store_postgresql_projection import load_snapshot
-
         return load_snapshot(self, connection)
 
     def load_snapshot_state(self) -> SnapshotState:
@@ -265,13 +271,9 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
         from .inject_claims import require_stored_inject_history
 
         records = {}
-        for operation_id, payload, digest in connection.execute(
-            "SELECT operation_id, payload, digest FROM raes_ledger_operations ORDER BY operation_id"
-        ).fetchall():
-            record = decode_contract(payload, digest, kind="operation record", rebuild=_record_from_payload)
-            if record.receipt.operation_id != operation_id:
-                raise EvidenceIntegrityError("operation record does not match its durable identity")
-            records[operation_id] = record
+        for row in connection.execute(SELECT_LEDGER_OPERATIONS + "ORDER BY operation_id").fetchall():
+            record = ledger_operation_from_row(row)
+            records[record.receipt.operation_id] = record
         require_stored_inject_history(records.values())
         return records
 
@@ -280,15 +282,11 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
             return self._load_records(connection)
 
     def load_operation_changes(self, cursor: int | None = None) -> OperationChanges:
-        from .control_plane_store_postgresql_projection import operation_changes
-
         with self._connection() as connection:
             return operation_changes(self, connection, cursor)
 
     @staticmethod
     def _load_record(connection: Connection[tuple[object, ...]], identity: str) -> ControlPlaneOperationRecord | None:
-        from .control_plane_store_postgresql_projection import stored_record
-
         return stored_record(connection, identity)
 
     def _upsert_record(self, connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord) -> None:
@@ -301,19 +299,12 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
                 revision=self._load_snapshot_state(connection).revision,
             )
         payload, digest = encode_payload(_record_payload(record))
-        context = record.receipt.context
+        # The claim columns are immutable after the claim. Thus an update writes only the record.
         connection.execute(
             "INSERT INTO raes_ledger_operations(operation_id, actor_id, operation_kind, "
             "idempotency_key, payload, digest) VALUES (%s, %s, %s, %s, %s, %s) "
             "ON CONFLICT(operation_id) DO UPDATE SET payload=excluded.payload, digest=excluded.digest",
-            (
-                record.receipt.operation_id,
-                context.actor_id,
-                context.operation_kind.value,
-                record.idempotency_key,
-                payload,
-                digest,
-            ),
+            (record.receipt.operation_id, *ledger_operation_claim_columns(record), payload, digest),
         )
 
     @staticmethod

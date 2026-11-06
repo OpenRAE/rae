@@ -84,6 +84,7 @@ def _require_same_operation_identity(
         existing.status.context,
         existing.idempotency_key,
         existing.request_fingerprint,
+        existing.legacy_request_commitment,
     ) != (
         replacement.status.schema_version,
         replacement.status.operation_id,
@@ -92,6 +93,7 @@ def _require_same_operation_identity(
         replacement.status.context,
         replacement.idempotency_key,
         replacement.request_fingerprint,
+        replacement.legacy_request_commitment,
     ):
         raise immutable_value_error("operation identity is immutable after its durable claim")
 

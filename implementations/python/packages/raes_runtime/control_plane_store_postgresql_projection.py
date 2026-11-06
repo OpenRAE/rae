@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 from raes_contracts.errors import EvidenceIntegrityError
 
 from .control_plane_store_changes import OperationChanges, require_change_cursor
+from .control_plane_store_claim_columns import ledger_operation_claim_columns, require_claim_columns
 from .control_plane_store_history_rows import persist_history_rows, restore_history_rows
 from .control_plane_store_local_codec import decode_contract, decode_payload, encode_payload
 from .control_plane_store_records import _record_from_payload
@@ -23,6 +24,25 @@ from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_payloa
 
 _OPERATION_RECORD_KIND = "operation record"
 _RECORD_IDENTITY_MISMATCH = "operation record does not match its durable identity"
+# Each operation query reads the durable key, the claim columns in `ledger_operation_claim_columns` order,
+# and the record.
+SELECT_LEDGER_OPERATIONS = (
+    "SELECT operation_id, actor_id, operation_kind, idempotency_key, payload, digest FROM raes_ledger_operations "
+)
+
+
+def ledger_operation_from_row(row: tuple[object, ...]) -> ControlPlaneOperationRecord:
+    """Decode one `SELECT_LEDGER_OPERATIONS` row.
+
+    Refuse a row whose key or claim columns do not match its record.
+    """
+
+    operation_id, *claim_columns, payload, digest = row
+    record = decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
+    if record.receipt.operation_id != operation_id:
+        raise EvidenceIntegrityError(_RECORD_IDENTITY_MISMATCH)
+    require_claim_columns(ledger_operation_claim_columns(record), claim_columns)
+    return record
 
 
 class HistoryConnection:
@@ -122,28 +142,16 @@ def operation_changes(
         return OperationChanges(latest, store._load_records(connection), True)
     records = {}
     for identity in dict.fromkeys(identity for identity, _ in rows):
-        row = connection.execute(
-            "SELECT payload, digest FROM raes_ledger_operations WHERE operation_id=%s", (identity,)
-        ).fetchone()
-        if row is None:
+        record = stored_record(connection, identity)
+        if record is None:
             return OperationChanges(latest, store._load_records(connection), True)
-        record = decode_contract(row[0], row[1], kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
-        if record.receipt.operation_id != identity:
-            raise EvidenceIntegrityError(_RECORD_IDENTITY_MISMATCH)
         records[identity] = record
     return OperationChanges(latest, records)
 
 
 def stored_record(connection: Connection[tuple[object, ...]], identity: str) -> ControlPlaneOperationRecord | None:
-    row = connection.execute(
-        "SELECT payload, digest FROM raes_ledger_operations WHERE operation_id=%s", (identity,)
-    ).fetchone()
-    if row is None:
-        return None
-    record = decode_contract(row[0], row[1], kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
-    if record.receipt.operation_id != identity:
-        raise EvidenceIntegrityError(_RECORD_IDENTITY_MISMATCH)
-    return record
+    row = connection.execute(SELECT_LEDGER_OPERATIONS + "WHERE operation_id=%s", (identity,)).fetchone()
+    return None if row is None else ledger_operation_from_row(row)
 
 
 def claim_guard_records(connection: Connection[tuple[object, ...]]) -> tuple[ControlPlaneOperationRecord, ...]:
