@@ -107,9 +107,29 @@ Parity coverage does not establish that the full Go port is complete.
 
 Regression capture replaces pytest's generated user, session, and worker path
 components with stable names. It keeps input bytes and relative dependency paths.
-Changes to the collector or its source inputs require a fresh CI capture and
-reviewed corpus promotion. Keep the generated provenance and credential scans;
-do not hand-edit expected results to make the comparison pass.
+The manifests describe the recorded input snapshot and retain its original
+source identities. Every check replays those inputs against the current Python
+implementation and checks the Go runners. Live registries, contracts and examples
+still determine their required cases. Completeness describes the recorded
+collection; it does not claim that every current Python test supplies corpus data.
+
+Unrelated test edits and merges reuse the snapshot. A valid recording receipt
+changing alone does not require a rewrite. Changed inputs, results or coverage
+still fail comparison and produce a candidate with current source provenance.
+Missing or invalid snapshots fail; they do not start collection automatically.
+This replaces the automatic source-tree freshness rule in the original
+[corpus design](decisions/issue-1778-parity-corpus-design.md).
+
+When new protocol regression cases need golden coverage, explicitly request a
+fresh collection on the published branch:
+
+```bash
+gh workflow run ci.yml --repo OpenRAE/rae --ref <branch> -f refresh-parity-inputs=true
+```
+
+The optional flag defaults to false. Collection still runs only in isolated CI.
+Review the generated artifact before promotion. Keep the generated provenance
+and credential scans; do not hand-edit expected results to make comparison pass.
 
 The maintainer merges manually after checks pass. Zero required review approvals
 preserve the single-maintainer model. There are no configured bypass actors;

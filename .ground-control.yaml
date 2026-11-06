@@ -36,3 +36,21 @@ sonarcloud:
   organization: brad-edwards
 rules:
   plan_rules: .gc/plan-rules.md
+architecture:
+  modules:
+    - path: .
+      implementations:
+        - noxfile.py
+        - tools/nox_support/test_lanes.py
+        - tools/nox_support/runner.py
+        - tools/nox_support/graph.py
+        - tools/verification_plan.py
+        - tools/check_adr_immutability.py
+        - tools/check_identity_cutover.py
+        - tools/vale_tool.py
+        - tools/check_public_docs.py
+      adrs:
+        - docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md
+        - docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md
+        - docs/decisions/adrs/adr-059-adr-amendment-policy-and-pin-gate.md
+        - docs/decisions/adrs/adr-096-identity-cutover-and-historical-record-boundary.md

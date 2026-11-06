@@ -21,6 +21,12 @@ on:
       - .release-please-manifest.json
       - implementations/python/packages/raes/_version.py
   workflow_dispatch:
+    inputs:
+      refresh-parity-inputs:
+        description: Collect new public regression inputs for reviewed corpus promotion
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -43,6 +49,7 @@ jobs:
       # token below is never exposed to fork or Dependabot contexts.
       sonar-enabled: true
       exhaustive-mutations: false
+      refresh-parity-inputs: ${{ github.event_name == 'workflow_dispatch' && inputs.refresh-parity-inputs || false }}
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
 

@@ -1,31 +1,35 @@
-# RAES SDL Agent Rules
+# RAES SDL agent rules
 
 Use the repo policy tooling before and after implementation work.
 
 Run only targeted tests locally. Full test, integration, fuzz and completion
 suites run in CI/CD only, including after synchronization or reviewer fixes.
-Use explicit relevant pytest modules/cases or `verify-fast-feedback`; missing
+Use explicit relevant pytest modules/cases or `verify-fast-feedback`. Missing
 change classification is never permission to run the full suite locally.
 The default nox, `verify-changed`, pre-push and `verify-completion` paths provide
 targeted feedback. `verify` and full-suite lane commands are CI/CD entry points.
 
-## Ground Control Context
+## Ground control context
 
-This repo's Ground Control project id, workflow commands, and plan
-rules live in `.ground-control.yaml` at repo root (with the full
-plan rules set under `.gc/plan-rules.md`). Agents read it via the
-`gc_get_repo_ground_control_context` MCP tool, which returns the full
-workflow config in a single call.
+The Ground Control configuration is in `.ground-control.yaml` at the repository
+root. The full plan rules are in `.gc/plan-rules.md`. Use the
+`gc_get_repo_ground_control_context` MCP tool to read both in one call.
 
-Set `RAES_REQUIREMENT_UID` when the branch name does not already
-contain a UID such as `GOV-918`.
+If the branch name has no UID such as `GOV-918`, set `RAES_REQUIREMENT_UID`.
 
-The required repo-policy checks and hard rules are enforced by the
-`/implement` skill through the plan rules file referenced in
-`.ground-control.yaml` — see `.gc/plan-rules.md` for the authoritative
-list.
+The `/implement` skill uses these plan rules to enforce repository policy.
+See `.gc/plan-rules.md` for the required checks and rules.
 
 ## Repo skills
+
+For documentation, use the existing
+[documentation style guide](docs/explain/reference/documentation-style-guide.md).
+It gives the clean setup, changed-path checks, Diataxis purposes, and STE review.
+Compare each claim with code at the specified revision. Keep technical meaning,
+normative obligations, legal text, and pinned evidence. Record sources and results
+in the PR. Vale checks style. It does not show accuracy or full STE conformance.
+Use the checked-in tools and guidance when a licensed skill is unavailable.
+Do not copy a personal skill or add a custom tool without approval.
 
 - Use `.codex-skills/raes-asset-inventory-capture/SKILL.md` from Codex. This
   server also links it at
