@@ -666,10 +666,13 @@ def _recording_metadata_is_valid(content: bytes) -> bool:
         "unicode_version": r"[0-9]+\.[0-9]+\.[0-9]+",
         "hash_seed": "0",
     }
-    if not isinstance(provenance, dict) or set(provenance) != set(patterns):
-        return False
-    return all(
-        isinstance(provenance[key], str) and re.fullmatch(pattern, provenance[key]) for key, pattern in patterns.items()
+    return (
+        isinstance(provenance, dict)
+        and set(provenance) == set(patterns)
+        and all(
+            isinstance(provenance[key], str) and re.fullmatch(pattern, provenance[key])
+            for key, pattern in patterns.items()
+        )
     )
 
 
