@@ -38,7 +38,8 @@ type Model struct {
 	Packages       []Package         `json:"packages"`
 }
 
-// ConsumerAPI declares future public imports without claiming implemented packages.
+// ConsumerAPI declares the public imports and their delivery commitments.
+// A package at its public path implements one; the others remain planned.
 type ConsumerAPI struct {
 	Design   string            `json:"design"`
 	Modules  []ConsumerModule  `json:"modules"`
@@ -62,7 +63,8 @@ type ConsumerModule struct {
 }
 
 // ConsumerPackage commits a public path, operations, dependencies and delivery owners.
-// Uses names packages as owner:path; Existing names a package awaiting relocation.
+// Uses names packages as owner:path. Existing names the package that issue 1892
+// relocated to its public path.
 type ConsumerPackage struct {
 	Owner              string   `json:"owner"`
 	Path               string   `json:"path"`
@@ -294,9 +296,9 @@ func (m *Model) packageProblem(pkg Package, duplicate bool) (problem, fix string
 		return fmt.Sprintf("the package names layer %q, which the model does not declare.", pkg.Layer),
 			"assign the package to a declared layer."
 	}
-	if !within(pkg.Dir, layer.Dir) {
-		return fmt.Sprintf("the package is outside %s, the directory of its layer %s.", layer.Dir, layer.Name),
-			fmt.Sprintf("move the package under %s, or assign it to the layer that owns its directory.", layer.Dir)
+	if !within(pkg.Dir, layer.Dir) && !m.consumerLocation(pkg) {
+		return fmt.Sprintf("the package is outside %s, the directory of its layer %s, and is not a planned consumer package of that layer.", layer.Dir, layer.Name),
+			fmt.Sprintf("move the package under %s or to the public path of its planned consumer package, or assign it to the layer that owns its directory.", layer.Dir)
 	}
 	if !slices.ContainsFunc(m.Modules, func(module Module) bool { return within(pkg.Dir, module.Dir) }) {
 		return "the package is outside every declared module.",

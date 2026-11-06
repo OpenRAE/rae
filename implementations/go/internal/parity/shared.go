@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/clock"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/digest"
+	"github.com/OpenRAE/rae/implementations/go/base/clock"
+	"github.com/OpenRAE/rae/implementations/go/base/digest"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/domain"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/graph"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/logrecord"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/secretref"

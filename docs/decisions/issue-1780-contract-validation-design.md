@@ -29,7 +29,7 @@ It uses the Apache-2.0 license.
 The standard library has no Draft 2020-12 schema engine.
 BLAKE3 stays within the existing base-layer dependency.
 
-The [admission guide](../../implementations/go/internal/contract/admission/README.md)
+The [admission guide](../../implementations/go/contract/admission/README.md)
 describes the family contexts and phase data.
 The [predicate crosswalk](../../specs/conformance/contract-predicate-sources.json)
 links all 180 invariant IDs to their Go rules and Python owners.
@@ -352,15 +352,15 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/go/internal/contract/corpus a354155ee7280ffe18807e1e647515621c7625ac683a5090e01864afc94ac274 -->
 
-<!-- go-api implementations/go/internal/contract/binding 4f983e6244c2be2dda9b6da71dced64aade0376de49670b31bd8544bd0b6c76b -->
+<!-- go-api implementations/go/contract/binding 5b19be099a1427702f3603820cada98e8a2bd4171f71ccabdb411d4a78fd5f53 -->
 
-<!-- go-api implementations/go/internal/contract/validation 7c459c734474cacccd2baea0ea1225e31f32465c65a61c81e4aaca5c02ba9539 -->
+<!-- go-api implementations/go/contract/validation b870f44186d63f91852700a2a8a64b747a282818de80db4b142d81af4062e631 -->
 
 <!-- go-api implementations/tooling/go/contractgen 87666ceb97f022789f40a56348e27f85ee3d5d861f37920162f2ad7e027ebabe -->
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/internal/contract/admission 85c9cbb8db679033d77c04cded0c363811ba73664b374750c804ef95ca727b2a -->
+<!-- go-api implementations/go/contract/admission b97fbc7316fb48eca200af6cdc9d4b4d251a7cb4a6ac72327feadf6c6d7697fa -->
 
 ## Model parity repairs
 

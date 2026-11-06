@@ -606,12 +606,29 @@ jobs:
       - name: Check a built contract boundary without a checkout
         if: matrix.name == 'product'
         run: |
-          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-boundary.test" ./internal/contract/validation
-          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-admission.test" ./internal/contract/admission
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-boundary.test" ./contract/validation
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-admission.test" ./contract/admission
           mkdir "${RUNNER_TEMP}/contract-boundary-empty"
           cd "${RUNNER_TEMP}/contract-boundary-empty"
           "${RUNNER_TEMP}/contract-boundary.test" -test.run '^Test(PublishedSchemaBoundary|ImmutableAdmission)$'
           "${RUNNER_TEMP}/contract-admission.test" -test.run '^TestCompleteRegistry$'
+      - name: Check the external consumer against the pinned public module
+        if: matrix.name == 'product'
+        working-directory: implementations/go/testdata/consumer
+        env:
+          GOWORK: "off"
+        run: |
+          # The fixture resolves the pinned rae module version from the module
+          # proxy, read-only, with no workspace and no local replacement.
+          test -z "$(go mod edit -json | jq -c '.Replace // empty')"
+          go mod download
+          go mod verify
+          golangci-lint run ./...
+          go vet -vettool="$(command -v raesvet)" ./...
+          go test ./...
+          # Verification must not repair the committed module metadata.
+          git diff --exit-code -- go.mod go.sum
+          test -z "$(git status --porcelain --untracked-files=all -- .)"
       - name: Prepare pinned product dependencies for offline consumer API tests
         if: matrix.name == 'tooling'
         run: go -C implementations/go mod download
@@ -619,7 +636,7 @@ jobs:
         if: matrix.name == 'product'
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.parity_storage unpack implementations/go/internal/contract/admission/testdata/retained-model-inputs \
+            -m tools.parity_storage unpack implementations/go/contract/admission/testdata/retained-model-inputs \
             --output "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.parity_storage scan "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"

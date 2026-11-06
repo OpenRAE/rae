@@ -82,20 +82,29 @@ func (m *Model) CheckAPI(actual API) []Finding {
 func typeAPI(pkg *types.Package) []string {
 	v := apiVisitor{seen: map[types.Type]bool{}, output: []string{"package " + pkg.Name()}}
 	for _, name := range pkg.Scope().Names() {
-		object := pkg.Scope().Lookup(name)
-		if !object.Exported() {
-			continue
+		if object := pkg.Scope().Lookup(name); object.Exported() {
+			v.object(object)
 		}
-		if _, isType := object.(*types.TypeName); !isType {
-			declaration := types.ObjectString(object, apiQualifier)
-			if constant, ok := object.(*types.Const); ok {
-				declaration += " = " + constant.Val().ExactString()
-			}
-			v.output = append(v.output, declaration)
-		}
-		v.visit(object.Type())
 	}
 	return sortedUnique(v.output)
+}
+
+// objectAPI returns the typed surface of one package-level object.
+func objectAPI(object types.Object) []string {
+	v := apiVisitor{seen: map[types.Type]bool{}}
+	v.object(object)
+	return sortedUnique(v.output)
+}
+
+func (v *apiVisitor) object(object types.Object) {
+	if _, isType := object.(*types.TypeName); !isType {
+		declaration := types.ObjectString(object, apiQualifier)
+		if constant, ok := object.(*types.Const); ok {
+			declaration += " = " + constant.Val().ExactString()
+		}
+		v.output = append(v.output, declaration)
+	}
+	v.visit(object.Type())
 }
 
 type apiVisitor struct {

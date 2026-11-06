@@ -80,9 +80,10 @@ They do not copy the Python package structure.
 | `parity` | `implementations/go/internal/parity` | none | The checker of the Go implementation against the golden corpus of the Python implementation (issue #1778) |
 | `tooling` | `implementations/tooling/go` | none | Development tools: the repository analyzers, the architecture check, and CI checks |
 
-The current product layers are below `implementations/go/internal`. Thus the compiler
-permits imports of them only from `implementations/go`. No layer uses
-`parity` or `tooling`.
+The private packages of the product layers are below `implementations/go/internal`.
+Thus the compiler permits imports of them only from `implementations/go`.
+A public consumer package is at its planned path in the product module, outside `internal`.
+No layer uses `parity` or `tooling`.
 
 ### 3. Rules and their checks
 
@@ -92,9 +93,9 @@ which each build and test runs.
 
 | Rule | Statement | Check |
 | --- | --- | --- |
-| ARCH-001 | The model declares each Go module of the repository once, with the directory and the module path of its `go.mod`. | `archcheck` |
+| ARCH-001 | The model declares each Go module of the repository once, with the directory and the module path of its `go.mod`. No `go.mod` states a `replace` directive. | `archcheck` |
 | ARCH-002 | Each layer has a unique name, a directory, and a description. It uses only other declared layers, and the uses have no cycle. | `archcheck` |
-| ARCH-003 | Each package has a unique directory in its layer and in a declared module, and a description. | `archcheck` |
+| ARCH-003 | Each package has a unique directory in a declared module, and a description. The directory is in its layer, or it is the public path of a planned consumer package of its layer. | `archcheck` |
 | ARCH-004 | Each import in the model names a declared package in the same layer, or a public package of a layer that the importer's layer uses. | `archcheck` |
 | ARCH-005 | The model declares each Go package, and each declared package has code. | `archcheck` |
 | ARCH-006 | The non-test files of each package import exactly the first-party packages that the model declares for it. | `archcheck` |
@@ -106,7 +107,7 @@ which each build and test runs.
 | ARCH-012 | Code outside a package uses only its exported identifiers. These identifiers are the public interface of the package. | `go build` |
 | ARCH-013 | Every package has intended typed interfaces per build configuration and a matching owning-design commitment. Actual APIs match those interfaces. | `archcheck` |
 | ARCH-014 | The current system view matches model components, dependencies and content-bound design evidence. | `archcheck` |
-| ARCH-015 | Planned consumer packages have valid repository owners, public paths, identifiers and delivery commitments; their dependencies preserve layers, contain no cycles or reverse RAE-to-runtime imports, and each executable has one decided publisher. | `archcheck` |
+| ARCH-015 | Planned consumer packages have valid repository owners, public paths, identifiers and delivery commitments; their dependencies preserve layers, contain no cycles or reverse RAE-to-runtime imports, and each executable has one decided publisher. Implemented consumer packages are public and match their declarations. A RAE consumer package or entrypoint does not reach runtime code, and runtime code imports the other layers only through implemented RAE consumer packages, also in test files. | `archcheck` |
 
 An external path is an import path outside the standard library and the
 declared modules. A standard library path has no dot in its first element.
@@ -248,6 +249,19 @@ ARCH-014 binds its complete content to the generated overview.
 Future implementation issues implement these contracts and record matching actual typed API snapshots.
 Compilation and real external-consumer checks still apply.
 
+#1892 moved the nine `existing` packages to their public paths in the product module.
+`existing` now names that public package; ARCH-015 requires the public path, issue 1892 and the current API digest.
+Private helpers and `contract/corpus` stay below `internal`.
+A package at the public path of a planned consumer package implements that package; ARCH-003 places it in the layer of the plan.
+An existing package can implement its declared extensions one at a time.
+For each build configuration, ARCH-015 compares each implemented extension with its declaration and keeps the others planned.
+ARCH-015 also checks the implemented packages, the command entrypoints and their test files against the repository boundary.
+A RAE consumer package or entrypoint must not reach runtime code through the model's import graph.
+Runtime code and the runtime entrypoint can import another layer only through an implemented RAE consumer package.
+Thus the extraction does not break on an `internal` import.
+ARCH-001 refuses a `replace` directive, so released module metadata carries no development override.
+An external consumer fixture in `implementations/go/testdata/consumer` resolves a pinned `rae` version with `GOWORK=off` and read-only module resolution.
+
 ## Amendments
 
 | Date | Commit/PR | Summary |
@@ -257,3 +271,4 @@ Compilation and real external-consumer checks still apply.
 | 2026-11-03 | #1780 | Bounded API snapshot files retain exact generated binding declarations without enlarging the model bound. |
 | 2026-11-04 | #1891 | Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions. |
 | 2026-11-05 | #1825 | Declared planned public consumer imports and command publishers in the existing model; added ARCH-015 and generated consumer views. |
+| 2026-11-06 | #1892 | Moved the existing consumer packages to their public paths; ARCH-003 places them in their layers, ARCH-015 checks implemented boundaries and extensions, and ARCH-001 refuses `replace` directives. |

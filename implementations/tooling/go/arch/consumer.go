@@ -42,6 +42,116 @@ func (m *Model) checkConsumerAPI() []Finding {
 		report(f.Location, "consumer dependency cycle: "+f.Problem)
 	}
 	checkConsumerCommands(a.Commands, packages, report)
+	return append(findings, m.checkConsumerImports(a)...)
+}
+
+// consumerLocation reports whether pkg implements a planned consumer package of
+// its layer at that package's public path in the product module.
+func (m *Model) consumerLocation(pkg Package) bool {
+	return m.ConsumerAPI != nil && slices.ContainsFunc(m.ConsumerAPI.Packages, func(p ConsumerPackage) bool {
+		return p.Layer == pkg.Layer && consumerProductDir+"/"+p.Path == pkg.Dir
+	})
+}
+
+// boundary records the repository owner of each implemented package that
+// crosses the split: consumer packages, command entrypoints and runtime code.
+type boundary struct {
+	model    *Model
+	packages map[string]string // Implemented consumer package directory -> owner.
+	roots    map[string]string // Consumer package or command entrypoint directory -> owner.
+}
+
+func (m *Model) boundary(a *ConsumerAPI) boundary {
+	b := boundary{model: m, packages: map[string]string{}, roots: map[string]string{}}
+	for _, p := range a.Packages {
+		b.packages[consumerProductDir+"/"+p.Path] = p.Owner
+		b.roots[consumerProductDir+"/"+p.Path] = p.Owner
+	}
+	for _, command := range a.Commands {
+		b.roots[consumerProductDir+"/"+command.EntryPoint] = command.Owner
+	}
+	return b
+}
+
+// runtimeOwned reports whether dir is runtime code or a runtime entrypoint.
+func (b boundary) runtimeOwned(dir string) bool {
+	pkg, _ := b.model.pkg(dir)
+	return pkg.Layer == consumerRuntime || b.roots[dir] == consumerRuntime
+}
+
+// problem describes why the package in from may not import dir across the
+// repository boundary, with its fix, or returns "".
+func (b boundary) problem(from, dir string) (problem, fix string) {
+	if b.roots[from] == consumerRAE {
+		if b.runtimeOwned(dir) {
+			return "the RAE package imports runtime package " + dir + ".", "remove the reverse dependency; runtime imports RAE, never the opposite."
+		}
+		if reached := b.reachedRuntime(dir); reached != "" {
+			return "the RAE package reaches runtime package " + reached + " through " + dir + ".", "remove the reverse dependency; runtime imports RAE, never the opposite."
+		}
+	}
+	if b.runtimeOwned(from) && !b.runtimeOwned(dir) && b.packages[dir] != consumerRAE {
+		return "runtime code imports " + dir + ", which is not an implemented public RAE consumer package.", "import the public RAE consumer package, or plan it in consumer_api first."
+	}
+	return "", ""
+}
+
+// reachedRuntime returns a runtime-owned package that dir imports directly or
+// transitively in the model, or "".
+func (b boundary) reachedRuntime(dir string) string {
+	seen := map[string]bool{dir: true}
+	queue := []string{dir}
+	for len(queue) > 0 {
+		pkg, _ := b.model.pkg(queue[0])
+		queue = queue[1:]
+		for _, dep := range pkg.Imports {
+			if b.runtimeOwned(dep) {
+				return dep
+			}
+			if !seen[dep] {
+				seen[dep] = true
+				queue = append(queue, dep)
+			}
+		}
+	}
+	return ""
+}
+
+// checkConsumerImports keeps the implemented packages and entrypoints on the
+// repository boundary. A RAE package or entrypoint never reaches runtime code.
+// Runtime code reaches the other layers only through implemented public RAE
+// consumer packages, because Go rejects its internal imports after extraction.
+func (m *Model) checkConsumerImports(a *ConsumerAPI) []Finding {
+	b := m.boundary(a)
+	var findings []Finding
+	for _, pkg := range m.Packages {
+		if b.packages[pkg.Dir] != "" && !pkg.Public {
+			findings = append(findings, Finding{Rule: ruleConsumer, Location: pkg.Dir, Problem: "consumer API: an implemented consumer package must be public to other layers.", Fix: "set public for the package through the design step."})
+		}
+		for _, dep := range pkg.Imports {
+			if problem, fix := b.problem(pkg.Dir, dep); problem != "" {
+				findings = append(findings, Finding{Rule: ruleConsumer, Location: pkg.Dir, Problem: "consumer API: " + problem, Fix: fix})
+			}
+		}
+	}
+	return findings
+}
+
+// checkConsumerTestImports applies the repository boundary to the imports of
+// test files, which move with their package at the extraction.
+func (m *Model) checkConsumerTestImports(code Code) []Finding {
+	if m.ConsumerAPI == nil {
+		return nil
+	}
+	b := m.boundary(m.ConsumerAPI)
+	var findings []Finding
+	for _, pkg := range m.Packages {
+		for _, dep := range code.Packages[pkg.Dir].Test {
+			if problem, fix := b.problem(pkg.Dir, dep); problem != "" {
+				findings = append(findings, Finding{Rule: ruleConsumer, Location: pkg.Dir, Problem: "consumer API: a test file: " + problem, Fix: fix})
+			}
+		}
+	}
 	return findings
 }
 
@@ -78,8 +188,8 @@ func (m *Model) checkConsumerCommitment(p ConsumerPackage, report func(string, s
 	}
 	if p.Existing != "" {
 		source, ok := m.pkg(p.Existing)
-		if !ok || p.Owner != consumerRAE || !slices.Contains(p.Issues, 1892) || source.Layer != p.Layer || p.ExistingAPISHA256 != consumerAPIDigest(source) {
-			report(id, "a consumer relocation must name its existing RAE package and delivery issue 1892.")
+		if !ok || p.Owner != consumerRAE || !slices.Contains(p.Issues, 1892) || p.Existing != consumerProductDir+"/"+p.Path || source.Layer != p.Layer || p.ExistingAPISHA256 != consumerAPIDigest(source) {
+			report(id, "a consumer relocation must name the RAE package at its public path, its current API digest and delivery issue 1892.")
 		}
 	}
 }

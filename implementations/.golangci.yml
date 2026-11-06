@@ -119,7 +119,7 @@ linters:
     generated: strict
     rules:
       # ADR-118 permits exactly the system clock owner to read wall time.
-      - path: 'go/internal/base/clock/clock\.go$'
+      - path: 'go/base/clock/clock\.go$'
         linters: [forbidigo]
         source: '^func System\('
       # The go/analysis API requires each analyzer to be a package-level variable.

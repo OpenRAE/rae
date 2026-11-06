@@ -1,7 +1,10 @@
 package arch
 
 import (
+	"go/ast"
 	"go/importer"
+	"go/parser"
+	"go/token"
 	"go/types"
 	"slices"
 	"strings"
@@ -160,5 +163,49 @@ func TestConsumerTypesRejectDivergentImplementedAPI(t *testing.T) {
 	p.DeclarationsSHA256 = contentDigest(repo[p.Declarations].Data)
 	if err = newConsumerTypes(m, repo).checkPackages(); err == nil || !strings.Contains(err.Error(), "typed consumer contract") {
 		t.Errorf("changed field contract check = %v", err)
+	}
+}
+
+// An existing package implements planned extensions one at a time. Each build
+// configuration that implements an extension must match its declaration; the
+// other extensions stay planned.
+func TestConsumerTypesCompareImplementedExtensions(t *testing.T) {
+	check := func(source string) *types.Package {
+		fset := token.NewFileSet()
+		file, err := parser.ParseFile(fset, "legacy.go", source, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pkg, err := (&types.Config{Importer: importer.Default()}).Check("example.com/m/example", fset, []*ast.File{file}, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return pkg
+	}
+	matching := check("package example; type Value struct{}; func Make(int) Value { return Value{} }")
+	divergent := check("package example; type Value struct{}; func Make(string) Value { return Value{} }")
+	unimplemented := check("package example; type Value struct{}")
+	for _, tc := range []struct {
+		name   string
+		tagged *types.Package
+		valid  bool
+	}{
+		{"matching", matching, true},
+		{"unimplemented in one configuration", unimplemented, true},
+		{"divergent in one configuration", divergent, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m, repo := typedConsumerFixture("package example; func Make(int) Value; func Later() Value")
+			m.Configurations = append(m.Configurations, Configuration{ID: "tagged", GOOS: "linux", GOARCH: "amd64", Tags: []string{"x"}})
+			m.Packages = append(m.Packages, Package{Dir: "m/example", API: map[string][]string{"linux": typeAPI(matching), "tagged": typeAPI(tc.tagged)}})
+			m.ConsumerAPI.Packages[0].Existing = "m/example"
+			m.ConsumerAPI.Packages[0].Symbols = []string{"Value", "Make", "Later"}
+			c := newConsumerTypes(m, repo)
+			c.existing = map[string]*types.Package{"example.com/m/example": matching}
+			err := c.checkPackages()
+			if tc.valid != (err == nil) || (err != nil && !strings.Contains(err.Error(), "tagged implements Make differently")) {
+				t.Errorf("checkPackages() = %v, want valid=%t", err, tc.valid)
+			}
+		})
 	}
 }

@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/address"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/base/address"
+	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/urisafety"
 )
