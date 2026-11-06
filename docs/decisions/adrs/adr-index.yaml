@@ -615,6 +615,9 @@ adrs:
       - date: 2026-10-31
         ref: "#976"
         summary: "Record completion of the ordered #971-#976 work and the SEM-232 ACTIVE transition; retained records bind subject-source digests and execution records bind the source revision."
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "The retained model bundles, corpus and machine-check captures, runtime-mapping captures, their pins, the #975 reproduction records, and the #976 publication are removed with their tooling. CI builds the models and the corpus from the current sources and repeats the decision on every commit; that live check is the only formal evidence. The crossing profiles no longer store source digests."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     pin: 52e6089fddc86a2f3361d678687db4823f5c06cdad74a97d99cd7c97a9b94acc

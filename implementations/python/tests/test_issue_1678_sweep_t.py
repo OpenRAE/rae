@@ -2509,20 +2509,18 @@ def test_proof_gate_refuses_a_session_source_that_is_not_utf8(tmp_path: Path) ->
     root.write_text("session Participant_Opacity = HOL +\n", encoding="utf-8")
     theory.write_bytes(b"theory Participant_Opacity imports Main begin \xff\n")
     manifest = _installers2_manifest()
-    manifest["session"]["root_digest"] = "sha256:" + hashlib.sha256(root.read_bytes()).hexdigest()
-    manifest["session"]["theory_digest"] = "sha256:" + hashlib.sha256(theory.read_bytes()).hexdigest()
     with pytest.raises(ProofEvidenceError, match="proof session source is unreadable or not UTF-8"):
         _validate_session(manifest, tmp_path)
 
 
 def test_proof_gate_refuses_an_unreadable_bound_source(tmp_path: Path) -> None:
-    from tools.check_participant_opacity_proof import ProofEvidenceError, _validate_digest_bound_path
+    from tools.check_participant_opacity_proof import ProofEvidenceError, _validate_bound_path
 
     source = tmp_path / "source.md"
     source.write_text("text", encoding="utf-8")
     _installers2_unreadable(source)
     with pytest.raises(ProofEvidenceError, match="semantic source repository file is unreadable"):
-        _validate_digest_bound_path(tmp_path, {"path": "source.md", "digest": "sha256:0"}, "semantic source")
+        _validate_bound_path(tmp_path, {"path": "source.md"}, "semantic source")
 
 
 # --- Python closure: operator paths and client output get the existing closure refusals.

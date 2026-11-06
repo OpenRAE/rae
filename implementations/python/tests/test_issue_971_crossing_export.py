@@ -51,36 +51,7 @@ def test_export_readback_and_counts(tmp_path):
     assert manifest["domain_counts"]["history_head"] == 4
     assert manifest["equivalence_result"] == "not-established"
     assert export.build_bundle(root) == bundle
-    export.publish(root)
     export.check(root)
-    export.publish(root)  # identical publication is idempotent
-
-
-@pytest.mark.parametrize("drift", ["source", "profile", "artifact", "counts"])
-def test_drift_fails_without_replacing_published_bundle(tmp_path, drift):
-    root = workspace(tmp_path)
-    export.publish(root)
-    output = root / export.OUTPUT_PATH
-    if drift == "source":
-        path = root / "implementations/formal/participant_crossing/abstract.py"
-        path.write_bytes(path.read_bytes() + b"\n# source drift\n")
-    elif drift == "profile":
-        path = root / export.PROFILE_PATH
-        data = json.loads(path.read_bytes())
-        data["limitations"] = ["Changed interpretation"]
-        path.write_text(json.dumps(data))
-    elif drift == "artifact":
-        (output / "abstract.aut").write_bytes(b"des (0, 0, 1)\n")
-    else:
-        data = json.loads((output / "manifest.json").read_bytes())
-        data["models"]["abstract"]["states"] = 1
-        (output / "manifest.json").write_text(json.dumps(data))
-    before = {path.name: path.read_bytes() for path in output.iterdir()}
-    with pytest.raises(EvidenceIntegrityError, match="drift"):
-        export.check(root)
-    with pytest.raises(EvidenceIntegrityError, match="drift"):
-        export.publish(root)
-    assert {path.name: path.read_bytes() for path in output.iterdir()} == before
 
 
 def test_shared_transition_authority_is_rejected(tmp_path, monkeypatch):
@@ -102,8 +73,7 @@ def test_rebound_source_cannot_describe_different_executing_code(tmp_path):
             source["source_digest"] = export.digest(path.read_bytes())
     profile_path.write_text(json.dumps(payload))
     with pytest.raises(EvidenceIntegrityError, match="executing source"):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+        export.build_bundle(root)
 
 
 @pytest.mark.parametrize(
@@ -120,7 +90,7 @@ def test_invalid_aut_is_rejected(value):
         export.parse_aut(value)
 
 
-def test_failed_generation_publishes_nothing(tmp_path, monkeypatch):
+def test_failed_generation_is_refused(tmp_path, monkeypatch):
     root = workspace(tmp_path)
 
     def exhausted():
@@ -128,8 +98,7 @@ def test_failed_generation_publishes_nothing(tmp_path, monkeypatch):
 
     monkeypatch.setattr(concrete, "build", exhausted)
     with pytest.raises(ValueError):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+        export.build_bundle(root)
 
 
 def test_truncated_graph_is_rejected(tmp_path, monkeypatch):
@@ -139,8 +108,7 @@ def test_truncated_graph_is_rejected(tmp_path, monkeypatch):
     graph = abstract.build()
     monkeypatch.setattr(abstract, "build", lambda: replace(graph, edges=graph.edges[:-1]))
     with pytest.raises(InvalidInputError, match="closure"):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+        export.build_bundle(root)
 
 
 def test_symlink_input_and_output_are_rejected(tmp_path):
@@ -160,32 +128,6 @@ def test_invalid_profile_contract_is_an_input_refusal(tmp_path):
     path.write_text(json.dumps(payload))
     with pytest.raises(InvalidInputError, match="does not satisfy its contract"):
         export.build_bundle(root)
-
-
-def test_published_repository_bundle_matches_sources():
-    # Retained rev2 evidence is immutable. Shared profile/export evolution is
-    # honest source drift, while its independently owned graphs remain exact.
-    retained = ROOT / export.OUTPUT_PATH
-    manifest = json.loads((retained / "manifest.json").read_bytes())
-    current = export.build_bundle(ROOT)
-    for name, expected in manifest["artifact_digests"].items():
-        content = (retained / name).read_bytes()
-        assert export.digest(content) == expected
-        assert current[name] == content
-    with pytest.raises(EvidenceIntegrityError, match="drift"):
-        export.check(ROOT)
-
-
-def test_symlink_output_cannot_publish_outside_root(tmp_path):
-    root = workspace(tmp_path / "root")
-    outside = tmp_path / "outside"
-    outside.mkdir()
-    target = root / export.OUTPUT_PATH
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.symlink_to(outside, target_is_directory=True)
-    with pytest.raises(InvalidInputError):
-        export.publish(root)
-    assert list(outside.iterdir()) == []
 
 
 @pytest.mark.parametrize("failure", [EvidenceIntegrityError, InvalidInputError, OSError])

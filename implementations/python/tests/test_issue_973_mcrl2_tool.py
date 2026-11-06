@@ -12,7 +12,8 @@ from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, Ope
     "module_name,operation,action",
     [
         ("tools.mcrl2_tool", "require_mcrl2", "check-installation"),
-        ("implementations.formal.participant_crossing.counterexample_corpus", "load_retained", "check"),
+        ("implementations.formal.participant_crossing.counterexample_corpus", "build_bundle", "check"),
+        ("implementations.formal.participant_crossing.machine_check", "build_bundle", "check"),
     ],
 )
 def test_cli_handles_domain_failure_but_preserves_programming_defects(

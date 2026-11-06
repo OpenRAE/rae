@@ -14,7 +14,6 @@ from .aut import parse_aut
 from .ingress import read_bytes
 
 ROOT = Path(__file__).resolve().parents[3]
-OUTPUT_ROOT = "specs/formal/participant-semantics/machine-check"
 NONCLAIMS = [
     "unbounded-proof",
     "proof-certificate",
@@ -31,14 +30,12 @@ SOURCE_PATHS = tuple(
             *corpus.SOURCE_PATHS,
             "implementations/formal/participant_crossing/machine_check.py",
             "implementations/formal/participant_crossing/machine_check_evidence.py",
-            "implementations/formal/participant_crossing/machine_check_publication.py",
             "tools/bootstrap_profile.py",
             "tools/python_closure_profiles.py",
             "tools/nox_support/machine_check_lane.py",
             "implementations/python/pyproject.toml",
             "noxfile.py",
             export.PROFILE_PATH,
-            corpus.OUTPUT_ROOT + "/pin.json",
             "specs/formal/participant-semantics/participant-crossing-machine-check.md",
             *(
                 path.relative_to(ROOT).as_posix()
@@ -58,7 +55,6 @@ SUBJECT_SOURCE_PATHS = tuple(
             "implementations/formal/participant_crossing/machine_check.py",
             "implementations/formal/participant_crossing/machine_check_evidence.py",
             export.PROFILE_PATH,
-            corpus.OUTPUT_ROOT + "/pin.json",
             "specs/formal/participant-semantics/participant-crossing-machine-check.md",
         }
     )
@@ -74,14 +70,14 @@ def subject_pins(root: Path) -> dict[str, str]:
 
 
 def inputs(root: Path):
-    """Reproduce consumed model bytes, and admit the separately selected corpus."""
+    """Build the model and the corpus from the current sources, and admit the corpus (issue #1929)."""
     current = export.build_bundle(root)
-    retained, pin = corpus.load_retained(root)
-    corpus.admit_bundle(root, retained, pin)
+    replayed = corpus.build_bundle(root)
+    corpus.admit_bundle(root, replayed)
     for name in ("abstract.aut", "concrete.aut", "abstract.json", "concrete.json"):
-        if retained[name] != current[name]:
+        if replayed[name] != current[name]:
             raise EvidenceIntegrityError("machine-check input drift")
-    return current, retained, pin
+    return current, replayed
 
 
 def result(root: Path, equivalent: bool, model: dict[str, bytes], witness_digest: str | None) -> dict:
@@ -158,20 +154,18 @@ def manifest(
     root: Path,
     bundle: dict[str, bytes],
     model: dict[str, bytes],
-    retained: dict[str, bytes],
-    pin: str,
+    replayed: dict[str, bytes],
 ) -> dict:
     identities = subject_pins(root)
-    corpus_manifest = corpus.decoded(retained["manifest.json"])
+    corpus_manifest = corpus.decoded(replayed["manifest.json"])
     return {
         "schema": "participant-crossing-machine-check/v2",
         "source_digests": identities,
         "source_identity": canonical_json_digest(identities),
         "model_manifest_digest": export.digest(model["manifest.json"]),
-        "retained_model_manifest_digest": corpus_manifest["baseline_manifest_digest"],
-        "corpus_manifest_digest": pin,
+        "baseline_model_manifest_digest": corpus_manifest["baseline_manifest_digest"],
+        "corpus_manifest_digest": export.digest(replayed["manifest.json"]),
         "mutation_review_subject_digest": corpus_manifest["review_subject_digest"],
-        "mapping": corpus_manifest["mapping"],
         "tool": corpus_manifest["tool"],
         "verification": {
             "mode": "dpbranching-bisim",

@@ -70,7 +70,8 @@ class BehavioralProfileSourceModel(ContractModel):
     """Immutable source identity used to reproduce one profile revision."""
 
     source_ref: SafeRef
-    source_digest: PrefixedDigestString
+    # Optional: readers use the current source, so a current profile stores no digest (issue #1929).
+    source_digest: PrefixedDigestString | None = None
 
 
 class IndividualOpacityObserverModel(ContractModel):

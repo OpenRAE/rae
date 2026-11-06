@@ -50,9 +50,8 @@ def _source():
         "base_revision": revision,
         "digest": digest,
         "file_count": len(pins),
-        "inventory_ref": "specs/formal/participant-semantics/runtime-mapping/capture-"
-        + digest.removeprefix("sha256:")
-        + "/manifest.json",
+        # The runtime-mapping exporter builds this inventory from the current sources (issue #1929).
+        "inventory_ref": "implementations/formal/participant_crossing/runtime_mapping_export.py",
     }
 
 

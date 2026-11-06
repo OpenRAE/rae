@@ -189,8 +189,11 @@ def _resolve_repo_path(repo_root: Path, raw_path: object) -> Path:
 def _validate_bound_path(repo_root: Path, payload: dict[str, Any], label: str) -> Path:
     """Require a readable repository file; the replay reads its current bytes, so no digest is stored."""
     path = _resolve_repo_path(repo_root, payload.get("path"))
-    if not path.is_file():
-        raise ProofEvidenceError(f"{label} repository file is unreadable")
+    try:
+        with path.open("rb") as stream:
+            stream.read(1)
+    except OSError as exc:
+        raise ProofEvidenceError(f"{label} repository file is unreadable") from exc
     return path
 
 

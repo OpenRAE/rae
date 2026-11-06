@@ -367,14 +367,6 @@ entries:
       - kind: unit_tests
         path: implementations/python/tests/test_issue_974_machine_check.py
       - kind: unit_tests
-        path: implementations/python/tests/test_issue_975_reproduction_record.py
-      - kind: unit_tests
-        path: implementations/python/tests/test_issue_976_evidence_identity.py
-      - kind: unit_tests
-        path: implementations/python/tests/test_issue_976_crossing_publication.py
-      - kind: property_based_or_differential_tests
-        path: implementations/python/tests/test_issue_975_reproduction.py
-      - kind: unit_tests
         path: implementations/python/tests/test_issue_1008_evaluation_backed_claims.py
       - kind: invariant_list
         path: specs/formal/participant-semantics/modular-participant-control.md
