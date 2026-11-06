@@ -20,6 +20,9 @@ forbidden in instantiated scenarios and snapshots. Composition MUST complete
 before selection. Public instantiation of an unresolved family MUST fail closed.
 The public `select_scenario_family()` API applies complete recorded selections.
 It MUST NOT use variable defaults or first members as implicit selections.
+Selection MUST keep authored field presence. A field that the family omits
+stays omitted in the selected scenario, so selection does not change its
+explicitness or realization authority.
 
 ## 2. Common form
 

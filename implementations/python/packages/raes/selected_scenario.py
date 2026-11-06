@@ -22,6 +22,7 @@ from ._declarations import build_declaration_index
 from ._errors import SDLInstantiationError, SDLSelectionError
 from ._selection_provenance import reconcile_selection_provenance
 from .experiment_selection import validate_selection_outcome
+from .family_admission import has_modified_omitted_default
 from .instantiate import instantiate_scenario
 from .phase_contracts import TrialInstantiationProvenance
 from .scenario import ExpandedScenario, InstantiatedScenario
@@ -401,15 +402,12 @@ def _validate_target_writes(
 
 
 def _selection_payload(family: ExpandedScenario) -> dict[str, object]:
-    """Preserve runtime field presence and existing node identity commitments."""
+    """Rebuild the family with field presence, so selection keeps omitted fields absent."""
 
-    payload = family.model_dump(mode="python", by_alias=True)
-    for name, node in family.nodes.items():
-        if node.runtime is not None:
-            payload["nodes"][name]["runtime"] = node.runtime.model_dump(
-                mode="python", by_alias=True, exclude_unset=True
-            )
-    return payload
+    if has_modified_omitted_default(family):
+        # An exclude-unset reconstruction would silently discard this value.
+        raise SDLSelectionError("scenario family has a modified omitted default; re-admit the family before selection")
+    return family.model_dump(mode="python", by_alias=True, exclude_unset=True)
 
 
 def select_scenario_family(

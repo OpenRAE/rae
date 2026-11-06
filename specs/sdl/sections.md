@@ -114,6 +114,9 @@ emulator. Authors who require or bound a mechanism use
 `realization.constraints`; an omitted compute-substrate constraint deliberately
 leaves that registered concern open. A switch remains a strict connectivity
 resource and cannot carry compute-substrate constraints or compute-only fields.
+A switch can state a compute-only field only with its empty value: `null`, an
+empty string, or an empty collection. That value has the same meaning as an
+omitted field, and realization authority treats it as omitted.
 
 `forwarding_agents` is the **scenario-level** forwarding-agent inventory. It is
 distinct from the node-scoped `forwarding_agents` runtime-family collection that
