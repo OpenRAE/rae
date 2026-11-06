@@ -62,11 +62,45 @@ env:
   RAES_CI_SHARD_COUNT: "8"
 
 jobs:
+  # Each verification job checks out inputs.ref and runs its code. Admit only the
+  # commit that triggered this run, or a commit in its history, so that no caller
+  # can route other code into the run's cache and token scope (CodeQL CWE-349).
+  # The triggering ref already trusts its own history.
+  trust-ref:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Admit only the triggering commit or its history
+        env:
+          REQUESTED_REF: ${{ inputs.ref }}
+          TRIGGER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${REQUESTED_REF}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "The verified ref must be a full lowercase commit SHA, got '${REQUESTED_REF}'" >&2
+            exit 1
+          fi
+          if [ "${REQUESTED_REF}" = "${TRIGGER_SHA}" ]; then
+            echo "Verified ref ${REQUESTED_REF} is the triggering commit"
+            exit 0
+          fi
+          if git merge-base --is-ancestor "${REQUESTED_REF}" "${TRIGGER_SHA}"; then
+            echo "Verified ref ${REQUESTED_REF} is in the history of ${TRIGGER_SHA}"
+            exit 0
+          fi
+          echo "Refusing ${REQUESTED_REF}: it is not the triggering commit ${TRIGGER_SHA} or in its history" >&2
+          exit 1
+
   proof-archive:
     # The official proof archive host is not always reachable, so the Actions
     # cache keeps a verified copy, keyed by the locked digest. This job checks
     # out the triggering commit, never a caller-selected ref, so code under
     # verification cannot write the cache.
+    needs: trust-ref
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -223,6 +257,7 @@ jobs:
   # emits a combinable coverage data file plus an ownership manifest. Shards are
   # credential-free and need no locked tool inputs (pure pytest).
   test-shard:
+    needs: trust-ref
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -546,6 +581,7 @@ jobs:
   # opt-in; the separate scheduled sweep is delivered by issue #1898.
   # The Go toolchain and tools come from their locks.
   go:
+    needs: trust-ref
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 25 }}
     strategy:
@@ -912,6 +948,7 @@ jobs:
   # of every Go module. Product fuzz checks reuse its toolchain and run beside
   # the race/coverage job; both checks remain in the required aggregate.
   go-architecture:
+    needs: trust-ref
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

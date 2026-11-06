@@ -117,6 +117,7 @@ flowchart LR
 | `rae` code depends on runtime | ARCH-015 refuses a path from a `rae` consumer package or `raes-mcp` to runtime code, also from test files | `TestConsumerImportsStayOnTheRepositoryBoundary` and `TestConsumerTestImportsStayOnTheRepositoryBoundary` |
 | A development override reaches released metadata | ARCH-001 refuses `replace`; the fixture step refuses `replace`, runs with `GOWORK=off` and fails when it changes `go.mod` or `go.sum` | `TestFindModulesListsEachReplacingModule` and the CI step |
 | A substituted dependency | `go.sum` and the checksum database verify the pinned module | `go mod verify` in the CI step |
+| A caller routes other code into the verification run's cache scope (CWE-349) | The `trust-ref` job admits only the triggering commit or a commit in its history before any job checks out `inputs.ref` | `test_trusted_ref_gate_admits_only_the_triggering_history` and `test_every_canonical_job_waits_for_the_trusted_ref_gate` |
 | A move changes generated authority | The generator compares the complete output at both destinations | `TestGeneratedDestinationsKeepTheCorpusInternal` and `contractgen -check` |
 | An implemented operation drifts from its declaration | ARCH-015 compares the typed surface in each build configuration | `TestConsumerTypesCompareImplementedExtensions` |
 | A caller inserts unadmitted inventory JSON | The archive operation owns insertion and refuses a supplied inventory | `TestMaterializationArchiveRefusesUnboundInput` |
@@ -124,6 +125,10 @@ flowchart LR
 | Unbounded archive bytes reach the trusted owner | Restoration checks the bounds and schema before the owner reads the record | `TestMaterializationArchiveBoundsRecordsBeforeTheOwner` |
 | Payload exhaustion | Caller limits apply before payload reads; readers stop at the declared size plus one | `TestAssociatedManifestOperations` |
 | Private values in errors | The operations return the existing value-free fault codes | The fixture checks the fault category |
+
+CodeQL flags each `golangci-lint` step after the `inputs.ref` checkout as cache poisoning.
+Its model has no control for `workflow_dispatch` except a deployment environment, so it cannot see `trust-ref`.
+GOV-928 keeps the exact-SHA `ref` input, so the checkout stays.
 
 The change adds no service, network call, credential, secret or log record.
 The module proxy is the standard Go resolution path for a released module.
