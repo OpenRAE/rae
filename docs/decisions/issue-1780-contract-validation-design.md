@@ -375,7 +375,7 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/contract/admission e27d3a68a2cf7431db95c52a1b46fa9eaf851e61aa24a44a584bbb25d1d8a906 -->
+<!-- go-api implementations/go/contract/admission 1ce22bfe39c66e42eb1260cd5c6198bfa3c72651c0fc7f02e81c74009cb53488 -->
 
 ## Model parity repairs
 

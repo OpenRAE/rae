@@ -81,7 +81,12 @@ func (p *pythonPattern) namedCharacter(name string) rune {
 	c, present := p.charNames[strings.ToUpper(name)]
 	if !present {
 		p.bad = true
+		return c
 	}
+	if p.resolved == nil {
+		p.resolved = map[string]rune{}
+	}
+	p.resolved[strings.ToUpper(name)] = c
 	return c
 }
 

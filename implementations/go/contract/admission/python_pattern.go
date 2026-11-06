@@ -22,20 +22,29 @@ type pythonPattern struct {
 	conditions []int
 	unicode    *patternUnicode
 	charNames  map[string]rune
+	resolved   map[string]rune
 }
 
 func pythonPatternValid(source string) bool {
+	_, err := ParsePythonPattern(source)
+	return err == nil
+}
+
+func parsePythonPattern(source string) (PythonPatternSyntax, error) {
 	p := pythonPattern{text: []rune(source), start: true, lookbehind: -1, groups: []patternWidth{{}}, closed: []bool{false}, names: map[string]int{}}
 	p.expression(0)
 	if p.pos != len(p.text) || p.flags&patternASCII != 0 && p.flags&patternUnicodeFlag != 0 {
-		return false
+		return PythonPatternSyntax{}, invalid()
 	}
 	for _, group := range p.conditions {
 		if group <= 0 || group >= len(p.groups) {
-			return false
+			return PythonPatternSyntax{}, invalid()
 		}
 	}
-	return !p.bad
+	if p.bad {
+		return PythonPatternSyntax{}, invalid()
+	}
+	return PythonPatternSyntax{characters: p.resolved}, nil
 }
 
 func patternAdd(a, b uint64) uint64 { return min(patternInfinite, a+min(b, patternInfinite)) }

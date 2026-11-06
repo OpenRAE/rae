@@ -93,6 +93,21 @@ func TestPythonPatternSyntaxErrorContract(t *testing.T) {
 	}
 }
 
+func TestPythonPatternNamedCharacterBoundaries(t *testing.T) {
+	parsed, err := ParsePythonPattern(`\N{NUL}\\N{LF}(?#\N{LATIN CAPITAL LETTER H})`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, ok := parsed.NamedCharacter("NUL"); !ok || got != 0 {
+		t.Fatalf("named NUL=%U known=%t", got, ok)
+	}
+	for _, name := range []string{"LF", "LATIN CAPITAL LETTER H"} {
+		if _, ok := parsed.NamedCharacter(name); ok {
+			t.Fatal("ignored name exposed as a resolved escape")
+		}
+	}
+}
+
 func TestPythonPatternSharedParser(t *testing.T) {
 	for _, source := range []string{"", `(?i)(?m)^gov-001`, `(?<=ab|cd)x`, `(?<!G+)GOV-001`, `(?P<1>GOV)-001`, `\N{LATIN CAPITAL LETTER G}OV-001`} {
 		_, err := ParsePythonPattern(source)
