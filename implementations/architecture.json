@@ -5659,6 +5659,7 @@
           "func github.com/OpenRAE/rae/implementations/go/contract/admission.LoadAssociatedManifest(v *github.com/OpenRAE/rae/implementations/go/contract/admission.Validator, data []byte, limits github.com/OpenRAE/rae/implementations/go/base/ingress.Limits) (github.com/OpenRAE/rae/implementations/go/contract/binding.AssociatedArtifactManifestV1, error)",
           "func github.com/OpenRAE/rae/implementations/go/contract/admission.MaterializationArchive(v *github.com/OpenRAE/rae/implementations/go/contract/admission.Validator, record github.com/OpenRAE/rae/implementations/go/contract/binding.MaterializationArchiveRecordV1, inventory *github.com/OpenRAE/rae/implementations/go/contract/binding.BackendRuntimeDescendantsV1, limits github.com/OpenRAE/rae/implementations/go/base/ingress.Limits, context github.com/OpenRAE/rae/implementations/go/contract/admission.MaterializationInventoryContext) (github.com/OpenRAE/rae/implementations/go/contract/validation.Value, error)",
           "func github.com/OpenRAE/rae/implementations/go/contract/admission.New() (*github.com/OpenRAE/rae/implementations/go/contract/admission.Validator, error)",
+          "func github.com/OpenRAE/rae/implementations/go/contract/admission.ParsePythonPattern(source string) (github.com/OpenRAE/rae/implementations/go/contract/admission.PythonPatternSyntax, error)",
           "func github.com/OpenRAE/rae/implementations/go/contract/admission.RestoreMaterializationArchive(v *github.com/OpenRAE/rae/implementations/go/contract/admission.Validator, data []byte, limits github.com/OpenRAE/rae/implementations/go/base/ingress.Limits, context github.com/OpenRAE/rae/implementations/go/contract/admission.MaterializationInventoryContext) (github.com/OpenRAE/rae/implementations/go/contract/binding.MaterializationArchiveRecordV1, *github.com/OpenRAE/rae/implementations/go/contract/binding.BackendRuntimeDescendantsV1, github.com/OpenRAE/rae/implementations/go/contract/validation.Value, error)",
           "func github.com/OpenRAE/rae/implementations/go/contract/admission.ValidateAssociatedManifest(v *github.com/OpenRAE/rae/implementations/go/contract/admission.Validator, manifest github.com/OpenRAE/rae/implementations/go/contract/binding.AssociatedArtifactManifestV1, parent github.com/OpenRAE/rae/implementations/go/contract/admission.AssociatedArtifactsContext, readers map[string]io.Reader, limits github.com/OpenRAE/rae/implementations/go/contract/admission.AssociatedArtifactLimits) (github.com/OpenRAE/rae/implementations/go/contract/validation.Value, error)",
           "func github.com/OpenRAE/rae/implementations/go/contract/admission.ValidateExperimentBindingTargets(v *github.com/OpenRAE/rae/implementations/go/contract/admission.Validator, descriptors github.com/OpenRAE/rae/implementations/go/contract/binding.ExperimentBindingDescriptorsV1, resolver github.com/OpenRAE/rae/implementations/go/contract/admission.ScenarioBindingTargetResolver, participants map[github.com/OpenRAE/rae/implementations/go/contract/admission.ParticipantManifestKey]github.com/OpenRAE/rae/implementations/go/contract/binding.ParticipantImplementationManifestV1, apparatus map[github.com/OpenRAE/rae/implementations/go/contract/admission.ApparatusManifestKey]github.com/OpenRAE/rae/implementations/go/contract/admission.ApparatusManifest) (github.com/OpenRAE/rae/implementations/go/contract/binding.ExperimentBindingDescriptorsV1, error)",
@@ -5712,6 +5713,7 @@
           "method *encoding/json/jsontext.Value func (encoding/json/jsontext.Value).Kind() encoding/json/jsontext.Kind selected=func() encoding/json/jsontext.Kind",
           "method *encoding/json/jsontext.Value func (encoding/json/jsontext.Value).MarshalJSON() ([]byte, error) selected=func() ([]byte, error)",
           "method *encoding/json/jsontext.Value func (encoding/json/jsontext.Value).String() string selected=func() string",
+          "method *github.com/OpenRAE/rae/implementations/go/contract/admission.PythonPatternSyntax func (github.com/OpenRAE/rae/implementations/go/contract/admission.PythonPatternSyntax).NamedCharacter(name string) (rune, bool) selected=func(name string) (rune, bool)",
           "method *github.com/OpenRAE/rae/implementations/go/contract/admission.Validator func (*github.com/OpenRAE/rae/implementations/go/contract/admission.Validator).CheckPortable(id string, data []byte, limits github.com/OpenRAE/rae/implementations/go/base/ingress.Limits) error selected=func(id string, data []byte, limits github.com/OpenRAE/rae/implementations/go/base/ingress.Limits) error",
           "method *github.com/OpenRAE/rae/implementations/go/contract/admission.Validator func (*github.com/OpenRAE/rae/implementations/go/contract/admission.Validator).Validate(id string, data []byte, limits github.com/OpenRAE/rae/implementations/go/base/ingress.Limits, context any) (github.com/OpenRAE/rae/implementations/go/contract/validation.Value, error) selected=func(id string, data []byte, limits github.com/OpenRAE/rae/implementations/go/base/ingress.Limits, context any) (github.com/OpenRAE/rae/implementations/go/contract/validation.Value, error)",
           "method *github.com/OpenRAE/rae/implementations/go/contract/binding.Field[[]encoding/json.RawMessage] func (*github.com/OpenRAE/rae/implementations/go/contract/binding.Field[[]encoding/json.RawMessage]).UnmarshalJSON(data []byte) error selected=func(data []byte) error",
@@ -6142,6 +6144,7 @@
           "method github.com/OpenRAE/rae/implementations/go/contract/admission.MixedBackendStagesContext func (github.com/OpenRAE/rae/implementations/go/contract/admission.MixedBackendStagesContext).OperationResponses() [][]byte selected=func() [][]byte",
           "method github.com/OpenRAE/rae/implementations/go/contract/admission.MixedCompositionContext func (github.com/OpenRAE/rae/implementations/go/contract/admission.MixedCompositionContext).MixedCompositionSnapshot() github.com/OpenRAE/rae/implementations/go/contract/admission.MixedCompositionSnapshot selected=func() github.com/OpenRAE/rae/implementations/go/contract/admission.MixedCompositionSnapshot",
           "method github.com/OpenRAE/rae/implementations/go/contract/admission.MixedCompositionContext func (github.com/OpenRAE/rae/implementations/go/contract/admission.MixedCompositionContext).ResolveMixedFeature(profileID string, componentID string, requirement encoding/json.RawMessage) error selected=func(profileID string, componentID string, requirement encoding/json.RawMessage) error",
+          "method github.com/OpenRAE/rae/implementations/go/contract/admission.PythonPatternSyntax func (github.com/OpenRAE/rae/implementations/go/contract/admission.PythonPatternSyntax).NamedCharacter(name string) (rune, bool) selected=func(name string) (rune, bool)",
           "method github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseOwner func (github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseOwner).AdmitSDLPhase(request github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseRequest) (github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseAdmission, error) selected=func(request github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseRequest) (github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseAdmission, error)",
           "method github.com/OpenRAE/rae/implementations/go/contract/admission.ScenarioBindingTargetResolver func (github.com/OpenRAE/rae/implementations/go/contract/admission.ScenarioBindingTargetResolver).Resolve(scenarioFamilyID string, variationPointID string, suppliedTargetID string) (github.com/OpenRAE/rae/implementations/go/contract/admission.ScenarioBindingResolution, error) selected=func(scenarioFamilyID string, variationPointID string, suppliedTargetID string) (github.com/OpenRAE/rae/implementations/go/contract/admission.ScenarioBindingResolution, error)",
           "method github.com/OpenRAE/rae/implementations/go/contract/binding.Field[[]encoding/json.RawMessage] func (github.com/OpenRAE/rae/implementations/go/contract/binding.Field[[]encoding/json.RawMessage]).IsZero() bool selected=func() bool",
@@ -6481,6 +6484,7 @@
           "type github.com/OpenRAE/rae/implementations/go/contract/admission.MixedCompositionSnapshot constraints[] struct{ScenarioSnapshots map[string][]byte \"\" embedded=false; CompiledTargets map[string]string \"\" embedded=false; Components map[[2]string][]byte \"\" embedded=false; Allocations map[[2]string][]byte \"\" embedded=false; Edges map[[2]string][]byte \"\" embedded=false; Transitions map[[2]string][]byte \"\" embedded=false; FeatureDowngrades []github.com/OpenRAE/rae/implementations/go/contract/admission.MixedFeatureDowngrade \"\" embedded=false; TimeModels map[string]github.com/OpenRAE/rae/implementations/go/contract/validation.Value \"\" embedded=false; TimeModelDigests map[string]string \"\" embedded=false; EvidenceSatisfaction map[[2]string][]string \"\" embedded=false; NestedProfiles map[string][]byte \"\" embedded=false; TrialAdmission bool \"\" embedded=false; AllocationEffects map[[2]string][]string \"\" embedded=false; ResourceRefs map[string][]string \"\" embedded=false; ProjectionMembership map[[2]string]bool \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/contract/admission.MixedFeatureDowngrade constraints[] struct{ProfileID string \"\" embedded=false; ComponentID string \"\" embedded=false; Feature string \"\" embedded=false; RequiredLevel string \"\" embedded=false; AllowedLevel string \"\" embedded=false; PolicyRef string \"\" embedded=false; ProvenanceRef string \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/admission.ParticipantManifestKey constraints[] struct{ParticipantAddress string \"\" embedded=false; ImplementationName string \"\" embedded=false; ImplementationVersion string \"\" embedded=false; ManifestVersion string \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/contract/admission.PythonPatternSyntax constraints[] struct{} unexported-fields=true comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseAdmission constraints[] struct{ContractID string \"\" embedded=false; SourceSHA256 string \"\" embedded=false; Document []byte \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseOwner constraints[] interface{AdmitSDLPhase(request github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseRequest) (github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseAdmission, error)} comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/admission.SDLPhaseRequest constraints[] struct{ContractID string \"\" embedded=false; Source []byte \"\" embedded=false} unexported-fields=false comparable=false",
@@ -6617,7 +6621,7 @@
     "docs/decisions/adrs/adr-122-go-architecture-model.md": "80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c",
     "docs/decisions/issue-1775-go-architecture-model-design.md": "d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8",
     "docs/decisions/issue-1779-shared-primitives-completion.md": "53b8dcd5ef5e1ad44ca2948eca10fff0d180028b807a496ddbe82e61e9e573ed",
-    "docs/decisions/issue-1780-contract-validation-design.md": "9a6e887d6f466ccc5f6e69645854d9d641474d374d5c4dd9288ee23ff7c7aeac",
+    "docs/decisions/issue-1780-contract-validation-design.md": "e1f5626727bb3bc2d1d6061e7f6c29e439ba753d9095cbba8c294514e4f27fb1",
     "docs/decisions/issue-1891-runtime-repository-boundary.md": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406",
     "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa",
     "docs/decisions/issue-1825-public-go-api.md": "6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721",
@@ -6867,7 +6871,10 @@
           "ValidateExperimentBindingTargets",
           "ConstraintLimits",
           "DefaultConstraintLimits",
-          "ConstraintLimits.Validate"
+          "ConstraintLimits.Validate",
+          "ParsePythonPattern",
+          "PythonPatternSyntax",
+          "PythonPatternSyntax.NamedCharacter"
         ],
         "uses": [
           "rae:base/ingress",
@@ -6877,7 +6884,8 @@
         "issues": [
           1892,
           1788,
-          1781
+          1781,
+          1963
         ],
         "consumers": [
           "environment-packs",
@@ -6886,7 +6894,7 @@
           "runtime"
         ],
         "existing": "implementations/go/contract/admission",
-        "existing_api_sha256": "998cd981776e8c1b1f68dd5c5badb223d1c5136a9d451ee5abed978f7f3ab6b3",
+        "existing_api_sha256": "2eb5bda5b6f07451535456cf83a497144b7bbca6b1e8892fcfaf1abc670ddeca",
         "declarations": "implementations/architecture-api/planned/rae/contract/admission.go.txt",
         "declarations_sha256": "b528df9bd5fd9f4b2a08440c5f34fecaaad4c05a30b365c93bbacaf9f483934d"
       },
