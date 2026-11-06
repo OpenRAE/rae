@@ -441,7 +441,10 @@ def _replacement_identity(request, *, status="failed"):
 
 
 def test_replacement_identity_is_deterministic_for_the_same_inputs():
-    assert _replacement_identity(_replacement_request()) == _replacement_identity(_replacement_request())
+    first = _replacement_identity(_replacement_request())
+    second = _replacement_identity(_replacement_request())
+
+    assert first == second
 
 
 def test_replacement_digest_binds_the_failed_run_and_identity_binds_the_slot():

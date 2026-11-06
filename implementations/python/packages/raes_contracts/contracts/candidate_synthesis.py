@@ -225,15 +225,19 @@ def _validate_source_assertion_join(
     for assertion in assertions:
         if not set(_assertion_refs(assertion)) <= known:
             raise ValueError("source assertion references must resolve inside the assertion set")
-        for coordinate in _assertion_coordinates(assertion):
-            if (
-                coordinate.authority != source.authority
-                or coordinate.scheme_id != source.scheme_id
-                or coordinate.revision != source.revision
-                or coordinate.source_digest != source.content_digest
-            ):
-                raise ValueError("source assertion coordinate is stale against the pinned source envelope")
+        _validate_assertion_coordinates(source, assertion)
     return assertion_ids
+
+
+def _validate_assertion_coordinates(source: CandidateSynthesisSourceModel, assertion: SourceAssertion) -> None:
+    for coordinate in _assertion_coordinates(assertion):
+        if (
+            coordinate.authority != source.authority
+            or coordinate.scheme_id != source.scheme_id
+            or coordinate.revision != source.revision
+            or coordinate.source_digest != source.content_digest
+        ):
+            raise ValueError("source assertion coordinate is stale against the pinned source envelope")
 
 
 class CandidateSynthesisInputModel(ContractModel):

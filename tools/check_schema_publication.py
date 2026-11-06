@@ -481,8 +481,9 @@ def _removal_ledger(
     """Parse and validate the normalized ``removed_schemas`` tombstone list.
 
     A removed schema has no current ``schemas`` entry, so its contract-facing
-    rationale is recorded as a tombstone keyed by ``schema_path`` (ADR-009 section 7: a contract removal is a governed edit,
-    not a silent regeneration side-effect). Each tombstone must carry a
+    rationale is recorded as a tombstone keyed by ``schema_path`` (ADR-009
+    section 7: a contract removal is a governed edit, not a silent
+    regeneration side-effect). Each tombstone must carry a
     non-empty ``summary``; the ``schema_path`` is what links the tombstone back
     to the schema that existed at ``base_rev``.
     """

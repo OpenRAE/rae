@@ -382,9 +382,13 @@ class RealizedTimeModelProvenanceModel(ContractModel):
     evidence_refs: list[NonEmptyString] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def _validate_provenance(self) -> RealizedTimeModelProvenanceModel:
+    def _validate_declaration_digest(self) -> RealizedTimeModelProvenanceModel:
         if not sealing_active() and self.declaration_digest != self.declared_model.canonical_digest():
             raise ValueError("declaration_digest must match declared_model")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_provenance(self) -> RealizedTimeModelProvenanceModel:
         declared_sets = (
             set(self.declared_model.domains),
             set(self.declared_model.clocks),

@@ -77,6 +77,9 @@ from .semantic_comparison import (
 )
 
 _DIGEST_PLACEHOLDER = "sha256:" + "0" * 64
+_MISSING = object()
+
+JsonObject = dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -200,49 +203,70 @@ def _candidates(annotation: object) -> Iterator[object]:
         yield annotation
 
 
+def _literal_keys(model: type[BaseModel]) -> dict[str, tuple[object, ...]]:
+    return {
+        field.alias or name: typing.get_args(field.annotation)
+        for name, field in model.model_fields.items()
+        if typing.get_origin(field.annotation) is typing.Literal
+    }
+
+
+def _discriminated(model: type[BaseModel], value: Mapping[str, Any]) -> bool:
+    literals = {key: allowed for key, allowed in _literal_keys(model).items() if key in value}
+    return bool(literals) and all(value[key] in allowed for key, allowed in literals.items())
+
+
+def _validates(model: type[BaseModel], value: Mapping[str, Any]) -> bool:
+    try:
+        with sealing():
+            model.model_validate(value)
+    except ValidationError:
+        return False
+    return True
+
+
 def _model_for(annotation: object, value: Mapping[str, Any]) -> type[BaseModel] | None:
     models = [item for item in _candidates(annotation) if isinstance(item, type) and issubclass(item, BaseModel)]
-    if len(models) <= 1:
-        return models[0] if models else None
-    for model in models:
-        literals = {
-            field.alias or name: typing.get_args(field.annotation)
-            for name, field in model.model_fields.items()
-            if typing.get_origin(field.annotation) is typing.Literal
-        }
-        if literals and all(value.get(key) in allowed for key, allowed in literals.items() if key in value):
-            if any(key in value for key in literals):
-                return model
-    for model in models:
-        try:
-            with sealing():
-                model.model_validate(value)
-        except ValidationError:
-            continue
-        return model
-    return None
+    if len(models) > 1:
+        # A discriminating literal field picks a union member; otherwise the first member that validates.
+        models = [model for model in models if _discriminated(model, value)] or [
+            model for model in models if _validates(model, value)
+        ]
+    return models[0] if models else None
 
 
-def _walk_value(annotation: object, value: object, visit: Callable[[type[BaseModel], dict], None]) -> None:
+def _item_annotation(origin: object, args: tuple[object, ...], index: int) -> object:
+    if origin is tuple and args[-1] is not Ellipsis and len(args) > 1:
+        return args[index]
+    return args[0]
+
+
+def _walk_container(annotation: object, value: object, visit: Callable[[type[BaseModel], JsonObject], None]) -> bool:
+    """Walk the items of a mapping or sequence value; return whether *annotation* described a container."""
     for candidate in _candidates(annotation):
-        origin = typing.get_origin(candidate)
-        args = typing.get_args(candidate)
+        origin, args = typing.get_origin(candidate), typing.get_args(candidate)
         if isinstance(value, dict) and origin in (dict, Mapping, typing.Mapping) and len(args) == 2:
             for item in value.values():
                 _walk_value(args[1], item, visit)
-            return
+            return True
         if isinstance(value, list) and origin in (list, tuple, set, frozenset, Sequence) and args:
-            item_annotation = args[0] if origin is not tuple or args[-1] is Ellipsis or len(args) == 1 else None
             for index, item in enumerate(value):
-                _walk_value(item_annotation if item_annotation is not None else args[index], item, visit)
-            return
-    if isinstance(value, dict):
-        model = _model_for(annotation, value)
-        if model is not None:
-            _walk_model(model, value, visit)
+                _walk_value(_item_annotation(origin, args, index), item, visit)
+            return True
+    return False
 
 
-def _walk_model(model: type[BaseModel], payload: dict, visit: Callable[[type[BaseModel], dict], None]) -> None:
+def _walk_value(annotation: object, value: object, visit: Callable[[type[BaseModel], JsonObject], None]) -> None:
+    if _walk_container(annotation, value, visit) or not isinstance(value, dict):
+        return
+    model = _model_for(annotation, value)
+    if model is not None:
+        _walk_model(model, value, visit)
+
+
+def _walk_model(
+    model: type[BaseModel], payload: JsonObject, visit: Callable[[type[BaseModel], JsonObject], None]
+) -> None:
     for name, field in model.model_fields.items():
         key = field.alias or name
         if key in payload:
@@ -250,7 +274,7 @@ def _walk_model(model: type[BaseModel], payload: dict, visit: Callable[[type[Bas
     visit(model, payload)
 
 
-def _get(payload: dict, path: tuple[str, ...]) -> tuple[dict | None, object]:
+def _get(payload: JsonObject, path: tuple[str, ...]) -> tuple[JsonObject | None, object]:
     current: object = payload
     for key in path[:-1]:
         if not isinstance(current, dict) or key not in current:
@@ -261,10 +285,7 @@ def _get(payload: dict, path: tuple[str, ...]) -> tuple[dict | None, object]:
     return current, current.get(path[-1], _MISSING)
 
 
-_MISSING = object()
-
-
-def _validated(model: type[BaseModel], payload: dict) -> BaseModel | None:
+def _validated(model: type[BaseModel], payload: JsonObject) -> BaseModel | None:
     try:
         with sealing():
             return model.model_validate(payload)
@@ -272,12 +293,12 @@ def _validated(model: type[BaseModel], payload: dict) -> BaseModel | None:
         return None
 
 
-def seal_payload(model: type[BaseModel], payload: dict) -> dict:
+def seal_payload(model: type[BaseModel], payload: JsonObject) -> JsonObject:
     """Return a copy of *payload* with every absent derived field filled, nested models first."""
 
     result = copy.deepcopy(payload)
 
-    def fill(owner: type[BaseModel], node: dict) -> None:
+    def fill(owner: type[BaseModel], node: JsonObject) -> None:
         pending = []
         for item in _registry().get(owner, ()):
             parent, current = _get(node, item.path)
@@ -297,9 +318,9 @@ def seal_payload(model: type[BaseModel], payload: dict) -> dict:
     return result
 
 
-def _strip(model: type[BaseModel], payload: dict, removed: list[str]) -> dict:
+def _strip(model: type[BaseModel], payload: JsonObject, removed: list[str]) -> JsonObject:
     result = copy.deepcopy(payload)
-    nodes: list[tuple[type[BaseModel], dict]] = []
+    nodes: list[tuple[type[BaseModel], JsonObject]] = []
     _walk_model(model, result, lambda owner, node: nodes.append((owner, node)))
     # Strip outermost first: an outer digest is computed over the inner derived values.
     for owner, node in reversed(nodes):
@@ -314,7 +335,7 @@ def _strip(model: type[BaseModel], payload: dict, removed: list[str]) -> dict:
     return result
 
 
-def derivable_seal_paths(model: type[BaseModel], payload: dict) -> list[str]:
+def derivable_seal_paths(model: type[BaseModel], payload: JsonObject) -> list[str]:
     """Return the stored derived values that :func:`seal_payload` would reproduce, so need not be stored."""
 
     removed: list[str] = []
@@ -322,7 +343,7 @@ def derivable_seal_paths(model: type[BaseModel], payload: dict) -> list[str]:
     return removed
 
 
-def strip_derivable_seals(model: type[BaseModel], payload: dict) -> dict:
+def strip_derivable_seals(model: type[BaseModel], payload: JsonObject) -> JsonObject:
     """Return a copy of *payload* without stored derived values that :func:`seal_payload` reproduces."""
 
     return _strip(model, payload, [])

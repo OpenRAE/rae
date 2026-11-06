@@ -556,14 +556,15 @@ class BackendRealizationEnvelopeModel(ContractModel):
                 )
         elif operating_system_claim.disposition is not ConcernDisposition.UNSUPPORTED:
             raise ValueError("operating-system concern support requires coupled operating_systems capability rows")
-        if not sealing_active() and self.configuration.configuration_digest != realizer_configuration_digest(
-            self.configuration
-        ):
-            raise ValueError("realizer configuration digest does not match canonical content")
-        expected = realization_envelope_digest(self)
-        if not sealing_active() and self.digest != expected:
-            raise ValueError("realization envelope digest does not match canonical content")
+        if not sealing_active():
+            self._validate_digests()
         return self
+
+    def _validate_digests(self) -> None:
+        if self.configuration.configuration_digest != realizer_configuration_digest(self.configuration):
+            raise ValueError("realizer configuration digest does not match canonical content")
+        if self.digest != realization_envelope_digest(self):
+            raise ValueError("realization envelope digest does not match canonical content")
 
     @property
     def identity(self) -> RealizationEnvelopeIdentityModel:

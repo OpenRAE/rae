@@ -354,19 +354,23 @@ class SemanticProjectionReportModel(ContractModel):
     diagnostics: tuple[DiagnosticModel, ...] = Field(default=(), max_length=64)
 
     @model_validator(mode="after")
-    def _validate_report(self) -> SemanticProjectionReportModel:
+    def _validate_frame_binding(self) -> SemanticProjectionReportModel:
+        if sealing_active():
+            return self
         expected_digest = canonical_semantic_projection_frame_digest(self.frame)
-        if not sealing_active() and (
-            self.frame_digest != expected_digest or self.summary.frame_digest != expected_digest
-        ):
+        if self.frame_digest != expected_digest or self.summary.frame_digest != expected_digest:
             raise ValueError("semantic projection frame digest does not match the complete embedded frame")
         actual_profile = (self.summary.predicate_id, self.summary.predicate_profile_digest)
         expected_profile = (
             self.frame.predicate_profile.predicate_id,
             self.frame.predicate_profile.profile_digest,
         )
-        if not sealing_active() and actual_profile != expected_profile:
+        if actual_profile != expected_profile:
             raise ValueError("projection summary predicate and profile must match the exact frame")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_report(self) -> SemanticProjectionReportModel:
         _require_sorted_unique(tuple(row.concept_id for row in self.rows), "projection rows", non_empty=True)
         counts, included = _validate_report_rows(self.frame, self.rows)
         included_total = sum(

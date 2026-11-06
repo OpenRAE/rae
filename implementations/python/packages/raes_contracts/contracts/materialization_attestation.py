@@ -61,9 +61,6 @@ class MaterializationArchiveRecord(ContractModel):
         if (
             self.artifact.role != "materialization-attestation"
             or self.reference.ref_id != self.artifact.artifact_id
-            or (
-                not sealing_active() and self.artifact.uri != materialization_artifact_uri(self.artifact.checksum.value)
-            )
             or self.artifact.checksum.algorithm != "sha256"
             or self.artifact.media_type != "application/vnd.raes.sdl+yaml"
             or self.artifact.sensitivity not in {"restricted", "redacted"}
@@ -71,6 +68,12 @@ class MaterializationArchiveRecord(ContractModel):
             raise ValueError("materialization artifact reference does not bind the protected SDL artifact")
         if self.artifact.size_bytes > MATERIALIZATION_MAX_BYTES:
             raise ValueError("materialization artifact exceeds the materialization document limit")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_artifact_uri(self) -> MaterializationArchiveRecord:
+        if not sealing_active() and self.artifact.uri != materialization_artifact_uri(self.artifact.checksum.value):
+            raise ValueError("materialization artifact reference does not bind the protected SDL artifact")
         return self
 
 
