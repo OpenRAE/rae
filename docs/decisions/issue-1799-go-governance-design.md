@@ -15,18 +15,53 @@ The architecture model declares both packages and their exact interfaces.
 
 The shared reader uses `os.OpenRoot` to contain file access.
 It rejects absolute paths, traversal, secret-file components and escaping symlinks before reading.
-JSON readers preserve numbers and check duplicates, depth, bytes and integer limits.
+JSON readers preserve each surface's number, duplicate-member, depth and byte rules.
+One global strict-reader policy must not change reference verdicts.
 YAML uses the existing maintained `go.yaml.in/yaml/v3` dependency.
 Compatibility tests cover the reference parser's scalar and alias behavior.
 The shared reporter applies existing exceptions with an injected date.
 Nonwaivable findings remain nonwaivable.
 
 The tooling module remains independent of product runtime code.
-The existing Draft 2020-12 library validates published JSON without network resolution.
+It must reuse the public contract and base APIs delivered by #1892.
+The current implementations remain internal to the product module and cannot be imported here.
+Generic JSON Schema validation does not replace the existing contract model checks.
+The planned owners are `contract/admission`, `contract/validation`, `base/ingress`, `base/canonjson` and `base/clock`.
+The command obtains its injected date through the established clock owner.
+Declare and validate the exact tooling dependency after those public APIs exist.
+Do not duplicate validators, bypass internal-package rules or add a temporary executable bridge.
+This dependency must be delivered before the implementation design can be completed.
+Published JSON validation remains offline.
 The existing `arch` package owns Go dependency and interface checks.
 The existing verified Conftest binary evaluates unchanged Rego policy.
 The Go port retains applicable Python source checks while Python remains in the repository.
 It does not treat the Go architecture checker as evidence about Python source.
+
+## Design review repairs
+
+The independent review requires structural repairs before business logic starts.
+Full `archcheck` now validates actual APIs, imports and rule coverage.
+Unused dependency permissions have been removed until their boundaries are wired.
+The separate `archcheck -design` evidence remains part of the pre-implementation checks.
+
+After #1892, complete the following boundaries against the available public APIs:
+
+- Define the native documentation read boundary for the replacement builder owned by #1803.
+  Keep the original Sphinx extension and its gate unchanged until cutover.
+  Cover actual file reads, approved module sources, generated output and repeated builds.
+- Select and declare a maintained Python syntax parser for the remaining source checks.
+  Preserve syntax and AST behavior without substituting regular-expression scans.
+- Complete typed request modes for build output, coverage reports, issue audits and check sets.
+  Preserve unavailable-governance status in machine-readable output.
+  Keep fixture facts separate from the production authority lookup.
+- Add the executable base/head sentinel and compare complete ordered reference findings.
+  Check specific workflow jobs and their invocations instead of global text matches.
+  Record design chronology through native validation and commit evidence.
+- Apply each reference reader's compatibility rules and limits at its own surface.
+  Preserve duplicate-member behavior where the reference permits it.
+
+The initial acceptance cases remain incomplete structural fixtures.
+They do not establish the issue's full coverage or parity requirements.
 
 ## Trust and data flows
 
@@ -83,7 +118,7 @@ A source-to-test crosswalk accounts for every in-scope reference guard and issue
 Differential fixtures compare complete machine findings, order and verdicts against unchanged Python.
 Positive fixtures prevent an implementation that merely refuses all inputs from passing.
 Boundary tests cover paths, malformed inputs, limits, pins, credentials and failed dependencies.
-The base-revision test covers an executable candidate sentinel.
+The base-revision test must exercise an executable candidate sentinel.
 
 Local checks select explicit Go tests and file-local repository policy.
 CI retains the existing full tests, race, coverage, lint, architecture and regression checks.

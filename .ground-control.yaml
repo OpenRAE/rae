@@ -14,7 +14,7 @@ workflow:
     structural_command: >-
       d="$(mktemp -d)" && trap 'rm -rf "$d"' EXIT &&
       go -C implementations/tooling/go build -o "$d/archcheck" ./cmd/archcheck &&
-      toolchain_root="$(go -C implementations/tooling/go env GOROOT)" && PATH="$toolchain_root/bin:$PATH" "$d/archcheck" -design
+      toolchain_root="$(go -C implementations/tooling/go env GOROOT)" && PATH="$toolchain_root/bin:$PATH" "$d/archcheck"
     wiring_command: >-
       d="$(mktemp -d)" && trap 'rm -rf "$d"' EXIT &&
       go -C implementations/tooling/go build -o "$d/archcheck" ./cmd/archcheck &&
