@@ -361,7 +361,7 @@ instead of defining relation meaning in a report.
 | Can implementation and abstract steps be matched in one direction? | `forward-simulation` or `backward-simulation` | State relation, initiality, direction, and step obligations |
 | Do concrete states and operations preserve an abstract data model? | `data-refinement` | Retrieve relation plus initialization and operation obligations |
 | Do two branching systems match in both directions? | `strong-bisimulation` or `weak-bisimulation` | Symmetry; weak matching also names the governed hidden-action set, closure, stuttering, and divergence treatment |
-| Do two finite crossing models match in both directions with explicit hidden steps and divergence? | `divergence-preserving-branching-bisimulation` | Closed relation-parameter profile, complete finite carrier, both initial states, projection, hidden-label set, tool provenance, mutations, and a separately reviewed reproduction |
+| Do two finite crossing models match in both directions with explicit hidden steps and divergence? | `divergence-preserving-branching-bisimulation` | Closed relation-parameter profile, complete finite carrier, both initial states, projection, hidden-label set, tool provenance, and mutations, checked again on every commit |
 
 Two equal sampled histories support a bounded comparison. They do not show
 participant-policy noninterference. A successful trace sample does not show
@@ -423,12 +423,10 @@ Projection `participant-crossing-projection@rev1` hides only five mediation clas
 Denial, unsupported outcomes, delivery, observation, replay rejection, and cut advance stay visible.
 Deadlock, termination, and divergence stay explicit.
 
-The pinned mCRL2 `202607.0` `dpbranching-bisim` decision relates the declared initial states.
+The mCRL2 `202607.0` `dpbranching-bisim` decision relates the declared initial states.
 Every mandatory mutation fails the relation.
-A fresh isolated run in the qualified CI environment reproduced every result byte.
-A separate implementation-agent reviewer accepted that reproduction.
-No human review is claimed.
-Both records are unsigned.
+CI builds the models and the mutation corpus from the current sources and repeats the decision on every commit.
+No retained result record and no reviewer reproduction record exists.
 
 This is a finite model-check result.
 It is not an unbounded proof, a proof certificate, or a checked relation witness.
@@ -437,8 +435,7 @@ It does not establish policy noninterference or predicate opacity.
 It makes no timed, probabilistic, concurrent, fair, partial-order, handoff, or multi-operation claim.
 The separate multi-operation profile has no result.
 
-The original claim binding follows.
-It keeps its `independent-reproduction` nonclaim, because the claim predates the review.
+The claim binding follows.
 
 <!-- participant-crossing-claim:start -->
 ```json
@@ -482,132 +479,8 @@ It keeps its `independent-reproduction` nonclaim, because the claim predates the
 ```
 <!-- participant-crossing-claim:end -->
 
-The publication facts follow.
-A repository test compares each value with the admitted machine-check and reproduction records.
-
-<!-- participant-crossing-evidence:start -->
-```json
-{
-  "schema": "participant-crossing-publication/v1",
-  "relation": "divergence-preserving-branching-bisimulation",
-  "taxonomy": "raes-behavioral-relations@rev8",
-  "profile": "participant-crossing-dpbb-finite-v1@rev2",
-  "profile_digest": "sha256:4439d8ece4d8977f2d991b9ef6b5a73a98951ace513adf80ea4496923985dbb4",
-  "projection": "participant-crossing-projection@rev1",
-  "complete_reachable_fixed_point": true,
-  "equivalent": true,
-  "domain_counts": {
-    "audience": 1,
-    "controller": 1,
-    "decision": 6,
-    "delivery": 4,
-    "episode": 1,
-    "history_head": 4,
-    "input_class": 5,
-    "participant": 1,
-    "policy_cut": 2,
-    "replay": 3,
-    "request_id": 1
-  },
-  "models": {
-    "abstract": {
-      "model_id": "sem-230-participant-crossing-abstract",
-      "model_revision": "rev2",
-      "initial": 0,
-      "states": 88,
-      "semantic_transitions": 107,
-      "aut_transitions": 107,
-      "input_digest": "sha256:5891bbc5b3da53c7345f383da7f935ee9f8f0e4dd56b50c6edc132bbbd33964b",
-      "sidecar_digest": "sha256:8a5804e83b674b2099206b113101e2a45e60d7f08996af099dfe685e494173e3"
-    },
-    "concrete": {
-      "model_id": "api-423-run-319-crossing-kernel",
-      "model_revision": "rev2",
-      "initial": 0,
-      "states": 178,
-      "semantic_transitions": 197,
-      "aut_transitions": 197,
-      "input_digest": "sha256:8d8ca9681c2893abf048a0988aa5efc76c22e1fe148c4c75be78780e9be09b39",
-      "sidecar_digest": "sha256:108384d53dadb8aff695d9591c6fa8908af753bee14d56ed37d4c5c382203691"
-    }
-  },
-  "tool": {
-    "artifact_id": "mcrl2",
-    "version": "202607.0",
-    "archive_sha256": "00cb4c347638b3a418fb67c9d67b8d2bf2245e10d4affa4cd993b1c357bde969",
-    "executable_sha256": "b34a7ba73939222886fe6e35c2a1009fd78056369fa06d0b3c48ebfe87ec4d21",
-    "installed_tree_sha256": "c0d7d21471aff63c991d53a8c9bea8a16218ecb5ab583271396e8587c2655590"
-  },
-  "verification": {
-    "mode": "dpbranching-bisim",
-    "tau": [
-      "internal"
-    ],
-    "ordered_inputs": [
-      "abstract.aut",
-      "concrete.aut"
-    ]
-  },
-  "mutation_cases": {
-    "hidden-denial": false,
-    "hidden-divergence": false,
-    "hidden-observation": false,
-    "later-cut-replay": false,
-    "removed-delivery": false
-  },
-  "machine_check": {
-    "manifest_digest": "sha256:aa2cd2abc901a52bcf7e1a89fa847ba2b2f178df351323d994c14053fd364894",
-    "result_digest": "sha256:3d43e19e0dd2a64d69a0e9e8988774ca703c3fc2bd7f1841494f44bf395e0915",
-    "claim_digest": "sha256:b9352d55513f4ce036accb515251ec6836e7d36f97618655c2613560dd3e7cad",
-    "corpus_manifest_digest": "sha256:f6d7287d6ab121306dacd7474ebf3c3a8fe6800d6aa02cb5443c019eafbaede1",
-    "mutation_review_subject_digest": "sha256:92803733e9aa6afc765af5e8f9d5b33c98c5824dbf62afd0b86a24a79ec29e95",
-    "authenticity": "unsigned",
-    "claim_non_claims": [
-      "unbounded-proof",
-      "proof-certificate",
-      "independent-reproduction",
-      "runtime-realization",
-      "backend-conformance",
-      "noninterference",
-      "opacity",
-      "other-profiles-carriers-orders-times-probabilities-concurrency-controllers-policy-cuts-backends"
-    ],
-    "limitations": [
-      "One fresh operation with retries, sequential total order, untimed and nonprobabilistic.",
-      "Singleton participant, audience, controller, episode and request; exact policy cuts p0 and p1.",
-      "Native finite decision with no positive certificate or checked relation witness."
-    ]
-  },
-  "reproduction": {
-    "manifest_digest": "sha256:5f688c94b865150ab01bb3f482da97f9ddf245a183b4f7132ffbc778525ff81a",
-    "measurement_digest": "sha256:93fae25559c6ba70c248b0dddab5776b6e02d29f6844d2ba332b77a466ac5d24",
-    "execution_digest": "sha256:62f93384e824531c42a8ff1f22e1d60dd0f5d7ba777e4cab50b6c94072206223",
-    "review_digest": "sha256:06ba0983b57b0328305d86f56869db6d01882162e87886f806bcd212dfa535b3",
-    "decision": "accepted-bounded-reproduction",
-    "reviewer_role": "implementation-agent",
-    "producer_ref": "https://github.com/OpenRAE/rae/issues/1711#issuecomment-6539708715",
-    "reviewer_ref": "https://github.com/OpenRAE/rae/issues/1711#issuecomment-6549380713",
-    "acceptance_record_ref": "https://github.com/OpenRAE/rae/issues/1711#issuecomment-6549385245",
-    "qualified_run": "https://github.com/OpenRAE/rae/actions/runs/41242963913",
-    "qualified_artifact_digest": "sha256:32629cc57b926646742f3f6eed88e218a7fef27773c36591501c191ddc763929",
-    "source_revision": "cbaaa07993f3feb6322d7bb11cc136e2817e2740",
-    "authenticity": "unsigned",
-    "nonclaims": [
-      "runtime-realization",
-      "backend-conformance",
-      "noninterference",
-      "opacity",
-      "unbounded-proof",
-      "wider-profile"
-    ]
-  }
-}
-```
-<!-- participant-crossing-evidence:end -->
-
 The [machine-check specification](https://github.com/OpenRAE/rae/blob/dev/specs/formal/participant-semantics/participant-crossing-machine-check.md)
-and the [reproduction specification](https://github.com/OpenRAE/rae/blob/dev/specs/formal/participant-semantics/participant-crossing-reproduction.md)
-give the complete boundary.
+gives the complete boundary.
 
 ## Diagnose failures without leaking data
 

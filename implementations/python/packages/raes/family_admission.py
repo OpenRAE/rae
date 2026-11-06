@@ -1,5 +1,7 @@
 """Pure admission of normalized, import-free SDL scenario families."""
 
+from collections.abc import Iterable
+
 from pydantic import BaseModel, ValidationError
 
 from ._declaration_sources import semantic_source_diagnostics
@@ -16,20 +18,35 @@ from .scenario import ExpandedScenario, Scenario
 from .validator import SemanticValidator
 
 
+def _model_children(value: object) -> tuple[object, ...]:
+    children: Iterable[object] = ()
+    if isinstance(value, BaseModel):
+        children = (getattr(value, name) for name in type(value).model_fields)
+    elif isinstance(value, dict):
+        children = value.values()
+    elif isinstance(value, (list, tuple)):
+        children = value
+    return tuple(children)
+
+
+def _omitted_default_changed(value: object) -> bool:
+    return isinstance(value, BaseModel) and any(
+        name not in value.model_fields_set and getattr(value, name) != field.get_default(call_default_factory=True)
+        for name, field in type(value).model_fields.items()
+    )
+
+
+def has_modified_omitted_default(value: object) -> bool:
+    """Return whether a field outside the presence set differs from its default."""
+    return _omitted_default_changed(value) or any(
+        has_modified_omitted_default(child) for child in _model_children(value)
+    )
+
+
 def _check_omitted_defaults(value: object) -> None:
     """Refuse mutations that an exclude-unset reconstruction would discard."""
-    if isinstance(value, BaseModel):
-        for name, field in type(value).model_fields.items():
-            current = getattr(value, name)
-            if name not in value.model_fields_set and current != field.get_default(call_default_factory=True):
-                raise SDLParseError("Scenario has a modified omitted default; reparse SDL before family admission")
-            _check_omitted_defaults(current)
-    elif isinstance(value, dict):
-        for current in value.values():
-            _check_omitted_defaults(current)
-    elif isinstance(value, (list, tuple)):
-        for current in value:
-            _check_omitted_defaults(current)
+    if has_modified_omitted_default(value):
+        raise SDLParseError("Scenario has a modified omitted default; reparse SDL before family admission")
 
 
 def admit_scenario_family(scenario: Scenario) -> ExpandedScenario:

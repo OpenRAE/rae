@@ -15,6 +15,7 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 
 from pydantic import ValidationError  # noqa: E402
 from raes_conformance.conformance import validate_contract_payload  # noqa: E402
+from raes_contracts.contract_seals import seal_contract_fixture  # noqa: E402
 from raes_contracts.errors import InvalidInputError  # noqa: E402
 from raes_contracts.operational_logging import run_application  # noqa: E402
 from raes_contracts.scientific_completeness import (  # noqa: E402
@@ -128,7 +129,9 @@ def _validate_evidence_paths(
                     )
                 )
                 continue
-            diagnostics = validate_contract_payload(contract_id, payload)
+            # Fixture witnesses leave derived fields out; seal them as the contract computes them (issue #1929).
+            sealed = seal_contract_fixture(contract_id, payload, kind=resolved.parent.name)
+            diagnostics = validate_contract_payload(contract_id, sealed)
             if diagnostics:
                 failures.append(
                     PolicyFailure(

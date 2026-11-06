@@ -24,6 +24,7 @@ from ._participant_opacity_model import (
     ParticipantOpacityModelCheckDeclaredCountsModel,
     _validate_model_check_claim_scope,
 )
+from ._sealing import sealing_active
 from .canonical import canonical_json_digest
 from .diagnostics import DiagnosticModel
 from .versions import PARTICIPANT_OPACITY_MODEL_CHECK_EVIDENCE_SCHEMA_VERSION
@@ -189,9 +190,9 @@ class ParticipantOpacityModelCheckEvidenceModel(ContractModel):
     def _validate_model_check_evidence(
         self,
     ) -> ParticipantOpacityModelCheckEvidenceModel:
-        if self.assumptions_digest != self.assumptions.canonical_digest:
+        if not sealing_active() and self.assumptions_digest != self.assumptions.canonical_digest:
             raise ValueError("assumptions_digest must bind the model-check assumptions")
-        if self.checker_configuration_digest != self.checker_configuration.canonical_digest:
+        if not sealing_active() and self.checker_configuration_digest != self.checker_configuration.canonical_digest:
             raise ValueError("checker_configuration_digest must bind the model-check configuration")
         if self.claim.taxonomy_id != self.taxonomy_id:
             raise ValueError("model-check claim taxonomy id must match the evidence")
@@ -286,18 +287,12 @@ def _validate_nonpositive_model_check_outcome(
             raise ValueError("model-check unsupported reason codes must match diagnostics")
 
 
-def _validate_counterexample_join(
-    evidence: ParticipantOpacityModelCheckEvidenceModel,
-) -> None:
+def model_check_counterexample_digest(evidence: ParticipantOpacityModelCheckEvidenceModel) -> str:
+    """Return the digest that binds the safe model-check counterexample of *evidence*."""
     counterexample = evidence.counterexample
-    assert counterexample is not None
-    if counterexample.actual_state_ordinal >= evidence.coverage.declared.states:
-        raise ValueError("model-check counterexample state must reference the declared model")
-    if any(
-        ordinal >= evidence.coverage.declared.transitions for ordinal in counterexample.actual_path_transition_ordinals
-    ):
-        raise ValueError("model-check counterexample path must reference declared transitions")
-    expected_digest = participant_opacity_model_check_counterexample_digest(
+    if counterexample is None:
+        raise ValueError("model-check counterexample outcome requires a counterexample payload")
+    return participant_opacity_model_check_counterexample_digest(
         ParticipantOpacityModelCheckCounterexampleDigestInput(
             safe_ref=counterexample.safe_ref,
             actual_state_ordinal=counterexample.actual_state_ordinal,
@@ -309,7 +304,20 @@ def _validate_counterexample_join(
             derived_carrier_digest=evidence.derived_carrier_digest,
         )
     )
-    if counterexample.counterexample_digest != expected_digest:
+
+
+def _validate_counterexample_join(
+    evidence: ParticipantOpacityModelCheckEvidenceModel,
+) -> None:
+    counterexample = evidence.counterexample
+    assert counterexample is not None
+    if counterexample.actual_state_ordinal >= evidence.coverage.declared.states:
+        raise ValueError("model-check counterexample state must reference the declared model")
+    if any(
+        ordinal >= evidence.coverage.declared.transitions for ordinal in counterexample.actual_path_transition_ordinals
+    ):
+        raise ValueError("model-check counterexample path must reference declared transitions")
+    if not sealing_active() and counterexample.counterexample_digest != model_check_counterexample_digest(evidence):
         raise ValueError("model-check counterexample digest must bind the safe counterexample")
 
 

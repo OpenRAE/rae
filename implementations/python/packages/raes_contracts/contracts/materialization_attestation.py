@@ -15,6 +15,7 @@ from raes_contracts.materialization_inventory import RuntimeInventoryReport
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
+from .._sealing import sealing_active
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .experiment_references import ExperimentReferenceModel
@@ -60,7 +61,6 @@ class MaterializationArchiveRecord(ContractModel):
         if (
             self.artifact.role != "materialization-attestation"
             or self.reference.ref_id != self.artifact.artifact_id
-            or self.artifact.uri != f"urn:sha256:{self.artifact.checksum.value}"
             or self.artifact.checksum.algorithm != "sha256"
             or self.artifact.media_type != "application/vnd.raes.sdl+yaml"
             or self.artifact.sensitivity not in {"restricted", "redacted"}
@@ -68,6 +68,12 @@ class MaterializationArchiveRecord(ContractModel):
             raise ValueError("materialization artifact reference does not bind the protected SDL artifact")
         if self.artifact.size_bytes > MATERIALIZATION_MAX_BYTES:
             raise ValueError("materialization artifact exceeds the materialization document limit")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_artifact_uri(self) -> MaterializationArchiveRecord:
+        if not sealing_active() and self.artifact.uri != materialization_artifact_uri(self.artifact.checksum.value):
+            raise ValueError("materialization artifact reference does not bind the protected SDL artifact")
         return self
 
 
@@ -156,3 +162,8 @@ def attach_materialization_invariants(contract_id: str, schema: dict[str, Any]) 
             validator=validator,
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
+
+
+def materialization_artifact_uri(checksum: str) -> str:
+    """Return the content-addressed URI of a materialization artifact with the SHA-256 *checksum*."""
+    return f"urn:sha256:{checksum}"

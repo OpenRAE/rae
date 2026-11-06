@@ -1,10 +1,5 @@
 {
-  "content_hash": "fa060c5cd8cd3214f6a5e35f10286621b0e8e6315a5957058451f5d33b76812f",
   "contract_id": "backend-augmentation-scope-v1",
-  "last_change": {
-    "content_hash": "fa060c5cd8cd3214f6a5e35f10286621b0e8e6315a5957058451f5d33b76812f",
-    "summary": "Raise the shared materialization document limit to 4 MiB for the full source snapshot, submitted SDL and prospective augmentation content, so a released full-size scenario keeps its complete admitted source (#1742)."
-  },
   "schema_path": "contracts/schemas/plans/backend-augmentation-scope-v1.json",
   "stability": "draft"
 }

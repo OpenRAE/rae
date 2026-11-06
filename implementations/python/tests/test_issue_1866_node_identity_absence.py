@@ -28,8 +28,10 @@ from test_sce_002_trial_realization import _realization_inputs, _request_with_pr
 
 _ADDRESS = "provision.node.primary"
 _IDENTITIES = (("os_distribution", "os-distribution"), ("architecture", "node-architecture"))
+_EXPLICIT_NULL = {"os_distribution": None, "architecture": None}
 _CASES = [
     pytest.param({}, (None, None), id="both-omitted"),
+    pytest.param(_EXPLICIT_NULL, (None, None), id="both-null"),
     pytest.param({"architecture": "x86_64"}, (None, "x86_64"), id="distribution-omitted"),
     pytest.param({"os_distribution": "ubuntu"}, ("ubuntu", None), id="architecture-omitted"),
     pytest.param({"os_distribution": "ubuntu", "architecture": "x86_64"}, ("ubuntu", "x86_64"), id="explicit"),
@@ -70,6 +72,10 @@ def test_identity_values_and_recursive_commitments_survive_plan_roundtrip(identi
         assert field in restored_operation.payload
         assert restored_operation.payload[field] == value
         authority = next(entry for entry in provisioning.realization_authority if entry.requirement_kind == kind)
+        if field not in identity:
+            # An omitted field stays omitted through selection, so it carries no recursive commitment.
+            assert authority.constraint_document is None
+            continue
         assert authority.constraint_document is not None
         projected = project_realization_concern(kind, operation.payload[field], recursive=True)
         assert realization_constraint_binding(authority.constraint_document, projected) == authority.constraint_binding
@@ -79,6 +85,10 @@ def test_identity_values_and_recursive_commitments_survive_plan_roundtrip(identi
 
 def _trial(identity):
     request = _request_with_processor().with_family(admit_scenario_family(parse_sdl(_source(identity))))
+    return _trial_from_request(request, target_name="identity")
+
+
+def _trial_from_request(request, *, target_name):
     experiment = request.experiment.model_dump(mode="json")
     experiment["run_plan"].update(target_run_count=1, selection_policies={}, stochastic_controls=[])
     request = request.with_experiment(type(request.experiment).model_validate(experiment))
@@ -104,11 +114,11 @@ def _trial(identity):
     assert len(compiled.plan.entries) == 1
     inputs = _realization_inputs(request, compiled.plan, request.task)
     realized = realize_admitted_trial_entry(
-        inputs=inputs, plan_entry_id=next(iter(compiled.plan.entries)), target_name="identity"
+        inputs=inputs, plan_entry_id=next(iter(compiled.plan.entries)), target_name=target_name
     )
     assert realized.execution_plan.is_valid, realized.execution_plan.diagnostics
     manifest = realized.execution_plan.manifest
-    target = RuntimeTarget(name="identity", manifest=manifest, **vars(create_stub_components(manifest=manifest)))
+    target = RuntimeTarget(name=target_name, manifest=manifest, **vars(create_stub_components(manifest=manifest)))
     return inputs, target, realized
 
 
@@ -146,7 +156,7 @@ def test_prepared_node_rejects_identity_that_differs_from_its_typed_specificatio
 def test_inconsistent_identity_is_refused_before_experiment_admission(monkeypatch, field, kind, substitution):
     import raes_runtime.runtime_experiment as experiment_module
 
-    inputs, target, _ = _trial({})
+    inputs, target, _ = _trial(_EXPLICIT_NULL)
     original = experiment_module.realize_admitted_trial_entry
 
     def substituted(**kwargs):

@@ -52,7 +52,6 @@ def test_software_ownership_does_not_expand_other_semantics_requirements():
 
 
 def test_software_architecture_change_is_recorded_in_the_accepted_adr():
-    from tools.check_adr_immutability import content_hash
     from tools.policy.common import load_yaml
 
     manifest = load_yaml(ROOT / "docs/decisions/adrs/adr-index.yaml")
@@ -61,4 +60,3 @@ def test_software_architecture_change_is_recorded_in_the_accepted_adr():
     assert "## Software requirement refinements (issue #1205)" in text
     assert "| 2026-09-12 | #1205 |" in text
     assert any(item["ref"] == "#1205" for item in entry["amendments"])
-    assert entry["pin"] == content_hash(text)

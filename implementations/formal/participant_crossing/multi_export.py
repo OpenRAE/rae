@@ -14,11 +14,10 @@ from raes_contracts.json_ingress import parse_bounded_json_object
 from . import multi_abstract, multi_concrete
 from .aut import parse_aut, render_aut
 from .export import SOURCE_PATHS as LEGACY_SOURCE_PATHS
-from .export import _check_expected, _profile_catalog, _validate_graph, digest, publish_bundle
+from .export import _profile_catalog, _validate_graph, digest
 from .ingress import read_bytes
 
 PROFILE_PATH = "contracts/profiles/behavioral-relation/participant-crossing-multi-operation-dpbb-finite-v1.json"
-OUTPUT_PATH = "specs/formal/participant-semantics/crossing-models/multi-rev1"
 MAX_ARTIFACT_BYTES = 32 * 1024 * 1024
 MAX_BUNDLE_BYTES = 64 * 1024 * 1024
 _PACKAGE = "implementations/python/packages/"
@@ -163,12 +162,6 @@ def build_bundle(root: Path) -> dict[str, bytes]:
         raise InvalidInputError("expected exact multi-operation profile")
     sources = {path: read_bytes(root, path) for path in SOURCE_PATHS}
     identities = {path: digest(content) for path, content in sources.items()}
-    for carrier in (profile.parameters.left, profile.parameters.right):
-        if identities[carrier.source_path] != carrier.source_digest:
-            raise EvidenceIntegrityError("model source digest drift")
-    for ref in profile.source_refs:
-        if identities.get(ref.source_ref) != ref.source_digest:
-            raise EvidenceIntegrityError("profile source digest drift")
     if any(identities[path] != expected for path, expected in _EXECUTING_SOURCE_DIGESTS.items()):
         raise EvidenceIntegrityError("executing source identity drift")
     _independence(sources)
@@ -249,8 +242,5 @@ def build_bundle(root: Path) -> dict[str, bytes]:
 
 
 def check(root: Path) -> None:
-    _check_expected(root, build_bundle(root), OUTPUT_PATH, max_bytes=MAX_ARTIFACT_BYTES)
-
-
-def publish(root: Path) -> None:
-    publish_bundle(root, build_bundle(root), OUTPUT_PATH, max_bytes=MAX_ARTIFACT_BYTES)
+    """Build and validate the multi-operation bundle from the current sources; nothing is committed."""
+    build_bundle(root)

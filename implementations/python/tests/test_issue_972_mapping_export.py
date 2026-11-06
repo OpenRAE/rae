@@ -7,7 +7,7 @@ import pytest
 from crossing_model_fixtures import ROOT
 from crossing_runtime_cases import collect_cases
 from implementations.formal.participant_crossing import runtime_mapping_export as export
-from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
+from raes_contracts.errors import InvalidInputError
 
 
 @pytest.fixture(scope="module")
@@ -21,7 +21,6 @@ def test_bundle_is_deterministic_and_keeps_claims_separate(reports):
     manifest = json.loads(bundle["manifest.json"])
     assert manifest["profile"] == "participant-crossing-dpbb-finite-v1@rev2"
     assert manifest["equivalence_result"] == manifest["runtime_realization"] == "not-established"
-    assert manifest["historical_source_drift"]
     assert "contracts/schema-publication/tombstones" in manifest["source_exclusions"]
     assert manifest["case_counts"]["match"] >= 4
     assert manifest["case_counts"]["incompatible"] > 0
@@ -71,36 +70,6 @@ def test_symlinked_source_directory_is_rejected(tmp_path, monkeypatch):
         export.source_pins(tmp_path)
 
 
-@pytest.mark.parametrize("fault", ["source", "artifact", "profile", "case"])
-def test_drift_is_rejected_without_overwriting_artifacts(tmp_path, reports, fault):
-    from unittest.mock import patch
-
-    expected = export.build_bundle(ROOT, reports)
-    for name, data in expected.items():
-        path = tmp_path / export.OUTPUT_PATH / name
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
-    if fault == "case":
-        changed = dict(reports)
-        changed["ingress/plain/p0"] = dict(changed["ingress/plain/p0"], classification="match")
-        candidate = export.build_bundle(ROOT, changed)
-    else:
-        candidate = dict(expected)
-        if fault == "artifact":
-            (tmp_path / export.OUTPUT_PATH / "cases.json").write_bytes(b"{}\n")
-        else:
-            manifest = json.loads(candidate["manifest.json"])
-            manifest["source_digests" if fault == "source" else "profile"] = "changed"
-            candidate["manifest.json"] = json.dumps(manifest).encode()
-    before = {name: (tmp_path / export.OUTPUT_PATH / name).read_bytes() for name in expected}
-    with (
-        patch.object(export, "build_bundle", return_value=candidate),
-        pytest.raises(EvidenceIntegrityError, match="drift"),
-    ):
-        export.check(tmp_path, reports)
-    assert {name: (tmp_path / export.OUTPUT_PATH / name).read_bytes() for name in expected} == before
-
-
 def test_release_version_bump_keeps_mapping_capture_identity():
     from tools.research_evidence import RELEASE_MANAGED_VERSION_SOURCE
 
@@ -120,20 +89,3 @@ def test_release_version_bump_keeps_mapping_capture_identity():
         pins = export.source_pins(ROOT)
     assert RELEASE_MANAGED_VERSION_SOURCE in reads
     assert pins == export.source_pins(ROOT)
-
-
-def test_a_removed_historical_source_is_drift_and_an_unsafe_one_is_refused(tmp_path) -> None:
-    (tmp_path / "kept.py").write_bytes(b"same")
-    (tmp_path / "changed.py").write_bytes(b"new")
-    (tmp_path / "link.py").symlink_to(tmp_path / "kept.py")
-    pins = {
-        "kept.py": export.export.digest(b"same"),
-        "changed.py": export.export.digest(b"old"),
-        "removed.py": export.export.digest(b"gone"),
-        "gone/deep.py": export.export.digest(b"gone"),
-    }
-
-    assert export.source_drift(tmp_path, pins) == ["changed.py", "gone/deep.py", "removed.py"]
-    link_pins = {"link.py": export.export.digest(b"same")}
-    with pytest.raises(InvalidInputError, match="unsafe"):
-        export.source_drift(tmp_path, link_pins)

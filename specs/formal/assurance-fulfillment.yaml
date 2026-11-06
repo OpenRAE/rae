@@ -217,9 +217,9 @@ entries:
   - subsystem: scenario-variation-trial-realization
     # Executable SCE-002 coverage: #786/#787 deliver family/selection authoring,
     # #788 the sealed plan, and #789 selected-scenario admission plus deterministic
-    # compilation. #785 delivers the SCE-006 isolated batch-trial scheduling
-    # handoff (deterministic order, secret-scope isolation proof, and the
-    # immutable batch execution receipt over the one-entry realization seam).
+    # compilation. #785 delivers the SCE-006 batch-trial scheduling handoff
+    # (deterministic order and the immutable batch execution receipt over the
+    # one-entry realization seam). #1940 removed the isolation proof.
     # Runtime provenance/fact-binding remains sequenced.
     delivered_artifacts:
       - kind: unit_tests
@@ -366,14 +366,6 @@ entries:
         path: specs/formal/participant-semantics/participant-crossing-models.md
       - kind: unit_tests
         path: implementations/python/tests/test_issue_974_machine_check.py
-      - kind: unit_tests
-        path: implementations/python/tests/test_issue_975_reproduction_record.py
-      - kind: unit_tests
-        path: implementations/python/tests/test_issue_976_evidence_identity.py
-      - kind: unit_tests
-        path: implementations/python/tests/test_issue_976_crossing_publication.py
-      - kind: property_based_or_differential_tests
-        path: implementations/python/tests/test_issue_975_reproduction.py
       - kind: unit_tests
         path: implementations/python/tests/test_issue_1008_evaluation_backed_claims.py
       - kind: invariant_list

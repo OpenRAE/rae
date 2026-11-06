@@ -226,9 +226,7 @@
         {"kind": "conformance", "path": "implementations/python/packages/raes_conformance/conformance/report.py", "claim": "Cross-field report validation binding relation, quantifier, evidence scope, claimed case set, and execution basis before serialization or persistence."},
         {"kind": "documentation", "path": "docs/research/behavioral-relations/conflation-audit-2026-07-13.md", "claim": "Claim-surface conflation audit and remediation record."},
         {"kind": "normative-spec", "path": "specs/formal/participant-semantics/participant-crossing-machine-check.md", "claim": "Finite divergence-preserving branching-bisimulation check boundary, subject identity, and nonclaims for participant-crossing-dpbb-finite-v1@rev2."},
-        {"kind": "test", "path": "implementations/python/tests/test_issue_974_machine_check.py", "claim": "Complete-carrier, mutation, source-drift, and claim-promotion refusals for the finite model-check result."},
-        {"kind": "test", "path": "implementations/python/tests/test_issue_975_reproduction_record.py", "claim": "The pinned qualified reproduction joins its measurement, execution record, and separate implementation-agent review to the pinned model-check subject."},
-        {"kind": "test", "path": "implementations/python/tests/test_issue_976_crossing_publication.py", "claim": "Published participant-crossing facts and claim equal the admitted model-check and reproduction records."}
+        {"kind": "test", "path": "implementations/python/tests/test_issue_974_machine_check.py", "claim": "Complete-carrier, negative-control, and source-drift refusals for the finite model check built from the current sources."}
       ]
     },
     {

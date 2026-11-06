@@ -173,7 +173,6 @@ def test_removed_schema_with_tombstone_is_accepted(tmp_path: Path) -> None:
     )
     manifest = {
         "schema_version": "schema-publication-manifest/v1",
-        "hash_algorithm": "sha256",
         "schemas": [],
         "removed_schemas": [{"schema_path": "contracts/schemas/old/legacy-v1.json", "summary": "removed"}],
     }
@@ -342,7 +341,6 @@ def test_removed_schema_tombstone_not_in_manifest(tmp_path: Path) -> None:
     )
     manifest = {
         "schema_version": "schema-publication-manifest/v1",
-        "hash_algorithm": "sha256",
         "schemas": [],
         "removed_schemas": [],
     }

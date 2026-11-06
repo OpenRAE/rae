@@ -1,10 +1,5 @@
 {
-  "content_hash": "84bf9a4c7680a71e1903f4a95e103a417c7910f3f14fcc5acf3a8bbfc31efdc2",
   "contract_id": "admitted-trial-plan-v1",
-  "last_change": {
-    "content_hash": "84bf9a4c7680a71e1903f4a95e103a417c7910f3f14fcc5acf3a8bbfc31efdc2",
-    "summary": "Add optional SDL trial_parallelism with open, constrained and exact capacity, preserved in admitted and assigned trial plans (#1912)."
-  },
   "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
   "stability": "draft"
 }

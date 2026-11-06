@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import re
 import subprocess
 import sys
@@ -30,7 +29,6 @@ from tools.policy.common import (  # noqa: E402
 MANIFEST_PATH = "tools/policy/historical_identity_records.json"
 MANIFEST_SCHEMA = "historical-identity-records/v3"
 MAX_MANIFEST_BYTES = 1_000_000
-SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 IDENTITY_PATTERN = re.compile(
     rb"(?:(?<![A-Za-z0-9])|(?<=\\[nrt])|(?<=\\x0[9aAdD])|(?<=\\u000[9aAdD]))"
     rb"(?:A"
@@ -53,9 +51,7 @@ GENERATED_HISTORY_CLASSES = {"generated-release-history"}
 RULE_LIVE = "identity-cutover-live-token"
 RULE_MANIFEST = "identity-cutover-manifest"
 RULE_MANIFEST_PATH = "identity-cutover-manifest-path"
-RULE_HISTORICAL_CONTENT = "identity-cutover-historical-content"
 RULE_HISTORICAL_COUNT = "identity-cutover-historical-count"
-RULE_OPERATIONAL_CONTENT = "identity-cutover-operational-content"
 RULE_OPERATIONAL_COUNT = "identity-cutover-operational-count"
 RULE_GENERATED_CONTENT = "identity-cutover-generated-content"
 RULE_GENERATED_COUNT = "identity-cutover-generated-count"
@@ -69,7 +65,6 @@ class HistoricalRecord:
     record_class: str
     rationale: str
     occurrences: int
-    content_sha256: str
 
 
 @dataclass(frozen=True)
@@ -78,7 +73,6 @@ class OperationalBinding:
     binding_class: str
     rationale: str
     occurrences: int
-    content_sha256: str
 
 
 @dataclass(frozen=True)
@@ -95,7 +89,6 @@ class GeneratedHistoryRecord:
     record_class: str
     rationale: str
     occurrences: int
-    content_sha256: str
     classified_suffix_bytes: int
 
 
@@ -123,8 +116,6 @@ def _load_historical_records(
     failures: list[PolicyFailure] = []
     if payload.get("schema_version") != MANIFEST_SCHEMA:
         failures.append(_manifest_failure(f"schema_version must be {MANIFEST_SCHEMA!r}"))
-    if payload.get("hash_algorithm") != "sha256":
-        failures.append(_manifest_failure("hash_algorithm must be 'sha256'"))
     raw_records = payload.get("records")
     if not isinstance(raw_records, list):
         failures.append(_manifest_failure("records must be a list"))
@@ -144,7 +135,6 @@ def _load_historical_records(
         "record_class",
         "rationale",
         "occurrences",
-        "content_sha256",
     }
     for index, raw_record in enumerate(raw_records):
         if not isinstance(raw_record, dict):
@@ -157,7 +147,6 @@ def _load_historical_records(
         record_class = raw_record.get("record_class")
         rationale = raw_record.get("rationale")
         occurrences = raw_record.get("occurrences")
-        content_sha256 = raw_record.get("content_sha256")
         if not isinstance(path, str) or not path:
             failures.append(_manifest_failure(f"records[{index}].path must be a non-empty string"))
             continue
@@ -179,15 +168,11 @@ def _load_historical_records(
         if isinstance(occurrences, bool) or not isinstance(occurrences, int) or occurrences < 1:
             failures.append(_manifest_failure(f"records[{index}].occurrences must be a positive integer"))
             continue
-        if not isinstance(content_sha256, str) or not SHA256_RE.fullmatch(content_sha256):
-            failures.append(_manifest_failure(f"records[{index}].content_sha256 must be a lowercase sha256 digest"))
-            continue
         records[path] = HistoricalRecord(
             path=path,
             record_class=record_class,
             rationale=rationale,
             occurrences=occurrences,
-            content_sha256=content_sha256,
         )
 
     bindings: dict[str, OperationalBinding] = {}
@@ -196,7 +181,6 @@ def _load_historical_records(
         "binding_class",
         "rationale",
         "occurrences",
-        "content_sha256",
     }
     for index, raw_binding in enumerate(raw_bindings):
         if not isinstance(raw_binding, dict):
@@ -211,7 +195,6 @@ def _load_historical_records(
         binding_class = raw_binding.get("binding_class")
         rationale = raw_binding.get("rationale")
         occurrences = raw_binding.get("occurrences")
-        content_sha256 = raw_binding.get("content_sha256")
         if not isinstance(path, str) or not path:
             failures.append(_manifest_failure(f"operational_bindings[{index}].path must be a non-empty string"))
             continue
@@ -235,17 +218,11 @@ def _load_historical_records(
         if isinstance(occurrences, bool) or not isinstance(occurrences, int) or occurrences < 1:
             failures.append(_manifest_failure(f"operational_bindings[{index}].occurrences must be a positive integer"))
             continue
-        if not isinstance(content_sha256, str) or not SHA256_RE.fullmatch(content_sha256):
-            failures.append(
-                _manifest_failure(f"operational_bindings[{index}].content_sha256 must be a lowercase sha256 digest")
-            )
-            continue
         bindings[path] = OperationalBinding(
             path=path,
             binding_class=binding_class,
             rationale=rationale,
             occurrences=occurrences,
-            content_sha256=content_sha256,
         )
 
     generated: dict[str, GeneratedHistoryRecord] = {}
@@ -254,7 +231,6 @@ def _load_historical_records(
         "record_class",
         "rationale",
         "occurrences",
-        "content_sha256",
         "classified_suffix_bytes",
     }
     for index, raw_record in enumerate(raw_generated):
@@ -270,7 +246,6 @@ def _load_historical_records(
         record_class = raw_record.get("record_class")
         rationale = raw_record.get("rationale")
         occurrences = raw_record.get("occurrences")
-        content_sha256 = raw_record.get("content_sha256")
         suffix_bytes = raw_record.get("classified_suffix_bytes")
         if not isinstance(path, str) or not path:
             failures.append(_manifest_failure(f"generated_history_records[{index}].path must be a non-empty string"))
@@ -297,13 +272,6 @@ def _load_historical_records(
                 _manifest_failure(f"generated_history_records[{index}].occurrences must be a positive integer")
             )
             continue
-        if not isinstance(content_sha256, str) or not SHA256_RE.fullmatch(content_sha256):
-            failures.append(
-                _manifest_failure(
-                    f"generated_history_records[{index}].content_sha256 must be a lowercase sha256 digest"
-                )
-            )
-            continue
         if isinstance(suffix_bytes, bool) or not isinstance(suffix_bytes, int) or suffix_bytes < 1:
             failures.append(
                 _manifest_failure(
@@ -316,7 +284,6 @@ def _load_historical_records(
             record_class=record_class,
             rationale=rationale,
             occurrences=occurrences,
-            content_sha256=content_sha256,
             classified_suffix_bytes=suffix_bytes,
         )
     return records, bindings, generated, failures
@@ -345,7 +312,7 @@ def _evaluate_generated_history(
     content: bytes,
     relative_path: str,
 ) -> list[PolicyFailure]:
-    """Pin the classified tail exactly and hold the generated head to zero occurrences."""
+    """Count retired identities in the classified tail and hold the generated head to zero occurrences."""
     boundary = len(content) - record.classified_suffix_bytes
     if boundary < 0:
         return [
@@ -361,16 +328,6 @@ def _evaluate_generated_history(
 
     head, suffix = content[:boundary], content[boundary:]
     failures: list[PolicyFailure] = []
-
-    digest = hashlib.sha256(suffix).hexdigest()
-    if digest != record.content_sha256:
-        failures.append(
-            PolicyFailure(
-                RULE_GENERATED_CONTENT,
-                "generated history record tail no longer matches its classified digest",
-                relative_path,
-            )
-        )
 
     suffix_matches = list(IDENTITY_PATTERN.finditer(suffix))
     if len(suffix_matches) != record.occurrences:
@@ -470,19 +427,6 @@ def evaluate_identity_cutover(repo_root: Path = REPO_ROOT) -> list[PolicyFailure
         binding = bindings.get(relative_path)
         content_bound = record or binding
         if content_bound is not None:
-            digest = hashlib.sha256(content).hexdigest()
-            if digest != content_bound.content_sha256:
-                failures.append(
-                    PolicyFailure(
-                        RULE_HISTORICAL_CONTENT if record is not None else RULE_OPERATIONAL_CONTENT,
-                        (
-                            "historical record content no longer matches its classified digest"
-                            if record is not None
-                            else "operational binding content no longer matches its classified digest"
-                        ),
-                        relative_path,
-                    )
-                )
             if len(matches) != content_bound.occurrences:
                 failures.append(
                     PolicyFailure(

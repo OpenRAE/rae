@@ -19,7 +19,7 @@ from tools.verified_tree_manifest import parse_manifest
 
 
 @pytest.mark.parametrize("source", ["tools/debian_tree_decoder.py", "tools/bounded_tool_process.py"])
-def test_proof_pins_include_decoder_import_dependencies(source: str) -> None:
+def test_proof_declares_decoder_import_dependencies(source: str) -> None:
     from tools.check_participant_opacity_proof import (
         PROOF_TOOL_SOURCE_PATHS,
         ProofEvidenceError,
@@ -32,8 +32,9 @@ def test_proof_pins_include_decoder_import_dependencies(source: str) -> None:
     toolchain = deepcopy(load_proof_manifest()["toolchain"])
     _validate_tool_sources(toolchain, root)
     selected = next(item for item in toolchain["tool_sources"] if item["path"] == source)
+    # The replay reads the current tool sources, so a stored digest is a retired key (issue #1929).
     selected["digest"] = "sha256:" + "0" * 64
-    with pytest.raises(ProofEvidenceError, match="source digest"):
+    with pytest.raises(ProofEvidenceError, match="open or incomplete shape"):
         _validate_tool_sources(toolchain, root)
 
 

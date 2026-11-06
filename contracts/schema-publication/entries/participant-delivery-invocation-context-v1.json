@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-delivery-invocation-context-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-delivery-invocation-context-v1.json",
-  "stability": "draft",
-  "content_hash": "87500eff330e743adf5199264dda0ee5ecabddca67ecc9d16a7d08501884aa3d",
-  "last_change": {
-    "summary": "Add runtime-owned delivery invocations and typed child tool history without an autonomous policy (#1829).",
-    "content_hash": "87500eff330e743adf5199264dda0ee5ecabddca67ecc9d16a7d08501884aa3d"
-  }
+  "stability": "draft"
 }

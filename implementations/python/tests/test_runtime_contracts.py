@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import observability_evidence_conformance_diagnostics
@@ -61,7 +61,7 @@ SEMANTIC_INVALID_EXPERIMENT_CORE_FIXTURES = {
 def _experiment_fixture(contract_id: str, fixture_name: str = "reference.json") -> dict:
     repo_root = Path(__file__).resolve().parents[3]
     fixture_path = repo_root / "contracts" / "fixtures" / "experiment-core" / contract_id / "valid" / fixture_name
-    return json.loads(fixture_path.read_text(encoding="utf-8"))
+    return load_contract_fixture(fixture_path)
 
 
 def _processor_manifest_fixture() -> dict:
@@ -75,7 +75,7 @@ def _processor_manifest_fixture() -> dict:
         / "valid"
         / "reference.json"
     )
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["identity"]["version"] = "0.1.0"
     payload["compatibility"]["backends"] = ["stub-backend"]
     return payload
@@ -86,7 +86,7 @@ def _backend_manifest_fixture() -> dict:
     fixture_path = (
         repo_root / "contracts" / "fixtures" / "backend-manifest" / "backend-manifest-v2" / "valid" / "stub.json"
     )
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["identity"]["name"] = "stub-backend"
     payload["identity"]["version"] = "0.1.0"
     return payload
@@ -620,7 +620,7 @@ def test_experiment_core_valid_fixtures_pass_model_validation():
     for contract_id, model_cls in EXPERIMENT_CORE_FIXTURE_MODELS.items():
         validator = Draft202012Validator(schemas[contract_id])
         for path in sorted((fixture_root / contract_id / "valid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             validator.validate(payload)
             model = model_cls.model_validate(payload)
             assert model.schema_version == payload["schema_version"]
@@ -634,7 +634,7 @@ def test_experiment_core_invalid_fixtures_fail_schema_and_model_validation():
     for contract_id, model_cls in EXPERIMENT_CORE_FIXTURE_MODELS.items():
         validator = Draft202012Validator(schemas[contract_id])
         for path in sorted((fixture_root / contract_id / "invalid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             if (contract_id, path.name) in SEMANTIC_INVALID_EXPERIMENT_CORE_FIXTURES:
                 assert not list(validator.iter_errors(payload)), path
                 model = model_cls.model_validate(payload)
@@ -2008,11 +2008,11 @@ def test_participant_implementation_fixtures_pass_schema_and_model_validation():
         fixture_root = repo_root / "contracts" / "fixtures" / contract_id.rsplit("-", 1)[0] / contract_id
         validator = Draft202012Validator(generated[contract_id])
         for path in sorted((fixture_root / "valid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             validator.validate(payload)
             model_cls.model_validate(payload)
         for path in sorted((fixture_root / "invalid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             schema_errors = list(validator.iter_errors(payload))
             try:
                 model_cls.model_validate(payload)

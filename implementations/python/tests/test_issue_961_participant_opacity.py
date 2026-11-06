@@ -7,6 +7,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
 from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
@@ -727,7 +728,7 @@ def test_published_profile_input_and_evidence_fixtures(
     root = REPO_ROOT / "contracts/fixtures" / fixture_family / contract_id / fixture
     diagnostics = _fixture_case_diagnostics(
         contract_id,
-        json.loads(root.read_text(encoding="utf-8")),
+        load_contract_fixture(root),
     )
 
     assert (not diagnostics) is valid

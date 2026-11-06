@@ -20,12 +20,12 @@ Use [`TEMPLATE.md`](TEMPLATE.md) when drafting a new ADR.
 
 ## Principles
 
-- An **accepted** ADR's content is **pinned** and citable. Its acceptance (or
-  last-amendment) content hash is recorded in
-  [`adr-index.yaml`](adr-index.yaml) and enforced by the `policy` nox session
-  (`tools/check_adr_immutability.py`). A substantive change to an accepted ADR
-  is legitimate only as a new **superseding** ADR, or as a recorded **amendment**
-  (a `## Amendments` row plus an updated pin, in the same change). Editorial-only
+- An **accepted** ADR's content is citable. The `policy` nox session
+  (`tools/check_adr_immutability.py`) compares each accepted ADR with the base
+  revision; [`adr-index.yaml`](adr-index.yaml) lists the accepted ADRs and stores
+  no content digest. A substantive change to an accepted ADR is legitimate only
+  as a new **superseding** ADR, or as a recorded **amendment** (a
+  `## Amendments` row in the same change). Editorial-only
   fixes (typos, formatting) also record a one-line amendment row — the gate
   cannot tell editorial from substantive, so every canonical-content change is
   recorded. See

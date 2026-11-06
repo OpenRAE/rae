@@ -27,7 +27,13 @@ They grant no trigger authority and execute nothing.
 The goal of this bucket is organizational clarity:
 
 - `schemas/` contains published contract schemas
-- `fixtures/` contains valid and invalid payload corpora for those contracts
+- `fixtures/` contains valid and invalid payload corpora for those contracts.
+  A `valid/` or `context-invalid/` fixture leaves out derived fields, such as a
+  self-digest (`plan_digest`, `entry_digest`) or a derived identifier
+  (`selection_id`). Readers fill them with
+  `raes_contracts.contract_seals.seal_contract_fixture`, which computes each
+  value the way the owning contract verifies it. An `invalid/` fixture stays as
+  written, so it can test an absent or wrong derived value.
 - `profiles/` contains capability profiles, the governed validation-profile
   catalog, and separately versioned scientific-completeness
   taxonomy/assessment declarations
@@ -68,14 +74,13 @@ regenerating from a reference implementation. The Python `schema_bundle()` and
 `tools/generate_contract_schemas.py` are the reference implementation's output;
 `tools/check_generated_schemas.py` runs that generation into a throwaway
 directory and **proves the reference implementation still matches the published
-normative schemas** (it never overwrites them). A schema change must update its
-contract record with a contract-facing `last_change` ledger (summary + content
-hash); a schema **removal** must add an independent tombstone record (schema path
-+ summary) under `schema-publication/tombstones/`.
-`tools/check_schema_publication.py --base-rev` and the
-`schema-change-missing-manifest` policy rule reject a `contracts/schemas/`
-change — including a removal — that lands without one, so a schema cannot
-change without contract-level review. This is the steady state ADR-009 §7 calls for;
+normative schemas** (it never overwrites them). A new schema adds one record
+under `schema-publication/entries/`. A schema change does not edit its record:
+git holds the schema history, and the pull request review covers the change. A
+schema **removal** adds an independent tombstone record (schema path + summary)
+under `schema-publication/tombstones/`. `tools/check_schema_publication.py
+--base-rev` refuses an incompatible change to a `stable` schema and a removal
+without a tombstone. This is the steady state ADR-009 §7 calls for;
 optional code generation *from* the normative schemas into implementation
 bindings remains future work.
 

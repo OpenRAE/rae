@@ -11,6 +11,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
+from .._sealing import sealing_active
 from .base import ContractModel, NonEmptyString, Sha256DigestString
 from .experiment_bindings import (
     BindingOwnerModel,
@@ -70,13 +71,7 @@ class ExperimentScenarioSelectionDescriptorModel(ExperimentFactorLevelSelectionM
 
     @model_validator(mode="after")
     def _validate_identity(self) -> ExperimentScenarioSelectionDescriptorModel:
-        expected = (
-            "selection-"
-            + canonical_json_digest(
-                [self.source_condition_id, self.source_factor_id, self.target.canonical_key()]
-            ).split(":", 1)[1]
-        )
-        if self.selection_id != expected:
+        if not sealing_active() and self.selection_id != scenario_selection_id(self):
             raise ValueError("selection identity must match its source and canonical target")
         return self
 
@@ -173,3 +168,11 @@ def validate_plan_treatments(plan: AdmittedTrialPlanModel) -> None:
         if plan.profiles.treatment_profile != "factorial-treatments-v1":
             raise ValueError("typed treatment records require the treatment profile")
         _validate_entry_treatments(entry, selections, plan.input_refs.scenario_family_ref)
+
+
+def scenario_selection_id(descriptor: ExperimentScenarioSelectionDescriptorModel) -> str:
+    """Return the selection identity derived from its source condition, factor and canonical target."""
+    digest = canonical_json_digest(
+        [descriptor.source_condition_id, descriptor.source_factor_id, descriptor.target.canonical_key()]
+    )
+    return "selection-" + digest.split(":", 1)[1]

@@ -13,8 +13,7 @@
       "selection_policy_profile": "experiment-selection-v1",
       "random_stream_profile": "blake3-xof-v1",
       "execution_control_profile": "attempt-control-v1",
-      "cleanup_profile": "trial-cleanup-v1",
-      "isolation_profile": "scheduler-isolation-v1"
+      "cleanup_profile": "trial-cleanup-v1"
     },
     "input_refs": {
       "authoring_input_ref": {
@@ -129,7 +128,6 @@
         }
       }
     },
-    "isolation_proof": null,
     "entries": {
       "entry-a": {
         "plan_entry_id": "entry-a",
@@ -243,8 +241,7 @@
           "plan_entry_id": "entry-a",
           "run_id": "run-a",
           "scenario_family_id": "family-a"
-        },
-        "entry_digest": "sha256:e1e0533ce89453684a554361eee26f2c561b2675172710cb161358e6f8c67eec"
+        }
       }
     },
     "admission": {
@@ -252,8 +249,7 @@
       "entry_count": 1,
       "limitations": [],
       "diagnostics": []
-    },
-    "plan_digest": "sha256:6cf259e1cd9d60745dec7ae118be964aca47a65606fed309a10db14cb52ba5db"
+    }
   },
   "plan_entry_id": "entry-a",
   "execution_attempt_id": "attempt:b1e800b3-c9de-59bb-b0e8-6bab5e1380de",
@@ -296,7 +292,5 @@
       }
     }
   ],
-  "effective_parallelism": 1,
-  "isolation_proof_ref": null,
-  "lease_evidence_refs": []
+  "effective_parallelism": 1
 }

@@ -15,7 +15,7 @@ updated_at: 2026-11-03T03:45:48.397489Z
 
 The RAE processor and runtime shall orchestrate and execute trials from an admitted experiment plan over the existing RAES single-scenario execution path. The external scheduler, including APTL, shall manage placement, isolation, timeouts, and cleanup only.
 
-Scheduling shall default to serial execution. Explicitly configured bounded parallelism shall require proven isolation of independent range instances, host capacity, ports, storage, and control-plane locks. Every trial shall receive a clean or declared reusable initial state. Every trial shall receive deterministic ordering and identity, bounded timeouts, and verified cleanup. The scheduler shall not implement a second scenario lifecycle or a private comparison/scoring engine.
+Scheduling shall default to serial execution. The SDL `trial_parallelism` value shall set the limit on concurrent trials. Every trial shall receive a clean or declared reusable initial state. Every trial shall receive deterministic ordering and identity, bounded timeouts, and verified cleanup. The scheduler shall not implement a second scenario lifecycle or a private comparison/scoring engine.
 
 ## Rationale
 
@@ -31,8 +31,8 @@ Batch execution is the apparatus mechanism that turns an RAES run allocation int
 - DOCUMENTS → GITHUB_ISSUE `785` (SCE-006 — Isolated Batch Trial Scheduling)
 - DOCUMENTS → GITHUB_ISSUE `788` (SCE-002: publish the admitted experiment trial-plan contract)
 - DOCUMENTS → GITHUB_ISSUE `790` (SCE-002: integrate trial realization with SDL instantiation and run provenance)
-- DOCUMENTS → SPEC `contracts/schemas/plans/admitted-trial-plan-v1.json` (Admitted trial-plan contract the isolated-batch scheduler consumes (serial-default + isolation-proof, cleanup, timeouts))
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/batch_execution.py` (SCE-006 batch execution receipt contract + plan-to-schedule isolation-proof and receipt validators)
+- DOCUMENTS → SPEC `contracts/schemas/plans/admitted-trial-plan-v1.json` (Admitted trial-plan contract the batch scheduler consumes (serial default, authored trial_parallelism, cleanup, timeouts))
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/batch_execution.py` (SCE-006 batch execution receipt contract and receipt validator)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_scheduler.py` (SCE-006 deterministic batch scheduling policy (canonical order + sealed-plan admitted ceiling) over the one-entry realization seam)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_coordinate_order.py` (SCE-006 single-owner canonical trial-coordinate dispatch order helper (SVR-014/SVR-031))
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/admitted_trial_plan.py` (SCE-006 single-owner canonical trial-coordinate dispatch order helper (SVR-014/SVR-031))
@@ -44,4 +44,4 @@ Batch execution is the apparatus mechanism that turns an RAES run allocation int
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_remote_trial.py` (Validate retained remote outcomes for existing record and policy owners)
 - TESTS → TEST `implementations/python/tests/test_issue_1870_assigned_trials.py` (Exact assigned entry, ownership, cancellation, and original replacement lineage)
 - TESTS → TEST `implementations/python/tests/test_issue_1870_handoff_recovery.py` (Durable redelivery, unresolved operations, and concurrent duplicate delivery)
-- TESTS → TEST `implementations/python/tests/test_sce_006_batch_scheduler.py` (SCE-006 batch scheduler tests: deterministic order, sealed-plan isolation authority, receipt validation, conformance corpus)
+- TESTS → TEST `implementations/python/tests/test_sce_006_batch_scheduler.py` (SCE-006 batch scheduler tests: deterministic order, authored parallelism bounds, receipt validation, conformance corpus)

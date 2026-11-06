@@ -9,8 +9,6 @@
   "dispatch_ordinal": 0,
   "scheduling_policy_id": "trial-coordinate-canonical-v1",
   "effective_parallelism": 2,
-  "isolation_proof_ref": "proof-parallel",
-  "lease_evidence_refs": ["lease:host-a", "lease:host-b"],
   "attempt_deadline": "2026-07-30T00:00:00Z",
   "trial_outcome": "succeeded",
   "operation_refs": ["op:provisioning-a"],

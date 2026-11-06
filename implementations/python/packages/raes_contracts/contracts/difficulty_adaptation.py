@@ -9,6 +9,7 @@ from pydantic import Field, model_validator
 
 from raes_contracts.identifiers import PortableIdentifier
 
+from .._sealing import sealing_active
 from ..canonical import canonical_json_digest
 from .base import (
     ContractModel,
@@ -226,7 +227,7 @@ class DifficultyPolicyModel(ContractModel):
 
     def _validate_policy_digest(self) -> None:
         expected_digest = difficulty_policy_digest(self)
-        if self.policy_digest != expected_digest:
+        if not sealing_active() and self.policy_digest != expected_digest:
             raise ValueError("difficulty policy_digest must match the complete immutable declaration")
 
     def _validate_keyed_children(self) -> None:

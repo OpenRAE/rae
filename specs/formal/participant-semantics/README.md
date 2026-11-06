@@ -1879,8 +1879,8 @@ SEM-232 authority, and child program. It does not run the model check. Issue
 [bounded runtime mapping](participant-crossing-runtime-mapping.md) against the single-operation rev2 carrier.
 Issue #973 delivered the [negative mutations](participant-crossing-counterexamples.md).
 Issue #974 delivered the [finite machine check](participant-crossing-machine-check.md).
-Issue #975 delivered the [isolated reproduction](participant-crossing-reproduction.md).
-Issue #976 retains a separately reviewed reproduction and publishes the result.
+Issues #975 and #976 delivered an isolated reproduction record and a published result.
+Issue #1929 removed both. CI now builds the models and the corpus and repeats the decision on every commit.
 
 The pinned `dpbranching-bisim` decision relates the declared initial states of
 the complete `participant-crossing-dpbb-finite-v1@rev2` carrier. Taxonomy

@@ -241,7 +241,7 @@ def main(fixture: Path) -> None:
     inputs, evidence = load_inputs(fixture)
     target, services = target_and_services(inputs, evidence)
     reader = OriginalProcessReader()
-    grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=("lease:installed-synthetic-hosts",))
+    grant = AllocatorGrant(effective_parallelism=2)
     entries = list(inputs.plan.entries)
     processes = []
 

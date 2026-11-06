@@ -9,6 +9,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ._sealing import sealing_active
 from .canonical import canonical_json_digest
 from .contracts.artifact_transformations import ArtifactTransformationReportModel
 from .contracts.base import ContractModel, PrefixedDigestString
@@ -290,7 +291,7 @@ class ImpactScopeModel(ContractModel):
         _require_sorted_unique(self.traversal_roots, "impact traversal_roots")
         _require_sorted_unique(tuple(_coordinate_key(item) for item in self.before_artifacts), "before artifacts")
         _require_sorted_unique(tuple(_coordinate_key(item) for item in self.after_artifacts), "after artifacts")
-        if self.scope_digest != canonical_impact_scope_digest(self):
+        if not sealing_active() and self.scope_digest != canonical_impact_scope_digest(self):
             raise ValueError("impact scope digest does not match the declared artifact scope")
         return self
 
@@ -491,7 +492,7 @@ class SemanticComparisonResultModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_result(self) -> SemanticComparisonResultModel:
-        if self.impact_scope_digest != self.impact_scope.scope_digest:
+        if not sealing_active() and self.impact_scope_digest != self.impact_scope.scope_digest:
             raise ValueError("result impact scope digest does not match the embedded scope digest")
         _require_sorted_unique(tuple(_change_key(item) for item in self.changes), "changes")
         _require_sorted_unique(tuple(_dependency_key(item) for item in self.dependencies), "dependencies")
