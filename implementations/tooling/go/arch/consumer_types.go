@@ -249,10 +249,11 @@ func (c *consumerTypes) checkPackage(name string, entry ConsumerPackage) (*types
 		return nil, err
 	}
 	pkg := types.NewPackage(name, file.Name.Name)
+	declared := declaredNames(file)
 	if legacy != nil {
 		for _, symbol := range legacy.Scope().Names() {
 			object := legacy.Scope().Lookup(symbol)
-			if object.Exported() {
+			if object.Exported() && !declared[symbol] {
 				pkg.Scope().Insert(object)
 			}
 		}
@@ -265,6 +266,79 @@ func (c *consumerTypes) checkPackage(name string, entry ConsumerPackage) (*types
 	}
 	c.checked[name] = pkg
 	return pkg, nil
+}
+
+// declaredNames returns the package-level names that a declaration file declares.
+func declaredNames(file *ast.File) map[string]bool {
+	names := map[string]bool{}
+	for _, decl := range file.Decls {
+		if fn, ok := decl.(*ast.FuncDecl); ok && fn.Recv == nil {
+			names[fn.Name.Name] = true
+		}
+		if block, ok := decl.(*ast.GenDecl); ok {
+			for _, spec := range block.Specs {
+				for _, name := range specNames(spec) {
+					names[name] = true
+				}
+			}
+		}
+	}
+	return names
+}
+
+// specNames returns the names that a type, constant or variable spec declares.
+func specNames(spec ast.Spec) []string {
+	if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+		return []string{typeSpec.Name.Name}
+	}
+	var names []string
+	if value, ok := spec.(*ast.ValueSpec); ok {
+		for _, ident := range value.Names {
+			names = append(names, ident.Name)
+		}
+	}
+	return names
+}
+
+// checkExtensions compares each declared extension that a build configuration
+// of an existing package implements with its declaration. An extension that a
+// configuration does not implement stays planned.
+func (c *consumerTypes) checkExtensions(planned ConsumerPackage, actual Package) error {
+	file, _, err := c.readDeclaration(planned)
+	if err != nil {
+		return err
+	}
+	name := c.model.consumerImport(planned)
+	checked := c.checked[name]
+	for config, snapshot := range actual.API {
+		have := c.normalizeAPI(snapshot)
+		for symbol := range declaredNames(file) {
+			if !implementsObject(have, name, symbol) {
+				continue
+			}
+			for _, line := range c.normalizeAPI(objectAPI(checked.Scope().Lookup(symbol))) {
+				if _, found := slices.BinarySearch(have, line); !found {
+					return fmt.Errorf("ARCH-015 %s: %s implements %s differently from its typed consumer contract", actual.Dir, config, symbol)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// implementsObject reports whether a sorted API snapshot declares the
+// package-level object symbol of the package path.
+func implementsObject(api []string, path, symbol string) bool {
+	qualified := path + "." + symbol
+	return slices.ContainsFunc(api, func(line string) bool {
+		for _, kind := range []string{"func ", "type ", "var ", "const "} {
+			rest, ok := strings.CutPrefix(line, kind+qualified)
+			if ok && (rest == "" || strings.ContainsAny(rest[:1], " ([")) {
+				return true
+			}
+		}
+		return false
+	})
 }
 
 func readConsumerDeclaration(repo fs.FS, p ConsumerPackage, remaining *int) (*ast.File, *token.FileSet, error) {
@@ -334,18 +408,31 @@ func (c *consumerTypes) normalizeAPI(api []string) []string {
 
 func (c *consumerTypes) checkImplementedContracts() error {
 	for _, planned := range c.model.ConsumerAPI.Packages {
-		if planned.Declarations == "" {
+		if err := c.checkImplementedContract(planned); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// checkImplementedContract compares the implemented code of one planned package
+// with its declarations. An existing package compares only its implemented extensions.
+func (c *consumerTypes) checkImplementedContract(planned ConsumerPackage) error {
+	if planned.Declarations == "" {
+		return nil
+	}
+	if planned.Existing != "" {
+		actual, _ := c.model.pkg(planned.Existing)
+		return c.checkExtensions(planned, actual)
+	}
+	for _, module := range c.model.Modules {
+		actual, ok := c.model.pkg(module.Dir + "/" + planned.Path)
+		if !ok {
 			continue
 		}
-		for _, module := range c.model.Modules {
-			actual, ok := c.model.pkg(module.Dir + "/" + planned.Path)
-			if !ok {
-				continue
-			}
-			intended := c.normalizeAPI(typeAPI(c.checked[c.model.consumerImport(planned)]))
-			if err := c.checkConsumerSnapshots(actual, intended); err != nil {
-				return err
-			}
+		intended := c.normalizeAPI(typeAPI(c.checked[c.model.consumerImport(planned)]))
+		if err := c.checkConsumerSnapshots(actual, intended); err != nil {
+			return err
 		}
 	}
 	return nil

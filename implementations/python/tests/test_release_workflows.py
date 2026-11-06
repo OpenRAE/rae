@@ -360,6 +360,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The monolithic verify job is now distributed across deterministic shards and
     # parallel lanes (#935); the reusable graph remains the single full-gate owner.
     assert set(workflow["jobs"]) == {
+        "trust-ref",
         "proof-archive",
         "generic-tool-local-inputs",
         "test-shard",
@@ -1788,3 +1789,92 @@ def test_phase_e_finalizes_go_integration_deliveries() -> None:
     assert "go-cutover" in workflow["on"]["pull_request"]["branches"]
     assert workflow["on"]["pull_request"]["types"] == ["closed"]
     assert "github.event.pull_request.merged == true" in workflow["jobs"]["finalize"]["if"]
+
+
+def test_every_canonical_job_waits_for_the_trusted_ref_gate() -> None:
+    """Each job that checks out inputs.ref runs only after trust-ref admits it (CWE-349)."""
+
+    jobs = _load(CANONICAL_PATH)["jobs"]
+
+    def needs(name: str) -> list[str]:
+        value = jobs[name].get("needs") or []
+        return [value] if isinstance(value, str) else list(value)
+
+    def reaches_gate(name: str, seen: frozenset[str] = frozenset()) -> bool:
+        return any(
+            dependency == "trust-ref" or (dependency not in seen and reaches_gate(dependency, seen | {name}))
+            for dependency in needs(name)
+        )
+
+    assert "ref" not in str(jobs["trust-ref"]["steps"][0].get("with", {}))
+    assert [name for name in jobs if name != "trust-ref" and not reaches_gate(name)] == []
+
+
+def _git(repository: Path, *arguments: str) -> str:
+    return subprocess.run(
+        ["git", *arguments], cwd=repository, check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("requested", "exit_code", "message"),
+    [
+        ("trigger", 0, "is the triggering commit"),
+        ("ancestor", 0, "is in the history of"),
+        ("sibling", 1, "Refusing"),
+        ("absent", 1, "Refusing"),
+        ("uppercase", 1, "full lowercase commit SHA"),
+    ],
+)
+def test_trusted_ref_gate_admits_only_the_triggering_history(
+    tmp_path: Path, requested: str, exit_code: int, message: str
+) -> None:
+    if shutil.which("bash") is None or shutil.which("git") is None:
+        pytest.skip("the trusted-ref gate requires bash and git")
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    environment = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "t",
+        "GIT_AUTHOR_EMAIL": "t@example.com",
+        "GIT_COMMITTER_NAME": "t",
+        "GIT_COMMITTER_EMAIL": "t@example.com",
+    }
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repository, check=True, env=environment)
+    for message_text in ("ancestor", "trigger"):
+        subprocess.run(
+            ["git", "commit", "-q", "--allow-empty", "--no-gpg-sign", "-m", message_text],
+            cwd=repository,
+            check=True,
+            env=environment,
+        )
+    trigger, ancestor = _git(repository, "rev-parse", "HEAD"), _git(repository, "rev-parse", "HEAD^")
+    subprocess.run(["git", "checkout", "-q", "-b", "other", ancestor], cwd=repository, check=True, env=environment)
+    subprocess.run(
+        ["git", "commit", "-q", "--allow-empty", "--no-gpg-sign", "-m", "sibling"],
+        cwd=repository,
+        check=True,
+        env=environment,
+    )
+    sibling = _git(repository, "rev-parse", "HEAD")
+    refs = {
+        "trigger": trigger,
+        "ancestor": ancestor,
+        "sibling": sibling,
+        "absent": "f" * 40,
+        "uppercase": trigger.upper(),
+    }
+    script = _named_step(_load(CANONICAL_PATH)["jobs"]["trust-ref"], "Admit only the triggering commit or its history")[
+        "run"
+    ]
+    completed = subprocess.run(
+        ["bash", "-c", script],
+        cwd=repository,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**environment, "REQUESTED_REF": refs[requested], "TRIGGER_SHA": trigger},
+    )
+    assert completed.returncode == exit_code, completed.stderr
+    assert message in completed.stdout + completed.stderr

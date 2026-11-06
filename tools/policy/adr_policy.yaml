@@ -33,7 +33,7 @@ concept_authority:
     - "docs/decisions/adrs/adr-012-shared-concept-authority-and-\u0061ces-extension-discipline.md"
     - docs/decisions/adrs/adr-062-concept-authority-catalog-governance-gate.md
     # Derived transport only; the JSON catalog retains its authority path.
-    - implementations/go/internal/contract/binding/concept-families-v1_generated.go
+    - implementations/go/contract/binding/concept-families-v1_generated.go
     - implementations/python/tests/test_concept_authority.py
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_backend_protocols

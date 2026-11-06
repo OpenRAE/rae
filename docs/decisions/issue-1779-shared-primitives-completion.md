@@ -104,8 +104,8 @@ Privacy and control-character rules still apply.
 
 The architecture model records the intended typed interfaces for these packages.
 These commitments bind this design to those interfaces under ADR-122.
-<!-- go-api implementations/go/internal/base/clock f83a85c9f46be5e8193bf0cd550d8b6fe3b733ba63e5a9198e2bc880fac9b122 -->
-<!-- go-api implementations/go/internal/base/fault d6f3062c93ff2c6dbd99bc8a6dc5357fae4d03fa279a950a2261cd987ad8cffb -->
+<!-- go-api implementations/go/base/clock 7f59594ce66222adb63a00e1ece5b889d6e531f6eeb68a5bca7398773238fcbd -->
+<!-- go-api implementations/go/base/fault 5bb58f771c0ad4d13ad2a8417dbc875034009e187a5929c35c5c8a3ff7ee926d -->
 <!-- go-api implementations/go/internal/base/timestamp c79504fc0ab6c66598fc2a8d8c9bf3ccbbc1f5f6e8954e9d902df236d4635500 -->
 <!-- go-api implementations/go/internal/base/softwareversion 0f7a3362a64e8fcac70abfdc26358e7790cdc0e1e9cef8719867f7bcfd1ff30d -->
 <!-- go-api implementations/go/internal/base/domain ea76356b83da53da1d7df16365e800e2fda50d9737a16fbff7e734d968b26046 -->

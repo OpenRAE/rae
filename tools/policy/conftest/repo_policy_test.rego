@@ -154,11 +154,11 @@ test_concept_authority_schema_publication_record_is_allowed if {
 
 
 test_generated_transport_does_not_allow_sibling_authority_paths if {
-  generated := "implementations/go/internal/contract/binding/concept-families-v1_generated.go"
+  generated := "implementations/go/contract/binding/concept-families-v1_generated.go"
   forbidden := {
-    "implementations/go/internal/contract/binding/concept-families-v1.json",
+    "implementations/go/contract/binding/concept-families-v1.json",
     "docs/drafts/concept-authority-notes.md",
-    "implementations/go/internal/contract/binding/concept-families-v1_generated.go.copy",
+    "implementations/go/contract/binding/concept-families-v1_generated.go.copy",
   }
   failures := deny with input as {
     "changed": array.concat([generated], sort(forbidden)),

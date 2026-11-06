@@ -39,7 +39,7 @@ func TestCommandGeneratesAndChecks(t *testing.T) {
 			t.Errorf("run(%v) = %d, stderr=%s, want 0", args, got, &stderr)
 		}
 	}
-	if err := os.WriteFile("implementations/go/internal/contract/binding/example-v1_generated.go", []byte("stale"), 0600); err != nil {
+	if err := os.WriteFile("implementations/go/contract/binding/example-v1_generated.go", []byte("stale"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	var stderr bytes.Buffer

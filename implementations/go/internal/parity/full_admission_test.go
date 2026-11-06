@@ -3,8 +3,8 @@ package parity
 import (
 	"testing"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
-	"github.com/OpenRAE/rae/implementations/go/internal/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 )
 
 // Context-free fixture claims also exercise the complete public admission path.

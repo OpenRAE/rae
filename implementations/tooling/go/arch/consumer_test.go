@@ -148,10 +148,10 @@ func TestConsumerAPICompatibility(t *testing.T) {
 	if len(m.ConsumerAPI.Commands) != 2 || m.ConsumerAPI.Commands[0].Name != "raes" || m.ConsumerAPI.Commands[0].Owner != "runtime" || m.ConsumerAPI.Commands[1].Name != "raes-mcp" || m.ConsumerAPI.Commands[1].Owner != "rae" {
 		t.Fatal("each existing executable needs its decided publisher")
 	}
-	// Adding a plan must not declare absent public packages as implemented code.
+	// Only the relocated packages are implemented; the other plans have no code.
 	for _, p := range m.ConsumerAPI.Packages {
-		if p.Existing != "" && !strings.Contains(p.Existing, "/internal/") {
-			t.Errorf("source relocation is already claimed: %s", p.Existing)
+		if _, implemented := m.pkg("implementations/go/" + p.Path); implemented != (p.Existing != "") {
+			t.Errorf("%s: implemented=%t, relocation source %q", p.Path, implemented, p.Existing)
 		}
 	}
 	for _, change := range []func(*ConsumerAPI){
@@ -231,11 +231,18 @@ func TestConsumerAPIRuntimeModulePaths(t *testing.T) {
 }
 
 func TestConsumerAPIRelocationIdentity(t *testing.T) {
+	for _, existing := range []string{"implementations/go/base/ingress", "implementations/go/internal/base/fault"} {
+		m := consumerModel(t)
+		consumerPackage(t, m, "rae:base/fault").Existing = existing
+		if !hasFinding(m.CheckDesign(), "ARCH-015", "consumer relocation") {
+			t.Errorf("relocation source %s was accepted", existing)
+		}
+	}
 	m := consumerModel(t)
-	p := consumerPackage(t, m, "rae:base/fault")
-	p.Existing = "implementations/go/internal/base/ingress"
-	if !hasFinding(m.CheckDesign(), "ARCH-015", "consumer relocation") {
-		t.Error("swapped source API was accepted")
+	for _, p := range m.ConsumerAPI.Packages {
+		if p.Existing != "" && p.Existing != "implementations/go/"+p.Path {
+			t.Errorf("%s keeps its implementation at %s, outside its public path", p.Path, p.Existing)
+		}
 	}
 	m = consumerModel(t)
 	consumerPackage(t, m, "rae:base/fault").Symbols = append(consumerPackage(t, m, "rae:base/fault").Symbols, "InventedExport")
@@ -248,5 +255,96 @@ func TestConsumerAPITypedDeclarations(t *testing.T) {
 	m := consumerModel(t)
 	if err := m.CheckConsumerTypes(t.Context(), extractionRoot(t)); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// Implemented packages keep the one-way repository boundary: RAE consumer
+// packages and entrypoints never reach runtime, and runtime reaches RAE only
+// through implemented public RAE consumer packages.
+const liveRuntime = "implementations/go/internal/runtime/live"
+
+// runtimePackage returns a runtime-layer package with the imports.
+func runtimePackage(imports ...string) Package {
+	return Package{Dir: liveRuntime, Layer: "runtime", Doc: "live", Imports: imports}
+}
+
+// editPackage applies change to the model package in dir.
+func editPackage(m *Model, dir string, change func(*Package)) {
+	for i := range m.Packages {
+		if m.Packages[i].Dir == dir {
+			change(&m.Packages[i])
+		}
+	}
+}
+
+func TestConsumerImportsStayOnTheRepositoryBoundary(t *testing.T) {
+	const live = liveRuntime
+	runtime := runtimePackage
+	addImport := func(m *Model, dir, dep string) {
+		editPackage(m, dir, func(p *Package) { p.Imports = append(p.Imports, dep) })
+	}
+	for _, tc := range []struct {
+		name, problem string
+		change        func(*Model)
+	}{
+		{"reverse import", "imports runtime package", func(m *Model) {
+			m.Packages = append(m.Packages, runtime())
+			addImport(m, "implementations/go/base/digest", live)
+		}},
+		{"indirect reverse import", "reaches runtime package " + live, func(m *Model) {
+			m.Packages = append(m.Packages, runtime())
+			addImport(m, "implementations/go/internal/base/value", live)
+		}},
+		{"rae entrypoint", "reaches runtime package " + live, func(m *Model) {
+			m.Packages = append(m.Packages, runtime(), Package{Dir: "implementations/go/internal/adapter/bridge", Layer: "adapter", Doc: "bridge", Imports: []string{live}},
+				Package{Dir: "implementations/go/cmd/raes-mcp", Layer: "command", Doc: "raes-mcp", Imports: []string{"implementations/go/internal/adapter/bridge"}})
+		}},
+		{"private import", "not an implemented public RAE consumer package", func(m *Model) {
+			m.Packages = append(m.Packages, runtime("implementations/go/internal/base/jsonpointer"))
+		}},
+		{"runtime entrypoint", "not an implemented public RAE consumer package", func(m *Model) {
+			m.Packages = append(m.Packages, Package{Dir: "implementations/go/cmd/raes", Layer: "command", Doc: "raes", Imports: []string{"implementations/go/internal/base/jsonpointer"}})
+		}},
+		{"hidden consumer package", "must be public", func(m *Model) {
+			editPackage(m, "implementations/go/base/fault", func(p *Package) { p.Public = false })
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := consumerModel(t)
+			tc.change(m)
+			if got := m.checkConsumerImports(m.ConsumerAPI); !hasFinding(got, "ARCH-015", tc.problem) {
+				t.Errorf("checkConsumerImports() = %v, want %q", got, tc.problem)
+			}
+		})
+	}
+	m := consumerModel(t)
+	m.Packages = append(m.Packages, runtime("implementations/go/contract/binding"))
+	if findings := m.checkConsumerImports(m.ConsumerAPI); len(findings) != 0 {
+		t.Errorf("runtime import of a public RAE package: %v", findings)
+	}
+}
+
+// Test files move with their package, so their imports keep the boundary too.
+func TestConsumerTestImportsStayOnTheRepositoryBoundary(t *testing.T) {
+	const live = "implementations/go/internal/runtime/live"
+	for name, tc := range map[string]struct {
+		from, dep, problem string
+	}{
+		"runtime test reaches a RAE helper": {live, "implementations/go/internal/base/jsonpointer", "a test file: runtime code imports"},
+		"RAE test imports runtime":          {"implementations/go/base/digest", live, "a test file: the RAE package imports runtime"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			m := consumerModel(t)
+			m.Packages = append(m.Packages, Package{Dir: live, Layer: "runtime", Doc: "live"})
+			code := Code{Packages: map[string]Imports{tc.from: {Test: []string{tc.dep}}}}
+			if got := m.checkConsumerTestImports(code); !hasFinding(got, "ARCH-015", tc.problem) {
+				t.Errorf("checkConsumerTestImports() = %v, want %q", got, tc.problem)
+			}
+		})
+	}
+	m := consumerModel(t)
+	m.Packages = append(m.Packages, Package{Dir: live, Layer: "runtime", Doc: "live"})
+	if got := m.checkConsumerTestImports(Code{Packages: map[string]Imports{live: {Test: []string{"implementations/go/contract/binding"}}}}); len(got) != 0 {
+		t.Errorf("runtime test import of a public RAE package: %v", got)
 	}
 }

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
-	"github.com/OpenRAE/rae/implementations/go/internal/contract/validation"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
 
 // schemaRunner retains compiler errors as harness failures, not invalid inputs.
