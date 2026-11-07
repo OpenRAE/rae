@@ -1,8 +1,7 @@
 # TechVault scenario-family variation selection.
-#
-# SDL declares the bounded variation domains. This experiment declares how
-# those domains are used before trial compilation; it does not copy SDL
-# targets/domains and it does not produce trial entries.
+# SDL owns the bounded variation domains.
+# This input declares their use before trial compilation.
+# It copies no SDL targets or domains and produces no trial entries.
 schema_version: experiment-authoring-input/v1
 spec_id: spec-techvault-variation-selection-v1
 spec_version: 1.0.0
