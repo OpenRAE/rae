@@ -2,7 +2,7 @@
 # ruff: noqa: E402, I001
 """Print the first-party component dependency view of the RAES packages as Mermaid.
 
-The Ground Control design review runs this as ``workflow.design.wiring_command``.
+Run this by hand. The Ground Control schema 1 configuration has no design commands.
 grimp parses the package source through ``tools.policy.import_graph`` (ADR-117);
 nothing imports or runs the analyzed code. The command reads the source and the
 import-linter contracts, writes the graph to stdout and writes no files.
