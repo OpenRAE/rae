@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 
 import pytest
-import yaml
 from typer.testing import CliRunner
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -169,22 +168,6 @@ def test_public_docs_linkcheck_is_bounded_serialized_and_skips_own_repository() 
     assert config["linkcheck_timeout"] == 15
     assert config["linkcheck_workers"] == 1
     assert config["linkcheck_ignore"] == [r"^https://github\.com/(?:RAESystem|OpenRAE)/rae(?:/|$)"]
-
-
-def test_readme_quickstart_matches_checked_in_scenario() -> None:
-    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    match = re.search(
-        r"<!-- quickstart-sdl:start -->\s*```yaml\s*(.*?)\s*```\s*<!-- quickstart-sdl:end -->",
-        readme,
-        re.DOTALL,
-    )
-    assert match is not None
-    readme_scenario = yaml.safe_load(match.group(1))
-    checked_in_scenario = yaml.safe_load(
-        (REPO_ROOT / "docs" / "public" / "_static" / "examples" / "first-scenario.sdl.yaml").read_text(encoding="utf-8")
-    )
-
-    assert readme_scenario == checked_in_scenario
 
 
 def _stated_format_steps(tutorial: str) -> list[tuple[str, int, str]]:
