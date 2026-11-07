@@ -1,6 +1,9 @@
 package admission
 
-import "strings"
+import (
+	"strings"
+	"unicode"
+)
 
 func (e *Validator) ucoCatalog(v any) error {
 	expected := map[string]string{}
@@ -44,7 +47,9 @@ func ucoAlignment(v any) error {
 
 func conceptFamilyKeys(v any) error {
 	for key := range object(at(v, "families")) {
-		if strings.TrimSpace(key) == "" {
+		if strings.TrimFunc(key, func(r rune) bool {
+			return unicode.IsSpace(r) || r >= 0x1c && r <= 0x1f
+		}) == "" {
 			return invalid()
 		}
 	}

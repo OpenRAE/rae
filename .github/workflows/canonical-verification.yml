@@ -590,7 +590,7 @@ jobs:
   go:
     needs: trust-ref
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 25 }}
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || (matrix.name == 'tooling' && 40 || 25) }}
     strategy:
       fail-fast: false
       matrix:
@@ -690,7 +690,7 @@ jobs:
           log="${RUNNER_TEMP}/go-test-${{ matrix.name }}.log"
           # Give each race-tested package the runner CPUs within its package timeout.
           # Stream top-level progress while retaining complete test diagnostics.
-          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... -p 1 2>&1 |
+          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... -p 1 -timeout 20m 2>&1 |
             tee "${log}" |
             awk '/^=== RUN   Test[^/ ]+$/ || /^--- (PASS|FAIL): Test/ || /^panic:/ || /^FAIL/ { print; fflush() }'; then
             cat "${log}"
@@ -987,7 +987,9 @@ jobs:
             -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
           echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
       - name: Prepare pinned dependencies for offline API inspection
-        run: go -C implementations/go mod download
+        run: |
+          go -C implementations/go mod download
+          go -C implementations/tooling/go mod download
       - name: Check the Go code against the architecture model
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck
@@ -1048,11 +1050,54 @@ jobs:
         id: result
         run: echo "outcome=${{ steps.scan.outcome }}" >> "${GITHUB_OUTPUT}"
 
+  governance-parity:
+    needs: trust-ref
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GOTOOLCHAIN: local
+      GOFLAGS: -mod=readonly
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Install the frozen Python reference environment
+        run: |
+          uv sync --project implementations/python --frozen --extra docs
+          uv sync --project implementations/tooling/python --frozen --no-default-groups
+      - name: Install the locked Go toolchain
+        run: |
+          kit="${RUNNER_TEMP}/go-kit"
+          mkdir "${kit}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile fetch-inputs public-ubuntu-24.04-x86_64 "${kit}" --artifact-id go
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
+          echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Compare native governance with the retained Python tools
+        id: compare-governance
+        env:
+          GOVERNANCE_REFERENCE_PYTHON: ${{ github.workspace }}/implementations/python/.venv/bin/python
+          GOVERNANCE_REFERENCE_TOOLING_PYTHON: ${{ github.workspace }}/implementations/tooling/python/.venv/bin/python
+        run: |
+          go -C implementations/tooling/go test ./governance \
+            -run '^(TestReferenceParity|TestLiveReferenceParity)$' -count=1 -v
+
   # Fail-closed aggregate over every required job. A skipped or cancelled producer
   # is distinguished from success, so a missing shard or a skipped reducer fails
   # the gate rather than silently passing.
   gate:
-    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go, go-architecture, parity-corpus]
+    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go, go-architecture, parity-corpus, governance-parity]
     if: always()
     runs-on: ubuntu-24.04
     outputs:
@@ -1070,6 +1115,7 @@ jobs:
           GO_RESULT: ${{ needs.go.result }}
           GO_ARCHITECTURE_RESULT: ${{ needs.go-architecture.result }}
           PARITY_CORPUS_RESULT: ${{ needs.parity-corpus.result }}
+          GOVERNANCE_PARITY_RESULT: ${{ needs.governance-parity.result }}
         run: |
           set -euo pipefail
           failed=""
@@ -1082,7 +1128,8 @@ jobs:
             "coverage-reduce:${REDUCE_RESULT}" \
             "go:${GO_RESULT}" \
             "go-architecture:${GO_ARCHITECTURE_RESULT}" \
-            "parity-corpus:${PARITY_CORPUS_RESULT}"; do
+            "parity-corpus:${PARITY_CORPUS_RESULT}" \
+            "governance-parity:${GOVERNANCE_PARITY_RESULT}"; do
             name="${pair%%:*}"
             result="${pair#*:}"
             if [ "${result}" != "success" ]; then

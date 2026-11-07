@@ -15,11 +15,15 @@ workflow:
     wiring_command: d="$(mktemp -d)" && trap 'rm -rf "$d"' EXIT && go -C implementations/tooling/go build -o "$d/archcheck" ./cmd/archcheck && task_toolchain="$(go -C implementations/tooling/go env GOROOT)" && PATH="$task_toolchain/bin:$PATH" "$d/archcheck" -view
     acceptance_command: |
       request=$(cat)
-      printf '%s' "$request" | jq -e '.test_file == "implementations/go/contract/admission/python_pattern_public_test.go"' >/dev/null || exit 1
+      case "$(printf '%s' "$request" | jq -er '.test_file')" in
+        implementations/go/contract/admission/python_pattern_public_test.go) module=implementations/go; package=./contract/admission ;;
+        implementations/tooling/go/governance/acceptance_test.go|implementations/tooling/go/governance/acceptance_workflow_test.go|implementations/tooling/go/governance/boundary_test.go) module=implementations/tooling/go; package=./governance ;;
+        *) exit 1 ;;
+      esac
       test=$(printf '%s' "$request" | jq -er '.test_name | select(test("^Test[A-Za-z0-9_]+$"))') || exit 1
       output=$(mktemp)
       trap 'rm -f "$output"' EXIT
-      go -C implementations/go test -json ./contract/admission -run "^${test}$" -count=1 >"$output" || :
+      go -C "$module" test -json "$package" -run "^${test}$" -count=1 >"$output" || :
       jq -s --arg name "$test" '{test_name: $name,
         matches: ([.[] | select(.Action == "run" and .Test == $name)] | length),
         status: (if any(.[]; .Action == "fail" and .Test == $name) then "failed"
@@ -78,5 +82,16 @@ architecture:
         - implementations/tooling/go/arch/model.go
       adrs:
         - docs/decisions/adrs/adr-061-published-schema-evolution-policy.md
+        - docs/decisions/adrs/adr-121-go-engineering-standards.md
+        - docs/decisions/adrs/adr-122-go-architecture-model.md
+
+    - path: implementations/tooling/go
+      implementations:
+        - implementations/tooling/go/cmd/archcheck/main.go
+        - tools/policy/common.py
+        - tools/policy/repo_policy.py
+      adrs:
+        - docs/decisions/adrs/adr-059-adr-amendment-policy-and-pin-gate.md
+        - docs/decisions/adrs/adr-096-identity-cutover-and-historical-record-boundary.md
         - docs/decisions/adrs/adr-121-go-engineering-standards.md
         - docs/decisions/adrs/adr-122-go-architecture-model.md
